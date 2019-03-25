@@ -27,6 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -135,7 +136,7 @@ public class HealthMonitor implements PwmService
             return;
         }
 
-        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         status = STATUS.OPEN;
     }
@@ -151,12 +152,12 @@ public class HealthMonitor implements PwmService
         {
             final Instant startTime = Instant.now();
             LOGGER.trace( () ->  "begin force immediate check" );
-            final Future future = pwmApplication.scheduleFutureJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
+            final Future future = pwmApplication.getPwmScheduler().scheduleFutureJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
             JavaHelper.pause( settings.getMaximumForceCheckWait().asMillis(), 500, o -> future.isDone() );
             LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone() + ", " + TimeDuration.compactFromCurrent( startTime ) );
         }
 
-        pwmApplication.scheduleFutureJob( new UpdateJob(), executorService, settings.getNominalCheckInterval() );
+        pwmApplication.getPwmScheduler().scheduleFutureJob( new UpdateJob(), executorService, settings.getNominalCheckInterval() );
 
         {
             final HealthData localHealthData = this.healthData;

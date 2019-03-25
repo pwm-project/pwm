@@ -32,6 +32,7 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.Sleeper;
 import password.pwm.util.java.TimeDuration;
@@ -252,8 +253,8 @@ public class SharedHistoryManager implements PwmService
             final TimeDuration frequency = TimeDuration.of( frequencyMs, TimeDuration.Unit.MILLISECONDS );
 
             LOGGER.debug( () -> "scheduling cleaner task to run once every " + frequency.asCompactString() );
-            executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
-            pwmApplication.scheduleFixedRateJob( new CleanerTask(), executorService, null, frequency );
+            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), executorService, null, frequency );
         }
     }
 
@@ -497,7 +498,7 @@ public class SharedHistoryManager implements PwmService
                 LOGGER.debug( () -> "starting up in background thread" );
                 init( pwmApplication, settings.maxAgeMs );
             }
-        }, JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + " initializer" ).start();
+        }, PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + " initializer" ).start();
     }
 
     private static class Settings

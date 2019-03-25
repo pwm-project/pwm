@@ -39,6 +39,7 @@ import password.pwm.health.HealthTopic;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -110,12 +111,12 @@ public class DatabaseService implements PwmService
         this.pwmApplication = pwmApplication;
         init();
 
-        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         final TimeDuration watchdogFrequency = TimeDuration.of(
                 Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) ),
                 TimeDuration.Unit.SECONDS );
-        pwmApplication.scheduleFixedRateJob( new ConnectionMonitor(), executorService, watchdogFrequency, watchdogFrequency );
+        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ConnectionMonitor(), executorService, watchdogFrequency, watchdogFrequency );
     }
 
     private synchronized void init( )

@@ -27,6 +27,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -65,9 +66,9 @@ class NodeMachine
         this.clusterDataServiceProvider = clusterDataServiceProvider;
         this.settings = nodeServiceSettings;
 
-        this.executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, NodeMachine.class );
+        this.executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, NodeMachine.class );
 
-        pwmApplication.scheduleFixedRateJob( new HeartbeatProcess(), executorService, settings.getHeartbeatInterval(), settings.getHeartbeatInterval() );
+        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new HeartbeatProcess(), executorService, settings.getHeartbeatInterval(), settings.getHeartbeatInterval() );
     }
 
     public void close( )

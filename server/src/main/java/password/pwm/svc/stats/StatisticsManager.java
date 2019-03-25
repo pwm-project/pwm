@@ -30,6 +30,7 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -329,10 +330,9 @@ public class StatisticsManager implements PwmService
 
         {
             // setup a timer to roll over at 0 Zulu and one to write current stats regularly
-            executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
-            pwmApplication.scheduleFixedRateJob( new FlushTask(), executorService, DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
-            final TimeDuration delayTillNextZulu = TimeDuration.fromCurrent( JavaHelper.nextZuluZeroTime() );
-            pwmApplication.scheduleFixedRateJob( new NightlyTask(), executorService, delayTillNextZulu, TimeDuration.DAY );
+            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new FlushTask(), executorService, DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
+            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new NightlyTask(), executorService, TimeDuration.ZERO );
         }
 
         status = STATUS.OPEN;

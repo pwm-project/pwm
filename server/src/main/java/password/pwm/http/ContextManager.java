@@ -36,6 +36,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PropertyConfigurationImporter;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -274,8 +275,8 @@ public class ContextManager implements Serializable
         }
 
         taskMaster = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
+                PwmScheduler.makePwmThreadFactory(
+                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-",
                         true
                 ) );
 

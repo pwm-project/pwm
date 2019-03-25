@@ -41,6 +41,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.BlockingThreadPool;
 import password.pwm.util.java.ClosableIterator;
@@ -142,7 +143,7 @@ public class ReportService implements PwmService
 
         dnQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.REPORT_QUEUE );
 
-        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         LOGGER.debug( () -> "report service started" );
 
@@ -397,7 +398,7 @@ public class ReportService implements PwmService
                         if ( executorService != null )
                         {
                             LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "directory unavailable error during background SearchLDAP, will retry; error: " + e.getMessage() );
-                            pwmApplication.scheduleFutureJob( new ReadLDAPTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
+                            pwmApplication.getPwmScheduler().scheduleFutureJob( new ReadLDAPTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                             errorProcessed = true;
                         }
                     }
@@ -476,7 +477,7 @@ public class ReportService implements PwmService
                         if ( executorService != null )
                         {
                             LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "directory unavailable error during background ReadData, will retry; error: " + e.getMessage() );
-                            pwmApplication.scheduleFutureJob( new ProcessWorkQueueTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
+                            pwmApplication.getPwmScheduler().scheduleFutureJob( new ProcessWorkQueueTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                         }
                     }
                     else
@@ -664,11 +665,8 @@ public class ReportService implements PwmService
             final boolean reportingEnabled = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB );
             if ( reportingEnabled )
             {
-                final Instant nextZuluZeroTime = JavaHelper.nextZuluZeroTime();
-                final long secondsUntilNextDredge = settings.getJobOffsetSeconds() + TimeDuration.fromCurrent( nextZuluZeroTime ).as( TimeDuration.Unit.SECONDS );
-                final TimeDuration initialDelay = TimeDuration.of( secondsUntilNextDredge, TimeDuration.Unit.SECONDS );
-                pwmApplication.scheduleFixedRateJob( new DailyJobExecuteTask(), executorService, initialDelay, TimeDuration.DAY );
-                LOGGER.debug( () -> "scheduled daily execution, next task will be at " + nextZuluZeroTime.toString() );
+                final TimeDuration jobOffset = TimeDuration.of( settings.getJobOffsetSeconds(), TimeDuration.Unit.SECONDS );
+                pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailyJobExecuteTask(), executorService, jobOffset );
             }
         }
 

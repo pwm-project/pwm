@@ -30,6 +30,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -113,12 +114,12 @@ public final class WorkQueueProcessor<W extends Serializable>
 
         this.workerThread = new WorkerThread();
         workerThread.setDaemon( true );
-        workerThread.setName( JavaHelper.makeThreadName( pwmApplication, sourceClass ) + "-worker-" );
+        workerThread.setName( PwmScheduler.makeThreadName( pwmApplication, sourceClass ) + "-worker-" );
         workerThread.start();
 
         if ( settings.getPreThreads() > 0 )
         {
-            final ThreadFactory threadFactory = JavaHelper.makePwmThreadFactory( JavaHelper.makeThreadName( pwmApplication, sourceClass ), true );
+            final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, sourceClass ), true );
             executorService = new ThreadPoolExecutor(
                     1,
                     settings.getPreThreads(),

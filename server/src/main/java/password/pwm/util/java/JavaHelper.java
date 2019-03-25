@@ -26,7 +26,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jetbrains.exodus.core.dataStructures.hash.LinkedHashMap;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -54,13 +53,11 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -68,13 +65,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -206,16 +197,6 @@ public class JavaHelper
             chars[ 2 * i + 1 ] = hexChars[ buf[ i ] & 0x0F ];
         }
         return new String( chars );
-    }
-
-    public static Instant nextZuluZeroTime( )
-    {
-        final Calendar nextZuluMidnight = GregorianCalendar.getInstance( TimeZone.getTimeZone( "Zulu" ) );
-        nextZuluMidnight.set( Calendar.HOUR_OF_DAY, 0 );
-        nextZuluMidnight.set( Calendar.MINUTE, 0 );
-        nextZuluMidnight.set( Calendar.SECOND, 0 );
-        nextZuluMidnight.add( Calendar.HOUR, 24 );
-        return nextZuluMidnight.getTime().toInstant();
     }
 
     public static <E extends Enum<E>> List<E> readEnumListFromStringCollection( final Class<E> enumClass, final Collection<String> inputs )
@@ -420,38 +401,6 @@ public class JavaHelper
         return false;
     }
 
-    public static String makeThreadName( final PwmApplication pwmApplication, final Class theClass )
-    {
-        String instanceName = "-";
-        if ( pwmApplication != null && pwmApplication.getInstanceID() != null )
-        {
-            instanceName = pwmApplication.getInstanceID();
-        }
-
-        return PwmConstants.PWM_APP_NAME + "-" + instanceName + "-" + theClass.getSimpleName();
-    }
-
-    public static ThreadFactory makePwmThreadFactory( final String namePrefix, final boolean daemon )
-    {
-        return new ThreadFactory()
-        {
-            private final ThreadFactory realThreadFactory = Executors.defaultThreadFactory();
-
-            @Override
-            public Thread newThread( final Runnable r )
-            {
-                final Thread t = realThreadFactory.newThread( r );
-                t.setDaemon( daemon );
-                if ( namePrefix != null )
-                {
-                    final String newName = namePrefix + t.getName();
-                    t.setName( newName );
-                }
-                return t;
-            }
-        };
-    }
-
     public static Collection<Method> getAllMethodsForClass( final Class clazz )
     {
         final LinkedHashSet<Method> methods = new LinkedHashSet<>();
@@ -472,36 +421,6 @@ public class JavaHelper
             throws IOException
     {
         return new CSVPrinter( new OutputStreamWriter( outputStream, PwmConstants.DEFAULT_CHARSET ), PwmConstants.DEFAULT_CSV_FORMAT );
-    }
-
-    public static ScheduledExecutorService makeSingleThreadExecutorService(
-            final PwmApplication pwmApplication,
-            final Class clazz
-    )
-    {
-        return Executors.newSingleThreadScheduledExecutor(
-                makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, clazz ) + "-",
-                        true
-                ) );
-    }
-
-    public static ExecutorService makeBackgroundExecutor(
-            final PwmApplication pwmApplication,
-            final Class clazz
-    )
-    {
-        final ThreadPoolExecutor executor = new ThreadPoolExecutor(
-                1,
-                1,
-                10, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(),
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, clazz ) + "-",
-                        true
-                ) );
-        executor.allowCoreThreadTimeOut( true );
-        return executor;
     }
 
     /**

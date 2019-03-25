@@ -35,6 +35,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.svc.PwmService;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
@@ -93,7 +94,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         this.wordklistBucket = new WordlistBucket( pwmApplication, wordlistConfiguration, type );
 
-        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         if ( pwmApplication.getLocalDB() != null )
         {
@@ -107,7 +108,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             lastError = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
         }
 
-        pwmApplication.scheduleFixedRateJob( new InspectorJob(), executorService, TimeDuration.SECOND, wordlistConfiguration.getInspectorFrequency() );
+        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new InspectorJob(), executorService, TimeDuration.SECOND, wordlistConfiguration.getInspectorFrequency() );
     }
 
     boolean containsWord( final String word ) throws PwmUnrecoverableException

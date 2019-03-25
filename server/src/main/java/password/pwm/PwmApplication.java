@@ -25,7 +25,6 @@ package password.pwm;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import org.jetbrains.annotations.NotNull;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
@@ -66,6 +65,7 @@ import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.DailySummaryJob;
 import password.pwm.util.MBeanUtility;
 import password.pwm.util.PasswordData;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseService;
@@ -101,11 +101,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -169,7 +166,7 @@ public class PwmApplication
 
     private final PwmServiceManager pwmServiceManager = new PwmServiceManager( this );
 
-    private ScheduledExecutorService applicationExecutorService;
+    private PwmScheduler pwmScheduler;
 
     public PwmApplication( final PwmEnvironment pwmEnvironment )
             throws PwmUnrecoverableException
@@ -287,7 +284,7 @@ public class PwmApplication
         LOGGER.debug( () -> "application environment flags: " + JsonUtil.serializeCollection( pwmEnvironment.getFlags() ) );
         LOGGER.debug( () -> "application environment parameters: " + JsonUtil.serializeMap( pwmEnvironment.getParameters() ) );
 
-        applicationExecutorService = JavaHelper.makeSingleThreadExecutorService( this, this.getClass() );
+        pwmScheduler = new PwmScheduler( getInstanceID() );
 
         pwmServiceManager.initAllServices();
 
@@ -301,8 +298,7 @@ public class PwmApplication
             StatisticsManager.incrementStat( this, Statistic.PWM_STARTUPS );
             LOGGER.debug( () -> "buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
-            final ExecutorService executorService = JavaHelper.makeSingleThreadExecutorService( this, PwmApplication.class );
-            scheduleFutureJob( this::postInitTasks, executorService, TimeDuration.ZERO );
+            pwmScheduler.immediateExecuteInNewThread( this::postInitTasks );
         }
 
 
@@ -424,8 +420,8 @@ public class PwmApplication
         }
 
         {
-            final ExecutorService executorService = JavaHelper.makeSingleThreadExecutorService( this, PwmApplication.class );
-            this.scheduleFixedRateJob( new DailySummaryJob( this ), executorService, TimeDuration.fromCurrent( JavaHelper.nextZuluZeroTime() ), TimeDuration.DAY );
+            final ExecutorService executorService = PwmScheduler.makeSingleThreadExecutorService( this, PwmApplication.class );
+            pwmScheduler.scheduleDailyZuluZeroStartJob( new DailySummaryJob( this ), executorService, TimeDuration.ZERO );
         }
 
         LOGGER.trace( () -> "completed post init tasks in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
@@ -796,7 +792,7 @@ public class PwmApplication
 
     public void shutdown( )
     {
-        applicationExecutorService.shutdown();
+        pwmScheduler.shutdown();
 
         LOGGER.warn( "shutting down" );
         {
@@ -1035,124 +1031,9 @@ public class PwmApplication
         return inprogressRequests;
     }
 
-
-    public Future scheduleFutureJob(
-            final Runnable runnable,
-            final ExecutorService executor,
-            final TimeDuration delay
-    )
+    public PwmScheduler getPwmScheduler()
     {
-        Objects.requireNonNull( runnable );
-        Objects.requireNonNull( executor );
-        Objects.requireNonNull( delay );
-
-        if ( applicationExecutorService.isShutdown() )
-        {
-            return null;
-        }
-
-        final WrappedRunner wrappedRunner = new WrappedRunner( runnable, executor );
-        applicationExecutorService.schedule( wrappedRunner, delay.asMillis(), TimeUnit.MILLISECONDS );
-        return wrappedRunner.getFuture();
-    }
-
-    public void scheduleFixedRateJob(
-            final Runnable runnable,
-            final ExecutorService executor,
-            final TimeDuration initialDelay,
-            final TimeDuration frequency
-    )
-    {
-        if ( applicationExecutorService.isShutdown() )
-        {
-            return;
-        }
-
-        if ( initialDelay != null )
-        {
-            applicationExecutorService.schedule( new WrappedRunner( runnable, executor ), initialDelay.asMillis(), TimeUnit.MILLISECONDS );
-        }
-
-        final Runnable jobWithNextScheduler = () ->
-        {
-            new WrappedRunner( runnable, executor ).run();
-            scheduleFixedRateJob( runnable, executor, null, frequency );
-        };
-
-        applicationExecutorService.schedule(  jobWithNextScheduler, frequency.asMillis(), TimeUnit.MILLISECONDS );
-    }
-
-    private static class WrappedRunner implements Runnable
-    {
-        private final Runnable runnable;
-        private final ExecutorService executor;
-        private volatile Future innerFuture;
-        private volatile boolean hasFailed;
-
-        WrappedRunner( final Runnable runnable, final ExecutorService executor )
-        {
-            this.runnable = runnable;
-            this.executor = executor;
-        }
-
-        Future getFuture()
-        {
-            return new Future()
-            {
-                @Override
-                public boolean cancel( final boolean mayInterruptIfRunning )
-                {
-                    return false;
-                }
-
-                @Override
-                public boolean isCancelled()
-                {
-                    return hasFailed;
-                }
-
-                @Override
-                public boolean isDone()
-                {
-                    return hasFailed || innerFuture != null && innerFuture.isDone();
-                }
-
-                @Override
-                public Object get()
-                {
-                    return null;
-                }
-
-                @Override
-                public Object get( final long timeout, @NotNull final TimeUnit unit )
-                {
-                    return null;
-                }
-            };
-        }
-
-
-        @Override
-        public void run()
-        {
-            try
-            {
-                if ( !executor.isShutdown() )
-                {
-                    innerFuture = executor.submit( runnable );
-                }
-                else
-                {
-                    hasFailed = true;
-                    LOGGER.trace( () -> "skipping scheduled job " + runnable + " on shutdown executor + " + executor );
-                }
-            }
-            catch ( Throwable t )
-            {
-                LOGGER.error( "unexpected error running scheduled job: " + t.getMessage(), t );
-                hasFailed = true;
-            }
-        }
+        return pwmScheduler;
     }
 }
 

@@ -53,6 +53,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.DataStore;
 import password.pwm.util.DataStoreFactory;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
@@ -171,7 +172,7 @@ public class IntruderManager implements PwmService
         final RecordStore recordStore;
         {
             recordStore = new DataStoreRecordStore( dataStore, this );
-            final String threadName = JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + " timer";
+            final String threadName = PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + " timer";
             timer = new Timer( threadName, true );
             final long maxRecordAge = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_RETENTION_TIME_MS ) );
             final long cleanerRunFrequency = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_CLEANUP_FREQUENCY_MS ) );
