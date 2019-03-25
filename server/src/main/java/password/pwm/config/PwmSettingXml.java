@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class PwmSettingXml
 {
-    private static final String SETTING_XML_FILENAME = ( PwmSetting.class.getPackage().getName()
+    public static final String SETTING_XML_FILENAME = ( PwmSetting.class.getPackage().getName()
             + "." + PwmSetting.class.getSimpleName() ).replace( ".", "/" ) + ".xml";
 
     public static final String XML_ELEMENT_LDAP_PERMISSION = "ldapPermission";

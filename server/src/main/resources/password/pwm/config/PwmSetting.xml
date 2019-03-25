@@ -711,12 +711,6 @@
             <property key="Maximum">65535</property>
         </properties>
     </setting>
-    <setting hidden="false" key="email.default.fromAddresses" level="1">
-        <flag>emailSyntax</flag>
-        <default>
-            <value>noreply@example.org</value>
-        </default>
-    </setting>
     <setting hidden="false" key="email.smtp.username" level="1">
         <default>
             <value />
@@ -2583,11 +2577,6 @@
         <ldapPermission actor="proxy" access="read"/>
         <default />
     </setting>
-    <setting hidden="false" key="challenge.token.enable" level="1" required="true">
-        <default>
-            <value>false</value>
-        </default>
-    </setting>
     <setting hidden="false" key="challenge.token.sendMethod" level="1" required="true">
         <default>
             <value><![CDATA[EMAILONLY]]></value>
@@ -2893,13 +2882,6 @@
             <option value="checkbox">checkbox</option>
         </options>
     </setting>
-    <setting hidden="false" key="guest.creationUniqueAttributes" level="1">
-        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
-        <default>
-            <value><![CDATA[cn]]></value>
-            <value><![CDATA[mail]]></value>
-        </default>
-    </setting>
     <setting hidden="false" key="guest.writeAttributes" level="1">
         <ldapPermission actor="guestManager" access="write"/>
         <default />
@@ -2936,11 +2918,6 @@
     <setting hidden="false" key="activateUser.allowUnlock" level="1" required="true">
         <default>
             <value>true</value>
-        </default>
-    </setting>
-    <setting hidden="false" key="activateUser.token.verification" level="1" required="true">
-        <default>
-            <value>false</value>
         </default>
     </setting>
     <setting hidden="false" key="display.activateUser.agreement" level="1">
@@ -3880,11 +3857,6 @@
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
-    <setting hidden="false" key="reporting.maxCacheAge" level="1">
-        <default>
-            <value>2592000</value>
-        </default>
-    </setting>
     <setting hidden="false" key="reporting.ldap.maxQuerySize" level="2">
         <default>
             <value>100000</value>
@@ -4172,8 +4144,6 @@
     </category>
     <category hidden="false" key="EMAIL_SERVERS">
         <profile setting="email.profile.list"/>
-    </category>
-    <category hidden="false" key="EMAIL_PROFILE_SETTING">
     </category>
     <category hidden="false" key="EMAIL">
     </category>

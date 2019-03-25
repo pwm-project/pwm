@@ -195,6 +195,8 @@ public class NewUserServlet extends ControlledPwmServlet
     protected void nextStep( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
+        TimeDuration.of( 8, TimeDuration.Unit.SECONDS ).pause();
+
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();

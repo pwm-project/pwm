@@ -216,8 +216,8 @@ PWM_MAIN.initPage = function() {
     PWM_MAIN.TimestampHandler.initAllElements();
 
     ShowHidePasswordHandler.initAllForms();
-
-    PWM_MAIN.log('initPage completed');
+    var loadTime = window.performance.timing.domContentLoadedEventEnd-window.performance.timing.navigationStart;
+    PWM_MAIN.log('initPage completed [load time=' + loadTime + ']');
 };
 
 PWM_MAIN.initDisplayTabPreferences = function() {
@@ -271,6 +271,7 @@ PWM_MAIN.applyFormAttributes = function() {
         var hrefValue = linkElement.getAttribute('href');
         if (hrefValue && hrefValue.charAt(0) !== '#') {
             PWM_MAIN.addEventHandler(linkElement, "click", function (event) {
+                console.log('intercepted anchor click event');
                 event.preventDefault();
                 PWM_MAIN.showWaitDialog({loadFunction: function () {
                         PWM_MAIN.gotoUrl(hrefValue);

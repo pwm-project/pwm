@@ -22,14 +22,12 @@
 
 package password.pwm.http;
 
-import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
+import password.pwm.util.ServletUtility;
 import password.pwm.util.Validator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -39,9 +37,6 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -117,41 +112,7 @@ public class PwmHttpRequestWrapper
     public String readRequestBodyAsString( final int maxChars )
             throws IOException, PwmUnrecoverableException
     {
-        return readRequestBodyAsString( this.getHttpServletRequest(), maxChars );
-    }
-
-    public static String readRequestBodyAsString( final HttpServletRequest httpServletRequest, final int maxChars )
-            throws IOException, PwmUnrecoverableException
-    {
-        final StringWriter stringWriter = new StringWriter();
-        final Reader readerStream = new InputStreamReader(
-                httpServletRequest.getInputStream(),
-                PwmConstants.DEFAULT_CHARSET
-        );
-
-        try
-        {
-            IOUtils.copy( readerStream, stringWriter );
-        }
-        catch ( Exception e )
-        {
-            final String errorMsg = "error reading request body stream: " + e.getMessage();
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( readerStream );
-        }
-
-        final String stringValue = stringWriter.toString();
-        if ( stringValue.length() > maxChars )
-        {
-            throw new PwmUnrecoverableException( new ErrorInformation(
-                    PwmError.ERROR_INTERNAL,
-                    "input request body is to big, size=" + stringValue.length() + ", max=" + maxChars )
-            );
-        }
-        return stringValue;
+        return ServletUtility.readRequestBodyAsString( this.getHttpServletRequest(), maxChars );
     }
 
     public Map<String, String> readBodyAsJsonStringMap( final Flag... flags )

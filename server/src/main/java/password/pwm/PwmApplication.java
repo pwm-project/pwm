@@ -25,6 +25,7 @@ package password.pwm;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import org.jetbrains.annotations.NotNull;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
@@ -43,7 +44,6 @@ import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
-import password.pwm.svc.node.NodeService;
 import password.pwm.svc.email.EmailService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -51,6 +51,7 @@ import password.pwm.svc.event.AuditService;
 import password.pwm.svc.event.SystemAuditRecord;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.node.NodeService;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
@@ -62,6 +63,7 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistService;
+import password.pwm.util.DailySummaryJob;
 import password.pwm.util.MBeanUtility;
 import password.pwm.util.PasswordData;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
@@ -99,9 +101,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -298,8 +301,11 @@ public class PwmApplication
             StatisticsManager.incrementStat( this, Statistic.PWM_STARTUPS );
             LOGGER.debug( () -> "buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
-            applicationExecutorService.execute( () -> postInitTasks() );
+            final ExecutorService executorService = JavaHelper.makeSingleThreadExecutorService( this, PwmApplication.class );
+            scheduleFutureJob( this::postInitTasks, executorService, TimeDuration.ZERO );
         }
+
+
     }
 
     private void postInitTasks( )
@@ -415,6 +421,11 @@ public class PwmApplication
         catch ( Exception e )
         {
             LOGGER.debug( () -> "error initializing UserAgentUtils: " + e.getMessage() );
+        }
+
+        {
+            final ExecutorService executorService = JavaHelper.makeSingleThreadExecutorService( this, PwmApplication.class );
+            this.scheduleFixedRateJob( new DailySummaryJob( this ), executorService, TimeDuration.fromCurrent( JavaHelper.nextZuluZeroTime() ), TimeDuration.DAY );
         }
 
         LOGGER.trace( () -> "completed post init tasks in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
@@ -1024,18 +1035,25 @@ public class PwmApplication
         return inprogressRequests;
     }
 
-    public ScheduledFuture scheduleFutureJob(
+
+    public Future scheduleFutureJob(
             final Runnable runnable,
             final ExecutorService executor,
             final TimeDuration delay
     )
     {
+        Objects.requireNonNull( runnable );
+        Objects.requireNonNull( executor );
+        Objects.requireNonNull( delay );
+
         if ( applicationExecutorService.isShutdown() )
         {
             return null;
         }
 
-        return applicationExecutorService.schedule(  new WrappedRunner( runnable, executor ), delay.asMillis(), TimeUnit.MILLISECONDS );
+        final WrappedRunner wrappedRunner = new WrappedRunner( runnable, executor );
+        applicationExecutorService.schedule( wrappedRunner, delay.asMillis(), TimeUnit.MILLISECONDS );
+        return wrappedRunner.getFuture();
     }
 
     public void scheduleFixedRateJob(
@@ -1068,6 +1086,8 @@ public class PwmApplication
     {
         private final Runnable runnable;
         private final ExecutorService executor;
+        private volatile Future innerFuture;
+        private volatile boolean hasFailed;
 
         WrappedRunner( final Runnable runnable, final ExecutorService executor )
         {
@@ -1075,28 +1095,62 @@ public class PwmApplication
             this.executor = executor;
         }
 
+        Future getFuture()
+        {
+            return new Future()
+            {
+                @Override
+                public boolean cancel( final boolean mayInterruptIfRunning )
+                {
+                    return false;
+                }
+
+                @Override
+                public boolean isCancelled()
+                {
+                    return hasFailed;
+                }
+
+                @Override
+                public boolean isDone()
+                {
+                    return hasFailed || innerFuture != null && innerFuture.isDone();
+                }
+
+                @Override
+                public Object get()
+                {
+                    return null;
+                }
+
+                @Override
+                public Object get( final long timeout, @NotNull final TimeUnit unit )
+                {
+                    return null;
+                }
+            };
+        }
+
+
         @Override
         public void run()
         {
-            if ( executor.isShutdown() )
-            {
-                return;
-            }
-
             try
             {
                 if ( !executor.isShutdown() )
                 {
-                    executor.execute( runnable );
+                    innerFuture = executor.submit( runnable );
                 }
                 else
                 {
+                    hasFailed = true;
                     LOGGER.trace( () -> "skipping scheduled job " + runnable + " on shutdown executor + " + executor );
                 }
             }
             catch ( Throwable t )
             {
                 LOGGER.error( "unexpected error running scheduled job: " + t.getMessage(), t );
+                hasFailed = true;
             }
         }
     }

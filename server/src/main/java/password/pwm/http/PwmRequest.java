@@ -73,11 +73,11 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmRequest.class );
 
-
     private final PwmResponse pwmResponse;
+    private final PwmURL pwmURL;
+
     private transient PwmApplication pwmApplication;
     private transient PwmSession pwmSession;
-    private PwmURL pwmURL;
 
     private final Set<PwmRequestFlag> flags = new HashSet<>();
 
@@ -110,6 +110,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         this.pwmResponse = new PwmResponse( httpServletResponse, this, pwmApplication.getConfig() );
         this.pwmSession = pwmSession;
         this.pwmApplication = pwmApplication;
+        this.pwmURL = new PwmURL( this.getHttpServletRequest() );
     }
 
     public PwmApplication getPwmApplication( )
@@ -371,10 +372,6 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public PwmURL getURL( )
     {
-        if ( pwmURL == null )
-        {
-            pwmURL = new PwmURL( this.getHttpServletRequest() );
-        }
         return pwmURL;
     }
 

@@ -22,6 +22,7 @@
 
 package password.pwm.health;
 
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
@@ -35,21 +36,18 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class HealthMonitor implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HealthMonitor.class );
-
-    private PwmApplication pwmApplication;
-
-    private final Set<HealthRecord> healthRecords = new TreeSet<>();
 
     private static final List<HealthChecker> HEALTH_CHECKERS;
 
@@ -68,29 +66,16 @@ public class HealthMonitor implements PwmService
     private ExecutorService executorService;
     private HealthMonitorSettings settings;
 
-    private volatile Instant lastHealthCheckTime = Instant.ofEpochMilli( 0 );
-    private volatile Instant lastRequestedUpdateTime = Instant.ofEpochMilli( 0 );
-
-    private Map<HealthMonitorFlag, Serializable> healthProperties = new HashMap<>();
+    private Map<HealthMonitorFlag, Serializable> healthProperties = new ConcurrentHashMap<>();
 
     private STATUS status = STATUS.NEW;
+    private PwmApplication pwmApplication;
+    private volatile HealthData healthData = emptyHealthData();
 
     enum HealthMonitorFlag
     {
         LdapVendorSameCheck,
         AdPasswordPolicyApiCheck,
-    }
-
-    public enum CheckTimeliness
-    {
-        /* Execute update immediately and wait for results */
-        Immediate,
-
-        /* Take current data unless its ancient */
-        CurrentButNotAncient,
-
-        /* Take current data even if its ancient and never block */
-        NeverBlock,
     }
 
     public HealthMonitor( )
@@ -103,16 +88,17 @@ public class HealthMonitor implements PwmService
         {
             return null;
         }
-        return lastHealthCheckTime;
+        final HealthData healthData = this.healthData;
+        return healthData != null ? healthData.getTimeStamp() : Instant.ofEpochMilli( 0 );
     }
 
-    public HealthStatus getMostSevereHealthStatus( final CheckTimeliness timeliness )
+    public HealthStatus getMostSevereHealthStatus( )
     {
         if ( status != STATUS.OPEN )
         {
             return HealthStatus.GOOD;
         }
-        return getMostSevereHealthStatus( getHealthRecords( timeliness ) );
+        return getMostSevereHealthStatus( getHealthRecords( ) );
     }
 
     public static HealthStatus getMostSevereHealthStatus( final Collection<HealthRecord> healthRecords )
@@ -149,42 +135,38 @@ public class HealthMonitor implements PwmService
             return;
         }
 
-
         executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
-        pwmApplication.scheduleFixedRateJob( new ScheduledUpdater(), executorService, TimeDuration.SECONDS_10, settings.getNominalCheckInterval() );
 
         status = STATUS.OPEN;
     }
 
-    public Set<HealthRecord> getHealthRecords( final CheckTimeliness timeliness )
+    public Set<HealthRecord> getHealthRecords( )
     {
         if ( status != STATUS.OPEN )
         {
             return Collections.emptySet();
         }
 
-        lastRequestedUpdateTime = Instant.now();
+        if ( healthData.recordsAreOutdated() )
+        {
+            final Instant startTime = Instant.now();
+            LOGGER.trace( () ->  "begin force immediate check" );
+            final Future future = pwmApplication.scheduleFutureJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
+            JavaHelper.pause( settings.getMaximumForceCheckWait().asMillis(), 500, o -> future.isDone() );
+            LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone() + ", " + TimeDuration.compactFromCurrent( startTime ) );
+        }
+
+        pwmApplication.scheduleFutureJob( new UpdateJob(), executorService, settings.getNominalCheckInterval() );
 
         {
-            final boolean recordsAreStale = TimeDuration.fromCurrent( lastHealthCheckTime ).isLongerThan( settings.getMaximumRecordAge() );
-            if ( timeliness == CheckTimeliness.Immediate || ( timeliness == CheckTimeliness.CurrentButNotAncient && recordsAreStale ) )
+            final HealthData localHealthData = this.healthData;
+            if ( localHealthData.recordsAreOutdated() )
             {
-                final ScheduledFuture updateTask = pwmApplication.scheduleFutureJob( new ImmediateUpdater(), executorService, TimeDuration.ZERO );
-                final Instant beginWaitTime = Instant.now();
-                while ( !updateTask.isDone() && TimeDuration.fromCurrent( beginWaitTime ).isShorterThan( settings.getMaximumForceCheckWait() ) )
-                {
-                    JavaHelper.pause( 500 );
-                }
+                return Collections.singleton( HealthRecord.forMessage( HealthMessage.NoData ) );
             }
-        }
 
-        final boolean recordsAreStale = TimeDuration.fromCurrent( lastHealthCheckTime ).isLongerThan( settings.getMaximumRecordAge() );
-        if ( recordsAreStale )
-        {
-            return Collections.singleton( HealthRecord.forMessage( HealthMessage.NoData ) );
+            return localHealthData.getHealthRecords();
         }
-
-        return Collections.unmodifiableSet( healthRecords );
     }
 
     public void close( )
@@ -193,8 +175,13 @@ public class HealthMonitor implements PwmService
         {
             executorService.shutdown();
         }
-        healthRecords.clear();
+        healthData = emptyHealthData();
         status = STATUS.CLOSED;
+    }
+
+    private HealthData emptyHealthData()
+    {
+        return new HealthData( Collections.emptySet(), Instant.ofEpochMilli( 0 ) );
     }
 
     public List<HealthRecord> healthCheck( )
@@ -202,21 +189,18 @@ public class HealthMonitor implements PwmService
         return Collections.emptyList();
     }
 
+    private AtomicInteger healthCheckCount = new AtomicInteger( 0 );
+
     private void doHealthChecks( )
     {
+        final int counter = healthCheckCount.getAndIncrement();
         if ( status != STATUS.OPEN )
         {
             return;
         }
 
-        final TimeDuration timeSinceLastUpdate = TimeDuration.fromCurrent( lastHealthCheckTime );
-        if ( timeSinceLastUpdate.isShorterThan( settings.getMinimumCheckInterval().asMillis(), TimeDuration.Unit.MILLISECONDS ) )
-        {
-            return;
-        }
-
         final Instant startTime = Instant.now();
-        LOGGER.trace( () -> "beginning background health check process" );
+        LOGGER.trace( () -> "beginning health check execution (" + counter + ")" );
         final List<HealthRecord> tempResults = new ArrayList<>();
         for ( final HealthChecker loopChecker : HEALTH_CHECKERS )
         {
@@ -254,10 +238,9 @@ public class HealthMonitor implements PwmService
                 }
             }
         }
-        healthRecords.clear();
-        healthRecords.addAll( tempResults );
-        lastHealthCheckTime = Instant.now();
-        LOGGER.trace( () -> "health check process completed (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
+
+        healthData = new HealthData( Collections.unmodifiableSet( new TreeSet<>( tempResults ) ), Instant.now() );
+        LOGGER.trace( () -> "completed health check execution (" + counter + ") in " + TimeDuration.compactFromCurrent( startTime ) );
     }
 
     public ServiceInfoBean serviceInfo( )
@@ -265,50 +248,55 @@ public class HealthMonitor implements PwmService
         return new ServiceInfoBean( Collections.emptyList() );
     }
 
-    public Map<HealthMonitorFlag, Serializable> getHealthProperties( )
+    Map<HealthMonitorFlag, Serializable> getHealthProperties( )
     {
         return healthProperties;
     }
 
-    private class ScheduledUpdater implements Runnable
+    private class UpdateJob implements Runnable
     {
         @Override
         public void run( )
         {
-            final TimeDuration timeSinceLastRequest = TimeDuration.fromCurrent( lastRequestedUpdateTime );
-            if ( timeSinceLastRequest.isShorterThan( settings.getNominalCheckInterval().asMillis() + 1000, TimeDuration.Unit.MILLISECONDS ) )
+            if ( healthData.recordsAreStale() )
             {
-                try
-                {
-                    doHealthChecks();
-                }
-                catch ( Throwable e )
-                {
-                    LOGGER.error( "error during health check execution: " + e.getMessage(), e );
-
-                }
+                new ImmediateJob().run();
             }
         }
     }
 
-    private class ImmediateUpdater implements Runnable
+    private class ImmediateJob implements Runnable
     {
         @Override
         public void run( )
         {
-            final TimeDuration timeSinceLastUpdate = TimeDuration.fromCurrent( lastHealthCheckTime );
-            if ( timeSinceLastUpdate.isLongerThan( settings.getMinimumCheckInterval().asMillis(), TimeDuration.Unit.MILLISECONDS ) )
+            try
             {
-                try
-                {
-                    doHealthChecks();
-                }
-                catch ( Throwable e )
-                {
-                    LOGGER.error( "error during health check execution: " + e.getMessage(), e );
-                }
+                final Instant startTime = Instant.now();
+                doHealthChecks();
+                LOGGER.trace( () -> "completed health check dredge " + TimeDuration.compactFromCurrent( startTime ) );
+            }
+            catch ( Throwable e )
+            {
+                LOGGER.error( "error during health check execution: " + e.getMessage(), e );
             }
         }
     }
 
+    @Value
+    private class HealthData
+    {
+        private Set<HealthRecord> healthRecords;
+        private Instant timeStamp;
+
+        private boolean recordsAreStale()
+        {
+            return TimeDuration.fromCurrent( this.getTimeStamp() ).isLongerThan( settings.getNominalCheckInterval() );
+        }
+
+        private boolean recordsAreOutdated()
+        {
+            return TimeDuration.fromCurrent( this.getTimeStamp() ).isLongerThan( settings.getMaximumRecordAge() );
+        }
+    }
 }

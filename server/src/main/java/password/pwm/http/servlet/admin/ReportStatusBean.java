@@ -63,7 +63,7 @@ public class ReportStatusBean implements Serializable
             case RollOver:
             {
                 presentableMap.add( new DisplayElement( "usersProcessed", DisplayElement.Type.string, "Users Processed",
-                        numberFormat.format( reportService.getSummaryData().getTotalUsers() )
+                        numberFormat.format( reportService.getSummaryData().getTotalUsers().intValue() )
                                 + " of " + numberFormat.format( reportService.getTotalRecords() ) ) );
                 availableCommands.add( ReportService.ReportCommand.Stop );
             }
@@ -132,11 +132,6 @@ public class ReportStatusBean implements Serializable
             }
             final long totalRecords = reportService.getTotalRecords();
             presentableMap.add( new DisplayElement( "recordsInCache", DisplayElement.Type.string, "Records in Cache", numberFormat.format( totalRecords ) ) );
-            if ( totalRecords > 0 )
-            {
-                presentableMap.add( new DisplayElement( "meanRecordCacheTime", DisplayElement.Type.timestamp, "Mean Record Cache Time",
-                        JavaHelper.toIsoDate( reportService.getSummaryData().getMeanCacheTime() ) ) );
-            }
         }
 
         return ReportStatusBean.builder()

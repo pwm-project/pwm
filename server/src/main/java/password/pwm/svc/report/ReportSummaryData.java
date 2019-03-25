@@ -23,6 +23,8 @@
 package password.pwm.svc.report;
 
 import com.novell.ldapchai.cr.Answer;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.config.Configuration;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.i18n.Admin;
@@ -44,12 +46,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+@Value
 public class ReportSummaryData
 {
     private static final long MS_DAY = TimeDuration.DAY.asMillis();
     private static final BigInteger TWO = new BigInteger( "2" );
 
-    private Instant meanCacheTime;
     private final AtomicInteger totalUsers = new AtomicInteger( 0 );
     private final AtomicInteger hasResponses = new AtomicInteger( 0 );
     private final AtomicInteger hasResponseSetTime = new AtomicInteger( 0 );
@@ -63,6 +65,7 @@ public class ReportSummaryData
     private final AtomicInteger pwExpired = new AtomicInteger( 0 );
     private final AtomicInteger pwPreExpired = new AtomicInteger( 0 );
     private final AtomicInteger pwWarnPeriod = new AtomicInteger( 0 );
+    private final AtomicInteger hasReceivedPwExpireNotification = new AtomicInteger( 0 );
 
     private final Map<DataStorageMethod, AtomicInteger> responseStorage = new ConcurrentHashMap<>();
     private final Map<Answer.FormatType, AtomicInteger> responseFormatType = new ConcurrentHashMap<>();
@@ -73,6 +76,7 @@ public class ReportSummaryData
     private final Map<Integer, AtomicInteger> responseSetDays = new ConcurrentHashMap<>();
     private final Map<Integer, AtomicInteger> otpSetDays = new ConcurrentHashMap<>();
     private final Map<Integer, AtomicInteger> loginDays = new ConcurrentHashMap<>();
+    private final Map<Integer, AtomicInteger> pwExpireNotificationDays = new ConcurrentHashMap<>();
 
     private ReportSummaryData( )
     {
@@ -92,25 +96,11 @@ public class ReportSummaryData
                 reportSummaryData.responseSetDays.put( day, new AtomicInteger( 0 ) );
                 reportSummaryData.otpSetDays.put( day, new AtomicInteger( 0 ) );
                 reportSummaryData.loginDays.put( day, new AtomicInteger( 0 ) );
+                reportSummaryData.pwExpireNotificationDays.put( day, new AtomicInteger( 0 ) );
             }
         }
 
         return reportSummaryData;
-    }
-
-    public int getTotalUsers( )
-    {
-        return totalUsers.get();
-    }
-
-    public int getHasResponses( )
-    {
-        return hasResponses.get();
-    }
-
-    public int getHasPasswordExpirationTime( )
-    {
-        return hasPasswordExpirationTime.get();
     }
 
     public Map<DataStorageMethod, Integer> getResponseStorage( )
@@ -129,141 +119,77 @@ public class ReportSummaryData
                         e -> e.getValue().get() ) ) );
     }
 
-    public Instant getMeanCacheTime( )
-    {
-        return meanCacheTime;
-    }
-
     void update( final UserCacheRecord userCacheRecord )
     {
-        update( userCacheRecord, true );
-    }
+        totalUsers.incrementAndGet();
 
-    void remove( final UserCacheRecord userCacheRecord )
-    {
-        update( userCacheRecord, false );
-    }
-
-    @SuppressWarnings( "checkstyle:MethodLength" )
-    private void update( final UserCacheRecord userCacheRecord, final boolean adding )
-    {
-        final int modifier = adding ? 1 : -1;
-
-        totalUsers.addAndGet( modifier );
-
-        updateMeanTime( userCacheRecord.cacheTimestamp, adding );
-
-        if ( userCacheRecord.hasResponses )
+        if ( userCacheRecord.isHasResponses() )
         {
-            hasResponses.addAndGet( modifier );
+            hasResponses.incrementAndGet();
         }
 
-        if ( userCacheRecord.hasHelpdeskResponses )
+        if ( userCacheRecord.isHasHelpdeskResponses() )
         {
-            hasHelpdeskResponses.addAndGet( modifier );
+            hasHelpdeskResponses.incrementAndGet();
         }
 
-        if ( userCacheRecord.responseSetTime != null )
+        if ( userCacheRecord.getResponseSetTime() != null )
         {
-            hasResponseSetTime.addAndGet( modifier );
+            hasResponseSetTime.incrementAndGet();
+            incrementIfWithinTimeWindow( userCacheRecord, responseSetDays );
+        }
 
-            for ( final Map.Entry<Integer, AtomicInteger> entry : responseSetDays.entrySet() )
+        if ( userCacheRecord.getPasswordExpirationTime() != null )
+        {
+            hasPasswordExpirationTime.incrementAndGet();
+            incrementIfWithinTimeWindow( userCacheRecord, pwExpireDays );
+        }
+
+        if ( userCacheRecord.getAccountExpirationTime() != null )
+        {
+            hasAccountExpirationTime.incrementAndGet();
+            incrementIfWithinTimeWindow( userCacheRecord, accountExpireDays );
+        }
+
+        if ( userCacheRecord.getLastLoginTime() != null )
+        {
+            hasLoginTime.incrementAndGet();
+            incrementIfWithinTimeWindow( userCacheRecord, loginDays );
+        }
+
+        if ( userCacheRecord.getPasswordChangeTime() != null )
+        {
+            hasChangePwTime.incrementAndGet();
+            incrementIfWithinTimeWindow( userCacheRecord, changePwDays );
+        }
+
+        if ( userCacheRecord.getPasswordExpirationNoticeSendTime() != null )
+        {
+            hasReceivedPwExpireNotification.incrementAndGet();
+            incrementIfWithinTimeWindow( userCacheRecord, pwExpireNotificationDays );
+        }
+
+        if ( userCacheRecord.getPasswordStatus() != null )
+        {
+            if ( userCacheRecord.getPasswordStatus().isExpired() )
             {
-                final Integer day = entry.getKey();
-                entry.getValue().addAndGet( calcTimeWindow( userCacheRecord.responseSetTime, MS_DAY * day, adding ) );
+                pwExpired.incrementAndGet();
+            }
+            if ( userCacheRecord.getPasswordStatus().isPreExpired() )
+            {
+                pwPreExpired.incrementAndGet();
+            }
+            if ( userCacheRecord.getPasswordStatus().isWarnPeriod() )
+            {
+                pwWarnPeriod.incrementAndGet();
             }
         }
 
-        if ( userCacheRecord.passwordExpirationTime != null )
+        if ( userCacheRecord.getResponseStorageMethod() != null )
         {
-            hasPasswordExpirationTime.addAndGet( modifier );
-
-            for ( final Map.Entry<Integer, AtomicInteger> entry : pwExpireDays.entrySet() )
-            {
-                final Integer day = entry.getKey();
-                entry.getValue().addAndGet( calcTimeWindow( userCacheRecord.passwordExpirationTime, MS_DAY * day, adding ) );
-            }
-        }
-
-        if ( userCacheRecord.accountExpirationTime != null )
-        {
-            hasAccountExpirationTime.addAndGet( modifier );
-
-            for ( final Map.Entry<Integer, AtomicInteger> entry : accountExpireDays.entrySet() )
-            {
-                final Integer day = entry.getKey();
-                entry.getValue().addAndGet( calcTimeWindow( userCacheRecord.accountExpirationTime, MS_DAY * day, adding ) );
-            }
-        }
-
-        if ( userCacheRecord.lastLoginTime != null )
-        {
-            hasLoginTime.addAndGet( modifier );
-
-            for ( final Map.Entry<Integer, AtomicInteger> entry : loginDays.entrySet() )
-            {
-                final Integer day = entry.getKey();
-                entry.getValue().addAndGet( calcTimeWindow( userCacheRecord.lastLoginTime, MS_DAY * day, adding ) );
-            }
-        }
-
-        if ( userCacheRecord.passwordChangeTime != null )
-        {
-            hasChangePwTime.addAndGet( modifier );
-
-            for ( final Map.Entry<Integer, AtomicInteger> entry : changePwDays.entrySet() )
-            {
-                final Integer day = entry.getKey();
-                entry.getValue().addAndGet( calcTimeWindow( userCacheRecord.passwordChangeTime, MS_DAY * day, adding ) );
-            }
-        }
-
-        if ( userCacheRecord.passwordStatus != null )
-        {
-            if ( adding )
-            {
-                if ( userCacheRecord.passwordStatus.isExpired() )
-                {
-                    pwExpired.incrementAndGet();
-                }
-                if ( userCacheRecord.passwordStatus.isPreExpired() )
-                {
-                    pwPreExpired.incrementAndGet();
-                }
-                if ( userCacheRecord.passwordStatus.isWarnPeriod() )
-                {
-                    pwWarnPeriod.incrementAndGet();
-                }
-            }
-            else
-            {
-                if ( userCacheRecord.passwordStatus.isExpired() )
-                {
-                    pwExpired.decrementAndGet();
-                }
-                if ( userCacheRecord.passwordStatus.isPreExpired() )
-                {
-                    pwPreExpired.decrementAndGet();
-                }
-                if ( userCacheRecord.passwordStatus.isWarnPeriod() )
-                {
-                    pwWarnPeriod.decrementAndGet();
-                }
-            }
-        }
-
-        if ( userCacheRecord.responseStorageMethod != null )
-        {
-            final DataStorageMethod method = userCacheRecord.responseStorageMethod;
+            final DataStorageMethod method = userCacheRecord.getResponseStorageMethod();
             responseStorage.putIfAbsent( method, new AtomicInteger( 0 ) );
-            if ( adding )
-            {
-                responseStorage.get( method ).incrementAndGet();
-            }
-            else
-            {
-                responseStorage.get( method ).decrementAndGet();
-            }
+            responseStorage.get( method ).incrementAndGet();
         }
 
         if ( userCacheRecord.getLdapProfile() != null )
@@ -273,86 +199,54 @@ public class ReportSummaryData
             {
                 ldapProfile.put( userProfile, new AtomicInteger( 0 ) );
             }
-            if ( adding )
-            {
-                ldapProfile.get( userProfile ).incrementAndGet();
-            }
-            else
-            {
-                ldapProfile.get( userProfile ).decrementAndGet();
-            }
+            ldapProfile.get( userProfile ).incrementAndGet();
         }
 
-        if ( userCacheRecord.responseFormatType != null )
+        if ( userCacheRecord.getResponseFormatType() != null )
         {
-            final Answer.FormatType type = userCacheRecord.responseFormatType;
+            final Answer.FormatType type = userCacheRecord.getResponseFormatType();
             responseFormatType.putIfAbsent( type, new AtomicInteger( 0 ) );
-            if ( adding )
-            {
-                responseFormatType.get( type ).incrementAndGet();
-            }
-            else
-            {
-                responseFormatType.get( type ).decrementAndGet();
-            }
+            responseFormatType.get( type ).incrementAndGet();
         }
 
         if ( userCacheRecord.isHasOtpSecret() )
         {
-            hasOtpSecret.addAndGet( modifier );
+            hasOtpSecret.incrementAndGet();
         }
 
         if ( userCacheRecord.getOtpSecretSetTime() != null )
         {
-            hasOtpSecretSetTime.addAndGet( modifier );
-
-            for ( final Map.Entry<Integer, AtomicInteger> entry : otpSetDays.entrySet() )
-            {
-                final int day = entry.getKey();
-                entry.getValue().addAndGet( calcTimeWindow( userCacheRecord.getOtpSecretSetTime(), MS_DAY * day, adding ) );
-            }
+            hasOtpSecretSetTime.incrementAndGet();
+            incrementIfWithinTimeWindow( userCacheRecord, otpSetDays );
         }
     }
 
-    private void updateMeanTime( final Instant newTime, final boolean adding )
+    private void incrementIfWithinTimeWindow(
+            final UserCacheRecord userCacheRecord,
+            final Map<Integer, AtomicInteger> map
+    )
     {
-        if ( meanCacheTime == null )
+        for ( final Map.Entry<Integer, AtomicInteger> entry : map.entrySet() )
         {
-            if ( adding )
+            final int day = entry.getKey();
+            final Instant eventDate = userCacheRecord.getOtpSecretSetTime();
+            final long timeWindow = MS_DAY * day;
+            final AtomicInteger number = entry.getValue();
+
+            if ( eventDate != null )
             {
-                meanCacheTime = newTime;
+                final TimeDuration timeBoundary = TimeDuration.of( timeWindow, TimeDuration.Unit.MILLISECONDS );
+                final TimeDuration eventDifference = TimeDuration.fromCurrent( eventDate );
+
+                if (
+                        ( timeWindow >= 0 && eventDate.isAfter( Instant.now() ) && eventDifference.isShorterThan( timeBoundary ) )
+                                || ( timeWindow < 0 && eventDate.isBefore( Instant.now() ) && eventDifference.isShorterThan( timeBoundary ) )
+                )
+                {
+                    number.incrementAndGet();
+                }
             }
-            return;
         }
-
-        final BigInteger currentMillis = BigInteger.valueOf( meanCacheTime.toEpochMilli() );
-        final BigInteger newMillis = BigInteger.valueOf( newTime.toEpochMilli() );
-        final BigInteger combinedMillis = currentMillis.add( newMillis );
-        final BigInteger halvedMillis = combinedMillis.divide( TWO );
-        meanCacheTime = Instant.ofEpochMilli( halvedMillis.longValue() );
-    }
-
-    private int calcTimeWindow( final Instant eventDate, final long timeWindow, final boolean adding )
-    {
-        if ( eventDate == null )
-        {
-            return 0;
-        }
-
-        final TimeDuration timeBoundary = TimeDuration.of( timeWindow, TimeDuration.Unit.MILLISECONDS );
-        final TimeDuration eventDifference = TimeDuration.fromCurrent( eventDate );
-
-        if ( timeWindow >= 0 && eventDate.isAfter( Instant.now() ) && eventDifference.isShorterThan( timeBoundary ) )
-        {
-            return adding ? 1 : -1;
-        }
-
-        if ( timeWindow < 0 && eventDate.isBefore( Instant.now() ) && eventDifference.isShorterThan( timeBoundary ) )
-        {
-            return adding ? 1 : -1;
-        }
-
-        return 0;
     }
 
 
@@ -450,65 +344,54 @@ public class ReportSummaryData
             }
         }
 
+        if ( this.hasReceivedPwExpireNotification.get() > 0 )
+        {
+            returnCollection.add( new PresentationRow( "Has Received PwExpiry Notice", Integer.toString( this.hasReceivedPwExpireNotification.get() ), null ) );
+            for ( final Integer day : new TreeSet<>( pwExpireNotificationDays.keySet() ) )
+            {
+                if ( day < 0 )
+                {
+                    returnCollection.add( new PresentationRow( "PwExpireNotice " + day, Integer.toString( this.pwExpireNotificationDays.get( day ).get() ), null ) );
+                }
+            }
+        }
+
+
         return returnCollection;
     }
 
+    @Value
+    @Builder( toBuilder = true )
     public static class PresentationRow
     {
         private String label;
         private String count;
         private String pct;
-
-        public PresentationRow(
-                final String label,
-                final String count,
-                final String pct
-        )
-        {
-            this.label = label;
-            this.count = count;
-            this.pct = pct;
-        }
-
-        public String getLabel( )
-        {
-            return label;
-        }
-
-        public String getCount( )
-        {
-            return count;
-        }
-
-        public String getPct( )
-        {
-            return pct;
-        }
     }
 
+    @Value
     public static class PresentationRowBuilder
     {
         private final Configuration config;
         private final int totalUsers;
         private final Locale locale;
 
-        public PresentationRowBuilder(
-                final Configuration config,
-                final int totalUsers,
-                final Locale locale
-        )
-        {
-            this.config = config;
-            this.totalUsers = totalUsers;
-            this.locale = locale;
-        }
-
-        public PresentationRow makeRow( final String labelKey, final int valueCount )
+        PresentationRow makeRow( final String labelKey, final int valueCount )
         {
             return makeRow( labelKey, valueCount, null );
         }
 
-        public PresentationRow makeRow( final String labelKey, final int valueCount, final String replacement )
+        PresentationRow makeRow( final String labelKey, final int valueCount, final String replacement )
+        {
+            return makeRowImpl( labelKey, valueCount, replacement );
+        }
+
+        PresentationRow makeNoPctRow( final String labelKey, final int valueCount, final String replacement )
+        {
+            return makeRowImpl( labelKey, valueCount, replacement ).toBuilder().pct( null ).build();
+        }
+
+        private PresentationRow makeRowImpl( final String labelKey, final int valueCount, final String replacement )
         {
             final String display = replacement == null
                     ? LocaleHelper.getLocalizedMessage( locale, labelKey, config, Admin.class )
@@ -521,20 +404,6 @@ public class ReportSummaryData
             final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
             final String formattedCount = numberFormat.format( valueCount );
             return new PresentationRow( display, formattedCount, pct );
-        }
-
-        public PresentationRow makeNoPctRow( final String labelKey, final int valueCount, final String replacement )
-        {
-            final String display = replacement == null
-                    ? LocaleHelper.getLocalizedMessage( locale, labelKey, config, Admin.class )
-                    : LocaleHelper.getLocalizedMessage( locale, labelKey, config, Admin.class, new String[]
-                    {
-                            replacement,
-                    }
-            );
-            final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
-            final String formattedCount = numberFormat.format( valueCount );
-            return new PresentationRow( display, formattedCount, null );
         }
     }
 }

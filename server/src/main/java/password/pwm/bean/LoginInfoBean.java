@@ -23,8 +23,7 @@
 package password.pwm.bean;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -46,8 +45,7 @@ import java.util.Set;
  *
  * <p>Short serialized names are used to shrink the effective size of the login cookie.</p>
  */
-@Getter
-@Setter
+@Data
 public class LoginInfoBean implements Serializable
 {
 
@@ -67,10 +65,10 @@ public class LoginInfoBean implements Serializable
     private UserIdentity userIdentity;
 
     @SerializedName( "a" )
-    private boolean auth;
+    private boolean authenticated;
 
     @SerializedName( "p" )
-    private PasswordData pw;
+    private PasswordData userCurrentPassword;
 
     @SerializedName( "t" )
     private AuthenticationType type = AuthenticationType.UNAUTHENTICATED;
@@ -104,141 +102,6 @@ public class LoginInfoBean implements Serializable
 
     @SerializedName( "lf" )
     private Set<LoginFlag> loginFlags = new HashSet<>();
-
-    public Instant getAuthTime( )
-    {
-        return authTime;
-    }
-
-    public void setAuthTime( final Instant authTime )
-    {
-        this.authTime = authTime;
-    }
-
-    public AuthenticationType getType( )
-    {
-        return type;
-    }
-
-    public void setType( final AuthenticationType type )
-    {
-        this.type = type;
-    }
-
-    public PasswordData getUserCurrentPassword( )
-    {
-        return pw;
-    }
-
-    public void setUserCurrentPassword( final PasswordData userCurrentPassword )
-    {
-        this.pw = userCurrentPassword;
-    }
-
-    public BasicAuthInfo getBasicAuth( )
-    {
-        return basicAuth;
-    }
-
-    public void setBasicAuth( final BasicAuthInfo basicAuth )
-    {
-        this.basicAuth = basicAuth;
-    }
-
-    public Instant getOauthExp( )
-    {
-        return oauthExp;
-    }
-
-    public void setOauthExp( final Instant oauthExp )
-    {
-        this.oauthExp = oauthExp;
-    }
-
-    public String getOauthRefToken( )
-    {
-        return oauthRefToken;
-    }
-
-    public void setOauthRefToken( final String oauthRefToken )
-    {
-        this.oauthRefToken = oauthRefToken;
-    }
-
-    public List<AuthenticationType> getAuthFlags( )
-    {
-        return authFlags;
-    }
-
-    public PwmAuthenticationSource getAuthSource( )
-    {
-        return authSource;
-    }
-
-    public void setAuthSource( final PwmAuthenticationSource authSource )
-    {
-        this.authSource = authSource;
-    }
-
-    public String getGuid( )
-    {
-        return guid;
-    }
-
-    public void setGuid( final String guid )
-    {
-        this.guid = guid;
-    }
-
-    public int getReqCounter( )
-    {
-        return reqCounter;
-    }
-
-    public void setReqCounter( final int reqCounter )
-    {
-        this.reqCounter = reqCounter;
-    }
-
-    public UserIdentity getUserIdentity( )
-    {
-        return userIdentity;
-    }
-
-    public void setUserIdentity( final UserIdentity userIdentity )
-    {
-        this.userIdentity = userIdentity;
-    }
-
-    public boolean isAuthenticated( )
-    {
-        return auth;
-    }
-
-    public void setAuthenticated( final boolean authenticated )
-    {
-        this.auth = authenticated;
-    }
-
-    public PasswordData getPw( )
-    {
-        return pw;
-    }
-
-    public void setPw( final PasswordData pw )
-    {
-        this.pw = pw;
-    }
-
-    public Instant getReqTime( )
-    {
-        return reqTime;
-    }
-
-    public void setReqTime( final Instant reqTime )
-    {
-        this.reqTime = reqTime;
-    }
 
     public boolean isLoginFlag( final LoginFlag loginStateFlag )
     {

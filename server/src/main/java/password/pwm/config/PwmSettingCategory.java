@@ -27,6 +27,7 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.XmlElement;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -452,4 +453,11 @@ public enum PwmSettingCategory
         return Collections.unmodifiableCollection( returnValues );
     }
 
+    public static PwmSettingCategory forKey( final String key )
+    {
+        return Arrays.stream( values() )
+                .filter( loopValue -> loopValue.getKey().equals( key ) )
+                .findFirst()
+                .orElse( null );
+    }
 }

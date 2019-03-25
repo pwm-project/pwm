@@ -22,13 +22,12 @@
 
 package password.pwm.receiver;
 
-import org.apache.commons.io.IOUtils;
-import password.pwm.PwmConstants;
 import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
+import password.pwm.util.ServletUtility;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.ws.server.RestResultBean;
 
@@ -38,9 +37,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
 
 @WebServlet(
         name = "TelemetryRestReceiver",
@@ -58,7 +54,7 @@ public class TelemetryRestReceiver extends HttpServlet
         try
         {
             resp.setHeader( "Content", "application/json" );
-            final String input = readRequestBodyAsString( req, 1024 * 1024 );
+            final String input = ServletUtility.readRequestBodyAsString( req, 1024 * 1024 );
             final TelemetryPublishBean telemetryPublishBean = JsonUtil.deserialize( input, TelemetryPublishBean.class );
             final Storage stoage = ContextManager.getContextManager( this.getServletContext() ).getApp().getStorage();
             stoage.store( telemetryPublishBean );
@@ -73,37 +69,5 @@ public class TelemetryRestReceiver extends HttpServlet
             final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() ) );
             resp.getWriter().print( restResultBean.toJson() );
         }
-    }
-
-    private static String readRequestBodyAsString( final HttpServletRequest req, final int maxChars )
-            throws IOException, PwmUnrecoverableException
-    {
-        final StringWriter stringWriter = new StringWriter();
-        final Reader readerStream = new InputStreamReader(
-                req.getInputStream(),
-                PwmConstants.DEFAULT_CHARSET
-        );
-
-        try
-        {
-            IOUtils.copy( readerStream, stringWriter );
-        }
-        catch ( Exception e )
-        {
-            final String errorMsg = "error reading request body stream: " + e.getMessage();
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( readerStream );
-        }
-
-        final String stringValue = stringWriter.toString();
-        if ( stringValue.length() > maxChars )
-        {
-            final String msg = "input request body is to big, size=" + stringValue.length() + ", max=" + maxChars;
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
-        }
-        return stringValue;
     }
 }

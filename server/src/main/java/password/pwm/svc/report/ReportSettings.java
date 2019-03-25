@@ -46,8 +46,10 @@ class ReportSettings implements Serializable
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ReportSettings.class );
 
+    private boolean dailyJobEnabled;
+
     @Builder.Default
-    private TimeDuration maxCacheAge = TimeDuration.of( TimeDuration.DAY.asMillis() * 90, TimeDuration.Unit.MILLISECONDS );
+    private TimeDuration maxCacheAge = TimeDuration.of( 10, TimeDuration.Unit.DAYS );
 
     @Builder.Default
     private List<UserPermission> searchFilter = Collections.emptyList();
@@ -77,9 +79,10 @@ class ReportSettings implements Serializable
     public static ReportSettings readSettingsFromConfig( final Configuration config )
     {
         final ReportSettings.ReportSettingsBuilder builder = ReportSettings.builder();
-        builder.maxCacheAge( TimeDuration.of( config.readSettingAsLong( PwmSetting.REPORTING_MAX_CACHE_AGE ), TimeDuration.Unit.SECONDS ) );
+        builder.maxCacheAge( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.REPORTING_MAX_REPORT_AGE_SECONDS ) ), TimeDuration.Unit.SECONDS ) );
         builder.searchFilter( config.readSettingAsUserPermission( PwmSetting.REPORTING_USER_MATCH ) );
         builder.maxSearchSize ( ( int ) config.readSettingAsLong( PwmSetting.REPORTING_MAX_QUERY_SIZE ) );
+        builder.dailyJobEnabled( config.readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB ) );
 
         if ( builder.searchFilter == null || builder.searchFilter.isEmpty() )
         {

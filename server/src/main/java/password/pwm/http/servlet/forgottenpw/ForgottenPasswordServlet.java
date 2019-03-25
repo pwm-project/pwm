@@ -1134,7 +1134,10 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             {
                 if ( userInfo.isPasswordLocked() )
                 {
-                    pwmRequest.setAttribute( PwmRequestAttribute.ForgottenPasswordInhibitPasswordReset, Boolean.TRUE );
+                    final boolean inhibitReset = minLifetimeOption != RecoveryMinLifetimeOption.ALLOW
+                            && userInfo.isWithinPasswordMinimumLifetime();
+
+                    pwmRequest.setAttribute( PwmRequestAttribute.ForgottenPasswordInhibitPasswordReset, inhibitReset );
                     pwmRequest.forwardToJsp( JspUrl.RECOVER_PASSWORD_ACTION_CHOICE );
                     return;
                 }

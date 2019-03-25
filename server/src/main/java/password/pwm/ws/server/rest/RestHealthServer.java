@@ -70,12 +70,9 @@ public class RestHealthServer extends RestServlet
     private RestResultBean doPwmHealthPlainGet( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
-        final boolean requestImmediateParam = restRequest.readParameterAsBoolean( PARAM_IMMEDIATE_REFRESH );
-
         try
         {
-            final HealthMonitor.CheckTimeliness timeliness = determineDataTimeliness( requestImmediateParam );
-            final String resultString = restRequest.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus( timeliness ).toString() + "\n";
+            final String resultString = restRequest.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus().toString() + "\n";
             StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_HEALTH );
             return RestResultBean.withData( resultString );
         }
@@ -91,38 +88,24 @@ public class RestHealthServer extends RestServlet
     private RestResultBean doPwmHealthJsonGet( final RestRequest restRequest )
             throws PwmUnrecoverableException, IOException
     {
-        final boolean requestImmediateParam = restRequest.readParameterAsBoolean( PARAM_IMMEDIATE_REFRESH );
-
-        final HealthData jsonOutput = processGetHealthCheckData( restRequest.getPwmApplication(), restRequest.getLocale(), requestImmediateParam );
+        final HealthData jsonOutput = processGetHealthCheckData( restRequest.getPwmApplication(), restRequest.getLocale() );
         StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_HEALTH );
         return RestResultBean.withData( jsonOutput );
     }
 
-    private static HealthMonitor.CheckTimeliness determineDataTimeliness(
-            final boolean refreshImmediate
-    )
-            throws PwmUnrecoverableException
-    {
-        return refreshImmediate
-                ? HealthMonitor.CheckTimeliness.Immediate
-                : HealthMonitor.CheckTimeliness.CurrentButNotAncient;
-    }
-
     public static HealthData processGetHealthCheckData(
             final PwmApplication pwmApplication,
-            final Locale locale,
-            final boolean refreshImmediate
+            final Locale locale
     )
             throws IOException, PwmUnrecoverableException
     {
         final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
-        final HealthMonitor.CheckTimeliness timeliness = determineDataTimeliness( refreshImmediate );
-        final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>( healthMonitor.getHealthRecords( timeliness ) );
+        final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>( healthMonitor.getHealthRecords() );
         final List<HealthRecord> healthRecordBeans = HealthRecord.fromHealthRecords( healthRecords, locale,
                 pwmApplication.getConfig() );
         final HealthData healthData = new HealthData();
         healthData.timestamp = healthMonitor.getLastHealthCheckTime();
-        healthData.overall = healthMonitor.getMostSevereHealthStatus( timeliness ).toString();
+        healthData.overall = healthMonitor.getMostSevereHealthStatus().toString();
         healthData.records = healthRecordBeans;
         return healthData;
     }

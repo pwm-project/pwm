@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 
 /**
  * <p>An immutable class representing a time period.  The internal value of the time period is
@@ -329,8 +330,8 @@ public class TimeDuration implements Comparable, Serializable
             segments.add( fractionalTimeDetail.days
                     + " "
                     + ( fractionalTimeDetail.days == 1
-                            ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Day, null )
-                            : LocaleHelper.getLocalizedMessage( locale, Display.Display_Days, null ) )
+                    ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Day, null )
+                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Days, null ) )
             );
         }
 
@@ -340,8 +341,8 @@ public class TimeDuration implements Comparable, Serializable
             segments.add( fractionalTimeDetail.hours
                     + " "
                     + ( fractionalTimeDetail.hours == 1
-                            ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Hour, null )
-                            : LocaleHelper.getLocalizedMessage( locale, Display.Display_Hours, null ) )
+                    ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Hour, null )
+                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Hours, null ) )
             );
         }
 
@@ -351,8 +352,8 @@ public class TimeDuration implements Comparable, Serializable
             segments.add( fractionalTimeDetail.minutes
                     + " "
                     + ( fractionalTimeDetail.minutes == 1
-                            ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Minute, null )
-                            : LocaleHelper.getLocalizedMessage( locale, Display.Display_Minutes, null ) )
+                    ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Minute, null )
+                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Minutes, null ) )
             );
         }
 
@@ -430,36 +431,6 @@ public class TimeDuration implements Comparable, Serializable
         return "TimeDuration[" + this.asCompactString() + "]";
     }
 
-    /**
-     * Pause the calling thread the specified amount of time.
-     *
-     * @param sleepTimeMS - a time duration in milliseconds
-     * @return time actually spent sleeping
-     */
-    public static TimeDuration pause( final long sleepTimeMS )
-    {
-        if ( sleepTimeMS < 1 )
-        {
-            return TimeDuration.ZERO;
-        }
-
-        final long startTime = System.currentTimeMillis();
-        do
-        {
-            try
-            {
-                final long sleepTime = sleepTimeMS - ( System.currentTimeMillis() - startTime );
-                Thread.sleep( sleepTime > 0 ? sleepTime : 5 );
-            }
-            catch ( InterruptedException e )
-            {
-                //who cares
-            }
-        }
-        while ( ( System.currentTimeMillis() - startTime ) < sleepTimeMS );
-
-        return TimeDuration.fromCurrent( startTime );
-    }
 
     /**
      * Pause the calling thread the specified amount of time.
@@ -469,7 +440,39 @@ public class TimeDuration implements Comparable, Serializable
     @CheckReturnValue( when = When.NEVER )
     public TimeDuration pause( )
     {
-        return pause( this.as( Unit.MILLISECONDS ) );
+        return pause( this, () -> false );
+    }
+
+    @CheckReturnValue( when = When.NEVER )
+    public TimeDuration pause(
+            final BooleanSupplier interruptBoolean
+    )
+    {
+        return pause( this, interruptBoolean );
+    }
+
+    @CheckReturnValue( when = When.NEVER )
+    public TimeDuration pause(
+            final TimeDuration predicateCheckInterval,
+            final BooleanSupplier interruptBoolean
+    )
+    {
+        final long startTime = System.currentTimeMillis();
+        final long pauseTime = JavaHelper.rangeCheck( this.asMillis(), this.asMillis(), predicateCheckInterval.asMillis()  );
+
+        while ( ( System.currentTimeMillis() - startTime ) < this.asMillis() && !interruptBoolean.getAsBoolean() )
+        {
+            try
+            {
+                Thread.sleep( pauseTime );
+            }
+            catch ( InterruptedException e )
+            {
+                // ignore
+            }
+        }
+
+        return TimeDuration.fromCurrent( startTime );
     }
 
     public Duration asDuration()

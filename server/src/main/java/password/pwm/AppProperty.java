@@ -300,6 +300,7 @@ public enum AppProperty
     RECAPTCHA_VALIDATE_URL                          ( "recaptcha.validateUrl" ),
     REPORTING_LDAP_SEARCH_TIMEOUT                   ( "reporting.ldap.searchTimeoutMs" ),
     REPORTING_LDAP_SEARCH_THREADS                   ( "reporting.ldap.searchThreads" ),
+    REPORTING_MAX_REPORT_AGE_SECONDS                ( "reporting.maxReportAgeSeconds" ),
     SECURITY_STRIP_INLINE_JAVASCRIPT                ( "security.html.stripInlineJavascript" ),
     SECURITY_HTTP_FORCE_REQUEST_SEQUENCING          ( "security.http.forceRequestSequencing" ),
     SECURITY_HTTP_STRIP_HEADER_REGEX                ( "security.http.stripHeaderRegex" ),

@@ -309,7 +309,12 @@ public class AuditService implements PwmService
             body = StringUtil.mapToString( mapRecord, "=", "\n" );
         }
 
-        final EmailItemBean emailItem = new EmailItemBean( toAddress, fromAddress, subject, body, null );
+        final EmailItemBean emailItem = EmailItemBean.builder()
+                .to( toAddress )
+                .from( fromAddress )
+                .subject( subject )
+                .bodyPlain( body )
+                .build();
         pwmApplication.getEmailQueue().submitEmail( emailItem, null, macroMachine );
     }
 

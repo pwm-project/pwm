@@ -30,7 +30,6 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
-import password.pwm.util.AlertHandler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -329,7 +328,7 @@ public class StatisticsManager implements PwmService
         localDB.put( LocalDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString() );
 
         {
-            // setup a timer to roll over at 0 Zula and one to write current stats every 10 seconds
+            // setup a timer to roll over at 0 Zulu and one to write current stats regularly
             executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
             pwmApplication.scheduleFixedRateJob( new FlushTask(), executorService, DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
             final TimeDuration delayTillNextZulu = TimeDuration.fromCurrent( JavaHelper.nextZuluZeroTime() );
@@ -367,25 +366,21 @@ public class StatisticsManager implements PwmService
 
     }
 
+    public Map<String, String> dailyStatisticsAsLabelValueMap()
+    {
+        final Map<String, String> emailValues = new LinkedHashMap<>();
+        for ( final Statistic statistic : Statistic.values() )
+        {
+            final String key = statistic.getLabel( PwmConstants.DEFAULT_LOCALE );
+            final String value = statsDaily.getStatistic( statistic );
+            emailValues.put( key, value );
+        }
+
+        return Collections.unmodifiableMap( emailValues );
+    }
+
     private void resetDailyStats( )
     {
-        try
-        {
-            final Map<String, String> emailValues = new LinkedHashMap<>();
-            for ( final Statistic statistic : Statistic.values() )
-            {
-                final String key = statistic.getLabel( PwmConstants.DEFAULT_LOCALE );
-                final String value = statsDaily.getStatistic( statistic );
-                emailValues.put( key, value );
-            }
-
-            AlertHandler.alertDailyStats( pwmApplication, emailValues );
-        }
-        catch ( Exception e )
-        {
-            LOGGER.error( "error while generating daily alert statistics: " + e.getMessage() );
-        }
-
         currentDailyKey = new DailyKey( new Date() );
         statsDaily = new StatisticsBundle();
         LOGGER.debug( () -> "reset daily statistics" );
@@ -452,7 +447,7 @@ public class StatisticsManager implements PwmService
 
         public DailyKey( final String value )
         {
-            final String strippedValue = value.substring( DB_KEY_PREFIX_DAILY.length(), value.length() );
+            final String strippedValue = value.substring( DB_KEY_PREFIX_DAILY.length() );
             final String[] splitValue = strippedValue.split( "_" );
             year = Integer.parseInt( splitValue[ 0 ] );
             day = Integer.parseInt( splitValue[ 1 ] );
@@ -465,7 +460,7 @@ public class StatisticsManager implements PwmService
         @Override
         public String toString( )
         {
-            return DB_KEY_PREFIX_DAILY + String.valueOf( year ) + "_" + String.valueOf( day );
+            return DB_KEY_PREFIX_DAILY + year + "_" + day;
         }
 
         public DailyKey previous( )

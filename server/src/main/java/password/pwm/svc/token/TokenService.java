@@ -634,7 +634,7 @@ public class TokenService implements PwmService
                 && tokenPayload.getUserIdentity() != null
                 && tokenPayload.getData() != null
                 && tokenPayload.getData().containsKey( PwmConstants.TOKEN_KEY_PWD_CHG_DATE )
-                )
+        )
         {
             try
             {
@@ -739,13 +739,15 @@ public class TokenService implements PwmService
             pwmApplication.getIntruderManager().mark( RecordType.TOKEN_DEST, toAddress, null );
 
             final EmailItemBean configuredEmailSetting = tokenSendInfo.getConfiguredEmailSetting();
-            pwmApplication.getEmailQueue().submitEmailImmediate( new EmailItemBean(
-                    toAddress,
-                    configuredEmailSetting.getFrom(),
-                    configuredEmailSetting.getSubject(),
-                    configuredEmailSetting.getBodyPlain().replace( "%TOKEN%", tokenSendInfo.getTokenKey() ),
-                    configuredEmailSetting.getBodyHtml().replace( "%TOKEN%", tokenSendInfo.getTokenKey() )
-            ), tokenSendInfo.getUserInfo(), tokenSendInfo.getMacroMachine() );
+            final EmailItemBean tokenizedEmail = configuredEmailSetting.applyBodyReplacement(
+                    "%TOKEN%",
+                    tokenSendInfo.getTokenKey() );
+
+            pwmApplication.getEmailQueue().submitEmailImmediate(
+                    tokenizedEmail,
+                    tokenSendInfo.getUserInfo(),
+                    tokenSendInfo.getMacroMachine() );
+
             LOGGER.debug( () -> "token email added to send queue for " + toAddress );
             return true;
         }
@@ -771,7 +773,7 @@ public class TokenService implements PwmService
             LOGGER.debug( () -> "token SMS added to send queue for " + smsNumber );
             return true;
         }
-        }
+    }
 
     static TimeDuration maxTokenAge( final Configuration configuration )
     {

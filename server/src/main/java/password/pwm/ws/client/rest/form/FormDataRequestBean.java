@@ -23,19 +23,18 @@
 package password.pwm.ws.client.rest.form;
 
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.config.value.data.FormConfiguration;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-@Getter
+@Value
 @Builder
 public class FormDataRequestBean implements Serializable
 {
-
-    @Getter
+    @Value
     @Builder
     public static class FormInfo implements Serializable
     {

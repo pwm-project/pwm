@@ -109,4 +109,6 @@ public interface UserInfo
     List<String> readMultiStringAttribute( String attribute ) throws PwmUnrecoverableException;
 
     Map<String, String> readStringAttributes( Collection<String> attributes ) throws PwmUnrecoverableException;
+
+    Instant getPasswordExpirationNoticeSendTime( ) throws PwmUnrecoverableException;
 }
