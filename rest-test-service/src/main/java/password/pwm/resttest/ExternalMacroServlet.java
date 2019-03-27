@@ -43,25 +43,26 @@ import java.util.Date;
 
 public class ExternalMacroServlet extends HttpServlet
 {
-    final String USERNAME_PARAMETER = "username";
-    final String SUCCESSFUL = "true";
-    final String UNSUCCESSFUL = "false";
+    private static final String USERNAME_PARAMETER = "username";
+    private static final String SUCCESSFUL = "true";
+    private static final String UNSUCCESSFUL = "false";
 
     @Override
     protected void doPost( final HttpServletRequest req, final HttpServletResponse resp ) throws ServletException, IOException
     {
-        if (req.getServletPath().equals("/sms")) {
-            SmsResponse instance = SmsResponse.getInstance();
+        if ( req.getServletPath().equals( "/sms" ) )
+        {
+            final SmsResponse instance = SmsResponse.getInstance();
             final InputStream inputStream = req.getInputStream();
             final String body = IOUtils.toString( inputStream );
 
-            String[] messageContent = body.split("=");
-            String message = messageContent[messageContent.length - 1];
-            String username = message.split("\\+")[0];
-            Date currentDate = new Date();
-            SmsPostResponseBody messageBody = new SmsPostResponseBody(message, currentDate);
+            final String[] messageContent = body.split( "=" );
+            final String message = messageContent[messageContent.length - 1];
+            final String username = message.split( "\\+" )[0];
+            final Date currentDate = new Date();
+            final SmsPostResponseBody messageBody = new SmsPostResponseBody( message, currentDate );
 
-            instance.addToMap(username, messageBody);
+            instance.addToMap( username, messageBody );
 
             System.out.println( "input POST body:  " + body );
 
@@ -74,26 +75,31 @@ public class ExternalMacroServlet extends HttpServlet
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (req.getServletPath().equals("/sms")) {
+    protected void doGet( final HttpServletRequest req, final HttpServletResponse resp ) throws IOException
+    {
+        if ( req.getServletPath().equals( "/sms" ) )
+        {
             //Check request
-            SmsResponse instance = SmsResponse.getInstance();
-            String requestUsername = req.getParameter(USERNAME_PARAMETER);
-            SmsGetResponseBody responseBody;
+            final SmsResponse instance = SmsResponse.getInstance();
+            final String requestUsername = req.getParameter( USERNAME_PARAMETER );
+            final SmsGetResponseBody responseBody;
 
             //Get body
-            if (instance.getRecentSmsMessages().containsKey(requestUsername)) {
-                SmsPostResponseBody body = instance.getRecentFromMap(requestUsername);
-                responseBody = new SmsGetResponseBody(SUCCESSFUL, body.getMessageContent());
-            } else {
-                responseBody = new SmsGetResponseBody(UNSUCCESSFUL, "");
+            if ( instance.getRecentSmsMessages().containsKey( requestUsername ) )
+            {
+                final SmsPostResponseBody body = instance.getRecentFromMap( requestUsername );
+                responseBody = new SmsGetResponseBody( SUCCESSFUL, body.getMessageContent() );
+            }
+            else
+            {
+                responseBody = new SmsGetResponseBody( UNSUCCESSFUL, "" );
             }
 
             //Send response
-            Gson gson = new Gson();
-            resp.setHeader("Content-Type", "application/json" );
+            final Gson gson = new Gson();
+            resp.setHeader( "Content-Type", "application/json"  );
             final PrintWriter writer = resp.getWriter();
-            writer.write(gson.toJson(responseBody));
+            writer.write( gson.toJson( responseBody ) );
             writer.close();
 
         }
