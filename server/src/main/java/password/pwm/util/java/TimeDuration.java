@@ -27,6 +27,8 @@ import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.SecureService;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.meta.When;
@@ -443,22 +445,37 @@ public class TimeDuration implements Comparable, Serializable
         return pause( this, () -> false );
     }
 
+    /**
+     * Pause the calling thread the specified amount of time.
+     *
+     * @return time actually spent sleeping
+     */
     @CheckReturnValue( when = When.NEVER )
-    public TimeDuration pause(
-            final BooleanSupplier interruptBoolean
-    )
+    public TimeDuration jitterPause( final SecureService secureService, final float factor )
     {
-        return pause( this, interruptBoolean );
+        final PwmRandom pwmRandom = secureService.pwmRandom();
+        final long jitterMs = (long) ( this.ms * factor );
+        final long deviation = pwmRandom.nextBoolean() ? jitterMs + this.ms : jitterMs - this.ms;
+        return pause( TimeDuration.of( deviation, Unit.MILLISECONDS ), () -> false );
     }
 
     @CheckReturnValue( when = When.NEVER )
     public TimeDuration pause(
-            final TimeDuration predicateCheckInterval,
+            final BooleanSupplier interruptBoolean
+    )
+    {
+        final long interruptMs = JavaHelper.rangeCheck( 5, 1000, this.asMillis() / 100 );
+        return pause( TimeDuration.of( interruptMs, Unit.MILLISECONDS ), interruptBoolean );
+    }
+
+    @CheckReturnValue( when = When.NEVER )
+    public TimeDuration pause(
+            final TimeDuration interruptCheckInterval,
             final BooleanSupplier interruptBoolean
     )
     {
         final long startTime = System.currentTimeMillis();
-        final long pauseTime = JavaHelper.rangeCheck( this.asMillis(), this.asMillis(), predicateCheckInterval.asMillis()  );
+        final long pauseTime = JavaHelper.rangeCheck( this.asMillis(), this.asMillis(), interruptCheckInterval.asMillis()  );
 
         while ( ( System.currentTimeMillis() - startTime ) < this.asMillis() && !interruptBoolean.getAsBoolean() )
         {

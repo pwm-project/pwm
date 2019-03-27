@@ -644,8 +644,6 @@ public class HelpdeskServlet extends ControlledPwmServlet
     {
         final HelpdeskProfile helpdeskProfile = getHelpdeskProfile( pwmRequest );
 
-        final Instant startTime = Instant.now();
-
         final HelpdeskVerificationRequestBean helpdeskVerificationRequestBean = JsonUtil.deserialize(
                 pwmRequest.readRequestBodyAsString(),
                 HelpdeskVerificationRequestBean.class
@@ -714,19 +712,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                 pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
             }
 
-            // add a delay to prevent continuous checks
-            final long delayMs = Long.parseLong( pwmRequest.getConfig().readAppProperty( AppProperty.HELPDESK_VERIFICATION_INVALID_DELAY_MS ) );
-            while ( TimeDuration.fromCurrent( startTime ).isShorterThan( delayMs ) )
-            {
-                JavaHelper.pause( 100 );
-            }
-
-            final HelpdeskVerificationResponseBean responseBean = new HelpdeskVerificationResponseBean(
-                    passed,
-                    verificationStateBean.toClientString( pwmRequest.getPwmApplication() )
-            );
-            final RestResultBean restResultBean = RestResultBean.withData( responseBean );
-            pwmRequest.outputJsonResult( restResultBean );
+            return outputVerificationResponseBean( pwmRequest, passed, verificationStateBean );
         }
         catch ( PwmOperationalException e )
         {
@@ -848,7 +834,6 @@ public class HelpdeskServlet extends ControlledPwmServlet
     )
             throws IOException, PwmUnrecoverableException, ServletException
     {
-        final Instant startTime = Instant.now();
         final HelpdeskVerificationRequestBean helpdeskVerificationRequestBean = JsonUtil.deserialize(
                 pwmRequest.readRequestBodyAsString(),
                 HelpdeskVerificationRequestBean.class
@@ -915,20 +900,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
         }
 
-        // add a delay to prevent continuous checks
-        final long delayMs = Long.parseLong( pwmRequest.getConfig().readAppProperty( AppProperty.HELPDESK_VERIFICATION_INVALID_DELAY_MS ) );
-        while ( TimeDuration.fromCurrent( startTime ).isShorterThan( delayMs ) )
-        {
-            JavaHelper.pause( 100 );
-        }
-
-        final HelpdeskVerificationResponseBean responseBean = new HelpdeskVerificationResponseBean(
-                passed,
-                verificationStateBean.toClientString( pwmRequest.getPwmApplication() )
-        );
-        final RestResultBean restResultBean = RestResultBean.withData( responseBean );
-        pwmRequest.outputJsonResult( restResultBean );
-        return ProcessStatus.Halt;
+        return outputVerificationResponseBean( pwmRequest, passed, verificationStateBean );
     }
 
     @ActionHandler( action = "clearOtpSecret" )
@@ -1052,7 +1024,6 @@ public class HelpdeskServlet extends ControlledPwmServlet
             throws IOException, PwmUnrecoverableException, ServletException
     {
         final HelpdeskProfile helpdeskProfile = getHelpdeskProfile( pwmRequest );
-        final Instant startTime = Instant.now();
         final String bodyString = pwmRequest.readRequestBodyAsString();
         final HelpdeskVerificationRequestBean helpdeskVerificationRequestBean = JsonUtil.deserialize(
                 bodyString,
@@ -1132,12 +1103,19 @@ public class HelpdeskServlet extends ControlledPwmServlet
             pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
         }
 
+        return outputVerificationResponseBean( pwmRequest, passed, verificationStateBean );
+    }
+
+    private ProcessStatus outputVerificationResponseBean(
+            final PwmRequest pwmRequest,
+            final boolean passed,
+            final HelpdeskVerificationStateBean verificationStateBean
+    )
+            throws IOException, PwmUnrecoverableException
+    {
         // add a delay to prevent continuous checks
-        final long delayMs = Long.parseLong( pwmRequest.getConfig().readAppProperty( AppProperty.HELPDESK_VERIFICATION_INVALID_DELAY_MS ) );
-        while ( TimeDuration.fromCurrent( startTime ).isShorterThan( delayMs ) )
-        {
-            JavaHelper.pause( 100 );
-        }
+        final long delayMs = JavaHelper.silentParseLong( pwmRequest.getConfig().readAppProperty( AppProperty.HELPDESK_VERIFICATION_INVALID_DELAY_MS ), 500 );
+        TimeDuration.of( delayMs, TimeDuration.Unit.MILLISECONDS ).jitterPause( pwmRequest.getPwmApplication().getSecureService(), 0.3f );
 
         final HelpdeskVerificationResponseBean responseBean = new HelpdeskVerificationResponseBean(
                 passed,

@@ -561,10 +561,7 @@ public class ContextManager implements Serializable
 
             LOGGER.trace( () -> "waiting up to " + maxRequestWaitTime.asCompactString()
                     + " for " + startingRequetsInProgress  + " requests to complete." );
-            JavaHelper.pause(
-                    maxRequestWaitTime.asMillis(),
-                    10,
-                    o -> pwmApplication.getInprogressRequests().get() == 0
+            maxRequestWaitTime.pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> pwmApplication.getInprogressRequests().get() == 0
             );
 
             final int requestsInPrgoress = pwmApplication.getInprogressRequests().get();

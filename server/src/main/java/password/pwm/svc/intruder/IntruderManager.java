@@ -445,7 +445,6 @@ public class IntruderManager implements PwmService
         delayPenalty( manager.readIntruderRecord( subject ), sessionLabel == null ? null : sessionLabel );
     }
 
-
     private void delayPenalty( final IntruderRecord intruderRecord, final SessionLabel sessionLabel )
     {
         int points = 0;
@@ -468,7 +467,7 @@ public class IntruderManager implements PwmService
                 LOGGER.trace( sessionLabel, () -> "delaying response " + finalDelay + "ms due to intruder record: " + JsonUtil.serialize( intruderRecord ) );
             }
 
-            JavaHelper.pause( delayPenalty );
+            TimeDuration.of( delayPenalty, TimeDuration.Unit.MILLISECONDS ).pause();
         }
     }
 

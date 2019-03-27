@@ -26,7 +26,6 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.svc.event.AuditService;
 import password.pwm.util.cli.CliParameters;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.File;
@@ -43,7 +42,6 @@ public class ExportAuditCommand extends AbstractCliCommand
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
         final AuditService auditManager = new AuditService();
         auditManager.init( pwmApplication );
-        JavaHelper.pause( 1000 );
 
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
 
@@ -53,7 +51,6 @@ public class ExportAuditCommand extends AbstractCliCommand
         try ( FileOutputStream fileOutputStream = new FileOutputStream( outputFile, true ) )
         {
             counter = auditManager.outputVaultToCsv( fileOutputStream, PwmConstants.DEFAULT_LOCALE, false );
-            fileOutputStream.close();
         }
         out( "completed writing " + counter + " rows of audit output in " + TimeDuration.fromCurrent( startTime ).asLongString() );
     }

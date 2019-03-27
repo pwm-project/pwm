@@ -154,10 +154,7 @@ public final class WorkQueueProcessor<W extends Serializable>
 
         if ( localWorkerThread.isRunning() )
         {
-            JavaHelper.pause(
-                    settings.getMaxShutdownWaitTime().asMillis(),
-                    CLOSE_RETRY_CYCLE_INTERVAL.asMillis(),
-                    o -> !localWorkerThread.isRunning() );
+            settings.getMaxShutdownWaitTime().pause( CLOSE_RETRY_CYCLE_INTERVAL, () -> !localWorkerThread.isRunning() );
         }
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
@@ -257,7 +254,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                             + ", item=" + itemProcessor.convertToDebugString( itemWrapper.getWorkItem() );
                     throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
                 }
-                JavaHelper.pause( SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.asMillis() );
+                SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.pause();
             }
 
             eldestItem = itemWrapper.getDate();
@@ -358,7 +355,7 @@ public final class WorkQueueProcessor<W extends Serializable>
             // rest until not running for up to 3 seconds....
             if ( running.get() )
             {
-                JavaHelper.pause( 3000, 10, o -> !running.get() );
+                TimeDuration.of( 3, TimeDuration.Unit.SECONDS ).pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> !running.get() );
             }
         }
 

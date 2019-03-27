@@ -84,6 +84,7 @@ import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
@@ -831,8 +832,8 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
         {
             LOGGER.trace( pwmRequest, () -> "preparing to send a new token to user" );
-            final long delayTime = Long.parseLong( pwmRequest.getConfig().readAppProperty( AppProperty.TOKEN_RESEND_DELAY_MS ) );
-            JavaHelper.pause( delayTime );
+            final long delayTimeMs = Long.parseLong( pwmRequest.getConfig().readAppProperty( AppProperty.TOKEN_RESEND_DELAY_MS ) );
+            TimeDuration.of( delayTimeMs, TimeDuration.Unit.MILLISECONDS ).pause();
         }
 
         {
@@ -857,9 +858,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         if ( forgottenPasswordBean.isBogusUser() )
         {
             final FormConfiguration formConfiguration = forgottenPasswordBean.getAttributeForm().iterator().next();
-
-            // add a bit of jitter to pretend like we're checking a data source
-            JavaHelper.pause( 300 + pwmRequest.getPwmApplication().getSecureService().pwmRandom().nextInt( 700 ) );
 
             if ( forgottenPasswordBean.getUserSearchValues() != null )
             {

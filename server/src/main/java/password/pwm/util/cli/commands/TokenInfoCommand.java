@@ -75,9 +75,6 @@ public class TokenInfoCommand extends AbstractCliCommand
                 out( "        value: " + value );
             }
         }
-
-        pwmApplication.shutdown();
-        JavaHelper.pause( 1000 );
     }
 
     @Override

@@ -28,7 +28,6 @@ import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -153,7 +152,7 @@ public class HealthMonitor implements PwmService
             final Instant startTime = Instant.now();
             LOGGER.trace( () ->  "begin force immediate check" );
             final Future future = pwmApplication.getPwmScheduler().scheduleFutureJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
-            JavaHelper.pause( settings.getMaximumForceCheckWait().asMillis(), 500, o -> future.isDone() );
+            settings.getMaximumForceCheckWait().pause( future::isDone );
             LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone() + ", " + TimeDuration.compactFromCurrent( startTime ) );
         }
 

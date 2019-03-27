@@ -557,7 +557,7 @@ public class ReportService implements PwmService
 
                             if ( pauseBetweenIterations )
                             {
-                                JavaHelper.pause( avgTracker.avgAsLong() );
+                                TimeDuration.of( avgTracker.avgAsLong(), TimeDuration.Unit.MILLISECONDS ).pause();
                             }
                         }
                         catch ( Exception e )

@@ -24,7 +24,6 @@ package password.pwm.util;
 
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 
 import java.util.Objects;
@@ -56,7 +55,8 @@ public class TransactionSizeCalculator
     @SuppressWarnings( "ResultOfMethodCallIgnored" )
     public void pause( )
     {
-        JavaHelper.pause( Math.min( lastDuration, settings.getDurationGoal().asMillis() * 2 ) );
+        final long pauseTimeMs = Math.min( lastDuration, settings.getDurationGoal().asMillis() * 2 );
+        TimeDuration.of( pauseTimeMs, TimeDuration.Unit.MILLISECONDS ).pause();
     }
 
     public void recordLastTransactionDuration( final TimeDuration duration )

@@ -139,54 +139,6 @@ public class JavaHelper
         return out.toString();
     }
 
-    /**
-     * Pause the calling thread the specified amount of time.
-     *
-     * @param sleepTimeMS - a time duration in milliseconds
-     * @return time actually spent sleeping
-     */
-    @CheckReturnValue( when = javax.annotation.meta.When.NEVER )
-    public static long pause( final long sleepTimeMS )
-    {
-        final long startTime = System.currentTimeMillis();
-        final long sliceTime = Math.max( 5, sleepTimeMS / 10 );
-        do
-        {
-            try
-            {
-                final long sleepTime = sleepTimeMS - ( System.currentTimeMillis() - startTime );
-                Thread.sleep( Math.min( sleepTime, sliceTime ) );
-            }
-            catch ( InterruptedException e )
-            {
-                // ignore
-            }
-        }
-        while ( ( System.currentTimeMillis() - startTime ) < sleepTimeMS );
-
-        return System.currentTimeMillis() - startTime;
-    }
-
-    public static long pause(
-            final long sleepTimeMS,
-            final long predicateCheckIntervalMS,
-            final Predicate predicate
-    )
-    {
-        final long startTime = System.currentTimeMillis();
-        final long pauseTime = Math.min( sleepTimeMS, predicateCheckIntervalMS );
-        while ( ( System.currentTimeMillis() - startTime ) < sleepTimeMS )
-        {
-            JavaHelper.pause( pauseTime );
-            if ( predicate.test( null ) )
-            {
-                break;
-            }
-        }
-
-        return System.currentTimeMillis() - startTime;
-    }
-
     public static String binaryArrayToHex( final byte[] buf )
     {
         final char[] hexChars = "0123456789ABCDEF".toCharArray();

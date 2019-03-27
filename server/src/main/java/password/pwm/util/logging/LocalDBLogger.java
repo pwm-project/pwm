@@ -389,7 +389,7 @@ public class LocalDBLogger implements PwmService
                         LOGGER.warn( "discarded event after waiting max buffer wait time of " + settings.getMaxBufferWaitTime().asCompactString() );
                         return;
                     }
-                    JavaHelper.pause( 100 );
+                    TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS ).pause();
                 }
             }
         }

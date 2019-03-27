@@ -169,13 +169,10 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         {
             executorService.shutdown();
 
+            JavaHelper.closeAndWaitExecutor( executorService, closeWaitTime );
             if ( backgroundImportRunning.get() )
             {
-                JavaHelper.pause( closeWaitTime.asMillis(), 50, o -> !backgroundImportRunning.get() );
-                if ( backgroundImportRunning.get() )
-                {
-                    getLogger().warn( "background thread still running after waiting " + closeWaitTime.asCompactString() );
-                }
+                getLogger().warn( "background thread still running after waiting " + closeWaitTime.asCompactString() );
             }
         }
     }
@@ -327,7 +324,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         inhibitBackgroundImportFlag.set( true );
         try
         {
-            JavaHelper.pause( 10_000, 100, o -> !backgroundImportRunning.get() );
+            TimeDuration.of( 10, TimeDuration.Unit.SECONDS ).pause( () -> !backgroundImportRunning.get() );
             if ( backgroundImportRunning.get() )
             {
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_WORDLIST_IMPORT_ERROR, "unable to cancel background operation in progress" );

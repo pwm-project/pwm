@@ -34,7 +34,6 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.Sleeper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -328,8 +327,6 @@ public class SharedHistoryManager implements PwmService
 
     private class CleanerTask extends TimerTask
     {
-        final Sleeper sleeper = new Sleeper( 10 );
-
         private CleanerTask( )
         {
         }
@@ -400,7 +397,6 @@ public class SharedHistoryManager implements PwmService
                     {
                         localOldestEntry = timeStamp < localOldestEntry ? timeStamp : localOldestEntry;
                     }
-                    sleeper.sleep();
                 }
             }
             finally
