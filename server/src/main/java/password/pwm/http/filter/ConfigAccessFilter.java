@@ -31,6 +31,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -48,6 +49,7 @@ import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.sessiontrack.UserAgentUtils;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
@@ -104,8 +106,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
         return pwmURL.isConfigManagerURL();
     }
 
-    @SuppressWarnings( "checkstyle:MethodLength" )
-    static ProcessStatus checkAuthentication(
+    private static ProcessStatus checkAuthentication(
             final PwmRequest pwmRequest,
             final ConfigManagerBean configManagerBean
     )
@@ -116,33 +117,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
         final ConfigurationReader runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
         final StoredConfigurationImpl storedConfig = runningConfigReader.getStoredConfiguration();
 
-        boolean authRequired = false;
-        if ( storedConfig.hasPassword() )
-        {
-            authRequired = true;
-        }
-
-        if ( PwmApplicationMode.RUNNING == pwmRequest.getPwmApplication().getApplicationMode() )
-        {
-            if ( !pwmRequest.isAuthenticated() )
-            {
-                throw new PwmUnrecoverableException( PwmError.ERROR_AUTHENTICATION_REQUIRED );
-            }
-
-            if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
-            {
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED );
-                denyAndError( pwmRequest, errorInformation );
-                return ProcessStatus.Halt;
-            }
-        }
-
-        if ( PwmApplicationMode.CONFIGURATION != pwmRequest.getPwmApplication().getApplicationMode() )
-        {
-            authRequired = true;
-        }
-
-        if ( !authRequired )
+        if ( !checkIfAuthIsRequired( pwmRequest, storedConfig ) )
         {
             return ProcessStatus.Continue;
         }
@@ -163,68 +138,9 @@ public class ConfigAccessFilter extends AbstractPwmFilter
             return ProcessStatus.Continue;
         }
 
-        String persistentLoginValue = null;
-        boolean persistentLoginAccepted = false;
-        boolean persistentLoginEnabled = false;
-        if ( pwmRequest.getConfig().isDefaultValue( PwmSetting.PWM_SECURITY_KEY ) )
-        {
-            LOGGER.debug( pwmRequest, () -> "security not available, persistent login not possible." );
-        }
-        else
-        {
-            persistentLoginEnabled = true;
-            final PwmSecurityKey securityKey = pwmRequest.getConfig().getSecurityKey();
+        final boolean persistentLoginEnabled = persistentLoginEnabled( pwmRequest );
+        final boolean persistentLoginAccepted = checkPersistentLoginCookie( pwmRequest, storedConfig );
 
-            if ( PwmApplicationMode.RUNNING == pwmRequest.getPwmApplication().getApplicationMode() )
-            {
-                persistentLoginValue = SecureEngine.hash(
-                        storedConfig.readConfigProperty( ConfigurationProperty.PASSWORD_HASH )
-                                + pwmSession.getUserInfo().getUserIdentity().toDelimitedKey(),
-                        PwmHashAlgorithm.SHA512 );
-
-            }
-            else
-            {
-                persistentLoginValue = SecureEngine.hash(
-                        storedConfig.readConfigProperty( ConfigurationProperty.PASSWORD_HASH ),
-                        PwmHashAlgorithm.SHA512 );
-            }
-
-            {
-                final String cookieStr = pwmRequest.readCookie( PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN );
-                if ( securityKey != null && cookieStr != null && !cookieStr.isEmpty() )
-                {
-                    try
-                    {
-                        final String jsonStr = pwmApplication.getSecureService().decryptStringValue( cookieStr );
-                        final PersistentLoginInfo persistentLoginInfo = JsonUtil.deserialize( jsonStr, PersistentLoginInfo.class );
-                        if ( persistentLoginInfo != null && persistentLoginValue != null )
-                        {
-                            if ( persistentLoginInfo.getExpireDate().isAfter( Instant.now() ) )
-                            {
-                                if ( persistentLoginValue.equals( persistentLoginInfo.getPassword() ) )
-                                {
-                                    persistentLoginAccepted = true;
-                                    LOGGER.debug( pwmRequest, () -> "accepting persistent config login from cookie (expires "
-                                            + JavaHelper.toIsoDate( persistentLoginInfo.getExpireDate() )
-                                            + ")"
-                                    );
-                                }
-                            }
-                        }
-                    }
-                    catch ( Exception e )
-                    {
-                        LOGGER.error( pwmRequest, "error examining persistent config login cookie: " + e.getMessage() );
-                    }
-                    if ( !persistentLoginAccepted )
-                    {
-                        pwmRequest.getPwmResponse().removeCookie( PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN, null );
-                        LOGGER.debug( pwmRequest, () -> "removing non-working persistent config login cookie" );
-                    }
-                }
-            }
-        }
 
 
         final String password = pwmRequest.readParameterAsString( "password" );
@@ -256,12 +172,14 @@ public class ConfigAccessFilter extends AbstractPwmFilter
             configManagerBean.setPasswordVerified( true );
             pwmApplication.getIntruderManager().convenience().clearAddressAndSession( pwmSession );
             pwmApplication.getIntruderManager().clear( RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME );
+            pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded( true );
             if ( persistentLoginEnabled && !persistentLoginAccepted && "on".equals( pwmRequest.readParameterAsString( "remember" ) ) )
             {
                 final int persistentSeconds = figureMaxLoginSeconds( pwmRequest );
                 if ( persistentSeconds > 0 )
                 {
                     final Instant expirationDate = Instant.ofEpochMilli( System.currentTimeMillis() + ( persistentSeconds * 1000 ) );
+                    final String persistentLoginValue = makePersistentLoginValue( pwmRequest, storedConfig );
                     final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo( expirationDate, persistentLoginValue );
                     final String jsonPersistentLoginInfo = JsonUtil.serialize( persistentLoginInfo );
                     final String cookieValue = pwmApplication.getSecureService().encryptToString( jsonPersistentLoginInfo );
@@ -291,6 +209,122 @@ public class ConfigAccessFilter extends AbstractPwmFilter
 
         forwardToJsp( pwmRequest );
         return ProcessStatus.Halt;
+    }
+
+    private static boolean checkPersistentLoginCookie(
+            final PwmRequest pwmRequest,
+            final StoredConfiguration storedConfig
+
+    )
+            throws PwmUnrecoverableException
+    {
+        final PwmSecurityKey securityKey = pwmRequest.getConfig().getSecurityKey();
+        final String cookieStr = pwmRequest.readCookie( PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN );
+        if ( securityKey != null && cookieStr != null && !cookieStr.isEmpty() )
+        {
+            try
+            {
+                final String persistentLoginValue = makePersistentLoginValue( pwmRequest, storedConfig );
+
+                final String jsonStr = pwmRequest.getPwmApplication().getSecureService().decryptStringValue( cookieStr );
+                final PersistentLoginInfo persistentLoginInfo = JsonUtil.deserialize( jsonStr, PersistentLoginInfo.class );
+                if ( persistentLoginInfo != null && persistentLoginValue != null )
+                {
+                    if ( persistentLoginInfo.getExpireDate().isAfter( Instant.now() ) )
+                    {
+
+                        if ( persistentLoginValue.equals( persistentLoginInfo.getPassword() ) )
+                        {
+                            LOGGER.debug( pwmRequest, () -> "accepting persistent config login from cookie (expires "
+                                    + JavaHelper.toIsoDate( persistentLoginInfo.getExpireDate() )
+                                    + ")"
+                            );
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch ( Exception e )
+            {
+                LOGGER.error( pwmRequest, "error examining persistent config login cookie: " + e.getMessage() );
+            }
+            if ( !StringUtil.isEmpty( cookieStr ) )
+            {
+                pwmRequest.getPwmResponse().removeCookie( PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN, null );
+                LOGGER.debug( pwmRequest, () -> "removing non-working persistent config login cookie" );
+            }
+        }
+
+        return false;
+    }
+
+
+    private static boolean checkIfAuthIsRequired(
+            final PwmRequest pwmRequest,
+            final StoredConfigurationImpl storedConfig
+    )
+            throws PwmUnrecoverableException
+    {
+        if ( storedConfig.hasPassword() )
+        {
+            return true;
+        }
+
+        if ( PwmApplicationMode.RUNNING == pwmRequest.getPwmApplication().getApplicationMode() )
+        {
+            if ( !pwmRequest.isAuthenticated() )
+            {
+                throw new PwmUnrecoverableException( PwmError.ERROR_AUTHENTICATION_REQUIRED );
+            }
+
+            if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
+            {
+                throw new PwmUnrecoverableException( PwmError.ERROR_UNAUTHORIZED );
+            }
+        }
+
+        if ( PwmApplicationMode.CONFIGURATION != pwmRequest.getPwmApplication().getApplicationMode() )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static boolean persistentLoginEnabled(
+            final PwmRequest pwmRequest
+    )
+    {
+        if ( pwmRequest.getConfig().isDefaultValue( PwmSetting.PWM_SECURITY_KEY ) )
+        {
+            LOGGER.debug( pwmRequest, () -> "security not available, persistent login not possible." );
+            return false;
+        }
+
+        return true;
+    }
+
+    private static String makePersistentLoginValue(
+            final PwmRequest pwmRequest,
+            final StoredConfiguration storedConfig
+    )
+            throws PwmUnrecoverableException
+    {
+        if ( PwmApplicationMode.RUNNING == pwmRequest.getPwmApplication().getApplicationMode() )
+        {
+            final PwmSession pwmSession = pwmRequest.getPwmSession();
+            return SecureEngine.hash(
+                    storedConfig.readConfigProperty( ConfigurationProperty.PASSWORD_HASH )
+                            + pwmSession.getUserInfo().getUserIdentity().toDelimitedKey(),
+                    PwmHashAlgorithm.SHA512 );
+
+        }
+        else
+        {
+            return SecureEngine.hash(
+                    storedConfig.readConfigProperty( ConfigurationProperty.PASSWORD_HASH ),
+                    PwmHashAlgorithm.SHA512 );
+        }
     }
 
     private static void forwardToJsp( final PwmRequest pwmRequest )

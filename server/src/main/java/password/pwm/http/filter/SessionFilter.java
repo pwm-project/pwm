@@ -59,7 +59,6 @@ import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -288,7 +287,6 @@ public class SessionFilter extends AbstractPwmFilter
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final PwmResponse pwmResponse = pwmRequest.getPwmResponse();
 
@@ -312,12 +310,17 @@ public class SessionFilter extends AbstractPwmFilter
             return ProcessStatus.Continue;
         }
 
+        final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         final String verificationParamName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_PARAM_SESSION_VERIFICATION );
         final String keyFromRequest = pwmRequest.readParameterAsString( verificationParamName, PwmHttpRequestWrapper.Flag.BypassValidation );
 
         // request doesn't have key, so make a new one, store it in the session, and redirect back here with the new key.
-        if ( keyFromRequest == null || keyFromRequest.length() < 1 )
+        if ( StringUtil.isEmpty( keyFromRequest ) )
         {
+            if ( StringUtil.isEmpty( ssBean.getSessionVerificationKey() ) )
+            {
+                ssBean.setSessionVerificationKey( pwmRequest.getPwmApplication().getSecureService().pwmRandom().randomUUID().toString() );
+            }
 
             final String returnURL = figureValidationURL( pwmRequest, ssBean.getSessionVerificationKey() );
 
@@ -327,7 +330,7 @@ public class SessionFilter extends AbstractPwmFilter
                 final String httpVersion = pwmRequest.getHttpServletRequest().getProtocol();
                 if ( "HTTP/1.0".equals( httpVersion ) || "HTTP/1.1".equals( httpVersion ) )
                 {
-                    // better chance of detecting un-sticky sessions this way
+                    // better chance of detecting un-sticky sessions this way (closing connection not available in HTTP/2)
                     pwmResponse.setHeader( HttpHeader.Connection, "close" );
                 }
             }
@@ -383,9 +386,8 @@ public class SessionFilter extends AbstractPwmFilter
                 {
                     final List<String> paramValues = Arrays.asList( req.getParameterValues( paramName ) );
 
-                    for ( final Iterator<String> valueIter = paramValues.iterator(); valueIter.hasNext(); )
+                    for ( final String value : paramValues )
                     {
-                        final String value = valueIter.next();
                         redirectURL = PwmURL.appendAndEncodeUrlParameters( redirectURL, paramName, value );
                     }
                 }

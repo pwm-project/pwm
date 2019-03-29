@@ -564,7 +564,7 @@ public class IntruderManager implements PwmService
                 final String subject = pwmSession.getSessionStateBean().getSrcAddress();
                 check( RecordType.ADDRESS, subject );
                 final int maxAllowedAttempts = ( int ) pwmApplication.getConfig().readSettingAsLong( PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS );
-                if ( maxAllowedAttempts != 0 && pwmSession.getSessionStateBean().getIntruderAttempts() > maxAllowedAttempts )
+                if ( maxAllowedAttempts != 0 && pwmSession.getSessionStateBean().getIntruderAttempts().get() > maxAllowedAttempts )
                 {
                     throw new PwmUnrecoverableException( PwmError.ERROR_INTRUDER_SESSION );
                 }
@@ -579,6 +579,7 @@ public class IntruderManager implements PwmService
                 final String subject = pwmSession.getSessionStateBean().getSrcAddress();
                 clear( RecordType.ADDRESS, subject );
                 pwmSession.getSessionStateBean().clearIntruderAttempts();
+                pwmSession.getSessionStateBean().setSessionIdRecycleNeeded( true );
             }
         }
 

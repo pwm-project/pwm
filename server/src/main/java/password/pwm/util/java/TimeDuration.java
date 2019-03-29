@@ -526,5 +526,10 @@ public class TimeDuration implements Comparable, Serializable
             days = ( ( ( totalSeconds / 60 ) / 60 ) / 24 );
         }
     }
+
+    public boolean isZero()
+    {
+        return ms <= 0;
+    }
 }
 
