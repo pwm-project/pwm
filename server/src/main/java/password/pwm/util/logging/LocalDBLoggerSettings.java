@@ -22,6 +22,8 @@
 
 package password.pwm.util.logging;
 
+import lombok.Builder;
+import lombok.Data;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -32,68 +34,46 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+@Data
+@Builder( toBuilder = true )
 public class LocalDBLoggerSettings implements Serializable
 {
+    @Builder.Default
     static final int MINIMUM_MAXIMUM_EVENTS = 100;
+
+    @Builder.Default
     static final TimeDuration MINIMUM_MAX_AGE = TimeDuration.HOUR;
 
-    private final int maxEvents;
-    private final TimeDuration maxAge;
-    private final Set<Flag> flags;
-    private final int maxBufferSize;
-    private final TimeDuration maxBufferWaitTime;
-    private final int maxTrimSize;
+    @Builder.Default
+    private int maxEvents = 1000 * 1000;
+
+    @Builder.Default
+    private TimeDuration maxAge = TimeDuration.of( 7, TimeDuration.Unit.DAYS );
+
+    @Builder.Default
+    private Set<Flag> flags = Collections.emptySet();
+
+    @Builder.Default
+    private int maxBufferSize = 1000;
+
+    @Builder.Default
+    private TimeDuration maxBufferWaitTime = TimeDuration.of( 1, TimeDuration.Unit.MINUTES );
+
+    @Builder.Default
+    private int maxTrimSize = 501;
+
 
     public enum Flag
     {
         DevDebug,
     }
 
-    private LocalDBLoggerSettings(
-            final int maxEvents,
-            final TimeDuration maxAge,
-            final Set<Flag> flags,
-            final int maxBufferSize,
-            final TimeDuration maxBufferWaitTime,
-            final int maxTrimSize
-    )
+    LocalDBLoggerSettings applyValueChecks()
     {
-        this.maxEvents = maxEvents < 1 ? 0 : Math.max( MINIMUM_MAXIMUM_EVENTS, maxEvents );
-        this.maxAge = maxAge == null || maxAge.isShorterThan( MINIMUM_MAX_AGE ) ? MINIMUM_MAX_AGE : maxAge;
-        this.flags = flags == null ? Collections.<Flag>emptySet() : Collections.unmodifiableSet( flags );
-        this.maxBufferSize = maxBufferSize;
-        this.maxBufferWaitTime = maxBufferWaitTime;
-        this.maxTrimSize = maxTrimSize;
-    }
-
-    public int getMaxEvents( )
-    {
-        return maxEvents;
-    }
-
-    public TimeDuration getMaxBufferWaitTime( )
-    {
-        return maxBufferWaitTime;
-    }
-
-    public TimeDuration getMaxAge( )
-    {
-        return maxAge;
-    }
-
-    public Set<Flag> getFlags( )
-    {
-        return flags;
-    }
-
-    public int getMaxBufferSize( )
-    {
-        return maxBufferSize;
-    }
-
-    public int getMaxTrimSize( )
-    {
-        return maxTrimSize;
+        return toBuilder()
+                .maxEvents( maxEvents < 1 ? 0 : Math.max( MINIMUM_MAXIMUM_EVENTS, maxEvents ) )
+                .maxAge( maxAge == null || maxAge.isShorterThan( MINIMUM_MAX_AGE ) ? MINIMUM_MAX_AGE : maxAge )
+                .build();
     }
 
     public static LocalDBLoggerSettings fromConfiguration( final Configuration configuration )
@@ -113,64 +93,13 @@ public class LocalDBLoggerSettings implements Serializable
         );
         final int maxTrimSize = Integer.parseInt( configuration.readAppProperty( AppProperty.LOCALDB_LOGWRITER_MAX_TRIM_SIZE ) );
 
-        return new Builder()
-                .setMaxEvents( maxEvents )
-                .setMaxAge( maxAge )
-                .setFlags( flags )
-                .setMaxBufferSize( maxBufferSize )
-                .setMaxBufferWaitTime( maxBufferWaitTime )
-                .setMaxTrimSize( maxTrimSize )
-                .createLocalDBLoggerSettings();
-    }
-
-    public static class Builder
-    {
-        private int maxEvents = 1 * 1000 * 1000;
-        private TimeDuration maxAge = TimeDuration.of( 7, TimeDuration.Unit.DAYS );
-        private Set<Flag> flags = Collections.emptySet();
-        private int maxBufferSize = 1000;
-        private TimeDuration maxBufferWaitTime = TimeDuration.of( 1, TimeDuration.Unit.MINUTES );
-        private int maxTrimSize = 501;
-
-        public Builder setMaxEvents( final int maxEvents )
-        {
-            this.maxEvents = maxEvents;
-            return this;
-        }
-
-        public Builder setMaxAge( final TimeDuration maxAge )
-        {
-            this.maxAge = maxAge;
-            return this;
-        }
-
-        public Builder setFlags( final Set<Flag> flags )
-        {
-            this.flags = flags;
-            return this;
-        }
-
-        public Builder setMaxTrimSize( final int maxTrimSize )
-        {
-            this.maxTrimSize = maxTrimSize;
-            return this;
-        }
-
-        public Builder setMaxBufferSize( final int maxBufferSize )
-        {
-            this.maxBufferSize = maxBufferSize;
-            return this;
-        }
-
-        public Builder setMaxBufferWaitTime( final TimeDuration maxBufferWaitTime )
-        {
-            this.maxBufferWaitTime = maxBufferWaitTime;
-            return this;
-        }
-
-        public LocalDBLoggerSettings createLocalDBLoggerSettings( )
-        {
-            return new LocalDBLoggerSettings( maxEvents, maxAge, flags, maxBufferSize, maxBufferWaitTime, maxTrimSize );
-        }
+        return LocalDBLoggerSettings.builder()
+                .maxEvents( maxEvents )
+                .maxAge( maxAge )
+                .flags( flags )
+                .maxBufferSize( maxBufferSize )
+                .maxBufferWaitTime( maxBufferWaitTime )
+                .maxTrimSize( maxTrimSize )
+                .build().applyValueChecks();
     }
 }

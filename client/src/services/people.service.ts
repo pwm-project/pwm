@@ -21,14 +21,21 @@
  */
 
 
-import {IHttpService, ILogService, IPromise, IQService, IWindowService} from 'angular';
+import {IDeferred, IHttpService, ILogService, IPromise, IQService, IWindowService} from 'angular';
 import {IPerson} from '../models/person.model';
 import IPwmService from './pwm.service';
 import IOrgChartData from '../models/orgchart-data.model';
 import SearchResult from '../models/search-result.model';
 import {IPeopleSearchConfigService} from './peoplesearch-config.service';
 
+export interface IQuery {
+ key: string;
+ value: string;
+}
+
 export interface IPeopleService {
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult>;
+
     autoComplete(query: string): IPromise<IPerson[]>;
 
     getDirectReports(personId: string): IPromise<IPerson[]>;
@@ -40,6 +47,8 @@ export interface IPeopleService {
     getOrgChartData(personId: string, skipChildren: boolean): IPromise<IOrgChartData>;
 
     getPerson(id: string): IPromise<IPerson>;
+
+    getTeamEmails(id: string, depth: number): IPromise<string[]>;
 
     search(query: string): IPromise<SearchResult>;
 }
@@ -61,6 +70,42 @@ export default class PeopleService implements IPeopleService {
         else {
             this.$log.warn('PWM_GLOBAL is not defined on window');
         }
+    }
+
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult> {
+        // Deferred object used for aborting requests. See promise.service.ts for more information
+        let httpTimeout = this.$q.defer();
+
+        let formID: string = encodeURIComponent('&pwmFormID=' + this.PWM_GLOBAL['pwmFormID']);
+        let url: string = this.pwmService.getServerUrl('search')
+            + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
+        let request = this.$http
+            .post(url, {
+                mode: 'advanced',
+                pwmFormID: formID,
+                searchValues: queries
+            }, {
+                cache: true,
+                timeout: httpTimeout.promise,
+                headers: {'Content-Type': 'multipart/form-data'},
+            });
+
+        let promise = request.then(
+            (response) => {
+                if (response.data['error']) {
+                    return this.handlePwmError(response);
+                }
+
+                let receivedData: any = response.data['data'];
+                let searchResult: SearchResult = new SearchResult(receivedData);
+
+                return searchResult;
+            },
+            this.handleHttpError.bind(this));
+
+        promise['_httpTimeout'] = httpTimeout;
+
+        return promise;
     }
 
     autoComplete(query: string): IPromise<IPerson[]> {
@@ -180,6 +225,24 @@ export default class PeopleService implements IPeopleService {
         return promise;
     }
 
+    getTeamEmails(id: string, depth: number): IPromise<string[]> {
+        const deferredValue: IDeferred<string[]> = this.$q.defer();
+
+        let request = this.$http
+            .get(this.pwmService.getServerUrl('mailtoLinks'), {
+                cache: true,
+                params: {
+                    userKey: id,
+                    depth: depth
+                }
+            })
+            .then((response) => {
+                deferredValue.resolve(response.data['data']);
+            });
+
+        return deferredValue.promise;
+    }
+
     search(query: string, params?: any): IPromise<SearchResult> {
         // Deferred object used for aborting requests. See promise.service.ts for more information
         let httpTimeout = this.$q.defer();
@@ -189,8 +252,10 @@ export default class PeopleService implements IPeopleService {
             + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
         let request = this.$http
             .post(url, {
+                mode: 'simple',
                 username: query,
-                pwmFormID: formID
+                pwmFormID: formID,
+                includeDisplayName: (params && params.includeDisplayName) ? params.includeDisplayName : false
             }, {
                 cache: true,
                 timeout: httpTimeout.promise,

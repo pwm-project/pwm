@@ -35,6 +35,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
+import password.pwm.http.servlet.peoplesearch.PeopleSearchService;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.http.state.SessionStateService;
 import password.pwm.ldap.LdapConnectionService;
@@ -42,7 +43,7 @@ import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
-import password.pwm.svc.cluster.ClusterService;
+import password.pwm.svc.node.NodeService;
 import password.pwm.svc.email.EmailService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -58,9 +59,9 @@ import password.pwm.svc.shorturl.UrlShortenerService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenService;
-import password.pwm.svc.wordlist.SeedlistManager;
+import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryManager;
-import password.pwm.svc.wordlist.WordlistManager;
+import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.MBeanUtility;
 import password.pwm.util.PasswordData;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
@@ -98,6 +99,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -161,6 +166,8 @@ public class PwmApplication
 
     private final PwmServiceManager pwmServiceManager = new PwmServiceManager( this );
 
+    private ScheduledExecutorService applicationExecutorService;
+
     public PwmApplication( final PwmEnvironment pwmEnvironment )
             throws PwmUnrecoverableException
     {
@@ -217,7 +224,7 @@ public class PwmApplication
                     break;
 
                 default:
-                    LOGGER.trace( "setting log level to TRACE because application mode is " + getApplicationMode() );
+                    LOGGER.trace( () -> "setting log level to TRACE because application mode is " + getApplicationMode() );
                     break;
             }
         }
@@ -244,7 +251,7 @@ public class PwmApplication
             }
         }
 
-        LOGGER.info( "initializing, application mode=" + getApplicationMode()
+        LOGGER.info( () -> "initializing, application mode=" + getApplicationMode()
                 + ", applicationPath=" + ( pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath().getAbsolutePath() )
                 + ", configFile=" + ( pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath() )
         );
@@ -264,18 +271,20 @@ public class PwmApplication
         this.localDBLogger = PwmLogManager.initializeLocalDBLogger( this );
 
         // log the loaded configuration
-        LOGGER.debug( "configuration load completed" );
+        LOGGER.debug( () -> "configuration load completed" );
 
         // read the pwm servlet instance id
         instanceID = fetchInstanceID( localDB, this );
-        LOGGER.debug( "using '" + getInstanceID() + "' for instance's ID (instanceID)" );
+        LOGGER.debug( () -> "using '" + getInstanceID() + "' for instance's ID (instanceID)" );
 
         // read the pwm installation date
         installTime = fetchInstallDate( startupTime );
-        LOGGER.debug( "this application instance first installed on " + JavaHelper.toIsoDate( installTime ) );
+        LOGGER.debug( () -> "this application instance first installed on " + JavaHelper.toIsoDate( installTime ) );
 
-        LOGGER.debug( "application environment flags: " + JsonUtil.serializeCollection( pwmEnvironment.getFlags() ) );
-        LOGGER.debug( "application environment parameters: " + JsonUtil.serializeMap( pwmEnvironment.getParameters() ) );
+        LOGGER.debug( () -> "application environment flags: " + JsonUtil.serializeCollection( pwmEnvironment.getFlags() ) );
+        LOGGER.debug( () -> "application environment parameters: " + JsonUtil.serializeMap( pwmEnvironment.getParameters() ) );
+
+        applicationExecutorService = JavaHelper.makeSingleThreadExecutorService( this, this.getClass() );
 
         pwmServiceManager.initAllServices();
 
@@ -285,14 +294,11 @@ public class PwmApplication
         if ( !skipPostInit )
         {
             final TimeDuration totalTime = TimeDuration.fromCurrent( startTime );
-            LOGGER.info( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")" );
+            LOGGER.info( () -> PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")" );
             StatisticsManager.incrementStat( this, Statistic.PWM_STARTUPS );
-            LOGGER.debug( "buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
+            LOGGER.debug( () -> "buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
-            final Thread postInitThread = new Thread( ( ) -> postInitTasks() );
-            postInitThread.setDaemon( true );
-            postInitThread.setName( JavaHelper.makeThreadName( this, PwmApplication.class ) );
-            postInitThread.start();
+            applicationExecutorService.execute( () -> postInitTasks() );
         }
     }
 
@@ -325,7 +331,7 @@ public class PwmApplication
         }
         catch ( Exception e )
         {
-            LOGGER.debug( "unable to detect if configuration has been modified since previous startup: " + e.getMessage() );
+            LOGGER.debug( () -> "unable to detect if configuration has been modified since previous startup: " + e.getMessage() );
         }
 
         if ( this.getConfig() != null )
@@ -338,11 +344,11 @@ public class PwmApplication
                 {
                     tempMap.put( entry.getKey().getKey(), entry.getValue() );
                 }
-                LOGGER.trace( "non-default app properties read from configuration: " + JsonUtil.serializeMap( tempMap ) );
+                LOGGER.trace( () -> "non-default app properties read from configuration: " + JsonUtil.serializeMap( tempMap ) );
             }
             else
             {
-                LOGGER.trace( "no non-default app properties in configuration" );
+                LOGGER.trace( () -> "no non-default app properties in configuration" );
             }
         }
 
@@ -363,7 +369,7 @@ public class PwmApplication
         try
         {
             final Map<PwmAboutProperty, String> infoMap = PwmAboutProperty.makeInfoBean( this );
-            LOGGER.trace( "application info: " + JsonUtil.serializeMap( infoMap ) );
+            LOGGER.trace( () ->  "application info: " + JsonUtil.serializeMap( infoMap ) );
         }
         catch ( Exception e )
         {
@@ -387,7 +393,7 @@ public class PwmApplication
             }
             catch ( Exception e )
             {
-                LOGGER.debug( "error while generating keystore output: " + e.getMessage() );
+                LOGGER.debug( () -> "error while generating keystore output: " + e.getMessage() );
             }
 
             try
@@ -396,7 +402,7 @@ public class PwmApplication
             }
             catch ( Exception e )
             {
-                LOGGER.debug( "error while generating tomcat conf output: " + e.getMessage() );
+                LOGGER.debug( () -> "error while generating tomcat conf output: " + e.getMessage() );
             }
         }
 
@@ -408,10 +414,10 @@ public class PwmApplication
         }
         catch ( Exception e )
         {
-            LOGGER.debug( "error initializing UserAgentUtils: " + e.getMessage() );
+            LOGGER.debug( () -> "error initializing UserAgentUtils: " + e.getMessage() );
         }
 
-        LOGGER.trace( "completed post init tasks in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.trace( () -> "completed post init tasks in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
     }
 
     private static void outputKeystore( final PwmApplication pwmApplication ) throws Exception
@@ -420,7 +426,7 @@ public class PwmApplication
         final String keystoreFileString = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStoreFile );
         if ( keystoreFileString != null && !keystoreFileString.isEmpty() )
         {
-            LOGGER.trace( "attempting to output keystore as configured by environment parameters to " + keystoreFileString );
+            LOGGER.trace( () -> "attempting to output keystore as configured by environment parameters to " + keystoreFileString );
             final File keyStoreFile = new File( keystoreFileString );
             final String password = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStorePassword );
             final String alias = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStoreAlias );
@@ -429,10 +435,10 @@ public class PwmApplication
             keyStore.store( outputContents, password.toCharArray() );
             if ( keyStoreFile.exists() )
             {
-                LOGGER.trace( "deleting existing keystore file " + keyStoreFile.getAbsolutePath() );
+                LOGGER.trace( () -> "deleting existing keystore file " + keyStoreFile.getAbsolutePath() );
                 if ( keyStoreFile.delete() )
                 {
-                    LOGGER.trace( "deleted existing keystore file: " + keyStoreFile.getAbsolutePath() );
+                    LOGGER.trace( () -> "deleted existing keystore file: " + keyStoreFile.getAbsolutePath() );
                 }
             }
 
@@ -441,7 +447,7 @@ public class PwmApplication
                 fileOutputStream.write( outputContents.toByteArray() );
             }
 
-            LOGGER.info( "successfully exported application https key to keystore file " + keyStoreFile.getAbsolutePath() );
+            LOGGER.info( () -> "successfully exported application https key to keystore file " + keyStoreFile.getAbsolutePath() );
         }
     }
 
@@ -451,7 +457,7 @@ public class PwmApplication
         final String tomcatOutputFileStr = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoWriteTomcatConfOutputFile );
         if ( tomcatOutputFileStr != null && !tomcatOutputFileStr.isEmpty() )
         {
-            LOGGER.trace( "attempting to output tomcat configuration file as configured by environment parameters to " + tomcatOutputFileStr );
+            LOGGER.trace( () -> "attempting to output tomcat configuration file as configured by environment parameters to " + tomcatOutputFileStr );
             final File tomcatOutputFile = new File( tomcatOutputFileStr );
             final File tomcatSourceFile;
             {
@@ -481,10 +487,10 @@ public class PwmApplication
             );
             if ( tomcatOutputFile.exists() )
             {
-                LOGGER.trace( "deleting existing tomcat configuration file " + tomcatOutputFile.getAbsolutePath() );
+                LOGGER.trace( () -> "deleting existing tomcat configuration file " + tomcatOutputFile.getAbsolutePath() );
                 if ( tomcatOutputFile.delete() )
                 {
-                    LOGGER.trace( "deleted existing tomcat configuration file: " + tomcatOutputFile.getAbsolutePath() );
+                    LOGGER.trace( () -> "deleted existing tomcat configuration file: " + tomcatOutputFile.getAbsolutePath() );
                 }
             }
 
@@ -493,7 +499,7 @@ public class PwmApplication
                 fileOutputStream.write( outputContents.toByteArray() );
             }
 
-            LOGGER.info( "successfully wrote tomcat configuration to file " + tomcatOutputFile.getAbsolutePath() );
+            LOGGER.info( () -> "successfully wrote tomcat configuration to file " + tomcatOutputFile.getAbsolutePath() );
         }
     }
 
@@ -551,14 +557,14 @@ public class PwmApplication
         return Collections.unmodifiableList( pwmServices );
     }
 
-    public WordlistManager getWordlistManager( )
+    public WordlistService getWordlistManager( )
     {
-        return ( WordlistManager ) pwmServiceManager.getService( WordlistManager.class );
+        return ( WordlistService ) pwmServiceManager.getService( WordlistService.class );
     }
 
-    public SeedlistManager getSeedlistManager( )
+    public SeedlistService getSeedlistManager( )
     {
-        return ( SeedlistManager ) pwmServiceManager.getService( SeedlistManager.class );
+        return ( SeedlistService ) pwmServiceManager.getService( SeedlistService.class );
     }
 
     public ReportService getReportService( )
@@ -596,9 +602,9 @@ public class PwmApplication
         return ( UserSearchEngine ) pwmServiceManager.getService( UserSearchEngine.class );
     }
 
-    public ClusterService getClusterService( )
+    public NodeService getClusterService( )
     {
-        return ( ClusterService ) pwmServiceManager.getService( ClusterService.class );
+        return ( NodeService ) pwmServiceManager.getService( NodeService.class );
     }
 
     public ErrorInformation getLastLocalDBFailure( )
@@ -624,6 +630,11 @@ public class PwmApplication
     public ResourceServletService getResourceServletService( )
     {
         return ( ResourceServletService ) pwmServiceManager.getService( ResourceServletService.class );
+    }
+
+    public PeopleSearchService getPeopleSearchService( )
+    {
+        return ( PeopleSearchService ) pwmServiceManager.getService( PeopleSearchService.class );
     }
 
     public Configuration getConfig( )
@@ -689,7 +700,8 @@ public class PwmApplication
             final PwmRandom pwmRandom = PwmRandom.getInstance();
             newInstanceID = Long.toHexString( pwmRandom.nextLong() ).toUpperCase();
 
-            LOGGER.info( "generated new random instanceID " + newInstanceID );
+            final String finalInstanceID = newInstanceID;
+            LOGGER.info( () -> "generated new random instanceID " + finalInstanceID );
 
             if ( localDB != null )
             {
@@ -698,7 +710,8 @@ public class PwmApplication
         }
         else
         {
-            LOGGER.trace( "retrieved instanceID " + newInstanceID + "" + " from localDB" );
+            final String id = newInstanceID;
+            LOGGER.trace( () -> "retrieved instanceID " + id + "" + " from localDB" );
         }
 
         if ( newInstanceID.length() < 1 )
@@ -772,6 +785,8 @@ public class PwmApplication
 
     public void shutdown( )
     {
+        applicationExecutorService.shutdown();
+
         LOGGER.warn( "shutting down" );
         {
             // send system audit event
@@ -813,7 +828,7 @@ public class PwmApplication
         {
             try
             {
-                LOGGER.trace( "beginning close of LocalDB" );
+                LOGGER.trace( () -> "beginning close of LocalDB" );
                 localDB.close();
             }
             catch ( Exception e )
@@ -825,7 +840,7 @@ public class PwmApplication
 
         pwmEnvironment.releaseFileLock();
 
-        LOGGER.info( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " closed for bidness, cya!" );
+        LOGGER.info( () -> PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " closed for bidness, cya!" );
     }
 
     public Instant getStartupTime( )
@@ -862,7 +877,7 @@ public class PwmApplication
                 throw new PwmUnrecoverableException( pwmApplication.lastLocalDBFailure );
             }
 
-            LOGGER.debug( "using localDB path " + databaseDirectory );
+            LOGGER.debug( () -> "using localDB path " + databaseDirectory );
 
             // initialize the localDB
             try
@@ -966,14 +981,14 @@ public class PwmApplication
         final File tempDirectory = new File( pwmEnvironment.getApplicationPath() + File.separator + "temp" );
         if ( !tempDirectory.exists() )
         {
-            LOGGER.trace( "preparing to create temporary directory " + tempDirectory.getAbsolutePath() );
+            LOGGER.trace( () -> "preparing to create temporary directory " + tempDirectory.getAbsolutePath() );
             if ( tempDirectory.mkdir() )
             {
-                LOGGER.debug( "created " + tempDirectory.getAbsolutePath() );
+                LOGGER.debug( () -> "created " + tempDirectory.getAbsolutePath() );
             }
             else
             {
-                LOGGER.debug( "unable to create temporary directory " + tempDirectory.getAbsolutePath() );
+                LOGGER.debug( () -> "unable to create temporary directory " + tempDirectory.getAbsolutePath() );
                 final ErrorInformation errorInformation = new ErrorInformation(
                         PwmError.ERROR_STARTUP_ERROR,
                         "unable to establish create temp work directory " + tempDirectory.getAbsolutePath()
@@ -1007,6 +1022,83 @@ public class PwmApplication
     public AtomicInteger getInprogressRequests( )
     {
         return inprogressRequests;
+    }
+
+    public ScheduledFuture scheduleFutureJob(
+            final Runnable runnable,
+            final ExecutorService executor,
+            final TimeDuration delay
+    )
+    {
+        if ( applicationExecutorService.isShutdown() )
+        {
+            return null;
+        }
+
+        return applicationExecutorService.schedule(  new WrappedRunner( runnable, executor ), delay.asMillis(), TimeUnit.MILLISECONDS );
+    }
+
+    public void scheduleFixedRateJob(
+            final Runnable runnable,
+            final ExecutorService executor,
+            final TimeDuration initialDelay,
+            final TimeDuration frequency
+    )
+    {
+        if ( applicationExecutorService.isShutdown() )
+        {
+            return;
+        }
+
+        if ( initialDelay != null )
+        {
+            applicationExecutorService.schedule( new WrappedRunner( runnable, executor ), initialDelay.asMillis(), TimeUnit.MILLISECONDS );
+        }
+
+        final Runnable jobWithNextScheduler = () ->
+        {
+            new WrappedRunner( runnable, executor ).run();
+            scheduleFixedRateJob( runnable, executor, null, frequency );
+        };
+
+        applicationExecutorService.schedule(  jobWithNextScheduler, frequency.asMillis(), TimeUnit.MILLISECONDS );
+    }
+
+    private static class WrappedRunner implements Runnable
+    {
+        private final Runnable runnable;
+        private final ExecutorService executor;
+
+        WrappedRunner( final Runnable runnable, final ExecutorService executor )
+        {
+            this.runnable = runnable;
+            this.executor = executor;
+        }
+
+        @Override
+        public void run()
+        {
+            if ( executor.isShutdown() )
+            {
+                return;
+            }
+
+            try
+            {
+                if ( !executor.isShutdown() )
+                {
+                    executor.execute( runnable );
+                }
+                else
+                {
+                    LOGGER.trace( () -> "skipping scheduled job " + runnable + " on shutdown executor + " + executor );
+                }
+            }
+            catch ( Throwable t )
+            {
+                LOGGER.error( "unexpected error running scheduled job: " + t.getMessage(), t );
+            }
+        }
     }
 }
 

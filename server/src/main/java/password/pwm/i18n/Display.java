@@ -23,7 +23,7 @@
 package password.pwm.i18n;
 
 import password.pwm.config.Configuration;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 
 import java.util.Locale;
 
@@ -152,6 +152,7 @@ public enum Display implements PwmDisplayBundle
     Display_SearchCompleted,
     Display_SearchResultsInfo,
     Display_SearchResultsExceeded,
+    Display_SearchAttrsUnique,
     Display_SetRandomPasswordPrompt,
     Display_SearchResultsNone,
     Display_Second,

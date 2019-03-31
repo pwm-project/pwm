@@ -22,11 +22,12 @@
 
 package password.pwm.config.value;
 
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -57,11 +58,11 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
                 return new NumericArrayValue( list );
             }
 
-            public NumericArrayValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey input )
+            public NumericArrayValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
                 final List<Long> returnList = new ArrayList<>(  );
-                final List<Element> valueElements = settingElement.getChildren( "value" );
-                for ( final Element element : valueElements )
+                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                for ( final XmlElement element : valueElements )
                 {
                     final String strValue = element.getText();
                     final Long longValue = Long.parseLong( strValue );
@@ -73,13 +74,13 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
     }
 
     @Override
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final Long value : this.values )
         {
-            final Element valueElement = new Element( valueElementName );
-            valueElement.addContent( String.valueOf( value ) );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+            valueElement.addText( String.valueOf( value ) );
             returnList.add( valueElement );
         }
         return returnList;

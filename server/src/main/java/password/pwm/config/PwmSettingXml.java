@@ -22,13 +22,11 @@
 
 package password.pwm.config;
 
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-import org.jdom2.xpath.XPathExpression;
-import org.jdom2.xpath.XPathFactory;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.java.XmlDocument;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.xml.XMLConstants;
@@ -36,7 +34,6 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.Collections;
@@ -59,23 +56,21 @@ public class PwmSettingXml
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSettingXml.class );
 
-    private static Document xmlDocCache;
+    private static XmlDocument xmlDocCache;
     private static final AtomicInteger LOAD_COUNTER = new AtomicInteger( 0 );
 
-    private static Document readXml( )
+    private static XmlDocument readXml( )
     {
-        final Document docRefCopy = xmlDocCache;
+        final XmlDocument docRefCopy = xmlDocCache;
         if ( docRefCopy == null )
         {
-            //validateXmlSchema();
             final InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( SETTING_XML_FILENAME );
-            final SAXBuilder builder = new SAXBuilder();
             try
             {
                 final Instant startTime = Instant.now();
-                final Document newDoc = builder.build( inputStream );
+                final XmlDocument newDoc = XmlFactory.getFactory().parseXml( inputStream );
                 final TimeDuration parseDuration = TimeDuration.fromCurrent( startTime );
-                LOGGER.trace( "parsed PwmSettingXml in " + parseDuration.toString() + ", loads=" + LOAD_COUNTER.getAndIncrement() );
+                LOGGER.trace( () -> "parsed PwmSettingXml in " + parseDuration.toString() + ", loads=" + LOAD_COUNTER.getAndIncrement() );
 
                 xmlDocCache = newDoc;
 
@@ -93,7 +88,7 @@ public class PwmSettingXml
                         {
                             //ignored
                         }
-                        LOGGER.trace( "cached PwmSettingXml discarded" );
+                        LOGGER.trace( () -> "cached PwmSettingXml discarded" );
                         xmlDocCache = null;
                     }
                 };
@@ -102,15 +97,10 @@ public class PwmSettingXml
 
                 return newDoc;
             }
-            catch ( JDOMException e )
+            catch ( PwmUnrecoverableException e )
             {
                 throw new IllegalStateException( "error parsing " + SETTING_XML_FILENAME + ": " + e.getMessage() );
             }
-            catch ( IOException e )
-            {
-                throw new IllegalStateException( "unable to load " + SETTING_XML_FILENAME + ": " + e.getMessage() );
-            }
-
         }
         return docRefCopy;
     }
@@ -132,28 +122,25 @@ public class PwmSettingXml
         }
     }
 
-    static Element readSettingXml( final PwmSetting setting )
+    static XmlElement readSettingXml( final PwmSetting setting )
     {
-        final XPathFactory xpfac = XPathFactory.instance();
-        final XPathExpression xp = xpfac.compile( "/settings/setting[@key=\"" + setting.getKey() + "\"]" );
-        return ( Element ) xp.evaluateFirst( readXml() );
+        final String expression = "/settings/setting[@key=\"" + setting.getKey() + "\"]";
+        return readXml().evaluateXpathToElement( expression );
     }
 
-    static Element readCategoryXml( final PwmSettingCategory category )
+    static XmlElement readCategoryXml( final PwmSettingCategory category )
     {
-        final XPathFactory xpfac = XPathFactory.instance();
-        final XPathExpression xp = xpfac.compile( "/settings/category[@key=\"" + category.toString() + "\"]" );
-        return ( Element ) xp.evaluateFirst( readXml() );
+        final String expression = "/settings/category[@key=\"" + category.toString() + "\"]";
+        return readXml().evaluateXpathToElement( expression );
     }
 
-    static Element readTemplateXml( final PwmSettingTemplate template )
+    static XmlElement readTemplateXml( final PwmSettingTemplate template )
     {
-        final XPathFactory xpfac = XPathFactory.instance();
-        final XPathExpression xp = xpfac.compile( "/settings/template[@key=\"" + template.toString() + "\"]" );
-        return ( Element ) xp.evaluateFirst( readXml() );
+        final String expression = "/settings/template[@key=\"" + template.toString() + "\"]";
+        return readXml().evaluateXpathToElement( expression );
     }
 
-    static Set<PwmSettingTemplate> parseTemplateAttribute( final Element element )
+    static Set<PwmSettingTemplate> parseTemplateAttribute( final XmlElement element )
     {
         if ( element == null )
         {

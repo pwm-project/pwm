@@ -47,7 +47,7 @@ import password.pwm.i18n.Display;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.ViewableUserInfoDisplayReader;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -113,7 +113,7 @@ public class HelpdeskDetailInfoBean implements Serializable
     {
         final HelpdeskDetailInfoBeanBuilder builder = HelpdeskDetailInfoBean.builder();
         final Instant startTime = Instant.now();
-        LOGGER.trace( pwmRequest, "beginning to assemble detail data report for user " + userIdentity );
+        LOGGER.trace( pwmRequest, () -> "beginning to assemble detail data report for user " + userIdentity );
         final Locale actorLocale = pwmRequest.getLocale();
         final ChaiUser theUser = HelpdeskServlet.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
 
@@ -231,7 +231,7 @@ public class HelpdeskDetailInfoBean implements Serializable
 
         if ( pwmRequest.getConfig().isDevDebugMode() )
         {
-            LOGGER.trace( pwmRequest, "completed assembly of detail data report for user " + userIdentity
+            LOGGER.trace( pwmRequest, () -> "completed assembly of detail data report for user " + userIdentity
                     + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize( helpdeskDetailInfoBean ) );
         }
 

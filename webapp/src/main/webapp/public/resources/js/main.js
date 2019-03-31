@@ -87,12 +87,12 @@ PWM_MAIN.loadClientData=function(completeFunction) {
         for (var globalProp in data['data']['PWM_GLOBAL']) {
             PWM_GLOBAL[globalProp] = data['data']['PWM_GLOBAL'][globalProp];
         }
-        console.log('loaded client data');
+        PWM_MAIN.log('loaded client data');
         if (completeFunction) completeFunction();
     };
     var errorFunction = function(error) {
         var errorMsg = 'unable to read app-data: ' + error;;
-        console.log(errorMsg);
+        PWM_MAIN.log(errorMsg);
         if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
         if (completeFunction) completeFunction();
     };
@@ -112,12 +112,12 @@ PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
                 PWM_GLOBAL['localeStrings'][bundleName][settingKey] = data['data'][settingKey];
             }
         }
-        console.log('loaded locale bundle data for ' + bundleName);
+        PWM_MAIN.log('loaded locale bundle data for ' + bundleName);
         if (completeFunction) completeFunction();
     };
     var errorFunction = function(){
         var errorMsg = 'unable to load locale bundle from , please reload page (' + error + ')';
-        console.log(errorMsg);
+        PWM_MAIN.log(errorMsg);
         if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
         if (completeFunction) completeFunction();
     };
@@ -217,7 +217,7 @@ PWM_MAIN.initPage = function() {
 
     ShowHidePasswordHandler.initAllForms();
 
-    console.log('initPage completed');
+    PWM_MAIN.log('initPage completed');
 };
 
 PWM_MAIN.initDisplayTabPreferences = function() {
@@ -256,7 +256,7 @@ PWM_MAIN.applyFormAttributes = function() {
         formElement.setAttribute('autocorrect', 'off');
     });
 
-    PWM_MAIN.doQuery('.pwm-form',function(formElement) {
+    PWM_MAIN.doQuery('.pwm-form:not(.pwm-form-captcha)',function(formElement) {
         PWM_MAIN.addEventHandler(formElement, "submit", function(event){
             PWM_MAIN.handleFormSubmit(formElement, event);
         });
@@ -284,10 +284,9 @@ PWM_MAIN.applyFormAttributes = function() {
     require(["dojo"], function (dojo) {
         if(dojo.isIE){
             PWM_MAIN.doQuery("button[type=submit][form]",function(element){
-                console.log('added event handler for submit button with form attribute ' + element.id);
+                PWM_MAIN.log('added event handler for submit button with form attribute ' + element.id);
                 PWM_MAIN.addEventHandler(element,'click',function(e){
                     PWM_MAIN.stopEvent(e);
-                    PWM_VAR['dirtyPageLeaveFlag'] = false;
                     var formID = element.getAttribute('form');
                     PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject(formID));
                 });
@@ -337,7 +336,6 @@ PWM_MAIN.addEventHandler = function(nodeId,eventType,functionToAdd) {
 
 
 PWM_MAIN.gotoUrl = function(url, options) {
-    PWM_VAR['dirtyPageLeaveFlag'] = false;
     options = options === undefined ? {} : options;
     if (!('noContext' in options) && url.indexOf(PWM_GLOBAL['url-context']) !== 0) {
         if (url.substring(0,1) === '/') {
@@ -354,11 +352,11 @@ PWM_MAIN.gotoUrl = function(url, options) {
     var executeGoto = function() {
         if (options['delay']) {
             setTimeout(function () {
-                console.log('redirecting to new url: ' + url);
+                PWM_MAIN.log('redirecting to new url: ' + url);
                 window.location = url;
             }, options['delay']);
         } else {
-            console.log('redirecting to new url: ' + url);
+            PWM_MAIN.log('redirecting to new url: ' + url);
             window.location = url;
         }
     };
@@ -375,7 +373,7 @@ PWM_MAIN.gotoUrl = function(url, options) {
 
 
 PWM_MAIN.handleLoginFormSubmit = function(form, event) {
-    console.log('entering handleLoginFormSubmit');
+    PWM_MAIN.log('entering handleLoginFormSubmit');
     PWM_MAIN.cancelEvent(event);
 
     require(["dojo","dojo/dom-form"], function(dojo, domForm) {
@@ -397,7 +395,7 @@ PWM_MAIN.handleLoginFormSubmit = function(form, event) {
                         });
                         return;
                     }
-                    console.log('authentication success');
+                    PWM_MAIN.log('authentication success');
                     var nextURL = data['data']['nextURL'];
                     if (nextURL) {
                         PWM_MAIN.gotoUrl(nextURL, {noContext: true});
@@ -408,16 +406,20 @@ PWM_MAIN.handleLoginFormSubmit = function(form, event) {
                     try {
                         grecaptcha.reset(); // reset the
                     } catch (e) {
-                        console.log("error resetting the captcha: " + e)
+                        PWM_MAIN.log("error resetting the captcha: " + e)
                     }
                 }
             }});
     });
 };
 
+PWM_MAIN.log = function(text) {
+    console.log(text);
+};
+
 
 PWM_MAIN.handleFormSubmit = function(form, event) {
-    console.log('entering handleFormSubmit');
+    PWM_MAIN.log('entering handleFormSubmit');
     PWM_MAIN.cancelEvent(event);
 
     PWM_GLOBAL['idle_suspendTimeout'] = true;
@@ -596,13 +598,13 @@ PWM_MAIN.clearDijitWidget = function (widgetName) {
             try {
                 oldDijitNode.destroyRecursive();
             } catch (error) {
-                console.log('error destroying old widget: ' + error);
+                PWM_MAIN.log('error destroying old widget: ' + error);
             }
 
             try {
                 oldDijitNode.destroy();
             } catch (error) {
-                console.log('error destroying old widget: ' + error);
+                PWM_MAIN.log('error destroying old widget: ' + error);
             }
         }
     });
@@ -651,20 +653,28 @@ PWM_MAIN.showLocaleSelectionMenu = function(nextFunction, options) {
 
 
 PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
-
     PWM_MAIN.addEventHandler(attachNode,'click',function(){
         PWM_MAIN.showLocaleSelectionMenu(function(localeKey){
-            require(["dojo"], function (dojo) {
-                var nextUrl = window.location.toString();
-                if (window.location.toString().indexOf('?') > 0) {
-                    var params = dojo.queryToObject(window.location.search.substring(1, window.location.search.length));
-                    params['locale'] = localeKey;
-                    nextUrl = window.location.toString().substring(0, window.location.toString().indexOf('?') + 1)
-                        + dojo.objectToQuery(params);
-                } else {
-                    nextUrl = PWM_MAIN.addParamToUrl(nextUrl, 'locale', localeKey)
+
+            PWM_MAIN.showWaitDialog({loadFunction:function(){
+                    var url = PWM_GLOBAL['url-context'] + '/public/api?locale=' + localeKey;
+                    PWM_MAIN.ajaxRequest(url, function(){
+                        try {
+                            var newLocation = window.location;
+                            var searchParams = new URLSearchParams(newLocation.search);
+                            if ( searchParams.has('locale')) {
+                                searchParams.set('locale', localeKey);
+                                newLocation.search = searchParams.toString();
+                                window.location = newLocation;
+                                return;
+                            }
+                        } catch (e) {
+                            PWM_MAIN.log('error replacing locale parameter on existing url: ' + e);
+                        }
+
+                        window.location.reload(true);
+                    });
                 }
-                PWM_MAIN.gotoUrl(nextUrl);
             });
         });
     });
@@ -704,7 +714,7 @@ PWM_MAIN.showErrorDialog = function(error, options) {
         logMsg += 'due to error code type, reloading page.';
     }
 
-    console.log('displaying error message: ' + logMsg);
+    PWM_MAIN.log('displaying error message: ' + logMsg);
     options['title'] = titleMsg;
     options['text'] = body;
     var previousOkAction = 'okAction' in options ? options['okAction'] : function() {};
@@ -788,15 +798,15 @@ PWM_MAIN.showDialog = function(options) {
         if ('okAction' in options) {
             options['okAction']();
         } else {
-            console.log('dialog okAction is empty')
+            PWM_MAIN.log('dialog okAction is empty')
         }
     };
     var cancelAction = 'cancelAction' in options ? options['cancelAction'] : function(){
         PWM_MAIN.closeWaitDialog(idName);
-        console.log('no-dialog-cancelaction')
+        PWM_MAIN.log('no-dialog-cancelaction')
     };
     var loadFunction = 'loadFunction' in options ? options['loadFunction'] : function(){
-        console.log('no-dialog-loadfunction')
+        PWM_MAIN.log('no-dialog-loadfunction')
     };
 
     PWM_VAR['dialog_loadFunction'] = loadFunction;
@@ -1088,7 +1098,7 @@ PWM_MAIN.createCSSClass = function(selector, style) {
                     return;
                 }
             } catch (e) {
-                console.log('error while checking existing rules during cssCreate:' + e);
+                PWM_MAIN.log('error while checking existing rules during cssCreate:' + e);
             }
         }
         // or add a new rule
@@ -1112,10 +1122,10 @@ PWM_MAIN.createCSSClass = function(selector, style) {
 
 PWM_MAIN.flashDomElement = function(flashColor,elementName,durationMS) {
     if (!PWM_MAIN.getObject(elementName)) {
-        console.log('cant flash non-existing element id ' + elementName);
+        PWM_MAIN.log('cant flash non-existing element id ' + elementName);
         return;
     }
-    console.log('will flash element id ' + elementName);
+    PWM_MAIN.log('will flash element id ' + elementName);
     require(["dojo","dojo/window","dojo/domReady!"],function(dojo) {
         var originalBGColor = PWM_MAIN.getRenderedStyle(elementName,'background-color');
         PWM_MAIN.getObject(elementName).style.backgroundColor = flashColor;
@@ -1209,7 +1219,7 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
     var completeFunction = 'completeFunction' in validationProps ? validationProps['completeFunction'] : function(){};
 
 
-    if (CONSOLE_DEBUG) console.log("pwmFormValidator: beginning...");
+    if (CONSOLE_DEBUG) PWM_MAIN.log("pwmFormValidator: beginning...");
 
     //init vars;
     if (!PWM_VAR['validationCache']) {
@@ -1225,7 +1235,7 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
         var cachedResult = PWM_VAR['validationCache'][formKey];
         if (cachedResult) {
             processResultsFunction(cachedResult);
-            if (CONSOLE_DEBUG) console.log('pwmFormValidator: processed cached data, exiting');
+            if (CONSOLE_DEBUG) PWM_MAIN.log('pwmFormValidator: processed cached data, exiting');
             completeFunction(cachedResult);
             return;
         }
@@ -1241,15 +1251,15 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
             PWM_MAIN.showInfo(PWM_MAIN.showString('Display_TypingWait'));
         }
         setTimeout(function(){PWM_MAIN.pwmFormValidator(validationProps, true)}, typeWaitTimeMs + 1);
-        if (CONSOLE_DEBUG) console.log('pwmFormValidator: sleeping while waiting for typing to finish, will retry...');
+        if (CONSOLE_DEBUG) PWM_MAIN.log('pwmFormValidator: sleeping while waiting for typing to finish, will retry...');
         return;
     }
-    if (CONSOLE_DEBUG) console.log('pwmFormValidator: user no longer typing, continuing..');
+    if (CONSOLE_DEBUG) PWM_MAIN.log('pwmFormValidator: user no longer typing, continuing..');
 
     //check to see if a validation is already in progress, if it is then ignore keypress.
     if (PWM_VAR['validationInProgress'] === true) {
         setTimeout(function(){PWM_MAIN.pwmFormValidator(validationProps, true)}, typeWaitTimeMs + 1);
-        if (CONSOLE_DEBUG) console.log('pwmFormValidator: waiting for a previous validation to complete, exiting...');
+        if (CONSOLE_DEBUG) PWM_MAIN.log('pwmFormValidator: waiting for a previous validation to complete, exiting...');
         return;
     }
     PWM_VAR['validationInProgress'] = true;
@@ -1265,12 +1275,12 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
 
     var formDataString = JSON.stringify(formData) ;
 
-    if (CONSOLE_DEBUG) console.log('FormValidator: sending form data to server... ' + formDataString);
+    if (CONSOLE_DEBUG) PWM_MAIN.log('FormValidator: sending form data to server... ' + formDataString);
     var loadFunction = function(data) {
         PWM_VAR['validationInProgress'] = false;
         delete PWM_VAR['validationLastType'];
         PWM_VAR['validationCache'][formKey] = data;
-        if (CONSOLE_DEBUG) console.log('pwmFormValidator: successful read, data added to cache');
+        if (CONSOLE_DEBUG) PWM_MAIN.log('pwmFormValidator: successful read, data added to cache');
         PWM_MAIN.pwmFormValidator(validationProps, true);
     };
     var options = {};
@@ -1281,7 +1291,7 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
         if (showMessage) {
             PWM_MAIN.showInfo(PWM_MAIN.showString('Display_CommunicationError'));
         }
-        if (CONSOLE_DEBUG) console.log('pwmFormValidator: error connecting to service: ' + error);
+        if (CONSOLE_DEBUG) PWM_MAIN.log('pwmFormValidator: error connecting to service: ' + error);
         processResultsFunction(null);
         completeFunction(null);
     };
@@ -1411,7 +1421,7 @@ ShowHidePasswordHandler.initAllForms = function() {
 
     PWM_MAIN.doQuery('.passwordfield',function(field){
         if (field.id) {
-            if (ShowHidePasswordHandler.debugOutput) console.log('adding show/hide option on fieldID=' + field.id);
+            if (ShowHidePasswordHandler.debugOutput) PWM_MAIN.log('adding show/hide option on fieldID=' + field.id);
             ShowHidePasswordHandler.init(field.id);
         }
     });
@@ -1453,7 +1463,7 @@ ShowHidePasswordHandler.init = function(nodeName) {
 };
 
 ShowHidePasswordHandler.renderIcon = function(nodeName) {
-    if (ShowHidePasswordHandler.debugOutput) console.log("calling renderIcon on node " + nodeName);
+    if (ShowHidePasswordHandler.debugOutput) PWM_MAIN.log("calling renderIcon on node " + nodeName);
     var node = PWM_MAIN.getObject(nodeName);
     var eyeId = nodeName + ShowHidePasswordHandler.idSuffix;
     var eyeNode = PWM_MAIN.getObject(eyeId);
@@ -1504,7 +1514,7 @@ ShowHidePasswordHandler.show = function(nodeName) {
 
 ShowHidePasswordHandler.addInputEvents = function(nodeName) {
     PWM_MAIN.addEventHandler(nodeName, "keyup, input", function(){
-        if (ShowHidePasswordHandler.debugOutput) console.log("keypress event on node " + nodeName);
+        if (ShowHidePasswordHandler.debugOutput) PWM_MAIN.log("keypress event on node " + nodeName);
         ShowHidePasswordHandler.renderIcon(nodeName);
         ShowHidePasswordHandler.setupTooltip(nodeName);
     });
@@ -1537,7 +1547,7 @@ ShowHidePasswordHandler.changeInputTypeField = function(object, type) {
 };
 
 ShowHidePasswordHandler.setupTooltip = function(nodeName) {
-    if (ShowHidePasswordHandler.debugOutput) console.log('begin setupTooltip');
+    if (ShowHidePasswordHandler.debugOutput) PWM_MAIN.log('begin setupTooltip');
     var state = ShowHidePasswordHandler.state[nodeName];
     var eyeNodeId = nodeName + ShowHidePasswordHandler.idSuffix;
 
@@ -1545,12 +1555,12 @@ ShowHidePasswordHandler.setupTooltip = function(nodeName) {
         PWM_MAIN.showTooltip({id:eyeNodeId,text:PWM_MAIN.showString('Button_Show')});
         PWM_MAIN.removeCssClass(eyeNodeId,"pwm-icon-eye-slash");
         PWM_MAIN.addCssClass(eyeNodeId,"pwm-icon-eye");
-        if (ShowHidePasswordHandler.debugOutput) console.log('set class to pwm-icon-eye');
+        if (ShowHidePasswordHandler.debugOutput) PWM_MAIN.log('set class to pwm-icon-eye');
     } else {
         PWM_MAIN.showTooltip({id:eyeNodeId,text:PWM_MAIN.showString('Button_Hide')});
         PWM_MAIN.removeCssClass(eyeNodeId,"pwm-icon-eye");
         PWM_MAIN.addCssClass(eyeNodeId,"pwm-icon-eye-slash");
-        if (ShowHidePasswordHandler.debugOutput) console.log('set class to pwm-icon-slash');
+        if (ShowHidePasswordHandler.debugOutput) PWM_MAIN.log('set class to pwm-icon-slash');
     }
 };
 
@@ -1603,7 +1613,6 @@ PWM_MAIN.IdleTimeoutHandler.pollActivity = function() {
 
     if (secondsRemaining < 0) {
         if (!PWM_GLOBAL['idle_suspendTimeout']) {
-            PWM_VAR['dirtyPageLeaveFlag'] = false;
             PWM_GLOBAL['idle_suspendTimeout'] = true;
             var url = PWM_GLOBAL['url-logout'] + '?idle=true&url=' + encodeURIComponent(window.location.pathname);
             PWM_MAIN.gotoUrl(url);
@@ -1790,7 +1799,7 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
         var status = error['response']['status'];
         if (status === 0 || status < 200 || status >= 300) {
             var msg = PWM_MAIN.showString("Display_ClientDisconnect") + "  (" + status + ")";
-            console.log(msg);
+            PWM_MAIN.log(msg);
             PWM_MAIN.showErrorDialog(msg);
         } else {
             PWM_MAIN.showErrorDialog(error);
@@ -2051,10 +2060,10 @@ PWM_MAIN.Preferences.readLocalStorage = function(key,valueIfMissing) {
                 }
             }
         } catch (e) {
-            console.log("error reading locale storage preferences: " + e);
+            PWM_MAIN.log("error reading locale storage preferences: " + e);
         }
     } else {
-        console.log("browser doesn't support local storage");
+        PWM_MAIN.log("browser doesn't support local storage");
     }
     return valueIfMissing;
 };
@@ -2071,10 +2080,10 @@ PWM_MAIN.Preferences.writeLocalStorage = function(key, value, lifetimeSeconds) {
             baseJson[key] = wrapperValue;
             localStorage.setItem(PWM_MAIN.Preferences.StorageKeyName,JSON.stringify(baseJson));
         } catch (e) {
-            console.log("error writing locale storage preferences: " + e);
+            PWM_MAIN.log("error writing locale storage preferences: " + e);
         }
     } else {
-        console.log("browser doesn't support local storage");
+        PWM_MAIN.log("browser doesn't support local storage");
     }
 };
 
@@ -2087,10 +2096,10 @@ PWM_MAIN.Preferences.readSessionStorage = function(key,valueIfMissing) {
                 return key in baseJson ? baseJson[key] : valueIfMissing;
             }
         } catch (e) {
-            console.log("error reading session storage preferences: " + e);
+            PWM_MAIN.log("error reading session storage preferences: " + e);
         }
     } else {
-        console.log("browser doesn't support session storage");
+        PWM_MAIN.log("browser doesn't support session storage");
     }
     return valueIfMissing;
 };
@@ -2103,10 +2112,10 @@ PWM_MAIN.Preferences.writeSessionStorage = function(key, value) {
             baseJson[key] = value;
             sessionStorage.setItem(PWM_MAIN.Preferences.StorageKeyName,JSON.stringify(baseJson));
         } catch (e) {
-            console.log("error writing session storage preferences: " + e);
+            PWM_MAIN.log("error writing session storage preferences: " + e);
         }
     } else {
-        console.log("browser doesn't support session storage");
+        PWM_MAIN.log("browser doesn't support session storage");
     }
 };
 
@@ -2118,7 +2127,7 @@ PWM_MAIN.numberFormat = function (number) {
     try {
         return new Number(number).toLocaleString();
     } catch (t) {
-        console.log('error localizing number value "' + number + '", error: ' + t);
+        PWM_MAIN.log('error localizing number value "' + number + '", error: ' + t);
     }
 
     return number;

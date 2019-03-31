@@ -39,7 +39,8 @@ enum Argument
     port,
     context,
     properties,
-    localAddress,;
+    localAddress,
+    command,;
 
     static Options asOptions( )
     {
@@ -95,6 +96,12 @@ enum Argument
         optionMap.put( Argument.war, Option.builder( Argument.war.name() )
                 .desc( "source war file (default embedded)" )
                 .numberOfArgs( 1 )
+                .build() );
+
+        optionMap.put( Argument.command, Option.builder( Argument.command.name() )
+                .desc( "execute command (instead of starting web application)" )
+                .optionalArg( true )
+                .numberOfArgs( 10 )
                 .build() );
 
         return Collections.unmodifiableMap( optionMap );

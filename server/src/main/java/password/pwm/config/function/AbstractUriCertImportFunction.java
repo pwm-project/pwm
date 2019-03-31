@@ -23,6 +23,7 @@
 package password.pwm.config.function;
 
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfigurationImpl;
@@ -61,11 +62,12 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
             final URI uri = URI.create( urlString );
             if ( "https".equalsIgnoreCase( uri.getScheme() ) )
             {
-                certs = X509Utils.readRemoteHttpCertificates( pwmRequest.getPwmApplication(), pwmSession.getLabel(), uri );
+                certs = X509Utils.readRemoteHttpCertificates( pwmRequest.getPwmApplication(), pwmSession.getLabel(), uri, new Configuration( storedConfiguration ) );
             }
             else
             {
-                certs = X509Utils.readRemoteCertificates( URI.create( urlString ) );
+                final Configuration configuration = new Configuration( storedConfiguration );
+                certs = X509Utils.readRemoteCertificates( URI.create( urlString ), configuration );
             }
         }
         catch ( Exception e )

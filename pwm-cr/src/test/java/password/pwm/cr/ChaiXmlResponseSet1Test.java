@@ -35,10 +35,13 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 
-public class ChaiXmlResponseSet1Test {
+public class ChaiXmlResponseSet1Test
+{
 
     @Test
-    public void testReadingStoredChaiXmlChallengeSet() throws IOException {
+    public void testReadingStoredChaiXmlChallengeSet()
+            throws IOException
+    {
         /*
         final Reader reader = readInputXmlFile();
         StoredResponseSet storedResponseSet = new ChaiXmlResponseSetSerializer().read(reader, ChaiXmlResponseSetSerializer.Type.USER);
@@ -49,15 +52,17 @@ public class ChaiXmlResponseSet1Test {
 
 
     @Test
-    public void testReadingStoredChaiHelpdeskXmlChallengeSet() throws IOException {
+    public void testReadingStoredChaiHelpdeskXmlChallengeSet() throws IOException
+    {
         final Reader reader = readInputXmlFile();
-        StoredResponseSet storedResponseSet = new ChaiXmlResponseSetSerializer().read(reader, ChaiXmlResponseSetSerializer.Type.HELPDESK);
+        final StoredResponseSet storedResponseSet = new ChaiXmlResponseSetSerializer().read( reader, ChaiXmlResponseSetSerializer.Type.HELPDESK );
 
-        testHelpdeskResponseSetValidity(storedResponseSet);
+        testHelpdeskResponseSetValidity( storedResponseSet );
     }
 
     @Test
-    public void testReadWriteRead() throws IOException {
+    public void testReadWriteRead() throws IOException
+    {
         /*
         final ChaiXmlResponseSetSerializer chaiXmlResponseSetSerializer = new ChaiXmlResponseSetSerializer();
 
@@ -86,50 +91,60 @@ public class ChaiXmlResponseSet1Test {
         */
     }
 
-    private static Reader readInputXmlFile() {
-        return new InputStreamReader(ChaiXmlResponseSet1Test.class.getResourceAsStream("ChaiXmlResponseSet1.xml"), Charset.forName("UTF8"));
+    private static Reader readInputXmlFile()
+    {
+        return new InputStreamReader( ChaiXmlResponseSet1Test.class.getResourceAsStream( "ChaiXmlResponseSet1.xml" ), Charset.forName( "UTF8" ) );
     }
 
 
-    private void testUserResponseSetValidity(final StoredResponseSet storedResponseSet) {
-        Assert.assertEquals(4, storedResponseSet.getStoredChallengeItems().size());
-        Assert.assertEquals(4, StoredItemUtils.filterStoredChallenges(storedResponseSet.getStoredChallengeItems(), ResponseLevel.RANDOM).size());
+    private void testUserResponseSetValidity( final StoredResponseSet storedResponseSet )
+    {
+        Assert.assertEquals( 4, storedResponseSet.getStoredChallengeItems().size() );
+        Assert.assertEquals( 4, StoredItemUtils.filterStoredChallenges( storedResponseSet.getStoredChallengeItems(), ResponseLevel.RANDOM ).size() );
 
-        for (final StoredChallengeItem storedChallengeItem : storedResponseSet.getStoredChallengeItems()) {
+        for ( final StoredChallengeItem storedChallengeItem : storedResponseSet.getStoredChallengeItems() )
+        {
             final String questionText = storedChallengeItem.getQuestionText();
-            if ("What is the name of the main character in your favorite book?".equals(questionText)) {
+            if ( "What is the name of the main character in your favorite book?".equals( questionText ) )
+            {
                 final StoredResponseItem storedResponseItem = storedChallengeItem.getAnswer();
-                Assert.assertTrue(HashFactory.testResponseItem(storedResponseItem, "book"));
-                Assert.assertFalse(HashFactory.testResponseItem(storedResponseItem, "wrong answer"));
+                Assert.assertTrue( HashFactory.testResponseItem( storedResponseItem, "book" ) );
+                Assert.assertFalse( HashFactory.testResponseItem( storedResponseItem, "wrong answer" ) );
             }
 
-            if ("What is the name of your favorite teacher?".equals(questionText)) {
+            if ( "What is the name of your favorite teacher?".equals( questionText ) )
+            {
                 final StoredResponseItem storedResponseItem = storedChallengeItem.getAnswer();
-                Assert.assertTrue(HashFactory.testResponseItem(storedResponseItem, "teacher"));
-                Assert.assertFalse(HashFactory.testResponseItem(storedResponseItem, "wrong answer"));
+                Assert.assertTrue( HashFactory.testResponseItem( storedResponseItem, "teacher" ) );
+                Assert.assertFalse( HashFactory.testResponseItem( storedResponseItem, "wrong answer" ) );
             }
 
-            if ("What was the name of your childhood best friend?".equals(questionText)) {
+            if ( "What was the name of your childhood best friend?".equals( questionText ) )
+            {
                 final StoredResponseItem storedResponseItem = storedChallengeItem.getAnswer();
-                Assert.assertTrue(HashFactory.testResponseItem(storedResponseItem, "friend"));
-                Assert.assertFalse(HashFactory.testResponseItem(storedResponseItem, "wrong answer"));
+                Assert.assertTrue( HashFactory.testResponseItem( storedResponseItem, "friend" ) );
+                Assert.assertFalse( HashFactory.testResponseItem( storedResponseItem, "wrong answer" ) );
             }
 
-            if ("What was your favorite show as a child?".equals(questionText)) {
+            if ( "What was your favorite show as a child?".equals( questionText ) )
+            {
                 final StoredResponseItem storedResponseItem = storedChallengeItem.getAnswer();
-                Assert.assertTrue(HashFactory.testResponseItem(storedResponseItem, "child"));
-                Assert.assertFalse(HashFactory.testResponseItem(storedResponseItem, "wrong answer"));
+                Assert.assertTrue( HashFactory.testResponseItem( storedResponseItem, "child" ) );
+                Assert.assertFalse( HashFactory.testResponseItem( storedResponseItem, "wrong answer" ) );
             }
         }
 
     }
 
-    private void testHelpdeskResponseSetValidity(final StoredResponseSet storedResponseSet) {
-        Assert.assertEquals(2, storedResponseSet.getStoredChallengeItems().size());
+    private void testHelpdeskResponseSetValidity( final StoredResponseSet storedResponseSet )
+    {
+        Assert.assertEquals( 2, storedResponseSet.getStoredChallengeItems().size() );
 
-        for (final StoredChallengeItem storedChallengeItem : storedResponseSet.getStoredChallengeItems()) {
+        for ( final StoredChallengeItem storedChallengeItem : storedResponseSet.getStoredChallengeItems() )
+        {
             final String questionText = storedChallengeItem.getQuestionText();
-            if ("What is the name of the main character in your favorite book?".equals(questionText)) {
+            if ( "What is the name of the main character in your favorite book?".equals( questionText ) )
+            {
                 final StoredResponseItem storedResponseItem = storedChallengeItem.getAnswer();
 
             }

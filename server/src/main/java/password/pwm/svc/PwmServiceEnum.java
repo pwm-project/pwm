@@ -23,7 +23,10 @@
 package password.pwm.svc;
 
 import password.pwm.svc.email.EmailService;
+import password.pwm.svc.node.NodeService;
 import password.pwm.svc.pwnotify.PwNotifyService;
+import password.pwm.svc.wordlist.SeedlistService;
+import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.java.JavaHelper;
 
 import java.util.ArrayList;
@@ -39,8 +42,8 @@ public enum PwmServiceEnum
     SharedHistoryManager( password.pwm.svc.wordlist.SharedHistoryManager.class ),
     AuditService( password.pwm.svc.event.AuditService.class ),
     StatisticsManager( password.pwm.svc.stats.StatisticsManager.class, Flag.StartDuringRuntimeInstance ),
-    WordlistManager( password.pwm.svc.wordlist.WordlistManager.class ),
-    SeedlistManager( password.pwm.svc.wordlist.SeedlistManager.class ),
+    WordlistManager( WordlistService.class ),
+    SeedlistManager( SeedlistService.class ),
     EmailQueueManager( EmailService.class ),
     SmsQueueManager( password.pwm.util.queue.SmsQueueManager.class ),
     UrlShortenerService( password.pwm.svc.shorturl.UrlShortenerService.class ),
@@ -55,8 +58,9 @@ public enum PwmServiceEnum
     SessionTrackService( password.pwm.svc.sessiontrack.SessionTrackService.class ),
     SessionStateSvc( password.pwm.http.state.SessionStateService.class ),
     UserSearchEngine( password.pwm.ldap.search.UserSearchEngine.class, Flag.StartDuringRuntimeInstance ),
+    PeopleSearchService( password.pwm.http.servlet.peoplesearch.PeopleSearchService.class ),
     TelemetryService( password.pwm.svc.telemetry.TelemetryService.class ),
-    ClusterService( password.pwm.svc.cluster.ClusterService.class ),
+    ClusterService( NodeService.class ),
     PwExpiryNotifyService( PwNotifyService.class ),;
 
     private final Class<? extends PwmService> clazz;

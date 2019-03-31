@@ -23,15 +23,15 @@
 package password.pwm.config.value;
 
 import lombok.Value;
-import org.jdom2.CDATA;
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -126,10 +126,10 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
                 }
             }
 
-            public VerificationMethodValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
+            public VerificationMethodValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
-                final Element valueElement = settingElement.getChild( "value" );
+                final XmlElement valueElement = settingElement.getChild( "value" );
                 final String inputStr = valueElement.getText();
                 final VerificationMethodSettings settings = JsonUtil.deserialize( inputStr, VerificationMethodSettings.class );
                 return new VerificationMethodValue( settings );
@@ -138,10 +138,10 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     }
 
     @Override
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final Element valueElement = new Element( valueElementName );
-        valueElement.addContent( new CDATA( JsonUtil.serialize( value ) ) );
+        final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+        valueElement.addText( JsonUtil.serialize( value ) );
         return Collections.singletonList( valueElement );
     }
 

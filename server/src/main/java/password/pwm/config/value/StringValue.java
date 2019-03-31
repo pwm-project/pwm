@@ -22,13 +22,13 @@
 
 package password.pwm.config.value;
 
-import org.jdom2.CDATA;
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.StoredValue;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.Collections;
@@ -60,18 +60,18 @@ public class StringValue extends AbstractValue implements StoredValue
                 return new StringValue( newValue );
             }
 
-            public StringValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
+            public StringValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
-                final Element valueElement = settingElement.getChild( "value" );
+                final XmlElement valueElement = settingElement.getChild( "value" );
                 return new StringValue( valueElement == null ? "" : valueElement.getText() );
             }
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final Element valueElement = new Element( valueElementName );
-        valueElement.addContent( new CDATA( value ) );
+        final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+        valueElement.addText( value );
         return Collections.singletonList( valueElement );
     }
 

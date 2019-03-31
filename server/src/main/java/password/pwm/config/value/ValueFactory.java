@@ -22,12 +22,12 @@
 
 package password.pwm.config.value;
 
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.java.XmlElement;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -57,7 +57,7 @@ public class ValueFactory
         }
     }
 
-    public static StoredValue fromXmlValues( final PwmSetting setting, final Element settingElement, final PwmSecurityKey key )
+    public static StoredValue fromXmlValues( final PwmSetting setting, final XmlElement settingElement, final PwmSecurityKey key )
     {
         try
         {

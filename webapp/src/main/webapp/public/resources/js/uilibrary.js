@@ -473,7 +473,7 @@ UILibrary.uploadFileDialog = function(options) {
     var completeFunction = function(data){
         console.log('upload dialog completeFunction() starting');
         if (data['error'] === true) {
-            var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
+            var errorText = PWM_MAIN.showString('Notice_UploadFailure');
             PWM_MAIN.showErrorDialog(data,{text:errorText,okAction:function(){
                     location.reload();
                 }});
@@ -484,7 +484,7 @@ UILibrary.uploadFileDialog = function(options) {
 
     var errorFunction = function(status,statusText) {
         PWM_MAIN.closeWaitDialog();
-        var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
+        var errorText = PWM_MAIN.showString('Notice_UploadFailure');
         errorText += '<br/><br/>Status: ' + status;
         errorText += '<br/><br/>' + statusText;
         PWM_MAIN.showErrorDialog('',{text:errorText});
@@ -556,7 +556,7 @@ UILibrary.uploadFileDialog = function(options) {
         xhr.send(fd);
         PWM_GLOBAL['inhibitHealthUpdate'] = true;
         PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
-        PWM_MAIN.showWaitDialog({title:'Uploading...'});
+        PWM_MAIN.showWaitDialog({title:PWM_MAIN.showString('Display_Uploading')});
     };
 
     completeFunction = 'completeFunction' in options ? options['completeFunction'] : completeFunction;
@@ -795,7 +795,8 @@ UILibrary.displayElementsToTableContents = function(fields) {
     var htmlTable = '';
     for (var field in fields) {(function(field){
         var fieldData = fields[field];
-        htmlTable += '<tr><td>' + fieldData['label'] + '</td><td><span id="report_status_' + fieldData['key']  + '"</tr>';
+        var classValue = fieldData['type'] === 'timestamp' ? 'timestamp' : '';
+        htmlTable += '<tr><td>' + fieldData['label'] + '</td><td><span class="' + classValue + '" id="report_status_' + fieldData['key']  + '"</tr>';
     }(field)); }
     return htmlTable;
 };

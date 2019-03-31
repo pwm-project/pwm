@@ -80,7 +80,7 @@ public class LocalDBUtility
     {
         if ( outputStream == null )
         {
-            throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "outputFileStream for exportLocalDB cannot be null" );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "outputFileStream for exportLocalDB cannot be null" );
         }
 
 
@@ -191,19 +191,19 @@ public class LocalDBUtility
     {
         if ( inputFile == null )
         {
-            throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "inputFile for importLocalDB cannot be null" );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "inputFile for importLocalDB cannot be null" );
         }
 
         if ( !inputFile.exists() )
         {
-            throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "inputFile for importLocalDB does not exist" );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "inputFile for importLocalDB does not exist" );
         }
 
         final long totalBytes = inputFile.length();
 
         if ( totalBytes <= 0 )
         {
-            throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "inputFile for importLocalDB is empty" );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "inputFile for importLocalDB is empty" );
         }
 
         try ( InputStream inputStream = new FileInputStream( inputFile ) )
@@ -233,11 +233,11 @@ public class LocalDBUtility
 
         final Instant startTime = Instant.now();
         final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
-                new TransactionSizeCalculator.SettingsBuilder()
-                        .setDurationGoal( TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS ) )
-                        .setMinTransactions( 50 )
-                        .setMaxTransactions( 5 * 1000 )
-                        .createSettings()
+                TransactionSizeCalculator.Settings.builder()
+                        .durationGoal( TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS ) )
+                        .minTransactions( 50 )
+                        .maxTransactions( 5 * 1000 )
+                        .build()
         );
 
         final Map<LocalDB.DB, Map<String, String>> transactionMap = new HashMap<>();
@@ -311,7 +311,7 @@ public class LocalDBUtility
         }
         finally
         {
-            LOGGER.trace( "import process completed" );
+            LOGGER.trace( () -> "import process completed" );
             statTimer.cancel();
             IOUtils.closeQuietly( csvReader );
             IOUtils.closeQuietly( countingInputStream );
@@ -384,7 +384,7 @@ public class LocalDBUtility
     public void prepareForImport( )
             throws LocalDBException
     {
-        LOGGER.info( "preparing LocalDB for import procedure" );
+        LOGGER.info( () -> "preparing LocalDB for import procedure" );
         localDB.put( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey(), "inprogress" );
         for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
         {
@@ -402,7 +402,7 @@ public class LocalDBUtility
     public void markImportComplete( )
             throws LocalDBException
     {
-        LOGGER.info( "marking LocalDB import procedure completed" );
+        LOGGER.info( () -> "marking LocalDB import procedure completed" );
         localDB.remove( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey() );
     }
 

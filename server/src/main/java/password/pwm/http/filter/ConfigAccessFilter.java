@@ -154,7 +154,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
                     {
                             errorMsg,
                     }
-                    );
+            );
             return denyAndError( pwmRequest, errorInformation );
         }
 
@@ -168,7 +168,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
         boolean persistentLoginEnabled = false;
         if ( pwmRequest.getConfig().isDefaultValue( PwmSetting.PWM_SECURITY_KEY ) )
         {
-            LOGGER.debug( pwmRequest, "security not available, persistent login not possible." );
+            LOGGER.debug( pwmRequest, () -> "security not available, persistent login not possible." );
         }
         else
         {
@@ -205,7 +205,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
                                 if ( persistentLoginValue.equals( persistentLoginInfo.getPassword() ) )
                                 {
                                     persistentLoginAccepted = true;
-                                    LOGGER.debug( pwmRequest, "accepting persistent config login from cookie (expires "
+                                    LOGGER.debug( pwmRequest, () -> "accepting persistent config login from cookie (expires "
                                             + JavaHelper.toIsoDate( persistentLoginInfo.getExpireDate() )
                                             + ")"
                                     );
@@ -220,7 +220,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
                     if ( !persistentLoginAccepted )
                     {
                         pwmRequest.getPwmResponse().removeCookie( PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN, null );
-                        LOGGER.debug( pwmRequest, "removing non-working persistent config login cookie" );
+                        LOGGER.debug( pwmRequest, () -> "removing non-working persistent config login cookie" );
                     }
                 }
             }
@@ -236,12 +236,12 @@ public class ConfigAccessFilter extends AbstractPwmFilter
                 if ( storedConfig.verifyPassword( password, pwmRequest.getConfig() ) )
                 {
                     passwordAccepted = true;
-                    LOGGER.trace( pwmRequest, "valid configuration password accepted" );
+                    LOGGER.trace( pwmRequest, () -> "valid configuration password accepted" );
                     updateLoginHistory( pwmRequest, pwmRequest.getUserInfoIfLoggedIn(), true );
                 }
                 else
                 {
-                    LOGGER.trace( pwmRequest, "configuration password is not correct" );
+                    LOGGER.trace( pwmRequest, () -> "configuration password is not correct" );
                     pwmApplication.getIntruderManager().convenience().markAddressAndSession( pwmSession );
                     pwmApplication.getIntruderManager().mark( RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmSession.getLabel() );
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_PASSWORD_ONLY_BAD );
@@ -270,7 +270,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
                             cookieValue,
                             persistentSeconds
                     );
-                    LOGGER.debug( pwmRequest, "set persistent config login cookie (expires "
+                    LOGGER.debug( pwmRequest, () -> "set persistent config login cookie (expires "
                             + JavaHelper.toIsoDate( expirationDate )
                             + ")"
                     );
@@ -287,10 +287,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
             return ProcessStatus.Continue;
         }
 
-        if ( configManagerBean.getPrePasswordEntryUrl() == null )
-        {
-            configManagerBean.setPrePasswordEntryUrl( pwmRequest.getHttpServletRequest().getRequestURL().toString() );
-        }
+        configManagerBean.setPrePasswordEntryUrl( pwmRequest.getHttpServletRequest().getRequestURL().toString() );
 
         forwardToJsp( pwmRequest );
         return ProcessStatus.Halt;

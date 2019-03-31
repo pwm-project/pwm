@@ -29,6 +29,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.config.Configuration;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
@@ -202,7 +203,8 @@ public class ConfigGuideUtils
 
         if ( Boolean.parseBoolean( formData.get( ConfigGuideFormField.PARAM_LDAP_SECURE ) ) )
         {
-            X509Utils.readRemoteCertificates( host, port );
+            final Configuration tempConfig = new Configuration( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
+            X509Utils.readRemoteCertificates( host, port, tempConfig );
         }
     }
 
@@ -239,7 +241,7 @@ public class ConfigGuideUtils
                         throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, configErrors.get( 0 ) ) );
                     }
                     ConfigGuideUtils.writeConfig( ContextManager.getContextManager( req.getSession() ), storedConfig );
-                    LOGGER.trace( pwmSession, "read config from file: " + storedConfig.toString() );
+                    LOGGER.trace( pwmSession, () -> "read config from file: " + storedConfig.toString() );
                     final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
                     pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
                     req.getSession().invalidate();

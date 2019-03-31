@@ -39,7 +39,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.svc.wordlist.SeedlistManager;
+import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -129,7 +129,7 @@ public class RandomPasswordGenerator
     )
             throws PwmUnrecoverableException
     {
-        final Instant startTimeMS = Instant.now();
+        final Instant startTime = Instant.now();
         final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
 
         randomGeneratorConfig.validateSettings( pwmApplication );
@@ -140,7 +140,7 @@ public class RandomPasswordGenerator
             {
                 Set<String> seeds = DEFAULT_SEED_PHRASES;
 
-                final SeedlistManager seedlistManager = pwmApplication.getSeedlistManager();
+                final SeedlistService seedlistManager = pwmApplication.getSeedlistManager();
                 if ( seedlistManager != null && seedlistManager.status() == PwmService.STATUS.OPEN && seedlistManager.size() > 0 )
                 {
                     seeds = new HashSet<>();
@@ -231,10 +231,12 @@ public class RandomPasswordGenerator
 
         // report outcome
         {
-            final TimeDuration td = TimeDuration.fromCurrent( startTimeMS );
+            final TimeDuration td = TimeDuration.fromCurrent( startTime );
             if ( validPassword )
             {
-                LOGGER.trace( sessionLabel, "finished random password generation in " + td.asCompactString() + " after " + tryCount + " tries." );
+                final int finalTryCount = tryCount;
+                LOGGER.trace( sessionLabel, () -> "finished random password generation in "
+                        + td.asCompactString() + " after " + finalTryCount + " tries." );
             }
             else
             {
@@ -250,8 +252,8 @@ public class RandomPasswordGenerator
         StatisticsManager.incrementStat( pwmApplication, Statistic.GENERATED_PASSWORDS );
 
         final String logText = "real-time random password generator called"
-                + " (" + TimeDuration.compactFromCurrent( startTimeMS ) + ")";
-        LOGGER.trace( sessionLabel, logText );
+                + " (" + TimeDuration.compactFromCurrent( startTime ) + ")";
+        LOGGER.trace( sessionLabel, () -> logText );
 
         return new PasswordData( password.toString() );
     }
@@ -698,7 +700,7 @@ public class RandomPasswordGenerator
             if ( this.getMinimumLength() > maxLength )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
+                        PwmError.ERROR_INTERNAL,
                         "minimum random generated password length exceeds preset random generator threshold"
                 ) );
             }
@@ -706,7 +708,7 @@ public class RandomPasswordGenerator
             if ( this.getMaximumLength() > maxLength )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
+                        PwmError.ERROR_INTERNAL,
                         "maximum random generated password length exceeds preset random generator threshold"
                 ) );
             }
@@ -714,7 +716,7 @@ public class RandomPasswordGenerator
             if ( this.getMinimumStrength() > RandomGeneratorConfig.MAXIMUM_STRENGTH )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
+                        PwmError.ERROR_INTERNAL,
                         "minimum random generated password strength exceeds maximum possible"
                 ) );
             }

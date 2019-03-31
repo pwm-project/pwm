@@ -105,7 +105,6 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
         return cliParameters;
     }
 
-
     public static class TomcatConfigWriter
     {
 
@@ -126,15 +125,14 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
             outputFile.write( fileContents.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
 
-
-        private static String getTlsProtocolsValue( final Configuration configuration )
+        public static String getTlsProtocolsValue( final Configuration configuration )
         {
             final Set<TLSVersion> tlsVersions = configuration.readSettingAsOptionList( PwmSetting.HTTPS_PROTOCOLS, TLSVersion.class );
             final StringBuilder output = new StringBuilder();
             for ( final Iterator<TLSVersion> versionIterator = tlsVersions.iterator(); versionIterator.hasNext(); )
             {
                 final TLSVersion tlsVersion = versionIterator.next();
-                output.append( tlsVersion.getTomcatValueName() );
+                output.append( "+" ).append( tlsVersion.getTomcatValueName() );
                 if ( versionIterator.hasNext() )
                 {
                     output.append( ", " );
@@ -142,6 +140,5 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
             }
             return output.toString();
         }
-
     }
 }

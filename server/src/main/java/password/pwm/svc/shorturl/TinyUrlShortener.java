@@ -55,7 +55,7 @@ public class TinyUrlShortener extends BasicUrlShortener
     {
         try
         {
-            LOGGER.debug( "Trying to shorten url: " + input );
+            LOGGER.debug( () -> "Trying to shorten url: " + input );
             final String encodedUrl = StringUtil.urlEncode( input );
             final String callUrl = apiUrl + encodedUrl;
             final HttpClient httpClient = PwmHttpClient.getHttpClient( context.getConfig() );
@@ -65,7 +65,7 @@ public class TinyUrlShortener extends BasicUrlShortener
             if ( httpResponseCode == 200 )
             {
                 final String responseBody = EntityUtils.toString( httpResponse.getEntity() );
-                LOGGER.debug( "Result: " + responseBody );
+                LOGGER.debug( () -> "Result: " + responseBody );
                 return responseBody;
             }
             else

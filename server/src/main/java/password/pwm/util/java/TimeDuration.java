@@ -26,7 +26,7 @@ import com.novell.ldapchai.util.StringHelper;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Display;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.meta.When;
@@ -145,6 +145,11 @@ public class TimeDuration implements Comparable, Serializable
     public long asMillis()
     {
         return ms;
+    }
+
+    public String asIso()
+    {
+        return this.asDuration().toString();
     }
 
     /**

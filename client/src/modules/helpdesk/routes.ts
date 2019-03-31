@@ -21,6 +21,8 @@
  */
 
 
+import LocalStorageService from '../../services/local-storage.service';
+
 export default [
     '$stateProvider',
     '$urlRouterProvider',
@@ -30,7 +32,18 @@ export default [
     ) => {
         $urlRouterProvider.otherwise(
             ($injector: angular.auto.IInjectorService, $location: angular.ILocationService) => {
-                $location.url('search/cards');
+                let $state: angular.ui.IStateService = <angular.ui.IStateService>$injector.get('$state');
+                let localStorageService: LocalStorageService =
+                    <LocalStorageService>$injector.get('LocalStorageService');
+
+                let storedView = localStorageService.getItem(localStorageService.keys.HELPDESK_SEARCH_VIEW);
+
+                if (storedView) {
+                    $state.go(storedView);
+                }
+                else {
+                    $location.url('search/cards');
+                }
             });
 
         $stateProvider.state('search', {

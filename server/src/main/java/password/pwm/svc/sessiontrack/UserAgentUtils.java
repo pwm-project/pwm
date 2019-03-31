@@ -54,7 +54,7 @@ public class UserAgentUtils
             {
                 final String msg = "error loading user-agent parser: " + e.getMessage();
                 LOGGER.error( msg, e );
-                throw new PwmUnrecoverableException( PwmError.ERROR_UNKNOWN, msg );
+                throw new PwmUnrecoverableException( PwmError.ERROR_INTERNAL, msg );
             }
         }
         return cachedParser;

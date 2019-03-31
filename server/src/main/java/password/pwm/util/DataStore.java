@@ -56,6 +56,6 @@ public interface DataStore
     void remove( String key )
             throws PwmDataStoreException, PwmUnrecoverableException;
 
-    int size( )
+    long size( )
             throws PwmDataStoreException, PwmUnrecoverableException;
 }

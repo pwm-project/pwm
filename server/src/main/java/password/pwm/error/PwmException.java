@@ -28,12 +28,12 @@ public abstract class PwmException extends Exception
 
     public PwmException( final ErrorInformation error )
     {
-        this.errorInformation = error == null ? new ErrorInformation( PwmError.ERROR_UNKNOWN ) : error;
+        this.errorInformation = error == null ? new ErrorInformation( PwmError.ERROR_INTERNAL ) : error;
     }
 
     public PwmException( final ErrorInformation error, final Throwable initialCause )
     {
-        this.errorInformation = error == null ? new ErrorInformation( PwmError.ERROR_UNKNOWN ) : error;
+        this.errorInformation = error == null ? new ErrorInformation( PwmError.ERROR_INTERNAL ) : error;
         this.initCause( initialCause );
     }
 

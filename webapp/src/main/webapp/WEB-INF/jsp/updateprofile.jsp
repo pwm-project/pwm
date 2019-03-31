@@ -62,10 +62,6 @@
     <div class="push"></div>
 </div>
 <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" id="form-hidden-cancel" name="form-hidden-cancel" class="pwm-form" autocomplete="off">
-    <button type="submit" name="button" class="btn" id="button-sendReset">
-        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
-        <pwm:display key="Button_Cancel"/>
-    </button>
     <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=UpdateProfileServlet.UpdateProfileAction.reset%>"/>
     <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=UpdateProfileServlet.ResetAction.exitProfileUpdate%>"/>
     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

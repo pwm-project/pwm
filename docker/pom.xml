@@ -20,12 +20,21 @@
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
     </properties>
 
+    <profiles>
+        <profile>
+            <id>skip-docker</id>
+            <properties>
+                <skipDocker>true</skipDocker>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>0.9.10</version>
+                <version>1.0.0</version>
                 <executions>
                     <execution>
                         <id>make-docker-image</id>
@@ -34,24 +43,36 @@
                             <goal>buildTar</goal>
                         </goals>
                         <configuration>
+                            <skip>${skipDocker}</skip>
+                            <from>
+                                <image>adoptopenjdk/openjdk11:slim</image>
+                            </from>
                             <to>
                                 <image>${dockerImageTag}</image>
                             </to>
                             <container>
-                                <jvmFlags>
-                                    <jvmFlag>-Xms1g</jvmFlag>
-                                    <jvmFlag>-Xmx1g</jvmFlag>
-                                </jvmFlags>
-                                <mainClass>password.pwm.onejar.OnejarMain</mainClass>
-                                <args>
-                                    <arg>-applicationPath</arg>
-                                    <arg>/config</arg>
-                                </args>
+                                <entrypoint>
+                                    <arg>/app/startup.sh</arg>
+                                </entrypoint>
                                 <format>docker</format>
                                 <ports>8443</ports>
+                                <volumes>
+                                    <volume>/config</volume>
+                                </volumes>
                             </container>
-                            <!--<useCurrentTimestamp>true</useCurrentTimestamp>-->
-                            <allowInsecureRegistries>true</allowInsecureRegistries>
+                            <extraDirectory>
+                                <path>${project.basedir}/src/main/image-files</path>
+                                <permissions>
+                                    <permission>
+                                        <file>/app/startup.sh</file>
+                                        <mode>755</mode>
+                                    </permission>
+                                    <permission>
+                                        <file>/app/command.sh</file>
+                                        <mode>755</mode>
+                                    </permission>
+                                </permissions>
+                            </extraDirectory>
                         </configuration>
                     </execution>
                 </executions>

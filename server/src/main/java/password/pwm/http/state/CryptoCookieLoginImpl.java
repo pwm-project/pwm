@@ -42,6 +42,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
@@ -79,12 +80,16 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
                     COOKIE_PATH
             );
 
-            LOGGER.trace( pwmRequest, "wrote LoginInfoBean=" + loginInfoBean.toDebugString() );
+            if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+            {
+                final String debugTxt = loginInfoBean.toDebugString();
+                LOGGER.trace( pwmRequest, () -> "wrote LoginInfoBean=" + debugTxt );
+            }
         }
         catch ( PwmUnrecoverableException e )
         {
             final String errorMsg = "unexpected error writing login cookie to response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             LOGGER.error( pwmRequest, errorInformation );
         }
     }
@@ -101,7 +106,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
         {
             final String errorMsg = "unexpected error reading login cookie, will clear and ignore; error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            LOGGER.trace( pwmRequest, errorInformation.toDebugStr() );
+            LOGGER.trace( pwmRequest, () -> errorInformation.toDebugStr() );
             clearLoginSession( pwmRequest );
             return;
         }
@@ -116,19 +121,26 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
                 }
                 catch ( PwmOperationalException e )
                 {
-                    LOGGER.debug( pwmRequest, e.getErrorInformation().toDebugStr() );
+                    LOGGER.debug( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
                     clearLoginSession( pwmRequest );
                     return;
                 }
 
                 checkIfLoginCookieIsForeign( pwmRequest, remoteLoginCookie );
 
+                if ( remoteLoginCookie.getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD && remoteLoginCookie.getUserCurrentPassword() == null )
+                {
+                    LOGGER.debug( () -> "remote session has authType " + AuthenticationType.AUTH_WITHOUT_PASSWORD.name()
+                            + " and does not contain password, thus ignoring authentication so SSO process can repeat" );
+                    return;
+                }
+
                 importRemoteCookie( pwmRequest, remoteLoginCookie );
             }
             catch ( Exception e )
             {
                 final String errorMsg = "unexpected error authenticating using crypto session cookie: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                 LOGGER.error( pwmRequest, errorInformation );
                 throw new PwmUnrecoverableException( errorInformation );
             }
@@ -139,7 +151,8 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
     private static void importRemoteCookie(
             final PwmRequest pwmRequest,
             final LoginInfoBean remoteLoginCookie
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         if ( remoteLoginCookie == null )
         {
@@ -165,7 +178,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
             }
             else
             {
-                LOGGER.debug( pwmRequest, "triggering authentication because request contains an authenticated session but local session is unauthenticated" );
+                LOGGER.debug( pwmRequest, () -> "triggering authentication because request contains an authenticated session but local session is unauthenticated" );
                 final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
                         pwmRequest.getPwmApplication(),
                         pwmRequest.getPwmSession(),
@@ -189,21 +202,22 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
                         );
                     }
                     remoteLoginCookie.getAuthFlags().add( AuthenticationType.AUTH_FROM_REQ_COOKIE );
-                    LOGGER.debug( pwmRequest, "logged in using encrypted request cookie = " + JsonUtil.serialize( remoteLoginCookie ) );
+                    LOGGER.debug( pwmRequest, () -> "logged in using encrypted request cookie = " + JsonUtil.serialize( remoteLoginCookie ) );
                 }
                 catch ( Exception e )
                 {
                     final String errorMsg = "unexpected error reading session cookie: " + e.getMessage();
-                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                     LOGGER.error( pwmRequest, errorInformation );
                     throw new PwmUnrecoverableException( errorInformation );
                 }
             }
         }
 
-        if ( pwmRequest.getConfig().isDevDebugMode() )
+        if ( pwmRequest.getConfig().isDevDebugMode() && LOGGER.isEnabled( PwmLogLevel.TRACE ) )
         {
-            LOGGER.trace( pwmRequest, "imported LoginInfoBean=" + remoteLoginCookie.toDebugString() );
+            final String debugTxt = remoteLoginCookie.toDebugString();
+            LOGGER.trace( pwmRequest, () -> "imported LoginInfoBean=" + debugTxt );
         }
         pwmRequest.getPwmSession().setLoginInfoBean( remoteLoginCookie );
     }
@@ -268,7 +282,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
             final String logMsg = "login cookie session was generated by a foreign instance, seen login cookie value = "
                     + remoteLoginInfoBean.toDebugString();
             StatisticsManager.incrementStat( pwmRequest.getPwmApplication(), Statistic.FOREIGN_SESSIONS_ACCEPTED );
-            LOGGER.trace( pwmRequest, logMsg );
+            LOGGER.trace( pwmRequest, () -> logMsg );
         }
     }
 }

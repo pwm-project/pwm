@@ -62,10 +62,9 @@ public abstract class PwmConstants
 
     static
     {
-        final String servletVersion =
-                ( BUILD_VERSION.length() > 0 ? "v" + BUILD_VERSION : "" )
-                        + ( BUILD_VERSION.length() > 0 ? " b" + BUILD_NUMBER : "" )
-                        + ( BUILD_NUMBER.length() > 0 ? " r" + BUILD_REVISION : "" ).trim();
+        final String servletVersion = "v" + BUILD_VERSION
+                        + " b" + BUILD_NUMBER
+                        + " r" + BUILD_REVISION;
 
         SERVLET_VERSION = servletVersion.isEmpty()
                 ? MISSING_VERSION_STRING
@@ -75,10 +74,11 @@ public abstract class PwmConstants
     public static final String CHAI_API_VERSION = com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION;
 
     public static final String DEFAULT_CONFIG_FILE_FILENAME = readPwmConstantsBundle( "defaultConfigFilename" );
+    public static final String DEFAULT_PROPERTIES_CONFIG_FILE_FILENAME = readPwmConstantsBundle( "defaultPropertiesConfigFilename" );
 
     public static final String PWM_APP_NAME = readPwmConstantsBundle( "pwm.appName" );
+    public static final String PWM_VENDOR_NAME = readPwmConstantsBundle( "pwm.vendorName" );
     public static final String PWM_URL_HOME = readPwmConstantsBundle( "url.pwm-home" );
-    public static final String PWM_URL_CLOUD = readPwmConstantsBundle( "url.pwm-cloud" );
 
     public static final String PWM_APP_NAME_VERSION = PWM_APP_NAME + " " + SERVLET_VERSION;
 
@@ -86,6 +86,7 @@ public abstract class PwmConstants
 
     public static final Locale DEFAULT_LOCALE = new Locale( readPwmConstantsBundle( "locale.defaultLocale" ) );
     public static final Charset DEFAULT_CHARSET = Charset.forName( "UTF8" );
+    public static final List<String> HIGHLIGHT_LOCALES = StringUtil.splitAndTrim( readPwmConstantsBundle( "locale.highlightList" ), "," );
 
     public static final CSVFormat DEFAULT_CSV_FORMAT = CSVFormat.DEFAULT;
 

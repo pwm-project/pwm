@@ -77,6 +77,8 @@ public class UserInfoBean implements UserInfo
     @Builder.Default
     private final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();
 
+    private final String language;
+
     private final ChallengeProfile challengeProfile;
     private final ResponseInfoBean responseInfoBean;
     private final OTPUserRecord otpUserRecord;

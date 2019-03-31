@@ -28,6 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.option.ADPolicyComplexity;
+import password.pwm.config.option.CertificateMatchingMode;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
@@ -70,7 +71,7 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogLevel;
@@ -94,6 +95,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 
 /**
  * @author Jason D. Rivard
@@ -125,19 +127,24 @@ public class Configuration implements SettingReader
 
     public void outputToLog( )
     {
+        if ( !LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        {
+            return;
+        }
+
         final Map<String, String> debugStrings = storedConfiguration.getModifiedSettingDebugValues( PwmConstants.DEFAULT_LOCALE, true );
-        final List<String> outputStrings = new ArrayList<>();
+        final List<Supplier<CharSequence>> outputStrings = new ArrayList<>();
 
         for ( final Map.Entry<String, String> entry : debugStrings.entrySet() )
         {
             final String spacedValue = entry.getValue().replace( "\n", "\n   " );
             final String output = " " + entry.getKey() + "\n   " + spacedValue + "\n";
-            outputStrings.add( output );
+            outputStrings.add( () -> output );
         }
 
-        LOGGER.trace( "--begin current configuration output--" );
+        LOGGER.trace( () -> "--begin current configuration output--" );
         outputStrings.forEach( LOGGER::trace );
-        LOGGER.trace( "--end current configuration output--" );
+        LOGGER.trace( () -> "--end current configuration output--" );
     }
 
     public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )
@@ -1205,5 +1212,13 @@ public class Configuration implements SettingReader
         return returnSet;
     }
 
+    public CertificateMatchingMode readCertificateMatchingMode()
+    {
+        final CertificateMatchingMode mode = readSettingAsEnum( PwmSetting.CERTIFICATE_VALIDATION_MODE, CertificateMatchingMode.class );
+        return mode == null
+                ? CertificateMatchingMode.CA_ONLY
+                : mode;
+
+    }
 
 }

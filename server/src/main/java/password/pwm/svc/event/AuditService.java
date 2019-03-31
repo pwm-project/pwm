@@ -47,7 +47,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -161,11 +161,11 @@ public class AuditService implements PwmService
                     break;
 
                 default:
-                    lastError = new ErrorInformation( PwmError.ERROR_UNKNOWN, "unknown storageMethod selected: " + userEventStorageMethod );
+                    lastError = new ErrorInformation( PwmError.ERROR_INTERNAL, "unknown storageMethod selected: " + userEventStorageMethod );
                     status = STATUS.CLOSED;
                     return;
             }
-            LOGGER.info( debugMsg );
+            LOGGER.info( () -> debugMsg );
             serviceInfo = new ServiceInfoBean( Collections.singletonList( storageMethodUsed ) );
         }
         {
@@ -180,7 +180,7 @@ public class AuditService implements PwmService
             {
                 if ( maxRecords < 1 )
                 {
-                    LOGGER.debug( "localDB audit vault will remain closed due to max records setting" );
+                    LOGGER.debug( () -> "localDB audit vault will remain closed due to max records setting" );
                     pwmApplication.getLocalDB().truncate( LocalDB.DB.AUDIT_EVENTS );
                 }
                 else
@@ -191,7 +191,7 @@ public class AuditService implements PwmService
             }
             else
             {
-                LOGGER.debug( "localDB audit vault will remain closed due to application mode" );
+                LOGGER.debug( () -> "localDB audit vault will remain closed due to application mode" );
             }
         }
 
@@ -346,7 +346,7 @@ public class AuditService implements PwmService
 
         if ( status != STATUS.OPEN )
         {
-            LOGGER.debug( "discarding audit event (AuditManager is not open); event=" + jsonRecord );
+            LOGGER.debug( () -> "discarding audit event (AuditManager is not open); event=" + jsonRecord );
             return;
         }
 
@@ -358,12 +358,12 @@ public class AuditService implements PwmService
 
         if ( !settings.getPermittedEvents().contains( auditRecord.getEventCode() ) )
         {
-            LOGGER.debug( "discarding event, " + auditRecord.getEventCode() + " are being ignored; event=" + jsonRecord );
+            LOGGER.debug( () -> "discarding event, " + auditRecord.getEventCode() + " are being ignored; event=" + jsonRecord );
             return;
         }
 
         // add to debug log
-        LOGGER.info( "audit event: " + jsonRecord );
+        LOGGER.info( () -> "audit event: " + jsonRecord );
 
         // add to audit db
         if ( auditVault != null )
@@ -393,7 +393,7 @@ public class AuditService implements PwmService
                 }
                 else
                 {
-                    LOGGER.trace( "skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize( auditRecord ) );
+                    LOGGER.trace( () -> "skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize( auditRecord ) );
                 }
             }
         }

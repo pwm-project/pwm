@@ -55,8 +55,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.TimerTask;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 public class StatisticsManager implements PwmService
 {
@@ -82,7 +81,7 @@ public class StatisticsManager implements PwmService
     private DailyKey currentDailyKey = new DailyKey( new Date() );
     private DailyKey initialDailyKey = new DailyKey( new Date() );
 
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
 
     private final StatisticsBundle statsCurrent = new StatisticsBundle();
     private StatisticsBundle statsDaily = new StatisticsBundle();
@@ -331,10 +330,10 @@ public class StatisticsManager implements PwmService
 
         {
             // setup a timer to roll over at 0 Zula and one to write current stats every 10 seconds
-            executorService = JavaHelper.makeSingleThreadExecutorService( pwmApplication, this.getClass() );
-            executorService.scheduleAtFixedRate( new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY.asMillis(), TimeUnit.MICROSECONDS );
+            executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+            pwmApplication.scheduleFixedRateJob( new FlushTask(), executorService, DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
             final TimeDuration delayTillNextZulu = TimeDuration.fromCurrent( JavaHelper.nextZuluZeroTime() );
-            executorService.scheduleAtFixedRate( new NightlyTask(), delayTillNextZulu.asMillis(), TimeUnit.DAYS.toMillis( 1 ), TimeUnit.MILLISECONDS );
+            pwmApplication.scheduleFixedRateJob( new NightlyTask(), executorService, delayTillNextZulu, TimeDuration.DAY );
         }
 
         status = STATUS.OPEN;
@@ -389,7 +388,7 @@ public class StatisticsManager implements PwmService
 
         currentDailyKey = new DailyKey( new Date() );
         statsDaily = new StatisticsBundle();
-        LOGGER.debug( "reset daily statistics" );
+        LOGGER.debug( () -> "reset daily statistics" );
     }
 
     public STATUS status( )
@@ -539,7 +538,7 @@ public class StatisticsManager implements PwmService
     public int outputStatsToCsv( final OutputStream outputStream, final Locale locale, final boolean includeHeader )
             throws IOException
     {
-        LOGGER.trace( "beginning output stats to csv process" );
+        LOGGER.trace( () -> "beginning output stats to csv process" );
         final Instant startTime = Instant.now();
 
         final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
@@ -576,8 +575,11 @@ public class StatisticsManager implements PwmService
         }
 
         csvPrinter.flush();
-        LOGGER.trace( "completed output stats to csv process; output " + counter + " records in " + TimeDuration.fromCurrent(
-                startTime ).asCompactString() );
+        {
+            final int finalCounter = counter;
+            LOGGER.trace( () -> "completed output stats to csv process; output " + finalCounter + " records in "
+                    + TimeDuration.compactFromCurrent( startTime ) );
+        }
         return counter;
     }
 
@@ -622,7 +624,7 @@ public class StatisticsManager implements PwmService
         if ( statisticsManager.status() != STATUS.OPEN )
         {
             LOGGER.trace(
-                    "skipping requested statistic increment of " + statistic + " due to StatisticsManager being closed" );
+                    () -> "skipping requested statistic increment of " + statistic + " due to StatisticsManager being closed" );
             return;
         }
 

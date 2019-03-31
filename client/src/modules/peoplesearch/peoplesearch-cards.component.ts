@@ -32,6 +32,7 @@ import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import { IPerson } from '../../models/person.model';
 import PromiseService from '../../services/promise.service';
 import SearchResult from '../../models/search-result.model';
+import CommonSearchService from '../../services/common-search.service';
 
 export enum PeopleSearchCardsSize {
     Small = 0,
@@ -59,7 +60,8 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
         'MfElementSizeService',
         'PeopleService',
         'PromiseService',
-        'PwmService'
+        'PwmService',
+        'CommonSearchService'
     ];
     constructor(private $element: IAugmentedJQuery,
                 $q: IQService,
@@ -73,7 +75,8 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
                 private elementSizeService: ElementSizeService,
                 peopleService: IPeopleService,
                 promiseService: PromiseService,
-                pwmService: IPwmService) {
+                pwmService: IPwmService,
+                commonSearchService: CommonSearchService) {
         super($q,
             $scope,
             $state,
@@ -84,7 +87,8 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
             localStorageService,
             peopleService,
             promiseService,
-            pwmService);
+            pwmService,
+            commonSearchService);
     }
 
     $onDestroy(): void {
@@ -92,8 +96,9 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
     }
 
     $onInit(): void {
-        this.initialize();
-        this.fetchData();
+        this.initialize().then(() => {
+            this.fetchData();
+        });
 
         this.configService.photosEnabled().then((photosEnabled: boolean) => {
             this.photosEnabled = photosEnabled;

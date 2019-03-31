@@ -45,7 +45,7 @@
     <!-- commons ftp client -->
     <allow pkg="org.apache.commons.net.ftp"/>
 
-    <!-- xml  -->
+    <!-- xml -->
     <allow pkg="org.jdom2"/>
     <allow pkg="javax.xml"/>
     <allow pkg="org.w3c"/>
@@ -56,6 +56,13 @@
 
     <!-- log4j -->
     <allow pkg="org.apache.log4j"/>
+
+    <!-- testing -->
+    <allow pkg="org.junit"/>
+    <allow pkg="org.mockito"/>
+    <allow pkg="com.github.tomakehurst.wiremock"/>
+    <allow pkg="org.reflections"/>
+    <allow pkg="org.bouncycastle.jce.provider"/>
 
     <!-- gson -->
     <allow pkg="com.google.gson"/>

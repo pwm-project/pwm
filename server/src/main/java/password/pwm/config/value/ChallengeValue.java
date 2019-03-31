@@ -23,13 +23,13 @@
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
-import org.jdom2.CDATA;
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.value.data.ChallengeItemConfiguration;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -70,7 +70,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
                             {
                             }
                     );
-                    srcMap = srcMap == null ? Collections.<String, List<ChallengeItemConfiguration>>emptyMap() : new TreeMap<>(
+                    srcMap = srcMap == null ? Collections.emptyMap() : new TreeMap<>(
                             srcMap );
                     return new ChallengeValue( Collections.unmodifiableMap( srcMap ) );
                 }
@@ -78,16 +78,15 @@ public class ChallengeValue extends AbstractValue implements StoredValue
 
             public ChallengeValue fromXmlElement(
                     final PwmSetting pwmSetting,
-                    final Element settingElement,
+                    final XmlElement settingElement,
                     final PwmSecurityKey input
             )
             {
-                final List valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final Map<String, List<ChallengeItemConfiguration>> values = new TreeMap<>();
                 final boolean oldStyle = "LOCALIZED_STRING_ARRAY".equals( settingElement.getAttributeValue( "syntax" ) );
-                for ( final Object loopValue : valueElements )
+                for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final Element loopValueElement = ( Element ) loopValue;
                     final String localeString = loopValueElement.getAttributeValue(
                             "locale" ) == null ? "" : loopValueElement.getAttributeValue( "locale" );
                     final String value = loopValueElement.getText();
@@ -114,9 +113,9 @@ public class ChallengeValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<String, List<ChallengeItemConfiguration>> entry : values.entrySet() )
         {
             final String locale = entry.getKey();
@@ -124,8 +123,8 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             {
                 if ( value != null )
                 {
-                    final Element valueElement = new Element( valueElementName );
-                    valueElement.addContent( new CDATA( JsonUtil.serialize( value ) ) );
+                    final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+                    valueElement.addText( JsonUtil.serialize( value ) );
                     if ( locale != null && locale.length() > 0 )
                     {
                         valueElement.setAttribute( "locale", locale );
@@ -212,7 +211,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             }
             catch ( Exception e )
             {
-                LOGGER.debug( "unexpected error parsing config input '" + inputString + "' " + e.getMessage() );
+                LOGGER.debug( () -> "unexpected error parsing config input '" + inputString + "' " + e.getMessage() );
             }
         }
         if ( s1.length > 2 )
@@ -223,7 +222,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             }
             catch ( Exception e )
             {
-                LOGGER.debug( "unexpected error parsing config input '" + inputString + "' " + e.getMessage() );
+                LOGGER.debug( () -> "unexpected error parsing config input '" + inputString + "' " + e.getMessage() );
             }
         }
 
