@@ -99,7 +99,8 @@ public enum JspUrl
     CONFIG_MANAGER_CERTIFICATES( "configmanager-certificates.jsp" ),
     CONFIG_MANAGER_LOCALDB( "configmanager-localdb.jsp" ),
     CONFIG_MANAGER_LOGIN( "configmanager-login.jsp" ),
-    HELPDESK_SEARCH( "helpdesk.jsp" ),;
+    HELPDESK_SEARCH( "helpdesk.jsp" ),
+    FULL_PAGE_HEALTH( "fullpagehealth.jsp" ),;
 
     private String path;
     private static final String JSP_ROOT_URL = "/WEB-INF/jsp/";

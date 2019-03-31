@@ -414,14 +414,10 @@
     </setting>
     <setting hidden="false" key="display.password.completeMessage" level="1">
         <flag>MacroSupport</flag>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="display.password.guideText" level="1">
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="passwordSync.enableReplicaCheck" level="2">
         <default>
@@ -1191,6 +1187,11 @@
     <setting hidden="false" key="password.policy.minimumAlpha" level="1" required="true">
         <default>
             <value>0</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="password.policy.allowNonAlpha" level="1" required="true">
+        <default>
+            <value>true</value>
         </default>
     </setting>
     <setting hidden="false" key="password.policy.maximumNonAlpha" level="1" required="true">
@@ -3148,6 +3149,11 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="false" key="peopleSearch.enablePhoto" level="1">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="peopleSearch.enableOrgChart" level="1">
         <default>
             <value>true</value>
@@ -3272,7 +3278,7 @@
             <property key="Maximum">7</property>
         </properties>
     </setting>
-    <setting hidden="false" key="peopleSearch.displayName.user" level="1" required="true">
+    <setting hidden="true" key="peopleSearch.displayName.user" level="1" required="true">
         <flag>MacroSupport</flag>
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @LDAP:title@</value>
@@ -3663,7 +3669,7 @@
             <value>false</value>
         </default>
     </setting>
-    <setting hidden="false" key="helpdesk.displayName" level="2">
+    <setting hidden="true" key="helpdesk.displayName" level="2">
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @User:ID@ - @User:Email@</value>
         </default>

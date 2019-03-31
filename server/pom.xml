@@ -17,6 +17,7 @@
     <properties>
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
         <skipTests>false</skipTests>
+        <skipExtendedTests>true</skipExtendedTests>
     </properties>
 
     <profiles>
@@ -26,6 +27,15 @@
                 <skipTests>true</skipTests>
             </properties>
         </profile>
+        <profile>
+            <id>enable-extended-tests</id>
+            <properties>
+                <skipExtendedTests>false</skipExtendedTests>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>
     </profiles>
 
     <build>
@@ -33,13 +43,37 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.0</version>
-                <configuration>
-                    <skipTests>${skipTests}</skipTests>
-                    <excludes>
-                        <exclude>**/password.pwm.manual.*</exclude>
-                    </excludes>
-                </configuration>
+                <version>3.0.0-M3</version>
+                <executions>
+                    <execution>
+                        <id>default-test</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <phase>test</phase>
+                        <configuration>
+                            <skipTests>${skipTests}</skipTests>
+                            <excludes>
+                                <exclude>**/ExtendedTest*.java</exclude>
+                                <exclude>**/*ExtendedTest*.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>extended-test</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <phase>test</phase>
+                        <configuration>
+                            <skipTests>${skipExtendedTests}</skipTests>
+                            <includes>
+                                <include>**/ExtendedTest*.java</include>
+                                <include>**/*ExtendedTest*.java</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -190,7 +224,7 @@
         <dependency>
             <groupId>com.github.ldapchai</groupId>
             <artifactId>ldapchai</artifactId>
-            <version>0.7.3</version>
+            <version>0.7.4</version>
         </dependency>
         <dependency>
             <groupId>commons-net</groupId>
@@ -210,7 +244,7 @@
         <dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
-            <version>1.3.3</version>
+            <version>1.4</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -230,7 +264,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.6</version>
+            <version>4.5.7</version>
         </dependency>
         <dependency>
             <groupId>org.graylog2</groupId>
@@ -255,12 +289,12 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.60</version>
+            <version>1.61</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.60</version>
+            <version>1.61</version>
         </dependency>
         <dependency>
             <groupId>jaxen</groupId>
@@ -295,7 +329,7 @@
         <dependency>
             <groupId>org.jetbrains.xodus</groupId>
             <artifactId>xodus-environment</artifactId>
-            <version>1.2.3</version>
+            <version>1.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -305,7 +339,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>
-            <version>0.36</version>
+            <version>0.37</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>

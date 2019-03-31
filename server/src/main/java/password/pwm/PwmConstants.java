@@ -74,8 +74,10 @@ public abstract class PwmConstants
     public static final String CHAI_API_VERSION = com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION;
 
     public static final String DEFAULT_CONFIG_FILE_FILENAME = readPwmConstantsBundle( "defaultConfigFilename" );
+    public static final String DEFAULT_PROPERTIES_CONFIG_FILE_FILENAME = readPwmConstantsBundle( "defaultPropertiesConfigFilename" );
 
     public static final String PWM_APP_NAME = readPwmConstantsBundle( "pwm.appName" );
+    public static final String PWM_VENDOR_NAME = readPwmConstantsBundle( "pwm.vendorName" );
     public static final String PWM_URL_HOME = readPwmConstantsBundle( "url.pwm-home" );
 
     public static final String PWM_APP_NAME_VERSION = PWM_APP_NAME + " " + SERVLET_VERSION;

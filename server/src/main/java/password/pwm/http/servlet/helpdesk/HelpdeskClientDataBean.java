@@ -32,7 +32,7 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.http.servlet.peoplesearch.PeopleSearchClientConfigBean;
+import password.pwm.http.servlet.peoplesearch.bean.SearchAttributeBean;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -57,7 +57,7 @@ public class HelpdeskClientDataBean implements Serializable
     private Map<String, Collection<IdentityVerificationMethod>> verificationMethods;
     private List<FormInformation> verificationForm;
     private int maxAdvancedSearchAttributes;
-    private List<PeopleSearchClientConfigBean.SearchAttribute> advancedSearchAttributes;
+    private List<SearchAttributeBean> advancedSearchAttributes;
     private boolean enableAdvancedSearch;
 
 
@@ -138,7 +138,7 @@ public class HelpdeskClientDataBean implements Serializable
             builder.verificationForm( formInformations );
         }
         {
-            final List<PeopleSearchClientConfigBean.SearchAttribute> searchAttributes = PeopleSearchClientConfigBean.SearchAttribute.searchAttributesFromForm(
+            final List<SearchAttributeBean> searchAttributes = SearchAttributeBean.searchAttributesFromForm(
                     locale,
                     helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM ) );
 

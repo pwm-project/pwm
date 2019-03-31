@@ -63,7 +63,7 @@ PWM_ADMIN.initAdminNavMenu = function() {
                     label: 'Full Page Health Status',
                     id: 'fullPageHealthStatus_dropitem',
                     onClick: function() {
-                        PWM_MAIN.gotoUrl(PWM_GLOBAL['url-context'] + '/public/health.jsp');
+                        PWM_MAIN.gotoUrl(PWM_GLOBAL['url-context'] + '/public/health');
                     }
                 }));
                 pMenu.addChild(new MenuSeparator());
@@ -618,6 +618,7 @@ PWM_ADMIN.showStatChart = function(statName,days,divName,options) {
     var doRefresh = options['refreshTime']
         ? function(){setTimeout(function(){PWM_ADMIN.showStatChart(statName,days,divName,options);},options['refreshTime']);}
         : function(){};
+    var statsGetUrl = PWM_MAIN.addParamToUrl( PWM_GLOBAL['url-context'] + '/public/api',"processAction","statistics");
     var epsTypes = PWM_GLOBAL['epsTypes'];
     var epsDurations = PWM_GLOBAL['epsDurations'];
     require(["dojo",
@@ -631,7 +632,6 @@ PWM_ADMIN.showStatChart = function(statName,days,divName,options) {
             "dojox/gauges/GlossyCircularGauge",
             "dojo/domReady!"],
         function(dojo,dijit,registry){
-            var statsGetUrl = PWM_MAIN.addParamToUrl(window.location.href,"processAction","statistics");
             statsGetUrl = PWM_MAIN.addParamToUrl(statsGetUrl, "statName", statName);
             statsGetUrl = PWM_MAIN.addParamToUrl(statsGetUrl, "days", days);
 

@@ -31,6 +31,10 @@
 
 <module name="Checker">
 
+    <module name="SuppressionFilter">
+        <property name="file" value="${basedir}/build/checkstyle-suppression.xml" />
+    </module>
+
     <module name="Header">
         <property name="headerFile" value="${basedir}/build/license-header-jsp.txt"/>
         <property name="fileExtensions" value="jsp"/>

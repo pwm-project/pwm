@@ -46,7 +46,6 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -63,8 +62,6 @@ public class ConfigurationReader
     private Configuration configuration;
     private StoredConfigurationImpl storedConfiguration;
     private ErrorInformation configFileError;
-
-    private Date configurationReadTime;
 
     private PwmApplicationMode configMode = PwmApplicationMode.NEW;
 
@@ -124,8 +121,6 @@ public class ConfigurationReader
     {
         LOGGER.debug( () -> "loading configuration file: " + configFile );
 
-        configurationReadTime = new Date();
-
         if ( !configFile.exists() )
         {
             LOGGER.warn( "configuration file '" + configFile.getAbsolutePath() + "' does not exist" );
@@ -165,6 +160,7 @@ public class ConfigurationReader
                     }
             );
             this.configMode = PwmApplicationMode.ERROR;
+            e.printStackTrace(  );
             throw new PwmUnrecoverableException( errorInformation );
         }
 
@@ -176,7 +172,7 @@ public class ConfigurationReader
                     {
                             errorMsg,
                     }
-                    );
+            );
             this.configMode = PwmApplicationMode.ERROR;
             throw new PwmUnrecoverableException( errorInformation );
         }

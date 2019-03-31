@@ -22,7 +22,11 @@
 
 import 'angular';
 import 'angular-translate';
+import 'angular-sanitize';
 import '@microfocus/ng-ias/dist/ng-ias';
+
+// Add a polyfill for Set() for IE11, since it's used in peoplesearch-base.component.ts
+import 'core-js/es6/set';
 
 import { bootstrap, module } from 'angular';
 import helpDeskModule from './helpdesk.module';

@@ -222,8 +222,13 @@ abstract class PeopleSearchBaseComponent {
                 keys.add(searchQuery.key);
             }
 
-            if (keys.size < this.queries.length) {
-                this.searchMessage = 'Search attributes must be unique';
+            const duplicateSearchAttrsFound = keys.size < this.queries.length;
+            if (duplicateSearchAttrsFound) {
+                this.$translate('Display_SearchAttrsUnique')
+                    .then((translation: string) => {
+                        this.searchMessage = translation;
+                    });
+
                 return null;
             }
 

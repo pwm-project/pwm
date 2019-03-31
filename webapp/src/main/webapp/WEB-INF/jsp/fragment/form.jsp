@@ -128,7 +128,7 @@
                 </script>
             </pwm:script>
             <% if (!StringUtil.isEmpty( currentValue) ) { %>
-            <button type="submit" id="button-deletePhoto-<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" class="btn" title="<pwm:display key="Button_Upload"/>" form="form-deletePhoto-<%=loopConfiguration.getName()%>">
+            <button type="submit" id="button-deletePhoto-<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" class="btn" title="<pwm:display key="Button_Delete"/>" form="form-deletePhoto-<%=loopConfiguration.getName()%>">
                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
                 <pwm:display key="Button_Delete"/>
             </button>

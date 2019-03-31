@@ -56,7 +56,7 @@ public class HealthMonitor implements PwmService
     static
     {
         final List<HealthChecker> records = new ArrayList<>();
-        records.add( new LDAPStatusChecker() );
+        records.add( new LDAPHealthChecker() );
         records.add( new JavaChecker() );
         records.add( new ConfigurationChecker() );
         records.add( new LocalDBHealthChecker() );

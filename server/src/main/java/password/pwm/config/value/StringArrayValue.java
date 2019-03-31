@@ -22,11 +22,11 @@
 
 package password.pwm.config.value;
 
-import org.jdom2.CDATA;
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -54,12 +54,12 @@ public class StringArrayValue extends AbstractValue implements StoredValue
             {
                 if ( input == null )
                 {
-                    return new StringArrayValue( Collections.<String>emptyList() );
+                    return new StringArrayValue( Collections.emptyList() );
                 }
                 else
                 {
                     List<String> srcList = JsonUtil.deserializeStringList( input );
-                    srcList = srcList == null ? Collections.<String>emptyList() : srcList;
+                    srcList = srcList == null ? Collections.emptyList() : srcList;
                     while ( srcList.contains( null ) )
                     {
                         srcList.remove( null );
@@ -68,13 +68,12 @@ public class StringArrayValue extends AbstractValue implements StoredValue
                 }
             }
 
-            public StringArrayValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
+            public StringArrayValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
-                final List valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final List<String> values = new ArrayList<>();
-                for ( final Object loopValue : valueElements )
+                for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final Element loopValueElement = ( Element ) loopValue;
                     final String value = loopValueElement.getText();
                     values.add( value );
                 }
@@ -83,13 +82,13 @@ public class StringArrayValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final String value : this.values )
         {
-            final Element valueElement = new Element( valueElementName );
-            valueElement.addContent( new CDATA( value ) );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+            valueElement.addText( value );
             returnList.add( valueElement );
         }
         return returnList;

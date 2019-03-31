@@ -47,11 +47,14 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.CertificateEncodingException;
@@ -269,6 +272,13 @@ public abstract class X509Utils
 
     public static class PromiscuousTrustManager implements X509TrustManager
     {
+        private final SessionLabel sessionLabel;
+
+        public PromiscuousTrustManager( final SessionLabel sessionLabel )
+        {
+            this.sessionLabel = sessionLabel;
+        }
+
         public X509Certificate[] getAcceptedIssuers( )
         {
             return new X509Certificate[ 0 ];
@@ -284,7 +294,7 @@ public abstract class X509Utils
             logMsg( certs, authType );
         }
 
-        private static void logMsg( final X509Certificate[] certs, final String authType )
+        private void logMsg( final X509Certificate[] certs, final String authType )
         {
             if ( certs != null )
             {
@@ -292,7 +302,7 @@ public abstract class X509Utils
                 {
                     try
                     {
-                        LOGGER.warn( "blind trusting certificate during authType=" + authType + ", subject=" + cert.getSubjectDN().toString() );
+                        LOGGER.warn( sessionLabel, "blind trusting certificate during authType=" + authType + ", subject=" + cert.getSubjectDN().toString() );
                     }
                     catch ( Exception e )
                     {
@@ -414,12 +424,10 @@ public abstract class X509Utils
             throws CertificateEncodingException, PwmUnrecoverableException
     {
         return x509Certificate.toString()
-                + "\n:MD5 checksum: " + SecureEngine.hash( new ByteArrayInputStream( x509Certificate.getEncoded() ), PwmHashAlgorithm.MD5 )
-                + "\n:SHA1 checksum: " + SecureEngine.hash( new ByteArrayInputStream( x509Certificate.getEncoded() ), PwmHashAlgorithm.SHA1 )
-                + "\n:SHA2-256 checksum: " + SecureEngine.hash( new ByteArrayInputStream( x509Certificate.getEncoded() ), PwmHashAlgorithm.SHA256 )
-                + "\n:SHA2-512 checksum: " + SecureEngine.hash( new ByteArrayInputStream( x509Certificate.getEncoded() ), PwmHashAlgorithm.SHA512 );
-
-
+                + "\n:MD5 checksum: " + hash( x509Certificate, PwmHashAlgorithm.MD5 )
+                + "\n:SHA1 checksum: " + hash( x509Certificate, PwmHashAlgorithm.SHA1 )
+                + "\n:SHA2-256 checksum: " + hash( x509Certificate, PwmHashAlgorithm.SHA256 )
+                + "\n:SHA2-512 checksum: " + hash( x509Certificate, PwmHashAlgorithm.SHA512 );
     }
 
     public static String makeDebugText( final X509Certificate x509Certificate )
@@ -473,10 +481,9 @@ public abstract class X509Utils
         returnMap.put( CertDebugInfoKey.expireDate.toString(), JavaHelper.toIsoDate( cert.getNotAfter() ) );
         try
         {
-            returnMap.put( CertDebugInfoKey.md5Hash.toString(), SecureEngine.hash( new ByteArrayInputStream( cert.getEncoded() ), PwmHashAlgorithm.MD5 ) );
-            returnMap.put( CertDebugInfoKey.sha1Hash.toString(), SecureEngine.hash( new ByteArrayInputStream( cert.getEncoded() ), PwmHashAlgorithm.SHA1 ) );
-            returnMap.put( CertDebugInfoKey.sha512Hash.toString(), SecureEngine.hash( new ByteArrayInputStream( cert.getEncoded() ),
-                    PwmHashAlgorithm.SHA512 ) );
+            returnMap.put( CertDebugInfoKey.md5Hash.toString(), hash( cert, PwmHashAlgorithm.MD5 ) );
+            returnMap.put( CertDebugInfoKey.sha1Hash.toString(), hash( cert, PwmHashAlgorithm.SHA1 ) );
+            returnMap.put( CertDebugInfoKey.sha512Hash.toString(), hash( cert, PwmHashAlgorithm.SHA512 ) );
             if ( JavaHelper.enumArrayContainsValue( flags, DebugInfoFlag.IncludeCertificateDetail ) )
             {
                 returnMap.put( CertDebugInfoKey.detail.toString(), X509Utils.makeDetailText( cert ) );
@@ -532,5 +539,35 @@ public abstract class X509Utils
             }
         }
         return Collections.emptyList();
+    }
+
+    public static TrustManager[] getDefaultJavaTrustManager( final Configuration configuration )
+            throws PwmUnrecoverableException
+    {
+        try
+        {
+            final TrustManagerFactory tmf = TrustManagerFactory.getInstance( TrustManagerFactory.getDefaultAlgorithm() );
+            tmf.init( (KeyStore) null );
+            return tmf.getTrustManagers();
+        }
+        catch ( GeneralSecurityException e )
+        {
+            final String errorMsg = "unexpected error loading default java TrustManager: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
+            throw new PwmUnrecoverableException( errorInformation );
+        }
+    }
+
+    public static String hash( final X509Certificate certificate, final PwmHashAlgorithm pwmHashAlgorithm )
+            throws PwmUnrecoverableException
+    {
+        try
+        {
+            return SecureEngine.hash( new ByteArrayInputStream( certificate.getEncoded() ), pwmHashAlgorithm );
+        }
+        catch ( CertificateEncodingException e )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unexpected error encoding certificate: " + e.getMessage() );
+        }
     }
 }

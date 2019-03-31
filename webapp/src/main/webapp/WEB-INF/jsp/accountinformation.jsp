@@ -80,7 +80,7 @@
                             <td id="PasswordRequirements">
                                 <ul>
                                     <% for (final String rule : accountInformationBean.getPasswordRules()) { %>
-                                    <li><%=  StringUtil.escapeHtml(rule) %></li>
+                                    <li><%=  rule %></li>
                                     <% } %>
                                 </ul>
                             </td>

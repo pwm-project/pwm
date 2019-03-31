@@ -22,10 +22,9 @@
 
 package password.pwm.config;
 
-import org.jdom2.Attribute;
-import org.jdom2.Element;
 import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.XmlElement;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -247,9 +246,9 @@ public enum PwmSettingCategory
     {
         if ( level == null )
         {
-            final Element settingElement = PwmSettingXml.readCategoryXml( this );
-            final Attribute levelAttribute = settingElement.getAttribute( "level" );
-            final int output = levelAttribute != null ? Integer.parseInt( levelAttribute.getValue() ) : 0;
+            final XmlElement settingElement = PwmSettingXml.readCategoryXml( this );
+            final String levelAttribute = settingElement.getAttributeValue( "level" );
+            final int output = levelAttribute != null ? Integer.parseInt( levelAttribute ) : 0;
             level = ( ) -> output;
         }
         return level.get();
@@ -259,9 +258,9 @@ public enum PwmSettingCategory
     {
         if ( hidden == null )
         {
-            final Element settingElement = PwmSettingXml.readCategoryXml( this );
-            final Attribute hiddenElement = settingElement.getAttribute( "hidden" );
-            if ( hiddenElement != null && "true".equalsIgnoreCase( hiddenElement.getValue() ) )
+            final XmlElement settingElement = PwmSettingXml.readCategoryXml( this );
+            final String hiddenElement = settingElement.getAttributeValue( "hidden" );
+            if ( hiddenElement != null && "true".equalsIgnoreCase( hiddenElement ) )
             {
                 hidden = () -> true;
             }
@@ -318,8 +317,8 @@ public enum PwmSettingCategory
         PwmSettingCategory nextCategory = this;
         while ( nextCategory != null )
         {
-            final Element categoryElement = PwmSettingXml.readCategoryXml( nextCategory );
-            final Element profileElement = categoryElement.getChild( "profile" );
+            final XmlElement categoryElement = PwmSettingXml.readCategoryXml( nextCategory );
+            final XmlElement profileElement = categoryElement.getChild( "profile" );
             if ( profileElement != null )
             {
                 final String settingKey = profileElement.getAttributeValue( "setting" );

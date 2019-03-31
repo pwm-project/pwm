@@ -138,20 +138,6 @@ public class XodusLocalDB implements LocalDBProvider
         LOGGER.trace( () -> "preparing to open with configuration " + JsonUtil.serializeMap( environmentConfig.getSettings() ) );
         environment = Environments.newInstance( dbDirectory.getAbsolutePath() + File.separator + FILE_SUB_PATH, environmentConfig );
 
-        try
-        {
-            if ( !getDirtyFile().exists() )
-            {
-                Files.createFile( getDirtyFile().toPath() );
-                LOGGER.trace( () -> "created openLock file" );
-            }
-        }
-        catch ( IOException e )
-        {
-            LOGGER.error( "error creating openLock file: " + e.getMessage() );
-        }
-
-
         LOGGER.trace( () -> "environment open (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
 
         environment.executeInTransaction( txn ->
@@ -177,21 +163,13 @@ public class XodusLocalDB implements LocalDBProvider
     @Override
     public void close( ) throws LocalDBException
     {
+        final Instant startTime = Instant.now();
         if ( environment != null && environment.isOpen() )
         {
             environment.close();
-            try
-            {
-                Files.deleteIfExists( getDirtyFile().toPath() );
-                LOGGER.trace( () -> "deleted openLock file" );
-            }
-            catch ( IOException e )
-            {
-                LOGGER.error( "error creating openLock file: " + e.getMessage() );
-            }
         }
         status = LocalDB.Status.CLOSED;
-        LOGGER.debug( () -> "closed" );
+        LOGGER.debug( () -> "closed (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
     }
 
     private EnvironmentConfig makeEnvironmentConfig( final Map<String, String> initParameters )
@@ -200,16 +178,6 @@ public class XodusLocalDB implements LocalDBProvider
         environmentConfig.setEnvCloseForcedly( true );
         environmentConfig.setMemoryUsage( 50 * 1024 * 1024 );
         environmentConfig.setEnvGatherStatistics( true );
-
-        if ( Files.exists( getDirtyFile().toPath() ) )
-        {
-            environmentConfig.setGcUtilizationFromScratch( true );
-            LOGGER.warn( "environment not closed cleanly, will re-calculate GC" );
-        }
-        else
-        {
-            LOGGER.debug( () -> "environment was closed cleanly" );
-        }
 
         for ( final Map.Entry<String, String> entry : initParameters.entrySet() )
         {
@@ -660,10 +628,5 @@ public class XodusLocalDB implements LocalDBProvider
         {
             LOGGER.error( "error writing LocalDB readme file: " + e.getMessage() );
         }
-    }
-
-    private File getDirtyFile()
-    {
-        return new File( this.getFileLocation().getAbsolutePath() + File.separator + FILE_SUB_PATH + File.separator + "xodus.open" );
     }
 }

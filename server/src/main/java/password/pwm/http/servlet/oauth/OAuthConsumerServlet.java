@@ -163,7 +163,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
 
         final OAuthState oauthState = oAuthRequestState.get().getOAuthState();
         final OAuthSettings oAuthSettings = makeOAuthSettings( pwmRequest, oauthState );
-        final OAuthMachine oAuthMachine = new OAuthMachine( oAuthSettings );
+        final OAuthMachine oAuthMachine = new OAuthMachine( pwmRequest.getSessionLabel(), oAuthSettings );
 
         // make sure request was initiated in users current session
         if ( !oAuthRequestState.get().isSessionMatch() )

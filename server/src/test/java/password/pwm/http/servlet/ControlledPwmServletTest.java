@@ -46,67 +46,85 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ControlledPwmServletTest {
+public class ControlledPwmServletTest
+{
     @Test
-    public void testProcess() throws IllegalAccessException, InstantiationException {
-        final Map<Class<? extends ControlledPwmServlet>,Map<String,Method>> dataMap = getClassAndMethods();
+    public void testProcess() throws IllegalAccessException, InstantiationException
+    {
+        final Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> dataMap = getClassAndMethods();
 
-        for (final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet()) {
+        for ( final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet() )
+        {
             final Class<? extends AbstractPwmServlet.ProcessAction> processActionsClass = controlledPwmServlet.newInstance().getProcessActionsClass();
-            if (!processActionsClass.isEnum()) {
-                Assert.fail(controlledPwmServlet.getName() + " process action class must be an enum");
+            if ( !processActionsClass.isEnum() )
+            {
+                Assert.fail( controlledPwmServlet.getName() + " process action class must be an enum" );
             }
         }
     }
 
     @Test
-    public void testActionHandlerReturnTypes() throws IllegalAccessException, InstantiationException {
-        final Map<Class<? extends ControlledPwmServlet>,Map<String,Method>> dataMap = getClassAndMethods();
+    public void testActionHandlerReturnTypes() throws IllegalAccessException, InstantiationException
+    {
+        final Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> dataMap = getClassAndMethods();
 
-        for (final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet()) {
+        for ( final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet() )
+        {
             final String servletName = controlledPwmServlet.getName();
-            for (final String methodName : dataMap.get(controlledPwmServlet).keySet()) {
-                final Method method = dataMap.get(controlledPwmServlet).get(methodName);
-                if (method.getReturnType() != ProcessStatus.class) {
-                    Assert.fail(servletName + ":" + method.getName() + " must have return type of " + ProcessStatus.class.getName());
+            for ( final String methodName : dataMap.get( controlledPwmServlet ).keySet() )
+            {
+                final Method method = dataMap.get( controlledPwmServlet ).get( methodName );
+                if ( method.getReturnType() != ProcessStatus.class )
+                {
+                    Assert.fail( servletName + ":" + method.getName() + " must have return type of " + ProcessStatus.class.getName() );
                 }
             }
         }
     }
 
     @Test
-    public void testActionHandlerParameters() throws IllegalAccessException, InstantiationException {
-        final Map<Class<? extends ControlledPwmServlet>,Map<String,Method>> dataMap = getClassAndMethods();
+    public void testActionHandlerParameters() throws IllegalAccessException, InstantiationException
+    {
+        final Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> dataMap = getClassAndMethods();
 
-        for (final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet()) {
+        for ( final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet() )
+        {
             final String servletName = controlledPwmServlet.getName();
-            for (final String methodName : dataMap.get(controlledPwmServlet).keySet()) {
-                final Method method = dataMap.get(controlledPwmServlet).get(methodName);
+            for ( final String methodName : dataMap.get( controlledPwmServlet ).keySet() )
+            {
+                final Method method = dataMap.get( controlledPwmServlet ).get( methodName );
                 final Class[] returnTypes = method.getParameterTypes();
-                if (returnTypes.length != 1) {
-                    Assert.fail(servletName + ":" + method.getName() + " must have exactly one parameter");
+                if ( returnTypes.length != 1 )
+                {
+                    Assert.fail( servletName + ":" + method.getName() + " must have exactly one parameter" );
                 }
-                if (!returnTypes[0].equals(PwmRequest.class)) {
-                    Assert.fail(servletName + ":" + method.getName() + " must have exactly one parameter of type " + PwmRequest.class.getName());
+                if ( !returnTypes[0].equals( PwmRequest.class ) )
+                {
+                    Assert.fail( servletName + ":" + method.getName() + " must have exactly one parameter of type " + PwmRequest.class.getName() );
                 }
             }
         }
     }
 
     @Test
-    public void testActionHandlerMethodNaming() throws IllegalAccessException, InstantiationException {
-        final Map<Class<? extends ControlledPwmServlet>,Map<String,Method>> dataMap = getClassAndMethods();
+    public void testActionHandlerMethodNaming() throws IllegalAccessException, InstantiationException
+    {
+        final Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> dataMap = getClassAndMethods();
 
-        for (final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet()) {
+        for ( final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet() )
+        {
             final String servletName = controlledPwmServlet.getName();
-            for (final Method method : JavaHelper.getAllMethodsForClass(controlledPwmServlet)) {
+            for ( final Method method : JavaHelper.getAllMethodsForClass( controlledPwmServlet ) )
+            {
                 final String methodName = method.getName();
-                final ControlledPwmServlet.ActionHandler actionHandler = method.getAnnotation(ControlledPwmServlet.ActionHandler.class);
-                if (actionHandler != null) {
+                final ControlledPwmServlet.ActionHandler actionHandler = method.getAnnotation( ControlledPwmServlet.ActionHandler.class );
+                if ( actionHandler != null )
+                {
                     final String actionName = actionHandler.action();
-                    if (!methodName.toLowerCase().contains(actionName.toLowerCase())) {
-                        Assert.fail("method " + servletName + ":" + methodName + " must have the ActionHandler name '"
-                                + actionName + "' as part of the method name.");
+                    if ( !methodName.toLowerCase().contains( actionName.toLowerCase() ) )
+                    {
+                        Assert.fail( "method " + servletName + ":" + methodName + " must have the ActionHandler name '"
+                                + actionName + "' as part of the method name." );
                     }
                 }
             }
@@ -115,65 +133,75 @@ public class ControlledPwmServletTest {
 
 
     @Test
-    public void testActionHandlersExistence() throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        final Map<Class<? extends ControlledPwmServlet>,Map<String,Method>> dataMap = getClassAndMethods();
+    public void testActionHandlersExistence() throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException
+    {
+        final Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> dataMap = getClassAndMethods();
 
-        for (final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet()) {
+        for ( final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet() )
+        {
             final String servletName = controlledPwmServlet.getName();
 
             final Class<? extends AbstractPwmServlet.ProcessAction> processActionsClass = controlledPwmServlet.newInstance().getProcessActionsClass();
             final List<String> names = new ArrayList<>();
-            for (Object enumObject : processActionsClass.getEnumConstants()) {
-                names.add(((Enum)enumObject).name());
+            for ( final Object enumObject : processActionsClass.getEnumConstants() )
+            {
+                names.add( ( ( Enum ) enumObject ).name() );
             }
 
             {
-                final Collection<String> missingActionHandlers = new HashSet<>(names);
-                missingActionHandlers.removeAll(dataMap.get(controlledPwmServlet).keySet());
-                if (!missingActionHandlers.isEmpty()) {
-                    Assert.fail(servletName + " does not have an action handler for action " + missingActionHandlers.iterator().next());
+                final Collection<String> missingActionHandlers = new HashSet<>( names );
+                missingActionHandlers.removeAll( dataMap.get( controlledPwmServlet ).keySet() );
+                if ( !missingActionHandlers.isEmpty() )
+                {
+                    Assert.fail( servletName + " does not have an action handler for action " + missingActionHandlers.iterator().next() );
                 }
             }
 
             {
-                final Collection<String> superflousActionHandlers = new HashSet<>(dataMap.get(controlledPwmServlet).keySet());
-                superflousActionHandlers.removeAll(names);
-                if (!superflousActionHandlers.isEmpty()) {
-                    Assert.fail(servletName + " has an action handler for action " + superflousActionHandlers.iterator().next() + " but no such ProcessAction exists");
+                final Collection<String> superflousActionHandlers = new HashSet<>( dataMap.get( controlledPwmServlet ).keySet() );
+                superflousActionHandlers.removeAll( names );
+                if ( !superflousActionHandlers.isEmpty() )
+                {
+                    Assert.fail( servletName + " has an action handler for action " + superflousActionHandlers.iterator().next() + " but no such ProcessAction exists" );
                 }
             }
         }
     }
 
-    private Map<Class<? extends ControlledPwmServlet>,Map<String,Method>> getClassAndMethods() {
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .setUrls(ClasspathHelper.forPackage("password.pwm"))
-                .setScanners(new SubTypesScanner(),
+    private Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> getClassAndMethods()
+    {
+        final Reflections reflections = new Reflections( new ConfigurationBuilder()
+                .setUrls( ClasspathHelper.forPackage( "password.pwm" ) )
+                .setScanners( new SubTypesScanner(),
                         new TypeAnnotationsScanner(),
                         new FieldAnnotationsScanner()
-                ));
+                ) );
 
 
-        Set<Class<? extends ControlledPwmServlet>> classes = reflections.getSubTypesOf(ControlledPwmServlet.class);
+        final Set<Class<? extends ControlledPwmServlet>> classes = reflections.getSubTypesOf( ControlledPwmServlet.class );
 
-        final Map<Class<? extends ControlledPwmServlet>,Map<String,Method>> returnMap = new HashMap<>();
+        final Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> returnMap = new HashMap<>();
 
-        for (final Class<? extends ControlledPwmServlet> controlledPwmServlet : classes) {
-            if (!Modifier.isAbstract(controlledPwmServlet.getModifiers())) {
+        for ( final Class<? extends ControlledPwmServlet> controlledPwmServlet : classes )
+        {
+            if ( !Modifier.isAbstract( controlledPwmServlet.getModifiers() ) )
+            {
 
                 final Map<String, Method> annotatedMethods = new HashMap<>();
 
-                for (Method method : JavaHelper.getAllMethodsForClass(controlledPwmServlet)) {
-                    if (method.getAnnotation(ControlledPwmServlet.ActionHandler.class) != null) {
-                        final String actionName = method.getAnnotation(ControlledPwmServlet.ActionHandler.class).action();
-                        annotatedMethods.put(actionName, method);
+                for ( final Method method : JavaHelper.getAllMethodsForClass( controlledPwmServlet ) )
+                {
+                    if ( method.getAnnotation( ControlledPwmServlet.ActionHandler.class ) != null )
+                    {
+                        final String actionName = method.getAnnotation( ControlledPwmServlet.ActionHandler.class ).action();
+                        annotatedMethods.put( actionName, method );
                     }
                 }
 
-                returnMap.put(controlledPwmServlet, Collections.unmodifiableMap(annotatedMethods));
+                returnMap.put( controlledPwmServlet, Collections.unmodifiableMap( annotatedMethods ) );
             }
         }
 
-        return Collections.unmodifiableMap(returnMap);
+        return Collections.unmodifiableMap( returnMap );
     }
 }

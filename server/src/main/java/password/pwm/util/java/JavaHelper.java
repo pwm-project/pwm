@@ -28,6 +28,8 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
 import password.pwm.util.logging.PwmLogger;
 
@@ -45,6 +47,7 @@ import java.lang.management.LockInfo;
 import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -54,6 +57,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
@@ -63,8 +67,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TimeZone;
-import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -73,6 +77,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class JavaHelper
 {
@@ -426,17 +431,6 @@ public class JavaHelper
         return PwmConstants.PWM_APP_NAME + "-" + instanceName + "-" + theClass.getSimpleName();
     }
 
-    public static Properties newSortedProperties( )
-    {
-        return new Properties()
-        {
-            public synchronized Enumeration<Object> keys( )
-            {
-                return Collections.enumeration( new TreeSet<>( super.keySet() ) );
-            }
-        };
-    }
-
     public static ThreadFactory makePwmThreadFactory( final String namePrefix, final boolean daemon )
     {
         return new ThreadFactory()
@@ -509,7 +503,7 @@ public class JavaHelper
         executor.allowCoreThreadTimeOut( true );
         return executor;
     }
-    
+
     /**
      * Copy of {@link ThreadInfo#toString()} but with the MAX_FRAMES changed from 8 to 256.
      * @param threadInfo thread information
@@ -699,5 +693,81 @@ public class JavaHelper
         final Map<String, String> returnMap = new LinkedHashMap<>( properties.size() );
         properties.forEach( ( key, value ) -> returnMap.put( ( String ) key, (String) value ) );
         return returnMap;
+    }
+
+    public static Optional<String> deriveLocalServerHostname( final Configuration configuration )
+    {
+        if ( configuration != null )
+        {
+            final String siteUrl = configuration.readSettingAsString( PwmSetting.PWM_SITE_URL );
+            if ( !StringUtil.isEmpty( siteUrl ) )
+            {
+                try
+                {
+                    final URI parsedUri = URI.create( siteUrl );
+                    {
+                        final String uriHost = parsedUri.getHost();
+                        return Optional.ofNullable( uriHost );
+                    }
+                }
+                catch ( IllegalArgumentException e )
+                {
+                    LOGGER.trace( () -> " error parsing siteURL hostname: " + e.getMessage() );
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    public static class SortedProperties extends Properties
+    {
+        @Override
+        public synchronized Enumeration<Object> keys()
+        {
+            return Collections.enumeration( super.keySet().stream()
+                    .sorted( Comparator.comparing( Object::toString ) )
+                    .collect( Collectors.toList() ) );
+        }
+
+        @Override
+        public synchronized Set<Map.Entry<Object, Object>> entrySet()
+        {
+            return super.entrySet().stream()
+                    .sorted( Comparator.comparing( o -> o.getKey().toString() ) )
+                    .collect( Collectors.toCollection( LinkedHashSet::new ) );
+        }
+    }
+
+    public static int silentParseInt( final String input, final int defaultValue )
+    {
+        try
+        {
+            return Integer.parseInt( input );
+        }
+        catch ( NumberFormatException e )
+        {
+            return defaultValue;
+        }
+    }
+
+    public static long silentParseLong( final String input, final long defaultValue )
+    {
+        try
+        {
+            return Long.parseLong( input );
+        }
+        catch ( NumberFormatException e )
+        {
+            return defaultValue;
+        }
+    }
+
+    public static boolean doubleContainsLongValue( final Double input )
+    {
+        return input.equals( Math.floor( input ) )
+                && !Double.isInfinite( input )
+                && !Double.isNaN( input )
+                && input <= Long.MAX_VALUE
+                && input >= Long.MIN_VALUE;
     }
 }

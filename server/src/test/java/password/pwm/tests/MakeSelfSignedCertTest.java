@@ -22,33 +22,38 @@
 
 package password.pwm.tests;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.junit.Assert;
+import org.junit.Test;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Provider;
+import java.security.SecureRandom;
+import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
-public class MakeSelfSignedCertTest extends TestCase
+public class MakeSelfSignedCertTest
 {
-   private static final Provider BC_PROVIDER = new BouncyCastleProvider();
+    private static final Provider BC_PROVIDER = new BouncyCastleProvider();
 
-   public void testSelfSignedCert() throws Exception
-   {
-      Security.addProvider(BC_PROVIDER);
+    @Test
+    public void testSelfSignedCert() throws Exception
+    {
+        Security.addProvider( BC_PROVIDER );
 
-      final KeyPairGenerator kpGen = KeyPairGenerator.getInstance("RSA", "BC");
-      kpGen.initialize(2048, new SecureRandom());
-      final KeyPair keyPair = kpGen.generateKeyPair();
+        final KeyPairGenerator kpGen = KeyPairGenerator.getInstance( "RSA", "BC" );
+        kpGen.initialize( 2048, new SecureRandom() );
+        final KeyPair keyPair = kpGen.generateKeyPair();
 
 
-      final String cnName = "test.myname.com";
-      final long futureSeconds = (TimeUnit.DAYS.toMillis(2 * 365)) / 1000;
+        final String cnName = "test.myname.com";
+        final long futureSeconds = ( TimeUnit.DAYS.toMillis( 2 * 365 ) ) / 1000;
 
-      final X509Certificate storedCertData = HttpsServerCertificateManager.SelfCertGenerator.generateV3Certificate(keyPair, cnName, futureSeconds);
-      Assert.assertNotNull(storedCertData);
-      Assert.assertEquals(storedCertData.getSubjectDN().getName(), storedCertData.getIssuerDN().getName());
-   }
+        final X509Certificate storedCertData = HttpsServerCertificateManager.SelfCertGenerator.generateV3Certificate( keyPair, cnName, futureSeconds );
+        Assert.assertNotNull( storedCertData );
+        Assert.assertEquals( storedCertData.getSubjectDN().getName(), storedCertData.getIssuerDN().getName() );
+    }
 }

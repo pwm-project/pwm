@@ -22,11 +22,12 @@
 
 package password.pwm.config.value;
 
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingProperty;
 import password.pwm.config.StoredValue;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.Collections;
@@ -50,9 +51,9 @@ public class NumericValue extends AbstractValue implements StoredValue
                 return new NumericValue( JsonUtil.deserialize( value, Long.class ) );
             }
 
-            public NumericValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey input )
+            public NumericValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
-                final Element valueElement = settingElement.getChild( "value" );
+                final XmlElement valueElement = settingElement.getChild( "value" );
                 final String value = valueElement.getText();
                 return new NumericValue( normalizeValue( pwmSetting, Long.parseLong( value ) ) );
             }
@@ -78,10 +79,10 @@ public class NumericValue extends AbstractValue implements StoredValue
     }
 
     @Override
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final Element valueElement = new Element( valueElementName );
-        valueElement.addContent( Long.toString( value ) );
+        final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+        valueElement.addText( Long.toString( value ) );
         return Collections.singletonList( valueElement );
     }
 

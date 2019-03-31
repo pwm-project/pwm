@@ -48,6 +48,7 @@ public class NewUserProfile extends AbstractProfile
 {
 
     private static final ProfileType PROFILE_TYPE = ProfileType.NewUser;
+    public static final String TEST_USER_CONFIG_VALUE = "TESTUSER";
 
     private Instant newUserPasswordPolicyCacheTime;
     private final Map<Locale, PwmPasswordPolicy> newUserPasswordPolicyCache = new HashMap<>();
@@ -107,7 +108,7 @@ public class NewUserProfile extends AbstractProfile
         {
 
             final String lookupDN;
-            if ( "TESTUSER".equalsIgnoreCase( configuredNewUserPasswordDN ) )
+            if ( TEST_USER_CONFIG_VALUE.equalsIgnoreCase( configuredNewUserPasswordDN ) )
             {
                 lookupDN = defaultLdapProfile.readSettingAsString( PwmSetting.LDAP_TEST_USER_DN );
                 if ( lookupDN == null || lookupDN.isEmpty() )
@@ -116,7 +117,7 @@ public class NewUserProfile extends AbstractProfile
                             + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( defaultLdapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
                             + " must be configured since setting "
                             + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( this.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
-                            + " is set to TESTUSER";
+                            + " is set to " + TEST_USER_CONFIG_VALUE;
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg ) );
                 }
             }
