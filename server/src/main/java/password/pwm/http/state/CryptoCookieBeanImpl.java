@@ -71,7 +71,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
         }
         catch ( PwmException e )
         {
-            LOGGER.debug( pwmRequest, "ignoring existing existing " + cookieName + " cookie bean due to error: " + e.getMessage() );
+            LOGGER.debug( pwmRequest, () -> "ignoring existing existing " + cookieName + " cookie bean due to error: " + e.getMessage() );
         }
 
         final E newBean = SessionStateService.newBean( sessionGuid, theClass );
@@ -90,14 +90,14 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
         {
             if ( cookieBean.getGuid() == null )
             {
-                LOGGER.trace( pwmRequest, "disregarded existing " + cookieName + " cookie bean due to missing guid" );
+                LOGGER.trace( pwmRequest, () -> "disregarded existing " + cookieName + " cookie bean due to missing guid" );
                 return false;
             }
 
             final String sessionGuid = pwmRequest.getPwmSession().getLoginInfoBean().getGuid();
             if ( !cookieBean.getGuid().equals( sessionGuid ) )
             {
-                LOGGER.trace( pwmRequest, "disregarded existing " + cookieName + " cookie bean due to session change" );
+                LOGGER.trace( pwmRequest, () -> "disregarded existing " + cookieName + " cookie bean due to session change" );
                 return false;
             }
         }
@@ -106,7 +106,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
         {
             if ( cookieBean.getTimestamp() == null )
             {
-                LOGGER.trace( pwmRequest, "disregarded existing " + cookieName + " cookie bean due to missing timestamp" );
+                LOGGER.trace( pwmRequest, () -> "disregarded existing " + cookieName + " cookie bean due to missing timestamp" );
                 return false;
             }
 
@@ -114,7 +114,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
             final long maxIdleSeconds = pwmRequest.getConfig().readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
             if ( cookieLifeDuration.isLongerThan( maxIdleSeconds, TimeDuration.Unit.SECONDS ) )
             {
-                LOGGER.trace( pwmRequest, "disregarded existing " + cookieName + " cookie bean due to outdated timestamp (" + cookieLifeDuration.asCompactString() + ")" );
+                LOGGER.trace( pwmRequest, () -> "disregarded existing " + cookieName + " cookie bean due to outdated timestamp (" + cookieLifeDuration.asCompactString() + ")" );
                 return false;
             }
         }

@@ -24,7 +24,7 @@
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.i18n.Admin" %>
 <%@ page import="password.pwm.svc.intruder.RecordType" %>
-<%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 
 <!DOCTYPE html>

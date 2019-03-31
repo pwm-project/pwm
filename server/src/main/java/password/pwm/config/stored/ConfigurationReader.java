@@ -46,7 +46,6 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -63,8 +62,6 @@ public class ConfigurationReader
     private Configuration configuration;
     private StoredConfigurationImpl storedConfiguration;
     private ErrorInformation configFileError;
-
-    private Date configurationReadTime;
 
     private PwmApplicationMode configMode = PwmApplicationMode.NEW;
 
@@ -91,7 +88,7 @@ public class ConfigurationReader
             this.storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
         }
 
-        LOGGER.debug( "configuration mode: " + configMode );
+        LOGGER.debug( () -> "configuration mode: " + configMode );
     }
 
     public PwmApplicationMode getConfigMode( )
@@ -122,9 +119,7 @@ public class ConfigurationReader
 
     private StoredConfigurationImpl readStoredConfig( ) throws PwmUnrecoverableException
     {
-        LOGGER.debug( "loading configuration file: " + configFile );
-
-        configurationReadTime = new Date();
+        LOGGER.debug( () -> "loading configuration file: " + configFile );
 
         if ( !configFile.exists() )
         {
@@ -165,6 +160,7 @@ public class ConfigurationReader
                     }
             );
             this.configMode = PwmApplicationMode.ERROR;
+            e.printStackTrace(  );
             throw new PwmUnrecoverableException( errorInformation );
         }
 
@@ -176,7 +172,7 @@ public class ConfigurationReader
                     {
                             errorMsg,
                     }
-                    );
+            );
             this.configMode = PwmApplicationMode.ERROR;
             throw new PwmUnrecoverableException( errorInformation );
         }
@@ -193,7 +189,7 @@ public class ConfigurationReader
 
         final String fileSize = StringUtil.formatDiskSize( configFile.length() );
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.debug( "configuration reading/parsing of " + fileSize + " complete in " + timeDuration.asLongString() );
+        LOGGER.debug( () -> "configuration reading/parsing of " + fileSize + " complete in " + timeDuration.asLongString() );
 
         return storedConfiguration;
     }
@@ -240,7 +236,7 @@ public class ConfigurationReader
         {
             if ( !backupDirectory.mkdirs() )
             {
-                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN,
+                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL,
                         "unable to create backup directory structure '" + backupDirectory.toString() + "'" ) );
             }
         }
@@ -248,7 +244,7 @@ public class ConfigurationReader
         try
         {
             final File tempWriteFile = new File( configFile.getAbsoluteFile() + ".new" );
-            LOGGER.info( sessionLabel, "beginning write to configuration file " + tempWriteFile );
+            LOGGER.info( sessionLabel, () -> "beginning write to configuration file " + tempWriteFile );
             saveInProgress = true;
 
             try ( FileOutputStream fileOutputStream = new FileOutputStream( tempWriteFile, false ) )
@@ -256,14 +252,14 @@ public class ConfigurationReader
                 storedConfiguration.toXml( fileOutputStream );
             }
 
-            LOGGER.info( "saved configuration " + JsonUtil.serialize( storedConfiguration.toJsonDebugObject() ) );
+            LOGGER.info( () -> "saved configuration " + JsonUtil.serialize( storedConfiguration.toJsonDebugObject() ) );
             if ( pwmApplication != null )
             {
                 final String actualChecksum = storedConfiguration.settingChecksum();
                 pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.CONFIG_HASH, actualChecksum );
             }
 
-            LOGGER.trace( "renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath() );
+            LOGGER.trace( () -> "renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath() );
             try
             {
                 Files.move( tempWriteFile.toPath(), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE );
@@ -272,7 +268,7 @@ public class ConfigurationReader
             {
                 final String errorMsg = "unable to rename temporary save file from " + tempWriteFile.getAbsolutePath()
                         + " to " + configFile.getAbsolutePath() + "; error: " + e.getMessage();
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
             }
 
             if ( backupDirectory != null )

@@ -42,14 +42,14 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:current-url/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded" autocomplete="off"
-              id="newUserForm" class="pwm-form">
+              id="newUserForm" class="pwm-form pwm-form-captcha">
             <jsp:include page="fragment/form.jsp"/>
 
             <%@ include file="/WEB-INF/jsp/fragment/captcha-embed.jsp"%>
 
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="processForm"/>
-                <button type="submit" name="Create" class="btn" id="submitBtn">
+                <button type="submit" name="Create" class="btn pwm-btn-submit" id="submitBtn">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>

@@ -270,7 +270,7 @@ public class BerkeleyLocalDB
         try {
             lockMap.get(db).readLock().lock();
             if (dbIterators.size() > ITERATOR_LIMIT) {
-                throw new LocalDBException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"over " + ITERATOR_LIMIT + " iterators are outstanding, maximum limit exceeded"));
+                throw new LocalDBException(new ErrorInformation(PwmError.ERROR_INTERNAL,"over " + ITERATOR_LIMIT + " iterators are outstanding, maximum limit exceeded"));
             }
             final BerkeleyDbIterator<String> iterator = new BerkeleyDbIterator<>(db);
             dbIterators.add(iterator);

@@ -70,7 +70,7 @@ public class LdapCertImportFunction implements SettingUIFunction
                 for ( final String ldapUrlString : ldapUrlStrings )
                 {
                     final URI ldapURI = new URI( ldapUrlString );
-                    final List<X509Certificate> certs = X509Utils.readRemoteCertificates( ldapURI );
+                    final List<X509Certificate> certs = X509Utils.readRemoteCertificates( ldapURI, pwmApplication.getConfig() );
                     if ( certs != null )
                     {
                         resultCertificates.addAll( certs );
@@ -84,7 +84,7 @@ public class LdapCertImportFunction implements SettingUIFunction
             {
                 throw new PwmOperationalException( ( ( PwmException ) e ).getErrorInformation() );
             }
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error importing certificates: " + e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error importing certificates: " + e.getMessage() );
             throw new PwmOperationalException( errorInformation );
         }
 

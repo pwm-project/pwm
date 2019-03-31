@@ -64,7 +64,7 @@ PWM_UPDATE.uploadPhoto=function(fieldName,options) {
     var uploadOptions = options === undefined ? {} : options;
     uploadOptions['url'] = url;
 
-    uploadOptions['title'] = 'Upload Photo';
+    uploadOptions['title'] = PWM_MAIN.showString('Title_UploadPhoto');
     uploadOptions['nextFunction'] = function () {
         PWM_MAIN.showWaitDialog({
             title: 'Upload complete...', loadFunction: function () {

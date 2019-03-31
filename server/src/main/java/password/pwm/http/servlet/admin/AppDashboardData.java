@@ -36,9 +36,9 @@ import password.pwm.http.bean.DisplayElement;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Display;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.cluster.NodeInfo;
+import password.pwm.svc.node.NodeInfo;
 import password.pwm.svc.sessiontrack.SessionTrackService;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmNumberFormat;
@@ -168,7 +168,7 @@ public class AppDashboardData implements Serializable
         builder.sessionCount( pwmApplication.getSessionTrackService().sessionCount() );
         builder.requestsInProgress( pwmApplication.getInprogressRequests().get() );
 
-        LOGGER.trace( "AppDashboardData bean created in " + TimeDuration.compactFromCurrent( startTime ) );
+        LOGGER.trace( () -> "AppDashboardData bean created in " + TimeDuration.compactFromCurrent( startTime ) );
         return builder.build();
     }
 
@@ -288,12 +288,14 @@ public class AppDashboardData implements Serializable
                 "Word List Dictionary Size",
                 numberFormat.format( pwmApplication.getWordlistManager().size() )
         ) );
+
         localDbInfo.add( new DisplayElement(
                 "seedlistSize",
                 DisplayElement.Type.number,
                 "Seed List Dictionary Size",
                 numberFormat.format( pwmApplication.getSeedlistManager().size() )
         ) );
+
         localDbInfo.add( new DisplayElement(
                 "sharedHistorySize",
                 DisplayElement.Type.number,
@@ -547,7 +549,7 @@ public class AppDashboardData implements Serializable
         }
         catch ( PwmUnrecoverableException e )
         {
-            LOGGER.trace( "error building AppDashboardData node-state: " + e.getMessage() );
+            LOGGER.trace( () -> "error building AppDashboardData node-state: " + e.getMessage() );
         }
 
         return Collections.unmodifiableList( nodeData );

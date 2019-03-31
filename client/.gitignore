@@ -10,3 +10,5 @@
 
 # Generated log files
 *.log
+
+/package-lock.json

@@ -120,7 +120,7 @@ public class RestFormSigningServer extends RestServlet
             }
 
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }

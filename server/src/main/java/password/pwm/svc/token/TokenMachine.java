@@ -40,7 +40,7 @@ interface TokenMachine
     void removeToken( TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException;
 
-    int size( )
+    long size( )
             throws PwmOperationalException, PwmUnrecoverableException;
 
     void cleanup( )

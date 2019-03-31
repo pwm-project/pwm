@@ -350,7 +350,7 @@ public class FormUtility
                 {
                     // since only one value searched, it must be that one value
                     final String attributeName = labelMap.values().iterator().next();
-                    LOGGER.trace( "found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity );
+                    LOGGER.trace( () -> "found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity );
                     final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
                             {
                                     attributeName,
@@ -379,7 +379,7 @@ public class FormUtility
                     if ( compareResult )
                     {
                         final String label = labelMap.get( name );
-                        LOGGER.trace( "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
+                        LOGGER.trace( () ->  "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
                         final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
                                 {
                                         label,
@@ -522,7 +522,7 @@ public class FormUtility
     {
         final boolean includeNulls = JavaHelper.enumArrayContainsValue( flags, Flag.ReturnEmptyValues );
         final List<String> formFieldNames = FormConfiguration.convertToListOfNames( formFields );
-        LOGGER.trace( sessionLabel, "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection( formFieldNames ) );
+        LOGGER.trace( sessionLabel, () -> "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection( formFieldNames ) );
         final Map<String, List<String>> dataFromLdap = new LinkedHashMap<>();
         try
         {
@@ -566,7 +566,7 @@ public class FormUtility
             {
                 error = PwmError.forChaiError( ( ( ChaiException ) e ).getErrorCode() );
             }
-            if ( error == null || error == PwmError.ERROR_UNKNOWN )
+            if ( error == null || error == PwmError.ERROR_INTERNAL )
             {
                 error = PwmError.ERROR_LDAP_DATA_ERROR;
             }
@@ -587,7 +587,7 @@ public class FormUtility
                 {
                     final String parsedValue = parseInputValueToFormValue( formItem, value );
                     values.add( parsedValue );
-                    LOGGER.trace( sessionLabel, "loaded value for form item '" + attrName + "' with value=" + value );
+                    LOGGER.trace( sessionLabel, () -> "loaded value for form item '" + attrName + "' with value=" + value );
                 }
 
                 returnMap.put( formItem, values );

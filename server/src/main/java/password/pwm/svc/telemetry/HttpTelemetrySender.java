@@ -63,7 +63,7 @@ public class HttpTelemetrySender implements TelemetrySender
             throws PwmUnrecoverableException
     {
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                .trustManager( new X509Utils.PromiscuousTrustManager() )
+                .trustManager( new X509Utils.PromiscuousTrustManager( SessionLabel.TELEMETRY_SESSION_LABEL ) )
                 .build();
         final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, SessionLabel.TELEMETRY_SESSION_LABEL, pwmHttpClientConfiguration );
         final String body = JsonUtil.serialize( statsPublishBean );
@@ -76,9 +76,9 @@ public class HttpTelemetrySender implements TelemetrySender
                 body,
                 headers
         );
-        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "preparing to send telemetry data to '" + settings.getUrl() + ")" );
+        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "preparing to send telemetry data to '" + settings.getUrl() + ")" );
         pwmHttpClient.makeRequest( pwmHttpClientRequest );
-        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "sent telemetry data to '" + settings.getUrl() + ")" );
+        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "sent telemetry data to '" + settings.getUrl() + ")" );
     }
 
     @Getter

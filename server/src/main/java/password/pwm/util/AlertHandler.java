@@ -71,7 +71,7 @@ public abstract class AlertHandler
             final StringBuilder htmlBody = new StringBuilder();
             makeEmailBody( pwmApplication, dailyStatistics, locale, textBody, htmlBody );
             final EmailItemBean emailItem = new EmailItemBean( toAddress, fromAddress, subject, textBody.toString(), htmlBody.toString() );
-            LOGGER.debug( "sending daily summary email to " + toAddress );
+            LOGGER.debug( () -> "sending daily summary email to " + toAddress );
             pwmApplication.getEmailQueue().submitEmail( emailItem, null, MacroMachine.forNonUserSpecific( pwmApplication, null ) );
         }
     }

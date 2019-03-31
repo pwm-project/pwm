@@ -58,7 +58,7 @@ import password.pwm.health.DatabaseStatusChecker;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
-import password.pwm.health.LDAPStatusChecker;
+import password.pwm.health.LDAPHealthChecker;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
@@ -221,7 +221,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             }
             else
             {
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error performing user search: " + e.getMessage() );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error performing user search: " + e.getMessage() );
                 restResultBean = RestResultBean.fromError( errorInformation, pwmRequest );
             }
             pwmRequest.outputJsonResult( restResultBean );
@@ -286,7 +286,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         {
             final String errorStr = "readSettingAsString request for unknown key: " + key;
             LOGGER.warn( errorStr );
-            pwmRequest.outputJsonResult( RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorStr ) ) );
+            pwmRequest.outputJsonResult( RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_INTERNAL, errorStr ) ) );
             return ProcessStatus.Halt;
         }
         else
@@ -452,7 +452,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final String password = postData.get( "password" );
             configManagerBean.getStoredConfiguration().setPassword( password );
             configManagerBean.setPasswordVerified( true );
-            LOGGER.debug( pwmRequest, "config password updated" );
+            LOGGER.debug( pwmRequest, () -> "config password updated" );
             final RestResultBean restResultBean = RestResultBean.forConfirmMessage( pwmRequest, Config.Confirm_ConfigPasswordStored );
 
             pwmRequest.outputJsonResult( restResultBean );
@@ -492,7 +492,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 ConfigManagerServlet.saveConfiguration( pwmRequest, configManagerBean.getStoredConfiguration() );
                 configManagerBean.setConfiguration( null );
                 configManagerBean.setConfiguration( null );
-                LOGGER.debug( pwmSession, "save configuration operation completed" );
+                LOGGER.debug( pwmSession, () -> "save configuration operation completed" );
                 pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
             }
             catch ( PwmUnrecoverableException e )
@@ -536,7 +536,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                     final String value = JsonUtil.deserialize( bodyString, String.class );
                     configManagerBean.getStoredConfiguration().writeConfigProperty( ConfigurationProperty.NOTES,
                             value );
-                    LOGGER.trace( "updated notesText" );
+                    LOGGER.trace( () -> "updated notesText" );
                 }
                 catch ( Exception e )
                 {
@@ -552,7 +552,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                         final PwmSettingTemplate template = PwmSettingTemplate.valueOf( requestedTemplate );
                         configManagerBean.getStoredConfiguration().writeConfigProperty(
                                 ConfigurationProperty.LDAP_TEMPLATE, template.toString() );
-                        LOGGER.trace( "setting template to: " + requestedTemplate );
+                        LOGGER.trace( () -> "setting template to: " + requestedTemplate );
                     }
                     catch ( IllegalArgumentException e )
                     {
@@ -650,7 +650,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             }
 
             restResultBean = RestResultBean.withData( outputMap );
-            LOGGER.trace( pwmRequest, "finished search operation with " + returnData.size() + " results in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+            LOGGER.trace( pwmRequest, () -> "finished search operation with " + returnData.size() + " results in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         }
         else
         {
@@ -669,14 +669,14 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
-        LOGGER.debug( pwmRequest, "beginning restLdapHealthCheck" );
+        LOGGER.debug( pwmRequest, () -> "beginning restLdapHealthCheck" );
         final String profileID = pwmRequest.readParameterAsString( "profile" );
         final Configuration config = new Configuration( configManagerBean.getStoredConfiguration() );
-        final HealthData healthData = LDAPStatusChecker.healthForNewConfiguration( pwmRequest.getPwmApplication(), config, pwmRequest.getLocale(), profileID, true, true );
+        final HealthData healthData = LDAPHealthChecker.healthForNewConfiguration( pwmRequest.getPwmApplication(), config, pwmRequest.getLocale(), profileID, true, true );
         final RestResultBean restResultBean = RestResultBean.withData( healthData );
 
         pwmRequest.outputJsonResult( restResultBean );
-        LOGGER.debug( pwmRequest, "completed restLdapHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.debug( pwmRequest, () -> "completed restLdapHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;
     }
 
@@ -688,13 +688,13 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
-        LOGGER.debug( pwmRequest, "beginning restDatabaseHealthCheck" );
+        LOGGER.debug( pwmRequest, () -> "beginning restDatabaseHealthCheck" );
         final Configuration config = new Configuration( configManagerBean.getStoredConfiguration() );
         final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmApplication(), config );
         final HealthData healthData = HealthRecord.asHealthDataBean( config, pwmRequest.getLocale(), healthRecords );
         final RestResultBean restResultBean = RestResultBean.withData( healthData );
         pwmRequest.outputJsonResult( restResultBean );
-        LOGGER.debug( pwmRequest, "completed restDatabaseHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.debug( pwmRequest, () -> "completed restDatabaseHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;
     }
 
@@ -706,7 +706,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
-        LOGGER.debug( pwmRequest, "beginning restSmsHealthCheck" );
+        LOGGER.debug( pwmRequest, () -> "beginning restSmsHealthCheck" );
 
         final List<HealthRecord> returnRecords = new ArrayList<>();
         final Configuration config = new Configuration( configManagerBean.getStoredConfiguration() );
@@ -739,7 +739,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final HealthData healthData = HealthRecord.asHealthDataBean( config, pwmRequest.getLocale(), returnRecords );
         final RestResultBean restResultBean = RestResultBean.withData( healthData );
         pwmRequest.outputJsonResult( restResultBean );
-        LOGGER.debug( pwmRequest, "completed restSmsHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.debug( pwmRequest, () -> "completed restSmsHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;
     }
 
@@ -887,7 +887,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         NavTreeHelper.moveNavItemToTopOfList( PwmSettingCategory.NOTES.toString(), navigationData );
         NavTreeHelper.moveNavItemToTopOfList( PwmSettingCategory.TEMPLATES.toString(), navigationData );
 
-        LOGGER.trace( pwmRequest, "completed navigation tree data request in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.trace( pwmRequest, () -> "completed navigation tree data request in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         pwmRequest.outputJsonResult( RestResultBean.withData( navigationData ) );
         return ProcessStatus.Halt;
     }
@@ -1032,9 +1032,12 @@ public class ConfigEditorServlet extends ControlledPwmServlet
 
         ldapBrowser.close();
 
-        LOGGER.trace( pwmRequest, "performed ldapBrowse operation in "
-                + TimeDuration.fromCurrent( startTime ).asCompactString()
-                + ", result=" + JsonUtil.serialize( result ) );
+        {
+            final LdapBrowser.LdapBrowseResult finalResult = result;
+            LOGGER.trace( pwmRequest, () -> "performed ldapBrowse operation in "
+                    + TimeDuration.fromCurrent( startTime ).asCompactString()
+                    + ", result=" + JsonUtil.serialize( finalResult ) );
+        }
 
         pwmRequest.outputJsonResult( RestResultBean.withData( result ) );
         return ProcessStatus.Halt;

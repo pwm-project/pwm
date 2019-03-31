@@ -26,11 +26,11 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
+import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
@@ -92,16 +92,8 @@ public abstract class StoredConfigurationUtil
 
         final Object nativeObject = storedConfiguration.readSetting( profileSetting ).toNativeObject();
         final List<String> settingValues = ( List<String> ) nativeObject;
-        final LinkedList<String> profiles = new LinkedList<>();
-        profiles.addAll( settingValues );
-        for ( final Iterator<String> iterator = profiles.iterator(); iterator.hasNext(); )
-        {
-            final String profile = iterator.next();
-            if ( profile == null || profile.length() < 1 )
-            {
-                iterator.remove();
-            }
-        }
+        final LinkedList<String> profiles = new LinkedList<>( settingValues );
+        profiles.removeIf( profile -> StringUtil.isEmpty( profile ) );
         return Collections.unmodifiableList( profiles );
 
     }

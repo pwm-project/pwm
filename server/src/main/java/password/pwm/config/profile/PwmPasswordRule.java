@@ -27,7 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Message;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.HashSet;
@@ -280,6 +280,26 @@ public enum PwmPasswordRule
             ChaiPasswordRule.ADComplexityMaxViolation.getDefaultValue(),
             false ),
 
+    AllowNonAlpha(
+            ChaiPasswordRule.AllowNonAlpha,
+            PwmSetting.PASSWORD_POLICY_ALLOW_NON_ALPHA,
+            ChaiPasswordRule.AllowNonAlpha.getRuleType(),
+            ChaiPasswordRule.AllowNonAlpha.getDefaultValue(),
+            false ),
+
+    MinimumNonAlpha(
+            ChaiPasswordRule.MinimumNonAlpha,
+            PwmSetting.PASSWORD_POLICY_MINIMUM_NON_ALPHA,
+            ChaiPasswordRule.RuleType.MIN,
+            "0",
+            false ),
+
+    MaximumNonAlpha(
+            ChaiPasswordRule.MaximumNonAlpha,
+            PwmSetting.PASSWORD_POLICY_MAXIMUM_NON_ALPHA,
+            ChaiPasswordRule.RuleType.MAX,
+            "0",
+            false ),
 
     // pwm specific rules
     // value will be imported indirectly from chai rule
@@ -326,20 +346,6 @@ public enum PwmPasswordRule
             "0",
             false
     ),
-
-    MinimumNonAlpha(
-            null,
-            PwmSetting.PASSWORD_POLICY_MINIMUM_NON_ALPHA,
-            ChaiPasswordRule.RuleType.MIN,
-            "0",
-            false ),
-
-    MaximumNonAlpha(
-            null,
-            PwmSetting.PASSWORD_POLICY_MAXIMUM_NON_ALPHA,
-            ChaiPasswordRule.RuleType.MAX,
-            "0",
-            false ),
 
     EnableWordlist(
             null,

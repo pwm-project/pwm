@@ -118,13 +118,13 @@ class DatabaseUtil
         try
         {
             checkIfTableExists( connection, table );
-            LOGGER.trace( "table " + table + " appears to exist" );
+            LOGGER.trace( () -> "table " + table + " appears to exist" );
             tableExists = true;
         }
         catch ( DatabaseException e )
         {
             // assume error was due to table missing;
-            LOGGER.trace( "error while checking for table: " + e.getMessage() + ", assuming due to table non-existence" );
+            LOGGER.trace( () -> "error while checking for table: " + e.getMessage() + ", assuming due to table non-existence" );
         }
 
         if ( !tableExists )
@@ -147,7 +147,7 @@ class DatabaseUtil
                     + "  " + DatabaseService.VALUE_COLUMN + " " + dbConfiguration.getColumnTypeValue() + " " + "\n"
                     + ")" + "\n";
 
-            LOGGER.trace( "attempting to execute the following sql statement:\n " + sqlString );
+            LOGGER.trace( () ->  "attempting to execute the following sql statement:\n " + sqlString );
 
             Statement statement = null;
             try
@@ -155,7 +155,7 @@ class DatabaseUtil
                 statement = connection.createStatement();
                 statement.execute( sqlString );
                 connection.commit();
-                LOGGER.debug( "created table " + table.toString() );
+                LOGGER.debug( () -> "created table " + table.toString() );
             }
             catch ( SQLException ex )
             {
@@ -177,14 +177,14 @@ class DatabaseUtil
 
             Statement statement = null;
 
-            LOGGER.trace( "attempting to execute the following sql statement:\n " + sqlString );
+            LOGGER.trace( () -> "attempting to execute the following sql statement:\n " + sqlString );
 
             try
             {
                 statement = connection.createStatement();
                 statement.execute( sqlString );
                 connection.commit();
-                LOGGER.debug( "created index " + indexName );
+                LOGGER.debug( () -> "created index " + indexName );
             }
             catch ( SQLException ex )
             {

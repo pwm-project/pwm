@@ -119,7 +119,7 @@
             <plugin>
                 <groupId>io.leonard.maven.plugins</groupId>
                 <artifactId>jspc-maven-plugin</artifactId>
-                <version>2.4.2</version>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -154,6 +154,96 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <!-- creates the classes directory early in the build so the attribution plugin doesn't fail -->
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-sources</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <tasks>
+                                <mkdir dir="${project.build.directory}/classes"/>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <!-- builds xml file of dependencies and licenses for use in about page -->
+                <groupId>com.github.jinnovations</groupId>
+                <artifactId>attribution-maven-plugin</artifactId>
+                <version>0.9.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-attribution-file</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputFile>${project.build.directory}/classes/attribution.xml</outputFile>
+                    <dependencyOverrides>
+                        <dependencyOverride>
+                            <forDependency>jaxen:jaxen</forDependency>
+                            <license>
+                                <name>Custom</name>
+                                <url>http://jaxen.codehaus.org/license.html</url>
+                            </license>
+                        </dependencyOverride>
+                        <dependencyOverride>
+                            <forDependency>com.novell.security.nmas:ChallengeResponseLCM</forDependency>
+                            <projectUrl>https://www.novell.com/developer/ndk/novell_modular_authentication_service.html</projectUrl>
+                            <downloadUrl>ftp://sdk.provo.novell.com/ndk/nmas/builds/cross_platform/novell-nmas-devel-2009.11.11-cross_platform.zip</downloadUrl>
+                            <license>
+                                <name>Novell Developer License Agreement</name>
+                                <url>https://www.novell.com/developer/novell_developer_license_agreement.html</url>
+                            </license>
+                        </dependencyOverride>
+                        <dependencyOverride>
+                            <forDependency>com.novell.security.nmas:nmasclient</forDependency>
+                            <projectUrl>https://www.novell.com/developer/ndk/novell_modular_authentication_service.html</projectUrl>
+                            <downloadUrl>ftp://sdk.provo.novell.com/ndk/nmas/builds/cross_platform/novell-nmas-devel-2009.11.11-cross_platform.zip</downloadUrl>
+                            <license>
+                                <name>Novell Developer License Agreement</name>
+                                <url>https://www.novell.com/developer/novell_developer_license_agreement.html</url>
+                            </license>
+                        </dependencyOverride>
+                        <dependencyOverride>
+                            <forDependency>com.novell.security.nmas:NMASToolkit</forDependency>
+                            <projectUrl>https://www.novell.com/developer/ndk/novell_modular_authentication_service.html</projectUrl>
+                            <downloadUrl>ftp://sdk.provo.novell.com/ndk/nmas/builds/cross_platform/novell-nmas-devel-2009.11.11-cross_platform.zip</downloadUrl>
+                            <license>
+                                <name>Novell Developer License Agreement</name>
+                                <url>https://www.novell.com/developer/novell_developer_license_agreement.html</url>
+                            </license>
+                        </dependencyOverride>
+                        <dependencyOverride>
+                            <forDependency>com.novell.security.nmas:jsso</forDependency>
+                            <projectUrl>https://www.novell.com/developer/ndk/novell_secretstore_developer_kit_for_java.html</projectUrl>
+                            <downloadUrl>ftp://sdk.provo.novell.com/ndk/nssoj/builds/cross_platform/novell-nssoj-devel-2006.02.17-1cross_platform.zip</downloadUrl>
+                            <license>
+                                <name>Novell Developer License Agreement</name>
+                                <url>https://www.novell.com/developer/novell_developer_license_agreement.html</url>
+                            </license>
+                        </dependencyOverride>
+                        <dependencyOverride>
+                            <forDependency>com.novell.security.nmas:ldap</forDependency>
+                            <projectUrl>https://www.novell.com/developer/ndk/ldap_classes_for_java.html</projectUrl>
+                            <downloadUrl>https://www.novell.com/developer/ndk/ldap_classes_for_java/novell-jldap-devel-2013.08.30.1433-xplat.zip</downloadUrl>
+                            <license>
+                                <name>Novell Developer License Agreement</name>
+                                <url>https://www.novell.com/developer/novell_developer_license_agreement.html</url>
+                            </license>
+                        </dependencyOverride>
+                    </dependencyOverrides>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -192,27 +282,22 @@
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>dojo</artifactId>
-            <version>1.14.1</version>
+            <version>1.14.2</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>dijit</artifactId>
-            <version>1.14.1</version>
+            <version>1.14.2</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>dojox</artifactId>
-            <version>1.14.1</version>
+            <version>1.14.2</version>
         </dependency>
         <dependency>
-            <groupId>org.webjars.bower</groupId>
+            <groupId>org.webjars.npm</groupId>
             <artifactId>dgrid</artifactId>
             <version>1.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>dstore</artifactId>
-            <version>1.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.bower</groupId>

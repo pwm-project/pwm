@@ -21,12 +21,14 @@
 --%>
 
 <!DOCTYPE html>
-<% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_IAS_ANGULAR); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
-<%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body class="nihilo">
+<head>
+    <%@ include file="/WEB-INF/jsp/fragment/header-common.jsp" %>
+    <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ias-icons.css' addContext="true"/>"/>
+</head>
+<body class="nihilo printable">
 <div id="wrapper" class="peoplesearch-wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PeopleSearch"/>
@@ -34,7 +36,7 @@
     <div id="centerbody" class="wide tall" style="height:100%">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
-        <ui-view id="people-search-view"><div class="WaitDialogBlank"></div></ui-view>
+        <ui-view id="people-search-view" class="ias-styles-root"><div class="WaitDialogBlank"></div></ui-view>
     </div>
     <div class="push"></div>
 </div>

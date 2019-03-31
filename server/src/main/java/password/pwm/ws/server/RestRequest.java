@@ -30,7 +30,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmHttpRequestWrapper;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;

@@ -22,10 +22,13 @@
 
 package password.pwm.svc.report;
 
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -37,16 +40,31 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Value
+@Builder
 class ReportSettings implements Serializable
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ReportSettings.class );
 
+    @Builder.Default
     private TimeDuration maxCacheAge = TimeDuration.of( TimeDuration.DAY.asMillis() * 90, TimeDuration.Unit.MILLISECONDS );
-    private String searchFilter = null;
-    private int jobOffsetSeconds;
+
+    @Builder.Default
+    private List<UserPermission> searchFilter = Collections.emptyList();
+
+    @Builder.Default
+    private int jobOffsetSeconds = 0;
+
+    @Builder.Default
     private int maxSearchSize = 100 * 1000;
-    private List<Integer> trackDays = new ArrayList<>();
+
+    @Builder.Default
+    private List<Integer> trackDays = Collections.emptyList();
+
+    @Builder.Default
     private int reportJobThreads = 1;
+
+    @Builder.Default
     private JobIntensity reportJobIntensity = JobIntensity.LOW;
 
     public enum JobIntensity
@@ -58,29 +76,29 @@ class ReportSettings implements Serializable
 
     public static ReportSettings readSettingsFromConfig( final Configuration config )
     {
-        final ReportSettings settings = new ReportSettings();
-        settings.maxCacheAge = TimeDuration.of( config.readSettingAsLong( PwmSetting.REPORTING_MAX_CACHE_AGE ), TimeDuration.Unit.SECONDS );
-        settings.searchFilter = config.readSettingAsString( PwmSetting.REPORTING_SEARCH_FILTER );
-        settings.maxSearchSize = ( int ) config.readSettingAsLong( PwmSetting.REPORTING_MAX_QUERY_SIZE );
+        final ReportSettings.ReportSettingsBuilder builder = ReportSettings.builder();
+        builder.maxCacheAge( TimeDuration.of( config.readSettingAsLong( PwmSetting.REPORTING_MAX_CACHE_AGE ), TimeDuration.Unit.SECONDS ) );
+        builder.searchFilter( config.readSettingAsUserPermission( PwmSetting.REPORTING_USER_MATCH ) );
+        builder.maxSearchSize ( ( int ) config.readSettingAsLong( PwmSetting.REPORTING_MAX_QUERY_SIZE ) );
 
-        if ( settings.searchFilter == null || settings.searchFilter.isEmpty() )
+        if ( builder.searchFilter == null || builder.searchFilter.isEmpty() )
         {
-            settings.searchFilter = null;
+            builder.searchFilter = null;
         }
 
-        settings.jobOffsetSeconds = ( int ) config.readSettingAsLong( PwmSetting.REPORTING_JOB_TIME_OFFSET );
-        if ( settings.jobOffsetSeconds > 60 * 60 * 24 )
+        builder.jobOffsetSeconds = ( int ) config.readSettingAsLong( PwmSetting.REPORTING_JOB_TIME_OFFSET );
+        if ( builder.jobOffsetSeconds > 60 * 60 * 24 )
         {
-            settings.jobOffsetSeconds = 0;
+            builder.jobOffsetSeconds = 0;
         }
 
-        settings.trackDays = parseDayIntervalStr( config );
+        builder.trackDays( parseDayIntervalStr( config ) );
 
-        settings.reportJobThreads = Integer.parseInt( config.readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_THREADS ) );
+        builder.reportJobThreads( Integer.parseInt( config.readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_THREADS ) ) );
 
-        settings.reportJobIntensity = config.readSettingAsEnum( PwmSetting.REPORTING_JOB_INTENSITY, JobIntensity.class );
+        builder.reportJobIntensity( config.readSettingAsEnum( PwmSetting.REPORTING_JOB_INTENSITY, JobIntensity.class ) );
 
-        return settings;
+        return builder.build();
     }
 
     private static List<Integer> parseDayIntervalStr( final Configuration configuration )
@@ -111,42 +129,7 @@ class ReportSettings implements Serializable
         return Collections.unmodifiableList( returnValue );
     }
 
-    public TimeDuration getMaxCacheAge( )
-    {
-        return maxCacheAge;
-    }
-
-    public String getSearchFilter( )
-    {
-        return searchFilter;
-    }
-
-    public int getJobOffsetSeconds( )
-    {
-        return jobOffsetSeconds;
-    }
-
-    public int getMaxSearchSize( )
-    {
-        return maxSearchSize;
-    }
-
-    public List<Integer> getTrackDays( )
-    {
-        return trackDays;
-    }
-
-    public int getReportJobThreads( )
-    {
-        return reportJobThreads;
-    }
-
-    public JobIntensity getReportJobIntensity( )
-    {
-        return reportJobIntensity;
-    }
-
-    public String getSettingsHash( )
+    String getSettingsHash( )
             throws PwmUnrecoverableException
     {
         return SecureEngine.hash( JsonUtil.serialize( this ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );

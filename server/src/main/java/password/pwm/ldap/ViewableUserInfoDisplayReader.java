@@ -30,7 +30,7 @@ import password.pwm.config.option.ViewStatusFields;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.DisplayElement;
 import password.pwm.i18n.Display;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;

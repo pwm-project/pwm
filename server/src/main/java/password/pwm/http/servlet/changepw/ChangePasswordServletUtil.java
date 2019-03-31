@@ -73,7 +73,7 @@ public class ChangePasswordServletUtil
 
         if ( pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE )
         {
-            LOGGER.debug( pwmSession, "skipping user current password requirement, authentication type is " + AuthenticationType.AUTH_FROM_PUBLIC_MODULE );
+            LOGGER.debug( pwmSession, () -> "skipping user current password requirement, authentication type is " + AuthenticationType.AUTH_FROM_PUBLIC_MODULE );
             return false;
         }
 
@@ -81,7 +81,7 @@ public class ChangePasswordServletUtil
             final PasswordData currentPassword = pwmSession.getLoginInfoBean().getUserCurrentPassword();
             if ( currentPassword == null )
             {
-                LOGGER.debug( pwmSession, "skipping user current password requirement, current password is not known to application" );
+                LOGGER.debug( pwmSession, () -> "skipping user current password requirement, current password is not known to application" );
                 return false;
             }
         }
@@ -122,10 +122,10 @@ public class ChangePasswordServletUtil
                                     attrName,
                             }
                     );
-                    LOGGER.debug( pwmSession, errorInfo.toDebugStr() );
+                    LOGGER.debug( pwmSession, errorInfo );
                     throw new PwmDataValidationException( errorInfo );
                 }
-                LOGGER.trace( pwmSession, "successful validation of ldap value for '" + attrName + "'" );
+                LOGGER.trace( pwmSession, () -> "successful validation of ldap value for '" + attrName + "'" );
             }
             catch ( ChaiOperationException e )
             {
@@ -154,7 +154,7 @@ public class ChangePasswordServletUtil
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmSession, "skipping change password email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured" );
+            LOGGER.debug( pwmSession, () -> "skipping change password email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured" );
             return;
         }
 
@@ -193,7 +193,7 @@ public class ChangePasswordServletUtil
 
             if ( allowChange )
             {
-                LOGGER.debug( pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check due to setting "
+                LOGGER.debug( pwmSession, () -> "current password is too young, but skipping enforcement of minimum lifetime check due to setting "
                         + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( null, pwmSession.getSessionStateBean().getLocale() ) );
             }
             else

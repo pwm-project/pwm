@@ -22,7 +22,7 @@
 
 import { IPromise, IQService, ITimeoutService } from 'angular';
 import { IPerson } from '../models/person.model';
-import { IPeopleService } from './people.service';
+import {IPeopleService, IQuery} from './people.service';
 import IOrgChartData from '../models/orgchart-data.model';
 import SearchResult from '../models/search-result.model';
 
@@ -59,6 +59,33 @@ export default class PeopleService implements IPeopleService {
                     })
             };
         }, this);
+    }
+
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult> {
+        let self = this;
+
+        let deferred = this.$q.defer();
+        let deferredAbort = this.$q.defer();
+
+        let timeoutPromise = this.$timeout(() => {
+
+            let people = this.getAdvancedSearchResults(queries);
+            const sizeExceeded = (people.length > MAX_RESULTS);
+            if (sizeExceeded) {
+                people = people.slice(MAX_RESULTS);
+            }
+
+            deferred.resolve(new SearchResult({sizeExceeded: sizeExceeded, searchResults: people}));
+        }, SIMULATED_RESPONSE_TIME * 6);
+
+        // To simulate an abortable promise, edit SIMULATED_RESPONSE_TIME
+        deferred.promise['_httpTimeout'] = deferredAbort;
+        deferredAbort.promise.then(() => {
+            self.$timeout.cancel(timeoutPromise);
+            deferred.resolve();
+        });
+
+        return deferred.promise as IPromise<SearchResult>;
     }
 
     autoComplete(query: string): IPromise<IPerson[]> {
@@ -205,5 +232,31 @@ export default class PeopleService implements IPeopleService {
         }
 
         return null;
+    }
+
+    private getAdvancedSearchResults(queries: IQuery[]): IPerson[] {
+        let people = queries.length ? this.people : [];
+
+        queries.forEach((query: IQuery) => {
+            people = people.filter((person: IPerson) => {
+                if (!query.value) {
+                    return false;
+                }
+
+                let property = person[query.name];
+
+                if (!property) {
+                    return false;
+                }
+
+                if (typeof property === 'object' || typeof property === 'number') {
+                    property = JSON.stringify(property);
+                }
+
+                return property.toLowerCase().indexOf(query.value.toLowerCase()) >= 0;
+            });
+        });
+
+        return people;
     }
 }

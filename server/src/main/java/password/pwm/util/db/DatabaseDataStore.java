@@ -82,7 +82,7 @@ public class DatabaseDataStore implements DataStore
         databaseService.getAccessor().remove( table, key );
     }
 
-    public int size( ) throws PwmDataStoreException, PwmUnrecoverableException
+    public long size( ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().size( table );
     }

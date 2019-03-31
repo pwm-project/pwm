@@ -70,7 +70,7 @@ class CryptoTokenMachine implements TokenMachine
     {
     }
 
-    public int size( ) throws PwmOperationalException, PwmUnrecoverableException
+    public long size( ) throws PwmOperationalException, PwmUnrecoverableException
     {
         return 0;
     }

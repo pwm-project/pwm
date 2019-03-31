@@ -43,6 +43,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
@@ -75,17 +76,22 @@ public class LocalDBLogger implements PwmService
 
     private static final String STORAGE_FORMAT_VERSION = "3";
 
-    public LocalDBLogger( final PwmApplication pwmApplication, final LocalDB localDB, final LocalDBLoggerSettings settings )
+    public LocalDBLogger(
+            final PwmApplication pwmApplication,
+            final LocalDB localDB,
+            final LocalDBLoggerSettings settings
+    )
             throws LocalDBException
     {
-        if ( localDB == null )
-        {
-            throw new NullPointerException( "localDB can not be null" );
-        }
+        Objects.requireNonNull( localDB, "localDB can not be null" );
 
         final Instant startTime = Instant.now();
         status = STATUS.OPENING;
-        this.settings = settings;
+
+        this.settings = settings == null
+                ? LocalDBLoggerSettings.builder().build().applyValueChecks()
+                : settings.applyValueChecks();
+
         this.localDB = localDB;
         this.localDBListQueue = LocalDBStoredQueue.createLocalDBStoredQueue(
                 pwmApplication,
@@ -93,19 +99,14 @@ public class LocalDBLogger implements PwmService
                 LocalDB.DB.EVENTLOG_EVENTS
         );
 
-        if ( settings.getMaxEvents() == 0 )
+        if ( this.settings.getMaxEvents() == 0 )
         {
-            LOGGER.info( "maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed" );
+            LOGGER.info( () -> "maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed" );
             localDBListQueue.clear();
             throw new IllegalArgumentException( "maxEvents=0, will remain closed" );
         }
 
-        if ( localDB == null )
-        {
-            throw new IllegalArgumentException( "LocalDB is not available" );
-        }
-
-        eventQueue = new ArrayBlockingQueue<>( settings.getMaxBufferSize(), true );
+        eventQueue = new ArrayBlockingQueue<>( this.settings.getMaxBufferSize(), true );
 
         if ( pwmApplication != null )
         {
@@ -137,10 +138,10 @@ public class LocalDBLogger implements PwmService
         cleanerService.scheduleAtFixedRate( new CleanupTask(), 0, 1, TimeUnit.MINUTES );
         writerService.scheduleWithFixedDelay( new FlushTask(), 0, 103, TimeUnit.MILLISECONDS );
 
-        cleanOnWriteFlag.set( eventQueue.size() >= settings.getMaxEvents() );
+        cleanOnWriteFlag.set( eventQueue.size() >= this.settings.getMaxEvents() );
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.info( "open in " + timeDuration.asCompactString() + ", " + debugStats() );
+        LOGGER.info( () -> "open in " + timeDuration.asCompactString() + ", " + debugStats() );
     }
 
 
@@ -188,7 +189,7 @@ public class LocalDBLogger implements PwmService
     {
         if ( status != STATUS.CLOSED )
         {
-            LOGGER.debug( "LocalDBLogger closing... (" + debugStats() + ")" );
+            LOGGER.debug( () -> "LocalDBLogger closing... (" + debugStats() + ")" );
             if ( cleanerService != null )
             {
                 cleanerService.shutdown();
@@ -198,7 +199,7 @@ public class LocalDBLogger implements PwmService
         }
         status = STATUS.CLOSED;
 
-        LOGGER.debug( "LocalDBLogger close completed (" + debugStats() + ")" );
+        LOGGER.debug( () -> "LocalDBLogger close completed (" + debugStats() + ")" );
     }
 
     public int getStoredEventCount( )
@@ -308,7 +309,7 @@ public class LocalDBLogger implements PwmService
         }
         catch ( PatternSyntaxException e )
         {
-            LOGGER.trace( "invalid regex syntax for " + searchParameters.getUsername() + ", reverting to plaintext search" );
+            LOGGER.trace( () -> "invalid regex syntax for " + searchParameters.getUsername() + ", reverting to plaintext search" );
         }
         if ( pattern != null )
         {

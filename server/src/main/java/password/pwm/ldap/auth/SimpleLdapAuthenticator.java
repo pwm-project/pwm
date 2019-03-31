@@ -81,7 +81,7 @@ public class SimpleLdapAuthenticator
         }
 
         final ErrorInformation errorInformation = new ErrorInformation(
-                PwmError.ERROR_UNKNOWN,
+                PwmError.ERROR_INTERNAL,
                 "auth with unexpected auth type: " + authResult.getAuthenticationType()
         );
         LOGGER.error( errorInformation );

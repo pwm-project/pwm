@@ -67,7 +67,7 @@ public class HttpEventManager implements
                 pwmApplication.getStatisticsManager().updateEps( EpsStatistic.SESSIONS, 1 );
             }
 
-            LOGGER.trace( "new http session created" );
+            LOGGER.trace( () -> "new http session created" );
         }
         catch ( PwmUnrecoverableException e )
         {
@@ -92,11 +92,11 @@ public class HttpEventManager implements
                 {
                     pwmApplication.getSessionTrackService().removeSessionData( pwmSession );
                 }
-                LOGGER.trace( pwmSession, "destroyed session" );
+                LOGGER.trace( pwmSession, () -> "destroyed session" );
             }
             else
             {
-                LOGGER.trace( "invalidated uninitialized session" );
+                LOGGER.trace( () -> "invalidated uninitialized session" );
             }
         }
         catch ( PwmUnrecoverableException e )
@@ -154,7 +154,7 @@ public class HttpEventManager implements
         try
         {
             final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( event.getSession() );
-            LOGGER.trace( pwmSession.getLabel(), "passivating session" );
+            LOGGER.trace( pwmSession.getLabel(), () -> "passivating session" );
         }
         catch ( PwmUnrecoverableException e )
         {
@@ -168,7 +168,7 @@ public class HttpEventManager implements
         {
             final HttpSession httpSession = event.getSession();
             final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( httpSession );
-            LOGGER.trace( pwmSession.getLabel(), "activating (de-passivating) session" );
+            LOGGER.trace( pwmSession.getLabel(), () -> "activating (de-passivating) session" );
             final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
             if ( pwmApplication != null )
             {

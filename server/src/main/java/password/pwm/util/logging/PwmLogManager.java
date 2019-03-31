@@ -95,7 +95,7 @@ public class PwmLogManager
                     throw new Exception( "file not found: " + log4jConfigFile.getAbsolutePath() );
                 }
                 DOMConfigurator.configure( log4jConfigFile.getAbsolutePath() );
-                LOGGER.debug( "successfully initialized log4j using file " + log4jConfigFile.getAbsolutePath() );
+                LOGGER.debug( () -> "successfully initialized log4j using file " + log4jConfigFile.getAbsolutePath() );
                 return;
             }
             catch ( Exception e )
@@ -135,11 +135,11 @@ public class PwmLogManager
                     logger.addAppender( consoleAppender );
                 }
             }
-            LOGGER.debug( "successfully initialized default console log4j config at log level " + level.toString() );
+            LOGGER.debug( () -> "successfully initialized default console log4j config at log level " + level.toString() );
         }
         else
         {
-            LOGGER.debug( "skipping stdout log4j initialization due to blank setting for log level" );
+            LOGGER.debug( () -> "skipping stdout log4j initialization due to blank setting for log level" );
         }
     }
 
@@ -163,7 +163,7 @@ public class PwmLogManager
                 {
                     if ( logDirectory.mkdir() )
                     {
-                        LOGGER.info( "created directory " + logDirectory.getAbsoluteFile() );
+                        LOGGER.info( () -> "created directory " + logDirectory.getAbsoluteFile() );
                     }
                     else
                     {
@@ -191,11 +191,11 @@ public class PwmLogManager
                         //}
                     }
                 }
-                LOGGER.debug( "successfully initialized default file log4j config at log level " + level.toString() );
+                LOGGER.debug( () -> "successfully initialized default file log4j config at log level " + level.toString() );
             }
             catch ( IOException e )
             {
-                LOGGER.debug( "error initializing RollingFileAppender: " + e.getMessage() );
+                LOGGER.debug( () -> "error initializing RollingFileAppender: " + e.getMessage() );
             }
         }
     }
@@ -206,7 +206,7 @@ public class PwmLogManager
 
         if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
-            LOGGER.trace( "skipping initialization of LocalDBLogger due to read-only mode" );
+            LOGGER.trace( () -> "skipping initialization of LocalDBLogger due to read-only mode" );
             return null;
         }
 

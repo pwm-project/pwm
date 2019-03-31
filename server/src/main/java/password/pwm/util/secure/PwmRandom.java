@@ -52,6 +52,18 @@ public class PwmRandom extends SecureRandom
         return internalRand.nextLong();
     }
 
+    public long nextLong( final long n )
+    {
+        long randomLong;
+        do
+        {
+            randomLong = internalRand.nextLong();
+        }
+        while ( randomLong < 0 );
+
+        return randomLong % n;
+    }
+
     public int nextInt( )
     {
         return internalRand.nextInt();

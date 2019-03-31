@@ -119,7 +119,7 @@ public class RestVerifyOtpServer extends RestServlet
         catch ( PwmOperationalException e )
         {
             final String errorMsg = "unexpected error reading json input: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
 

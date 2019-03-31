@@ -40,7 +40,6 @@ import org.graylog2.syslog4j.impl.net.udp.UDPNetSyslogConfig;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SyslogOutputFormat;
@@ -53,17 +52,14 @@ import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.localdb.WorkQueueProcessor;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.X509Utils;
 
 import javax.net.SocketFactory;
@@ -74,11 +70,8 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 
 public class SyslogAuditService
@@ -89,18 +82,6 @@ public class SyslogAuditService
     private static final String SYSLOG_INSTANCE_NAME = "syslog-audit";
     private static final int LENGTH_OVERSIZE = 1024;
 
-    private static final Map<String, String> CEF_VALUE_ESCAPES;
-
-
-    static
-    {
-        final Map<String, String> map = new LinkedHashMap<>( );
-        map.put( "\\", "\\\\" );
-        map.put( "=", "\\=" );
-        map.put( "|", "\"" );
-        CEF_VALUE_ESCAPES = Collections.unmodifiableMap( map );
-    }
-
     private SyslogIF syslogInstance = null;
     private ErrorInformation lastError = null;
     private List<X509Certificate> certificates = null;
@@ -110,17 +91,15 @@ public class SyslogAuditService
 
     private final Configuration configuration;
     private final PwmApplication pwmApplication;
-    private final SyslogOutputFormat syslogOutputFormat;
-    private final Map<String, String> syslogCefExtensions;
+    private final AuditFormatter auditFormatter;
 
-    public SyslogAuditService( final PwmApplication pwmApplication )
+
+    SyslogAuditService( final PwmApplication pwmApplication )
             throws LocalDBException
     {
-        syslogOutputFormat = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.AUDIT_SYSLOG_OUTPUT_FORMAT, SyslogOutputFormat.class );
         this.pwmApplication = pwmApplication;
         this.configuration = pwmApplication.getConfig();
         this.certificates = configuration.readSettingAsCertificate( PwmSetting.AUDIT_SYSLOG_CERTIFICATES );
-        this.syslogCefExtensions = figureCefSyslogExtensions( configuration );
 
         final List<String> syslogConfigStringArray = configuration.readSettingAsStringArray( PwmSetting.AUDIT_SYSLOG_SERVERS );
         try
@@ -131,11 +110,29 @@ public class SyslogAuditService
                 final SyslogIF syslogInstance = makeSyslogInstance( syslogCfg );
                 syslogInstances.add( syslogInstance );
             }
-            LOGGER.trace( "queued service running for syslog entries" );
+            LOGGER.trace( () -> "queued service running for syslog entries" );
         }
         catch ( IllegalArgumentException e )
         {
             LOGGER.error( "error parsing syslog configuration for  syslogConfigStrings ERROR: " + e.getMessage() );
+        }
+
+        {
+            final SyslogOutputFormat syslogOutputFormat = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.AUDIT_SYSLOG_OUTPUT_FORMAT, SyslogOutputFormat.class );
+            switch ( syslogOutputFormat )
+            {
+                case JSON:
+                    auditFormatter = new JsonAuditFormatter();
+                    break;
+
+                case CEF:
+                    auditFormatter = new CEFAuditFormatter();
+                    break;
+
+                default:
+                    JavaHelper.unhandledSwitchStatement( syslogOutputFormat );
+                    throw new IllegalStateException();
+            }
         }
 
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
@@ -216,23 +213,9 @@ public class SyslogAuditService
     {
 
         final String syslogMsg;
-
         try
         {
-            switch ( syslogOutputFormat )
-            {
-                case JSON:
-                    syslogMsg = convertAuditRecordToSyslogMessage( event, configuration );
-                    break;
-
-                case CEF:
-                    syslogMsg = convertAuditRecordToCEFMessage( event, configuration );
-                    break;
-
-                default:
-                    JavaHelper.unhandledSwitchStatement( syslogOutputFormat );
-                    throw new IllegalStateException();
-            }
+            syslogMsg = auditFormatter.convertAuditRecordToMessage( pwmApplication, event );
         }
         catch ( PwmUnrecoverableException e )
         {
@@ -240,6 +223,7 @@ public class SyslogAuditService
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_SYSLOG_WRITE_ERROR, msg );
             throw new PwmOperationalException( errorInfo );
         }
+
 
 
         try
@@ -275,7 +259,7 @@ public class SyslogAuditService
             try
             {
                 syslogInstance.info( auditRecord );
-                LOGGER.trace( "delivered syslog audit event: " + auditRecord );
+                LOGGER.trace( () -> "delivered syslog audit event: " + auditRecord );
                 lastError = null;
                 StatisticsManager.incrementStat( this.pwmApplication, Statistic.SYSLOG_MESSAGES_SENT );
                 return WorkQueueProcessor.ProcessResult.SUCCESS;
@@ -304,154 +288,6 @@ public class SyslogAuditService
         }
         workQueueProcessor.close();
         syslogInstance = null;
-    }
-
-
-    private static String convertAuditRecordToSyslogMessage(
-            final AuditRecord auditRecord,
-            final Configuration configuration
-    )
-    {
-        final int maxLength = Integer.parseInt( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_MAX_MESSAGE_LENGTH ) );
-        String jsonValue = "";
-        final StringBuilder message = new StringBuilder();
-        message.append( PwmConstants.PWM_APP_NAME );
-        message.append( " " );
-
-        jsonValue = JsonUtil.serialize( auditRecord );
-
-        if ( message.length() + jsonValue.length() <= maxLength )
-        {
-            message.append( jsonValue );
-        }
-        else
-        {
-            final AuditRecord inputRecord = JsonUtil.cloneUsingJson( auditRecord, auditRecord.getClass() );
-            inputRecord.message = inputRecord.message == null ? "" : inputRecord.message;
-            inputRecord.narrative = inputRecord.narrative == null ? "" : inputRecord.narrative;
-
-            final String truncateMessage = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_TRUNCATE_MESSAGE );
-            final AuditRecord copiedRecord = JsonUtil.cloneUsingJson( auditRecord, auditRecord.getClass() );
-            copiedRecord.message = "";
-            copiedRecord.narrative = "";
-            final int shortenedMessageLength = message.length()
-                    + JsonUtil.serialize( copiedRecord ).length()
-                    + truncateMessage.length();
-            final int maxMessageAndNarrativeLength = maxLength - ( shortenedMessageLength + ( truncateMessage.length() * 2 ) );
-            int maxMessageLength = inputRecord.getMessage().length();
-            int maxNarrativeLength = inputRecord.getNarrative().length();
-
-            {
-                int top = maxMessageAndNarrativeLength;
-                while ( maxMessageLength + maxNarrativeLength > maxMessageAndNarrativeLength )
-                {
-                    top--;
-                    maxMessageLength = Math.min( maxMessageLength, top );
-                    maxNarrativeLength = Math.min( maxNarrativeLength, top );
-                }
-            }
-
-            copiedRecord.message = inputRecord.getMessage().length() > maxMessageLength
-                    ? inputRecord.message.substring( 0, maxMessageLength ) + truncateMessage
-                    : inputRecord.message;
-
-            copiedRecord.narrative = inputRecord.getNarrative().length() > maxNarrativeLength
-                    ? inputRecord.narrative.substring( 0, maxNarrativeLength ) + truncateMessage
-                    : inputRecord.narrative;
-
-            message.append( JsonUtil.serialize( copiedRecord ) );
-        }
-
-        return message.toString();
-    }
-
-    private String convertAuditRecordToCEFMessage(
-            final AuditRecord auditRecord,
-            final Configuration configuration
-    )
-            throws PwmUnrecoverableException
-    {
-        final Map<String, Object> auditRecordMap = JsonUtil.deserializeMap( JsonUtil.serialize( auditRecord ) );
-        final String separator = "|";
-
-        final String headerSeverity = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_SEVERITY );
-        final String headerProduct = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_PRODUCT );
-        final String headerVendor = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_VENDOR );
-
-
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, SessionLabel.SYSTEM_LABEL );
-
-        final String auditFieldName = LocaleHelper.getLocalizedMessage(
-                PwmConstants.DEFAULT_LOCALE,
-                auditRecord.getEventCode().getMessage(),
-                configuration
-        );
-
-        final StringBuilder cefOutput = new StringBuilder(  );
-
-        // cef declaration:version prefix
-        cefOutput.append( "CEF:0" );
-
-        // Device Vendor
-        cefOutput.append( separator );
-        cefOutput.append( macroMachine.expandMacros( headerVendor ) );
-
-        // Device Product
-        cefOutput.append( separator );
-        cefOutput.append( macroMachine.expandMacros( headerProduct ) );
-
-        // Device Version
-        cefOutput.append( separator );
-        cefOutput.append( PwmConstants.SERVLET_VERSION );
-
-        // Device Event Class ID
-        cefOutput.append( separator );
-        cefOutput.append( auditRecord.getEventCode() );
-
-        // field name
-        cefOutput.append( separator );
-        cefOutput.append( auditFieldName );
-
-        // severity
-        cefOutput.append( separator );
-        cefOutput.append( macroMachine.expandMacros( headerSeverity ) );
-
-        boolean extensionAdded = false;
-        for ( final Map.Entry<String, String> entry : syslogCefExtensions.entrySet() )
-        {
-            final Object value = auditRecordMap.get( entry.getKey() );
-            if ( value != null )
-            {
-                if ( !extensionAdded )
-                {
-                    cefOutput.append( separator );
-                    extensionAdded = true;
-                }
-                else
-                {
-                    cefOutput.append( " " );
-                }
-                cefOutput.append( entry.getValue() );
-                cefOutput.append( "=" );
-                cefOutput.append( escapeCEFValue( value.toString() ) );
-            }
-        }
-
-        return cefOutput.toString();
-    }
-
-
-
-    private static String escapeCEFValue( final String value )
-    {
-        String replacedValue = value;
-        for ( final Map.Entry<String, String> entry : CEF_VALUE_ESCAPES.entrySet() )
-        {
-            final String pattern = entry.getKey();
-            final String replacement = entry.getValue();
-            replacedValue = replacedValue.replace( pattern, replacement );
-        }
-        return replacedValue;
     }
 
     @Getter
@@ -557,16 +393,5 @@ public class SyslogAuditService
             newClass.initialize( this );
             return newClass;
         }
-    }
-
-    private Map<String, String> figureCefSyslogExtensions( final Configuration config )
-    {
-        final String pairSplitter = ":";
-        final String keyValueSplitter = ",";
-        final String configuredString = config.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_EXTENSIONS );
-
-        final List<String> pairs = Arrays.asList( configuredString.split( pairSplitter ) );
-        final Map<String, String> map = StringUtil.convertStringListToNameValuePair( pairs, keyValueSplitter );
-        return Collections.unmodifiableMap( map );
     }
 }

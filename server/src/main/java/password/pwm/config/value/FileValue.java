@@ -23,7 +23,6 @@
 package password.pwm.config.value;
 
 import lombok.Value;
-import org.jdom2.Element;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
@@ -32,6 +31,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -125,23 +126,21 @@ public class FileValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
 
-            public FileValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey input )
+            public FileValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
                     throws PwmOperationalException
             {
-                final List valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final Map<FileInformation, FileContent> values = new LinkedHashMap<>();
-                for ( final Object loopValue : valueElements )
+                for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final Element loopValueElement = ( Element ) loopValue;
-
-                    final Element loopFileInformation = loopValueElement.getChild( "FileInformation" );
+                    final XmlElement loopFileInformation = loopValueElement.getChild( "FileInformation" );
                     if ( loopFileInformation != null )
                     {
                         final String loopFileInformationJson = loopFileInformation.getText();
                         final FileInformation fileInformation = JsonUtil.deserialize( loopFileInformationJson,
                                 FileInformation.class );
 
-                        final Element loopFileContentElement = loopValueElement.getChild( "FileContent" );
+                        final XmlElement loopFileContentElement = loopValueElement.getChild( "FileContent" );
                         if ( loopFileContentElement != null )
                         {
                             final String fileContentString = loopFileContentElement.getText();
@@ -168,23 +167,23 @@ public class FileValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<FileInformation, FileContent> entry : this.values.entrySet() )
         {
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileContent fileContent = entry.getValue();
-            final Element valueElement = new Element( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
 
-            final Element fileInformationElement = new Element( "FileInformation" );
-            fileInformationElement.addContent( JsonUtil.serialize( fileInformation ) );
+            final XmlElement fileInformationElement = XmlFactory.getFactory().newElement( "FileInformation" );
+            fileInformationElement.addText( JsonUtil.serialize( fileInformation ) );
             valueElement.addContent( fileInformationElement );
 
-            final Element fileContentElement = new Element( "FileContent" );
+            final XmlElement fileContentElement = XmlFactory.getFactory().newElement( "FileContent" );
             try
             {
-                fileContentElement.addContent( fileContent.toEncodedString() );
+                fileContentElement.addText( fileContent.toEncodedString() );
             }
             catch ( IOException e )
             {
@@ -241,7 +240,7 @@ public class FileValue extends AbstractValue implements StoredValue
             }
             catch ( PwmUnrecoverableException e )
             {
-                LOGGER.trace( "error generating file hash" );
+                LOGGER.trace( () -> "error generating file hash" );
             }
             output.add( details );
         }

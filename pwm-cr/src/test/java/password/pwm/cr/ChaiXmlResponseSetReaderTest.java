@@ -28,25 +28,28 @@ import password.pwm.cr.api.QuestionSource;
 import password.pwm.cr.api.ResponseLevel;
 
 
-public class ChaiXmlResponseSetReaderTest {
+public class ChaiXmlResponseSetReaderTest
+{
 
-    @Test(expected=IllegalArgumentException.class)
-    public void testBogusMaxLength() throws Exception {
+    @Test( expected = IllegalArgumentException.class )
+    public void testBogusMaxLength() throws Exception
+    {
 
         ChallengeItemPolicy.builder()
-                .questionText("question 1!")
-                .maxLength(-3)
+                .questionText( "question 1!" )
+                .maxLength( -3 )
                 .build().validate();
     }
 
     @Test
-    public void testValidChallengeItemCreations() {
+    public void testValidChallengeItemCreations()
+    {
         ChallengeItemPolicy.builder()
-                .questionText("question 1!")
-                .minLength(1)
-                .maxLength(10)
-                .questionSource(QuestionSource.ADMIN_DEFINED)
-                .responseLevel(ResponseLevel.REQUIRED)
+                .questionText( "question 1!" )
+                .minLength( 1 )
+                .maxLength( 10 )
+                .questionSource( QuestionSource.ADMIN_DEFINED )
+                .responseLevel( ResponseLevel.REQUIRED )
                 .build();
 
     }

@@ -24,8 +24,8 @@ package password.pwm;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
-import password.pwm.util.LocaleHelper;
 import password.pwm.util.db.DatabaseService;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -35,7 +35,6 @@ import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -55,9 +54,9 @@ public enum PwmAboutProperty
     app_mode_manageHttps( null, pwmApplication -> Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.ManageHttps ) ) ),
     app_applicationPath( null, pwmApplication -> pwmApplication.getPwmEnvironment().getApplicationPath().getAbsolutePath() ),
     app_environmentFlags( null, pwmApplication -> StringUtil.collectionToString( pwmApplication.getPwmEnvironment().getFlags() ) ),
-    app_wordlistSize( null, pwmApplication -> Integer.toString( pwmApplication.getWordlistManager().size() ) ),
-    app_seedlistSize( null, pwmApplication -> Integer.toString( pwmApplication.getSeedlistManager().size() ) ),
-    app_sharedHistorySize( null, pwmApplication -> Integer.toString( pwmApplication.getSharedHistoryManager().size() ) ),
+    app_wordlistSize( null, pwmApplication -> Long.toString( pwmApplication.getWordlistManager().size() ) ),
+    app_seedlistSize( null, pwmApplication -> Long.toString( pwmApplication.getSeedlistManager().size() ) ),
+    app_sharedHistorySize( null, pwmApplication -> Long.toString( pwmApplication.getSharedHistoryManager().size() ) ),
     app_sharedHistoryOldestTime( null, pwmApplication -> format( pwmApplication.getSharedHistoryManager().getOldestEntryTime() ) ),
     app_emailQueueSize( null, pwmApplication -> Integer.toString( pwmApplication.getEmailQueue().queueSize() ) ),
     app_emailQueueOldestTime( null, pwmApplication -> format( Date.from( pwmApplication.getEmailQueue().eldestItem() ) ) ),
@@ -83,6 +82,7 @@ public enum PwmAboutProperty
     java_memoryFree( "Java Memory Free", pwmApplication -> Long.toString( Runtime.getRuntime().freeMemory() ) ),
     java_memoryAllocated( "Java Memory Allocated", pwmApplication -> Long.toString( Runtime.getRuntime().totalMemory() ) ),
     java_memoryMax( "Java Memory Max", pwmApplication -> Long.toString( Runtime.getRuntime().maxMemory() ) ),
+    java_processors( "Java Available Processors", pwmApplication -> Integer.toString( Runtime.getRuntime().availableProcessors() ) ),
     java_threadCount( "Java Thread Count", pwmApplication -> Integer.toString( Thread.activeCount() ) ),
     java_runtimeVersion( "Java Runtime Version", pwmApplication -> System.getProperty( "java.runtime.version" ) ),
     java_vmName( "Java VM Name", pwmApplication -> System.getProperty( "java.vm.name" ) ),
@@ -90,9 +90,9 @@ public enum PwmAboutProperty
     java_vmLocation( "Java VM Location", pwmApplication -> System.getProperty( "java.home" ) ),
     java_vmVersion( "Java VM Version", pwmApplication -> System.getProperty( "java.vm.version" ) ),
     java_vmCommandLine( "Java VM Command Line", pwmApplication -> StringUtil.collectionToString( ManagementFactory.getRuntimeMXBean().getInputArguments() ) ),
-    java_osName( "Java OS Name", pwmApplication -> System.getProperty( "os.name" ) ),
-    java_osVersion( "Java OS Version", pwmApplication -> System.getProperty( "os.version" ) ),
-    java_osArch( "Java OS Architecture", pwmApplication -> System.getProperty( "os.arch" ) ),
+    java_osName( "Operating System Name", pwmApplication -> System.getProperty( "os.name" ) ),
+    java_osVersion( "Operating System Version", pwmApplication -> System.getProperty( "os.version" ) ),
+    java_osArch( "Operating System Architecture", pwmApplication -> System.getProperty( "os.arch" ) ),
     java_randomAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().pwmRandom().getAlgorithm() ),
     java_defaultCharset( null, pwmApplication -> Charset.defaultCharset().name() ),
     java_appServerInfo( "Java AppServer Info", pwmApplication -> pwmApplication.getPwmEnvironment().getContextManager().getServerInfo() ),
@@ -141,12 +141,12 @@ public enum PwmAboutProperty
                 catch ( Throwable t )
                 {
                     aboutMap.put( pwmAboutProperty.name(), LocaleHelper.getLocalizedMessage( null, Display.Value_NotApplicable, null ) );
-                    LOGGER.trace( "error generating about value for '" + pwmAboutProperty.name() + "', error: " + t.getMessage() );
+                    LOGGER.trace( () -> "error generating about value for '" + pwmAboutProperty.name() + "', error: " + t.getMessage() );
                 }
             }
         }
 
-        final Map<PwmAboutProperty, String> returnMap = new LinkedHashMap<>();
+        final Map<PwmAboutProperty, String> returnMap = new TreeMap<>();
         for ( final Map.Entry<String, String> entry : aboutMap.entrySet() )
         {
             returnMap.put( PwmAboutProperty.valueOf( entry.getKey() ), entry.getValue() );
@@ -177,5 +177,17 @@ public enum PwmAboutProperty
     public String getLabel( )
     {
         return label == null ? this.name() : label;
+    }
+
+    public static Map<String, String> toStringMap( final Map<PwmAboutProperty, String> infoBeanMap )
+    {
+        final Map<String, String> outputProps = new TreeMap<>( );
+        for ( final Map.Entry<PwmAboutProperty, String> entry : infoBeanMap.entrySet() )
+        {
+            final PwmAboutProperty aboutProperty = entry.getKey();
+            final String value = entry.getValue();
+            outputProps.put( aboutProperty.toString().replace( "_", "." ), value );
+        }
+        return Collections.unmodifiableMap( outputProps );
     }
 }

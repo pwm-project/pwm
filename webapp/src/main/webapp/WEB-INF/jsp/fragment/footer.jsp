@@ -68,11 +68,17 @@
 </pwm:if>
 <pwm:script>
     <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function() {
-            <pwm:value name="<%=PwmValue.customJavascript%>"/>
-        });
         var dojoConfig = { has: { "csp-restrictions":false }, async:true }
     </script>
 </pwm:script>
+<pwm:if test="<%=PwmIfTest.hasCustomJavascript%>">
+    <pwm:script>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function() {
+                <pwm:value name="<%=PwmValue.customJavascript%>"/>
+            });
+        </script>
+    </pwm:script>
+</pwm:if>
 <script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" dojo-sync-loader="false" type="text/javascript" src="<pwm:url addContext="true" url='/public/resources/webjars/dojo/dojo.js'/>"></script><noscript></noscript>
 <pwm:script-ref url="/public/resources/js/main.js"/>

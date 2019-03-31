@@ -85,13 +85,6 @@ public class EmailService implements PwmService
 
     private final ThreadLocal<EmailConnection> threadLocalTransport = new ThreadLocal<>();
 
-    enum SendFailureMode
-    {
-        RESEND,
-        REQUEUE,
-        DISCARD,
-    }
-
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
@@ -99,6 +92,13 @@ public class EmailService implements PwmService
         this.pwmApplication = pwmApplication;
 
         servers.addAll( EmailServerUtil.makeEmailServersMap( pwmApplication.getConfig() ) );
+
+        if ( servers.isEmpty() )
+        {
+            status = STATUS.CLOSED;
+            LOGGER.debug( () -> "no email servers configured, will remain closed" );
+            return;
+        }
 
         for ( final EmailServer emailServer : servers )
         {
@@ -224,7 +224,7 @@ public class EmailService implements PwmService
 
         if ( servers.isEmpty() )
         {
-            LOGGER.debug( "discarding email send event (no SMTP server address configured) " + emailItem.toDebugString() );
+            LOGGER.debug( () -> "discarding email send event (no SMTP server address configured) " + emailItem.toDebugString() );
             return false;
         }
 
@@ -356,13 +356,13 @@ public class EmailService implements PwmService
             if ( threadLocalTransport.get() == null )
             {
 
-                LOGGER.trace( "initializing new threadLocal transport, stats: " + stats() );
+                LOGGER.trace( () -> "initializing new threadLocal transport, stats: " + stats() );
                 threadLocalTransport.set( getSmtpTransport( ) );
                 newThreadLocalTransport.getAndIncrement();
             }
             else
             {
-                LOGGER.trace( "using existing threadLocal transport, stats: " + stats() );
+                LOGGER.trace( () -> "using existing threadLocal transport, stats: " + stats() );
                 useExistingTransport.getAndIncrement();
             }
 
@@ -370,14 +370,14 @@ public class EmailService implements PwmService
 
             if ( !serverTransport.getTransport().isConnected() )
             {
-                LOGGER.trace( "connecting threadLocal transport, stats: " + stats() );
+                LOGGER.trace( () -> "connecting threadLocal transport, stats: " + stats() );
                 threadLocalTransport.set( getSmtpTransport( ) );
                 serverTransport = threadLocalTransport.get();
                 newConnectionCounter.getAndIncrement();
             }
             else
             {
-                LOGGER.trace( "using existing threadLocal: stats: " + stats() );
+                LOGGER.trace( () -> "using existing threadLocal: stats: " + stats() );
                 useExistingConnection.getAndIncrement();
             }
 
@@ -395,7 +395,7 @@ public class EmailService implements PwmService
 
             serverErrors.put( serverTransport.getEmailServer(), Optional.empty() );
 
-            LOGGER.debug( "sent email: " + emailItemBean.toDebugString() );
+            LOGGER.debug( () -> "sent email: " + emailItemBean.toDebugString() );
             StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_SUCCESSES );
             return WorkQueueProcessor.ProcessResult.SUCCESS;
         }

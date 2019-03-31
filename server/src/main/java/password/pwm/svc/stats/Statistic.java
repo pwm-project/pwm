@@ -25,7 +25,7 @@ package password.pwm.svc.stats;
 import password.pwm.PwmApplication;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Admin;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 

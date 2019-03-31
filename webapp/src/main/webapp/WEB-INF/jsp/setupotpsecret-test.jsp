@@ -23,7 +23,7 @@
 <%@ page import="password.pwm.http.bean.SetupOtpBean" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.i18n.Display" %>
-<%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"

@@ -136,7 +136,7 @@ public class PwmHttpRequestWrapper
         catch ( Exception e )
         {
             final String errorMsg = "error reading request body stream: " + e.getMessage();
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
         finally
         {
@@ -147,7 +147,7 @@ public class PwmHttpRequestWrapper
         if ( stringValue.length() > maxChars )
         {
             throw new PwmUnrecoverableException( new ErrorInformation(
-                    PwmError.ERROR_UNKNOWN,
+                    PwmError.ERROR_INTERNAL,
                     "input request body is to big, size=" + stringValue.length() + ", max=" + maxChars )
             );
         }

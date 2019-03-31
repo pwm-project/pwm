@@ -23,7 +23,6 @@
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
-import org.jdom2.Element;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
@@ -35,6 +34,8 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.X509Utils;
@@ -90,7 +91,7 @@ public class ActionValue extends AbstractValue implements StoredValue
 
             public ActionValue fromXmlElement(
                     final PwmSetting pwmSetting,
-                    final Element settingElement,
+                    final XmlElement settingElement,
                     final PwmSecurityKey pwmSecurityKey
             )
                     throws PwmOperationalException
@@ -100,8 +101,8 @@ public class ActionValue extends AbstractValue implements StoredValue
 
                 final boolean oldType = PwmSettingSyntax.STRING_ARRAY.toString().equals(
                         settingElement.getAttributeValue( "syntax" ) );
-                final List<Element> valueElements = settingElement.getChildren( "value" );
-                for ( final Element loopValueElement : valueElements )
+                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                for ( final XmlElement loopValueElement : valueElements )
                 {
                     final String stringValue = loopValueElement.getText();
                     if ( !StringUtil.isEmpty( stringValue ) )
@@ -110,7 +111,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                         {
                             if ( oldType )
                             {
-                                if ( loopValueElement.getAttribute( "locale" ) == null )
+                                if ( loopValueElement.getAttributeValue( "locale" ) == null )
                                 {
                                     final ActionConfigurationOldVersion1 oldVersion1 = ActionConfigurationOldVersion1.parseOldConfigString( stringValue );
                                     values.add( convertOldVersion1Values( oldVersion1 ) );
@@ -163,9 +164,9 @@ public class ActionValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final ActionConfiguration value : values )
         {
             final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
@@ -186,9 +187,9 @@ public class ActionValue extends AbstractValue implements StoredValue
             final ActionConfiguration clonedAction = value.toBuilder().webActions( clonedWebActions ).build();
 
 
-            final Element valueElement = new Element( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
 
-            valueElement.addContent( JsonUtil.serialize( clonedAction ) );
+            valueElement.addText( JsonUtil.serialize( clonedAction ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -366,7 +367,7 @@ public class ActionValue extends AbstractValue implements StoredValue
         return CURRENT_SYNTAX_VERSION;
     }
 
-    private static int figureCurrentStoredSyntax( final Element settingElement )
+    private static int figureCurrentStoredSyntax( final XmlElement settingElement )
     {
         final String storedSyntaxVersionString = settingElement.getAttributeValue( StoredConfiguration.XML_ATTRIBUTE_SYNTAX_VERSION );
         if ( !StringUtil.isEmpty( storedSyntaxVersionString ) )
@@ -377,7 +378,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             }
             catch ( NumberFormatException e )
             {
-                LOGGER.debug( "unable to parse syntax version for setting " + e.getMessage() );
+                LOGGER.debug( () -> "unable to parse syntax version for setting " + e.getMessage() );
             }
         }
         return 0;

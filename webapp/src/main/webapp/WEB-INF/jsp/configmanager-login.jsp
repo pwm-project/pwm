@@ -22,7 +22,7 @@
 
 <%@ page import="password.pwm.http.filter.ConfigAccessFilter" %>
 <%@ page import="password.pwm.i18n.Config" %>
-<%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 

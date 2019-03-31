@@ -50,6 +50,7 @@ public abstract class InternalMacros
         final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> defaultMacros = new HashMap<>();
         defaultMacros.put( PwmSettingReference.class, MacroImplementation.Scope.Static );
         defaultMacros.put( PwmAppName.class, MacroImplementation.Scope.Static );
+        defaultMacros.put( PwmVendorName.class, MacroImplementation.Scope.Static );
         defaultMacros.put( PwmContextPath.class, MacroImplementation.Scope.System );
         defaultMacros.put( EncodingMacro.class, MacroImplementation.Scope.Static );
         defaultMacros.put( CasingMacro.class, MacroImplementation.Scope.Static );
@@ -427,6 +428,22 @@ public abstract class InternalMacros
                 throws MacroParseException
         {
             return PwmConstants.PWM_APP_NAME;
+        }
+    }
+
+    public static class PwmVendorName extends InternalAbstractMacro
+    {
+        private static final Pattern PATTERN = Pattern.compile( "@PwmVendorName@" );
+
+        public Pattern getRegExPattern( )
+        {
+            return PATTERN;
+        }
+
+        public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
+                throws MacroParseException
+        {
+            return PwmConstants.PWM_VENDOR_NAME;
         }
     }
 }

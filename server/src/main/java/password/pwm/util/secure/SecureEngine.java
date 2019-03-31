@@ -63,6 +63,7 @@ public class SecureEngine
     private static final PwmLogger LOGGER = PwmLogger.forClass( SecureEngine.class );
 
     private static final int HASH_BUFFER_SIZE = 1024 * 4;
+    private static final int HASH_FILE_BUFFER_SIZE = 1024 * 64;
 
     private static final NonceGenerator AES_GCM_NONCE_GENERATOR = new NonceGenerator( 8, 8 );
 
@@ -278,7 +279,7 @@ public class SecureEngine
             final File file,
             final PwmHashAlgorithm hashAlgorithm
     )
-            throws IOException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         FileInputStream fileInputStream = null;
         try
@@ -286,7 +287,7 @@ public class SecureEngine
             final MessageDigest messageDigest = MessageDigest.getInstance( hashAlgorithm.getAlgName() );
             fileInputStream = new FileInputStream( file );
             final FileChannel fileChannel = fileInputStream.getChannel();
-            final ByteBuffer byteBuffer = ByteBuffer.allocateDirect( 1024 * 8 );
+            final ByteBuffer byteBuffer = ByteBuffer.allocateDirect( HASH_FILE_BUFFER_SIZE );
 
             while ( fileChannel.read( byteBuffer ) > 0 )
             {

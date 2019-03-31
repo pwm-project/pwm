@@ -33,23 +33,29 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
-public class HealthMessageTest {
+public class HealthMessageTest
+{
 
     @Test
-    public void testHealthMessageUniqueKeys() {
+    public void testHealthMessageUniqueKeys()
+    {
         final Set<String> seenKeys = new HashSet<>();
-        for (final HealthMessage healthMessage : HealthMessage.values()) {
-            Assert.assertTrue(!seenKeys.contains(healthMessage.getKey())); // duplicate key foud
-            seenKeys.add(healthMessage.getKey());
+        for ( final HealthMessage healthMessage : HealthMessage.values() )
+        {
+            // duplicate key found
+            Assert.assertTrue( !seenKeys.contains( healthMessage.getKey() ) );
+            seenKeys.add( healthMessage.getKey() );
         }
     }
 
     @Test
-    public void testHealthMessageDescription() throws PwmUnrecoverableException {
-        final Configuration configuration = new Configuration(StoredConfigurationImpl.newStoredConfiguration());
+    public void testHealthMessageDescription() throws PwmUnrecoverableException
+    {
+        final Configuration configuration = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
-        for (final HealthMessage healthMessage : HealthMessage.values()) {
-            healthMessage.getDescription(locale, configuration, new String[]{"field1", "field2"});
+        for ( final HealthMessage healthMessage : HealthMessage.values() )
+        {
+            healthMessage.getDescription( locale, configuration, new String[] {"field1", "field2"} );
         }
     }
 }

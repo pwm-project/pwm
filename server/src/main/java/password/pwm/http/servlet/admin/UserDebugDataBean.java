@@ -23,17 +23,18 @@
 package password.pwm.http.servlet.admin;
 
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.Permission;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.ldap.UserInfo;
+import password.pwm.svc.pwnotify.PwNotifyUserStatus;
 
 import java.io.Serializable;
 import java.util.Map;
 
-@Getter
+@Value
 @Builder
 public class UserDebugDataBean implements Serializable
 {
@@ -47,4 +48,6 @@ public class UserDebugDataBean implements Serializable
     private final PwmPasswordPolicy ldapPasswordPolicy;
     private final PwmPasswordPolicy configuredPasswordPolicy;
     private final Map<ProfileType, String> profiles;
+
+    private final PwNotifyUserStatus pwNotifyUserStatus;
 }

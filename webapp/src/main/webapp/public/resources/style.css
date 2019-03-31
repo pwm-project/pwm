@@ -560,6 +560,10 @@ html[dir="rtl"] #header-center-right {
     position: relative;
 }
 
+#header-title > .title-short {
+    display: none;
+}
+
 #header-right-logo {
     position: absolute;
 }
@@ -1737,4 +1741,8 @@ table.ias-table, table.ias-table td {
     overflow: auto;
     font-family: monospace;
     white-space: pre;
+}
+
+#header-title > .title-short {
+    display: none;
 }

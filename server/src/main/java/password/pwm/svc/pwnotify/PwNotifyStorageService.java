@@ -26,14 +26,27 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
 
+import java.util.Optional;
+
 interface PwNotifyStorageService
 {
 
-    StoredNotificationState readStoredState(
+    Optional<PwNotifyUserStatus> readStoredUserState(
             UserIdentity userIdentity,
             SessionLabel sessionLabel
     )
             throws PwmUnrecoverableException;
 
-    void writeStoredState( UserIdentity userIdentity, SessionLabel sessionLabel, StoredNotificationState storedNotificationState ) throws PwmUnrecoverableException;
+    void writeStoredUserState(
+            UserIdentity userIdentity,
+            SessionLabel sessionLabel,
+            PwNotifyUserStatus pwNotifyUserStatus
+    )
+            throws PwmUnrecoverableException;
+
+    PwNotifyStoredJobState readStoredJobState()
+            throws PwmUnrecoverableException;
+
+    void writeStoredJobState( PwNotifyStoredJobState pwNotifyStoredJobState )
+                    throws PwmUnrecoverableException;
 }

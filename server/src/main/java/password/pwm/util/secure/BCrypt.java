@@ -34,7 +34,7 @@ import java.security.SecureRandom;
 @SuppressWarnings( "all" )
 public class BCrypt
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(BCrypt.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass( BCrypt.class );
 
     public static String hashPassword( final String password )
     {
@@ -61,7 +61,7 @@ public class BCrypt
                 }
                 catch (Exception e)
                 {
-                    LOGGER.debug( "error while checking bcypt password: " + e.getMessage() );
+                    LOGGER.debug( () -> "error while checking bcypt password: " + e.getMessage() );
                     return false;
                 }
             }

@@ -25,6 +25,7 @@ package password.pwm.svc.cache;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.Value;
+import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -138,7 +139,7 @@ class MemoryCacheStore implements CacheStore
             final CacheValueWrapper cacheValueWrapper = entry.getValue();
             final Instant storeDate = cacheValueWrapper.getExpirationDate();
             final String age = Duration.between( storeDate, Instant.now() ).toString();
-            final int chars = JsonUtil.serialize( cacheValueWrapper.getPayload() ).length();
+            final int chars = cacheValueWrapper.getPayload().length();
             final String keyClass = cacheKey.getSrcClass() == null ? "null" : cacheKey.getSrcClass().getName();
             final String keyUserID = cacheKey.getUserIdentity() == null ? "null" : cacheKey.getUserIdentity().toDisplayString();
             final String keyValue = cacheKey.getValueID() == null ? "null" : cacheKey.getValueID();
@@ -179,5 +180,22 @@ class MemoryCacheStore implements CacheStore
             output.put( key, newValue );
         }
         return output;
+    }
+
+    @Override
+    public long byteCount()
+    {
+        long byteCount = 0;
+        for ( Map.Entry<CacheKey, CacheValueWrapper> entry : memoryStore.asMap().entrySet() )
+        {
+            final CacheKey cacheKey = entry.getKey();
+            final UserIdentity userIdentity = cacheKey.getUserIdentity();
+            byteCount += userIdentity == null ? 0 : cacheKey.getUserIdentity().toDelimitedKey().length();
+            final String valueID = cacheKey.getValueID();
+            byteCount += valueID == null ? 0 : cacheKey.getValueID().length();
+            final CacheValueWrapper cacheValueWrapper = entry.getValue();
+            byteCount += cacheValueWrapper.payload.length();
+        }
+        return byteCount;
     }
 }

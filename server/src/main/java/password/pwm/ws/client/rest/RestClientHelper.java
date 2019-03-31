@@ -64,15 +64,15 @@ public class RestClientHelper
             final StringEntity stringEntity = new StringEntity( jsonRequestBody );
             stringEntity.setContentType( PwmConstants.AcceptValue.json.getHeaderValue() );
             httpPost.setEntity( stringEntity );
-            LOGGER.debug( "beginning external rest call to: " + httpPost.toString() + ", body: " + jsonRequestBody );
+            LOGGER.debug( () -> "beginning external rest call to: " + httpPost.toString() + ", body: " + jsonRequestBody );
             httpResponse = PwmHttpClient.getHttpClient( pwmApplication.getConfig() ).execute( httpPost );
             final String responseBody = EntityUtils.toString( httpResponse.getEntity() );
-            LOGGER.trace( "external rest call returned: " + httpResponse.getStatusLine().toString() + ", body: " + responseBody );
+            LOGGER.trace( () -> "external rest call returned: " + httpResponse.getStatusLine().toString() + ", body: " + responseBody );
             if ( httpResponse.getStatusLine().getStatusCode() != 200 )
             {
                 final String errorMsg = "received non-200 response code (" + httpResponse.getStatusLine().getStatusCode() + ") when executing web-service";
                 LOGGER.error( errorMsg );
-                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
             }
             return responseBody;
         }
@@ -80,7 +80,7 @@ public class RestClientHelper
         {
             final String errorMsg = "http response error while executing external rest call, error: " + e.getMessage();
             LOGGER.error( errorMsg );
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ), e );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ), e );
         }
     }
 }
