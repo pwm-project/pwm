@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Date;
+import java.time.Instant;
 
 @WebServlet(
         name = "NewUserServlet",
@@ -59,7 +59,7 @@ public class ExternalMacroServlet extends HttpServlet
             final String[] messageContent = body.split( "=" );
             final String message = messageContent[messageContent.length - 1];
             final String username = message.split( "\\+" )[0];
-            final Date currentDate = new Date();
+            final Instant currentDate = Instant.now();
             final SmsPostResponseBody messageBody = new SmsPostResponseBody( message, currentDate );
 
             instance.addToMap( username, messageBody );
