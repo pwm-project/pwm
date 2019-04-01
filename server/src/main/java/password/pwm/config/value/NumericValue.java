@@ -22,10 +22,12 @@
 
 package password.pwm.config.value;
 
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingProperty;
 import password.pwm.config.StoredValue;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.Collections;
@@ -49,20 +51,38 @@ public class NumericValue extends AbstractValue implements StoredValue
                 return new NumericValue( JsonUtil.deserialize( value, Long.class ) );
             }
 
-            public NumericValue fromXmlElement( final Element settingElement, final PwmSecurityKey input )
+            public NumericValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
-                final Element valueElement = settingElement.getChild( "value" );
+                final XmlElement valueElement = settingElement.getChild( "value" );
                 final String value = valueElement.getText();
-                return new NumericValue( Long.parseLong( value ) );
+                return new NumericValue( normalizeValue( pwmSetting, Long.parseLong( value ) ) );
             }
         };
     }
 
-    @Override
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    private static long normalizeValue( final PwmSetting pwmSetting, final long value )
     {
-        final Element valueElement = new Element( valueElementName );
-        valueElement.addContent( Long.toString( value ) );
+        final long minValue = Long.parseLong( pwmSetting.getProperties().getOrDefault( PwmSettingProperty.Minimum, "0" ) );
+        final long maxValue = Long.parseLong( pwmSetting.getProperties().getOrDefault( PwmSettingProperty.Maximum, "0" ) );
+
+        if ( minValue > 0 && value < minValue )
+        {
+            return minValue;
+        }
+
+        if ( maxValue > 0 && value > maxValue )
+        {
+            return maxValue;
+        }
+
+        return value;
+    }
+
+    @Override
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    {
+        final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+        valueElement.addText( Long.toString( value ) );
         return Collections.singletonList( valueElement );
     }
 

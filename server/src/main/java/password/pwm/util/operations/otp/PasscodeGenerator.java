@@ -117,6 +117,8 @@ public class PasscodeGenerator
 
     /**
      * @return A decimal timeout code
+     *
+     * @throws GeneralSecurityException if a security exception is generated
      */
     public String generateTimeoutCode( ) throws GeneralSecurityException
     {
@@ -182,6 +184,7 @@ public class PasscodeGenerator
      * @param challenge A challenge to check a response against
      * @param response  A response to verify
      * @return True if the response is valid
+     * @throws GeneralSecurityException if a security exception is generated
      */
     public boolean verifyResponseCode( final long challenge, final String response )
             throws GeneralSecurityException
@@ -197,6 +200,7 @@ public class PasscodeGenerator
      *
      * @param timeoutCode The timeout code
      * @return True if the timeout code is valid
+     * @throws GeneralSecurityException if a security exception is generated
      */
     public boolean verifyTimeoutCode( final String timeoutCode )
             throws GeneralSecurityException
@@ -214,9 +218,14 @@ public class PasscodeGenerator
      * @param pastIntervals   The number of past intervals to check
      * @param futureIntervals The number of future intervals to check
      * @return True if the timeout code is valid
+     * @throws GeneralSecurityException if a security exception is generated
      */
-    public boolean verifyTimeoutCode( final String timeoutCode, final int pastIntervals,
-                                      final int futureIntervals ) throws GeneralSecurityException
+    public boolean verifyTimeoutCode(
+            final String timeoutCode,
+            final int pastIntervals,
+            final int futureIntervals
+    )
+            throws GeneralSecurityException
     {
         final long currentInterval = clock.getCurrentInterval();
         final String expectedResponse = generateResponseCode( currentInterval );

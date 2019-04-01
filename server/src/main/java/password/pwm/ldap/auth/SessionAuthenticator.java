@@ -114,13 +114,13 @@ public class SessionAuthenticator
             {
                 if ( pwmApplication.determineIfDetailErrorMsgShown() )
                 {
-                    LOGGER.debug( pwmSession, "allowing error " + e.getError() + " to be returned though it is configured as a hidden type; "
+                    LOGGER.debug( pwmSession, () -> "allowing error " + e.getError() + " to be returned though it is configured as a hidden type; "
                             + "app is currently permitting detailed error messages" );
                 }
                 else
                 {
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_WRONGPASSWORD );
-                    LOGGER.debug( pwmSession, "converting error from ldap " + e.getError() + " to " + PwmError.ERROR_WRONGPASSWORD
+                    LOGGER.debug( pwmSession, () -> "converting error from ldap " + e.getError() + " to " + PwmError.ERROR_WRONGPASSWORD
                             + " due to app property " + AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES.getKey() );
                     throw new PwmOperationalException( errorInformation );
                 }
@@ -258,7 +258,7 @@ public class SessionAuthenticator
         }
         else
         {
-            LOGGER.trace( sessionLabel, "performing bad-password login attempt against ldap directory as a result of "
+            LOGGER.trace( sessionLabel, () -> "performing bad-password login attempt against ldap directory as a result of "
                     + "forgotten password recovery invalid attempt against " + userIdentity );
         }
 
@@ -268,12 +268,12 @@ public class SessionAuthenticator
             return;
         }
 
-        LOGGER.trace( sessionLabel, "beginning simulateBadPassword process" );
+        LOGGER.trace( sessionLabel, () -> "beginning simulateBadPassword process" );
 
         final PasswordData bogusPassword = new PasswordData( PwmConstants.DEFAULT_BAD_PASSWORD_ATTEMPT );
 
         //try authenticating the user using a normal ldap BIND operation.
-        LOGGER.trace( sessionLabel, "attempting authentication using ldap BIND" );
+        LOGGER.trace( sessionLabel, () -> "attempting authentication using ldap BIND" );
 
         ChaiProvider provider = null;
         try
@@ -292,17 +292,17 @@ public class SessionAuthenticator
             //issue a read operation to trigger a bind.
             provider.readStringAttribute( userIdentity.getUserDN(), ChaiConstant.ATTR_LDAP_OBJECTCLASS );
 
-            LOGGER.debug( sessionLabel, "bad-password login attempt succeeded for " + userIdentity );
+            LOGGER.debug( sessionLabel, () -> "bad-password login attempt succeeded for " + userIdentity );
         }
         catch ( ChaiException e )
         {
             if ( e.getErrorCode() == ChaiError.PASSWORD_BADPASSWORD )
             {
-                LOGGER.trace( sessionLabel, "bad-password login simulation succeeded for; " + userIdentity + " result: " + e.getMessage() );
+                LOGGER.trace( sessionLabel, () -> "bad-password login simulation succeeded for; " + userIdentity + " result: " + e.getMessage() );
             }
             else
             {
-                LOGGER.debug( sessionLabel, "unexpected error during simulated bad-password login attempt for " + userIdentity + "; result: " + e.getMessage() );
+                LOGGER.debug( sessionLabel, () -> "unexpected error during simulated bad-password login attempt for " + userIdentity + "; result: " + e.getMessage() );
             }
         }
         finally
@@ -352,7 +352,7 @@ public class SessionAuthenticator
             final UserIdentity userIdentity,
             final AuthenticationResult authenticationResult
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -426,8 +426,10 @@ public class SessionAuthenticator
         }
 
         //clear permission cache - needs rechecking after login
-        LOGGER.debug( pwmSession, "clearing permission cache" );
+        LOGGER.debug( pwmSession, () -> "clearing permission cache" );
         pwmSession.getUserSessionDataCacheBean().clearPermissions();
 
+        // update the users ldap attribute.
+        LdapOperationsHelper.processAutoUpdateLanguageAttribute( pwmApplication, sessionLabel, ssBean.getLocale(), userIdentity );
     }
 }

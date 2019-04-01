@@ -90,7 +90,8 @@ class RecordManagerImpl implements RecordManager
         final TimeDuration age = TimeDuration.fromCurrent( record.getTimeStamp() );
         if ( age.isLongerThan( settings.getCheckDuration() ) )
         {
-            LOGGER.debug( "re-setting existing outdated record=" + JsonUtil.serialize( record ) + " (" + age.asCompactString() + ")" );
+            final IntruderRecord finalRecord = record;
+            LOGGER.debug( () -> "re-setting existing outdated record=" + JsonUtil.serialize( finalRecord ) + " (" + age.asCompactString() + ")" );
             record = new IntruderRecord( recordType, subject );
         }
 
@@ -168,7 +169,7 @@ class RecordManagerImpl implements RecordManager
         }
         catch ( PwmUnrecoverableException e )
         {
-            throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "error generating md5sum for intruder record: " + e.getMessage() );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "error generating md5sum for intruder record: " + e.getMessage() );
         }
         return hash + recordType.toString();
     }

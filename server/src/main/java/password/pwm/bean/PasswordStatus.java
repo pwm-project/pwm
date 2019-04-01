@@ -23,12 +23,12 @@
 package password.pwm.bean;
 
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.util.java.JsonUtil;
 
 import java.io.Serializable;
 
-@Getter
+@Value
 @Builder
 public class PasswordStatus implements Serializable
 {

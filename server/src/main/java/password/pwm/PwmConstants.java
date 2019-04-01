@@ -24,18 +24,23 @@ package password.pwm;
 
 import org.apache.commons.csv.CSVFormat;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.PwmHashAlgorithm;
 
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.Charset;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 /**
  * Constant values used throughout the servlet.
@@ -45,25 +50,21 @@ import java.util.TimeZone;
 public abstract class PwmConstants
 {
 
-    public static final String BUILD_TIME = readBuildInfoBundle( "build.time", Instant.now().toString() );
-    public static final String BUILD_NUMBER = readBuildInfoBundle( "build.number", "0" );
-    public static final String BUILD_TYPE = readBuildInfoBundle( "build.type", "" );
-    public static final String BUILD_USER = readBuildInfoBundle( "build.user", System.getProperty( "user.name" ) );
-    public static final String BUILD_REVISION = readBuildInfoBundle( "build.revision", "0" );
-    public static final String BUILD_JAVA_VENDOR = readBuildInfoBundle( "build.java.vendor" );
-    public static final String BUILD_JAVA_VERSION = readBuildInfoBundle( "build.java.version" );
-    public static final String BUILD_VERSION = readBuildInfoBundle( "build.version", "" );
+    public static final String BUILD_TIME = readBuildInfoBundle( "Implementation-Build-Timestamp", "n/a" );
+    public static final String BUILD_NUMBER = readBuildInfoBundle( "Implementation-Build", "0" );
+    public static final String BUILD_REVISION = readBuildInfoBundle( "Implementation-Revision", "0" );
+    public static final String BUILD_JAVA_VENDOR = readBuildInfoBundle( "Implementation-Build-Java-Vendor" );
+    public static final String BUILD_JAVA_VERSION = readBuildInfoBundle( "Implementation-Build-Java-Version" );
+    public static final String BUILD_VERSION = readBuildInfoBundle( "Implementation-Version", "" );
 
     private static final String MISSING_VERSION_STRING = readPwmConstantsBundle( "missingVersionString" );
     public static final String SERVLET_VERSION;
 
     static
     {
-        final String servletVersion =
-                ( BUILD_VERSION.length() > 0 ? "v" + BUILD_VERSION : "" )
-                        + ( BUILD_NUMBER.length() > 0 ? " b" + BUILD_NUMBER : "" )
-                        + ( BUILD_REVISION.length() > 0 ? " r" + BUILD_REVISION : "" )
-                        + ( BUILD_TYPE.length() > 0 ? " (" + BUILD_TYPE + ")" : "" ).trim();
+        final String servletVersion = "v" + BUILD_VERSION
+                        + " b" + BUILD_NUMBER
+                        + " r" + BUILD_REVISION;
 
         SERVLET_VERSION = servletVersion.isEmpty()
                 ? MISSING_VERSION_STRING
@@ -73,10 +74,11 @@ public abstract class PwmConstants
     public static final String CHAI_API_VERSION = com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION;
 
     public static final String DEFAULT_CONFIG_FILE_FILENAME = readPwmConstantsBundle( "defaultConfigFilename" );
+    public static final String DEFAULT_PROPERTIES_CONFIG_FILE_FILENAME = readPwmConstantsBundle( "defaultPropertiesConfigFilename" );
 
     public static final String PWM_APP_NAME = readPwmConstantsBundle( "pwm.appName" );
+    public static final String PWM_VENDOR_NAME = readPwmConstantsBundle( "pwm.vendorName" );
     public static final String PWM_URL_HOME = readPwmConstantsBundle( "url.pwm-home" );
-    public static final String PWM_URL_CLOUD = readPwmConstantsBundle( "url.pwm-cloud" );
 
     public static final String PWM_APP_NAME_VERSION = PWM_APP_NAME + " " + SERVLET_VERSION;
 
@@ -84,6 +86,7 @@ public abstract class PwmConstants
 
     public static final Locale DEFAULT_LOCALE = new Locale( readPwmConstantsBundle( "locale.defaultLocale" ) );
     public static final Charset DEFAULT_CHARSET = Charset.forName( "UTF8" );
+    public static final List<String> HIGHLIGHT_LOCALES = StringUtil.splitAndTrim( readPwmConstantsBundle( "locale.highlightList" ), "," );
 
     public static final CSVFormat DEFAULT_CSV_FORMAT = CSVFormat.DEFAULT;
 
@@ -115,6 +118,7 @@ public abstract class PwmConstants
 
     public static final String REQUEST_ATTR_FORGOTTEN_PW_USERINFO_CACHE = "ForgottenPw-UserInfoCache";
     public static final String REQUEST_ATTR_FORGOTTEN_PW_AVAIL_TOKEN_DEST_CACHE = "ForgottenPw-AvailableTokenDestCache";
+    public static final String REQUEST_ATTR_PWM_APPLICATION = "PwmApplication";
 
     public static final PwmHashAlgorithm SETTING_CHECKSUM_HASH_METHOD = PwmHashAlgorithm.SHA256;
 
@@ -161,6 +165,8 @@ public abstract class PwmConstants
     public static final String PARAM_FILE_UPLOAD = "fileUpload";
     public static final String PARAM_RECOVERY_OAUTH_RESULT = "roauthResults";
     public static final String PARAM_SIGNED_FORM = "signedForm";
+    public static final String PARAM_USERKEY = "userKey";
+
 
     public static final String COOKIE_PERSISTENT_CONFIG_LOGIN = "persistentConfigLogin";
 
@@ -241,10 +247,41 @@ public abstract class PwmConstants
 
     private static String readBuildInfoBundle( final String key, final String defaultValue )
     {
-        final ResourceBundle resourceBundle = ResourceBundle.getBundle( "password.pwm.BuildInformation" );
-        if ( resourceBundle.containsKey( key ) )
+        final String interestedArchiveNonce = "F84576985F0A176014F751736F7C79B6D9BED842FC48377404FE24A36BF6C2AA";
+        final String manifestKeyName = "Implementation-Archive-Nonce";
+        final String manifestFileName = "META-INF/MANIFEST.MF";
+
+        try
         {
-            return resourceBundle.getString( key );
+            final Enumeration<URL> resources = PwmConstants.class.getClassLoader().getResources( manifestFileName );
+            while ( resources.hasMoreElements() )
+            {
+                try ( InputStream inputStream = resources.nextElement().openStream() )
+                {
+                    final Manifest manifest = new Manifest( inputStream );
+                    final Attributes attributes = manifest.getMainAttributes();
+                    final String archiveNonve = attributes.getValue( manifestKeyName );
+                    try
+                    {
+                        if ( interestedArchiveNonce.equals( archiveNonve ) )
+                        {
+                            final String value = attributes.getValue( key );
+                            if ( !StringUtil.isEmpty( value ) )
+                            {
+                                return value;
+                            }
+                        }
+                    }
+                    catch ( Throwable t )
+                    {
+                        System.out.println( t );
+                    }
+                }
+            }
+        }
+        catch ( Throwable t )
+        {
+            System.out.println( t );
         }
 
         return defaultValue;

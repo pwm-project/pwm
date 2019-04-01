@@ -36,10 +36,8 @@ import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.JspUrl;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmRequestAttribute;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
@@ -48,21 +46,20 @@ import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
-import javax.servlet.ServletException;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-class HelpdeskServletUtil
+public class HelpdeskServletUtil
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskServletUtil.class );
 
-    static String getSearchFilter( final Configuration configuration, final HelpdeskProfile helpdeskProfile )
+    static String makeAdvancedSearchFilter( final Configuration configuration, final HelpdeskProfile helpdeskProfile )
     {
         final String configuredFilter = helpdeskProfile.readSettingAsString( PwmSetting.HELPDESK_SEARCH_FILTER );
         if ( configuredFilter != null && !configuredFilter.isEmpty() )
@@ -102,6 +99,74 @@ class HelpdeskServletUtil
         return filter.toString();
     }
 
+    static String makeAdvancedSearchFilter(
+            final Configuration configuration,
+            final HelpdeskProfile helpdeskProfile,
+            final Map<String, String> attributesInSearchRequest
+    )
+    {
+        final List<String> defaultObjectClasses = configuration.readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
+        final List<FormConfiguration> searchAttributes = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM );
+        return makeAdvancedSearchFilter( defaultObjectClasses, searchAttributes, attributesInSearchRequest );
+    }
+
+    public static String makeAdvancedSearchFilter(
+            final List<String> defaultObjectClasses,
+            final List<FormConfiguration> searchAttributes,
+            final Map<String, String> attributesInSearchRequest
+    )
+    {
+        final StringBuilder filter = new StringBuilder();
+
+        //open AND clause for objectclasses and attributes
+        filter.append( "(&" );
+
+        for ( final String objectClass : defaultObjectClasses )
+        {
+            filter.append( "(objectClass=" ).append( objectClass ).append( ")" );
+        }
+
+        // open AND clause for attributes
+        filter.append( "(&" );
+
+        for ( final FormConfiguration formConfiguration : searchAttributes )
+        {
+            if ( formConfiguration != null && formConfiguration.getName() != null )
+            {
+                final String searchAttribute = formConfiguration.getName();
+                final String value = attributesInSearchRequest.get( searchAttribute );
+                if ( !StringUtil.isEmpty( value ) )
+                {
+                    filter.append( "(" ).append( searchAttribute ).append( "=" );
+
+                    switch ( formConfiguration.getType() )
+                    {
+                        case select:
+                        {
+                            // value is specified by admin, so wildcards are not required
+                            filter.append( "%" ).append( searchAttribute ).append( "%)" );
+                        }
+                        break;
+
+                        default:
+                        {
+                            filter.append( "*%" ).append( searchAttribute ).append( "%*)" );
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        // close OR clause
+        filter.append( ")" );
+
+        // close AND clause
+        filter.append( ")" );
+        return filter.toString();
+    }
+
+
     static void checkIfUserIdentityViewable(
             final PwmRequest pwmRequest,
             final HelpdeskProfile helpdeskProfile,
@@ -109,7 +174,7 @@ class HelpdeskServletUtil
     )
             throws PwmUnrecoverableException
     {
-        final String filterSetting = getSearchFilter( pwmRequest.getConfig(), helpdeskProfile );
+        final String filterSetting = makeAdvancedSearchFilter( pwmRequest.getConfig(), helpdeskProfile );
         String filterString = filterSetting.replace( PwmConstants.VALUE_REPLACEMENT_USERNAME, "*" );
         while ( filterString.contains( "**" ) )
         {
@@ -132,36 +197,6 @@ class HelpdeskServletUtil
         }
     }
 
-    static void processShowDetailRequest(
-            final PwmRequest pwmRequest,
-            final HelpdeskProfile helpdeskProfile,
-            final UserIdentity userIdentity
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
-    {
-        final HelpdeskDetailInfoBean helpdeskDetailInfoBean;
-        try
-        {
-            helpdeskDetailInfoBean = processDetailRequestImpl( pwmRequest, helpdeskProfile, userIdentity );
-        }
-        catch ( PwmUnrecoverableException e )
-        {
-            LOGGER.debug( pwmRequest, e.getErrorInformation() );
-            pwmRequest.respondWithError( e.getErrorInformation(), false );
-            return;
-        }
-
-        if ( helpdeskDetailInfoBean != null )
-        {
-            final String obfuscatedDN = userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() );
-            pwmRequest.setAttribute( PwmRequestAttribute.HelpdeskObfuscatedDN, obfuscatedDN );
-        }
-
-        pwmRequest.setAttribute( PwmRequestAttribute.HelpdeskDetail, helpdeskDetailInfoBean );
-        pwmRequest.setAttribute( PwmRequestAttribute.HelpdeskVerificationEnabled, !helpdeskProfile.readOptionalVerificationMethods().isEmpty() );
-        pwmRequest.forwardToJsp( JspUrl.HELPDESK_DETAIL );
-    }
-
     static HelpdeskDetailInfoBean processDetailRequestImpl(
             final PwmRequest pwmRequest,
             final HelpdeskProfile helpdeskProfile,
@@ -177,7 +212,7 @@ class HelpdeskServletUtil
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        LOGGER.trace( pwmRequest, "helpdesk detail view request for user details of " + userIdentity.toString() + " by actor " + actorUserIdentity.toString() );
+        LOGGER.trace( pwmRequest, () -> "helpdesk detail view request for user details of " + userIdentity.toString() + " by actor " + actorUserIdentity.toString() );
 
         final HelpdeskVerificationStateBean verificationStateBean = HelpdeskVerificationStateBean.fromClientString(
                 pwmRequest,
@@ -256,7 +291,7 @@ class HelpdeskServletUtil
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmRequest, "skipping send helpdesk unlock notice email for '" + userIdentity + "' no email configured" );
+            LOGGER.debug( pwmRequest, () -> "skipping send helpdesk unlock notice email for '" + userIdentity + "' no email configured" );
             return;
         }
 

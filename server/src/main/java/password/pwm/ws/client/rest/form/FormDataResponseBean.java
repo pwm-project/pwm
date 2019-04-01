@@ -23,12 +23,12 @@
 package password.pwm.ws.client.rest.form;
 
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 
 import java.io.Serializable;
 import java.util.Map;
 
-@Getter
+@Value
 @Builder
 public class FormDataResponseBean implements Serializable
 {
@@ -36,5 +36,4 @@ public class FormDataResponseBean implements Serializable
     private String errorMessage;
     private String errorDetail;
     private Map<String, String> formValues;
-
 }

@@ -67,7 +67,7 @@ export default class PasswordService implements IPasswordService {
         return this.pwmService
             .httpRequest(url, {data: data})
             .then((result: { data: IValidatePasswordData }) => {
-                return this.$q.resolve(result.data);
+                return result.data;
             });
     }
 }

@@ -88,7 +88,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( ChangePasswordServlet.class );
 
-    private enum ChangePasswordAction implements ControlledPwmServlet.ProcessAction
+    public enum ChangePasswordAction implements ControlledPwmServlet.ProcessAction
     {
         checkProgress( HttpMethod.POST ),
         complete( HttpMethod.GET ),
@@ -200,7 +200,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         catch ( PwmDataValidationException e )
         {
             setLastError( pwmRequest, e.getErrorInformation() );
-            LOGGER.debug( pwmRequest, "failed password validation check: " + e.getErrorInformation().toDebugStr() );
+            LOGGER.debug( pwmRequest, () -> "failed password validation check: " + e.getErrorInformation().toDebugStr() );
             return ProcessStatus.Continue;
         }
 
@@ -221,7 +221,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         }
         catch ( PwmOperationalException e )
         {
-            LOGGER.debug( e.getErrorInformation().toDebugStr() );
+            LOGGER.debug( () -> e.getErrorInformation().toDebugStr() );
             setLastError( pwmRequest, e.getErrorInformation() );
         }
 
@@ -233,7 +233,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     {
         final ChangePasswordBean changePasswordBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
 
-        LOGGER.debug( pwmRequest, "user accepted password change agreement" );
+        LOGGER.debug( pwmRequest, () -> "user accepted password change agreement" );
         if ( !changePasswordBean.isAgreementPassed() )
         {
             changePasswordBean.setAgreementPassed( true );
@@ -265,7 +265,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         {
             if ( currentPassword == null )
             {
-                LOGGER.debug( pwmRequest, "failed password validation check: currentPassword value is missing" );
+                LOGGER.debug( pwmRequest, () -> "failed password validation check: currentPassword value is missing" );
                 setLastError( pwmRequest, new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER ) );
                 return ProcessStatus.Continue;
             }
@@ -282,7 +282,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             {
                 pwmRequest.getPwmApplication().getIntruderManager().convenience().markUserIdentity(
                         userInfo.getUserIdentity(), pwmRequest.getSessionLabel() );
-                LOGGER.debug( pwmRequest, "failed password validation check: currentPassword value is incorrect" );
+                LOGGER.debug( pwmRequest, () -> "failed password validation check: currentPassword value is incorrect" );
                 setLastError( pwmRequest, new ErrorInformation( PwmError.ERROR_BAD_CURRENT_PASSWORD ) );
                 return ProcessStatus.Continue;
             }
@@ -335,7 +335,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             passwordChangeProgress = checker.figureProgress( progressTracker );
         }
         final RestResultBean restResultBean = RestResultBean.withData( passwordChangeProgress );
-        LOGGER.trace( pwmRequest, "returning result for restCheckProgress: " + JsonUtil.serialize( restResultBean ) );
+        LOGGER.trace( pwmRequest, () -> "returning result for restCheckProgress: " + JsonUtil.serialize( restResultBean ) );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -366,8 +366,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                 final TimeDuration totalTime = TimeDuration.fromCurrent( progressTracker.getBeginTime() );
                 try
                 {
-                    pwmRequest.getPwmApplication().getStatisticsManager().updateAverageValue( Statistic.AVG_PASSWORD_SYNC_TIME, totalTime.getTotalMilliseconds() );
-                    LOGGER.trace( pwmRequest, "password sync process marked completed (" + totalTime.asCompactString() + ")" );
+                    pwmRequest.getPwmApplication().getStatisticsManager().updateAverageValue( Statistic.AVG_PASSWORD_SYNC_TIME, totalTime.asMillis() );
+                    LOGGER.trace( pwmRequest, () -> "password sync process marked completed (" + totalTime.asCompactString() + ")" );
                 }
                 catch ( Exception e )
                 {
@@ -456,7 +456,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
         if ( ChangePasswordServletUtil.warnPageShouldBeShown( pwmRequest, changePasswordBean ) )
         {
-            LOGGER.trace( pwmRequest, "password expiration is within password warn period, forwarding user to warning page" );
+            LOGGER.trace( pwmRequest, () -> "password expiration is within password warn period, forwarding user to warning page" );
             pwmRequest.forwardToJsp( JspUrl.PASSWORD_WARN );
             return;
         }
@@ -503,7 +503,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         final Instant maxCompleteTime = changePasswordBean.getChangePasswordMaxCompletion();
         pwmRequest.setAttribute(
                 PwmRequestAttribute.ChangePassword_MaxWaitSeconds,
-                maxCompleteTime == null ? 30 : TimeDuration.fromCurrent( maxCompleteTime ).getTotalSeconds()
+                maxCompleteTime == null ? 30 : TimeDuration.fromCurrent( maxCompleteTime ).as( TimeDuration.Unit.SECONDS )
         );
 
         pwmRequest.setAttribute(
@@ -529,7 +529,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         if ( !pwmRequest.isAuthenticated() )
         {
             pwmRequest.respondWithError( PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo() );
-            LOGGER.debug( pwmRequest, "rejecting action request for unauthenticated session" );
+            LOGGER.debug( pwmRequest, () -> "rejecting action request for unauthenticated session" );
             return ProcessStatus.Halt;
 
         }

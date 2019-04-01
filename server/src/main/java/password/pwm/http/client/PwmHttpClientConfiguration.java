@@ -25,6 +25,7 @@ package password.pwm.http.client;
 import lombok.Builder;
 import lombok.Value;
 
+import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -33,6 +34,6 @@ import java.util.List;
 public class PwmHttpClientConfiguration
 {
     private List<X509Certificate> certificates;
-    private boolean promiscuous;
+    private X509TrustManager trustManager;
     private boolean maskBodyDebugOutput;
 }

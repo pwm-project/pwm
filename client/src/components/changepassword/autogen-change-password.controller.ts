@@ -27,7 +27,7 @@ import {IChangePasswordSuccess} from './success-change-password.controller';
 
 const RANDOM_MAPPING_SIZE = 20;
 
-require('components/changepassword/autogen-change-password.component.scss');
+require('./autogen-change-password.component.scss');
 
 export default class AutogenChangePasswordController {
     fetchingRandoms: boolean;
@@ -38,7 +38,10 @@ export default class AutogenChangePasswordController {
                 private HelpDeskService: IHelpDeskService,
                 private IasDialogService: any,
                 private personUserKey: string) {
-        this.passwordSuggestions = Array<string>(20).fill('');
+        this.passwordSuggestions = [];
+        for (let i = 0; i < 20; i++) {
+            this.passwordSuggestions.push('');
+        }
         this.populatePasswordSuggestions();
     }
 

@@ -133,6 +133,9 @@ public class RestCheckPasswordServer extends RestServlet
 
         final JsonInput jsonInput;
         {
+
+
+
             final JsonInput jsonBody = RestUtility.deserializeJsonBody( restRequest, JsonInput.class, RestUtility.Flag.AllowNullReturn );
 
             jsonInput = new JsonInput(
@@ -149,7 +152,8 @@ public class RestCheckPasswordServer extends RestServlet
                     RestUtility.readValueFromJsonAndParam(
                             jsonBody == null ? null : jsonBody.getUsername(),
                             restRequest.readParameterAsString( FIELD_USERNAME ),
-                            FIELD_USERNAME
+                            FIELD_USERNAME,
+                            RestUtility.ReadValueFlag.optional
                     )
             );
         }
@@ -207,18 +211,18 @@ public class RestCheckPasswordServer extends RestServlet
             final JsonOutput jsonOutput = JsonOutput.fromPasswordCheckInfo( passwordCheckInfo );
             final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
             final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.trace( restRequest.getSessionLabel(), "REST /checkpassword response (" + timeDuration.asCompactString() + "): " + JsonUtil.serialize( jsonOutput ) );
+            LOGGER.trace( restRequest.getSessionLabel(), () -> "REST /checkpassword response (" + timeDuration.asCompactString() + "): " + JsonUtil.serialize( jsonOutput ) );
             return restResultBean;
         }
         catch ( PwmException e )
         {
-            LOGGER.debug( restRequest.getSessionLabel(), "REST /checkpassword error during execution: " + e.getMessage() );
+            LOGGER.debug( restRequest.getSessionLabel(), () -> "REST /checkpassword error during execution: " + e.getMessage() );
             return RestResultBean.fromError( restRequest, e.getErrorInformation() );
         }
         catch ( Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
             LOGGER.error( restRequest.getSessionLabel(), errorInformation.toDebugStr(), e );
             return RestResultBean.fromError( restRequest, errorInformation );
         }

@@ -44,9 +44,9 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 public class CertificateChecker implements HealthChecker
@@ -108,8 +108,11 @@ public class CertificateChecker implements HealthChecker
                     final ActionValue value = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, storedConfigReference.getProfileID() );
                     for ( final ActionConfiguration actionConfiguration : value.toNativeObject() )
                     {
-                        final List<X509Certificate> certificates = actionConfiguration.getCertificates();
-                        returnList.addAll( doHealthCheck( configuration, pwmSetting, storedConfigReference.getProfileID(), certificates ) );
+                        for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions()  )
+                        {
+                            final List<X509Certificate> certificates = webAction.getCertificates();
+                            returnList.addAll( doHealthCheck( configuration, pwmSetting, storedConfigReference.getProfileID(), certificates ) );
+                        }
                     }
                 }
             }
@@ -178,7 +181,7 @@ public class CertificateChecker implements HealthChecker
             throw new PwmOperationalException( errorInformation );
         }
 
-        final Date expireDate = certificate.getNotAfter();
+        final Instant expireDate = certificate.getNotAfter().toInstant();
         final TimeDuration durationUntilExpire = TimeDuration.fromCurrent( expireDate );
         if ( durationUntilExpire.isShorterThan( warnDurationMs ) )
         {

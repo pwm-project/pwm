@@ -20,14 +20,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+require('./verifications-dialog.component.scss');
 
 import {ui, ITimeoutService} from 'angular';
 import {
-    IHelpDeskConfigService, IVerificationMap, TOKEN_CHOICE,
+    IHelpDeskConfigService, IVerificationMap, TOKEN_CHOICE, VERIFICATION_METHOD_LABELS,
     VERIFICATION_METHOD_NAMES
 } from '../../services/helpdesk-config.service';
-import {IHelpDeskService, IVerificationTokenResponse} from '../../services/helpdesk.service';
-import {IPerson} from '../../models/person.model';
+import {
+    IHelpDeskService,
+    IVerificationOptions,
+    IVerificationStatus,
+    IVerificationTokenResponse
+} from '../../services/helpdesk.service';
 import ObjectService from '../../services/object.service';
 
 const STATUS_FAILED = 'failed';
@@ -38,12 +43,17 @@ const STATUS_VERIFY = 'verify';
 const STATUS_WAIT = 'wait';
 
 export default class VerificationsDialogController {
+    verificationOptions: IVerificationOptions;
+    tokenDestinationID: string;
+    sendingVerificationToken = false;
+    verificationTokenSent = false;
+
     availableVerificationMethods: IVerificationMap;
     formData: any = {};
     inputs: { name: string, label: string }[];
     isDetailsView: boolean;
     status: string;
-    tokenData: IVerificationTokenResponse;
+    tokenData: string;
     viewDetailsEnabled: boolean;
     verificationMethod: string;
     verificationStatus: string;
@@ -56,6 +66,7 @@ export default class VerificationsDialogController {
         'IasDialogService',
         'ObjectService',
         'personUserKey',
+        'showRequiredOnly'
     ];
     constructor(private $state: ui.IStateService,
                 private $timeout: ITimeoutService,
@@ -64,26 +75,44 @@ export default class VerificationsDialogController {
                 private IasDialogService: any,
                 private objectService: ObjectService,
                 private personUserKey: string,
-                private search: boolean) {
+                private showRequiredOnly: boolean) {
+
         this.isDetailsView = (this.$state.current.name === 'details');
         this.status = STATUS_WAIT;
         this.verificationStatus = STATUS_NONE;
         this.viewDetailsEnabled = false;
 
-        if (this.isDetailsView) {
-            this.loadVerificationOptions();
-        }
-        else {
-            this.helpDeskService
-                .checkVerification(this.personUserKey)
-                .then((response) => {
-                    if (response.passed) {
-                        this.gotoDetailsPage();
-                    }
-                    else {
-                        this.loadVerificationOptions();
-                    }
+        this.helpDeskService
+            .checkVerification(this.personUserKey)
+            .then((response: IVerificationStatus) => {
+                this.verificationOptions = response.verificationOptions;
+
+                if (!this.isDetailsView && response.passed) {
+                    // If we're not on the details page already, and verifications have been passed, then just go right
+                    // to the details page:
+                    this.gotoDetailsPage();
+                }
+                else {
+                    this.status = STATUS_SELECT;
+                    this.determineAvailableVerificationMethods();
+                }
+            });
+    }
+
+    determineAvailableVerificationMethods() {
+        this.availableVerificationMethods = [];
+
+        const methodNames: string[] = this.showRequiredOnly ?
+            this.verificationOptions.verificationMethods.required :
+            this.verificationOptions.verificationMethods.optional;
+
+        if (methodNames) {
+            for (let methodName of methodNames) {
+                this.availableVerificationMethods.push({
+                    name: methodName,
+                    label: VERIFICATION_METHOD_LABELS[methodName]
                 });
+            }
         }
     }
 
@@ -98,15 +127,6 @@ export default class VerificationsDialogController {
             this.IasDialogService.close();
             this.$state.go('details', {personId: this.personUserKey});
         });
-    }
-
-    private loadVerificationOptions() {
-        this.configService
-            .getVerificationMethods({includeOptional: this.isDetailsView})
-            .then((methods) => {
-                this.status = STATUS_SELECT;
-                this.availableVerificationMethods = methods;
-            });
     }
 
     selectVerificationMethod(method: string) {
@@ -125,17 +145,13 @@ export default class VerificationsDialogController {
                     }
                 });
         }
-        else if (method === VERIFICATION_METHOD_NAMES.SMS || method === VERIFICATION_METHOD_NAMES.EMAIL) {
-            this.status = STATUS_WAIT;
-            this.configService.getTokenSendMethod()
-                .then((tokenSendMethod) => {
-                    let choice = (tokenSendMethod === TOKEN_CHOICE) ? method.toLowerCase() : null;
-                    return this.helpDeskService.sendVerificationToken(this.personUserKey, choice);
-                })
-                .then((response: any) => {
-                    this.status = STATUS_VERIFY;
-                    this.tokenData = response.data;
-                });
+        else if (method === VERIFICATION_METHOD_NAMES.TOKEN) {
+            this.status = STATUS_VERIFY;
+
+            try {
+                // Select the first destination in the list as default.
+                this.tokenDestinationID = this.verificationOptions.tokenDestinations[0].id;
+            } catch (error) {}
         }
         else if (method === VERIFICATION_METHOD_NAMES.OTP) {
             this.status = STATUS_VERIFY;
@@ -147,7 +163,9 @@ export default class VerificationsDialogController {
         let data = {};
         this.objectService.assign(data, this.formData);
         if (this.tokenData) {
-            this.objectService.assign(data, this.tokenData);
+            this.objectService.assign(data, {
+                tokenData: this.tokenData
+            });
         }
         this.helpDeskService.validateVerificationData(this.personUserKey, data, this.verificationMethod)
             .then((response) => {
@@ -157,6 +175,31 @@ export default class VerificationsDialogController {
                 else {
                     this.verificationStatus = STATUS_FAILED;
                 }
+            })
+            .catch((reason) => {
+                this.verificationStatus = STATUS_FAILED;
+            })
+    }
+
+    onTokenDestinationChanged() {
+        this.verificationTokenSent = false;
+    }
+
+    sendVerificationTokenToDestination() {
+        this.sendingVerificationToken = true;
+        this.verificationTokenSent = false;
+
+        this.helpDeskService.sendVerificationToken(this.personUserKey, this.tokenDestinationID)
+            .then((response) => {
+                this.verificationTokenSent = true;
+                this.tokenData = (response as any).data.tokenData;
+            })
+            .catch((reason) => {
+                this.verificationTokenSent = false;
+                alert(reason);
+            })
+            .finally(() => {
+                this.sendingVerificationToken = false;
             });
     }
 

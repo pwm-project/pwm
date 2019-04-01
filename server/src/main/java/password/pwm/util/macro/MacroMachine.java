@@ -246,7 +246,7 @@ public class MacroMachine
         }
         catch ( MacroParseException e )
         {
-            LOGGER.debug( sessionLabel, "macro parse error replacing macro '" + matchedStr + "', error: " + e.getMessage() );
+            LOGGER.debug( sessionLabel, () -> "macro parse error replacing macro '" + matchedStr + "', error: " + e.getMessage() );
             if ( pwmApplication != null )
             {
                 replaceStr = "[" + e.getErrorInformation().toUserStr( PwmConstants.DEFAULT_LOCALE, macroRequestInfo.getPwmApplication().getConfig() ) + "]";
@@ -284,8 +284,9 @@ public class MacroMachine
             final boolean debugOnlyLogging = JavaHelper.enumArrayContainsValue( macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.OnlyDebugLogging );
             if ( !debugOnlyLogging || ( pwmApplication != null && pwmApplication.getConfig().isDevDebugMode() ) )
             {
-                LOGGER.trace( sessionLabel, "replaced macro " + matchedStr + " with value: "
-                        + ( sensitive ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT : replaceStr ) );
+                final String finalReplaceStr = replaceStr;
+                LOGGER.trace( sessionLabel, () -> "replaced macro " + matchedStr + " with value: "
+                        + ( sensitive ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT : finalReplaceStr ) );
             }
         }
         return new StringBuilder( input ).replace( startPos, endPos, replaceStr ).toString();

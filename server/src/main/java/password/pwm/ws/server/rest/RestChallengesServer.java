@@ -77,6 +77,8 @@ public class RestChallengesServer extends RestServlet
 {
 
     private static final String FIELD_USERNAME = "username";
+    private static final String FIELD_ANSWERS = "answers";
+    private static final String FIELD_HELPDESK = "helpdesk";
 
     @Data
     public static class Policy implements Serializable
@@ -158,8 +160,8 @@ public class RestChallengesServer extends RestServlet
 
             throws PwmUnrecoverableException
     {
-        final boolean answers = restRequest.readParameterAsBoolean( "answers" );
-        final boolean helpdesk = restRequest.readParameterAsBoolean( "helpdesk" );
+        final boolean answers = restRequest.readParameterAsBoolean( FIELD_ANSWERS );
+        final boolean helpdesk = restRequest.readParameterAsBoolean( FIELD_HELPDESK );
         final String username = restRequest.readParameterAsString( FIELD_USERNAME, PwmHttpRequestWrapper.Flag.BypassValidation );
 
         try
@@ -237,7 +239,7 @@ public class RestChallengesServer extends RestServlet
         catch ( ChaiException e )
         {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
@@ -248,7 +250,14 @@ public class RestChallengesServer extends RestServlet
     {
         final JsonChallengesData jsonInput = RestUtility.deserializeJsonBody( restRequest, JsonChallengesData.class );
 
-        final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.getUsername() );
+        final String username = RestUtility.readValueFromJsonAndParam(
+                jsonInput.getUsername(),
+                restRequest.readParameterAsString( FIELD_USERNAME, PwmHttpRequestWrapper.Flag.BypassValidation ),
+                FIELD_USERNAME,
+                RestUtility.ReadValueFlag.optional
+        );
+
+        final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 
         try
         {
@@ -287,7 +296,7 @@ public class RestChallengesServer extends RestServlet
         catch ( Exception e )
         {
             final String errorMsg = "unexpected error reading json input: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
@@ -296,13 +305,7 @@ public class RestChallengesServer extends RestServlet
     public RestResultBean processJsonDeleteChallengeData( final RestRequest restRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final JsonDeleteInput jsonBody = RestUtility.deserializeJsonBody( restRequest, JsonDeleteInput.class, RestUtility.Flag.AllowNullReturn );
-
-        final String username = RestUtility.readValueFromJsonAndParam(
-                jsonBody == null ? null : jsonBody.getUsername(),
-                restRequest.readParameterAsString( FIELD_USERNAME ),
-                FIELD_USERNAME
-        );
+        final String username = restRequest.readParameterAsString( FIELD_USERNAME );
 
         return doDeleteChallengeData( restRequest, username );
     }
@@ -341,7 +344,7 @@ public class RestChallengesServer extends RestServlet
         catch ( Exception e )
         {
             final String errorMsg = "unexpected error delete responses: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }

@@ -26,6 +26,7 @@ import com.google.gson.annotations.SerializedName;
 import com.novell.ldapchai.cr.ChallengeSet;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.TokenDestinationItem;
@@ -46,6 +47,7 @@ import java.util.Set;
  * @author Jason D. Rivard
  */
 @Data
+@EqualsAndHashCode( callSuper = false )
 public class ForgottenPasswordBean extends PwmSessionBean
 {
 

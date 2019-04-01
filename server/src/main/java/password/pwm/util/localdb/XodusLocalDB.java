@@ -36,6 +36,7 @@ import jetbrains.exodus.env.StoreConfig;
 import jetbrains.exodus.env.Transaction;
 import jetbrains.exodus.management.Statistics;
 import jetbrains.exodus.management.StatisticsItem;
+import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.java.ConditionalTaskExecutor;
@@ -48,15 +49,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
@@ -66,7 +68,10 @@ import java.util.zip.InflaterOutputStream;
 public class XodusLocalDB implements LocalDBProvider
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( XodusLocalDB.class );
-    private static final TimeDuration STATS_OUTPUT_INTERVAL = new TimeDuration( 24, TimeUnit.HOURS );
+    private static final TimeDuration STATS_OUTPUT_INTERVAL = TimeDuration.DAY;
+
+    private static final String FILE_SUB_PATH = "xodus";
+    private static final String README_FILENAME = "README.TXT";
 
     private Environment environment;
     private File fileLocation;
@@ -95,7 +100,7 @@ public class XodusLocalDB implements LocalDBProvider
     private final Map<LocalDB.DB, Store> cachedStoreObjects = new HashMap<>();
 
     private final ConditionalTaskExecutor outputLogExecutor = new ConditionalTaskExecutor(
-            ( ) -> outputStats(), new ConditionalTaskExecutor.TimeDurationPredicate( STATS_OUTPUT_INTERVAL ).setNextTimeFromNow( 1, TimeUnit.MINUTES )
+            ( ) -> outputStats(), new ConditionalTaskExecutor.TimeDurationPredicate( STATS_OUTPUT_INTERVAL ).setNextTimeFromNow( TimeDuration.MINUTE )
     );
 
     private BindMachine bindMachine = new BindMachine( BindMachine.DEFAULT_ENABLE_COMPRESSION, BindMachine.DEFAULT_MIN_COMPRESSION_LENGTH );
@@ -111,7 +116,7 @@ public class XodusLocalDB implements LocalDBProvider
     {
         this.fileLocation = dbDirectory;
 
-        LOGGER.trace( "begin environment open" );
+        LOGGER.trace( () -> "begin environment open" );
         final Instant startTime = Instant.now();
 
         final EnvironmentConfig environmentConfig = makeEnvironmentConfig( initParameters );
@@ -130,9 +135,10 @@ public class XodusLocalDB implements LocalDBProvider
 
         readOnly = parameters.containsKey( Parameter.readOnly ) && Boolean.parseBoolean( parameters.get( Parameter.readOnly ) );
 
-        LOGGER.trace( "preparing to open with configuration " + JsonUtil.serializeMap( environmentConfig.getSettings() ) );
-        environment = Environments.newInstance( dbDirectory.getAbsolutePath() + File.separator + "xodus", environmentConfig );
-        LOGGER.trace( "environment open (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+        LOGGER.trace( () -> "preparing to open with configuration " + JsonUtil.serializeMap( environmentConfig.getSettings() ) );
+        environment = Environments.newInstance( dbDirectory.getAbsolutePath() + File.separator + FILE_SUB_PATH, environmentConfig );
+
+        LOGGER.trace( () -> "environment open (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
 
         environment.executeInTransaction( txn ->
         {
@@ -147,19 +153,23 @@ public class XodusLocalDB implements LocalDBProvider
 
         for ( final LocalDB.DB db : LocalDB.DB.values() )
         {
-            LOGGER.trace( "opened " + db + " with " + this.size( db ) + " records" );
+            final long finalSize = this.size( db );
+            LOGGER.trace( () -> "opened " + db + " with " + finalSize + " records" );
         }
+
+        outputReadme( new File( dbDirectory.getPath() + File.separator + FILE_SUB_PATH + File.separator + README_FILENAME ) );
     }
 
     @Override
     public void close( ) throws LocalDBException
     {
+        final Instant startTime = Instant.now();
         if ( environment != null && environment.isOpen() )
         {
             environment.close();
         }
         status = LocalDB.Status.CLOSED;
-        LOGGER.debug( "closed" );
+        LOGGER.debug( () -> "closed (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
     }
 
     private EnvironmentConfig makeEnvironmentConfig( final Map<String, String> initParameters )
@@ -177,7 +187,7 @@ public class XodusLocalDB implements LocalDBProvider
             try
             {
                 environmentConfig.setSettings( singleMap );
-                LOGGER.trace( "set env setting from appProperty: " + key + "=" + value );
+                LOGGER.trace( () -> "set env setting from appProperty: " + key + "=" + value );
             }
             catch ( InvalidSettingException e )
             {
@@ -189,13 +199,13 @@ public class XodusLocalDB implements LocalDBProvider
     }
 
     @Override
-    public int size( final LocalDB.DB db ) throws LocalDBException
+    public long size( final LocalDB.DB db ) throws LocalDBException
     {
         checkStatus( false );
         return environment.computeInReadonlyTransaction( transaction ->
         {
             final Store store = getStore( db );
-            return ( int ) store.count( transaction );
+            return store.count( transaction );
         } );
     }
 
@@ -404,8 +414,11 @@ public class XodusLocalDB implements LocalDBProvider
     {
         checkStatus( true );
 
-        LOGGER.trace( "begin truncate of " + db.toString() + ", size=" + this.size( db ) );
-        final Date startDate = new Date();
+        {
+            final long finalSize = this.size( db );
+            LOGGER.trace( () -> "begin truncate of " + db.toString() + ", size=" + finalSize );
+        }
+        final Instant startDate = Instant.now();
 
         environment.executeInTransaction( transaction ->
         {
@@ -414,9 +427,12 @@ public class XodusLocalDB implements LocalDBProvider
             cachedStoreObjects.put( db, newStoreReference );
         } );
 
-        LOGGER.trace( "completed truncate of " + db.toString()
-                + " (" + TimeDuration.fromCurrent( startDate ).asCompactString() + ")"
-                + ", size=" + this.size( db ) );
+        {
+            final long finalSize = this.size( db );
+            LOGGER.trace( () -> "completed truncate of " + db.toString()
+                    + " (" + TimeDuration.fromCurrent( startDate ).asCompactString() + ")"
+                    + ", size=" + finalSize );
+        }
     }
 
     @Override
@@ -459,23 +475,38 @@ public class XodusLocalDB implements LocalDBProvider
 
     private void outputStats( )
     {
-        LOGGER.trace( "xodus environment stats: " + StringUtil.mapToString( debugInfo() ) );
+        LOGGER.trace( () -> "xodus environment stats: " + StringUtil.mapToString( debugInfo() ) );
     }
 
     @Override
     public Map<String, Serializable> debugInfo( )
     {
-        final Statistics statistics = environment.getStatistics();
         final Map<String, Serializable> outputStats = new LinkedHashMap<>();
-        for ( final EnvironmentStatistics.Type type : EnvironmentStatistics.Type.values() )
         {
-            final String name = type.name();
-            final StatisticsItem item = statistics.getStatisticsItem( name );
-            if ( item != null )
+            final Statistics statistics = environment.getStatistics();
+            for ( final EnvironmentStatistics.Type type : EnvironmentStatistics.Type.values() )
             {
-                outputStats.put( name, String.valueOf( item.getTotal() ) );
+                final String name = type.name();
+                final StatisticsItem item = statistics.getStatisticsItem( name );
+                if ( item != null )
+                {
+                    outputStats.put( name, String.valueOf( item.getTotal() ) );
+                }
             }
         }
+
+        try
+        {
+            for ( final LocalDB.DB db : LocalDB.DB.values() )
+            {
+                outputStats.put( "size." + db.name(), this.size( db ) );
+            }
+        }
+        catch ( LocalDBException e )
+        {
+            LOGGER.debug( () -> "error while calculating sizes for localDB debug output: "  + e.getMessage() );
+        }
+
         return outputStats;
     }
 
@@ -582,5 +613,20 @@ public class XodusLocalDB implements LocalDBProvider
     public Set<Flag> flags( )
     {
         return Collections.emptySet();
+    }
+
+    private static void outputReadme( final File xodusPath )
+    {
+        try
+        {
+            final ResourceBundle resourceBundle = ResourceBundle.getBundle( XodusLocalDB.class.getName() );
+            final String contents = resourceBundle.getString( "ReadmeContents" );
+            final byte[] byteContents = contents.getBytes( PwmConstants.DEFAULT_CHARSET );
+            Files.write( xodusPath.toPath(), byteContents, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING );
+        }
+        catch ( IOException e )
+        {
+            LOGGER.error( "error writing LocalDB readme file: " + e.getMessage() );
+        }
     }
 }

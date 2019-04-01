@@ -22,53 +22,63 @@
 
 package password.pwm.util.otp;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import password.pwm.util.operations.otp.OTPPamUtil;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-
 /**
- *
  * @author mpieters
  */
-public class OTPPamUtilTest {
-    
-    public OTPPamUtilTest() {
+public class OTPPamUtilTest
+{
+
+    public OTPPamUtilTest()
+    {
     }
-    
+
     @BeforeClass
-    public static void setUpClass() {
+    public static void setUpClass()
+    {
     }
-    
+
     @AfterClass
-    public static void tearDownClass() {
+    public static void tearDownClass()
+    {
     }
-    
+
     @Before
-    public void setUp() {
+    public void setUp()
+    {
     }
-    
+
     @After
-    public void tearDown() {
+    public void tearDown()
+    {
     }
 
     /**
      * Test of splitLines method, of class OTPPamUtil.
      */
     @Test
-    public void testSplitLines() {
-        String text = "TUC2JMV7BLJVV6YX\r\n\" WINDOW_SIZE -1\r\n\" TOTP_AUTH\r\n72706699\r\n";
-        List<String> result = OTPPamUtil.splitLines(text);
-        assertEquals(4, result.size());
+    public void testSplitLines()
+    {
+        final String text = "TUC2JMV7BLJVV6YX\r\n\" WINDOW_SIZE -1\r\n\" TOTP_AUTH\r\n72706699\r\n";
+        final List<String> result = OTPPamUtil.splitLines( text );
+        Assert.assertEquals( 4, result.size() );
     }
 
     /**
      * Test of decomposePamData method, of class OTPPamUtil.
      */
     @Test
-    public void testDecomposePamData() {
+    public void testDecomposePamData()
+    {
         /*
         System.out.println("decomposePamData");
         // TOTP
@@ -92,8 +102,9 @@ public class OTPPamUtilTest {
      * Test of composePamData method, of class OTPPamUtil.
      */
     @Test
-    @SuppressWarnings("empty-statement")
-    public void testComposePamData() {
+    @SuppressWarnings( "empty-statement" )
+    public void testComposePamData()
+    {
         /*
         System.out.println("composePamData");
         // TOTP
@@ -117,5 +128,5 @@ public class OTPPamUtilTest {
         // HOTP
         */
     }
-    
+
 }

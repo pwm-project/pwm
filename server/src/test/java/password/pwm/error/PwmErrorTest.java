@@ -22,30 +22,35 @@
 
 package password.pwm.error;
 
-import junit.framework.TestCase;
 import org.junit.Test;
 import password.pwm.PwmConstants;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class PwmErrorTest extends TestCase {
+public class PwmErrorTest
+{
 
     @Test
-    public void testPwmErrorNumbers() throws Exception {
+    public void testPwmErrorNumbers() throws Exception
+    {
         final Set<Integer> seenErrorNumbers = new HashSet<>();
-        for (final PwmError loopError : PwmError.values()) {
-            if (seenErrorNumbers.contains(loopError.getErrorCode())) {
-                throw new Exception("duplicate error code: " + loopError.getErrorCode() + " " + loopError.toString());
+        for ( final PwmError loopError : PwmError.values() )
+        {
+            if ( seenErrorNumbers.contains( loopError.getErrorCode() ) )
+            {
+                throw new Exception( "duplicate error code: " + loopError.getErrorCode() + " " + loopError.toString() );
             }
-            seenErrorNumbers.add(loopError.getErrorCode());
+            seenErrorNumbers.add( loopError.getErrorCode() );
         }
     }
 
     @Test
-    public void testLocalizedMessage() {
-        for (final PwmError pwmError : PwmError.values()) {
-            pwmError.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, null);
+    public void testLocalizedMessage()
+    {
+        for ( final PwmError pwmError : PwmError.values() )
+        {
+            pwmError.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, null );
         }
     }
 }

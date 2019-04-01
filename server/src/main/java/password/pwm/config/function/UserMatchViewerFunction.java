@@ -42,13 +42,13 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapPermissionTester;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -68,7 +68,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
-        final Date startSearchTime = new Date();
+        final Instant startSearchTime = Instant.now();
         final int maxResultSize = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT ) );
         final Collection<UserIdentity> users = discoverMatchingUsers( pwmApplication, maxResultSize, storedConfiguration, setting, profile );
         final TimeDuration searchDuration = TimeDuration.fromCurrent( startSearchTime );

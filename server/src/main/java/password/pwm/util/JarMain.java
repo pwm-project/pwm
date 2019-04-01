@@ -45,14 +45,12 @@ public class JarMain
     {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append( PwmConstants.PWM_APP_NAME + " v" + PwmConstants.BUILD_VERSION + " (" + PwmConstants.BUILD_TYPE + ")\n" );
+        sb.append( PwmConstants.PWM_APP_NAME + " v" + PwmConstants.BUILD_VERSION + "\n" );
         sb.append( "\n" );
         sb.append( "Build Information: \n" );
 
         sb.append( "build.time=" + PwmConstants.BUILD_TIME + "\n" );
         sb.append( "build.number=" + PwmConstants.BUILD_NUMBER + "\n" );
-        sb.append( "build.type=" + PwmConstants.BUILD_TYPE + "\n" );
-        sb.append( "build.user=" + PwmConstants.BUILD_USER + "\n" );
         sb.append( "build.java.version=" + PwmConstants.BUILD_JAVA_VERSION + "\n" );
         sb.append( "build.java.vendor=" + PwmConstants.BUILD_JAVA_VENDOR + "\n" );
 

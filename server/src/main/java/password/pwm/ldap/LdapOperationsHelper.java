@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Answer;
+import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiConfiguration;
@@ -36,22 +37,27 @@ import com.novell.ldapchai.provider.SearchScope;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.AutoSetLdapUserLanguage;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -61,19 +67,21 @@ import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.X509Utils;
 
 import javax.net.ssl.X509TrustManager;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URLConnection;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public class LdapOperationsHelper
 {
@@ -84,7 +92,7 @@ public class LdapOperationsHelper
             final UserIdentity userIdentity,
             final PwmApplication pwmApplication
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
         final Set<String> newObjClasses = new HashSet<>( ldapProfile.readSettingAsStringArray( PwmSetting.AUTO_ADD_OBJECT_CLASSES ) );
@@ -92,9 +100,16 @@ public class LdapOperationsHelper
         {
             return;
         }
-        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
-        final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
-        addUserObjectClass( sessionLabel, theUser, newObjClasses );
+        try
+        {
+            final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
+            final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
+            addUserObjectClass( sessionLabel, theUser, newObjClasses );
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
     }
 
     private static void addUserObjectClass(
@@ -114,7 +129,8 @@ public class LdapOperationsHelper
             {
                 auxClass = newObjClass;
                 theUser.addAttribute( ChaiConstant.ATTR_LDAP_OBJECTCLASS, auxClass );
-                LOGGER.info( sessionLabel, "added objectclass '" + auxClass + "' to user " + theUser.getEntryDN() );
+                final String finalAuxClass = auxClass;
+                LOGGER.info( sessionLabel, () -> "added objectclass '" + finalAuxClass + "' to user " + theUser.getEntryDN() );
             }
         }
         catch ( ChaiOperationException e )
@@ -157,7 +173,7 @@ public class LdapOperationsHelper
     )
             throws PwmUnrecoverableException
     {
-        LOGGER.trace( sessionLabel, "opening new ldap proxy connection" );
+        LOGGER.trace( sessionLabel, () -> "opening new ldap proxy connection" );
 
         final String proxyDN = ldapProfile.readSettingAsString( PwmSetting.LDAP_PROXY_USER_DN );
         final PasswordData proxyPW = ldapProfile.readSettingAsPassword( PwmSetting.LDAP_PROXY_USER_PASSWORD );
@@ -175,7 +191,7 @@ public class LdapOperationsHelper
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append( "error connecting as proxy user: " );
             final PwmError pwmError = PwmError.forChaiError( e.getErrorCode() );
-            if ( pwmError != null && pwmError != PwmError.ERROR_UNKNOWN )
+            if ( pwmError != null && pwmError != PwmError.ERROR_INTERNAL )
             {
                 errorMsg.append( new ErrorInformation( pwmError, e.getMessage() ).toDebugStr() );
             }
@@ -201,11 +217,11 @@ public class LdapOperationsHelper
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final boolean enableCache = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_CACHE_USER_GUID_ENABLE ) );
-        final CacheKey cacheKey = CacheKey.makeCacheKey( LdapOperationsHelper.class, null, "guidValue-" + userIdentity.toDelimitedKey() );
+        final CacheKey cacheKey = CacheKey.newKey( LdapOperationsHelper.class, userIdentity, "guidValue" );
 
         if ( enableCache )
         {
-            final String cachedValue = pwmApplication.getCacheService().get( cacheKey );
+            final String cachedValue = pwmApplication.getCacheService().get( cacheKey, String.class );
             if ( cachedValue != null )
             {
                 return NULL_CACHE_GUID.equals( cachedValue )
@@ -229,7 +245,7 @@ public class LdapOperationsHelper
             {
                 if ( ldapProfile.readSettingAsBoolean( PwmSetting.LDAP_GUID_AUTO_ADD ) )
                 {
-                    LOGGER.trace( "assigning new GUID to user " + userIdentity );
+                    LOGGER.trace( () -> "assigning new GUID to user " + userIdentity );
                     return GUIDHelper.assignGuidToUser( pwmApplication, sessionLabel, userIdentity, guidAttributeName );
                 }
             }
@@ -240,7 +256,7 @@ public class LdapOperationsHelper
         if ( enableCache )
         {
             final long cacheSeconds = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_CACHE_USER_GUID_SECONDS ) );
-            final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( new TimeDuration( cacheSeconds, TimeUnit.SECONDS ) );
+            final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( TimeDuration.of( cacheSeconds, TimeDuration.Unit.SECONDS ) );
             final String cacheValue = existingValue == null
                     ? NULL_CACHE_GUID
                     : existingValue;
@@ -251,126 +267,168 @@ public class LdapOperationsHelper
     }
 
     /**
-     * Writes a Map of form values to ldap onto the supplied user object.
-     * The map key must be a string of attribute names.
-     * <p/>
-     * Any ldap operation exceptions are not reported (but logged).
+     * <p>Writes a Map of values to ldap onto the supplied user object.
+     * The map key must be a string of attribute names.</p>
      *
-     * @param theUser    User to write to
-     * @param formValues A map with {@link FormConfiguration} keys and String values.
+     * <p>Any ldap operation exceptions are not reported (but logged).</p>
+     *
+     * @param theUser User to write to.
+     * @param valueMap A map with String keys and String values.
+     * @param macroMachine used to resolve macros before values are written.
+     * @param expandMacros a boolean to indicate if value macros should be expanded.
      * @throws ChaiUnavailableException if the directory is unavailable
-     * @throws PwmOperationalException  if their is an unexpected ldap problem
+     * @throws PwmUnrecoverableException if their is an unexpected ldap problem
      */
     public static void writeFormValuesToLdap(
-            final PwmApplication pwmApplication,
-            final MacroMachine macroMachine,
             final ChaiUser theUser,
-            final Map<FormConfiguration, String> formValues,
+            final Map<FormConfiguration, String> valueMap,
+            final MacroMachine macroMachine,
             final boolean expandMacros
     )
-            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
+            throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final Map<String, String> tempMap = new HashMap<>();
-
-        for ( final Map.Entry<FormConfiguration, String> entry : formValues.entrySet() )
+        for ( final Map.Entry<FormConfiguration, String> entry : valueMap.entrySet() )
         {
             final FormConfiguration formItem = entry.getKey();
             if ( !formItem.isReadonly() )
             {
-                tempMap.put( formItem.getName(), entry.getValue() );
-            }
-        }
-
-        writeMapToLdap( theUser, tempMap, macroMachine, expandMacros );
-    }
-
-    /**
-     * Writes a Map of values to ldap onto the supplied user object.
-     * The map key must be a string of attribute names.
-     * <p/>
-     * Any ldap operation exceptions are not reported (but logged).
-     *
-     * @param theUser  User to write to
-     * @param valueMap A map with String keys and String values.
-     * @throws ChaiUnavailableException if the directory is unavailable
-     * @throws PwmOperationalException  if their is an unexpected ldap problem
-     */
-    public static void writeMapToLdap(
-            final ChaiUser theUser,
-            final Map<String, String> valueMap,
-            final MacroMachine macroMachine,
-            final boolean expandMacros
-    )
-            throws PwmOperationalException, ChaiUnavailableException
-    {
-        final Map<String, String> currentValues;
-        try
-        {
-            currentValues = theUser.readStringAttributes( valueMap.keySet() );
-        }
-        catch ( ChaiOperationException e )
-        {
-            final String errorMsg = "error reading existing values on user " + theUser.getEntryDN() + " prior to replacing values, error: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
-            final PwmOperationalException newException = new PwmOperationalException( errorInformation );
-            newException.initCause( e );
-            throw newException;
-        }
-
-        for ( final Map.Entry<String, String> entry : valueMap.entrySet() )
-        {
-            final String attrName = entry.getKey();
-            final String value = entry.getValue();
-            String attrValue = value != null
-                    ? value
-                    : "";
-
-            if ( expandMacros )
-            {
-                attrValue = macroMachine.expandMacros( attrValue );
-            }
-
-            if ( !attrValue.equals( currentValues.get( attrName ) ) )
-            {
-                if ( attrValue.length() > 0 )
+                final String attrName = formItem.getName();
+                if ( formItem.getType() == FormConfiguration.Type.photo )
                 {
+                    final String sValue = entry.getValue();
+                    final byte[] newBytes;
                     try
                     {
-                        theUser.writeStringAttribute( attrName, attrValue );
-                        LOGGER.info( "set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")" );
+                        newBytes = StringUtil.base64Decode( sValue );
                     }
-                    catch ( ChaiOperationException e )
+                    catch ( IOException e )
                     {
-                        final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
-                        final PwmOperationalException newException = new PwmOperationalException( errorInformation );
-                        newException.initCause( e );
-                        throw newException;
+                        throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "error processing binary form value: " + e.getMessage() );
                     }
-                }
-                else
-                {
-                    if ( currentValues.get( attrName ) != null && currentValues.get( attrName ).length() > 0 )
+
+                    final byte[] existingBytes;
+                    {
+                        final byte[][] existingMultiByte;
+                        try
+                        {
+                            existingMultiByte = theUser.readMultiByteAttribute( attrName );
+                            if ( existingMultiByte != null && existingMultiByte.length > 0 )
+                            {
+                                existingBytes = existingMultiByte[ 0 ];
+                            }
+                            else
+                            {
+                                existingBytes = null;
+                            }
+                        }
+                        catch ( ChaiOperationException e )
+                        {
+                            final String errorMsg = "error reading existing values on user " + theUser.getEntryDN()
+                                    + " prior to replacing values, error: " + e.getMessage();
+                            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
+                            throw new PwmUnrecoverableException( errorInformation );
+                        }
+                    }
+
+                    if ( !StringUtil.isEmpty( sValue ) )
+                    {
+                        if ( !Arrays.equals( existingBytes, newBytes ) )
+                        {
+                            if ( newBytes.length > 0 )
+                            {
+                                try
+                                {
+                                    theUser.writeBinaryAttribute( attrName, newBytes );
+                                }
+                                catch ( ChaiOperationException e )
+                                {
+                                    final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
+                                    throw new PwmUnrecoverableException( errorInformation );
+                                }
+                                LOGGER.info( () -> "set attribute on user " + theUser.getEntryDN() + " (" + formItem + "=[base64]" + sValue + ")" );
+                            }
+                        }
+                    }
+                    else if ( existingBytes != null && existingBytes.length > 0 )
                     {
                         try
                         {
                             theUser.deleteAttribute( attrName, null );
-                            LOGGER.info( "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
+                            LOGGER.info( () -> "deleted binary attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
                         }
                         catch ( ChaiOperationException e )
                         {
                             final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
-                            final PwmOperationalException newException = new PwmOperationalException( errorInformation );
-                            newException.initCause( e );
-                            throw newException;
+                            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
+                            throw new PwmUnrecoverableException( errorInformation );
                         }
                     }
                 }
-            }
-            else
-            {
-                LOGGER.debug( "skipping attribute modify for attribute '" + attrName + "', no change in value" );
+                else
+                {
+                    final String value = entry.getValue();
+                    String attrValue = value != null
+                            ? value
+                            : "";
+
+                    if ( expandMacros )
+                    {
+                        attrValue = macroMachine.expandMacros( attrValue );
+                    }
+
+                    final String currentValue;
+                    try
+                    {
+                        currentValue = theUser.readStringAttribute( attrName );
+                    }
+                    catch ( ChaiOperationException e )
+                    {
+                        final String errorMsg = "error reading existing values on user " + theUser.getEntryDN() + " prior to replacing values, error: " + e.getMessage();
+                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
+                        throw new PwmUnrecoverableException( errorInformation );
+                    }
+
+                    if ( !attrValue.equals( currentValue ) )
+                    {
+                        if ( attrValue.length() > 0 )
+                        {
+                            try
+                            {
+                                theUser.writeStringAttribute( attrName, attrValue );
+                                final String finalAttrValue = attrValue;
+                                LOGGER.info( () -> "set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + finalAttrValue + ")" );
+                            }
+                            catch ( ChaiOperationException e )
+                            {
+                                final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
+                                throw new PwmUnrecoverableException( errorInformation );
+                            }
+                        }
+                        else
+                        {
+                            if ( currentValue != null && currentValue.length() > 0 )
+                            {
+                                try
+                                {
+                                    theUser.deleteAttribute( attrName, null );
+                                    LOGGER.info( () -> "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
+                                }
+                                catch ( ChaiOperationException e )
+                                {
+                                    final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
+                                    throw new PwmUnrecoverableException( errorInformation );
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        LOGGER.debug( () -> "skipping attribute modify for attribute '" + attrName + "', no change in value" );
+                    }
+                }
             }
         }
     }
@@ -401,11 +459,11 @@ public class LdapOperationsHelper
                     final String guidValue = theUser.readGUID();
                     if ( guidValue != null && guidValue.length() > 1 )
                     {
-                        LOGGER.trace( sessionLabel, "read VENDORGUID value for user " + theUser + ": " + guidValue );
+                        LOGGER.trace( sessionLabel, () -> "read VENDORGUID value for user " + theUser + ": " + guidValue );
                     }
                     else
                     {
-                        LOGGER.trace( sessionLabel, "unable to find a VENDORGUID value for user " + theUser.getEntryDN() );
+                        LOGGER.trace( sessionLabel, () -> "unable to find a VENDORGUID value for user " + theUser.getEntryDN() );
                     }
                     return guidValue;
                 }
@@ -500,7 +558,7 @@ public class LdapOperationsHelper
             if ( newGuid == null )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
+                        PwmError.ERROR_INTERNAL,
                         "unable to generate unique GUID value for user " + userIdentity )
                 );
             }
@@ -511,14 +569,15 @@ public class LdapOperationsHelper
                 // write it to the directory
                 final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
                 chaiUser.writeStringAttribute( guidAttributeName, newGuid );
-                LOGGER.info( sessionLabel, "added GUID value '" + newGuid + "' to user " + userIdentity );
+                final String finalNewGuid = newGuid;
+                LOGGER.info( sessionLabel, () -> "added GUID value '" + finalNewGuid + "' to user " + userIdentity );
                 return newGuid;
             }
             catch ( ChaiOperationException e )
             {
                 final String errorMsg = "unable to write GUID value to user attribute " + guidAttributeName + " : " + e.getMessage()
                         + ", cannot write GUID value to user " + userIdentity;
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                 LOGGER.error( errorInformation.toDebugStr() );
                 throw new PwmUnrecoverableException( errorInformation );
             }
@@ -568,7 +627,7 @@ public class LdapOperationsHelper
     {
         final List<String> ldapURLs = ldapProfile.readSettingAsStringArray( PwmSetting.LDAP_SERVER_URLS );
         final ChaiConfiguration chaiConfig = createChaiConfiguration( config, ldapProfile, ldapURLs, userDN, userPassword );
-        LOGGER.trace( sessionLabel, "creating new ldap connection using config: " + chaiConfig.toString() );
+        LOGGER.trace( sessionLabel, () -> "creating new ldap connection using config: " + chaiConfig.toString() );
         return chaiProviderFactory.newProvider( chaiConfig );
     }
 
@@ -584,7 +643,7 @@ public class LdapOperationsHelper
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final ChaiConfiguration chaiConfig = createChaiConfiguration( config, ldapProfile, ldapURLs, userDN, userPassword );
-        LOGGER.trace( sessionLabel, "creating new ldap connection using config: " + chaiConfig.toString() );
+        LOGGER.trace( sessionLabel, () -> "creating new ldap connection using config: " + chaiConfig.toString() );
         return pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfig );
     }
 
@@ -731,10 +790,12 @@ public class LdapOperationsHelper
      * Update the user's "lastUpdated" attribute. By default this is
      * "pwmLastUpdate" attribute
      *
+     * @param pwmApplication a reference to the application
+     * @param sessionLabel for debugging
      * @param userIdentity ldap user to operate on
      * @return true if successful;
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException if the
-     *                                                                directory is unavailable
+     * @throws ChaiUnavailableException if the directory is unavailable
+     * @throws PwmUnrecoverableException if the operation fails
      */
     public static boolean updateLastPasswordUpdateAttribute(
             final PwmApplication pwmApplication,
@@ -754,12 +815,12 @@ public class LdapOperationsHelper
             try
             {
                 theUser.writeDateAttribute( updateAttribute, Instant.now() );
-                LOGGER.debug( sessionLabel, "wrote pwdLastModified update attribute for " + theUser.getEntryDN() );
+                LOGGER.debug( sessionLabel, () -> "wrote pwdLastModified update attribute for " + theUser.getEntryDN() );
                 success = true;
             }
             catch ( ChaiOperationException e )
             {
-                LOGGER.debug( sessionLabel, "error writing update attribute for user '" + theUser.getEntryDN() + "' " + e.getMessage() );
+                LOGGER.debug( sessionLabel, () -> "error writing update attribute for user '" + theUser.getEntryDN() + "' " + e.getMessage() );
             }
         }
 
@@ -780,13 +841,57 @@ public class LdapOperationsHelper
         return Collections.emptyMap();
     }
 
+    public static Iterator<UserIdentity> readUsersFromLdapForPermissions(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final List<UserPermission> permissionList,
+            final int maxResults
+    )
+            throws PwmUnrecoverableException, PwmOperationalException
+    {
+        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+        final Queue<UserIdentity> resultSet = new LinkedList<>();
+
+        for ( final UserPermission userPermission : permissionList )
+        {
+            if ( resultSet.size() < maxResults )
+            {
+                final SearchConfiguration searchConfiguration = SearchConfiguration.fromPermission( userPermission );
+                final Map<UserIdentity, Map<String, String>> searchResults = userSearchEngine.performMultiUserSearch(
+                        searchConfiguration,
+                        maxResults - resultSet.size(),
+                        Collections.emptyList(),
+                        sessionLabel
+
+                );
+                resultSet.addAll( searchResults.keySet() );
+            }
+        }
+
+        return new Iterator<UserIdentity>()
+        {
+            @Override
+            public boolean hasNext( )
+            {
+                return resultSet.peek() != null;
+            }
+
+            @Override
+            public UserIdentity next( )
+            {
+                return resultSet.poll();
+            }
+        };
+    }
+
+
     public static Iterator<UserIdentity> readAllUsersFromLdap(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final String searchFilter,
             final int maxResults
     )
-            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
 
@@ -809,7 +914,7 @@ public class LdapOperationsHelper
             searchConfiguration = builder.build();
         }
 
-        LOGGER.debug( sessionLabel, "beginning user search using parameters: " + ( JsonUtil.serialize( searchConfiguration ) ) );
+        LOGGER.debug( sessionLabel, () -> "beginning user search using parameters: " + ( JsonUtil.serialize( searchConfiguration ) ) );
 
         final Map<UserIdentity, Map<String, String>> searchResults = userSearchEngine.performMultiUserSearch(
                 searchConfiguration,
@@ -818,7 +923,7 @@ public class LdapOperationsHelper
                 sessionLabel
 
         );
-        LOGGER.debug( sessionLabel, "user search found " + searchResults.size() + " users" );
+        LOGGER.debug( sessionLabel, () -> "user search found " + searchResults.size() + " users" );
 
         final Queue<UserIdentity> tempQueue = new LinkedList<>( searchResults.keySet() );
 
@@ -883,12 +988,12 @@ public class LdapOperationsHelper
                 if ( readPassword != null && readPassword.length() > 0 )
                 {
                     currentPass = readPassword;
-                    LOGGER.debug( sessionLabel, "successfully retrieved user's current password from ldap, now conducting standard authentication" );
+                    LOGGER.debug( sessionLabel, () -> "successfully retrieved user's current password from ldap, now conducting standard authentication" );
                 }
             }
             catch ( Exception e )
             {
-                LOGGER.debug( sessionLabel, "unable to retrieve user password from ldap: " + e.getMessage() );
+                LOGGER.debug( sessionLabel, () -> "unable to retrieve user password from ldap: " + e.getMessage() );
             }
 
             // actually do the authentication since we have user pw.
@@ -899,8 +1004,109 @@ public class LdapOperationsHelper
         }
         else
         {
-            LOGGER.trace( sessionLabel, "skipping attempt to read user password, option disabled" );
+            LOGGER.trace( sessionLabel, () -> "skipping attempt to read user password, option disabled" );
         }
         return null;
+    }
+
+    public static PhotoDataBean readPhotoDataFromLdap(
+            final Configuration configuration,
+            final ChaiUser chaiUser,
+            final UserIdentity userIdentity
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+    {
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
+        final String attribute = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO );
+        if ( attribute == null || attribute.isEmpty() )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "ldap photo attribute is not configured" ) );
+        }
+
+        final byte[] photoData;
+        final String mimeType;
+        try
+        {
+            final byte[][] photoAttributeData = chaiUser.readMultiByteAttribute( attribute );
+            if ( photoAttributeData == null || photoAttributeData.length == 0 || photoAttributeData[ 0 ].length == 0 )
+            {
+                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "user has no photo data stored in LDAP attribute" ) );
+            }
+            photoData = photoAttributeData[ 0 ];
+            mimeType = URLConnection.guessContentTypeFromStream( new ByteArrayInputStream( photoData ) );
+        }
+        catch ( IOException | ChaiOperationException e )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, "error reading user photo ldap attribute: " + e.getMessage() ) );
+        }
+        return new PhotoDataBean( mimeType, new ImmutableByteArray( photoData ) );
+    }
+
+
+    public static Locale readLdapStoredLanguage(
+            final PwmApplication pwmApplication,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        final String languageAttr = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_LANGUAGE );
+        if ( StringUtil.isEmpty( languageAttr ) )
+        {
+            return PwmConstants.DEFAULT_LOCALE;
+        }
+
+        try
+        {
+            final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
+            final String storedValue = chaiUser.readStringAttribute( languageAttr );
+            if ( StringUtil.isEmpty( storedValue ) )
+            {
+                return PwmConstants.DEFAULT_LOCALE;
+            }
+
+            return LocaleHelper.parseLocaleString( storedValue );
+        }
+        catch ( ChaiException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
+    }
+
+    public static void processAutoUpdateLanguageAttribute(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final Locale sessionLocale,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        final String languageAttr = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_LANGUAGE );
+        if ( StringUtil.isEmpty( languageAttr ) )
+        {
+            return;
+        }
+
+        final AutoSetLdapUserLanguage setting = ldapProfile.readSettingAsEnum( PwmSetting.LDAP_AUTO_SET_LANGUAGE_VALUE, AutoSetLdapUserLanguage.class );
+        if ( setting == null || setting == AutoSetLdapUserLanguage.disabled )
+        {
+            return;
+        }
+
+        if ( setting == AutoSetLdapUserLanguage.enabled )
+        {
+            final String languageCodeValue = LocaleHelper.getBrowserLocaleString( sessionLocale );
+            try
+            {
+                final ChaiUser user = pwmApplication.getProxiedChaiUser( userIdentity );
+                user.writeStringAttribute( languageAttr, languageCodeValue );
+                LOGGER.debug( sessionLabel, () -> "wrote current browser session language value '" + languageCodeValue + "' to user attribute " + languageAttr );
+            }
+            catch ( ChaiException e )
+            {
+                LOGGER.error( sessionLabel, "error writing language value to language attribute '" + languageAttr + "', error: " + e.getMessage() );
+            }
+        }
     }
 }

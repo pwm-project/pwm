@@ -35,22 +35,33 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.PropertyConfigurationImporter;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmRandom;
 
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ContextManager implements Serializable
 {
@@ -58,31 +69,41 @@ public class ContextManager implements Serializable
     private static final PwmLogger LOGGER = PwmLogger.forClass( ContextManager.class );
 
     private transient ServletContext servletContext;
-    private transient Timer taskMaster;
+    private transient ScheduledExecutorService taskMaster;
 
-    private transient PwmApplication pwmApplication;
+    private transient volatile PwmApplication pwmApplication;
     private transient ConfigurationReader configReader;
     private ErrorInformation startupErrorInformation;
 
-    private volatile boolean restartRequestedFlag = false;
-    private int restartCount = 0;
-    private final String instanceGuid;
+    private final AtomicInteger restartCount = new AtomicInteger( 0 );
+    private TimeDuration readApplicationLockMaxWait = TimeDuration.SECONDS_30;
+    private final Lock restartLock = new ReentrantLock();
 
     private String contextPath;
+    private File applicationPath;
 
     private static final String UNSPECIFIED_VALUE = "unspecified";
 
     public ContextManager( final ServletContext servletContext )
     {
         this.servletContext = servletContext;
-        this.instanceGuid = PwmRandom.getInstance().randomUUID().toString();
         this.contextPath = servletContext.getContextPath();
     }
 
 
-    public static PwmApplication getPwmApplication( final HttpServletRequest request ) throws PwmUnrecoverableException
+    public static PwmApplication getPwmApplication( final ServletRequest request ) throws PwmUnrecoverableException
     {
-        return getPwmApplication( request.getServletContext() );
+        final PwmApplication appInRequest = ( PwmApplication ) request.getAttribute( PwmConstants.REQUEST_ATTR_PWM_APPLICATION );
+        if ( appInRequest != null )
+        {
+            return appInRequest;
+        }
+
+        final PwmApplication pwmApplication = getPwmApplication( request.getServletContext() );
+        request.setAttribute( PwmConstants.REQUEST_ATTR_PWM_APPLICATION, pwmApplication );
+        return pwmApplication;
+
+
     }
 
     public static PwmApplication getPwmApplication( final HttpSession session ) throws PwmUnrecoverableException
@@ -122,24 +143,59 @@ public class ContextManager implements Serializable
     public PwmApplication getPwmApplication( )
             throws PwmUnrecoverableException
     {
-        if ( pwmApplication == null )
+        PwmApplication localApplication = this.pwmApplication;
+
+        if ( localApplication == null )
         {
-            final ErrorInformation errorInformation;
-            if ( startupErrorInformation != null )
+            try
             {
-                errorInformation = startupErrorInformation;
+                final Instant startTime = Instant.now();
+                final boolean hasLock = restartLock.tryLock( readApplicationLockMaxWait.asMillis(), TimeUnit.MILLISECONDS );
+                if ( hasLock )
+                {
+                    localApplication = this.pwmApplication;
+                    if ( localApplication == null )
+                    {
+                        LOGGER.trace( () -> "could not read pwmApplication after waiting " + TimeDuration.compactFromCurrent( startTime ) );
+                    }
+                    else
+                    {
+                        LOGGER.trace( () -> "waited " + TimeDuration.compactFromCurrent( startTime )
+                                + " to read pwmApplication due to restart in progress" );
+                    }
+                }
             }
-            else
+            catch ( InterruptedException e )
             {
-                errorInformation = new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE, "application is not yet available, please try again in a moment." );
+                LOGGER.warn( "getPwmApplication restartLock unexpectedly interrupted" );
             }
-            throw new PwmUnrecoverableException( errorInformation );
+            finally
+            {
+                restartLock.unlock();
+            }
         }
-        return pwmApplication;
+
+        if ( localApplication != null )
+        {
+            return localApplication;
+        }
+
+        final ErrorInformation errorInformation;
+        if ( startupErrorInformation != null )
+        {
+            errorInformation = startupErrorInformation;
+        }
+        else
+        {
+            final String msg = "application is not yet available, please try again in a moment.";
+            errorInformation = new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE, msg );
+        }
+        throw new PwmUnrecoverableException( errorInformation );
     }
 
     public void initialize( )
     {
+        final Instant startTime = Instant.now();
 
         try
         {
@@ -155,7 +211,6 @@ public class ContextManager implements Serializable
 
 
         final ParameterReader parameterReader = new ParameterReader( servletContext );
-        final File applicationPath;
         {
             final String applicationPathStr = parameterReader.readApplicationPath();
             if ( applicationPathStr == null || applicationPathStr.isEmpty() )
@@ -172,7 +227,7 @@ public class ContextManager implements Serializable
         File configurationFile = null;
         try
         {
-            configurationFile = locateConfigurationFile( applicationPath );
+            configurationFile = locateConfigurationFile( applicationPath, PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
 
             configReader = new ConfigurationReader( configurationFile );
             configReader.getStoredConfiguration().lock();
@@ -194,7 +249,11 @@ public class ContextManager implements Serializable
         {
             handleStartupError( "unable to initialize application due to configuration related error: ", e );
         }
-        LOGGER.debug( "configuration file was loaded from " + ( configurationFile == null ? "null" : configurationFile.getAbsoluteFile() ) );
+
+        {
+            final String filename = configurationFile == null ? "null" : configurationFile.getAbsoluteFile().getAbsolutePath();
+            LOGGER.debug( () -> "configuration file was loaded from " + ( filename ) );
+        }
 
         final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = parameterReader.readApplicationFlags();
         final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = parameterReader.readApplicationParams();
@@ -215,9 +274,11 @@ public class ContextManager implements Serializable
             handleStartupError( "unable to initialize application: ", e );
         }
 
-        final String threadName = JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + " timer";
-        taskMaster = new Timer( threadName, true );
-        taskMaster.schedule( new RestartFlagWatcher(), 1031, 1031 );
+        taskMaster = Executors.newSingleThreadScheduledExecutor(
+                PwmScheduler.makePwmThreadFactory(
+                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-",
+                        true
+                ) );
 
         boolean reloadOnChange = true;
         long fileScanFrequencyMs = 5000;
@@ -226,14 +287,26 @@ public class ContextManager implements Serializable
             {
                 reloadOnChange = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.CONFIG_RELOAD_ON_CHANGE ) );
                 fileScanFrequencyMs = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.CONFIG_FILE_SCAN_FREQUENCY ) );
+
+                this.readApplicationLockMaxWait = TimeDuration.of(
+                        Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_READ_APP_LOCK_MAX_WAIT_MS ) ),
+                        TimeDuration.Unit.MILLISECONDS
+                );
             }
             if ( reloadOnChange )
             {
-                taskMaster.schedule( new ConfigFileWatcher(), fileScanFrequencyMs, fileScanFrequencyMs );
+                taskMaster.scheduleWithFixedDelay( new ConfigFileWatcher(), fileScanFrequencyMs, fileScanFrequencyMs, TimeUnit.MILLISECONDS );
             }
 
             checkConfigForSaveOnRestart( configReader, pwmApplication );
         }
+
+        if ( pwmApplication == null || pwmApplication.getApplicationMode() == PwmApplicationMode.NEW )
+        {
+            taskMaster.scheduleWithFixedDelay( new SilentPropertiesFileWatcher(), fileScanFrequencyMs, fileScanFrequencyMs, TimeUnit.MILLISECONDS );
+        }
+
+        LOGGER.trace( () -> "initialization complete (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
     }
 
     private void checkConfigForSaveOnRestart(
@@ -261,7 +334,7 @@ public class ContextManager implements Serializable
             final StoredConfigurationImpl newConfig = StoredConfigurationImpl.copy( configReader.getStoredConfiguration() );
             newConfig.writeConfigProperty( ConfigurationProperty.CONFIG_ON_START, "false" );
             configReader.saveConfiguration( newConfig, pwmApplication, null );
-            restartRequestedFlag = true;
+            requestPwmApplicationRestart();
         }
         catch ( Exception e )
         {
@@ -315,7 +388,7 @@ public class ContextManager implements Serializable
                 LOGGER.error( "unexpected error attempting to close application: " + e.getMessage() );
             }
         }
-        taskMaster.cancel();
+        taskMaster.shutdown();
 
 
         this.pwmApplication = null;
@@ -324,15 +397,8 @@ public class ContextManager implements Serializable
 
     public void requestPwmApplicationRestart( )
     {
-        restartRequestedFlag = true;
-        try
-        {
-            taskMaster.schedule( new ConfigFileWatcher(), 0 );
-        }
-        catch ( IllegalStateException e )
-        {
-            LOGGER.debug( "could not schedule config file watcher, timer is in illegal state: " + e.getMessage() );
-        }
+        LOGGER.debug( () -> "immediate restart requested" );
+        taskMaster.schedule( new RestartFlagWatcher(), 0, TimeUnit.MILLISECONDS );
     }
 
     public ConfigurationReader getConfigReader( )
@@ -340,7 +406,7 @@ public class ContextManager implements Serializable
         return configReader;
     }
 
-    private class ConfigFileWatcher extends TimerTask
+    private class ConfigFileWatcher implements Runnable
     {
         @Override
         public void run( )
@@ -349,48 +415,159 @@ public class ContextManager implements Serializable
             {
                 if ( configReader.modifiedSinceLoad() )
                 {
-                    LOGGER.info( "configuration file modification has been detected" );
-                    restartRequestedFlag = true;
+                    LOGGER.info( () -> "configuration file modification has been detected" );
+                    requestPwmApplicationRestart();
                 }
             }
         }
     }
 
-    private class RestartFlagWatcher extends TimerTask
+    private class SilentPropertiesFileWatcher implements Runnable
+    {
+        private final File silentPropertiesFile;
+
+        SilentPropertiesFileWatcher()
+        {
+            silentPropertiesFile = locateConfigurationFile( applicationPath, PwmConstants.DEFAULT_PROPERTIES_CONFIG_FILE_FILENAME );
+        }
+
+        @Override
+        public void run()
+        {
+            if ( pwmApplication == null || pwmApplication.getApplicationMode() == PwmApplicationMode.NEW )
+            {
+                if ( silentPropertiesFile.exists() )
+                {
+                    boolean success = false;
+                    LOGGER.info( () -> "file " + silentPropertiesFile.getAbsolutePath() + " has appeared, will import as configuration" );
+                    try
+                    {
+                        final PropertyConfigurationImporter importer = new PropertyConfigurationImporter();
+                        final StoredConfigurationImpl storedConfiguration = importer.readConfiguration( new FileInputStream( silentPropertiesFile ) );
+                        configReader.saveConfiguration( storedConfiguration, pwmApplication, null );
+                        LOGGER.info( () -> "file " + silentPropertiesFile.getAbsolutePath() + " has been successfully imported and saved as configuration file" );
+                        requestPwmApplicationRestart();
+                        success = true;
+                    }
+                    catch ( Exception e )
+                    {
+                        LOGGER.error( "error importing " + silentPropertiesFile.getAbsolutePath() + ", error: " + e.getMessage() );
+                    }
+
+                    final String appendValue = success ? ".imported" : ".error";
+                    final Path source = silentPropertiesFile.toPath();
+                    final Path dest = source.resolveSibling( "silent.properties" + appendValue );
+
+                    try
+                    {
+                        Files.move( source, dest );
+                        LOGGER.info( () -> "file " + source.toString() + " has been renamed to " + dest.toString() );
+                    }
+                    catch ( IOException e )
+                    {
+                        LOGGER.error( "error renaming file " + source.toString() + " to " + dest.toString() + ", error: " + e.getMessage() );
+                    }
+                }
+            }
+        }
+    }
+
+    private class RestartFlagWatcher implements Runnable
     {
 
         public void run( )
         {
-            if ( restartRequestedFlag )
-            {
-                doReinitialize();
-            }
+            doRestart();
         }
 
-        private void doReinitialize( )
+        private void doRestart( )
         {
+            final Instant startTime = Instant.now();
+
             if ( configReader != null && configReader.isSaveInProgress() )
             {
-                LOGGER.info( "delaying restart request due to in progress file save" );
+                final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+                LOGGER.info( () -> "delaying restart request due to in progress file save (" + timeDuration.asCompactString() + ")" );
+                taskMaster.schedule( new RestartFlagWatcher(), 1, TimeUnit.SECONDS );
                 return;
             }
 
-            LOGGER.info( "beginning application restart" );
+            restartLock.lock();
+            final PwmApplication oldPwmApplication = pwmApplication;
+            pwmApplication = null;
+
             try
             {
-                shutdown();
+                waitForRequestsToComplete( oldPwmApplication );
+
+                {
+                    final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+                    LOGGER.info( () -> "beginning application restart (" + timeDuration.asCompactString() + "), restart count=" + restartCount.incrementAndGet() );
+                }
+
+                final Instant shutdownStartTime = Instant.now();
+                try
+                {
+                    try
+                    {
+                        // prevent restart watcher from detecting in-progress restart in a loop
+                        taskMaster.shutdown();
+
+                        oldPwmApplication.shutdown();
+                    }
+                    catch ( Exception e )
+                    {
+                        LOGGER.error( "unexpected error attempting to close application: " + e.getMessage() );
+                    }
+                }
+                catch ( Exception e )
+                {
+                    LOGGER.fatal( "unexpected error during shutdown: " + e.getMessage(), e );
+                }
+
+                {
+                    final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+                    final TimeDuration shutdownDuration = TimeDuration.fromCurrent( shutdownStartTime );
+                    LOGGER.info( () -> "application restart; shutdown completed, ("
+                            + shutdownDuration.asCompactString()
+                            + ") now starting new application instance ("
+                            + timeDuration.asCompactString() + ")" );
+                }
+                initialize();
+
+                {
+                    final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+                    LOGGER.info( () -> "application restart completed (" + timeDuration.asCompactString() + ")" );
+                }
             }
-            catch ( Exception e )
+            finally
             {
-                LOGGER.fatal( "unexpected error during shutdown: " + e.getMessage(), e );
+                restartLock.unlock();
+            }
+        }
+
+        private void waitForRequestsToComplete( final PwmApplication pwmApplication )
+        {
+            final Instant startTime = Instant.now();
+            final TimeDuration maxRequestWaitTime = TimeDuration.of(
+                    Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_RESTART_MAX_REQUEST_WAIT_MS ) ),
+                    TimeDuration.Unit.SECONDS );
+            final int startingRequetsInProgress = pwmApplication.getInprogressRequests().get();
+
+            if ( startingRequetsInProgress == 0 )
+            {
+                return;
             }
 
-            LOGGER.info( "application restart; shutdown completed, now starting new application instance" );
-            restartCount++;
-            initialize();
+            LOGGER.trace( () -> "waiting up to " + maxRequestWaitTime.asCompactString()
+                    + " for " + startingRequetsInProgress  + " requests to complete." );
+            maxRequestWaitTime.pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> pwmApplication.getInprogressRequests().get() == 0
+            );
 
-            LOGGER.info( "application restart completed" );
-            restartRequestedFlag = false;
+            final int requestsInPrgoress = pwmApplication.getInprogressRequests().get();
+            final TimeDuration waitTime = TimeDuration.fromCurrent( startTime  );
+            LOGGER.trace( () -> "after " + waitTime.asCompactString() + ", " + requestsInPrgoress
+                    + " requests in progress, proceeding with restart" );
         }
     }
 
@@ -401,13 +578,12 @@ public class ContextManager implements Serializable
 
     public int getRestartCount( )
     {
-        return restartCount;
+        return restartCount.get();
     }
 
-    public File locateConfigurationFile( final File applicationPath )
-            throws Exception
+    private File locateConfigurationFile( final File applicationPath, final String filename )
     {
-        return new File( applicationPath.getAbsolutePath() + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
+        return new File( applicationPath.getAbsolutePath() + File.separator + filename );
     }
 
     public File locateWebInfFilePath( )
@@ -426,16 +602,11 @@ public class ContextManager implements Serializable
         return null;
     }
 
-    static void outputError( final String outputText )
+    private static void outputError( final String outputText )
     {
         final String msg = PwmConstants.PWM_APP_NAME + " " + JavaHelper.toIsoDate( new Date() ) + " " + outputText;
         System.out.println( msg );
         System.out.println( msg );
-    }
-
-    public String getInstanceGuid( )
-    {
-        return instanceGuid;
     }
 
     public InputStream getResourceAsStream( final String path )
@@ -520,5 +691,4 @@ public class ContextManager implements Serializable
     {
         return contextPath;
     }
-
 }

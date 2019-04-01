@@ -46,7 +46,6 @@ import java.util.Map;
 @Builder
 public class UserInfoBean implements UserInfo
 {
-
     private final UserIdentity userIdentity;
     private final String username;
     private final String userEmailAddress;
@@ -77,6 +76,8 @@ public class UserInfoBean implements UserInfo
     @Builder.Default
     private final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();
 
+    private final String language;
+
     private final ChallengeProfile challengeProfile;
     private final ResponseInfoBean responseInfoBean;
     private final OTPUserRecord otpUserRecord;
@@ -85,6 +86,7 @@ public class UserInfoBean implements UserInfo
     private final Instant passwordLastModifiedTime;
     private final Instant lastLdapLoginTime;
     private final Instant accountExpirationTime;
+    private final Instant passwordExpirationNoticeSendTime;
 
     private final boolean accountEnabled;
     private final boolean accountExpired;
@@ -125,6 +127,12 @@ public class UserInfoBean implements UserInfo
         }
 
         return Collections.emptyList();
+    }
+
+    @Override
+    public byte[] readBinaryAttribute( final String attribute ) throws PwmUnrecoverableException
+    {
+        throw new UnsupportedOperationException( "method not implemented" );
     }
 
     @Override

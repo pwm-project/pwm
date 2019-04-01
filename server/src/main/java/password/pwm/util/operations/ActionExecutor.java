@@ -42,11 +42,11 @@ import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.http.client.PwmHttpClientResponse;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,33 +83,30 @@ public class ActionExecutor
     )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
-        LOGGER.trace( sessionLabel, "preparing to execute " + actionConfiguration.getType() + " action " + actionConfiguration.getName() );
+        LOGGER.trace( sessionLabel, () -> "preparing to execute action(s) for " + actionConfiguration.getName() );
 
-        switch ( actionConfiguration.getType() )
+        for ( final ActionConfiguration.LdapAction ldapAction : actionConfiguration.getLdapActions() )
         {
-            case ldap:
-                executeLdapAction( sessionLabel, actionConfiguration );
-                break;
-
-            case webservice:
-                executeWebserviceAction( sessionLabel, actionConfiguration );
-                break;
-
-            default:
-                JavaHelper.unhandledSwitchStatement( actionConfiguration.getType() );
+            executeLdapAction( sessionLabel, actionConfiguration, ldapAction );
         }
 
-        LOGGER.info( sessionLabel, "action " + actionConfiguration.getName() + " completed successfully" );
+        for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
+        {
+            executeWebserviceAction( sessionLabel, actionConfiguration, webAction );
+        }
+
+        LOGGER.info( sessionLabel, () -> "action " + actionConfiguration.getName() + " completed successfully" );
     }
 
     private void executeLdapAction(
             final SessionLabel sessionLabel,
-            final ActionConfiguration actionConfiguration
-    )
+            final ActionConfiguration actionConfiguration,
+            final ActionConfiguration.LdapAction ldapAction
+            )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
-        String attributeName = actionConfiguration.getAttributeName();
-        String attributeValue = actionConfiguration.getAttributeValue();
+        String attributeName = ldapAction.getAttributeName();
+        String attributeValue = ldapAction.getAttributeValue();
 
         final ChaiUser theUser;
         if ( settings.getChaiUser() != null )
@@ -121,7 +118,7 @@ public class ActionExecutor
             if ( settings.getUserIdentity() == null )
             {
                 final String errorMsg = "attempt to execute lap action but neither chaiUser or userIdentity is specified";
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                 throw new PwmUnrecoverableException( errorInformation );
             }
             theUser = pwmApplication.getProxiedChaiUser( settings.getUserIdentity() );
@@ -131,7 +128,7 @@ public class ActionExecutor
         {
             if ( settings.getMacroMachine() == null )
             {
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "executor specified macro expansion but did not supply macro machine" ) );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "executor specified macro expansion but did not supply macro machine" ) );
             }
             final MacroMachine macroMachine = settings.getMacroMachine();
 
@@ -144,23 +141,24 @@ public class ActionExecutor
                 theUser,
                 attributeName,
                 attributeValue,
-                actionConfiguration.getLdapMethod(),
+                ldapAction.getLdapMethod(),
                 settings.getMacroMachine()
         );
     }
 
     private void executeWebserviceAction(
             final SessionLabel sessionLabel,
-            final ActionConfiguration actionConfiguration
+            final ActionConfiguration actionConfiguration,
+            final ActionConfiguration.WebAction webAction
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        String url = actionConfiguration.getUrl();
-        String body = actionConfiguration.getBody();
+        String url = webAction.getUrl();
+        String body = webAction.getBody();
         final Map<String, String> headers = new LinkedHashMap<>();
-        if ( actionConfiguration.getHeaders() != null )
+        if ( webAction.getHeaders() != null )
         {
-            headers.putAll( actionConfiguration.getHeaders() );
+            headers.putAll( webAction.getHeaders() );
         }
 
         try
@@ -170,7 +168,7 @@ public class ActionExecutor
             {
                 if ( settings.getMacroMachine() == null )
                 {
-                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "executor specified macro expansion but did not supply macro machine" ) );
+                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "executor specified macro expansion but did not supply macro machine" ) );
                 }
                 final MacroMachine macroMachine = settings.getMacroMachine();
 
@@ -189,21 +187,21 @@ public class ActionExecutor
             }
 
             // add basic auth header;
-            if ( !StringUtil.isEmpty( actionConfiguration.getUsername() ) && !StringUtil.isEmpty( actionConfiguration.getPassword() ) )
+            if ( !StringUtil.isEmpty( webAction.getUsername() ) && !StringUtil.isEmpty( webAction.getPassword() ) )
             {
-                final String authHeaderValue = new BasicAuthInfo( actionConfiguration.getUsername(), new PasswordData( actionConfiguration.getPassword() ) ).toAuthHeader();
+                final String authHeaderValue = new BasicAuthInfo( webAction.getUsername(), new PasswordData( webAction.getPassword() ) ).toAuthHeader();
                 headers.put( HttpHeader.Authorization.getHttpName(), authHeaderValue );
             }
 
-            final HttpMethod method = HttpMethod.fromString( actionConfiguration.getMethod().toString() );
+            final HttpMethod method = HttpMethod.fromString( webAction.getMethod().toString() );
 
             final PwmHttpClientRequest clientRequest = new PwmHttpClientRequest( method, url, body, headers );
             final PwmHttpClient client;
             {
-                if ( actionConfiguration.getCertificates() != null )
+                if ( webAction.getCertificates() != null )
                 {
                     final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
-                            .certificates( actionConfiguration.getCertificates() )
+                            .certificates( webAction.getCertificates() )
                             .build();
 
                     client = new PwmHttpClient( pwmApplication, sessionLabel, clientConfiguration );
@@ -215,8 +213,15 @@ public class ActionExecutor
             }
             final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest );
 
-            if ( clientResponse.getStatusCode() != 200 )
+            final List<Integer> successStatus = webAction.getSuccessStatus() == null
+                    ? Collections.emptyList()
+                    : webAction.getSuccessStatus();
+
+            if ( !successStatus.contains( clientResponse.getStatusCode() ) )
             {
+                LOGGER.trace( () -> "response status code " + clientResponse.getStatusCode() + " is not one of the configured success status codes: "
+                        + StringUtil.collectionToString( successStatus ) );
+
                 throw new PwmOperationalException( new ErrorInformation(
                         PwmError.ERROR_SERVICE_UNREACHABLE,
                         "unexpected HTTP status code while calling external web service: "
@@ -234,7 +239,7 @@ public class ActionExecutor
 
             final String errorMsg = "unexpected error during API execution: " + e.getMessage();
             LOGGER.error( errorMsg );
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg ) );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
     }
 
@@ -257,7 +262,7 @@ public class ActionExecutor
                 : attrValue;
 
 
-        LOGGER.trace( sessionLabel, "beginning ldap " + effectiveLdapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName );
+        LOGGER.trace( sessionLabel, () -> "beginning ldap " + effectiveLdapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName );
         switch ( effectiveLdapMethod )
         {
             case replace:
@@ -265,12 +270,12 @@ public class ActionExecutor
                 try
                 {
                     theUser.writeStringAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, "replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
+                    LOGGER.info( sessionLabel, () -> "replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
                 }
                 catch ( ChaiOperationException e )
                 {
                     final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                     final PwmOperationalException newException = new PwmOperationalException( errorInformation );
                     newException.initCause( e );
                     throw newException;
@@ -283,12 +288,12 @@ public class ActionExecutor
                 try
                 {
                     theUser.addAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, "added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
+                    LOGGER.info( sessionLabel, () -> "added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
                 }
                 catch ( ChaiOperationException e )
                 {
                     final String errorMsg = "error adding '" + attrName + "' attribute value from user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                     final PwmOperationalException newException = new PwmOperationalException( errorInformation );
                     newException.initCause( e );
                     throw newException;
@@ -302,12 +307,12 @@ public class ActionExecutor
                 try
                 {
                     theUser.deleteAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
+                    LOGGER.info( sessionLabel, () -> "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
                 }
                 catch ( ChaiOperationException e )
                 {
-                    final String errorMsg = "error deletig '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+                    final String errorMsg = "error deleting '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                     final PwmOperationalException newException = new PwmOperationalException( errorInformation );
                     newException.initCause( e );
                     throw newException;

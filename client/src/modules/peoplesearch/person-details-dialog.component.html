@@ -20,80 +20,92 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   -->
 
-<div class="ias-dialog person-details-dialog">
-    <div class="ias-dialog-container">
-        <div class="ias-dialog-content">
-            <div class="person-details-dialog-header">
-                <div class="ias-avatar" ng-if="$ctrl.photosEnabled" ng-style="$ctrl.getAvatarStyle()" alt="User image"></div>
+<div class="ias-styles-root">
+    <div class="ias-dialog person-details-dialog">
+        <div class="ias-dialog-container">
+            <div class="ias-dialog-content">
+                <div class="person-details-dialog-header">
+                    <div class="ias-avatar" ng-if="$ctrl.photosEnabled" ng-style="$ctrl.getAvatarStyle()" alt="User image"></div>
 
-                <div class="ias-header">
-                    <h2 ng-bind="$ctrl.person.displayNames[0]"></h2>
-                    <span class="ias-fill"></span>
-                    <ias-button class="ias-icon-button" ng-click="$ctrl.closeDialog()">
-                        <ias-icon icon="close_thick"></ias-icon>
-                    </ias-button>
+                    <div class="ias-header">
+                        <h2 ng-bind="$ctrl.person.displayNames[0]"></h2>
+                        <span class="ias-fill"></span>
+                        <ias-button class="ias-icon-button" ng-click="$ctrl.closeDialog()">
+                            <ias-icon icon="close_thick"></ias-icon>
+                        </ias-button>
+                    </div>
+                    <div ng-bind="$ctrl.person.displayNames[1]"></div>
+                    <div ng-bind="$ctrl.person.displayNames[2]"></div>
+                    <div ng-bind="$ctrl.person.displayNames[3]"></div>
+                    <div class="person-dialog-actions">
+                        <ias-button type="button" class="ias-icon-text-button"
+                                    ng-click="$ctrl.gotoOrgChart()" ng-if="$ctrl.orgChartEnabled">
+                            <ias-icon icon="orgchart_thin" id="orgchart-button"></ias-icon>
+                            <span translate="Title_OrgChart">Organizational Chart</span>
+                        </ias-button>
+                        <ias-button class="ias-icon-button ias-dialog-cancel-button"
+                                    ng-attr-title="{{ 'Button_ExportOrgChart' | translate }}"
+                                    ng-click="$ctrl.beginExport()" ng-if="$ctrl.exportEnabled">
+                            <ias-icon icon="download_thick"></ias-icon>
+                        </ias-button>
+                        <ias-button class="ias-icon-button ias-dialog-cancel-button"
+                                    ng-attr-title="{{ 'Button_EmailTeam' | translate }}"
+                                    ng-click="$ctrl.beginEmail()" ng-if="$ctrl.emailTeamEnabled">
+                            <ias-icon icon="email_thick"></ias-icon>
+                        </ias-button>
+                    </div>
                 </div>
-                <div ng-bind="$ctrl.person.displayNames[1]"></div>
-                <div ng-bind="$ctrl.person.displayNames[2]"></div>
-                <div ng-bind="$ctrl.person.displayNames[3]"></div>
-                <div class="person-dialog-actions">
-                    <ias-button type="button" class="ias-icon-text-button"
-                                ng-click="$ctrl.gotoOrgChart()" ng-if="$ctrl.orgChartEnabled">
-                        <ias-icon icon="orgchart_thin" id="orgchart-button"></ias-icon>
-                        <span translate="Title_OrgChart">Organizational Chart</span>
-                    </ias-button>
-                </div>
-            </div>
-            <div class="person-details-content">
-                <table class="details-table">
-                    <tbody>
-                    <tr>
-                        <td></td>
-                        <td>
-                            <ul>
-                                <li ng-repeat="reference in $ctrl.person.links">
-                                    <a ng-href="{{reference.link}}"><span ng-bind="reference.name"></span></a>
-                                </li>
-                            </ul>
-                        </td>
-                    </tr>
-                    <tr ng-repeat="(key, detail) in $ctrl.person.detail">
-                        <td ng-bind="detail.label"></td>
-                        <td ng-switch="detail.type">
-                            <div class="detail-container" ng-switch-when="userDN">
+                <div class="person-details-content">
+                    <table class="details-table">
+                        <tbody>
+                        <tr>
+                            <td></td>
+                            <td>
                                 <ul>
-                                    <li ng-repeat="user in detail.userReferences">
-                                        <a ng-href="{{$ctrl.getPersonDetailsUrl(user.userKey)}}"
-                                           ng-bind="user.displayName"></a>
+                                    <li ng-repeat="reference in $ctrl.person.links">
+                                        <a ng-href="{{reference.link}}"><span ng-bind="reference.name"></span></a>
                                     </li>
                                 </ul>
-                            </div>
-                            <div class="detail-container" ng-switch-default>
-                                <ul>
-                                    <li ng-repeat="value in detail.values">
-                                        <a ng-href="mailto:{{value}}"
-                                           ng-bind="value"
-                                           ng-if="detail.type === 'email'"></a>
-                                        <a ng-href="tel:{{value}}"
-                                           ng-bind="value"
-                                           ng-if="detail.type === 'tel'"></a>
-                                        <span ng-bind="value"
-                                              ng-if="detail.type !== 'email' && detail.type !== 'tel'"></span>
+                            </td>
+                        </tr>
+                        <tr ng-repeat="(key, detail) in $ctrl.person.detail">
+                            <td ng-bind="detail.label"></td>
+                            <td ng-switch="detail.type">
+                                <div class="detail-container" ng-switch-when="userDN">
+                                    <ul>
+                                        <li ng-repeat="user in detail.userReferences">
+                                            <a ng-href="{{$ctrl.getPersonDetailsUrl(user.userKey)}}"
+                                               ng-bind="user.displayName"></a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="detail-container" ng-switch-default>
+                                    <ul>
+                                        <li ng-repeat="value in detail.values">
+                                            <a ng-href="mailto:{{value}}"
+                                               ng-bind="value"
+                                               ng-if="detail.type === 'email'"></a>
+                                            <a ng-href="tel:{{value}}"
+                                               ng-bind="value"
+                                               ng-if="detail.type === 'tel'"></a>
+                                            <span ng-bind="value"
+                                                  ng-if="detail.type !== 'email' && detail.type !== 'tel'"></span>
 
-                                        <a ui-sref="search.table({ query: value })"
-                                           class="details-table-search-link"
-                                           ng-if="detail.searchable"
-                                           ng-attr-title="{{('Placeholder_Search' | translate) + ' \'' + value + '\''}}">
-                                            <ias-icon icon="search_thick"></ias-icon>
-                                        </a>
+                                            <a ui-sref="search.table({ query: value })"
+                                               class="details-table-search-link"
+                                               ng-if="detail.searchable"
+                                               ng-attr-title="{{('Placeholder_Search' | translate) + ' \'' + value + '\''}}">
+                                                <ias-icon icon="search_thick"></ias-icon>
+                                            </a>
 
-                                    </li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

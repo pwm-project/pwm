@@ -30,14 +30,15 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.SecureService;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 class CryptoCookieBeanImpl implements SessionBeanProvider
 {
@@ -57,7 +58,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
         }
 
         final String sessionGuid = pwmRequest.getPwmSession().getLoginInfoBean().getGuid();
-        final String cookieName = nameForClass( theClass );
+        final String cookieName = nameForClass( pwmRequest, theClass );
 
         try
         {
@@ -72,7 +73,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
         }
         catch ( PwmException e )
         {
-            LOGGER.debug( pwmRequest, "ignoring existing existing " + cookieName + " cookie bean due to error: " + e.getMessage() );
+            LOGGER.debug( pwmRequest, () -> "ignoring existing existing " + cookieName + " cookie bean due to error: " + e.getMessage() );
         }
 
         final E newBean = SessionStateService.newBean( sessionGuid, theClass );
@@ -91,14 +92,14 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
         {
             if ( cookieBean.getGuid() == null )
             {
-                LOGGER.trace( pwmRequest, "disregarded existing " + cookieName + " cookie bean due to missing guid" );
+                LOGGER.trace( pwmRequest, () -> "disregarded existing " + cookieName + " cookie bean due to missing guid" );
                 return false;
             }
 
             final String sessionGuid = pwmRequest.getPwmSession().getLoginInfoBean().getGuid();
             if ( !cookieBean.getGuid().equals( sessionGuid ) )
             {
-                LOGGER.trace( pwmRequest, "disregarded existing " + cookieName + " cookie bean due to session change" );
+                LOGGER.trace( pwmRequest, () -> "disregarded existing " + cookieName + " cookie bean due to session change" );
                 return false;
             }
         }
@@ -107,15 +108,15 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
         {
             if ( cookieBean.getTimestamp() == null )
             {
-                LOGGER.trace( pwmRequest, "disregarded existing " + cookieName + " cookie bean due to missing timestamp" );
+                LOGGER.trace( pwmRequest, () -> "disregarded existing " + cookieName + " cookie bean due to missing timestamp" );
                 return false;
             }
 
             final TimeDuration cookieLifeDuration = TimeDuration.fromCurrent( cookieBean.getTimestamp() );
             final long maxIdleSeconds = pwmRequest.getConfig().readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
-            if ( cookieLifeDuration.isLongerThan( maxIdleSeconds, TimeUnit.SECONDS ) )
+            if ( cookieLifeDuration.isLongerThan( maxIdleSeconds, TimeDuration.Unit.SECONDS ) )
             {
-                LOGGER.trace( pwmRequest, "disregarded existing " + cookieName + " cookie bean due to outdated timestamp (" + cookieLifeDuration.asCompactString() + ")" );
+                LOGGER.trace( pwmRequest, () -> "disregarded existing " + cookieName + " cookie bean due to outdated timestamp (" + cookieLifeDuration.asCompactString() + ")" );
                 return false;
             }
         }
@@ -140,7 +141,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
                     for ( final Map.Entry<Class<? extends PwmSessionBean>, PwmSessionBean> entry : beansInRequest.entrySet() )
                     {
                         final Class<? extends PwmSessionBean> theClass = entry.getKey();
-                        final String cookieName = nameForClass( theClass );
+                        final String cookieName = nameForClass( pwmRequest, theClass );
                         final PwmSessionBean bean = entry.getValue();
                         if ( bean == null )
                         {
@@ -181,9 +182,11 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
         return ( Map<Class<? extends PwmSessionBean>, PwmSessionBean> ) sessionBeans;
     }
 
-    private static String nameForClass( final Class<? extends PwmSessionBean> theClass )
+    private static String nameForClass( final PwmRequest pwmRequest, final Class<? extends PwmSessionBean> theClass )
+            throws PwmUnrecoverableException
     {
-        return theClass.getSimpleName();
+        final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
+        return "b-" + StringUtil.truncate( secureService.hash( theClass.getName() ), 8 );
     }
 
     @Override

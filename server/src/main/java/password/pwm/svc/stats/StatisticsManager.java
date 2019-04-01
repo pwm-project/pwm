@@ -30,7 +30,7 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
-import password.pwm.util.AlertHandler;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -55,8 +55,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.TimerTask;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 public class StatisticsManager implements PwmService
 {
@@ -64,7 +63,7 @@ public class StatisticsManager implements PwmService
     private static final PwmLogger LOGGER = PwmLogger.forClass( StatisticsManager.class );
 
     // 1 minutes
-    private static final TimeDuration DB_WRITE_FREQUENCY = new TimeDuration( 1, TimeUnit.MINUTES );
+    private static final TimeDuration DB_WRITE_FREQUENCY = TimeDuration.MINUTE;
 
     private static final String DB_KEY_VERSION = "STATS_VERSION";
     private static final String DB_KEY_CUMULATIVE = "CUMULATIVE";
@@ -82,7 +81,7 @@ public class StatisticsManager implements PwmService
     private DailyKey currentDailyKey = new DailyKey( new Date() );
     private DailyKey initialDailyKey = new DailyKey( new Date() );
 
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
 
     private final StatisticsBundle statsCurrent = new StatisticsBundle();
     private StatisticsBundle statsDaily = new StatisticsBundle();
@@ -330,11 +329,10 @@ public class StatisticsManager implements PwmService
         localDB.put( LocalDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString() );
 
         {
-            // setup a timer to roll over at 0 Zula and one to write current stats every 10 seconds
-            executorService = JavaHelper.makeSingleThreadExecutorService( pwmApplication, this.getClass() );
-            executorService.scheduleAtFixedRate( new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY.getTotalMilliseconds(), TimeUnit.MILLISECONDS );
-            final TimeDuration delayTillNextZulu = TimeDuration.fromCurrent( JavaHelper.nextZuluZeroTime() );
-            executorService.scheduleAtFixedRate( new NightlyTask(), delayTillNextZulu.getTotalMilliseconds(), TimeUnit.DAYS.toMillis( 1 ), TimeUnit.MILLISECONDS );
+            // setup a timer to roll over at 0 Zulu and one to write current stats regularly
+            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new FlushTask(), executorService, DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
+            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new NightlyTask(), executorService, TimeDuration.ZERO );
         }
 
         status = STATUS.OPEN;
@@ -368,28 +366,24 @@ public class StatisticsManager implements PwmService
 
     }
 
+    public Map<String, String> dailyStatisticsAsLabelValueMap()
+    {
+        final Map<String, String> emailValues = new LinkedHashMap<>();
+        for ( final Statistic statistic : Statistic.values() )
+        {
+            final String key = statistic.getLabel( PwmConstants.DEFAULT_LOCALE );
+            final String value = statsDaily.getStatistic( statistic );
+            emailValues.put( key, value );
+        }
+
+        return Collections.unmodifiableMap( emailValues );
+    }
+
     private void resetDailyStats( )
     {
-        try
-        {
-            final Map<String, String> emailValues = new LinkedHashMap<>();
-            for ( final Statistic statistic : Statistic.values() )
-            {
-                final String key = statistic.getLabel( PwmConstants.DEFAULT_LOCALE );
-                final String value = statsDaily.getStatistic( statistic );
-                emailValues.put( key, value );
-            }
-
-            AlertHandler.alertDailyStats( pwmApplication, emailValues );
-        }
-        catch ( Exception e )
-        {
-            LOGGER.error( "error while generating daily alert statistics: " + e.getMessage() );
-        }
-
         currentDailyKey = new DailyKey( new Date() );
         statsDaily = new StatisticsBundle();
-        LOGGER.debug( "reset daily statistics" );
+        LOGGER.debug( () -> "reset daily statistics" );
     }
 
     public STATUS status( )
@@ -409,7 +403,7 @@ public class StatisticsManager implements PwmService
             LOGGER.error( "unexpected error closing: " + e.getMessage() );
         }
 
-        JavaHelper.closeAndWaitExecutor( executorService, new TimeDuration( 3, TimeUnit.SECONDS ) );
+        JavaHelper.closeAndWaitExecutor( executorService, TimeDuration.of( 3, TimeDuration.Unit.SECONDS ) );
 
         status = STATUS.CLOSED;
     }
@@ -453,7 +447,7 @@ public class StatisticsManager implements PwmService
 
         public DailyKey( final String value )
         {
-            final String strippedValue = value.substring( DB_KEY_PREFIX_DAILY.length(), value.length() );
+            final String strippedValue = value.substring( DB_KEY_PREFIX_DAILY.length() );
             final String[] splitValue = strippedValue.split( "_" );
             year = Integer.parseInt( splitValue[ 0 ] );
             day = Integer.parseInt( splitValue[ 1 ] );
@@ -466,7 +460,7 @@ public class StatisticsManager implements PwmService
         @Override
         public String toString( )
         {
-            return DB_KEY_PREFIX_DAILY + String.valueOf( year ) + "_" + String.valueOf( day );
+            return DB_KEY_PREFIX_DAILY + year + "_" + day;
         }
 
         public DailyKey previous( )
@@ -539,7 +533,7 @@ public class StatisticsManager implements PwmService
     public int outputStatsToCsv( final OutputStream outputStream, final Locale locale, final boolean includeHeader )
             throws IOException
     {
-        LOGGER.trace( "beginning output stats to csv process" );
+        LOGGER.trace( () -> "beginning output stats to csv process" );
         final Instant startTime = Instant.now();
 
         final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
@@ -576,8 +570,11 @@ public class StatisticsManager implements PwmService
         }
 
         csvPrinter.flush();
-        LOGGER.trace( "completed output stats to csv process; output " + counter + " records in " + TimeDuration.fromCurrent(
-                startTime ).asCompactString() );
+        {
+            final int finalCounter = counter;
+            LOGGER.trace( () -> "completed output stats to csv process; output " + finalCounter + " records in "
+                    + TimeDuration.compactFromCurrent( startTime ) );
+        }
         return counter;
     }
 
@@ -622,7 +619,7 @@ public class StatisticsManager implements PwmService
         if ( statisticsManager.status() != STATUS.OPEN )
         {
             LOGGER.trace(
-                    "skipping requested statistic increment of " + statistic + " due to StatisticsManager being closed" );
+                    () -> "skipping requested statistic increment of " + statistic + " due to StatisticsManager being closed" );
             return;
         }
 

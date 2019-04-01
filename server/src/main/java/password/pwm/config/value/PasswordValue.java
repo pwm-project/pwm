@@ -22,7 +22,7 @@
 
 package password.pwm.config.value;
 
-import org.jdom2.Element;
+
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
@@ -32,6 +32,8 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
@@ -79,12 +81,13 @@ public class PasswordValue implements StoredValue
             }
 
             public PasswordValue fromXmlElement(
-                    final Element settingElement,
+                    final PwmSetting pwmSetting,
+                    final XmlElement settingElement,
                     final PwmSecurityKey key
             )
                     throws PwmOperationalException, PwmUnrecoverableException
             {
-                final Element valueElement = settingElement.getChild( "value" );
+                final XmlElement valueElement = settingElement.getChild( "value" );
                 final String rawValue = valueElement.getText();
 
                 final PasswordValue newPasswordValue = new PasswordValue();
@@ -123,7 +126,7 @@ public class PasswordValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName )
+    public List<XmlElement> toXmlValues( final String valueElementName )
     {
         throw new IllegalStateException( "password xml output requires hash key" );
     }
@@ -146,22 +149,21 @@ public class PasswordValue implements StoredValue
         return 0;
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey key )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey key )
     {
         if ( value == null )
         {
-            final Element valueElement = new Element( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
             return Collections.singletonList( valueElement );
         }
-        final Element valueElement = new Element( valueElementName );
+        final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
         try
         {
             final String encodedValue = SecureEngine.encryptToString( value.getStringValue(), key, PwmBlockAlgorithm.CONFIG );
-            valueElement.addContent( encodedValue );
+            valueElement.addText( encodedValue );
         }
         catch ( Exception e )
         {
-            valueElement.addContent( "" );
             throw new RuntimeException( "missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage() );
         }
         return Collections.singletonList( valueElement );

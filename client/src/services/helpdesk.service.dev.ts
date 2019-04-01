@@ -25,14 +25,20 @@ import {
     IVerificationTokenResponse
 } from './helpdesk.service';
 import {IPromise, IQService, ITimeoutService, IWindowService} from 'angular';
+import {IPerson} from '../models/person.model';
+import SearchResult from '../models/search-result.model';
 
+const peopleData = require('./people.data.json');
+
+const MAX_RESULTS = 10;
 const SIMULATED_RESPONSE_TIME = 300;
 
 export default class HelpDeskService implements IHelpDeskService {
-    PWM_GLOBAL: any;
+    private people: IPerson[];
 
     static $inject = [ '$q', '$timeout', '$window' ];
     constructor(private $q: IQService, private $timeout: ITimeoutService, private $window: IWindowService) {
+        this.people = peopleData.map((person) => <IPerson>(person));
     }
 
     checkVerification(userKey: string): IPromise<IVerificationStatus> {
@@ -48,10 +54,10 @@ export default class HelpDeskService implements IHelpDeskService {
     }
 
     customAction(actionName: string, userKey: string): IPromise<ISuccessResponse> {
-        if (actionName === 'custom_0') {
+        if (actionName === 'Clone User') {
             return this.simulateResponse({ successMessage: 'User successfully cloned.' });
         }
-        else if (actionName === 'custom_1') {
+        else if (actionName === 'Merge User') {
             return this.simulateResponse({ successMessage: 'User successfully merged.' });
         }
         else {
@@ -410,19 +416,34 @@ export default class HelpDeskService implements IHelpDeskService {
                 'verification',
                 'deleteUser'
             ],
-            'customButtons': [
-                {
-                    'name': 'custom_0',
-                    'label': 'Clone User',
-                    'description': 'Clones the current user'
-                },
-                {
-                    'name': 'custom_1',
-                    'label': 'Merge User',
-                    'description': 'Merges the current user with another user'
-                }
-            ]
         });
+    }
+
+    getPersonCard(userKey: string): IPromise<any> {
+        let self = this;
+
+        let deferred = this.$q.defer();
+        let deferredAbort = this.$q.defer();
+
+        let timeoutPromise = this.$timeout(() => {
+            const person = this.findPerson(userKey);
+
+            if (person) {
+                deferred.resolve(person);
+            }
+            else {
+                deferred.reject(`Person with id: "${userKey}" not found.`);
+            }
+        }, SIMULATED_RESPONSE_TIME);
+
+        // To simulate an abortable promise, edit SIMULATED_RESPONSE_TIME
+        deferred.promise['_httpTimeout'] = deferredAbort;
+        deferredAbort.promise.then(() => {
+            self.$timeout.cancel(timeoutPromise);
+            deferred.resolve();
+        });
+
+        return deferred.promise;
     }
 
     getRandomPassword(userKey: string): IPromise<IRandomPasswordResponse> {
@@ -452,6 +473,23 @@ export default class HelpDeskService implements IHelpDeskService {
                 method: 'Personal Data'
             }
         ]);
+    }
+
+    search(query: string): IPromise<SearchResult> {
+        let people = this.people.filter((person: IPerson) => {
+            if (!query) {
+                return false;
+            }
+            return person._displayName.toLowerCase().indexOf(query.toLowerCase()) >= 0;
+        });
+
+        const sizeExceeded = (people.length > MAX_RESULTS);
+        if (sizeExceeded) {
+            people = people.slice(MAX_RESULTS);
+        }
+
+        let result = new SearchResult({sizeExceeded: sizeExceeded, searchResults: people});
+        return this.simulateResponse(result);
     }
 
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse> {
@@ -491,10 +529,18 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.simulateResponse({ successMessage: 'Unlock successful.' });
     }
 
-
-
     validateVerificationData(userKey: string, data: any, method: string): IPromise<IVerificationStatus> {
         return this.simulateResponse({ passed: true });
+    }
+
+    private findPerson(id: string): IPerson {
+        const people = this.people.filter((person: IPerson) => person.userKey == id);
+
+        if (people.length) {
+            return people[0];
+        }
+
+        return null;
     }
 
     get showStrengthMeter(): boolean {

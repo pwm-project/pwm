@@ -229,7 +229,7 @@ public class JsonUtil
             }
             catch ( ParseException e )
             {
-                LOGGER.debug( "unable to parse stored json Date.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage() );
+                LOGGER.debug( () -> "unable to parse stored json Date.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage() );
                 throw new JsonParseException( e );
             }
         }
@@ -257,7 +257,7 @@ public class JsonUtil
             }
             catch ( Exception e )
             {
-                LOGGER.debug( "unable to parse stored json Instant.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage() );
+                LOGGER.debug( () -> "unable to parse stored json Instant.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage() );
                 throw new JsonParseException( e );
             }
         }
@@ -346,6 +346,7 @@ public class JsonUtil
         gsonBuilder.registerTypeAdapter( X509Certificate.class, new X509CertificateAdapter() );
         gsonBuilder.registerTypeAdapter( byte[].class, new ByteArrayToBase64TypeAdapter() );
         gsonBuilder.registerTypeAdapter( PasswordData.class, new PasswordDataTypeAdapter() );
+        gsonBuilder.registerTypeAdapter( PwmLdapVendorTypeAdaptor.class, new PwmLdapVendorTypeAdaptor() );
         return gsonBuilder;
     }
 

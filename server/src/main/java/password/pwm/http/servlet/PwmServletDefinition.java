@@ -61,6 +61,9 @@ import password.pwm.http.servlet.updateprofile.UpdateProfileServlet;
 import javax.servlet.annotation.WebServlet;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
 
 public enum PwmServletDefinition
 {
@@ -70,18 +73,18 @@ public enum PwmServletDefinition
     PublicCommand( PublicCommandServlet.class, null ),
     PublicPeopleSearch( PublicPeopleSearchServlet.class, null ),
     PublicChangePassword( PublicChangePasswordServlet.class, ChangePasswordBean.class ),
-    //Resource(password.pwm.http.servlet.ResourceFileServlet.class),
+    Resource( password.pwm.http.servlet.resource.ResourceFileServlet.class, null ),
 
     AccountInformation( AccountInformationServlet.class, null ),
-    PrivateChangePassword( PrivateChangePasswordServlet.class, ChangePasswordBean.class ),
-    SetupResponses( password.pwm.http.servlet.SetupResponsesServlet.class, SetupResponsesBean.class ),
-    UpdateProfile( UpdateProfileServlet.class, UpdateProfileBean.class ),
-    SetupOtp( password.pwm.http.servlet.SetupOtpServlet.class, SetupOtpBean.class ),
+    PrivateChangePassword( PrivateChangePasswordServlet.class, ChangePasswordBean.class, Flag.RequiresUserPasswordAndBind ),
+    SetupResponses( password.pwm.http.servlet.SetupResponsesServlet.class, SetupResponsesBean.class, Flag.RequiresUserPasswordAndBind ),
+    UpdateProfile( UpdateProfileServlet.class, UpdateProfileBean.class, Flag.RequiresUserPasswordAndBind ),
+    SetupOtp( password.pwm.http.servlet.SetupOtpServlet.class, SetupOtpBean.class, Flag.RequiresUserPasswordAndBind ),
     Helpdesk( password.pwm.http.servlet.helpdesk.HelpdeskServlet.class, null ),
     Shortcuts( password.pwm.http.servlet.ShortcutServlet.class, ShortcutsBean.class ),
     PrivateCommand( PrivateCommandServlet.class, null ),
     PrivatePeopleSearch( PrivatePeopleSearchServlet.class, null ),
-    GuestRegistration( password.pwm.http.servlet.GuestRegistrationServlet.class, null ),
+    GuestRegistration( password.pwm.http.servlet.GuestRegistrationServlet.class, null, Flag.RequiresUserPasswordAndBind ),
     SelfDelete( DeleteAccountServlet.class, DeleteAccountBean.class ),
 
     ClientApi( ClientApiServlet.class, null ),
@@ -92,6 +95,7 @@ public enum PwmServletDefinition
     ConfigManager_Wordlists( ConfigManagerWordlistServlet.class, ConfigManagerBean.class ),
     ConfigManager_LocalDB( ConfigManagerLocalDBServlet.class, ConfigManagerBean.class ),
     ConfigManager_Certificates( ConfigManagerCertificatesServlet.class, ConfigManagerBean.class ),
+    FullPageHealth( FullPageHealthServlet.class, null ),
 
     NewUser( NewUserServlet.class, NewUserBean.class ),
     ActivateUser( ActivateUserServlet.class, ActivateUserBean.class ),
@@ -102,11 +106,24 @@ public enum PwmServletDefinition
     private final String servletUrl;
     private final Class<? extends PwmServlet> pwmServletClass;
     private final Class<? extends PwmSessionBean> pwmSessionBeanClass;
+    private final Collection<Flag> flags;
 
-    PwmServletDefinition( final Class<? extends PwmServlet> pwmServletClass, final Class<? extends PwmSessionBean> pwmSessionBeanClass )
+    public enum Flag
+    {
+        RequiresUserPasswordAndBind,
+    }
+
+    PwmServletDefinition(
+            final Class<? extends PwmServlet> pwmServletClass,
+            final Class<? extends PwmSessionBean> pwmSessionBeanClass,
+            final Flag... flags
+    )
     {
         this.pwmServletClass = pwmServletClass;
         this.pwmSessionBeanClass = pwmSessionBeanClass;
+        final EnumSet flagSet = EnumSet.noneOf( Flag.class );
+        Collections.addAll( flagSet, flags );
+        this.flags = Collections.unmodifiableSet( flagSet );
 
         try
         {
@@ -119,7 +136,7 @@ public enum PwmServletDefinition
 
         final String firstPattern = patterns[ 0 ];
         final int lastSlash = firstPattern.lastIndexOf( "/" );
-        servletUrl = firstPattern.substring( lastSlash + 1, firstPattern.length() );
+        servletUrl = firstPattern.substring( lastSlash + 1 );
     }
 
     public String[] urlPatterns( )
@@ -157,8 +174,11 @@ public enum PwmServletDefinition
             }
         }
 
-        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "missing WebServlet annotation for class " + this.getClass().getName() ) );
+        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "missing WebServlet annotation for class " + this.getClass().getName() ) );
     }
 
-
+    public Collection<Flag> getFlags()
+    {
+        return flags;
+    }
 }

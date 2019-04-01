@@ -22,6 +22,8 @@
 
 package password.pwm.http.servlet.oauth;
 
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ForgottenPasswordProfile;
@@ -31,11 +33,14 @@ import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+@Value
+@Builder
 public class OAuthSettings implements Serializable
 {
     private String loginURL;
     private String codeResolveUrl;
     private String attributesUrl;
+    private String scope;
     private String clientID;
     private PasswordData secret;
     private String dnAttributeName;
@@ -43,57 +48,7 @@ public class OAuthSettings implements Serializable
     private List<X509Certificate> certificates;
     private String usernameSendValue;
 
-
-    private OAuthSettings( )
-    {
-    }
-
-    public String getLoginURL( )
-    {
-        return loginURL;
-    }
-
-    public String getCodeResolveUrl( )
-    {
-        return codeResolveUrl;
-    }
-
-    public String getAttributesUrl( )
-    {
-        return attributesUrl;
-    }
-
-    public String getClientID( )
-    {
-        return clientID;
-    }
-
-    public PasswordData getSecret( )
-    {
-        return secret;
-    }
-
-    public String getDnAttributeName( )
-    {
-        return dnAttributeName;
-    }
-
-    public OAuthUseCase getUse( )
-    {
-        return use;
-    }
-
-    public List<X509Certificate> getCertificates( )
-    {
-        return certificates;
-    }
-
-    public String getUsernameSendValue( )
-    {
-        return usernameSendValue;
-    }
-
-    public boolean oAuthIsConfigured( )
+    public boolean oAuthIsConfigured()
     {
         return ( loginURL != null && !loginURL.isEmpty() )
                 && ( codeResolveUrl != null && !codeResolveUrl.isEmpty() )
@@ -105,30 +60,31 @@ public class OAuthSettings implements Serializable
 
     public static OAuthSettings forSSOAuthentication( final Configuration config )
     {
-        final OAuthSettings settings = new OAuthSettings();
-        settings.loginURL = config.readSettingAsString( PwmSetting.OAUTH_ID_LOGIN_URL );
-        settings.codeResolveUrl = config.readSettingAsString( PwmSetting.OAUTH_ID_CODERESOLVE_URL );
-        settings.attributesUrl = config.readSettingAsString( PwmSetting.OAUTH_ID_ATTRIBUTES_URL );
-        settings.clientID = config.readSettingAsString( PwmSetting.OAUTH_ID_CLIENTNAME );
-        settings.secret = config.readSettingAsPassword( PwmSetting.OAUTH_ID_SECRET );
-        settings.dnAttributeName = config.readSettingAsString( PwmSetting.OAUTH_ID_DN_ATTRIBUTE_NAME );
-        settings.certificates = config.readSettingAsCertificate( PwmSetting.OAUTH_ID_CERTIFICATE );
-        settings.use = OAuthUseCase.Authentication;
-        return settings;
+        return OAuthSettings.builder()
+                .loginURL( config.readSettingAsString( PwmSetting.OAUTH_ID_LOGIN_URL ) )
+                .codeResolveUrl( config.readSettingAsString( PwmSetting.OAUTH_ID_CODERESOLVE_URL ) )
+                .attributesUrl( config.readSettingAsString( PwmSetting.OAUTH_ID_ATTRIBUTES_URL ) )
+                .clientID( config.readSettingAsString( PwmSetting.OAUTH_ID_CLIENTNAME ) )
+                .secret( config.readSettingAsPassword( PwmSetting.OAUTH_ID_SECRET ) )
+                .dnAttributeName( config.readSettingAsString( PwmSetting.OAUTH_ID_DN_ATTRIBUTE_NAME ) )
+                .certificates( config.readSettingAsCertificate( PwmSetting.OAUTH_ID_CERTIFICATE ) )
+                .scope( config.readSettingAsString( PwmSetting.OAUTH_ID_SCOPE ) )
+                .use( OAuthUseCase.Authentication )
+                .build();
     }
 
     public static OAuthSettings forForgottenPassword( final ForgottenPasswordProfile config )
     {
-        final OAuthSettings settings = new OAuthSettings();
-        settings.loginURL = config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_LOGIN_URL );
-        settings.codeResolveUrl = config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_CODERESOLVE_URL );
-        settings.attributesUrl = config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_ATTRIBUTES_URL );
-        settings.clientID = config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_CLIENTNAME );
-        settings.secret = config.readSettingAsPassword( PwmSetting.RECOVERY_OAUTH_ID_SECRET );
-        settings.dnAttributeName = config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_DN_ATTRIBUTE_NAME );
-        settings.certificates = config.readSettingAsCertificate( PwmSetting.RECOVERY_OAUTH_ID_CERTIFICATE );
-        settings.use = OAuthUseCase.ForgottenPassword;
-        settings.usernameSendValue = config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_USERNAME_SEND_VALUE );
-        return settings;
+        return OAuthSettings.builder()
+                .loginURL( config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_LOGIN_URL ) )
+                .codeResolveUrl( config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_CODERESOLVE_URL ) )
+                .attributesUrl( config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_ATTRIBUTES_URL ) )
+                .clientID( config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_CLIENTNAME ) )
+                .secret( config.readSettingAsPassword( PwmSetting.RECOVERY_OAUTH_ID_SECRET ) )
+                .dnAttributeName( config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_DN_ATTRIBUTE_NAME ) )
+                .certificates( config.readSettingAsCertificate( PwmSetting.RECOVERY_OAUTH_ID_CERTIFICATE ) )
+                .use( OAuthUseCase.ForgottenPassword )
+                .usernameSendValue( config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_USERNAME_SEND_VALUE ) )
+                .build();
     }
 }

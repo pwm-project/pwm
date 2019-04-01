@@ -22,13 +22,14 @@
 
 package password.pwm.config.value;
 
-import org.jdom2.Element;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
@@ -55,9 +56,9 @@ public class BooleanValue implements StoredValue
                 return new BooleanValue( JsonUtil.deserialize( value, Boolean.class ) );
             }
 
-            public BooleanValue fromXmlElement( final Element settingElement, final PwmSecurityKey input )
+            public BooleanValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
-                final Element valueElement = settingElement.getChild( "value" );
+                final XmlElement valueElement = settingElement.getChild( "value" );
                 final String value = valueElement.getText();
                 return new BooleanValue( Boolean.valueOf( value ) );
             }
@@ -71,10 +72,10 @@ public class BooleanValue implements StoredValue
     }
 
     @Override
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final Element valueElement = new Element( valueElementName );
-        valueElement.addContent( String.valueOf( value ) );
+        final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+        valueElement.addText( String.valueOf( value ) );
         return Collections.singletonList( valueElement );
     }
 

@@ -28,7 +28,7 @@ import {IChangePasswordSuccess} from './success-change-password.controller';
 import {IPasswordService, IValidatePasswordData} from '../../services/password.service';
 import IPwmService from '../../services/pwm.service';
 
-require('components/changepassword/type-change-password.component.scss');
+require('./type-change-password.component.scss');
 
 const EMPTY_MATCH_STATUS = 'EMPTY';
 const IN_PROGRESS_MESSAGE_WAIT_MS = 5;
@@ -78,7 +78,10 @@ export default class TypeChangePasswordController {
         this.password1 = '';
         this.password2 = '';
         this.passwordAcceptable = false;
-        this.passwordSuggestions = Array<string>(20).fill('');
+        this.passwordSuggestions = [];
+        for (let i = 0; i < 20; i++) {
+            this.passwordSuggestions.push('');
+        }
         this.pendingValidation = false;
         this.showStrengthMeter = HelpDeskService.showStrengthMeter;
         this.strength = 0;

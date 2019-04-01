@@ -83,7 +83,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         {
             if ( "XJ015".equals( e.getSQLState() ) )
             {
-                LOGGER.trace( "Derby shutdown succeeded. SQLState=" + e.getSQLState() + ", message=" + e.getMessage() );
+                LOGGER.trace( () -> "Derby shutdown succeeded. SQLState=" + e.getSQLState() + ", message=" + e.getMessage() );
             }
             else
             {
@@ -176,14 +176,14 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
     {
         final Instant startTime = Instant.now();
         final long startSize = FileSystemUtility.getFileDirectorySize( dbDirectory );
-        LOGGER.debug( "beginning reclaim space in all tables startSize=" + StringUtil.formatDiskSize( startSize ) );
+        LOGGER.debug( () -> "beginning reclaim space in all tables startSize=" + StringUtil.formatDiskSize( startSize ) );
         for ( final LocalDB.DB db : LocalDB.DB.values() )
         {
             reclaimSpace( dbConnection, db );
         }
         final long completeSize = FileSystemUtility.getFileDirectorySize( dbDirectory );
         final long sizeDifference = startSize - completeSize;
-        LOGGER.debug( "completed reclaim space in all tables; duration=" + TimeDuration.compactFromCurrent( startTime )
+        LOGGER.debug( () -> "completed reclaim space in all tables; duration=" + TimeDuration.compactFromCurrent( startTime )
                 + ", startSize=" + StringUtil.formatDiskSize( startSize )
                 + ", completeSize=" + StringUtil.formatDiskSize( completeSize )
                 + ", sizeDifference=" + StringUtil.formatDiskSize( sizeDifference )
@@ -209,7 +209,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         try
         {
             lock.writeLock().lock();
-            LOGGER.debug( "beginning reclaim space in table " + db.toString() );
+            LOGGER.debug( () -> "beginning reclaim space in table " + db.toString() );
             statement = dbConnection.prepareCall( "CALL SYSCS_UTIL.SYSCS_INPLACE_COMPRESS_TABLE(?, ?, ?, ?, ?)" );
             statement.setString( 1, DERBY_DEFAULT_SCHEMA );
             statement.setString( 2, db.toString() );
@@ -227,7 +227,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
             close( statement );
             lock.writeLock().unlock();
         }
-        LOGGER.debug( "completed reclaimed space in table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+        LOGGER.debug( () -> "completed reclaimed space in table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
     }
 }
 

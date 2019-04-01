@@ -63,7 +63,21 @@ public enum Admin implements PwmDisplayBundle
     EventLog_Narrative_HelpdeskVerifyToken,
     EventLog_Narrative_HelpdeskVerifyTokenIncorrect,
     EventLog_Narrative_HelpdeskVerifyAttributes,
-    EventLog_Narrative_HelpdeskVerifyAttributesIncorrect,;
+    EventLog_Narrative_HelpdeskVerifyAttributesIncorrect,
+
+    Field_Session_UserID,
+    Field_Session_LdapProfile,
+    Field_Session_UserDN,
+    Field_Session_CreateTime,
+    Field_Session_LastTime,
+    Field_Session_Label,
+    Field_Session_Idle,
+    Field_Session_SrcAddress,
+    Field_Session_Locale,
+    Field_Session_SrcHost,
+    Field_Session_LastURL,
+    Field_Session_IntruderAttempts,;
+
 
     public static final String STATISTICS_LABEL_PREFIX = "Statistic_Label.";
     public static final String STATISTICS_DESCRIPTION_PREFIX = "Statistic_Description.";

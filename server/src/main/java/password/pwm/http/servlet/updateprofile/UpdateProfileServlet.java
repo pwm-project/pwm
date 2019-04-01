@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Data;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.TokenDestinationItem;
@@ -54,6 +55,7 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.form.FormUtility;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -62,8 +64,15 @@ import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.net.URLConnection;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -98,9 +107,12 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         updateProfile( HttpMethod.POST ),
         agree( HttpMethod.POST ),
         confirm( HttpMethod.POST ),
-        unConfirm( HttpMethod.POST ),
+        reset( HttpMethod.POST ),
         validate( HttpMethod.POST ),
-        enterCode( HttpMethod.POST ),;
+        enterCode( HttpMethod.POST ),
+        uploadPhoto( HttpMethod.POST ),
+        deletePhoto( HttpMethod.POST ),
+        readPhoto( HttpMethod.GET ),;
 
         private final HttpMethod method;
 
@@ -114,6 +126,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             return Collections.singletonList( method );
         }
     }
+
+    public enum ResetAction
+    {
+        unConfirm,
+        exitProfileUpdate,
+    }
+
 
     @Override
     public Class<? extends ProcessAction> getProcessActionsClass( )
@@ -164,7 +183,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         }
         catch ( PwmUnrecoverableException e )
         {
-            LOGGER.debug( pwmRequest, "error while checking entered token: " );
+            LOGGER.debug( pwmRequest, () -> "error while checking entered token: " );
             errorInformation = e.getErrorInformation();
         }
 
@@ -175,10 +194,17 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        LOGGER.debug( pwmRequest, "marking token as passed " + JsonUtil.serialize( tokenDestinationItem ) );
+        LOGGER.debug( pwmRequest, () -> "marking token as passed " + JsonUtil.serialize( tokenDestinationItem ) );
         updateProfileBean.getCompletedTokenFields().add( updateProfileBean.getCurrentTokenField() );
         updateProfileBean.setTokenSent( false );
         updateProfileBean.setCurrentTokenField( null );
+
+        if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
+        {
+            pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenDestinationItem );
+            pwmRequest.forwardToJsp( JspUrl.UPDATE_ATTRIBUTES_TOKEN_SUCCESS );
+            return ProcessStatus.Halt;
+        }
 
         return ProcessStatus.Continue;
     }
@@ -218,28 +244,42 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
-    @ActionHandler( action = "unConfirm" )
-    ProcessStatus handleUnconfirm(
-            final PwmRequest pwmRequest
-    )
-            throws PwmUnrecoverableException
+    @ActionHandler( action = "reset" )
+    private ProcessStatus processReset( final PwmRequest pwmRequest )
+            throws IOException, PwmUnrecoverableException
     {
-        final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
+        final ResetAction resetType = pwmRequest.readParameterAsEnum( PwmConstants.PARAM_RESET_TYPE, ResetAction.class, ResetAction.exitProfileUpdate );
 
-        updateProfileBean.setFormSubmitted( false );
-        updateProfileBean.setConfirmationPassed( false );
-        updateProfileBean.getCompletedTokenFields().clear();
-        updateProfileBean.setTokenSent( false );
-        updateProfileBean.setCurrentTokenField( null );
+        switch ( resetType )
+        {
+            case unConfirm:
+                final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
+                updateProfileBean.setFormSubmitted( false );
+                updateProfileBean.setConfirmationPassed( false );
+                updateProfileBean.getCompletedTokenFields().clear();
+                updateProfileBean.setTokenSent( false );
+                updateProfileBean.setCurrentTokenField( null );
+                break;
+
+            case exitProfileUpdate:
+                pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, UpdateProfileBean.class );
+                pwmRequest.sendRedirectToContinue();
+                return ProcessStatus.Halt;
+
+            default:
+                JavaHelper.unhandledSwitchStatement( resetType );
+
+        }
 
         return ProcessStatus.Continue;
     }
+
 
     @ActionHandler( action = "agree" )
     ProcessStatus handleAgreeRequest( final PwmRequest pwmRequest )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        LOGGER.debug( pwmRequest, "user accepted agreement" );
+        LOGGER.debug( pwmRequest, () -> "user accepted agreement" );
 
         final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
         if ( !updateProfileBean.isAgreementPassed() )
@@ -448,6 +488,102 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         return UpdateProfileUtil.updateBeanFormData( formFields, formValueMap, updateProfileBean );
     }
 
+    @ActionHandler( action = "uploadPhoto" )
+    public ProcessStatus uploadPhoto( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
+        final String fieldName = pwmRequest.readParameterAsString( "field" );
+        final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
+        final UpdateProfileProfile updateProfileProfile = getProfile( pwmRequest );
+        final List<FormConfiguration> formFields = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
+        final FormConfiguration formConfiguration = FormUtility.asFormNameMap( formFields ).get( fieldName );
+        final int maxSize = formConfiguration.getMaximumSize();
 
+        if ( ServletFileUpload.isMultipartContent( req ) )
+        {
+            final InputStream uploadedFile = pwmRequest.readFileUploadStream( PwmConstants.PARAM_FILE_UPLOAD );
+            if ( uploadedFile != null )
+            {
+                final byte[] bytes;
+                {
+                    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    JavaHelper.copy( uploadedFile, baos );
+                    baos.flush();
+                    bytes = baos.toByteArray();
+                }
+
+                if ( bytes.length > maxSize )
+                {
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_FILE_TOO_LARGE,
+                            "file size (" + bytes.length + ") exceeds maximum file size (" + maxSize + ")",
+                            new String[]
+                                    {
+                                            String.valueOf( maxSize ),
+                                    }
+                    );
+                    pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
+                    return ProcessStatus.Halt;
+                }
+
+                final String b64String = StringUtil.base64Encode( bytes );
+
+                if ( !JavaHelper.isEmpty( formConfiguration.getMimeTypes() ) )
+                {
+                    final String mimeType = URLConnection.guessContentTypeFromStream( new ByteArrayInputStream( bytes ) );
+                    if ( !formConfiguration.getMimeTypes().contains( mimeType ) )
+                    {
+                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_FILE_TYPE_INCORRECT, "incorrect file type of " + mimeType, new String[]
+                                {
+                                        mimeType,
+                                }
+                        );
+                        pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
+                        return ProcessStatus.Halt;
+                    }
+                }
+                updateProfileBean.getFormData().put( fieldName, b64String );
+            }
+        }
+
+        final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
+        pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
+
+        return ProcessStatus.Halt;
+    }
+
+    @ActionHandler( action = "deletePhoto" )
+    public ProcessStatus deletePhotoHandler( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final String fieldName = pwmRequest.readParameterAsString( "field" );
+        final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
+
+        updateProfileBean.getFormData().put( fieldName, "" );
+
+        return ProcessStatus.Continue;
+    }
+
+    @ActionHandler( action = "readPhoto" )
+    public ProcessStatus readPhotoHandler( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final String fieldName = pwmRequest.readParameterAsString( "field" );
+        final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
+
+        final String b64value = updateProfileBean.getFormData().get( fieldName );
+        if ( !StringUtil.isEmpty( b64value ) )
+        {
+            final byte[] bytes = StringUtil.base64Decode( b64value );
+
+            try ( OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream() )
+            {
+                final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
+                final String mimeType = URLConnection.guessContentTypeFromStream( new ByteArrayInputStream( bytes ) );
+                resp.setContentType( mimeType );
+                outputStream.write( bytes );
+                outputStream.flush();
+            }
+        }
+
+        return ProcessStatus.Halt;
+    }
 }
 

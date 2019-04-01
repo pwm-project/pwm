@@ -23,7 +23,7 @@
 package password.pwm.config;
 
 import lombok.Getter;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
 
 import java.io.Serializable;

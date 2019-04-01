@@ -32,12 +32,12 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * A lightweight interface for DB interaction.  Implementations may be backed by an embedded database, an RDBMS or
- * even a simple hashmap in memory.
- * <p/>
- * Implementations are required to implement a simplistic locking policy, where any method marked with {@link LocalDB.WriteOperation}
+ * <p>A lightweight interface for DB interaction.  Implementations may be backed by an embedded database, an RDBMS or
+ * even a simple hashmap in memory.</p>
+ *
+ * <p>Implementations are required to implement a simplistic locking policy, where any method marked with {@link LocalDB.WriteOperation}
  * must block until any outstanding write or read methods are completed.  That is, concurrency is allowed for reads, but
- * writes are gaurenteed to be single threaded.
+ * writes are guaranteed to be single threaded.</p>
  *
  * @author Jason D. Rivard
  */
@@ -102,7 +102,7 @@ public interface LocalDB
             throws LocalDBException;
 
     @ReadOperation
-    int size( DB db )
+    long size( DB db )
             throws LocalDBException;
 
     @WriteOperation

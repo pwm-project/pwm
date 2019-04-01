@@ -21,18 +21,20 @@
  */
 
 
-import {IQService, IScope} from 'angular';
+import {IQService, IScope, ITimeoutService} from 'angular';
 import HelpDeskSearchBaseComponent from './helpdesk-search-base.component';
 import {Component} from '../../component';
 import SearchResult from '../../models/search-result.model';
-import {IPeopleService} from '../../services/people.service';
 import {IHelpDeskConfigService} from '../../services/helpdesk-config.service';
 import LocalStorageService from '../../services/local-storage.service';
 import PromiseService from '../../services/promise.service';
+import {IHelpDeskService} from '../../services/helpdesk.service';
+import IPwmService from '../../services/pwm.service';
+import CommonSearchService from '../../services/common-search.service';
 
 @Component({
-    stylesheetUrl: require('modules/helpdesk/helpdesk-search.component.scss'),
-    templateUrl: require('modules/helpdesk/helpdesk-search-table.component.html')
+    stylesheetUrl: require('./helpdesk-search.component.scss'),
+    templateUrl: require('./helpdesk-search-table.component.html')
 })
 export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComponent {
     columnConfiguration: any;
@@ -42,30 +44,37 @@ export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComp
         '$scope',
         '$state',
         '$stateParams',
+        '$timeout',
         '$translate',
         'ConfigService',
+        'HelpDeskService',
         'IasDialogService',
         'LocalStorageService',
-        'PeopleService',
-        'PromiseService'
+        'PromiseService',
+        'PwmService',
+        'CommonSearchService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
-                private $state: angular.ui.IStateService,
+                $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
+                $timeout: ITimeoutService,
                 $translate: angular.translate.ITranslateService,
                 configService: IHelpDeskConfigService,
+                helpDeskService: IHelpDeskService,
                 IasDialogService: any,
                 localStorageService: LocalStorageService,
-                peopleService: IPeopleService,
-                 promiseService: PromiseService) {
-        super($q, $scope, $stateParams, $translate, configService, IasDialogService, localStorageService,
-            peopleService, promiseService);
+                promiseService: PromiseService,
+                pwmService: IPwmService,
+                commonSearchService: CommonSearchService) {
+        super($q, $scope, $state, $stateParams, $timeout, $translate, configService, helpDeskService, IasDialogService,
+              localStorageService, promiseService, pwmService, commonSearchService);
     }
 
     $onInit() {
-        this.initialize();
-        this.fetchData();
+        this.initialize().then(() => {
+            this.fetchData();
+        });
 
         // The table columns are dynamic and configured via a service
         this.configService.getColumnConfig().then(
@@ -94,7 +103,7 @@ export default class HelpDeskSearchTableComponent extends HelpDeskSearchBaseComp
     }
 
     gotoCardsView(): void {
-        this.$state.go('search.cards', {query: this.query});
+        this.toggleView('search.cards');
     }
 
     toggleColumnVisible(event, columnId): void {

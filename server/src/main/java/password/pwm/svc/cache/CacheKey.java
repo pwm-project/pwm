@@ -22,100 +22,35 @@
 
 package password.pwm.svc.cache;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Value;
 import password.pwm.bean.UserIdentity;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.secure.PwmHashAlgorithm;
-import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;
+import java.util.Objects;
 
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+@Value
 public class CacheKey implements Serializable
 {
-    private final String cacheKey;
-    private transient String hash;
+    final Class srcClass;
+    final UserIdentity userIdentity;
+    final String valueID;
 
-    private CacheKey( final String cacheKey )
-    {
-        if ( cacheKey == null )
-        {
-            throw new NullPointerException( "key can not be null" );
-        }
-        this.cacheKey = cacheKey;
-    }
-
-    String getHash( )
-            throws PwmUnrecoverableException
-    {
-        if ( hash != null )
-        {
-            return hash;
-        }
-        hash = SecureEngine.hash( this.cacheKey, PwmHashAlgorithm.SHA256 );
-        return hash;
-    }
-
-    String getStorageValue( )
-    {
-        return cacheKey;
-
-    }
-
-    static CacheKey fromStorageValue( final String input )
-    {
-        return new CacheKey( input );
-    }
-
-    public static CacheKey makeCacheKey(
+    public static CacheKey newKey(
             final Class srcClass,
             final UserIdentity userIdentity,
             final String valueID
     )
     {
-        if ( srcClass == null )
-        {
-            throw new NullPointerException( "srcClass can not be null" );
-        }
-        if ( valueID == null )
-        {
-            throw new NullPointerException( "valueID can not be null" );
-        }
+        Objects.requireNonNull( srcClass, "srcClass can not be null" );
+        Objects.requireNonNull( valueID, "valueID can not be null" );
+
         if ( valueID.isEmpty() )
         {
             throw new IllegalArgumentException( "valueID can not be empty" );
         }
-        return new CacheKey( srcClass.getName() + "!" + ( userIdentity == null ? "null" : userIdentity.toDelimitedKey() ) + "!" + valueID );
-    }
-
-    @Override
-    public boolean equals( final Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        final CacheKey cacheKey1 = ( CacheKey ) o;
-
-        if ( !cacheKey.equals( cacheKey1.cacheKey ) )
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode( )
-    {
-        return cacheKey.hashCode();
-    }
-
-    public String toString( )
-    {
-        return cacheKey;
+        return new CacheKey( srcClass, userIdentity, valueID );
     }
 }

@@ -23,25 +23,30 @@
 package password.pwm.util.logging;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Value;
+import org.apache.commons.csv.CSVPrinter;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
-@Getter
-@EqualsAndHashCode
+@Value
 public class PwmLogEvent implements Serializable, Comparable
 {
 
     private static final int MAX_MESSAGE_LENGTH = 50_000;
 
+    @SerializedName( "l" )
     private final PwmLogLevel level;
 
     @SerializedName( "t" )
@@ -273,6 +278,25 @@ public class PwmLogEvent implements Serializable, Comparable
     public String toLogString( )
     {
         return toLogString( true );
+    }
+
+    public String toCsvLine( ) throws IOException
+    {
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( byteArrayOutputStream );
+        final List<String> dataRow = new ArrayList<>();
+        dataRow.add( JavaHelper.toIsoDate( getDate() ) );
+        dataRow.add( getLevel().name() );
+        dataRow.add( getSource() );
+        dataRow.add( getLabel() );
+        dataRow.add( getActor() );
+        dataRow.add( getTopic() );
+        dataRow.add( getMessage() );
+        dataRow.add( getThrowable() == null ? "" : JavaHelper.readHostileExceptionMessage( getThrowable() ) );
+        csvPrinter.printRecord( dataRow );
+        csvPrinter.flush();
+        return byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET.name() );
+
     }
 
     public String toLogString( final boolean includeTimeStamp )

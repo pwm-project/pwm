@@ -128,12 +128,9 @@ public class LogoutServlet extends ControlledPwmServlet
         final boolean authenticated = pwmRequest.isAuthenticated();
         final boolean logoutDueToIdle = Boolean.parseBoolean( pwmRequest.readParameterAsString( PARAM_IDLE ) );
 
-        String debugMsg = "processing " + ( authenticated ? "authenticated" : "unauthenticated" ) + " logout request";
-        if ( logoutDueToIdle )
-        {
-            debugMsg += " due to client idle timeout";
-        }
-        LOGGER.debug( pwmRequest, debugMsg );
+        LOGGER.debug( pwmRequest, () -> "processing " + ( authenticated ? "authenticated" : "unauthenticated" )
+                + " logout request"
+                + ( logoutDueToIdle ? " due to client idle timeout" : "" ) );
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
@@ -145,7 +142,7 @@ public class LogoutServlet extends ControlledPwmServlet
             final String sessionLogoutURL = pwmSession.getSessionStateBean().getLogoutURL();
             if ( sessionLogoutURL != null && sessionLogoutURL.length() > 0 )
             {
-                LOGGER.trace( pwmSession, "redirecting user to session parameter set logout url: " + sessionLogoutURL );
+                LOGGER.trace( pwmSession, () -> "redirecting user to session parameter set logout url: " + sessionLogoutURL );
                 pwmRequest.sendRedirect( sessionLogoutURL );
                 pwmRequest.invalidateSession();
                 return;
@@ -177,7 +174,7 @@ public class LogoutServlet extends ControlledPwmServlet
 
                 final String logoutURL = PwmURL.appendAndEncodeUrlParameters( configuredLogoutURL, logoutUrlParameters );
 
-                LOGGER.trace( pwmSession, "redirecting user to configured logout url:" + logoutURL );
+                LOGGER.trace( pwmSession, () -> "redirecting user to configured logout url:" + logoutURL );
                 pwmRequest.sendRedirect( logoutURL );
                 pwmRequest.invalidateSession();
                 return;
@@ -249,19 +246,20 @@ public class LogoutServlet extends ControlledPwmServlet
 
             if ( matchedServlet != null )
             {
-                LOGGER.trace( pwmRequest, "matched next url to servlet definition " + matchedServlet.toString() );
+                final PwmServletDefinition finalMatchedServlet = matchedServlet;
+                LOGGER.trace( pwmRequest, () -> "matched next url to servlet definition " + finalMatchedServlet.toString() );
                 return Optional.of( pwmRequest.getContextPath() + matchedServlet.servletUrl() );
             }
             else
             {
-                LOGGER.trace( pwmRequest, "unable to match next url parameter to servlet definition" );
+                LOGGER.trace( pwmRequest, () -> "unable to match next url parameter to servlet definition" );
             }
 
 
         }
         catch ( Exception e )
         {
-            LOGGER.debug( "error parsing client specified url parameter: " + e.getMessage() );
+            LOGGER.debug( () -> "error parsing client specified url parameter: " + e.getMessage() );
         }
         return Optional.empty();
     }

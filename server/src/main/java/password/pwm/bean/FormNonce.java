@@ -23,17 +23,14 @@
 package password.pwm.bean;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 
 import java.io.Serializable;
 import java.time.Instant;
 
-@Getter
-@AllArgsConstructor
+@Value
 public class FormNonce implements Serializable
 {
-
     @SerializedName( "g" )
     private final String sessionGUID;
 

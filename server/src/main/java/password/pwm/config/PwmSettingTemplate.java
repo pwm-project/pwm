@@ -22,9 +22,11 @@
 
 package password.pwm.config;
 
-import org.jdom2.Attribute;
-import org.jdom2.Element;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.XmlElement;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 public enum PwmSettingTemplate
 {
@@ -62,14 +64,14 @@ public enum PwmSettingTemplate
 
     public boolean isHidden( )
     {
-        final Element templateElement = readTemplateElement( this );
-        final Attribute requiredAttribute = templateElement.getAttribute( "hidden" );
-        return requiredAttribute != null && "true".equalsIgnoreCase( requiredAttribute.getValue() );
+        final XmlElement templateElement = readTemplateElement( this );
+        final String requiredAttribute = templateElement.getAttributeValue( "hidden" );
+        return requiredAttribute != null && "true".equalsIgnoreCase( requiredAttribute );
     }
 
-    private static Element readTemplateElement( final PwmSettingTemplate pwmSettingTemplate )
+    private static XmlElement readTemplateElement( final PwmSettingTemplate pwmSettingTemplate )
     {
-        final Element element = PwmSettingXml.readTemplateXml( pwmSettingTemplate );
+        final XmlElement element = PwmSettingXml.readTemplateXml( pwmSettingTemplate );
         if ( element == null )
         {
             throw new IllegalStateException( "missing PwmSetting.xml template element for " + pwmSettingTemplate );
@@ -83,18 +85,15 @@ public enum PwmSettingTemplate
         STORAGE,
         DB_VENDOR,;
 
-        static
-        {
-            LDAP_VENDOR.defaultValue = DEFAULT;
-            STORAGE.defaultValue = LDAP;
-            DB_VENDOR.defaultValue = DB_OTHER;
-        }
-
-        private PwmSettingTemplate defaultValue;
-
+        // done using map instead of static values to avoid initialization circularity bug
         public PwmSettingTemplate getDefaultValue( )
         {
-            return defaultValue;
+            final Map<Type, PwmSettingTemplate> defaultValueMap = new EnumMap<>( Type.class );
+            defaultValueMap.put( LDAP_VENDOR, DEFAULT );
+            defaultValueMap.put( STORAGE, LDAP );
+            defaultValueMap.put( DB_VENDOR, DB_OTHER );
+
+            return defaultValueMap.get( this );
         }
     }
 }

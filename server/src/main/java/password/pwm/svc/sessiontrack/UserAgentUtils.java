@@ -54,10 +54,15 @@ public class UserAgentUtils
             {
                 final String msg = "error loading user-agent parser: " + e.getMessage();
                 LOGGER.error( msg, e );
-                throw new PwmUnrecoverableException( PwmError.ERROR_UNKNOWN, msg );
+                throw new PwmUnrecoverableException( PwmError.ERROR_INTERNAL, msg );
             }
         }
         return cachedParser;
+    }
+
+    public static void initializeCache() throws PwmUnrecoverableException
+    {
+        getUserAgentParser();
     }
 
     public static void checkIfPreIE11( final PwmRequest pwmRequest ) throws PwmUnrecoverableException

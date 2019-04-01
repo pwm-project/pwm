@@ -124,7 +124,7 @@ public class LdapPermissionTester
             }
 
             default:
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "unknown permission type: " + userPermission.getType() ) );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unknown permission type: " + userPermission.getType() ) );
         }
     }
 
@@ -143,12 +143,12 @@ public class LdapPermissionTester
             return false;
         }
 
-        LOGGER.trace( pwmSession, "begin check for ldapGroup match for " + userIdentity + " using queryMatch: " + groupDN );
+        LOGGER.trace( pwmSession, () -> "begin check for ldapGroup match for " + userIdentity + " using queryMatch: " + groupDN );
 
         boolean result = false;
         if ( groupDN == null || groupDN.length() < 1 )
         {
-            LOGGER.trace( pwmSession, "missing groupDN value, skipping check" );
+            LOGGER.trace( pwmSession, () -> "missing groupDN value, skipping check" );
         }
         else
         {
@@ -156,7 +156,7 @@ public class LdapPermissionTester
             final String filterString = "(" + ldapProfile.readSettingAsString( PwmSetting.LDAP_USER_GROUP_ATTRIBUTE ) + "=" + groupDN + ")";
             try
             {
-                LOGGER.trace( pwmSession, "checking ldap to see if " + userIdentity + " matches group '" + groupDN + "' using filter '" + filterString + "'" );
+                LOGGER.trace( pwmSession, () -> "checking ldap to see if " + userIdentity + " matches group '" + groupDN + "' using filter '" + filterString + "'" );
                 final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
                 final Map<String, Map<String, String>> results = theUser.getChaiProvider().search(
                         theUser.getEntryDN(),
@@ -174,12 +174,13 @@ public class LdapPermissionTester
             }
         }
 
-        final String logMsg = "user " + userIdentity.toDisplayString() + " is "
-                + ( result ? "" : "not " )
-                + "a match for group '" + groupDN + "'"
-                + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")";
-
-        LOGGER.debug( pwmSession, logMsg );
+        {
+            final boolean finalResult = result;
+            LOGGER.debug( pwmSession, () -> "user " + userIdentity.toDisplayString() + " is "
+                    + ( finalResult ? "" : "not " )
+                    + "a match for group '" + groupDN + "'"
+                    + " (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
+        }
 
         return result;
     }
@@ -199,23 +200,23 @@ public class LdapPermissionTester
             return false;
         }
 
-        LOGGER.trace( pwmSession, "begin check for ldapQuery match for " + userIdentity + " using queryMatch: " + filterString );
+        LOGGER.trace( pwmSession, () -> "begin check for ldapQuery match for " + userIdentity + " using queryMatch: " + filterString );
 
         boolean result = false;
         if ( filterString == null || filterString.length() < 1 )
         {
-            LOGGER.trace( pwmSession, "missing queryMatch value, skipping check" );
+            LOGGER.trace( pwmSession, () -> "missing queryMatch value, skipping check" );
         }
         else if ( "(objectClass=*)".equalsIgnoreCase( filterString ) || "objectClass=*".equalsIgnoreCase( filterString ) )
         {
-            LOGGER.trace( pwmSession, "queryMatch check is guaranteed to be true, skipping ldap query" );
+            LOGGER.trace( pwmSession, () -> "queryMatch check is guaranteed to be true, skipping ldap query" );
             result = true;
         }
         else
         {
             try
             {
-                LOGGER.trace( pwmSession, "checking ldap to see if " + userIdentity + " matches '" + filterString + "'" );
+                LOGGER.trace( pwmSession, () -> "checking ldap to see if " + userIdentity + " matches '" + filterString + "'" );
                 final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
                 final Map<String, Map<String, String>> results = theUser.getChaiProvider().search( theUser.getEntryDN(), filterString, Collections.emptySet(), SearchScope.BASE );
                 if ( results.size() == 1 && results.keySet().contains( theUser.getEntryDN() ) )
@@ -229,12 +230,13 @@ public class LdapPermissionTester
             }
         }
 
-        final String logMsg = "user " + userIdentity.toDisplayString() + " is "
-                + ( result ? "" : "not " )
-                + "a match for filter '" + filterString + "'"
-                + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")";
-
-        LOGGER.debug( pwmSession, logMsg );
+        {
+            final boolean finalResult = result;
+            LOGGER.debug( pwmSession, () -> "user " + userIdentity.toDisplayString() + " is "
+                    + ( finalResult ? "" : "not " )
+                    + "a match for filter '" + filterString + "'"
+                    + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+        }
 
         return result;
     }
@@ -278,7 +280,7 @@ public class LdapPermissionTester
 
                     default:
                         throw new PwmUnrecoverableException( new ErrorInformation(
-                                PwmError.ERROR_UNKNOWN,
+                                PwmError.ERROR_INTERNAL,
                                 "unknown permission type: " + userPermission.getType() )
                         );
                 }

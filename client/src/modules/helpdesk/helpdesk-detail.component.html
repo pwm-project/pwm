@@ -21,7 +21,7 @@
   -->
 
 <div class="ias-header">
-    <h2 id="page-content-title" translate="Title_HelpDesk">Help Desk</h2>
+    <h2 id="page-content-title" translate="Title_Helpdesk">Help Desk</h2>
     <span class="ias-fill"></span>
     <div class="help-desk-icons">
         <ias-button id="helpdesk-refresh-icon" class="ias-icon-button"
@@ -51,10 +51,17 @@
                     ng-disabled="$ctrl.buttonDisabled('unlock')"
                     ng-if="$ctrl.buttonVisible('unlock')">{{ 'Button_Unlock' | translate }}
         </ias-button>
+
         <ias-button ng-click="$ctrl.clearResponses()"
-                    ng-disabled="$ctrl.buttonDisabled('clearResponses')"
-                    ng-if="$ctrl.buttonVisible('clearResponses')">{{ 'Button_ClearResponses' | translate }}
+                    ng-if="$ctrl.buttonVisible('clearResponses') && !$ctrl.buttonDisabled('clearResponses')">
+            {{ 'Button_ClearResponses' | translate }}
         </ias-button>
+        <ias-button disabled
+                    ng-attr-title="{{ 'Display_NoResponses' | translate }}"
+                    ng-if="$ctrl.buttonVisible('clearResponses') && $ctrl.buttonDisabled('clearResponses')">
+            {{ 'Button_ClearResponses' | translate }}
+        </ias-button>
+
         <ias-button ng-click="$ctrl.clearOtpSecret()"
                     ng-disabled="$ctrl.buttonDisabled('clearOtpSecret')"
                     ng-if="$ctrl.buttonVisible('clearOtpSecret')">{{ 'Button_HelpdeskClearOtpSecret' | translate }}
@@ -68,8 +75,8 @@
                     ng-if="$ctrl.buttonVisible('deleteUser')">{{ 'Button_Delete' | translate }}
         </ias-button>
         <ias-button ng-click="$ctrl.clickCustomButton(button)"
-                    ng-repeat="button in $ctrl.person.customButtons"
-                    ng-attr-title="{{button.description}}">{{ button.label }}
+                    ng-repeat="(label, button) in $ctrl.customButtons"
+                    ng-attr-title="{{button.description}}">{{ button.name }}
         </ias-button>
     </div>
 
@@ -113,7 +120,9 @@
                         <td ng-bind="item.label"></td>
                         <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
                         <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
-                        <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
+                        <td ng-if="item.type==='multiString'">
+                            <div ng-bind="value" ng-repeat="value in item.values"></div>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
@@ -125,7 +134,9 @@
                         <td ng-bind="item.label"></td>
                         <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
                         <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
-                        <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
+                        <td ng-if="item.type==='multiString'">
+                            <div ng-bind="value" ng-repeat="value in item.values"></div>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
@@ -155,7 +166,7 @@
                         <td ng-bind="'Field_Display' | translate"></td>
                         <td>
                             <ul>
-                                <li ng-repeat="item in $ctrl.person.passwordRequirements" ng-bind="item"></li>
+                                <li ng-repeat="item in $ctrl.person.passwordRequirements" ng-bind-html="item"></li>
                             </ul>
                         </td>
                     </tr>
@@ -173,7 +184,9 @@
                         <td ng-bind="item.label"></td>
                         <td ng-bind="item.value | dateFilter" ng-if="item.type==='timestamp'"></td>
                         <td ng-bind="item.value" ng-if="item.type==='string' || item.type==='number'"></td>
-                        <td ng-bind="value" ng-if="item.type==='multiString'" ng-repeat="value in item.values"></td>
+                        <td ng-if="item.type==='multiString'">
+                            <div ng-bind="value" ng-repeat="value in item.values"></div>
+                        </td>
                     </tr>
                     </tbody>
                 </table>

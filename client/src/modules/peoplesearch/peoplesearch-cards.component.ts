@@ -26,12 +26,13 @@ import ElementSizeService from '../../ux/element-size.service';
 import IPeopleSearchConfigService from '../../services/peoplesearch-config.service';
 import IPeopleService from '../../services/people.service';
 import IPwmService from '../../services/pwm.service';
-import { isString, IAugmentedJQuery, IQService, IScope } from 'angular';
+import {isString, IAugmentedJQuery, IQService, IScope, ITimeoutService} from 'angular';
 import LocalStorageService from '../../services/local-storage.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import { IPerson } from '../../models/person.model';
 import PromiseService from '../../services/promise.service';
 import SearchResult from '../../models/search-result.model';
+import CommonSearchService from '../../services/common-search.service';
 
 export enum PeopleSearchCardsSize {
     Small = 0,
@@ -40,8 +41,8 @@ export enum PeopleSearchCardsSize {
 }
 
 @Component({
-    stylesheetUrl: require('modules/peoplesearch/peoplesearch-cards.component.scss'),
-    templateUrl: require('modules/peoplesearch/peoplesearch-cards.component.html')
+    stylesheetUrl: require('./peoplesearch-cards.component.scss'),
+    templateUrl: require('./peoplesearch-cards.component.html')
 })
 export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponent {
     photosEnabled: boolean;
@@ -52,36 +53,42 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
         '$scope',
         '$state',
         '$stateParams',
+        '$timeout',
         '$translate',
         'ConfigService',
         'LocalStorageService',
         'MfElementSizeService',
         'PeopleService',
         'PromiseService',
-        'PwmService'
+        'PwmService',
+        'CommonSearchService'
     ];
     constructor(private $element: IAugmentedJQuery,
                 $q: IQService,
                 $scope: IScope,
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
+                $timeout: ITimeoutService,
                 $translate: angular.translate.ITranslateService,
                 configService: IPeopleSearchConfigService,
                 localStorageService: LocalStorageService,
                 private elementSizeService: ElementSizeService,
                 peopleService: IPeopleService,
                 promiseService: PromiseService,
-                pwmService: IPwmService) {
+                pwmService: IPwmService,
+                commonSearchService: CommonSearchService) {
         super($q,
             $scope,
             $state,
             $stateParams,
+            $timeout,
             $translate,
             configService,
             localStorageService,
             peopleService,
             promiseService,
-            pwmService);
+            pwmService,
+            commonSearchService);
     }
 
     $onDestroy(): void {
@@ -89,8 +96,9 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
     }
 
     $onInit(): void {
-        this.initialize();
-        this.fetchData();
+        this.initialize().then(() => {
+            this.fetchData();
+        });
 
         this.configService.photosEnabled().then((photosEnabled: boolean) => {
             this.photosEnabled = photosEnabled;

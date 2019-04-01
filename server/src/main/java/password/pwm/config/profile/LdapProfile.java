@@ -35,7 +35,6 @@ import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.util.java.StringUtil;
@@ -48,7 +47,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class LdapProfile extends AbstractProfile implements Profile
 {
@@ -146,10 +144,10 @@ public class LdapProfile extends AbstractProfile implements Profile
         final boolean enableCanonicalCache = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_CACHE_CANONICAL_ENABLE ) );
 
         String canonicalValue = null;
-        final CacheKey cacheKey = CacheKey.makeCacheKey( LdapPermissionTester.class, null, "canonicalDN-" + this.getIdentifier() + "-" + dnValue );
+        final CacheKey cacheKey = CacheKey.newKey( LdapProfile.class, null, "canonicalDN-" + this.getIdentifier() + "-" + dnValue );
         if ( enableCanonicalCache )
         {
-            final String cachedDN = pwmApplication.getCacheService().get( cacheKey );
+            final String cachedDN = pwmApplication.getCacheService().get( cacheKey, String.class );
             if ( cachedDN != null )
             {
                 canonicalValue = cachedDN;
@@ -167,11 +165,14 @@ public class LdapProfile extends AbstractProfile implements Profile
                 if ( enableCanonicalCache )
                 {
                     final long cacheSeconds = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_CACHE_CANONICAL_SECONDS ) );
-                    final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( new TimeDuration( cacheSeconds, TimeUnit.SECONDS ) );
+                    final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( TimeDuration.of( cacheSeconds, TimeDuration.Unit.SECONDS ) );
                     pwmApplication.getCacheService().put( cacheKey, cachePolicy, canonicalValue );
                 }
 
-                LOGGER.trace( "read and cached canonical ldap DN value for input '" + dnValue + "' as '" + canonicalValue + "'" );
+                {
+                    final String finalCanonical = canonicalValue;
+                    LOGGER.trace( () -> "read and cached canonical ldap DN value for input '" + dnValue + "' as '" + finalCanonical + "'" );
+                }
             }
             catch ( ChaiUnavailableException | ChaiOperationException e )
             {

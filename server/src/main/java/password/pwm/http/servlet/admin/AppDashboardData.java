@@ -36,9 +36,9 @@ import password.pwm.http.bean.DisplayElement;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Display;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.cluster.NodeInfo;
+import password.pwm.svc.node.NodeInfo;
 import password.pwm.svc.sessiontrack.SessionTrackService;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmNumberFormat;
@@ -113,11 +113,13 @@ public class AppDashboardData implements Serializable
     private Map<LocalDB.DB, String> localDbSizes;
     private List<NodeData> nodeData;
     private String nodeSummary;
+    private DataStorageMethod nodeStorageMethod;
     private int ldapConnectionCount;
     private int sessionCount;
+    private int requestsInProgress;
 
 
-    static AppDashboardData makeDashboardData(
+    public static AppDashboardData makeDashboardData(
             final PwmApplication pwmApplication,
             final ContextManager contextManager,
             final Locale locale,
@@ -154,11 +156,19 @@ public class AppDashboardData implements Serializable
         builder.nodeSummary = pwmApplication.getClusterService().isMaster()
                 ? "This node is the current master"
                 : "This node is not the current master";
+        {
+            final Collection<DataStorageMethod> dataStorageMethods = pwmApplication.getClusterService().serviceInfo().getUsedStorageMethods();
+            if ( !JavaHelper.isEmpty( dataStorageMethods ) )
+            {
+                builder.nodeStorageMethod = dataStorageMethods.iterator().next();
+            }
+        }
 
         builder.ldapConnectionCount( ldapConnectionCount( pwmApplication ) );
         builder.sessionCount( pwmApplication.getSessionTrackService().sessionCount() );
+        builder.requestsInProgress( pwmApplication.getInprogressRequests().get() );
 
-        LOGGER.trace( "AppDashboardData bean created in " + TimeDuration.compactFromCurrent( startTime ) );
+        LOGGER.trace( () -> "AppDashboardData bean created in " + TimeDuration.compactFromCurrent( startTime ) );
         return builder.build();
     }
 
@@ -278,12 +288,14 @@ public class AppDashboardData implements Serializable
                 "Word List Dictionary Size",
                 numberFormat.format( pwmApplication.getWordlistManager().size() )
         ) );
+
         localDbInfo.add( new DisplayElement(
                 "seedlistSize",
                 DisplayElement.Type.number,
                 "Seed List Dictionary Size",
                 numberFormat.format( pwmApplication.getSeedlistManager().size() )
         ) );
+
         localDbInfo.add( new DisplayElement(
                 "sharedHistorySize",
                 DisplayElement.Type.number,
@@ -298,7 +310,7 @@ public class AppDashboardData implements Serializable
             localDbInfo.add( new DisplayElement(
                     "oldestSharedHistory",
                     DisplayElement.Type.string,
-                    "OldestShared Password Entry",
+                    "Oldest Shared Password Entry",
                     display
             ) );
         }
@@ -450,7 +462,7 @@ public class AppDashboardData implements Serializable
             final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
 
             final String display = numberFormat.format( pwmApplication.getResourceServletService().itemsInCache() )
-                    + "items (" + numberFormat.format( pwmApplication.getResourceServletService().bytesInCache() ) + " bytes)";
+                    + " items (" + numberFormat.format( pwmApplication.getResourceServletService().bytesInCache() ) + " bytes)";
 
             javaInfo.add( new DisplayElement(
                     "resourceFileServletCacheSize",
@@ -537,7 +549,7 @@ public class AppDashboardData implements Serializable
         }
         catch ( PwmUnrecoverableException e )
         {
-            LOGGER.trace( "error building AppDashboardData node-state: " + e.getMessage() );
+            LOGGER.trace( () -> "error building AppDashboardData node-state: " + e.getMessage() );
         }
 
         return Collections.unmodifiableList( nodeData );

@@ -40,6 +40,7 @@ import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.peoplesearch.PeopleSearchConfiguration;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.StringUtil;
 
 import java.util.Arrays;
 
@@ -61,6 +62,7 @@ public enum PwmIfTest
     permission( new BooleanPermissionTest() ),
     otpSetupEnabled( new SetupOTPEnabled() ),
     hasStoredOtpTimestamp( new HasStoredOtpTimestamp() ),
+    hasCustomJavascript( new HasCustomJavascript() ),
     setupChallengeEnabled( new BooleanPwmSettingTest( PwmSetting.CHALLENGE_ENABLE ) ),
     shortcutsEnabled( new BooleanPwmSettingTest( PwmSetting.SHORTCUT_ENABLE ) ),
     peopleSearchEnabled( new BooleanPwmSettingTest( PwmSetting.PEOPLE_SEARCH_ENABLE ) ),
@@ -362,7 +364,7 @@ public enum PwmIfTest
                 final HealthMonitor healthMonitor = pwmRequest.getPwmApplication().getHealthMonitor();
                 if ( healthMonitor != null && healthMonitor.status() == PwmService.STATUS.OPEN )
                 {
-                    if ( healthMonitor.getMostSevereHealthStatus( HealthMonitor.CheckTimeliness.NeverBlock ) == HealthStatus.WARN )
+                    if ( healthMonitor.getMostSevereHealthStatus() == HealthStatus.WARN )
                     {
                         return true;
                     }
@@ -477,7 +479,7 @@ public enum PwmIfTest
                 return false;
             }
 
-            return PeopleSearchConfiguration.fromConfiguration( pwmRequest.getConfig() ).isOrgChartEnabled();
+            return PeopleSearchConfiguration.forRequest( pwmRequest ).isOrgChartEnabled();
         }
     }
 
@@ -511,4 +513,15 @@ public enum PwmIfTest
             return setupOtpProfile != null && setupOtpProfile.readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP );
         }
     }
+
+    private static class HasCustomJavascript implements Test
+    {
+        @Override
+        public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options )
+        {
+            final String customJs = pwmRequest.getConfig().readSettingAsString( PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT );
+            return !StringUtil.isEmpty( customJs );
+        }
+    }
+
 }

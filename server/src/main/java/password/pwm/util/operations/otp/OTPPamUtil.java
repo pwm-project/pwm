@@ -40,6 +40,10 @@ public class OTPPamUtil
 
     /**
      * Split the string in lines; separate by CR, LF or CRLF.
+     *
+     * @param text string containing line separators.
+     *
+     * @return a list of split lines
      */
     public static List<String> splitLines( final String text )
     {
@@ -91,18 +95,19 @@ public class OTPPamUtil
                     }
                     else
                     {
-                        LOGGER.trace( String.format( "Unrecognized line: \"%s\"", line ) );
+                        final String finalLine = line;
+                        LOGGER.trace( () -> String.format( "Unrecognized line: \"%s\"", finalLine ) );
                     }
                 }
                 if ( recoveryCodes.isEmpty() )
                 {
-                    LOGGER.debug( "No recovery codes read." );
+                    LOGGER.debug( () -> "No recovery codes read." );
                     otp.setRecoveryCodes( null );
                     otp.setRecoveryInfo( null );
                 }
                 else
                 {
-                    LOGGER.debug( String.format( "%d recovery codes read.", recoveryCodes.size() ) );
+                    LOGGER.debug( () -> String.format( "%d recovery codes read.", recoveryCodes.size() ) );
                     final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
                     recoveryInfo.setHashCount( 0 );
                     recoveryInfo.setSalt( null );

@@ -102,7 +102,7 @@ public class RestStatusServer extends RestServlet
             StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_STATUS );
 
             final RestResultBean restResultBean = RestResultBean.withData( publicUserInfoBean );
-            LOGGER.debug( restRequest.getSessionLabel(), "completed REST status request in "
+            LOGGER.debug( restRequest.getSessionLabel(), () -> "completed REST status request in "
                     + TimeDuration.compactFromCurrent( startTime ) + ", result=" + JsonUtil.serialize( restResultBean ) );
             return restResultBean;
         }
@@ -113,7 +113,7 @@ public class RestStatusServer extends RestServlet
         catch ( Exception e )
         {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }

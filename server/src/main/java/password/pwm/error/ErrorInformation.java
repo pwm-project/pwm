@@ -47,7 +47,7 @@ public class ErrorInformation implements Serializable
     // private constructor used for gson de-serialization
     private ErrorInformation( )
     {
-        error = PwmError.ERROR_UNKNOWN;
+        error = PwmError.ERROR_INTERNAL;
         detailedErrorMsg = null;
         fieldValues = null;
         userStrOverride = null;
@@ -55,7 +55,7 @@ public class ErrorInformation implements Serializable
 
     public ErrorInformation( final PwmError error )
     {
-        this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
+        this.error = error == null ? PwmError.ERROR_INTERNAL : error;
         this.detailedErrorMsg = null;
         this.userStrOverride = null;
         this.fieldValues = new String[ 0 ];
@@ -63,7 +63,7 @@ public class ErrorInformation implements Serializable
 
     public ErrorInformation( final PwmError error, final String detailedErrorMsg )
     {
-        this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
+        this.error = error == null ? PwmError.ERROR_INTERNAL : error;
         this.detailedErrorMsg = detailedErrorMsg;
         this.userStrOverride = null;
         this.fieldValues = new String[ 0 ];
@@ -71,7 +71,7 @@ public class ErrorInformation implements Serializable
 
     public ErrorInformation( final PwmError error, final String detailedErrorMsg, final String[] fields )
     {
-        this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
+        this.error = error == null ? PwmError.ERROR_INTERNAL : error;
         this.detailedErrorMsg = detailedErrorMsg;
         this.userStrOverride = null;
         this.fieldValues = fields == null ? new String[ 0 ] : fields;
@@ -79,7 +79,7 @@ public class ErrorInformation implements Serializable
 
     public ErrorInformation( final PwmError error, final String detailedErrorMsg, final String userStrOverride, final String[] fields )
     {
-        this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
+        this.error = error == null ? PwmError.ERROR_INTERNAL : error;
         this.detailedErrorMsg = detailedErrorMsg;
         this.userStrOverride = userStrOverride;
         this.fieldValues = fields == null ? new String[ 0 ] : fields;

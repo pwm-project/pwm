@@ -28,22 +28,25 @@ import password.pwm.config.Configuration;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
 
-public class IdentityVerificationMethodEnumTest {
+public class IdentityVerificationMethodEnumTest
+{
     @Test
     public void testLabels() throws PwmUnrecoverableException
     {
-        final Configuration configuration = new Configuration(StoredConfigurationImpl.newStoredConfiguration());
-        for (final IdentityVerificationMethod method : IdentityVerificationMethod.values()) {
-            method.getLabel(configuration, PwmConstants.DEFAULT_LOCALE);
+        final Configuration configuration = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
+        for ( final IdentityVerificationMethod method : IdentityVerificationMethod.values() )
+        {
+            method.getLabel( configuration, PwmConstants.DEFAULT_LOCALE );
         }
     }
 
     @Test
     public void testDescriptions() throws PwmUnrecoverableException
     {
-        final Configuration configuration = new Configuration(StoredConfigurationImpl.newStoredConfiguration());
-        for (final IdentityVerificationMethod category : IdentityVerificationMethod.values()) {
-            category.getDescription(configuration, PwmConstants.DEFAULT_LOCALE);
+        final Configuration configuration = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
+        for ( final IdentityVerificationMethod category : IdentityVerificationMethod.values() )
+        {
+            category.getDescription( configuration, PwmConstants.DEFAULT_LOCALE );
         }
     }
 

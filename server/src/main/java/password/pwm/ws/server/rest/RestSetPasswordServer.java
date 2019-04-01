@@ -225,7 +225,7 @@ public class RestSetPasswordServer extends RestServlet
         catch ( Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
             LOGGER.error( "error during set password REST operation: " + e.getMessage(), e );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
