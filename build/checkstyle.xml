@@ -31,6 +31,8 @@
 
 <module name="Checker">
 
+    <property name="cacheFile" value="target/checkstyle.cache"/>
+
     <module name="SuppressionFilter">
         <property name="file" value="${basedir}/build/checkstyle-suppression.xml" />
     </module>
@@ -63,7 +65,6 @@
     </module>
 
     <module name="TreeWalker" >
-        <property name="cacheFile" value="target/checkstyle.cache"/>
 
         <!-- required for SuppressWarningsFilter (and other Suppress* rules not used here) -->
         <!-- see http://checkstyle.sourceforge.net/config_annotation.html#SuppressWarningsHolder -->

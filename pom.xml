@@ -172,7 +172,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.18</version>
+                        <version>8.19</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -262,19 +262,6 @@
                         <goals>
                             <goal>check</goal>
                         </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.1</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <configuration>
-                            <goal>aggregate</goal>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
