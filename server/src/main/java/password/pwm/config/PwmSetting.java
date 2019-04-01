@@ -840,6 +840,8 @@ public enum PwmSetting
             "newUser.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_DELETE_ON_FAIL(
             "newUser.deleteOnFail", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
+    NEWUSER_LOGOUT_AFTER_CREATION(
+            "newUser.logoutAfterCreation", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_USERNAME_DEFINITION(
             "newUser.username.definition", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_EMAIL_VERIFICATION(

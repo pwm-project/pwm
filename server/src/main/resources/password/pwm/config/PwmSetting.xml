@@ -2751,6 +2751,11 @@
             <value>true</value>
         </default>
     </setting>
+    <setting hidden="false" key="newUser.logoutAfterCreation" level="2">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting hidden="false" key="newUser.username.definition" level="1">
         <default>
             <value><![CDATA[@RandomChar:16:ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@]]></value>
