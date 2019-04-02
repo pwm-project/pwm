@@ -26,14 +26,14 @@ import java.util.Date;
 
 public class SmsPostResponseBody
 {
-    private static String messageContent;
-    private static Date date;
+    private String messageContent;
+    private Date date;
 
     public SmsPostResponseBody( final String message, final Date date )
     {
         final String[] strings = message.split( "&" );
         this.messageContent = strings[strings.length - 1];
-        this.date = date;
+        this.date = new Date( date.getTime() );
     }
 
     public SmsPostResponseBody( final String message )
@@ -44,7 +44,7 @@ public class SmsPostResponseBody
 
     public SmsPostResponseBody( final Date date )
     {
-        this.date = date;
+        this.date = new Date( date.getTime() );
         this.messageContent = "";
     }
 
@@ -65,11 +65,11 @@ public class SmsPostResponseBody
 
     public Date getDate()
     {
-        return date;
+        return new Date( this.date.getTime() );
     }
 
     public void setDate( final Date date )
     {
-        this.date = date;
+        this.date = new Date( this.date.getTime() );
     }
 }
