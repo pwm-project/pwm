@@ -33,7 +33,6 @@ public class SmsPostResponseBody
     {
         final String[] strings = message.split( "&" );
         this.messageContent = strings[strings.length - 1];
-        this.date = Instant.now();
     }
 
     public SmsPostResponseBody( final String message )
