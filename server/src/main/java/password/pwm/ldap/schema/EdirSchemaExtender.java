@@ -127,7 +127,7 @@ public class EdirSchemaExtender implements SchemaExtender
         }
         catch ( ChaiOperationException e )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() ) );
         }
 
     }
@@ -352,7 +352,7 @@ public class EdirSchemaExtender implements SchemaExtender
 
     private void logActivity( final CharSequence charSequence )
     {
-        LOGGER.info( charSequence );
+        LOGGER.info( () -> charSequence );
         activityLog.append( charSequence ).append( "\n" );
     }
 

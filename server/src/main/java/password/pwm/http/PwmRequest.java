@@ -47,8 +47,9 @@ import password.pwm.http.servlet.command.CommandServlet;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.Validator;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -59,8 +60,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -74,22 +73,11 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmRequest.class );
 
-    private static final Set<String> HTTP_PARAM_DEBUG_STRIP_VALUES =
-            Collections.unmodifiableSet( new HashSet<>( Arrays.asList(
-                    "password",
-                    PwmConstants.PARAM_TOKEN,
-                    PwmConstants.PARAM_RESPONSE_PREFIX ) )
-            );
-
-    private static final Set<String> HTTP_HEADER_DEBUG_STRIP_VALUES =
-            Collections.unmodifiableSet( new HashSet<>( Arrays.asList(
-                    HttpHeader.Authorization.getHttpName() ) )
-            );
-
     private final PwmResponse pwmResponse;
+    private final PwmURL pwmURL;
+
     private transient PwmApplication pwmApplication;
     private transient PwmSession pwmSession;
-    private PwmURL pwmURL;
 
     private final Set<PwmRequestFlag> flags = new HashSet<>();
 
@@ -122,6 +110,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         this.pwmResponse = new PwmResponse( httpServletResponse, this, pwmApplication.getConfig() );
         this.pwmSession = pwmSession;
         this.pwmApplication = pwmApplication;
+        this.pwmURL = new PwmURL( this.getHttpServletRequest() );
     }
 
     public PwmApplication getPwmApplication( )
@@ -272,7 +261,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
                     final long length = IOUtils.copyLarge( inputStream, baos, 0, maxFileSize + 1 );
                     if ( length > maxFileSize )
                     {
-                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "upload file size limit exceeded" );
+                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "upload file size limit exceeded" );
                         LOGGER.error( this, errorInformation );
                         respondWithError( errorInformation );
                         return Collections.emptyMap();
@@ -366,7 +355,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         redirectURL.append( "&" );
         redirectURL.append( PwmConstants.PARAM_TOKEN ).append( "=" ).append( tokenValue );
 
-        LOGGER.debug( pwmSession, "detected long servlet url, redirecting user to " + redirectURL );
+        LOGGER.debug( pwmSession, () -> "detected long servlet url, redirecting user to " + redirectURL );
         sendRedirect( redirectURL.toString() );
         return true;
     }
@@ -383,51 +372,17 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public PwmURL getURL( )
     {
-        if ( pwmURL == null )
-        {
-            pwmURL = new PwmURL( this.getHttpServletRequest() );
-        }
         return pwmURL;
-    }
-
-    public void debugHttpRequestToLog( )
-            throws PwmUnrecoverableException
-    {
-        debugHttpRequestToLog( null );
     }
 
     public void debugHttpRequestToLog( final String extraText )
             throws PwmUnrecoverableException
     {
-
-        final StringBuilder sb = new StringBuilder();
-        final HttpServletRequest req = this.getHttpServletRequest();
-
-        sb.append( req.getMethod() );
-        sb.append( " request for: " );
-        sb.append( getURLwithoutQueryString() );
-
-        if ( req.getParameterMap().isEmpty() )
+        if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
         {
-            sb.append( " (no params)" );
-            if ( extraText != null )
-            {
-                sb.append( " " );
-                sb.append( extraText );
-            }
+            final String debugTxt = debugHttpRequestToString( extraText, false );
+            LOGGER.trace( this.getSessionLabel(), () -> debugTxt );
         }
-        else
-        {
-            if ( extraText != null )
-            {
-                sb.append( " " );
-                sb.append( extraText );
-            }
-            sb.append( "\n" );
-
-            sb.append( debugOutputMapToString( this.readMultiParametersAsMap(), HTTP_PARAM_DEBUG_STRIP_VALUES ) );
-        }
-        LOGGER.trace( this.getSessionLabel(), sb.toString() );
     }
 
     public boolean isAuthenticated( )
@@ -527,7 +482,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         if ( getAttribute( PwmRequestAttribute.CspNonce ) == null )
         {
             final int nonceLength = Integer.parseInt( getConfig().readAppProperty( AppProperty.HTTP_HEADER_CSP_NONCE_BYTES ) );
-            final byte[] cspNonce = PwmRandom.getInstance().newBytes( nonceLength );
+            final byte[] cspNonce = pwmApplication.getSecureService().pwmRandom().newBytes( nonceLength );
             final String cspString = StringUtil.base64Encode( cspNonce );
             setAttribute( PwmRequestAttribute.CspNonce, cspString );
         }
@@ -541,7 +496,8 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
         if ( strValue != null && !strValue.isEmpty() )
         {
-            return pwmApplication.getSecureService().decryptObject( strValue, returnClass );
+            final PwmSecurityKey pwmSecurityKey = pwmSession.getSecurityKey( this );
+            return pwmApplication.getSecureService().decryptObject( strValue, pwmSecurityKey, returnClass );
         }
 
         return null;
@@ -594,27 +550,6 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return PwmURL.appendAndEncodeUrlParameters( getURLwithoutQueryString(), readParametersAsMap() );
     }
 
-    public String getURLwithoutQueryString( )
-    {
-        final HttpServletRequest req = this.getHttpServletRequest();
-        final String requestUri = ( String ) req.getAttribute( "javax.servlet.forward.request_uri" );
-        return ( requestUri == null ) ? req.getRequestURI() : requestUri;
-    }
-
-    public String debugHttpHeaders( )
-    {
-        final String lineSeparator = "\n";
-        final StringBuilder sb = new StringBuilder();
-
-
-        sb.append( "http" ).append( getHttpServletRequest().isSecure() ? "s " : " non-" ).append( "secure request headers: " );
-        sb.append( lineSeparator );
-
-        sb.append( debugOutputMapToString( readHeaderValuesMap(), HTTP_HEADER_DEBUG_STRIP_VALUES ) );
-
-        return sb.toString();
-    }
-
     public boolean endUserFunctionalityAvailable( )
     {
         final PwmApplicationMode mode = pwmApplication.getApplicationMode();
@@ -633,51 +568,4 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return false;
     }
 
-    private static String debugOutputMapToString(
-            final Map<String, List<String>> input,
-            final Collection<String> stripValues
-    )
-    {
-        final String lineSeparator = "\n";
-
-        final StringBuilder sb = new StringBuilder();
-        for ( final Map.Entry<String, List<String>> entry : input.entrySet() )
-        {
-            final String paramName = entry.getKey();
-            for ( final String paramValue : entry.getValue() )
-            {
-                sb.append( "  " ).append( paramName ).append( "=" );
-                boolean strip = false;
-                for ( final String stripValue : stripValues )
-                {
-                    if ( paramName.toLowerCase().contains( stripValue.toLowerCase() ) )
-                    {
-                        strip = true;
-                    }
-                }
-                if ( strip )
-                {
-                    sb.append( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
-                }
-                else
-                {
-                    sb.append( "'" );
-                    sb.append( paramValue );
-                    sb.append( "'" );
-                }
-
-                sb.append( lineSeparator );
-            }
-        }
-
-        if ( sb.length() > 0 )
-        {
-            if ( lineSeparator.equals( sb.substring( sb.length() - lineSeparator.length(), sb.length() ) ) )
-            {
-                sb.delete( sb.length() - lineSeparator.length(), sb.length() );
-            }
-        }
-
-        return sb.toString();
-    }
 }

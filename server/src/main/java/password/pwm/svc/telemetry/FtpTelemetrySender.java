@@ -88,7 +88,7 @@ public class FtpTelemetrySender implements TelemetrySender
         // connect
         try
         {
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "establishing " + settings.getFtpMode() + " connection to " + settings.getHost() );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "establishing " + settings.getFtpMode() + " connection to " + settings.getHost() );
             ftpClient.connect( settings.getHost() );
 
             final int reply = ftpClient.getReplyCode();
@@ -99,7 +99,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "connected to " + settings.getHost() );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "connected to " + settings.getHost() );
         }
         catch ( IOException e )
         {
@@ -142,7 +142,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "authenticated to " + settings.getHost() + " as " + settings.getUsername() );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "authenticated to " + settings.getHost() + " as " + settings.getUsername() );
         }
         catch ( IOException e )
         {
@@ -159,7 +159,7 @@ public class FtpTelemetrySender implements TelemetrySender
             final byte[] fileBytes = dataToJsonZipFile( telemetryPublishBean );
             final ByteArrayInputStream fileStream = new ByteArrayInputStream( fileBytes );
 
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "preparing to transfer " + fileBytes.length + " bytes to file path " + filePath );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "preparing to transfer " + fileBytes.length + " bytes to file path " + filePath );
 
             final Instant startTime = Instant.now();
             ftpClient.storeFile( filePath, fileStream );
@@ -172,7 +172,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "completed transfer of " + fileBytes.length + " in " + TimeDuration.compactFromCurrent( startTime ) );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "completed transfer of " + fileBytes.length + " in " + TimeDuration.compactFromCurrent( startTime ) );
         }
         catch ( IOException e )
         {
@@ -189,11 +189,11 @@ public class FtpTelemetrySender implements TelemetrySender
             try
             {
                 ftpClient.disconnect();
-                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "disconnected" );
+                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "disconnected" );
             }
             catch ( IOException e )
             {
-                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "error while disconnecting ftp client: " + e.getMessage() );
+                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "error while disconnecting ftp client: " + e.getMessage() );
             }
         }
     }

@@ -76,20 +76,27 @@ public class LocalDBSearchResults implements Iterator<PwmLogEvent>
         return returnEvent;
     }
 
-    private boolean isTimedout( )
+    private boolean isTimedOut( )
     {
-        return TimeDuration.fromCurrent( startTime ).isLongerThan( new TimeDuration( searchParameters.getMaxQueryTime() ) );
+        return searchParameters.getMaxQueryTime() != null
+                && TimeDuration.fromCurrent( startTime ).isLongerThan( searchParameters.getMaxQueryTime() );
+    }
+
+    private boolean isSizeExceeded( )
+    {
+        return searchParameters.getMaxEvents() > 0
+                && eventCount >= searchParameters.getMaxEvents();
     }
 
     private PwmLogEvent readNextEvent( )
     {
-        if ( eventCount >= searchParameters.getMaxEvents() || isTimedout() )
+        if ( isSizeExceeded() || isTimedOut() )
         {
             finishTime = Instant.now();
             return null;
         }
 
-        while ( !isTimedout() && localDBIterator.hasNext() )
+        while ( !isTimedOut() && localDBIterator.hasNext() )
         {
             final String nextDbValue = localDBIterator.next();
             if ( nextDbValue == null )
@@ -118,6 +125,6 @@ public class LocalDBSearchResults implements Iterator<PwmLogEvent>
 
     public TimeDuration getSearchTime( )
     {
-        return finishTime == null ? TimeDuration.fromCurrent( startTime ) : new TimeDuration( startTime, finishTime );
+        return finishTime == null ? TimeDuration.fromCurrent( startTime ) : TimeDuration.between( startTime, finishTime );
     }
 }

@@ -46,6 +46,7 @@ public class SecureService implements PwmService
     private PwmSecurityKey pwmSecurityKey;
     private PwmBlockAlgorithm defaultBlockAlgorithm;
     private PwmHashAlgorithm defaultHashAlgorithm;
+    private PwmRandom pwmRandom;
 
     @Override
     public STATUS status( )
@@ -61,12 +62,12 @@ public class SecureService implements PwmService
         {
             final String defaultBlockAlgString = config.readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG );
             defaultBlockAlgorithm = JavaHelper.readEnumFromString( PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, defaultBlockAlgString );
-            LOGGER.debug( "using default ephemeral block algorithm: " + defaultBlockAlgorithm.getLabel() );
+            LOGGER.debug( () -> "using default ephemeral block algorithm: " + defaultBlockAlgorithm.getLabel() );
         }
         {
             final String defaultHashAlgString = config.readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_HASH_ALG );
             defaultHashAlgorithm = JavaHelper.readEnumFromString( PwmHashAlgorithm.class, PwmHashAlgorithm.SHA512, defaultHashAlgString );
-            LOGGER.debug( "using default ephemeral hash algorithm: " + defaultHashAlgString.toString() );
+            LOGGER.debug( () -> "using default ephemeral hash algorithm: " + defaultHashAlgString );
         }
     }
 
@@ -173,5 +174,14 @@ public class SecureService implements PwmService
             throws IOException, PwmUnrecoverableException
     {
         return SecureEngine.hash( file, defaultHashAlgorithm );
+    }
+
+    public PwmRandom pwmRandom()
+    {
+        if ( pwmRandom == null )
+        {
+            pwmRandom = PwmRandom.getInstance();
+        }
+        return pwmRandom;
     }
 }

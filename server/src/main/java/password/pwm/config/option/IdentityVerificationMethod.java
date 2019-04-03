@@ -73,5 +73,4 @@ public enum IdentityVerificationMethod implements Serializable, ConfigurationOpt
         values.addAll( Arrays.asList( IdentityVerificationMethod.values() ) );
         return values.toArray( new IdentityVerificationMethod[ values.size() ] );
     }
-
 }

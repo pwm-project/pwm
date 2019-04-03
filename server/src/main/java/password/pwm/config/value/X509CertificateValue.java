@@ -22,11 +22,12 @@
 
 package password.pwm.config.value;
 
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -54,11 +55,11 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
-            public X509CertificateValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            public X509CertificateValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
                 final List<X509Certificate> certificates = new ArrayList<>();
-                final List<Element> valueElements = settingElement.getChildren( "value" );
-                for ( final Element loopValueElement : valueElements )
+                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                for ( final XmlElement loopValueElement : valueElements )
                 {
                     final String b64encodedStr = loopValueElement.getText();
                     try
@@ -105,15 +106,15 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
 
 
     @Override
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final X509Certificate value : certificates )
         {
-            final Element valueElement = new Element( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
             try
             {
-                valueElement.addContent( X509Utils.certificateToBase64( value ) );
+                valueElement.addText( X509Utils.certificateToBase64( value ) );
             }
             catch ( CertificateEncodingException e )
             {

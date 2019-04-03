@@ -22,6 +22,8 @@
 
 package password.pwm.svc.token;
 
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
@@ -51,7 +53,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class TokenUtil
@@ -94,7 +95,7 @@ public class TokenUtil
             effectiveItems.add( effectiveItem );
         }
 
-        LOGGER.trace( sessionLabel, "calculated available token send destinations: " + JsonUtil.serializeCollection( effectiveItems ) );
+        LOGGER.trace( sessionLabel, () -> "calculated available token send destinations: " + JsonUtil.serializeCollection( effectiveItems ) );
 
         if ( tokenDestinations.isEmpty() )
         {
@@ -182,13 +183,16 @@ public class TokenUtil
                     }
                 }
 
-                final String currentTokenDest = tokenDestinationItem.getValue();
-                final String payloadTokenDest = tokenPayload.getDestination();
-                if ( !StringUtil.nullSafeEquals( currentTokenDest, payloadTokenDest ) )
+                if ( tokenDestinationItem != null )
                 {
-                    final String errorMsg = "token is for destination '" + currentTokenDest
-                            + "', but the current expected destination is '" + payloadTokenDest + "'";
-                    throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
+                    final String currentTokenDest = tokenDestinationItem.getValue();
+                    final TokenDestinationItem payloadTokenDest = tokenPayload.getDestination();
+                    if ( payloadTokenDest != null && !StringUtil.nullSafeEquals( currentTokenDest, payloadTokenDest.getValue() ) )
+                    {
+                        final String errorMsg = "token is for destination '" + currentTokenDest
+                                + "', but the current expected destination is '" + payloadTokenDest + "'";
+                        throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
+                    }
                 }
             }
 
@@ -203,34 +207,28 @@ public class TokenUtil
 
     public static void initializeAndSendToken(
             final PwmRequest pwmRequest,
-            final UserInfo userInfo,
-            final TokenDestinationItem tokenDestinationItem,
-            final PwmSetting emailToSend,
-            final TokenType tokenType,
-            final PwmSetting smsToSend
-    )
-            throws PwmUnrecoverableException
-    {
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userInfo.getUserIdentity(), makeTokenDestStringReplacer( tokenDestinationItem ) );
-        initializeAndSendToken( pwmRequest, userInfo, tokenDestinationItem, emailToSend, tokenType, smsToSend, Collections.emptyMap(), macroMachine );
-    }
-
-    @SuppressWarnings( "checkstyle:ParameterNumber" )
-    public static void initializeAndSendToken(
-            final PwmRequest pwmRequest,
-            final UserInfo userInfo,
-            final TokenDestinationItem tokenDestinationItem,
-            final PwmSetting emailToSend,
-            final TokenType tokenType,
-            final PwmSetting smsToSend,
-            final Map<String, String> inputTokenData,
-            final MacroMachine macroMachine
+            final TokenInitAndSendRequest tokenInitAndSendRequest
     )
             throws PwmUnrecoverableException
     {
         final Configuration config = pwmRequest.getConfig();
-        final UserIdentity userIdentity = userInfo == null ? null : userInfo.getUserIdentity();
+        final UserInfo userInfo = tokenInitAndSendRequest.getUserInfo();
         final Map<String, String> tokenMapData = new LinkedHashMap<>();
+        final MacroMachine macroMachine;
+        {
+            if ( tokenInitAndSendRequest.getMacroMachine() != null )
+            {
+                macroMachine = tokenInitAndSendRequest.getMacroMachine();
+            }
+            else if ( tokenInitAndSendRequest.getUserInfo() != null )
+            {
+                macroMachine = MacroMachine.forUser( pwmRequest, userInfo.getUserIdentity(), makeTokenDestStringReplacer( tokenInitAndSendRequest.getTokenDestinationItem() ) );
+            }
+            else
+            {
+                macroMachine = null;
+            }
+        }
 
         if ( userInfo != null )
         {
@@ -242,31 +240,44 @@ public class TokenUtil
             }
         }
 
-        if ( inputTokenData != null )
+        if ( tokenInitAndSendRequest.getInputTokenData() != null )
         {
-            tokenMapData.putAll( inputTokenData );
+            tokenMapData.putAll( tokenInitAndSendRequest.getInputTokenData() );
         }
 
-        final EmailItemBean emailItemBean = config.readSettingAsEmail( emailToSend, pwmRequest.getLocale() );
+
         final String tokenKey;
         final TokenPayload tokenPayload;
-        try
         {
-            tokenPayload = pwmRequest.getPwmApplication().getTokenService().createTokenPayload(
-                    tokenType,
-                    new TimeDuration( config.readSettingAsLong( PwmSetting.TOKEN_LIFETIME ), TimeUnit.SECONDS ),
-                    tokenMapData,
-                    userIdentity,
-                    tokenDestinationItem.getValue()
-            );
-            tokenKey = pwmRequest.getPwmApplication().getTokenService().generateNewToken( tokenPayload, pwmRequest.getSessionLabel() );
-        }
-        catch ( PwmOperationalException e )
-        {
-            throw new PwmUnrecoverableException( e.getErrorInformation() );
+
+            final TimeDuration tokenLifetime = tokenInitAndSendRequest.getTokenLifetime() == null
+                    ? TimeDuration.of( config.readSettingAsLong( PwmSetting.TOKEN_LIFETIME ), TimeDuration.Unit.SECONDS )
+                    : tokenInitAndSendRequest.getTokenLifetime();
+
+            try
+            {
+                tokenPayload = pwmRequest.getPwmApplication().getTokenService().createTokenPayload(
+                        tokenInitAndSendRequest.getTokenType(),
+                        tokenLifetime,
+                        tokenMapData,
+                        userInfo == null ? null : userInfo.getUserIdentity(),
+                        tokenInitAndSendRequest.getTokenDestinationItem()
+                );
+                tokenKey = pwmRequest.getPwmApplication().getTokenService().generateNewToken( tokenPayload, pwmRequest.getSessionLabel() );
+            }
+            catch ( PwmOperationalException e )
+            {
+                throw new PwmUnrecoverableException( e.getErrorInformation() );
+            }
         }
 
-        final String smsMessage = config.readSettingAsLocalizedString( smsToSend, pwmRequest.getLocale() );
+        final EmailItemBean emailItemBean = tokenInitAndSendRequest.getEmailToSend() == null
+                ? null
+                : config.readSettingAsEmail( tokenInitAndSendRequest.getEmailToSend(), pwmRequest.getLocale() );
+
+        final String smsMessage = tokenInitAndSendRequest.getSmsToSend() == null
+                ? null
+                : config.readSettingAsLocalizedString( tokenInitAndSendRequest.getSmsToSend(), pwmRequest.getLocale() );
 
         TokenService.TokenSender.sendToken(
                 TokenService.TokenSendInfo.builder()
@@ -274,9 +285,7 @@ public class TokenUtil
                         .userInfo( userInfo )
                         .macroMachine( macroMachine )
                         .configuredEmailSetting( emailItemBean )
-                        .tokenSendMethod( tokenDestinationItem.getType().getMessageSendMethod() )
-                        .emailAddress( tokenDestinationItem.getValue() )
-                        .smsNumber( tokenDestinationItem.getValue() )
+                        .tokenDestinationItem( tokenInitAndSendRequest.getTokenDestinationItem() )
                         .smsMessage( smsMessage )
                         .tokenKey( tokenKey )
                         .sessionLabel( pwmRequest.getSessionLabel() )
@@ -295,5 +304,19 @@ public class TokenUtil
 
             return newValue;
         };
+    }
+
+    @Value
+    @Builder
+    public static class TokenInitAndSendRequest
+    {
+        private final UserInfo userInfo;
+        private TokenDestinationItem tokenDestinationItem;
+        private PwmSetting emailToSend;
+        private TokenType tokenType;
+        private PwmSetting smsToSend;
+        private Map<String, String> inputTokenData;
+        private MacroMachine macroMachine;
+        private TimeDuration tokenLifetime;
     }
 }

@@ -22,9 +22,12 @@
 
 package password.pwm.http.servlet.helpdesk;
 
-import java.io.Serializable;
-import java.util.Date;
+import lombok.Data;
 
+import java.io.Serializable;
+import java.time.Instant;
+
+@Data
 public class HelpdeskVerificationRequestBean implements Serializable
 {
 
@@ -36,79 +39,11 @@ public class HelpdeskVerificationRequestBean implements Serializable
     private String tokenData;
     private String verificationState;
 
-    public String getDestination( )
-    {
-        return destination;
-    }
 
-    public void setDestination( final String destination )
-    {
-        this.destination = destination;
-    }
-
-    public String getUserKey( )
-    {
-        return userKey;
-    }
-
-    public void setUserKey( final String userKey )
-    {
-        this.userKey = userKey;
-    }
-
-    public String getCode( )
-    {
-        return code;
-    }
-
-    public void setCode( final String code )
-    {
-        this.code = code;
-    }
-
-    public String getTokenData( )
-    {
-        return tokenData;
-    }
-
-    public void setTokenData( final String tokenData )
-    {
-        this.tokenData = tokenData;
-    }
-
-    public String getVerificationState( )
-    {
-        return verificationState;
-    }
-
-    public void setVerificationState( final String verificationState )
-    {
-        this.verificationState = verificationState;
-    }
-
+    @Data
     static class TokenData implements Serializable
     {
         private String token;
-        private Date issueDate;
-
-        public String getToken( )
-        {
-            return token;
-        }
-
-        public void setToken( final String token )
-        {
-            this.token = token;
-        }
-
-        public Date getIssueDate( )
-        {
-            return issueDate;
-        }
-
-        public void setIssueDate( final Date issueDate )
-        {
-            this.issueDate = issueDate;
-        }
+        private Instant issueDate;
     }
 }

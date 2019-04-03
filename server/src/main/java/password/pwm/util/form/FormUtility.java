@@ -99,7 +99,7 @@ public class FormUtility
             final String keyName = formItem.getName();
             final String value = inputMap.get( keyName );
 
-            if ( formItem.isRequired() && !formItem.isReadonly() )
+            if ( formItem.isRequired() && !formItem.isReadonly() && formItem.getType() != FormConfiguration.Type.photo )
             {
                 if ( StringUtil.isEmpty( value ) )
                 {
@@ -237,7 +237,6 @@ public class FormUtility
             throws PwmDataValidationException, PwmUnrecoverableException
     {
         final boolean allowResultCaching = JavaHelper.enumArrayContainsValue( validationFlags, ValidationFlag.allowResultCaching );
-        final boolean checkReadOnlyAndHidden = JavaHelper.enumArrayContainsValue( validationFlags, ValidationFlag.checkReadOnlyAndHidden );
 
         final Map<String, String> filterClauses = new HashMap<>();
         final Map<String, String> labelMap = new HashMap<>();
@@ -246,16 +245,17 @@ public class FormUtility
             final FormConfiguration formItem = entry.getKey();
             if ( formItem.isUnique() )
             {
-                if ( checkReadOnlyAndHidden || formItem.isReadonly() )
+                final boolean checkReadOnlyAndHidden = JavaHelper.enumArrayContainsValue( validationFlags, ValidationFlag.checkReadOnlyAndHidden );
+                final boolean itemIsReadOnly = formItem.isReadonly();
+                final boolean itemIsHidden = formItem.getType() == FormConfiguration.Type.hidden;
+
+                if ( ( !itemIsHidden && !itemIsReadOnly ) || checkReadOnlyAndHidden )
                 {
-                    if ( checkReadOnlyAndHidden || ( formItem.getType() != FormConfiguration.Type.hidden ) )
+                    final String value = formValues.get( formItem );
+                    if ( !StringUtil.isEmpty( value ) )
                     {
-                        final String value = entry.getValue();
-                        if ( value != null && value.length() > 0 )
-                        {
-                            filterClauses.put( formItem.getName(), value );
-                            labelMap.put( formItem.getName(), formItem.getLabel( locale ) );
-                        }
+                        filterClauses.put( formItem.getName(), value );
+                        labelMap.put( formItem.getName(), formItem.getLabel( locale ) );
                     }
                 }
             }
@@ -294,12 +294,12 @@ public class FormUtility
         }
 
         final CacheService cacheService = pwmApplication.getCacheService();
-        final CacheKey cacheKey = CacheKey.makeCacheKey(
+        final CacheKey cacheKey = CacheKey.newKey(
                 Validator.class, null, "attr_unique_check_" + filter.toString()
         );
         if ( allowResultCaching && cacheService != null )
         {
-            final String cacheValue = cacheService.get( cacheKey );
+            final String cacheValue = cacheService.get( cacheKey, String.class );
             if ( cacheValue != null )
             {
                 if ( NEGATIVE_CACHE_HIT.equals( cacheValue ) )
@@ -350,7 +350,7 @@ public class FormUtility
                 {
                     // since only one value searched, it must be that one value
                     final String attributeName = labelMap.values().iterator().next();
-                    LOGGER.trace( "found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity );
+                    LOGGER.trace( () -> "found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity );
                     final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
                             {
                                     attributeName,
@@ -379,7 +379,7 @@ public class FormUtility
                     if ( compareResult )
                     {
                         final String label = labelMap.get( name );
-                        LOGGER.trace( "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
+                        LOGGER.trace( () ->  "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
                         final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
                                 {
                                         label,
@@ -414,6 +414,9 @@ public class FormUtility
      * and checks to make sure the ParamConfig value meets the requirements of the ParamConfig itself.
      *
      * @param formValues - a Map containing String keys of parameter names and ParamConfigs as values
+     * @param locale used for error messages
+     * @param configuration current application configuration
+     *
      * @throws password.pwm.error.PwmDataValidationException - If there is a problem with any of the fields
      * @throws password.pwm.error.PwmUnrecoverableException  if an unexpected error occurs
      */
@@ -519,7 +522,7 @@ public class FormUtility
     {
         final boolean includeNulls = JavaHelper.enumArrayContainsValue( flags, Flag.ReturnEmptyValues );
         final List<String> formFieldNames = FormConfiguration.convertToListOfNames( formFields );
-        LOGGER.trace( sessionLabel, "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection( formFieldNames ) );
+        LOGGER.trace( sessionLabel, () -> "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection( formFieldNames ) );
         final Map<String, List<String>> dataFromLdap = new LinkedHashMap<>();
         try
         {
@@ -534,6 +537,15 @@ public class FormUtility
                         if ( includeNulls || ( values != null && !values.isEmpty() ) )
                         {
                             dataFromLdap.put( attribute, values );
+                        }
+                    }
+                    else if ( formConfiguration.getType() == FormConfiguration.Type.photo )
+                    {
+                        final byte[] byteValue = userInfo.readBinaryAttribute( attribute );
+                        if ( byteValue != null && byteValue.length > 0 )
+                        {
+                            final String b64value = StringUtil.base64Encode( byteValue );
+                            dataFromLdap.put( attribute, Collections.singletonList( b64value ) );
                         }
                     }
                     else
@@ -554,7 +566,7 @@ public class FormUtility
             {
                 error = PwmError.forChaiError( ( ( ChaiException ) e ).getErrorCode() );
             }
-            if ( error == null || error == PwmError.ERROR_UNKNOWN )
+            if ( error == null || error == PwmError.ERROR_INTERNAL )
             {
                 error = PwmError.ERROR_LDAP_DATA_ERROR;
             }
@@ -575,7 +587,7 @@ public class FormUtility
                 {
                     final String parsedValue = parseInputValueToFormValue( formItem, value );
                     values.add( parsedValue );
-                    LOGGER.trace( sessionLabel, "loaded value for form item '" + attrName + "' with value=" + value );
+                    LOGGER.trace( sessionLabel, () -> "loaded value for form item '" + attrName + "' with value=" + value );
                 }
 
                 returnMap.put( formItem, values );
@@ -623,5 +635,15 @@ public class FormUtility
         }
 
         return returnObj;
+    }
+
+    public static Map<String, FormConfiguration> asFormNameMap( final List<FormConfiguration> formConfigurations )
+    {
+        final Map<String, FormConfiguration> returnMap = new LinkedHashMap<>();
+        for ( final FormConfiguration formConfiguration : formConfigurations )
+        {
+            returnMap.put( formConfiguration.getName(), formConfiguration );
+        }
+        return returnMap;
     }
 }

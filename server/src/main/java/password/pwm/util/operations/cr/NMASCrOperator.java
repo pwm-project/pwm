@@ -45,6 +45,7 @@ import com.novell.ldapchai.provider.ChaiProviderImplementor;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import com.novell.ldapchai.provider.JLDAPProviderImpl;
+import com.novell.security.nmas.NMASConstants;
 import com.novell.security.nmas.client.NMASCallback;
 import com.novell.security.nmas.client.NMASCompletionCallback;
 import com.novell.security.nmas.lcm.LCMEnvironment;
@@ -76,7 +77,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -154,7 +154,7 @@ public class NMASCrOperator implements CrOperator
         {
             maxNmasIdleSeconds = minSeconds;
         }
-        maxThreadIdleTime = new TimeDuration( maxNmasIdleSeconds * 1000 );
+        maxThreadIdleTime = TimeDuration.of( maxNmasIdleSeconds, TimeDuration.Unit.SECONDS );
 
         registerSaslProvider();
     }
@@ -178,7 +178,7 @@ public class NMASCrOperator implements CrOperator
         }
         else
         {
-            LOGGER.trace( "pre-existing SASL provider for " + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + " has not been detected" );
+            LOGGER.trace( () -> "pre-existing SASL provider for " + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + " has not been detected" );
         }
 
         final boolean useLocalProvider = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.NMAS_USE_LOCAL_SASL_FACTORY ) );
@@ -187,15 +187,15 @@ public class NMASCrOperator implements CrOperator
         {
             if ( useLocalProvider )
             {
-                LOGGER.trace( "registering built-in local SASL provider" );
+                LOGGER.trace( () -> "registering built-in local SASL provider" );
                 saslProvider = new NMASCrPwmSaslProvider();
             }
             else
             {
-                LOGGER.trace( "registering NMAS library SASL provider" );
+                LOGGER.trace( () -> "registering NMAS library SASL provider" );
                 saslProvider = new com.novell.sasl.client.NovellSaslProvider();
             }
-            LOGGER.trace( "initialized security provider " + saslProvider.getClass().getName() );
+            LOGGER.trace( () -> "initialized security provider " + saslProvider.getClass().getName() );
         }
         catch ( Throwable t )
         {
@@ -240,7 +240,7 @@ public class NMASCrOperator implements CrOperator
                 final Timer localTimer = timer;
                 if ( localTimer != null )
                 {
-                    LOGGER.debug( "discontinuing NMASCrOperator watchdog timer, no active threads" );
+                    LOGGER.debug( () -> "discontinuing NMASCrOperator watchdog timer, no active threads" );
                     localTimer.cancel();
                     timer = null;
                 }
@@ -249,7 +249,7 @@ public class NMASCrOperator implements CrOperator
             {
                 if ( timer == null )
                 {
-                    LOGGER.debug( "starting NMASCrOperator watchdog timer, maxIdleThreadTime=" + maxThreadIdleTime.asCompactString() );
+                    LOGGER.debug( () -> "starting NMASCrOperator watchdog timer, maxIdleThreadTime=" + maxThreadIdleTime.asCompactString() );
                     timer = new Timer( PwmConstants.PWM_APP_NAME + "-NMASCrOperator watchdog timer", true );
                     final long frequency = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.NMAS_THREADS_WATCHDOG_FREQUENCY ) );
                     final boolean debugOutput = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.NMAS_THREADS_WATCHDOG_DEBUG ) );
@@ -266,7 +266,7 @@ public class NMASCrOperator implements CrOperator
         final List<NMASSessionThread> threads = new ArrayList<>( sessionMonitorThreads );
         for ( final NMASSessionThread thread : threads )
         {
-            LOGGER.debug( "killing thread due to NMASCrOperator service closing: " + thread.toDebugString() );
+            LOGGER.debug( () -> "killing thread due to NMASCrOperator service closing: " + thread.toDebugString() );
             thread.abort();
         }
     }
@@ -313,7 +313,7 @@ public class NMASCrOperator implements CrOperator
         {
             if ( theUser.getChaiProvider().getDirectoryVendor() != DirectoryVendor.EDIRECTORY )
             {
-                LOGGER.debug( "skipping request to read NMAS responses for " + userIdentity + ", directory type is not eDirectory" );
+                LOGGER.debug( () -> "skipping request to read NMAS responses for " + userIdentity + ", directory type is not eDirectory" );
                 return null;
             }
 
@@ -343,7 +343,7 @@ public class NMASCrOperator implements CrOperator
             if ( theUser.getChaiProvider().getDirectoryVendor() == DirectoryVendor.EDIRECTORY )
             {
                 NmasCrFactory.clearResponseSet( theUser );
-                LOGGER.info( "cleared responses for user " + theUser.getEntryDN() + " using NMAS method " );
+                LOGGER.info( () -> "cleared responses for user " + theUser.getEntryDN() + " using NMAS method " );
             }
         }
         catch ( ChaiException e )
@@ -376,7 +376,7 @@ public class NMASCrOperator implements CrOperator
                         responseInfoBean.getCsIdentifier()
                 );
                 NmasCrFactory.writeResponseSet( nmasResponseSet );
-                LOGGER.info( "saved responses for user using NMAS method " );
+                LOGGER.info( () -> "saved responses for user using NMAS method " );
             }
         }
         catch ( ChaiException e )
@@ -486,7 +486,7 @@ public class NMASCrOperator implements CrOperator
             {
                 if ( theUser.isPasswordLocked() )
                 {
-                    LOGGER.trace( "user " + theUser.getEntryDN() + " appears to be intruder locked, aborting nmas ResponseSet loading" );
+                    LOGGER.trace( () -> "user " + theUser.getEntryDN() + " appears to be intruder locked, aborting nmas ResponseSet loading" );
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTRUDER_LDAP, "nmas account is intruder locked-out" ) );
                 }
                 else if ( !theUser.isAccountEnabled() )
@@ -519,7 +519,7 @@ public class NMASCrOperator implements CrOperator
         {
             if ( challengeSet.getRequiredChallenges().size() > this.getChallengeSet().getRequiredChallenges().size() )
             {
-                LOGGER.debug( "failed meetsChallengeSetRequirements, not enough required challenge" );
+                LOGGER.debug( () -> "failed meetsChallengeSetRequirements, not enough required challenge" );
                 return false;
             }
 
@@ -529,7 +529,7 @@ public class NMASCrOperator implements CrOperator
                 {
                     if ( !this.getChallengeSet().getChallengeTexts().contains( loopChallenge.getChallengeText() ) )
                     {
-                        LOGGER.debug( "failed meetsChallengeSetRequirements, missing required challenge text: '" + loopChallenge.getChallengeText() + "'" );
+                        LOGGER.debug( () -> "failed meetsChallengeSetRequirements, missing required challenge text: '" + loopChallenge.getChallengeText() + "'" );
                         return false;
                     }
                 }
@@ -539,8 +539,9 @@ public class NMASCrOperator implements CrOperator
             {
                 if ( this.getChallengeSet().getChallenges().size() < challengeSet.getMinRandomRequired() )
                 {
-                    LOGGER.debug( "failed meetsChallengeSetRequirements, not enough questions to meet minrandom; minRandomRequired="
-                            + challengeSet.getMinRandomRequired() + ", ChallengesInSet=" + this.getChallengeSet().getChallenges().size() );
+                    final int challengesInSet = challengeSet.getChallenges().size();
+                    LOGGER.debug( () -> "failed meetsChallengeSetRequirements, not enough questions to meet minrandom; minRandomRequired="
+                            + challengeSet.getMinRandomRequired() + ", ChallengesInSet=" + challengesInSet );
                     return false;
                 }
             }
@@ -723,20 +724,20 @@ public class NMASCrOperator implements CrOperator
 
             public void handle( final Callback[] callbacks ) throws UnsupportedCallbackException
             {
-                LOGGER.trace( "entering ChalRespCallbackHandler.handle()" );
+                LOGGER.trace( () -> "entering ChalRespCallbackHandler.handle()" );
                 for ( final Callback callback : callbacks )
                 {
                     final String callbackClassname = callback.getClass().getName();
-                    LOGGER.trace( "evaluating callback: " + callback.toString() + ", class=" + callbackClassname );
+                    LOGGER.trace( () -> "evaluating callback: " + callback.toString() + ", class=" + callbackClassname );
 
                     // note in some cases instanceof check fails due to classloader issues, using getName string comparison instead
                     if ( NMASCompletionCallback.class.getName().equals( callbackClassname ) )
                     {
-                        LOGGER.trace( "received NMASCompletionCallback, ignoring" );
+                        LOGGER.trace( () -> "received NMASCompletionCallback, ignoring" );
                     }
                     else if ( NMASCallback.class.getName().equals( callbackClassname ) )
                     {
-                        LOGGER.trace( "callback is instance of NMASCompletionCallback, calling handleNMASCallback()" );
+                        LOGGER.trace( () -> "callback is instance of NMASCompletionCallback, calling handleNMASCallback()" );
                         try
                         {
                             handleNMASCallback( ( NMASCallback ) callback );
@@ -748,7 +749,7 @@ public class NMASCrOperator implements CrOperator
                     }
                     else if ( LCMUserPromptCallback.class.getName().equals( callbackClassname ) )
                     {
-                        LOGGER.trace( "callback is instance of LCMUserPromptCallback, calling handleLCMUserPromptCallback()" );
+                        LOGGER.trace( () -> "callback is instance of LCMUserPromptCallback, calling handleLCMUserPromptCallback()" );
                         try
                         {
                             handleLCMUserPromptCallback( ( LCMUserPromptCallback ) callback );
@@ -761,7 +762,7 @@ public class NMASCrOperator implements CrOperator
                     else
                     {
                         unsupportedCallbackHasOccurred = true;
-                        LOGGER.trace( "throwing UnsupportedCallbackException for " + callback.toString() + ", class=" + callback.getClass().getName() );
+                        LOGGER.trace( () -> "throwing UnsupportedCallbackException for " + callback.toString() + ", class=" + callback.getClass().getName() );
                         throw new UnsupportedCallbackException( callback );
                     }
                 }
@@ -771,11 +772,11 @@ public class NMASCrOperator implements CrOperator
             {
                 final Instant startTime = Instant.now();
                 boolean done = this.isNmasDone();
-                Date lastLogTime = new Date();
+                Instant lastLogTime = Instant.now();
                 while ( !done && TimeDuration.fromCurrent( startTime ).isShorterThan( maxThreadIdleTime ) )
                 {
-                    LOGGER.trace( "attempt to read return code, but isNmasDone=false, will await completion" );
-                    JavaHelper.pause( 10 );
+                    LOGGER.trace( () -> "attempt to read return code, but isNmasDone=false, will await completion" );
+                    TimeDuration.of( 10, TimeDuration.Unit.SECONDS ).pause();
                     if ( completeOnUnsupportedFailure )
                     {
                         done = unsupportedCallbackHasOccurred || this.isNmasDone();
@@ -786,12 +787,12 @@ public class NMASCrOperator implements CrOperator
                     }
                     if ( TimeDuration.SECOND.isLongerThan( TimeDuration.fromCurrent( lastLogTime ) ) )
                     {
-                        LOGGER.trace( "waiting for return code: " + TimeDuration.fromCurrent( startTime ).asCompactString()
+                        LOGGER.trace( () -> "waiting for return code: " + TimeDuration.fromCurrent( startTime ).asCompactString()
                                 + " unsupportedCallbackHasOccurred=" + unsupportedCallbackHasOccurred );
-                        lastLogTime = new Date();
+                        lastLogTime = Instant.now();
                     }
                 }
-                LOGGER.debug( "read return code in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+                LOGGER.debug( () -> "read return code in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
                 return this.getNmasRetCode();
             }
         }
@@ -804,7 +805,7 @@ public class NMASCrOperator implements CrOperator
 
     private class NMASSessionThread extends Thread
     {
-        private volatile Date lastActivityTimestamp = new Date();
+        private volatile Instant lastActivityTimestamp = Instant.now();
         private volatile NMASThreadState loginState = NMASThreadState.NEW;
         private volatile boolean loginResultReady = false;
         private volatile com.novell.security.nmas.client.NMASLoginResult loginResult = null;
@@ -832,7 +833,7 @@ public class NMASCrOperator implements CrOperator
             return this.loginState;
         }
 
-        public Date getLastActivityTimestamp( )
+        public Instant getLastActivityTimestamp( )
         {
             return lastActivityTimestamp;
         }
@@ -841,7 +842,7 @@ public class NMASCrOperator implements CrOperator
         {
             this.loginResult = paramNMASLoginResult;
             this.loginResultReady = true;
-            this.lastActivityTimestamp = new Date();
+            this.lastActivityTimestamp = Instant.now();
         }
 
         public final synchronized com.novell.security.nmas.client.NMASLoginResult getLoginResult( )
@@ -858,7 +859,7 @@ public class NMASCrOperator implements CrOperator
                 }
             }
 
-            lastActivityTimestamp = new Date();
+            lastActivityTimestamp = Instant.now();
             return this.loginResult;
         }
 
@@ -882,7 +883,7 @@ public class NMASCrOperator implements CrOperator
             setLoginState( NMASThreadState.NEW );
             setDaemon( true );
             setName( PwmConstants.PWM_APP_NAME + "-NMASSessionThread thread id=" + threadID );
-            lastActivityTimestamp = new Date();
+            lastActivityTimestamp = Instant.now();
             start();
         }
 
@@ -890,7 +891,7 @@ public class NMASCrOperator implements CrOperator
         {
             try
             {
-                LOGGER.trace( "starting NMASSessionThread, activeCount=" + sessionMonitorThreads.size() + ", " + this.toDebugString() );
+                LOGGER.trace( () -> "starting NMASSessionThread, activeCount=" + sessionMonitorThreads.size() + ", " + this.toDebugString() );
                 sessionMonitorThreads.add( this );
                 controlWatchdogThread();
                 doLoginSequence();
@@ -899,7 +900,7 @@ public class NMASCrOperator implements CrOperator
             {
                 sessionMonitorThreads.remove( this );
                 controlWatchdogThread();
-                LOGGER.trace( "exiting NMASSessionThread, activeCount=" + sessionMonitorThreads.size() + ", " + this.toDebugString() );
+                LOGGER.trace( () -> "exiting NMASSessionThread, activeCount=" + sessionMonitorThreads.size() + ", " + this.toDebugString() );
             }
         }
 
@@ -909,19 +910,19 @@ public class NMASCrOperator implements CrOperator
             {
                 return;
             }
-            lastActivityTimestamp = new Date();
+            lastActivityTimestamp = Instant.now();
             if ( this.ldapConn == null )
             {
                 setLoginState( NMASThreadState.COMPLETED );
-                setLoginResult( new com.novell.security.nmas.client.NMASLoginResult( -1681 ) );
-                lastActivityTimestamp = new Date();
+                setLoginResult( new com.novell.security.nmas.client.NMASLoginResult( NMASConstants.NMAS_E_TRANSPORT ) );
+                lastActivityTimestamp = Instant.now();
                 return;
             }
 
             try
             {
                 setLoginState( NMASThreadState.BIND );
-                lastActivityTimestamp = new Date();
+                lastActivityTimestamp = Instant.now();
                 try
                 {
                     this.ldapConn.bind(
@@ -950,9 +951,9 @@ public class NMASCrOperator implements CrOperator
                 }
 
                 setLoginState( NMASThreadState.COMPLETED );
-                lastActivityTimestamp = new Date();
+                lastActivityTimestamp = Instant.now();
                 setLoginResult( new com.novell.security.nmas.client.NMASLoginResult( this.callbackHandler.awaitRetCode(), this.ldapConn ) );
-                lastActivityTimestamp = new Date();
+                lastActivityTimestamp = Instant.now();
             }
             catch ( LDAPException e )
             {
@@ -974,13 +975,13 @@ public class NMASCrOperator implements CrOperator
                         = new com.novell.security.nmas.client.NMASLoginResult( this.callbackHandler.awaitRetCode(), e );
                 setLoginResult( localNMASLoginResult );
             }
-            lastActivityTimestamp = new Date();
+            lastActivityTimestamp = Instant.now();
         }
 
         public void abort( )
         {
             setLoginState( NMASThreadState.ABORTED );
-            setLoginResult( new com.novell.security.nmas.client.NMASLoginResult( -1681 ) );
+            setLoginResult( new com.novell.security.nmas.client.NMASLoginResult( NMASConstants.NMAS_E_TRANSPORT ) );
 
             try
             {
@@ -997,7 +998,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( Exception e )
             {
-                LOGGER.trace( "error during NMASResponseSession abort: " + e.getMessage(), e );
+                LOGGER.trace( () -> "error during NMASResponseSession abort: " + e.getMessage() );
             }
         }
 
@@ -1038,7 +1039,7 @@ public class NMASCrOperator implements CrOperator
                 final TimeDuration idleTime = TimeDuration.fromCurrent( thread.getLastActivityTimestamp() );
                 if ( idleTime.isLongerThan( maxThreadIdleTime ) )
                 {
-                    LOGGER.debug( "killing thread due to inactivity " + thread.toDebugString() );
+                    LOGGER.debug( () -> "killing thread due to inactivity " + thread.toDebugString() );
                     thread.abort();
                 }
             }
@@ -1055,7 +1056,7 @@ public class NMASCrOperator implements CrOperator
             {
                 threadDebugInfo.append( "\n " ).append( thread.toDebugString() );
             }
-            LOGGER.trace( threadDebugInfo.toString() );
+            LOGGER.trace( () -> threadDebugInfo.toString() );
         }
 
     }
@@ -1107,7 +1108,7 @@ public class NMASCrOperator implements CrOperator
 
         public NMASCrPwmSaslFactory( )
         {
-            LOGGER.debug( "initializing NMASCrPwmSaslFactory instance" );
+            LOGGER.debug( () -> "initializing NMASCrPwmSaslFactory instance" );
         }
 
         @Override
@@ -1123,7 +1124,7 @@ public class NMASCrOperator implements CrOperator
         {
             try
             {
-                LOGGER.trace( "creating new SASL Client instance" );
+                LOGGER.trace( () -> "creating new SASL Client instance" );
                 final SaslClientFactory realFactory = getRealSaslClientFactory();
                 return realFactory.createSaslClient( mechanisms, authorizationId, protocol, serverName, props, cbh );
             }

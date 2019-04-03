@@ -22,9 +22,9 @@
 
 package password.pwm.config;
 
-import org.jdom2.Element;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.XmlElement;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
@@ -33,7 +33,7 @@ import java.util.Locale;
 
 public interface StoredValue extends Serializable
 {
-    List<Element> toXmlValues( String valueElementName, PwmSecurityKey pwmSecurityKey );
+    List<XmlElement> toXmlValues( String valueElementName, PwmSecurityKey pwmSecurityKey );
 
     Object toNativeObject( );
 
@@ -51,7 +51,7 @@ public interface StoredValue extends Serializable
     {
         StoredValue fromJson( String input );
 
-        StoredValue fromXmlElement( Element settingElement, PwmSecurityKey key )
+        StoredValue fromXmlElement( PwmSetting pwmSetting, XmlElement settingElement, PwmSecurityKey key )
                 throws PwmException;
     }
 

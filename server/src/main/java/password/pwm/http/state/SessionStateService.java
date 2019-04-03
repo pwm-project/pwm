@@ -109,7 +109,7 @@ public class SessionStateService implements PwmService
         }
 
 
-        LOGGER.trace( "initialized " + sessionBeanProvider.getClass().getName() + " provider" );
+        LOGGER.trace( () -> "initialized " + sessionBeanProvider.getClass().getName() + " provider" );
     }
 
     @Override
@@ -214,7 +214,7 @@ public class SessionStateService implements PwmService
         {
             final String errorMsg = "unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage();
             LOGGER.error( errorMsg, e );
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_UNKNOWN, errorMsg );
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, errorMsg );
         }
     }
 }

@@ -89,7 +89,7 @@ public class StatisticsBundle
 
     public synchronized void incrementValue( final Statistic statistic )
     {
-        if ( Statistic.Type.INCREMENTOR != statistic.getType() )
+        if ( Statistic.Type.INCREMENTER != statistic.getType() )
         {
             LOGGER.error( "attempt to increment non-counter/incremental stat " + statistic );
             return;
@@ -134,7 +134,7 @@ public class StatisticsBundle
             }
             catch ( Exception e )
             {
-                LOGGER.trace( "unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue );
+                LOGGER.trace( () -> "unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue );
             }
         }
 
@@ -146,7 +146,7 @@ public class StatisticsBundle
     {
         switch ( statistic.getType() )
         {
-            case INCREMENTOR:
+            case INCREMENTER:
                 return valueMap.containsKey( statistic ) ? valueMap.get( statistic ) : "0";
 
             case AVERAGE:
@@ -161,7 +161,7 @@ public class StatisticsBundle
                     }
                     catch ( Exception e )
                     {
-                        LOGGER.trace( "unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue );
+                        LOGGER.trace( () ->  "unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue );
                     }
                 }
                 return avgBean.getAverage().toString();

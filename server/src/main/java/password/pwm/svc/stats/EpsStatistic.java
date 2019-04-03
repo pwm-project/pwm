@@ -23,7 +23,7 @@
 package password.pwm.svc.stats;
 
 import password.pwm.i18n.Admin;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 
 import java.util.Locale;
 

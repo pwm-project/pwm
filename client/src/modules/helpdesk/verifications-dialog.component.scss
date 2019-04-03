@@ -1,0 +1,15 @@
+#verification-token-destination {
+    margin: 0;
+    width: 210px;
+}
+
+.token-destination-submitter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    > * {
+        margin-right: 10px !important;
+        margin-top: 4px !important;
+    }
+}

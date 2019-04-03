@@ -1,6 +1,6 @@
 /*
  * Password Management Servlets (PWM)
-  htt://www.pwm-project.org
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
  * Copyright (c) 2009-2018 The PWM Project
@@ -20,35 +20,39 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-
 import {Component} from '../../component';
-import {IButtonInfo, IHelpDeskService, ISuccessResponse} from '../../services/helpdesk.service';
+import {IHelpDeskService, ISuccessResponse} from '../../services/helpdesk.service';
 import {IScope, ui} from 'angular';
 import {noop} from 'angular';
-import {IHelpDeskConfigService, PASSWORD_UI_MODES} from '../../services/helpdesk-config.service';
-import {IPeopleService} from '../../services/people.service';
+import {IActionButton, IHelpDeskConfigService, PASSWORD_UI_MODES} from '../../services/helpdesk-config.service';
 import {IPerson} from '../../models/person.model';
 import {IChangePasswordSuccess} from '../../components/changepassword/success-change-password.controller';
+import LocalStorageService from '../../services/local-storage.service';
 
-let autogenChangePasswordTemplateUrl = require('components/changepassword/autogen-change-password.component.html');
+let autogenChangePasswordTemplateUrl =
+    require('../../components/changepassword/autogen-change-password.component.html');
 let helpdeskDetailDialogTemplateUrl = require('./helpdesk-detail-dialog.template.html');
-let randomChangePasswordTemplateUrl = require('components/changepassword/random-change-password.component.html');
-let successChangePasswordTemplateUrl = require('components/changepassword/success-change-password.component.html');
-let typeChangePasswordTemplateUrl = require('components/changepassword/type-change-password.component.html');
+let randomChangePasswordTemplateUrl = require('../../components/changepassword/random-change-password.component.html');
+let successChangePasswordTemplateUrl =
+    require('../../components/changepassword/success-change-password.component.html');
+let typeChangePasswordTemplateUrl = require('../../components/changepassword/type-change-password.component.html');
 let verificationsDialogTemplateUrl = require('./verifications-dialog.template.html');
 
 const STATUS_WAIT = 'wait';
 const STATUS_CONFIRM = 'confirm';
 const STATUS_SUCCESS = 'success';
+const PROFILE_TAB_NAME = 'profileTab';
 
 @Component({
-    stylesheetUrl: require('modules/helpdesk/helpdesk-detail.component.scss'),
-    templateUrl: require('modules/helpdesk/helpdesk-detail.component.html')
+    stylesheetUrl: require('./helpdesk-detail.component.scss'),
+    templateUrl: require('./helpdesk-detail.component.html')
 })
 export default class HelpDeskDetailComponent {
+    customButtons: {[key: string]: IActionButton};
     person: any;
     personCard: IPerson;
     photosEnabled: boolean;
+    searchViewLocalStorageKey: string;
 
     static $inject = [
         '$state',
@@ -56,7 +60,8 @@ export default class HelpDeskDetailComponent {
         'ConfigService',
         'HelpDeskService',
         'IasDialogService',
-        'PeopleService'
+        'IasToggleService',
+        'LocalStorageService'
     ];
 
     constructor(private $state: ui.IStateService,
@@ -64,10 +69,20 @@ export default class HelpDeskDetailComponent {
                 private configService: IHelpDeskConfigService,
                 private helpDeskService: IHelpDeskService,
                 private IasDialogService: any,
-                private peopleService: IPeopleService) {
+                private toggleService: { showComponent: (componentName: string) => null },
+                private localStorageService: LocalStorageService) {
+        this.searchViewLocalStorageKey = this.localStorageService.keys.HELPDESK_SEARCH_VIEW;
     }
 
     $onInit(): void {
+        this.configService.getCustomButtons().then((customButtons: {[key: string]: IActionButton}) => {
+            this.customButtons = customButtons;
+        });
+
+        this.configService.photosEnabled().then((photosEnabled: boolean) => {
+            this.photosEnabled = photosEnabled;
+        });
+
         this.initialize();
     }
 
@@ -132,15 +147,16 @@ export default class HelpDeskDetailComponent {
                     '$scope',
                     'HelpDeskService',
                     'translateFilter',
-                    function ($scope: IScope | any,
-                              helpDeskService: IHelpDeskService,
-                              translateFilter: (id: string) => string) {
+                    ($scope: IScope | any,
+                     helpDeskService: IHelpDeskService,
+                     translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_WAIT;
                         $scope.title = translateFilter('Button_ClearResponses');
                         helpDeskService.clearResponses(userKey).then((data: ISuccessResponse) => {
                             // TODO - error dialog?
                             $scope.status = STATUS_SUCCESS;
                             $scope.text = data.successMessage;
+                            this.refresh();
                         });
                     }
                 ],
@@ -171,7 +187,7 @@ export default class HelpDeskDetailComponent {
                     personUserKey: this.getUserKey()
                 }
             })
-            .then(this.changePasswordClearResponses.bind(this), noop);
+            .then(this.changePasswordClearResponses.bind(this), this.refresh.bind(this));
     }
 
     changePasswordType() {
@@ -182,7 +198,7 @@ export default class HelpDeskDetailComponent {
                 locals: {
                     personUserKey: this.getUserKey()
                 }
-            })          // TODO: right data type?
+            })
             // If the operator clicked "Random Passwords" or the password was changed, the promise resolves.
             .then((data: IChangePasswordSuccess & { autogenPasswords: boolean }) => {
                 // If the operator clicked "Random Passwords", data.autogenPasswords will be true
@@ -263,7 +279,7 @@ export default class HelpDeskDetailComponent {
             });
     }
 
-    clickCustomButton(button: IButtonInfo): void {
+    clickCustomButton(button: IActionButton): void {
         // Custom buttons are never disabled
 
         let userKey = this.getUserKey();
@@ -274,11 +290,11 @@ export default class HelpDeskDetailComponent {
                     '$scope',
                     'HelpDeskService',
                     'translateFilter',
-                    function ($scope: IScope | any,
-                              helpDeskService: IHelpDeskService,
-                              translateFilter: (id: string) => string) {
+                    ($scope: IScope | any,
+                     helpDeskService: IHelpDeskService,
+                     translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_CONFIRM;
-                        $scope.title = translateFilter('Button_Confirm') + ' ' + button.label;
+                        $scope.title = translateFilter('Button_Confirm') + ' ' + button.name;
                         $scope.text = button.description;
                         $scope.secondaryText = translateFilter('Confirm');
                         $scope.confirm = () => {
@@ -289,6 +305,7 @@ export default class HelpDeskDetailComponent {
                                 $scope.title = translateFilter('Title_Success');
                                 $scope.secondaryText = null;
                                 $scope.text = data.successMessage;
+                                this.refresh();
                             });
                         };
                     }
@@ -302,7 +319,6 @@ export default class HelpDeskDetailComponent {
             return;
         }
 
-        let self = this;
         let userKey = this.getUserKey();
 
         this.IasDialogService
@@ -312,10 +328,10 @@ export default class HelpDeskDetailComponent {
                     'HelpDeskService',
                     'IasDialogService',
                     'translateFilter',
-                    function ($scope: IScope | any,
-                              helpDeskService: IHelpDeskService,
-                              IasDialogService: any,
-                              translateFilter: (id: string) => string) {
+                    ($scope: IScope | any,
+                     helpDeskService: IHelpDeskService,
+                     IasDialogService: any,
+                     translateFilter: (id: string) => string) => {
                         $scope.status = STATUS_CONFIRM;
                         $scope.title = translateFilter('Button_Confirm');
                         $scope.text = translateFilter('Confirm_DeleteUser');
@@ -328,7 +344,7 @@ export default class HelpDeskDetailComponent {
                                 $scope.text = data.successMessage;
                                 $scope.close = () => {
                                     IasDialogService.close();
-                                    self.gotoSearch();
+                                    this.gotoSearch();
                                 };
                             });
                         };
@@ -343,27 +359,29 @@ export default class HelpDeskDetailComponent {
     }
 
     gotoSearch(): void {
-        this.$state.go('search.cards');
+        let view = this.localStorageService.getItem(this.searchViewLocalStorageKey);
+        if (view) {
+            this.$state.go(view);
+        }
+        else {
+            this.$state.go('search.cards');
+        }
     }
 
     initialize(): void {
         const personId = this.getUserKey();
 
-        this.configService.photosEnabled().then((photosEnabled: boolean) => {
-            this.photosEnabled = photosEnabled;
-        }); // TODO: always necessary?
-
-        this.peopleService.getPerson(personId).then((personCard: IPerson) => {
+        this.helpDeskService.getPersonCard(personId).then((personCard: IPerson) => {
             this.personCard = personCard;
         });
+
+        this.toggleService.showComponent(PROFILE_TAB_NAME);
 
         this.helpDeskService
             .getPerson(personId)
             .then((person: any) => {
                 this.person = person;
-            }, (error) => {
-                // TODO: Handle error. NOOP for now will not assign person
-            });
+            }, this.gotoSearch.bind(this));
     }
 
     refresh(): void {
@@ -412,7 +430,7 @@ export default class HelpDeskDetailComponent {
                 templateUrl: verificationsDialogTemplateUrl,
                 locals: {
                     personUserKey: this.getUserKey(),
-                    search: false
+                    showRequiredOnly: false
                 }
             });
     }

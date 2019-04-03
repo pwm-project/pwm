@@ -30,7 +30,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.OTPStorageFormat;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -53,6 +52,7 @@ public abstract class AbstractOtpOperator implements OtpOperator
      *
      * @param otpUserRecord input user record
      * @return A string formatted record
+     * @throws PwmUnrecoverableException if the operation fails
      */
     public String composeOtpAttribute( final OTPUserRecord otpUserRecord )
             throws PwmUnrecoverableException
@@ -87,8 +87,14 @@ public abstract class AbstractOtpOperator implements OtpOperator
 
     /**
      * Encrypt the given string using the PWM encryption key.
+     *
+     * @param unencrypted raw value to be encrypted
+     *
+     * @return the encrypted value
+     * @throws PwmUnrecoverableException if the operation can't be completed
      */
-    public String encryptAttributeValue( final String unencrypted ) throws PwmUnrecoverableException, PwmOperationalException
+    public String encryptAttributeValue( final String unencrypted )
+            throws PwmUnrecoverableException
     {
         final PwmBlockAlgorithm pwmBlockAlgorithm = figureBlockAlg();
         final PwmSecurityKey pwmSecurityKey = pwmApplication.getConfig().getSecurityKey();
@@ -103,9 +109,14 @@ public abstract class AbstractOtpOperator implements OtpOperator
 
     /**
      * Decrypt the given string using the PWM encryption key.
+     *
+     * @param encrypted value to be encrypted
+     *
+     * @return the decrypted value
+     * @throws PwmUnrecoverableException if the operation can't be completed
      */
     public String decryptAttributeValue( final String encrypted )
-            throws PwmUnrecoverableException, PwmOperationalException
+            throws PwmUnrecoverableException
     {
         final PwmBlockAlgorithm pwmBlockAlgorithm = figureBlockAlg();
         final PwmSecurityKey pwmSecurityKey = pwmApplication.getConfig().getSecurityKey();
@@ -120,17 +131,17 @@ public abstract class AbstractOtpOperator implements OtpOperator
         }
         OTPUserRecord otpconfig = null;
         /* Try format by format */
-        LOGGER.trace( String.format( "detecting format from value: %s", value ) );
+        LOGGER.trace( () -> String.format( "detecting format from value: %s", value ) );
         /* - PWM JSON */
         try
         {
             otpconfig = JsonUtil.deserialize( value, OTPUserRecord.class );
-            LOGGER.debug( "detected JSON format - returning" );
+            LOGGER.debug( () -> "detected JSON format - returning" );
             return otpconfig;
         }
         catch ( JsonSyntaxException ex )
         {
-            LOGGER.debug( "no JSON format detected - returning" );
+            LOGGER.debug( () -> "no JSON format detected - returning" );
             /* So, it's not JSON, try something else */
             /* -- nothing to try, yet; for future use */
             /* no more options */
@@ -139,20 +150,20 @@ public abstract class AbstractOtpOperator implements OtpOperator
         otpconfig = OTPUrlUtil.decomposeOtpUrl( value );
         if ( otpconfig != null )
         {
-            LOGGER.debug( "detected otpauth URL format - returning" );
+            LOGGER.debug( () -> "detected otpauth URL format - returning" );
             return otpconfig;
         }
         /* - PAM */
         otpconfig = OTPPamUtil.decomposePamData( value );
         if ( otpconfig != null )
         {
-            LOGGER.debug( "detected PAM text format - returning" );
+            LOGGER.debug( () -> "detected PAM text format - returning" );
             return otpconfig;
         }
         /* - BASE32 secret */
         if ( value.trim().matches( "^[A-Z2-7\\=]{16}$" ) )
         {
-            LOGGER.debug( "detected plain Base32 secret - returning" );
+            LOGGER.debug( () -> "detected plain Base32 secret - returning" );
             otpconfig = new OTPUserRecord();
             otpconfig.setSecret( value.trim() );
             return otpconfig;

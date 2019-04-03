@@ -38,6 +38,7 @@ import password.pwm.http.client.PwmHttpClientResponse;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.X509Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,18 +91,18 @@ public class ApplianceStatusChecker implements HealthChecker
         final Map<String, String> requestHeaders = Collections.singletonMap( "sspr-authorization-token", getApplianceAccessToken( pwmApplication ) );
 
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                .promiscuous( true )
+                .trustManager( new X509Utils.PromiscuousTrustManager( SessionLabel.HEALTH_SESSION_LABEL ) )
                 .build();
 
         final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, SessionLabel.HEALTH_SESSION_LABEL, pwmHttpClientConfiguration );
         final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest( HttpMethod.GET, url, null, requestHeaders );
         final PwmHttpClientResponse response = pwmHttpClient.makeRequest( pwmHttpClientRequest );
 
-        LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, "https response from appliance server request: " + response.getBody() );
+        LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "https response from appliance server request: " + response.getBody() );
 
         final String jsonString = response.getBody();
 
-        LOGGER.debug( "response from /sspr/appliance-update-status: " + jsonString );
+        LOGGER.debug( () -> "response from /sspr/appliance-update-status: " + jsonString );
 
         final UpdateStatus updateStatus = JsonUtil.deserialize( jsonString, UpdateStatus.class );
 
@@ -131,7 +132,7 @@ public class ApplianceStatusChecker implements HealthChecker
         {
             final String msg = "unable to determine appliance token, token file environment param "
                     + PwmEnvironment.ApplicationParameter.ApplianceTokenFile.toString() + " is not set";
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
         final String fileInput = readFileContents( tokenFile );
         if ( fileInput != null )
@@ -148,14 +149,14 @@ public class ApplianceStatusChecker implements HealthChecker
         {
             final String msg = "unable to determine appliance hostname, hostname file environment param "
                     + PwmEnvironment.ApplicationParameter.ApplianceHostnameFile.toString() + " is not set";
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
 
         final String hostname = readFileContents( hostnameFile );
         final String port = pwmApplication.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.AppliancePort );
 
         final String url = "https://" + hostname + ":" + port + "/sspr/appliance-update-status";
-        LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, "calculated appliance host url as: " + url );
+        LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "calculated appliance host url as: " + url );
         return url;
     }
 
@@ -174,7 +175,7 @@ public class ApplianceStatusChecker implements HealthChecker
         catch ( IOException e )
         {
             final String msg = "unable to read contents of file '" + filename + "', error: " + e.getMessage();
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ), e );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ), e );
         }
     }
 }

@@ -22,21 +22,21 @@
 
 package password.pwm.util;
 
-import password.pwm.util.java.JavaHelper;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.util.java.TimeDuration;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
 
 public class TransactionSizeCalculator
 {
-
     private final Settings settings;
-
     private volatile int transactionSize;
     private volatile long lastDuration = 1;
 
     public TransactionSizeCalculator( final Settings settings )
     {
+        settings.validateSettings();
         this.settings = settings;
         reset();
     }
@@ -44,24 +44,28 @@ public class TransactionSizeCalculator
     public void reset( )
     {
         transactionSize = settings.getMinTransactions();
-        lastDuration = settings.getDurationGoal().getTotalMilliseconds();
+        lastDuration = settings.getDurationGoal().asMillis();
     }
 
     public void recordLastTransactionDuration( final long duration )
     {
-        recordLastTransactionDuration( new TimeDuration( duration ) );
+        recordLastTransactionDuration( TimeDuration.of( duration, TimeDuration.Unit.MILLISECONDS ) );
     }
 
+    @SuppressWarnings( "ResultOfMethodCallIgnored" )
     public void pause( )
     {
-        JavaHelper.pause( Math.min( lastDuration, settings.getDurationGoal().getTotalMilliseconds() * 2 ) );
+        final long pauseTimeMs = Math.min( lastDuration, settings.getDurationGoal().asMillis() * 2 );
+        TimeDuration.of( pauseTimeMs, TimeDuration.Unit.MILLISECONDS ).pause();
     }
 
     public void recordLastTransactionDuration( final TimeDuration duration )
     {
-        lastDuration = duration.getTotalMilliseconds();
-        final long durationGoalMs = settings.getDurationGoal().getTotalMilliseconds();
-        final long difference = Math.abs( duration.getTotalMilliseconds() - durationGoalMs );
+        Objects.requireNonNull( duration );
+
+        lastDuration = duration.asMillis();
+        final long durationGoalMs = settings.getDurationGoal().asMillis();
+        final long difference = Math.abs( duration.asMillis() - durationGoalMs );
         final int closeThreshold = ( int ) ( durationGoalMs * .15f );
 
         int newTransactionSize;
@@ -110,18 +114,21 @@ public class TransactionSizeCalculator
         return transactionSize;
     }
 
+    @Value
+    @Builder
     public static class Settings
     {
-        private final TimeDuration durationGoal;
-        private final int maxTransactions;
-        private final int minTransactions;
+        @Builder.Default
+        private TimeDuration durationGoal = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
 
-        private Settings( final TimeDuration durationGoal, final int maxTransactions, final int minTransactions )
+        @Builder.Default
+        private int maxTransactions = 5003;
+
+        @Builder.Default
+        private int minTransactions = 3;
+
+        private void validateSettings( )
         {
-            this.durationGoal = durationGoal;
-            this.maxTransactions = maxTransactions;
-            this.minTransactions = minTransactions;
-
             if ( minTransactions < 1 )
             {
                 throw new IllegalArgumentException( "minTransactions must be a positive integer" );
@@ -142,56 +149,10 @@ public class TransactionSizeCalculator
                 throw new IllegalArgumentException( "durationGoal must not be null" );
             }
 
-            if ( durationGoal.getTotalMilliseconds() < 1 )
+            if ( durationGoal.asMillis() < 1 )
             {
                 throw new IllegalArgumentException( "durationGoal must be greater than 0ms" );
             }
-        }
-
-
-        public TimeDuration getDurationGoal( )
-        {
-            return durationGoal;
-        }
-
-        public int getMaxTransactions( )
-        {
-            return maxTransactions;
-        }
-
-        public int getMinTransactions( )
-        {
-            return minTransactions;
-        }
-    }
-
-    public static class SettingsBuilder
-    {
-        private TimeDuration durationGoal = new TimeDuration( 100, TimeUnit.MILLISECONDS );
-        private int maxTransactions = 5003;
-        private int minTransactions = 3;
-
-        public SettingsBuilder setDurationGoal( final TimeDuration durationGoal )
-        {
-            this.durationGoal = durationGoal;
-            return this;
-        }
-
-        public SettingsBuilder setMaxTransactions( final int maxTransactions )
-        {
-            this.maxTransactions = maxTransactions;
-            return this;
-        }
-
-        public SettingsBuilder setMinTransactions( final int minTransactions )
-        {
-            this.minTransactions = minTransactions;
-            return this;
-        }
-
-        public Settings createSettings( )
-        {
-            return new Settings( durationGoal, maxTransactions, minTransactions );
         }
     }
 }

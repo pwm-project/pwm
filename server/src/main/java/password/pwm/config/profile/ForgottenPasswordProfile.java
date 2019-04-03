@@ -84,9 +84,9 @@ public class ForgottenPasswordProfile extends AbstractProfile
         return optionalRecoveryVerificationMethods;
     }
 
-    private Set<IdentityVerificationMethod> readRecoveryAuthMethods( final VerificationMethodValue.EnabledState enabledState )
+    private Set<IdentityVerificationMethod> readRecoveryAuthMethods( final VerificationMethodValue.EnabledState enforcement )
     {
-        return this.readVerificationMethods( PwmSetting.RECOVERY_VERIFICATION_METHODS, enabledState );
+        return this.readVerificationMethods( PwmSetting.RECOVERY_VERIFICATION_METHODS, enforcement );
     }
 
     public int getMinOptionalRequired( )

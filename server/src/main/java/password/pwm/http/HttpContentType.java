@@ -26,11 +26,13 @@ import password.pwm.PwmConstants;
 import password.pwm.util.java.StringUtil;
 
 import java.nio.charset.Charset;
+import java.util.List;
 
 public enum HttpContentType
 {
     json( "application/json", PwmConstants.DEFAULT_CHARSET ),
     zip( "application/zip" ),
+    gzip( "application/gzip" ),
     xml( "text/xml", PwmConstants.DEFAULT_CHARSET ),
     csv( "text/csv", PwmConstants.DEFAULT_CHARSET ),
     javascript( "text/javascript", PwmConstants.DEFAULT_CHARSET ),
@@ -69,18 +71,35 @@ public enum HttpContentType
         return this.mimeType;
     }
 
-    public static HttpContentType fromContentTypeHeader( final String value )
+    public static HttpContentType fromContentTypeHeader( final String headerValue, final HttpContentType anyMatch )
     {
-        if ( StringUtil.isEmpty( value ) )
+        if ( StringUtil.isEmpty( headerValue ) )
         {
             return null;
         }
 
-        for ( final HttpContentType httpContentType : HttpContentType.values() )
+        final List<String> values = StringUtil.splitAndTrim( headerValue, "," );
+
+        for ( final String value : values )
         {
-            if ( value.equalsIgnoreCase( httpContentType.getMimeType() ) )
+            final String mimeValue = value.contains( ";" )
+                    ? value.substring( 0, value.indexOf( ";" ) )
+                    : value;
+
+            for ( final HttpContentType httpContentType : HttpContentType.values() )
             {
-                return httpContentType;
+                if ( mimeValue.equalsIgnoreCase( httpContentType.getMimeType() ) )
+                {
+                    return httpContentType;
+                }
+            }
+        }
+
+        if ( anyMatch != null )
+        {
+            if ( values.contains( "*/*" ) )
+            {
+                return anyMatch;
             }
         }
 

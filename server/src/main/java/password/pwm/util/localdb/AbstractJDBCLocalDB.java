@@ -82,7 +82,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         try
         {
             checkIfTableExists( connection, db );
-            LOGGER.trace( "table " + db + " appears to exist" );
+            LOGGER.trace( () -> "table " + db + " appears to exist" );
         }
         catch ( final LocalDBException e )
         {
@@ -101,7 +101,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                     statement = connection.createStatement();
                     statement.execute( sqlString );
                     connection.commit();
-                    LOGGER.debug( "created table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+                    LOGGER.debug( () -> "created table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
                 }
                 catch ( final SQLException ex )
                 {
@@ -127,7 +127,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                     statement = connection.createStatement();
                     statement.execute( sqlString.toString() );
                     connection.commit();
-                    LOGGER.debug( "created index " + indexName + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+                    LOGGER.debug( () -> "created index " + indexName + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
                 }
                 catch ( final SQLException ex )
                 {
@@ -214,7 +214,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.debug( "error while closing DB: " + e.getMessage() );
+                    LOGGER.debug( () -> "error while closing DB: " + e.getMessage() );
                 }
             }
         }
@@ -223,7 +223,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             lock.writeLock().unlock();
         }
 
-        LOGGER.debug( "closed" );
+        LOGGER.debug( () -> "closed" );
     }
 
     abstract void closeConnection( Connection connection )
@@ -298,12 +298,12 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         {
             if ( dbIterators.size() > ITERATOR_LIMIT )
             {
-                throw new LocalDBException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "over " + ITERATOR_LIMIT + " iterators are outstanding, maximum limit exceeded" ) );
+                throw new LocalDBException( new ErrorInformation( PwmError.ERROR_INTERNAL, "over " + ITERATOR_LIMIT + " iterators are outstanding, maximum limit exceeded" ) );
             }
 
             final LocalDB.LocalDBIterator iterator = new DbIterator( db );
             dbIterators.add( iterator );
-            LOGGER.trace( this.getClass().getSimpleName() + " issued iterator for " + db.toString() + ", outstanding iterators: " + dbIterators.size() );
+            LOGGER.trace( () -> this.getClass().getSimpleName() + " issued iterator for " + db.toString() + ", outstanding iterators: " + dbIterators.size() );
             return iterator;
         }
         catch ( final Exception e )
@@ -470,7 +470,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         return true;
     }
 
-    public int size( final LocalDB.DB db )
+    public long size( final LocalDB.DB db )
             throws LocalDBException
     {
         preCheck( false );
@@ -534,7 +534,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                 statement = dbConnection.prepareStatement( sqlText.toString() );
                 statement.executeUpdate();
                 dbConnection.commit();
-                LOGGER.debug( "truncated table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+                LOGGER.debug( () -> "truncated table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
 
                 initTable( dbConnection, db );
             }

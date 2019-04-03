@@ -51,6 +51,7 @@ public class BasicAuthInfo implements Serializable
     /**
      * Extracts the basic auth info from the header.
      *
+     * @param pwmApplication a reference to the application
      * @param pwmRequest http servlet request
      * @return a BasicAuthInfo object containing username/password, or null if the "Authorization" header doesn't exist or is malformed
      */
@@ -90,7 +91,7 @@ public class BasicAuthInfo implements Serializable
                 }
                 catch ( IOException e )
                 {
-                    LOGGER.debug( "error decoding auth header" + e.getMessage() );
+                    LOGGER.debug( () -> "error decoding auth header" + e.getMessage() );
                 }
             }
         }

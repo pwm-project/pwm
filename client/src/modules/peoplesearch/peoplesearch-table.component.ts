@@ -25,15 +25,16 @@ import { Component } from '../../component';
 import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
 import IPeopleService from '../../services/people.service';
 import IPwmService from '../../services/pwm.service';
-import { IQService, IScope } from 'angular';
+import {IQService, IScope, ITimeoutService} from 'angular';
 import LocalStorageService from '../../services/local-storage.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import PromiseService from '../../services/promise.service';
 import SearchResult from '../../models/search-result.model';
+import CommonSearchService from '../../services/common-search.service';
 
 @Component({
-    stylesheetUrl: require('modules/peoplesearch/peoplesearch-table.component.scss'),
-    templateUrl: require('modules/peoplesearch/peoplesearch-table.component.html')
+    stylesheetUrl: require('./peoplesearch-table.component.scss'),
+    templateUrl: require('./peoplesearch-table.component.html')
 })
 export default class PeopleSearchTableComponent extends PeopleSearchBaseComponent {
     columnConfiguration: any;
@@ -43,38 +44,45 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         '$scope',
         '$state',
         '$stateParams',
+        '$timeout',
         '$translate',
         'ConfigService',
         'LocalStorageService',
         'PeopleService',
         'PromiseService',
-        'PwmService'
+        'PwmService',
+        'CommonSearchService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
+                $timeout: ITimeoutService,
                 $translate: angular.translate.ITranslateService,
                 configService: IPeopleSearchConfigService,
                 localStorageService: LocalStorageService,
                 peopleService: IPeopleService,
                 promiseService: PromiseService,
-                pwmService: IPwmService) {
+                pwmService: IPwmService,
+                commonSearchService: CommonSearchService) {
         super($q,
             $scope,
             $state,
             $stateParams,
+            $timeout,
             $translate,
             configService,
             localStorageService,
             peopleService,
             promiseService,
-            pwmService);
+            pwmService,
+            commonSearchService);
     }
 
     $onInit(): void {
-        this.initialize();
-        this.fetchData();
+        this.initialize().then(() => {
+            this.fetchData();
+        });
 
         let self = this;
 

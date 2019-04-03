@@ -1,24 +1,50 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2018 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package password.pwm.util.java;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-public class AtomicLoopIntIncrementerTest {
+public class AtomicLoopIntIncrementerTest
+{
 
     @Test
-    public void testIncrementer() {
-        AtomicLoopIntIncrementer atomicLoopIntIncrementer = new AtomicLoopIntIncrementer(5);
-        for (int i = 0; i < 5; i++) {
-            int next = atomicLoopIntIncrementer.next();
-            Assert.assertEquals(i, next);
+    public void testIncrementer()
+    {
+        final AtomicLoopIntIncrementer atomicLoopIntIncrementer = new AtomicLoopIntIncrementer( 5 );
+        for ( int i = 0; i < 5; i++ )
+        {
+            final int next = atomicLoopIntIncrementer.next();
+            Assert.assertEquals( i, next );
         }
 
-        Assert.assertEquals(atomicLoopIntIncrementer.next(), 0);
+        Assert.assertEquals( atomicLoopIntIncrementer.next(), 0 );
 
-        for (int i = 0; i < 5; i++) {
+        for ( int i = 0; i < 5; i++ )
+        {
             atomicLoopIntIncrementer.next();
         }
 
-        Assert.assertEquals(atomicLoopIntIncrementer.next(), 1);
+        Assert.assertEquals( atomicLoopIntIncrementer.next(), 1 );
     }
 }

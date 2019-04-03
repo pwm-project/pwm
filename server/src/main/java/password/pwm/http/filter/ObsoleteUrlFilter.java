@@ -95,7 +95,7 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
             {
                 if ( !pwmServletDefinition.servletUrl().equals( requestServletUrl ) )
                 {
-                    LOGGER.debug( pwmRequest, "obsolete url of '"
+                    LOGGER.debug( pwmRequest, () -> "obsolete url of '"
                             + requestServletUrl
                             + "' detected, redirecting to canonical URL of '"
                             + pwmServletDefinition.servletUrl() + "'" );

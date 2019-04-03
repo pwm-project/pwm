@@ -134,20 +134,20 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                         + this.getClass().getName()
                         + ":" + action + "', error: " + cause.getMessage();
                 LOGGER.error( pwmRequest, msg, e.getCause() );
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
             }
-            LOGGER.error( "uncaused invocation error: " + e.getMessage(), e );
+            LOGGER.error( "uncased invocation error: " + e.getMessage(), e );
         }
         catch ( Throwable e )
         {
             final String msg = "unexpected error invoking action handler for '" + action + "', error: " + e.getMessage();
             LOGGER.error( msg, e );
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
 
         final String msg = "missing action handler for '" + action + "'";
         LOGGER.error( msg );
-        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNKNOWN, msg ) );
+        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
     }
 
     protected void processAction( final PwmRequest pwmRequest )
@@ -176,7 +176,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             if ( enablePostRedirectGet )
             {
                 final String servletUrl = pwmRequest.getURL().determinePwmServletPath();
-                LOGGER.debug( pwmRequest, "this request is not idempotent, redirecting to self with no action" );
+                LOGGER.debug( pwmRequest, () -> "this request is not idempotent, redirecting to self with no action" );
                 sendOtherRedirect( pwmRequest, servletUrl );
                 return;
             }

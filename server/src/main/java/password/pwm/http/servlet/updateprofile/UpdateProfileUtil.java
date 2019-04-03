@@ -51,6 +51,7 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
@@ -62,6 +63,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -105,11 +107,13 @@ public class UpdateProfileUtil
             }
             else
             {
-                newFormValueMap.put( formConfiguration, formValueMap.get( formConfiguration ) );
+                if ( formConfiguration.getType() != FormConfiguration.Type.photo )
+                {
+                    newFormValueMap.put( formConfiguration, formValueMap.get( formConfiguration ) );
+                }
             }
         }
 
-        updateProfileBean.getFormData().clear();
         updateProfileBean.getFormData().putAll( FormUtility.asStringMap( newFormValueMap ) );
 
         return newFormValueMap;
@@ -163,7 +167,7 @@ public class UpdateProfileUtil
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( sessionLabel, "skipping send profile update email for '" + userInfo.getUserIdentity().toDisplayString() + "' no email configured" );
+            LOGGER.debug( sessionLabel, () -> "skipping send profile update email for '" + userInfo.getUserIdentity().toDisplayString() + "' no email configured" );
         }
     }
 
@@ -243,7 +247,7 @@ public class UpdateProfileUtil
                 formFields
         ) );
 
-        final Set<TokenDestinationItem.Type> interestedTypes = new HashSet<>(  );
+        final Set<TokenDestinationItem.Type> interestedTypes = new LinkedHashSet<>(  );
         if ( updateProfileProfile.readSettingAsBoolean( PwmSetting.UPDATE_PROFILE_EMAIL_VERIFICATION ) )
         {
             interestedTypes.add( TokenDestinationItem.Type.email );
@@ -313,14 +317,20 @@ public class UpdateProfileUtil
                 if ( !updateProfileBean.isTokenSent() )
                 {
                     final TokenDestinationItem tokenDestinationItem = tokenDestinationItemForCurrentValidation( pwmRequest, updateProfileBean, updateProfileProfile );
+                    final TimeDuration tokenLifetime = tokenDestinationItem.getType() == TokenDestinationItem.Type.email
+                            ? updateProfileProfile.getTokenDurationEmail( pwmRequest.getConfig() )
+                            : updateProfileProfile.getTokenDurationSMS( pwmRequest.getConfig() );
 
                     TokenUtil.initializeAndSendToken(
                             pwmRequest,
-                            pwmRequest.getPwmSession().getUserInfo(),
-                            tokenDestinationItem,
-                            PwmSetting.EMAIL_UPDATEPROFILE_VERIFICATION,
-                            TokenType.UPDATE,
-                            PwmSetting.SMS_UPDATE_PROFILE_TOKEN_TEXT
+                            TokenUtil.TokenInitAndSendRequest.builder()
+                                    .userInfo( pwmRequest.getPwmSession().getUserInfo() )
+                                    .tokenDestinationItem( tokenDestinationItem )
+                                    .emailToSend( PwmSetting.EMAIL_UPDATEPROFILE_VERIFICATION )
+                                    .tokenType( TokenType.UPDATE )
+                                    .smsToSend( PwmSetting.SMS_UPDATE_PROFILE_TOKEN_TEXT )
+                                    .tokenLifetime( tokenLifetime )
+                                    .build()
                     );
                     updateProfileBean.setTokenSent( true );
 
@@ -354,9 +364,9 @@ public class UpdateProfileUtil
         verifyFormAttributes( pwmApplication, userInfo.getUserIdentity(), locale, formMap, false );
 
         // write values.
-        LOGGER.info( "updating profile for " + userInfo.getUserIdentity() );
+        LOGGER.info( () -> "updating profile for " + userInfo.getUserIdentity() );
 
-        LdapOperationsHelper.writeFormValuesToLdap( pwmApplication, macroMachine, theUser, formMap, false );
+        LdapOperationsHelper.writeFormValuesToLdap( theUser, formMap, macroMachine, false );
 
         final UserIdentity userIdentity = userInfo.getUserIdentity();
 
@@ -365,7 +375,7 @@ public class UpdateProfileUtil
             final List<ActionConfiguration> actions = updateProfileProfile.readSettingAsAction( PwmSetting.UPDATE_PROFILE_WRITE_ATTRIBUTES );
             if ( actions != null && !actions.isEmpty() )
             {
-                LOGGER.debug( sessionLabel, "executing configured actions to user " + userIdentity );
+                LOGGER.debug( sessionLabel, () -> "executing configured actions to user " + userIdentity );
 
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )

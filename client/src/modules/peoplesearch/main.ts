@@ -20,6 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+import 'angular';
+import 'angular-translate';
+import '@microfocus/ng-ias/dist/ng-ias';
+
+// Add a polyfill for Set() for IE11, since it's used in peoplesearch-base.component.ts
+import 'core-js/es6/set';
 
 import { bootstrap, module } from 'angular';
 import ConfigService from '../../services/peoplesearch-config.service';
@@ -43,7 +49,7 @@ module('app', [
         '$translateProvider',
         ($translateProvider: angular.translate.ITranslateProvider) => {
             $translateProvider
-                .translations('fallback', require('i18n/translations_en.json'))
+                .translations('fallback', require('../../i18n/translations_en.json'))
                 .useLoader('translationsLoader')
                 .useSanitizeValueStrategy('escapeParameters')
                 .preferredLanguage('en')

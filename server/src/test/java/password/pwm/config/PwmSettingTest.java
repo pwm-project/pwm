@@ -32,83 +32,129 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class PwmSettingTest {
+public class PwmSettingTest
+{
 
     @Test
-    public void testDefaultValues() throws PwmUnrecoverableException, PwmOperationalException {
-        for (PwmSetting pwmSetting : PwmSetting.values()) {
-            for (final PwmSettingTemplate template : PwmSettingTemplate.values()) {
-                PwmSettingTemplateSet templateSet = new PwmSettingTemplateSet(Collections.singleton(template));
-                pwmSetting.getDefaultValue(templateSet);
+    public void testDefaultValues() throws PwmUnrecoverableException, PwmOperationalException
+    {
+        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        {
+            for ( final PwmSettingTemplate template : PwmSettingTemplate.values() )
+            {
+                final PwmSettingTemplateSet templateSet = new PwmSettingTemplateSet( Collections.singleton( template ) );
+                pwmSetting.getDefaultValue( templateSet );
             }
         }
     }
 
     @Test
-    public void testDescriptions() throws PwmUnrecoverableException, PwmOperationalException {
-        for (PwmSetting pwmSetting : PwmSetting.values()) {
-            try {
-                pwmSetting.getDescription(PwmConstants.DEFAULT_LOCALE);
-            } catch (Throwable t) {
-                throw new IllegalStateException("unable to read description for setting '" + pwmSetting.toString() + "', error: " + t.getMessage(),t);
+    public void testDescriptions() throws PwmUnrecoverableException, PwmOperationalException
+    {
+        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        {
+            try
+            {
+                pwmSetting.getDescription( PwmConstants.DEFAULT_LOCALE );
+            }
+            catch ( final Throwable t )
+            {
+                throw new IllegalStateException( "unable to read description for setting '" + pwmSetting.toString() + "', error: " + t.getMessage(), t );
             }
         }
     }
 
     @Test
-    public void testLabels() throws PwmUnrecoverableException, PwmOperationalException {
-        for (PwmSetting pwmSetting : PwmSetting.values()) {
-            try {
-                pwmSetting.getLabel(PwmConstants.DEFAULT_LOCALE);
-            } catch (Throwable t) {
-                throw new IllegalStateException("unable to read label for setting '" + pwmSetting.toString() + "', error: " + t.getMessage(),t);
+    public void testLabels() throws PwmUnrecoverableException, PwmOperationalException
+    {
+        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        {
+            try
+            {
+                pwmSetting.getLabel( PwmConstants.DEFAULT_LOCALE );
+            }
+            catch ( final Throwable t )
+            {
+                throw new IllegalStateException( "unable to read label for setting '" + pwmSetting.toString() + "', error: " + t.getMessage(), t );
             }
         }
     }
 
     @Test
-    public void testFlags() throws PwmUnrecoverableException, PwmOperationalException {
-        for (PwmSetting pwmSetting : PwmSetting.values()) {
+    public void testFlags() throws PwmUnrecoverableException, PwmOperationalException
+    {
+        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        {
             pwmSetting.getFlags();
         }
     }
 
     @Test
-    public void testProperties() throws PwmUnrecoverableException, PwmOperationalException {
-        for (PwmSetting pwmSetting : PwmSetting.values()) {
-            try {
+    public void testProperties() throws PwmUnrecoverableException, PwmOperationalException
+    {
+        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        {
+            try
+            {
                 pwmSetting.getProperties();
-            } catch (Throwable t) {
-                throw new IllegalStateException("unable to read properties for setting '" + pwmSetting.toString() + "', error: " + t.getMessage(),t);
+            }
+            catch ( final Throwable t )
+            {
+                throw new IllegalStateException( "unable to read properties for setting '" + pwmSetting.toString() + "', error: " + t.getMessage(), t );
             }
         }
     }
 
     @Test
-    public void testOptions() throws PwmUnrecoverableException, PwmOperationalException {
-        for (PwmSetting pwmSetting : PwmSetting.values()) {
-            try {
+    public void testOptions() throws PwmUnrecoverableException, PwmOperationalException
+    {
+        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        {
+            try
+            {
                 pwmSetting.getOptions();
-            } catch (Throwable t) {
-                throw new IllegalStateException("unable to read options for setting '" + pwmSetting.toString() + "', error: " + t.getMessage(),t);
+            }
+            catch ( final Throwable t )
+            {
+                throw new IllegalStateException( "unable to read options for setting '" + pwmSetting.toString() + "', error: " + t.getMessage(), t );
             }
 
         }
     }
 
     @Test
-    public void testRegExPatterns() throws PwmUnrecoverableException, PwmOperationalException {
-        for (PwmSetting pwmSetting : PwmSetting.values()) {
+    public void testRegExPatterns() throws PwmUnrecoverableException, PwmOperationalException
+    {
+        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        {
             pwmSetting.getRegExPattern();
         }
     }
 
     @Test
-    public void testKeyUniqueness() {
+    public void testKeyUniqueness()
+    {
         final Set<String> seenKeys = new HashSet<>();
-        for (PwmSetting pwmSetting : PwmSetting.values()) {
-            Assert.assertTrue(!seenKeys.contains(pwmSetting.getKey())); // duplicate key foud
-            seenKeys.add(pwmSetting.getKey());
+        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        {
+            // duplicate key foud
+            Assert.assertTrue( !seenKeys.contains( pwmSetting.getKey() ) );
+            seenKeys.add( pwmSetting.getKey() );
         }
+    }
+
+    @Test
+    public void testMinMaxValueRanges()
+    {
+        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        {
+            final long minValue = Long.parseLong( pwmSetting.getProperties().getOrDefault( PwmSettingProperty.Minimum, "0" ) );
+            final long maxValue = Long.parseLong( pwmSetting.getProperties().getOrDefault( PwmSettingProperty.Maximum, "0" ) );
+            if ( maxValue != 0 )
+            {
+                Assert.assertTrue( maxValue > minValue );
+            }
+        }
+
     }
 }

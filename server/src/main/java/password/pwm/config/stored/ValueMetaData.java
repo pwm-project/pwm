@@ -22,29 +22,15 @@
 
 package password.pwm.config.stored;
 
+import lombok.Value;
 import password.pwm.bean.UserIdentity;
 
 import java.io.Serializable;
 import java.time.Instant;
 
+@Value
 public class ValueMetaData implements Serializable
 {
     private Instant modifyDate;
     private UserIdentity userIdentity;
-
-    public ValueMetaData( final Instant modifyDate, final UserIdentity userIdentity )
-    {
-        this.modifyDate = modifyDate;
-        this.userIdentity = userIdentity;
-    }
-
-    public Instant getModifyDate( )
-    {
-        return modifyDate;
-    }
-
-    public UserIdentity getUserIdentity( )
-    {
-        return userIdentity;
-    }
 }

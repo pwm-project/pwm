@@ -53,8 +53,8 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.auth.HttpAuthRecord;
 import password.pwm.http.bean.ForgottenPasswordBean;
-import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
@@ -76,6 +76,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -151,12 +152,12 @@ public class ForgottenPasswordUtil
             {
                 if ( userIdentity.equals( userInfoFromSession.getUserIdentity() ) )
                 {
-                    LOGGER.trace( pwmRequest, "using request cached userInfo" );
+                    LOGGER.trace( pwmRequest, () -> "using request cached userInfo" );
                     return userInfoFromSession;
                 }
                 else
                 {
-                    LOGGER.trace( pwmRequest, "request cached userInfo is not for current user, clearing." );
+                    LOGGER.trace( pwmRequest, () -> "request cached userInfo is not for current user, clearing." );
                     pwmRequest.getHttpServletRequest().getSession().setAttribute( cacheKey, null );
                 }
             }
@@ -217,7 +218,7 @@ public class ForgottenPasswordUtil
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmRequest, "skipping send unlock notice email for '" + userIdentity + "' no email configured" );
+            LOGGER.debug( pwmRequest, () -> "skipping send unlock notice email for '" + userIdentity + "' no email configured" );
             return;
         }
 
@@ -249,16 +250,16 @@ public class ForgottenPasswordUtil
             final String cookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_NAME );
             if ( cookieName == null || cookieName.isEmpty() )
             {
-                LOGGER.trace( pwmRequest, "skipping auth record cookie read, cookie name parameter is blank" );
+                LOGGER.trace( pwmRequest, () -> "skipping auth record cookie read, cookie name parameter is blank" );
                 return false;
             }
 
-            final AuthenticationFilter.AuthRecord authRecord = pwmRequest.readEncryptedCookie( cookieName, AuthenticationFilter.AuthRecord.class );
-            if ( authRecord != null )
+            final HttpAuthRecord httpAuthRecord = pwmRequest.readEncryptedCookie( cookieName, HttpAuthRecord.class );
+            if ( httpAuthRecord != null )
             {
-                if ( authRecord.getGuid() != null && !authRecord.getGuid().isEmpty() && authRecord.getGuid().equals( userGuid ) )
+                if ( httpAuthRecord.getGuid() != null && !httpAuthRecord.getGuid().isEmpty() && httpAuthRecord.getGuid().equals( userGuid ) )
                 {
-                    LOGGER.debug( pwmRequest, "auth record cookie validated" );
+                    LOGGER.debug( pwmRequest, () -> "auth record cookie validated" );
                     return true;
                 }
             }
@@ -417,11 +418,13 @@ public class ForgottenPasswordUtil
     {
         TokenUtil.initializeAndSendToken(
                 pwmRequest,
-                userInfo,
-                tokenDestinationItem,
-                PwmSetting.EMAIL_CHALLENGE_TOKEN,
-                TokenType.FORGOTTEN_PW,
-                PwmSetting.SMS_CHALLENGE_TOKEN_TEXT
+                TokenUtil.TokenInitAndSendRequest.builder()
+                        .userInfo( userInfo )
+                        .tokenDestinationItem( tokenDestinationItem )
+                        .emailToSend( PwmSetting.EMAIL_CHALLENGE_TOKEN )
+                        .tokenType( TokenType.FORGOTTEN_PW )
+                        .smsToSend( PwmSetting.SMS_CHALLENGE_TOKEN_TEXT )
+                        .build()
         );
 
         StatisticsManager.incrementStat( pwmRequest, Statistic.RECOVERY_TOKENS_SENT );
@@ -436,7 +439,7 @@ public class ForgottenPasswordUtil
         final ForgottenPasswordProfile forgottenPasswordProfile = forgottenPasswordProfile( pwmRequest.getPwmApplication(), forgottenPasswordBean );
         final RecoveryAction recoveryAction = ForgottenPasswordUtil.getRecoveryAction( pwmApplication.getConfig(), forgottenPasswordBean );
 
-        LOGGER.trace( pwmRequest, "beginning process to send new password to user" );
+        LOGGER.trace( pwmRequest, () -> "beginning process to send new password to user" );
 
         if ( !forgottenPasswordBean.getProgress().isAllPassed() )
         {
@@ -450,7 +453,7 @@ public class ForgottenPasswordUtil
         {
             // try unlocking user
             theUser.unlockPassword();
-            LOGGER.trace( pwmRequest, "unlock account succeeded" );
+            LOGGER.trace( pwmRequest, () -> "unlock account succeeded" );
         }
         catch ( ChaiOperationException e )
         {
@@ -470,7 +473,8 @@ public class ForgottenPasswordUtil
                     pwmRequest.getLocale()
             );
 
-            LOGGER.info( pwmRequest, "user successfully supplied password recovery responses, emailing new password to: " + theUser.getEntryDN() );
+            LOGGER.info( pwmRequest, () -> "user successfully supplied password recovery responses, emailing new password to: "
+                    + theUser.getEntryDN() );
 
             // add post change actions
             ForgottenPasswordServlet.addPostChangeAction( pwmRequest, userIdentity );
@@ -481,7 +485,7 @@ public class ForgottenPasswordUtil
                     userInfo.getPasswordPolicy(),
                     pwmApplication
             );
-            LOGGER.trace( pwmRequest, "generated random password value based on password policy for "
+            LOGGER.trace( pwmRequest, () -> "generated random password value based on password policy for "
                     + userIdentity.toDisplayString() );
 
 
@@ -489,7 +493,7 @@ public class ForgottenPasswordUtil
             try
             {
                 theUser.setPassword( newPassword.getStringValue() );
-                LOGGER.trace( pwmRequest, "set user " + userIdentity.toDisplayString()
+                LOGGER.trace( pwmRequest, () -> "set user " + userIdentity.toDisplayString()
                         + " password to system generated random value" );
             }
             catch ( ChaiException e )
@@ -499,7 +503,7 @@ public class ForgottenPasswordUtil
 
             if ( recoveryAction == RecoveryAction.SENDNEWPW_AND_EXPIRE )
             {
-                LOGGER.debug( pwmRequest, "marking user " + userIdentity.toDisplayString() + " password as expired" );
+                LOGGER.debug( pwmRequest, () -> "marking user " + userIdentity.toDisplayString() + " password as expired" );
                 theUser.expirePassword();
             }
 
@@ -534,7 +538,7 @@ public class ForgottenPasswordUtil
         catch ( ChaiOperationException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation(
-                    PwmError.ERROR_UNKNOWN,
+                    PwmError.ERROR_INTERNAL,
                     "unexpected ldap error while processing recovery action " + recoveryAction + ", error: " + e.getMessage()
             );
             LOGGER.warn( pwmRequest, errorInformation.toDebugStr() );
@@ -622,7 +626,7 @@ public class ForgottenPasswordUtil
         }
         catch ( PwmUnrecoverableException e )
         {
-            LOGGER.debug( sessionLabel, "can't read user's forgotten password profile - assuming no profile assigned, error: " + e.getMessage() );
+            LOGGER.debug( sessionLabel, () -> "can't read user's forgotten password profile - assuming no profile assigned, error: " + e.getMessage() );
         }
 
         if ( forgottenPasswordProfile == null )
@@ -748,7 +752,7 @@ public class ForgottenPasswordUtil
             }
             catch ( ChaiOperationException e )
             {
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN,
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL,
                         "error checking user '" + userInfo.getUserIdentity() + "' ldap intruder lock status: " + e.getMessage() );
                 LOGGER.error( sessionLabel, errorInformation );
                 throw new PwmUnrecoverableException( errorInformation );
@@ -815,7 +819,7 @@ public class ForgottenPasswordUtil
                     }
                     else
                     {
-                        LOGGER.trace( pwmRequest, "excluding optional required attribute(" + formItem.getName() + "), user has no value" );
+                        LOGGER.trace( pwmRequest, () -> "excluding optional required attribute(" + formItem.getName() + "), user has no value" );
                     }
                 }
                 catch ( PwmUnrecoverableException e )
@@ -854,24 +858,42 @@ public class ForgottenPasswordUtil
         );
     }
 
-    static boolean hasOtherMethodChoices( final ForgottenPasswordBean forgottenPasswordBean, final IdentityVerificationMethod thisMethod )
+    static boolean hasOtherMethodChoices(
+            final PwmRequest pwmRequest,
+            final ForgottenPasswordBean forgottenPasswordBean,
+            final IdentityVerificationMethod thisMethod
+    )
     {
         if ( forgottenPasswordBean.getRecoveryFlags().getRequiredAuthMethods().contains( thisMethod )  )
         {
             return false;
         }
 
-        if ( forgottenPasswordBean.getRecoveryFlags().getMinimumOptionalAuthMethods() > 0 )
         {
-            final Set<IdentityVerificationMethod> satisfiedOptionalMethods = figureSatisfiedOptionalAuthMethods(
-                    forgottenPasswordBean.getRecoveryFlags(), forgottenPasswordBean.getProgress()
-            );
-
-            if ( satisfiedOptionalMethods.size() < forgottenPasswordBean.getRecoveryFlags().getMinimumOptionalAuthMethods() )
+            // check if has previously satisfied any other optional methods.
+            final Set<IdentityVerificationMethod> optionalAuthMethods = forgottenPasswordBean.getRecoveryFlags().getOptionalAuthMethods();
+            final Set<IdentityVerificationMethod> satisfiedMethods = forgottenPasswordBean.getProgress().getSatisfiedMethods();
+            final boolean disJoint = Collections.disjoint( optionalAuthMethods, satisfiedMethods );
+            if ( !disJoint )
             {
                 return true;
             }
         }
+
+        {
+            final Set<IdentityVerificationMethod> remainingAvailableOptionalMethods = ForgottenPasswordUtil.figureRemainingAvailableOptionalAuthMethods(
+                    pwmRequest,
+                    forgottenPasswordBean
+            );
+            final Set<IdentityVerificationMethod> otherOptionalMethodChoices = new HashSet<>( remainingAvailableOptionalMethods );
+            otherOptionalMethodChoices.remove( thisMethod );
+
+            if ( !otherOptionalMethodChoices.isEmpty() )
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 }

@@ -124,12 +124,12 @@ class NewUserFormUtils
     )
             throws PwmUnrecoverableException
     {
-
-        final NewUserTokenData newUserTokenData = new NewUserTokenData(
-                newUserBean.getProfileID(),
-                newUserBean.getNewUserForm(),
-                newUserBean.getRemoteInputData()
-        );
+        final NewUserTokenData newUserTokenData = new NewUserTokenData();
+        newUserTokenData.setProfileID( newUserBean.getProfileID() );
+        newUserTokenData.setFormData( newUserBean.getNewUserForm() );
+        newUserTokenData.setInjectionData( newUserBean.getRemoteInputData() );
+        newUserTokenData.setCurrentTokenField( newUserBean.getCurrentTokenField() );
+        newUserTokenData.setCompletedTokenFields( newUserBean.getCompletedTokenFields() );
 
         final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
         final String encodedTokenData = secureService.encryptObjectToString( newUserTokenData );

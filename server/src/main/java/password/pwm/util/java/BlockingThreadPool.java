@@ -22,6 +22,8 @@
 
 package password.pwm.util.java;
 
+import password.pwm.util.PwmScheduler;
+
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
@@ -35,7 +37,7 @@ public class BlockingThreadPool extends ThreadPoolExecutor
 
     public BlockingThreadPool( final int bound, final String name )
     {
-        super( bound, bound, 0, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(), JavaHelper.makePwmThreadFactory( name, true ) );
+        super( bound, bound, 0, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(), PwmScheduler.makePwmThreadFactory( name, true ) );
         semaphore = new Semaphore( bound );
     }
 

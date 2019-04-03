@@ -34,6 +34,7 @@ import password.pwm.i18n.Message;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletContext;
@@ -108,7 +109,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         final String url = jspURL.getPath();
         try
         {
-            LOGGER.trace( pwmRequest.getSessionLabel(), "forwarding to " + url );
+            LOGGER.trace( pwmRequest, () -> "forwarding to " + url );
         }
         catch ( Exception e )
         {
@@ -138,7 +139,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
 
         if ( showMessage )
         {
-            LOGGER.trace( pwmSession, "skipping success page due to configuration setting." );
+            LOGGER.trace( pwmSession, () -> "skipping success page due to configuration setting" );
             final String redirectUrl = pwmRequest.getContextPath()
                     + PwmServletDefinition.PublicCommand.servletUrl()
                     + "?processAction=next";
@@ -168,13 +169,13 @@ public class PwmResponse extends PwmHttpResponseWrapper
 
         if ( JavaHelper.enumArrayContainsValue( flags, Flag.ForceLogout ) )
         {
-            LOGGER.debug( pwmRequest, "forcing logout due to error " + errorInformation.toDebugStr() );
+            LOGGER.debug( pwmRequest, () -> "forcing logout due to error " + errorInformation.toDebugStr() );
             pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
         }
 
         if ( getResponseFlags().contains( PwmResponseFlag.ERROR_RESPONSE_SENT ) )
         {
-            LOGGER.debug( pwmRequest, "response error has been previously set, disregarding new error: " + errorInformation.toDebugStr() );
+            LOGGER.debug( pwmRequest, () -> "response error has been previously set, disregarding new error: " + errorInformation.toDebugStr() );
             return;
         }
 
@@ -237,7 +238,8 @@ public class PwmResponse extends PwmHttpResponseWrapper
             throws PwmUnrecoverableException
     {
         final String jsonValue = JsonUtil.serialize( cookieValue );
-        final String encryptedValue = pwmRequest.getPwmApplication().getSecureService().encryptToString( jsonValue );
+        final PwmSecurityKey pwmSecurityKey = pwmRequest.getPwmSession().getSecurityKey( pwmRequest );
+        final String encryptedValue = pwmRequest.getPwmApplication().getSecureService().encryptToString( jsonValue, pwmSecurityKey );
         writeCookie( cookieName, encryptedValue, seconds, path, PwmHttpResponseWrapper.Flag.BypassSanitation );
     }
 
@@ -263,7 +265,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
 
         // http "other" redirect
         resp.setHeader( HttpHeader.Location.getHttpName(), url );
-        LOGGER.trace( pwmRequest, "sending " + redirectType.getCode() + " redirect to " + url );
+        LOGGER.trace( pwmRequest, () -> "sending " + redirectType.getCode() + " redirect to " + url );
     }
 
     private void preCommitActions( )

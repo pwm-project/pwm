@@ -53,6 +53,8 @@ public class LdapConnectionService implements PwmService
 
     private final Map<LdapProfile, Map<Integer, ChaiProvider>> proxyChaiProviders = new ConcurrentHashMap<>();
     private final Map<LdapProfile, ErrorInformation> lastLdapErrors = new ConcurrentHashMap<>();
+
+    private boolean useThreadLocal;
     private PwmApplication pwmApplication;
     private STATUS status = STATUS.NEW;
     private AtomicLoopIntIncrementer slotIncrementer;
@@ -71,11 +73,13 @@ public class LdapConnectionService implements PwmService
 
         chaiProviderFactory = ChaiProviderFactory.newProviderFactory();
 
+        useThreadLocal = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PROXY_USE_THREAD_LOCAL ) );
+
         // read the lastLoginTime
         this.lastLdapErrors.putAll( readLastLdapFailure( pwmApplication ) );
 
         final int connectionsPerProfile = maxSlotsPerProfile( pwmApplication );
-        LOGGER.trace( "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
+        LOGGER.trace( () -> "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
         slotIncrementer = new AtomicLoopIntIncrementer( connectionsPerProfile );
 
         for ( final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values() )
@@ -89,7 +93,7 @@ public class LdapConnectionService implements PwmService
     public void close( )
     {
         status = STATUS.CLOSED;
-        LOGGER.trace( "closing ldap proxy connections" );
+        LOGGER.trace( () -> "closing ldap proxy connections" );
         if ( chaiProviderFactory != null )
         {
             try
@@ -135,18 +139,24 @@ public class LdapConnectionService implements PwmService
                 ? pwmApplication.getConfig().getDefaultLdapProfile()
                 : ldapProfile;
 
-        if ( threadLocalProvider.get() != null && threadLocalProvider.get().containsKey( effectiveProfile ) )
+        if ( useThreadLocal )
         {
-            return threadLocalProvider.get().get( effectiveProfile );
+            if ( threadLocalProvider.get() != null && threadLocalProvider.get().containsKey( effectiveProfile ) )
+            {
+                return threadLocalProvider.get().get( effectiveProfile );
+            }
         }
 
         final ChaiProvider chaiProvider = getNewProxyChaiProvider( effectiveProfile );
 
-        if ( threadLocalProvider.get() == null )
+        if ( useThreadLocal )
         {
-            threadLocalProvider.set( new ConcurrentHashMap<>() );
+            if ( threadLocalProvider.get() == null )
+            {
+                threadLocalProvider.set( new ConcurrentHashMap<>() );
+            }
+            threadLocalProvider.get().put( effectiveProfile, chaiProvider );
         }
-        threadLocalProvider.get().put( effectiveProfile, chaiProvider );
 
         return chaiProvider;
     }
@@ -189,7 +199,7 @@ public class LdapConnectionService implements PwmService
         catch ( Exception e )
         {
             final String errorMsg = "unexpected error creating new proxy ldap connection: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             LOGGER.error( errorInformation );
             throw new PwmUnrecoverableException( errorInformation );
         }

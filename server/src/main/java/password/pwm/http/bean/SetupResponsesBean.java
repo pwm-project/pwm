@@ -24,6 +24,8 @@ package password.pwm.http.bean;
 
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import password.pwm.config.option.SessionBeanMode;
 
 import java.io.Serializable;
@@ -32,6 +34,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+@Data
+@EqualsAndHashCode( callSuper = false )
 public class SetupResponsesBean extends PwmSessionBean
 {
     private boolean hasExistingResponses;
@@ -47,76 +51,8 @@ public class SetupResponsesBean extends PwmSessionBean
         return Type.AUTHENTICATED;
     }
 
-    public SetupData getResponseData( )
-    {
-        return responseData;
-    }
-
-    public void setResponseData( final SetupData responseData )
-    {
-        this.responseData = responseData;
-    }
-
-    public SetupData getHelpdeskResponseData( )
-    {
-        return helpdeskResponseData;
-    }
-
-    public void setHelpdeskResponseData( final SetupData helpdeskResponseData )
-    {
-        this.helpdeskResponseData = helpdeskResponseData;
-    }
-
-    public boolean isResponsesSatisfied( )
-    {
-        return responsesSatisfied;
-    }
-
-    public void setResponsesSatisfied( final boolean responsesSatisfied )
-    {
-        this.responsesSatisfied = responsesSatisfied;
-    }
-
-    public boolean isHelpdeskResponsesSatisfied( )
-    {
-        return helpdeskResponsesSatisfied;
-    }
-
-    public void setHelpdeskResponsesSatisfied( final boolean helpdeskResponsesSatisfied )
-    {
-        this.helpdeskResponsesSatisfied = helpdeskResponsesSatisfied;
-    }
-
-    public boolean isConfirmed( )
-    {
-        return confirmed;
-    }
-
-    public void setConfirmed( final boolean confirmed )
-    {
-        this.confirmed = confirmed;
-    }
-
-    public Locale getUserLocale( )
-    {
-        return userLocale;
-    }
-
-    public void setUserLocale( final Locale userLocale )
-    {
-        this.userLocale = userLocale;
-    }
-
-    public boolean isHasExistingResponses( )
-    {
-        return hasExistingResponses;
-    }
-
-    public void setHasExistingResponses( final boolean hasExistingResponses )
-    {
-        this.hasExistingResponses = hasExistingResponses;
-    }
-
+    @Data
+    @EqualsAndHashCode( callSuper = false )
     public static class SetupData implements Serializable
     {
         private ChallengeSet challengeSet;
@@ -124,60 +60,6 @@ public class SetupResponsesBean extends PwmSessionBean
         private boolean simpleMode;
         private int minRandomSetup;
         private Map<Challenge, String> responseMap = Collections.emptyMap();
-
-        public SetupData( )
-        {
-        }
-
-        public ChallengeSet getChallengeSet( )
-        {
-            return challengeSet;
-        }
-
-        public void setChallengeSet( final ChallengeSet challengeSet )
-        {
-            this.challengeSet = challengeSet;
-        }
-
-        public Map<String, Challenge> getIndexedChallenges( )
-        {
-            return indexedChallenges;
-        }
-
-        public void setIndexedChallenges( final Map<String, Challenge> indexedChallenges )
-        {
-            this.indexedChallenges = indexedChallenges;
-        }
-
-        public boolean isSimpleMode( )
-        {
-            return simpleMode;
-        }
-
-        public void setSimpleMode( final boolean simpleMode )
-        {
-            this.simpleMode = simpleMode;
-        }
-
-        public int getMinRandomSetup( )
-        {
-            return minRandomSetup;
-        }
-
-        public void setMinRandomSetup( final int minRandomSetup )
-        {
-            this.minRandomSetup = minRandomSetup;
-        }
-
-        public Map<Challenge, String> getResponseMap( )
-        {
-            return responseMap;
-        }
-
-        public void setResponseMap( final Map<Challenge, String> responseMap )
-        {
-            this.responseMap = responseMap;
-        }
     }
 
     @Override

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Password Management Servlets (PWM)
-  ~ Copyright (c) 2006-2018 Novell, Inc.
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2018 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -99,11 +100,6 @@
             <option value="/private">/private</option>
             <option value="/public">/public</option>
         </options>
-    </setting>
-    <setting hidden="false" key="pwmInstanceName" level="2">
-        <default>
-            <value />
-        </default>
     </setting>
     <setting hidden="false" key="idleTimeoutSeconds" level="1" required="true">
         <properties>
@@ -219,6 +215,11 @@
         </default>
     </setting>
     <setting hidden="false" key="display.showCancelButton" level="1" required="true">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="display.tokenSuccessPage" level="1" required="true">
         <default>
             <value>true</value>
         </default>
@@ -413,14 +414,10 @@
     </setting>
     <setting hidden="false" key="display.password.completeMessage" level="1">
         <flag>MacroSupport</flag>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="display.password.guideText" level="1">
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="passwordSync.enableReplicaCheck" level="2">
         <default>
@@ -491,7 +488,7 @@
     <setting hidden="false" key="ldap.rootContexts" level="0">
         <flag>ldapDNsyntax</flag>
         <example>ou=users,o=example</example>
-        <example template="AD">cn=users,dc=site,dc=example,dc=net</example>
+        <example template="AD">CN=users,DC=site,DC=example,DC=net</example>
         <default/>
     </setting>
     <setting hidden="false" key="ldap.selectableContexts" level="2">
@@ -516,6 +513,11 @@
         <example template="OPEN_LDAP">cn=@PwmAppName@-Admins,dc=example,dc=com</example>
         <default>
             <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="pwmAdmin.allowSkipForcedActivities" level="0" required="true">
+        <default>
+            <value>true</value>
         </default>
     </setting>
     <setting hidden="false" key="ldap.usernameSearchFilter" level="1" required="true">
@@ -708,12 +710,6 @@
             <property key="Minimum">1</property>
             <property key="Maximum">65535</property>
         </properties>
-    </setting>
-    <setting hidden="false" key="email.default.fromAddresses" level="1">
-        <flag>emailSyntax</flag>
-        <default>
-            <value>noreply@example.org</value>
-        </default>
     </setting>
     <setting hidden="false" key="email.smtp.username" level="1">
         <default>
@@ -979,9 +975,7 @@
     </setting>
     <setting hidden="false" key="sms.httpRequestHeaders" level="2">
         <regex>^[A-Za-z0-9_\.-]+:.*</regex>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="sms.maxTextLength" level="2" required="true">
         <default>
@@ -1007,6 +1001,7 @@
             <value><![CDATA[ZEROS]]></value>
         </default>
         <options>
+            <option value="RAW">Raw -  Use the raw value that is read from the directory with no changes</option>
             <option value="PLAIN">Plain - country code (e.g. 1 for USA) plus subscriber number (e.g. 12312345): 112312345</option>
             <option value="PLUS">Plus - Same as plain, but with a plus sign as a prefix: +112312345</option>
             <option value="ZEROS">Zeros -  Same as plain, but prefixed with a double zero: 00112312345</option>
@@ -1186,6 +1181,11 @@
     <setting hidden="false" key="password.policy.minimumAlpha" level="1" required="true">
         <default>
             <value>0</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="password.policy.allowNonAlpha" level="1" required="true">
+        <default>
+            <value>true</value>
         </default>
     </setting>
     <setting hidden="false" key="password.policy.maximumNonAlpha" level="1" required="true">
@@ -1482,6 +1482,15 @@
             <value>0</value>
         </default>
     </setting>
+    <setting hidden="false" key="captcha.recaptcha.mode" level="2">
+        <default>
+            <value>V3</value>
+        </default>
+        <options>
+            <option value="V3">reCaptcha Version 3</option>
+            <option value="V3_INVISIBLE">reCaptcha Version 3 - Invisible</option>
+        </options>
+    </setting>
     <setting hidden="false" key="security.formNonce.enable" level="2" required="true">
         <default>
             <value>true</value>
@@ -1560,6 +1569,32 @@
             <value>28800</value>
         </default>
     </setting>
+    <setting hidden="false" key="security.certificate.validationMode" level="2">
+        <default>
+            <value>CERTIFICATE_CHAIN</value>
+        </default>
+        <options>
+            <option value="CA_ONLY">Root Certificate Only</option>
+            <option value="CERTIFICATE_CHAIN">Entire Certificate Chain</option>
+        </options>
+    </setting>
+    <setting hidden="false" key="nodeService.enable" level="2">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="nodeService.storageMode" level="2">
+        <default>
+            <value>LDAP</value>
+        </default>
+        <default template="DB">
+            <value>DB</value>
+        </default>
+        <options>
+            <option value="LDAP">LDAP Directory</option>
+            <option value="DB">Remote Database</option>
+        </options>
+    </setting>
     <setting hidden="false" key="security.loginSession.mode" level="2">
         <default>
             <value>CRYPTCOOKIE</value>
@@ -1595,8 +1630,7 @@
     <setting hidden="false" key="security.cspHeader" level="2">
         <default>
             <!--<value><![CDATA[]]></value>-->
-            <value><![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'unsafe-inline' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/cspReport]]></value>
-            <!-- 'unsafe-inline' on script-src is included for backward compatibility of CSP Level1 browsers.  CSP2 and future ignore it when the nonce is specified -->
+            <value><![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/cspReport]]></value>
         </default>
     </setting>
     <setting hidden="false" key="email.adminAlert.toAddress" level="1">
@@ -2542,11 +2576,6 @@
         <ldapPermission actor="proxy" access="read"/>
         <default />
     </setting>
-    <setting hidden="false" key="challenge.token.enable" level="1" required="true">
-        <default>
-            <value>false</value>
-        </default>
-    </setting>
     <setting hidden="false" key="challenge.token.sendMethod" level="1" required="true">
         <default>
             <value><![CDATA[EMAILONLY]]></value>
@@ -2722,6 +2751,11 @@
             <value>true</value>
         </default>
     </setting>
+    <setting hidden="false" key="newUser.logoutAfterCreation" level="2">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting hidden="false" key="newUser.username.definition" level="1">
         <default>
             <value><![CDATA[@RandomChar:16:ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@]]></value>
@@ -2852,13 +2886,6 @@
             <option value="checkbox">checkbox</option>
         </options>
     </setting>
-    <setting hidden="false" key="guest.creationUniqueAttributes" level="1">
-        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
-        <default>
-            <value><![CDATA[cn]]></value>
-            <value><![CDATA[mail]]></value>
-        </default>
-    </setting>
     <setting hidden="false" key="guest.writeAttributes" level="1">
         <ldapPermission actor="guestManager" access="write"/>
         <default />
@@ -2895,11 +2922,6 @@
     <setting hidden="false" key="activateUser.allowUnlock" level="1" required="true">
         <default>
             <value>true</value>
-        </default>
-    </setting>
-    <setting hidden="false" key="activateUser.token.verification" level="1" required="true">
-        <default>
-            <value>false</value>
         </default>
     </setting>
     <setting hidden="false" key="display.activateUser.agreement" level="1">
@@ -3027,6 +3049,7 @@
             <option value="url">url</option>
             <option value="select">select</option>
             <option value="checkbox">checkbox</option>
+            <option value="photo">photo</option>
         </options>
     </setting>
     <setting hidden="true" key="updateAttributes.check.queryMatch" level="3">
@@ -3107,13 +3130,38 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="false" key="peopleSearch.enablePhoto" level="1">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.enableOrgChart" level="1">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.enableExport" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.enableTeamMailto" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.enablePrinting" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting hidden="false" key="peopleSearch.queryMatch" level="1" required="true">
         <ldapPermission actor="self_other" access="read"/>
         <default syntaxVersion="2">
             <value>{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}</value>
         </default>
     </setting>
-    <setting hidden="false" key="peopleSearch.searchAttributes" level="1" required="false">
+    <setting hidden="true" key="peopleSearch.searchAttributes" level="1" required="false">
         <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>givenName</value>
@@ -3121,6 +3169,20 @@
             <value>title</value>
             <value>mail</value>
         </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.search.form" level="1" required="true">
+        <flag>Form_HideStandardOptions</flag>
+        <ldapPermission actor="self_other" access="read"/>
+        <default>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <options>
+            <option value="text">text</option>
+            <option value="select">select</option>
+        </options>
     </setting>
     <setting hidden="false" key="peopleSearch.searchFilter" level="2" required="false">
         <default/>
@@ -3197,7 +3259,7 @@
             <property key="Maximum">7</property>
         </properties>
     </setting>
-    <setting hidden="false" key="peopleSearch.displayName.user" level="1" required="true">
+    <setting hidden="true" key="peopleSearch.displayName.user" level="1" required="true">
         <flag>MacroSupport</flag>
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @LDAP:title@</value>
@@ -3213,6 +3275,10 @@
         <default/>
     </setting>
     <setting hidden="false" key="peopleSearch.maxCacheSeconds" level="2">
+        <properties>
+            <property key="Minimum">60</property>
+            <property key="Maximum">86400</property>
+        </properties>
         <default>
             <value>600</value>
         </default>
@@ -3225,6 +3291,11 @@
     <setting hidden="false" key="peopleSearch.idleTimeout" level="1">
         <default>
             <value>0</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.advancedSearch.enable" level="1">
+        <default>
+            <value>false</value>
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.orgChart.parentAttribute" level="1">
@@ -3243,6 +3314,33 @@
         <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>assistant</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.orgChart.workforceIdAttribute" level="1">
+        <ldapPermission actor="self_other" access="read"/>
+        <default>
+            <value>workforceID</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="ldap.user.language.attribute" level="1">
+        <ldapPermission actor="proxy" access="write"/>
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="ldap.user.appData.attribute" level="1">
+        <ldapPermission actor="proxy" access="write"/>
+        <default>
+            <value>pwmData</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="ldap.user.language.autoSet" level="1">
+        <options>
+            <option value="disabled">Disabled</option>
+            <option value="enabled">Enabled - Write to LDAP attribute during authentication.</option>
+        </options>
+        <default>
+            <value>disabled</value>
         </default>
     </setting>
     <setting hidden="false" key="ldap.edirectory.storeNmasResponses" level="1" required="true">
@@ -3345,6 +3443,28 @@
     <setting hidden="false" key="helpdesk.filter" level="1">
         <default/>
     </setting>
+    <setting hidden="false" key="helpdesk.search.form" level="1" required="true">
+        <flag>Form_HideStandardOptions</flag>
+        <ldapPermission actor="helpdesk" access="read"/>
+        <default>
+            <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"workforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <default template="AD">
+            <value>{"name":"sAMAccountName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"userPrincipalName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"UPN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <options>
+            <option value="text">text</option>
+            <option value="select">select</option>
+        </options>
+    </setting>
     <setting hidden="false" key="helpdesk.result.form" level="1" required="true">
         <flag>Form_HideOptions</flag>
         <ldapPermission actor="helpdesk" access="read"/>
@@ -3401,7 +3521,7 @@
     </setting>
     <setting hidden="false" key="helpdesk.result.limit" level="2" required="true">
         <default>
-            <value>500</value>
+            <value>200</value>
         </default>
         <properties>
             <property key="Minimum">1</property>
@@ -3530,10 +3650,22 @@
             <value>false</value>
         </default>
     </setting>
-    <setting hidden="false" key="helpdesk.displayName" level="2">
+    <setting hidden="true" key="helpdesk.displayName" level="2">
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @User:ID@ - @User:Email@</value>
         </default>
+    </setting>
+    <setting hidden="false" key="helpdesk.displayName.cardLabels" level="1">
+        <flag>MacroSupport</flag>
+        <default>
+            <value>@LDAP:givenName@ @LDAP:sn@</value>
+            <value>@LDAP:title@</value>
+            <value>@LDAP:mail@</value>
+            <value>@LDAP:telephoneNumber@</value>
+        </default>
+        <properties>
+            <property key="Maximum">4</property>
+        </properties>
     </setting>
     <setting hidden="false" key="helpdesk.enable" level="1" required="true">
         <default>
@@ -3593,6 +3725,16 @@
     <setting hidden="false" key="helpdesk.setPassword.maskValue" level="1">
         <default>
             <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="helpdesk.enablePhotos" level="1">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="helpdesk.advancedSearch.enable" level="1">
+        <default>
+            <value>true</value>
         </default>
     </setting>
     <setting hidden="false" key="helpdesk.verificationMethods" level="1">
@@ -3670,6 +3812,18 @@
             <value/>
         </default>
     </setting>
+    <setting hidden="false" key="pwNotify.storageMode" level="2">
+        <default>
+            <value>LDAP</value>
+        </default>
+        <default template="DB">
+            <value>DB</value>
+        </default>
+        <options>
+            <option value="LDAP">LDAP Directory</option>
+            <option value="DB">Remote Database</option>
+        </options>
+    </setting>
     <setting hidden="false" key="pwNotify.queryString" level="1">
         <default>
             <value/>
@@ -3697,14 +3851,14 @@
             <value/>
         </default>
     </setting>
-    <setting hidden="false" key="reporting.ldap.searchFilter" level="1">
+    <setting hidden="true" key="reporting.ldap.searchFilter" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting hidden="false" key="reporting.maxCacheAge" level="1">
-        <default>
-            <value>2592000</value>
+    <setting hidden="false" key="reporting.ldap.userMatch" level="1">
+        <default syntaxVersion="2">
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting hidden="false" key="reporting.ldap.maxQuerySize" level="2">
@@ -3746,9 +3900,10 @@
         </options>
     </setting>
     <setting hidden="false" key="http.proxy.url" level="1">
-        <default>
-            <value />
-        </default>
+        <default/>
+    </setting>
+    <setting hidden="false" key="http.proxy.exceptions" level="1">
+        <default/>
     </setting>
     <setting hidden="false" key="cas.clearPassUrl" level="2">
         <default>
@@ -3853,6 +4008,10 @@
         <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/grant</example>
         <default/>
     </setting>
+    <setting hidden="false" key="oauth.idserver.scope" level="2">
+        <example>email</example>
+        <default/>
+    </setting>
     <setting hidden="false" key="oauth.idserver.codeResolveUrl" level="2">
         <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/authcoderesolve</example>
         <default/>
@@ -3882,18 +4041,19 @@
     <setting hidden="false" key="https.server.tls.protocols" level="1">
         <default>
             <value>TLS_1_2</value>
+            <value>TLS_1_3</value>
         </default>
         <options>
-            <option value="SSL_2_0">SSL v2.0</option>
             <option value="SSL_3_0">SSL v3.0</option>
             <option value="TLS_1_0">TLS v1.0</option>
             <option value="TLS_1_1">TLS v1.1</option>
             <option value="TLS_1_2">TLS v1.2</option>
+            <option value="TLS_1_3">TLS v1.3</option>
         </options>
     </setting>
     <setting hidden="false" key="https.server.tls.ciphers" level="1">
         <default>
-            <value>TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_SHA,TLS_DHE_RSA_WITH_AES_128_SHA256,TLS_DHE_RSA_WITH_AES_128_SHA,TLS_DHE_DSS_WITH_AES_128_SHA256</value>
+            <value>TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_AES_128_CCM_SHA256,TLS_AES_128_CCM_8_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_SHA,TLS_DHE_RSA_WITH_AES_128_SHA256,TLS_DHE_RSA_WITH_AES_128_SHA,TLS_DHE_DSS_WITH_AES_128_SHA256</value>
         </default>
     </setting>
     <setting hidden="false" key="pwm.wordlist.location" level="1">
@@ -3988,8 +4148,6 @@
     </category>
     <category hidden="false" key="EMAIL_SERVERS">
         <profile setting="email.profile.list"/>
-    </category>
-    <category hidden="false" key="EMAIL_PROFILE_SETTING">
     </category>
     <category hidden="false" key="EMAIL">
     </category>

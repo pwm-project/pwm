@@ -24,7 +24,7 @@
 import { IPromise, IQService } from 'angular';
 import {ConfigBaseService} from './base-config.service.dev';
 import {IConfigService} from './base-config.service';
-import {IPeopleSearchConfigService} from './peoplesearch-config.service';
+import {AdvancedSearchConfig, IPeopleSearchConfigService} from './peoplesearch-config.service';
 
 
 export default class ConfigService
@@ -55,5 +55,26 @@ export default class ConfigService
 
     orgChartShowChildCount(): IPromise<boolean> {
         return this.$q.resolve(true);
+    }
+
+    advancedSearchConfig(): IPromise<AdvancedSearchConfig> {
+        return this.$q.resolve({
+            enabled: true,
+            maxRows: 3,
+            attributes: [
+                {
+                    id: 'title',
+                    attribute: 'Title'
+                },
+                {
+                    id: 'givenName',
+                    attribute: 'Given Name'
+                },
+                {
+                    id: 'sn',
+                    attribute: 'First Name'
+                }
+            ]
+        });
     }
 }

@@ -63,7 +63,7 @@ public class ConfigEditorServletUtils
         }
         catch ( Throwable e )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "error during file upload: " + e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error during file upload: " + e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             LOGGER.error( pwmRequest, errorInformation );
             return null;
@@ -79,7 +79,7 @@ public class ConfigEditorServletUtils
             return new FileValue( newFileValueMap );
         }
 
-        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "no file found in upload" );
+        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "no file found in upload" );
         pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
         LOGGER.error( pwmRequest, "error during file upload: " + errorInformation.toDebugStr() );
         return null;

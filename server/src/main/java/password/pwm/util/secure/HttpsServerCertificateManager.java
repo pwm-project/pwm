@@ -93,7 +93,12 @@ public class HttpsServerCertificateManager
     }
 
 
-    public static KeyStore keyStoreForApplication( final PwmApplication pwmApplication, final PasswordData passwordData, final String alias ) throws PwmUnrecoverableException
+    public static KeyStore keyStoreForApplication(
+            final PwmApplication pwmApplication,
+            final PasswordData passwordData,
+            final String alias
+    )
+            throws PwmUnrecoverableException
     {
         KeyStore keyStore = null;
         keyStore = exportKey( pwmApplication.getConfig(), KeyStoreFormat.JKS, passwordData, alias );
@@ -212,17 +217,17 @@ public class HttpsServerCertificateManager
             {
                 if ( !cnName.equals( storedCertData.getX509Certificate().getSubjectDN().getName() ) )
                 {
-                    LOGGER.info( "replacing stored self cert, subject name does not match configured site url" );
+                    LOGGER.info( () -> "replacing stored self cert, subject name does not match configured site url" );
                     storedCertData = null;
                 }
                 else if ( storedCertData.getX509Certificate().getNotBefore().after( new Date() ) )
                 {
-                    LOGGER.info( "replacing stored self cert, not-before date is in the future" );
+                    LOGGER.info( () -> "replacing stored self cert, not-before date is in the future" );
                     storedCertData = null;
                 }
                 else if ( storedCertData.getX509Certificate().getNotAfter().before( new Date() ) )
                 {
-                    LOGGER.info( "replacing stored self cert, not-after date is in the past" );
+                    LOGGER.info( () -> "replacing stored self cert, not-after date is in the past" );
                     storedCertData = null;
                 }
             }
@@ -276,7 +281,7 @@ public class HttpsServerCertificateManager
         {
             initBouncyCastleProvider();
 
-            LOGGER.debug( "creating self-signed certificate with cn of " + cnName );
+            LOGGER.debug( () -> "creating self-signed certificate with cn of " + cnName );
             final KeyPair keyPair = generateRSAKeyPair( config );
             final long futureSeconds = Long.parseLong( config.readAppProperty( AppProperty.SECURITY_HTTPSSERVER_SELF_FUTURESECONDS ) );
             final X509Certificate certificate = generateV3Certificate( keyPair, cnName, futureSeconds );
@@ -393,7 +398,7 @@ public class HttpsServerCertificateManager
             final PrivateKey key = entry.getPrivateKey();
             final List<X509Certificate> certificates = Arrays.asList( ( X509Certificate[] ) entry.getCertificateChain() );
 
-            LOGGER.debug( "importing certificate chain: " + JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( certificates ) ) );
+            LOGGER.debug( () -> "importing certificate chain: " + JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( certificates ) ) );
             privateKeyCertificate = new PrivateKeyCertificate( certificates, key );
         }
         catch ( Exception e )

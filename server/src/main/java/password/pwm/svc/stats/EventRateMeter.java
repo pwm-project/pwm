@@ -47,7 +47,7 @@ public class EventRateMeter implements Serializable
 
     public synchronized void reset( )
     {
-        movingAverage = new MovingAverage( maxDuration.getTotalMilliseconds() );
+        movingAverage = new MovingAverage( maxDuration.asMillis() );
         remainder = 0;
     }
 
@@ -114,7 +114,7 @@ public class EventRateMeter implements Serializable
 
         public MovingAverage( final TimeDuration timeDuration )
         {
-            this.windowMillis = timeDuration.getTotalMilliseconds();
+            this.windowMillis = timeDuration.asMillis();
         }
 
         /**

@@ -26,19 +26,17 @@ import com.novell.ldapchai.ChaiPasswordRule;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.ViewStatusFields;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.PwmPasswordRule;
-import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
@@ -49,7 +47,7 @@ import password.pwm.i18n.Display;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.ViewableUserInfoDisplayReader;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -68,11 +66,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-@Getter
-@Setter( AccessLevel.PRIVATE )
+@Value
+@Builder
 public class HelpdeskDetailInfoBean implements Serializable
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskDetailInfoBean.class );
+
+    private String userKey;
 
     private String userDisplayName;
 
@@ -89,17 +89,9 @@ public class HelpdeskDetailInfoBean implements Serializable
 
     private Set<StandardButton> visibleButtons;
     private Set<StandardButton> enabledButtons;
-    private List<ButtonInfo> customButtons;
 
-    @Data
-    @AllArgsConstructor
-    public static class ButtonInfo implements Serializable
-    {
-        private String name;
-        private String label;
-        private String description;
-    }
-
+    private HelpdeskVerificationOptionsBean verificationOptions;
+    
     public enum StandardButton
     {
         back,
@@ -112,16 +104,16 @@ public class HelpdeskDetailInfoBean implements Serializable
         deleteUser,
     }
 
-    @SuppressWarnings( "checkstyle:MethodLength" )
-    static HelpdeskDetailInfoBean makeHelpdeskDetailInfo(
+     static HelpdeskDetailInfoBean makeHelpdeskDetailInfo(
             final PwmRequest pwmRequest,
             final HelpdeskProfile helpdeskProfile,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
+        final HelpdeskDetailInfoBeanBuilder builder = HelpdeskDetailInfoBean.builder();
         final Instant startTime = Instant.now();
-        LOGGER.trace( pwmRequest, "beginning to assemble detail data report for user " + userIdentity );
+        LOGGER.trace( pwmRequest, () -> "beginning to assemble detail data report for user " + userIdentity );
         final Locale actorLocale = pwmRequest.getLocale();
         final ChaiUser theUser = HelpdeskServlet.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
 
@@ -130,7 +122,6 @@ public class HelpdeskDetailInfoBean implements Serializable
             return null;
         }
 
-        final HelpdeskDetailInfoBean detailInfo = new HelpdeskDetailInfoBean();
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
                 pwmRequest.getSessionLabel(),
@@ -142,74 +133,23 @@ public class HelpdeskDetailInfoBean implements Serializable
 
         try
         {
-            detailInfo.userHistory = AccountInformationBean.makeAuditInfo(
+            final List<AccountInformationBean.ActivityRecord> userHistory = AccountInformationBean.makeAuditInfo(
                     pwmRequest.getPwmApplication(),
                     pwmRequest.getSessionLabel(),
                     userInfo,
-                    pwmRequest.getLocale()
-            );
+                    pwmRequest.getLocale() );
+            builder.userHistory( userHistory );
         }
         catch ( Exception e )
         {
             LOGGER.error( pwmRequest, "unexpected error reading userHistory for user '" + userIdentity + "', " + e.getMessage() );
         }
 
-        {
-            final List<FormConfiguration> detailFormConfig = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_DETAIL_FORM );
-            final Map<FormConfiguration, List<String>> formData = FormUtility.populateFormMapFromLdap( detailFormConfig, pwmRequest.getPwmSession().getLabel(), userInfo );
-            final List<DisplayElement> profileData = new ArrayList<>();
-            for ( final Map.Entry<FormConfiguration, List<String>> entry : formData.entrySet() )
-            {
-                final FormConfiguration formConfiguration = entry.getKey();
-                if ( formConfiguration.isMultivalue() )
-                {
-                    profileData.add( new DisplayElement(
-                            formConfiguration.getName(),
-                            DisplayElement.Type.multiString,
-                            formConfiguration.getLabel( actorLocale ),
-                            entry.getValue()
-                    ) );
-                }
-                else
-                {
-                    final String value = JavaHelper.isEmpty( entry.getValue() )
-                            ? ""
-                            : entry.getValue().iterator().next();
-                    profileData.add( new DisplayElement(
-                            formConfiguration.getName(),
-                            DisplayElement.Type.string,
-                            formConfiguration.getLabel( actorLocale ),
-                            value
-                    ) );
-                }
-            }
-            detailInfo.profileData = profileData;
-        }
+        builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
 
-        {
-            final Map<String, String> passwordRules = new LinkedHashMap<>();
-            if ( userInfo.getPasswordPolicy() != null )
-            {
-                for ( final PwmPasswordRule rule : PwmPasswordRule.values() )
-                {
-                    if ( userInfo.getPasswordPolicy().getValue( rule ) != null )
-                    {
-                        if ( ChaiPasswordRule.RuleType.BOOLEAN == rule.getRuleType() )
-                        {
-                            final boolean value = Boolean.parseBoolean( userInfo.getPasswordPolicy().getValue( rule ) );
-                            final String sValue = LocaleHelper.booleanString( value, pwmRequest );
-                            passwordRules.put( rule.getLabel( pwmRequest.getLocale(), pwmRequest.getConfig() ), sValue );
-                        }
-                        else
-                        {
-                            passwordRules.put( rule.getLabel( pwmRequest.getLocale(), pwmRequest.getConfig() ),
-                                    userInfo.getPasswordPolicy().getValue( rule ) );
-                        }
-                    }
-                }
-            }
-            detailInfo.setPasswordPolicyRules( Collections.unmodifiableMap( passwordRules ) );
-        }
+        builder.profileData( getProfileData( helpdeskProfile, userInfo, pwmRequest.getSessionLabel(), pwmRequest.getLocale() ) );
+
+        builder.passwordPolicyRules( makePasswordPolicyRules( userInfo, pwmRequest.getLocale(), pwmRequest.getConfig() ) );
 
         {
             final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(
@@ -218,7 +158,7 @@ public class HelpdeskDetailInfoBean implements Serializable
                     pwmRequest.getLocale(),
                     macroMachine
             );
-            detailInfo.setPasswordRequirements( Collections.unmodifiableList( requirementLines ) );
+            builder.passwordRequirements( Collections.unmodifiableList( requirementLines ) );
         }
 
         if ( ( userInfo.getPasswordPolicy() != null )
@@ -226,21 +166,21 @@ public class HelpdeskDetailInfoBean implements Serializable
                 && ( userInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry() != null )
                 && ( userInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() != null ) )
         {
-            detailInfo.setPasswordPolicyDN( userInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() );
+            builder.passwordPolicyDN( userInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() );
         }
         else
         {
-            detailInfo.setPasswordPolicyDN( LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest ) );
+            builder.passwordPolicyDN( LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest ) );
         }
 
         if ( ( userInfo.getPasswordPolicy() != null )
                 && userInfo.getPasswordPolicy().getIdentifier() != null )
         {
-            detailInfo.setPasswordPolicyID( userInfo.getPasswordPolicy().getIdentifier() );
+            builder.passwordPolicyID( userInfo.getPasswordPolicy().getIdentifier() );
         }
         else
         {
-            detailInfo.setPasswordPolicyID( LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest ) );
+            builder.passwordPolicyID( LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest ) );
         }
 
         {
@@ -259,45 +199,46 @@ public class HelpdeskDetailInfoBean implements Serializable
                             entry.getValue()
                     ) );
                 }
-                detailInfo.helpdeskResponses = responseDisplay;
+                builder.helpdeskResponses = responseDisplay;
             }
 
         }
 
-        final String configuredDisplayName = helpdeskProfile.readSettingAsString( PwmSetting.HELPDESK_DETAIL_DISPLAY_NAME );
-        if ( configuredDisplayName != null && !configuredDisplayName.isEmpty() )
-        {
-            final String displayName = macroMachine.expandMacros( configuredDisplayName );
-            detailInfo.setUserDisplayName( displayName );
-        }
+        builder.userDisplayName( HelpdeskCardInfoBean.figureDisplayName( helpdeskProfile, macroMachine ) );
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        if ( pwmRequest.getConfig().isDevDebugMode() )
-        {
-            LOGGER.trace( pwmRequest, "completed assembly of detail data report for user " + userIdentity
-                    + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize( detailInfo ) );
-        }
 
         {
             final Set<ViewStatusFields> viewStatusFields = helpdeskProfile.readSettingAsOptionList( PwmSetting.HELPDESK_VIEW_STATUS_VALUES, ViewStatusFields.class );
-            detailInfo.statusData = ViewableUserInfoDisplayReader.makeDisplayData(
+            builder.statusData( ViewableUserInfoDisplayReader.makeDisplayData(
                     viewStatusFields,
                     pwmRequest.getConfig(),
                     userInfo,
                     null,
                     pwmRequest.getLocale()
-            );
+            ) );
         }
 
-        detailInfo.setVisibleButtons( determineVisibleButtons( pwmRequest, helpdeskProfile ) );
-        detailInfo.setEnabledButtons( determineEnabledButtons( detailInfo.getVisibleButtons(), userInfo ) );
-        detailInfo.setCustomButtons( determineCustomButtons( helpdeskProfile ) );
+        {
+            final Set<HelpdeskDetailInfoBean.StandardButton> visibleButtons = determineVisibleButtons( helpdeskProfile );
+            builder.visibleButtons( visibleButtons );
+            builder.enabledButtons( determineEnabledButtons( visibleButtons, userInfo ) );
+        }
 
-        return detailInfo;
+        builder.verificationOptions( HelpdeskVerificationOptionsBean.makeBean( pwmRequest, helpdeskProfile, userIdentity ) );
+
+        final HelpdeskDetailInfoBean helpdeskDetailInfoBean = builder.build();
+
+        if ( pwmRequest.getConfig().isDevDebugMode() )
+        {
+            LOGGER.trace( pwmRequest, () -> "completed assembly of detail data report for user " + userIdentity
+                    + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize( helpdeskDetailInfoBean ) );
+        }
+
+        return builder.build();
     }
 
-    static Set<StandardButton> determineVisibleButtons(
-            final PwmRequest pwmRequest,
+    private static Set<StandardButton> determineVisibleButtons(
             final HelpdeskProfile helpdeskProfile
     )
     {
@@ -343,7 +284,7 @@ public class HelpdeskDetailInfoBean implements Serializable
         return Collections.unmodifiableSet( buttons );
     }
 
-    static Set<StandardButton> determineEnabledButtons(
+    private static Set<StandardButton> determineEnabledButtons(
             final Set<StandardButton> visibleButtons,
             final UserInfo userInfo
     )
@@ -381,29 +322,76 @@ public class HelpdeskDetailInfoBean implements Serializable
         return Collections.unmodifiableSet( buttons );
     }
 
-    static List<ButtonInfo> determineCustomButtons(
-            final HelpdeskProfile helpdeskProfile
-    )
-    {
-        final List<ActionConfiguration> actions = helpdeskProfile.readSettingAsAction( PwmSetting.HELPDESK_ACTIONS );
 
-        final List<ButtonInfo> buttons = new ArrayList<>();
-        if ( actions != null )
+    private static List<DisplayElement> getProfileData(
+            final HelpdeskProfile helpdeskProfile,
+            final UserInfo userInfo,
+            final SessionLabel sessionLabel,
+            final Locale actorLocale
+    )
+            throws PwmUnrecoverableException
+    {
+        final List<FormConfiguration> detailFormConfig = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_DETAIL_FORM );
+        final Map<FormConfiguration, List<String>> formData = FormUtility.populateFormMapFromLdap( detailFormConfig, sessionLabel, userInfo );
+        final List<DisplayElement> profileData = new ArrayList<>();
+        for ( final Map.Entry<FormConfiguration, List<String>> entry : formData.entrySet() )
         {
-            int count = 0;
-            for ( final ActionConfiguration action : actions )
+            final FormConfiguration formConfiguration = entry.getKey();
+            if ( formConfiguration.isMultivalue() )
             {
-                buttons.add( new ButtonInfo(
-                        "custom_" + count++,
-                        action.getName(),
-                        action.getDescription()
+                profileData.add( new DisplayElement(
+                        formConfiguration.getName(),
+                        DisplayElement.Type.multiString,
+                        formConfiguration.getLabel( actorLocale ),
+                        entry.getValue()
+                ) );
+            }
+            else
+            {
+                final String value = JavaHelper.isEmpty( entry.getValue() )
+                        ? ""
+                        : entry.getValue().iterator().next();
+                profileData.add( new DisplayElement(
+                        formConfiguration.getName(),
+                        DisplayElement.Type.string,
+                        formConfiguration.getLabel( actorLocale ),
+                        value
                 ) );
             }
         }
-
-        return Collections.unmodifiableList( buttons );
-
+        return profileData;
     }
 
+    private static Map<String, String> makePasswordPolicyRules(
+            final UserInfo userInfo,
+            final Locale locale,
+            final Configuration configuration
+    )
+            throws PwmUnrecoverableException
+    {
+        final Map<String, String> passwordRules = new LinkedHashMap<>();
+        if ( userInfo.getPasswordPolicy() != null )
+        {
+            for ( final PwmPasswordRule rule : PwmPasswordRule.values() )
+            {
+                if ( userInfo.getPasswordPolicy().getValue( rule ) != null )
+                {
+                    if ( ChaiPasswordRule.RuleType.BOOLEAN == rule.getRuleType() )
+                    {
+                        final boolean value = Boolean.parseBoolean( userInfo.getPasswordPolicy().getValue( rule ) );
+                        final String sValue = LocaleHelper.booleanString( value, locale, configuration );
+                        passwordRules.put( rule.getLabel( locale, configuration ), sValue );
+                    }
+                    else
+                    {
+                        passwordRules.put( rule.getLabel( locale, configuration ),
+                                userInfo.getPasswordPolicy().getValue( rule ) );
+                    }
+                }
+            }
+        }
+        return Collections.unmodifiableMap( passwordRules );
+    }
 }
+
 

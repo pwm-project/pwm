@@ -22,20 +22,29 @@
 
 package password.pwm.svc.report;
 
+import lombok.Builder;
+import lombok.Data;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.time.Instant;
 
+@Data
+@Builder( toBuilder = true )
 public class ReportStatusInfo implements Serializable
 {
+    @Builder.Default
     private TimeDuration jobDuration = TimeDuration.ZERO;
+
+    private Instant startDate;
     private Instant finishDate;
     private int count;
     private int errors;
     private ErrorInformation lastError;
     private String settingsHash;
+
+    @Builder.Default
     private ReportEngineProcess currentProcess = ReportEngineProcess.None;
 
     public enum ReportEngineProcess
@@ -57,77 +66,5 @@ public class ReportStatusInfo implements Serializable
         {
             return label;
         }
-    }
-
-
-    public ReportStatusInfo( final String settingsHash )
-    {
-        this.settingsHash = settingsHash;
-    }
-
-    public String getSettingsHash( )
-    {
-        return settingsHash;
-    }
-
-    public TimeDuration getJobDuration( )
-    {
-        return jobDuration;
-    }
-
-    public void setJobDuration( final TimeDuration jobDuration )
-    {
-        this.jobDuration = jobDuration;
-    }
-
-    public Instant getFinishDate( )
-    {
-        return finishDate;
-    }
-
-    public void setFinishDate( final Instant finishDate )
-    {
-        this.finishDate = finishDate;
-    }
-
-    public int getCount( )
-    {
-        return count;
-    }
-
-    public void setCount( final int count )
-    {
-        this.count = count;
-    }
-
-
-    public int getErrors( )
-    {
-        return errors;
-    }
-
-    public void setErrors( final int errors )
-    {
-        this.errors = errors;
-    }
-
-    public ErrorInformation getLastError( )
-    {
-        return lastError;
-    }
-
-    public void setLastError( final ErrorInformation lastError )
-    {
-        this.lastError = lastError;
-    }
-
-    public ReportEngineProcess getCurrentProcess( )
-    {
-        return currentProcess;
-    }
-
-    public void setCurrentProcess( final ReportEngineProcess currentProcess )
-    {
-        this.currentProcess = currentProcess;
     }
 }

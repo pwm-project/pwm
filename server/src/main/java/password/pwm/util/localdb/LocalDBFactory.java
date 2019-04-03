@@ -75,19 +75,19 @@ public class LocalDBFactory
         }
 
         final Map<LocalDBProvider.Parameter, String> parameters = pwmApplication == null
-                ? Collections.<LocalDBProvider.Parameter, String>emptyMap()
+                ? Collections.emptyMap()
                 : makeParameterMap( pwmApplication.getConfig(), readonly );
         final LocalDBProvider dbProvider = createInstance( className );
-        LOGGER.debug( "initializing " + className + " localDBProvider instance" );
+        LOGGER.debug( () -> "initializing " + className + " localDBProvider instance" );
 
         final LocalDB localDB = new LocalDBAdaptor( dbProvider, pwmApplication );
 
         initInstance( dbProvider, dbDirectory, initParameters, className, parameters );
-        final TimeDuration openTime = new TimeDuration( System.currentTimeMillis() - startTime );
+        final TimeDuration openTime = TimeDuration.of( System.currentTimeMillis() - startTime, TimeDuration.Unit.MILLISECONDS );
 
         if ( !readonly )
         {
-            LOGGER.trace( "clearing TEMP db" );
+            LOGGER.trace( () -> "clearing TEMP db" );
             localDB.truncate( LocalDB.DB.TEMP );
 
             final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
@@ -111,7 +111,7 @@ public class LocalDBFactory
                 debugText.append( ", " ).append( StringUtil.formatDiskSize( freeSpace ) ).append( " free" );
             }
         }
-        LOGGER.info( debugText );
+        LOGGER.info( () -> debugText );
 
         return localDB;
     }
@@ -153,7 +153,7 @@ public class LocalDBFactory
         {
             if ( dbFileLocation.mkdir() )
             {
-                LOGGER.trace( "created directory at " + dbFileLocation.getAbsolutePath() );
+                LOGGER.trace( () -> "created directory at " + dbFileLocation.getAbsolutePath() );
             }
 
 
@@ -166,7 +166,7 @@ public class LocalDBFactory
             throw new LocalDBException( new ErrorInformation( PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg ) );
         }
 
-        LOGGER.trace( "db init completed for " + theClass );
+        LOGGER.trace( () -> "db init completed for " + theClass );
     }
 
     private static Map<LocalDBProvider.Parameter, String> makeParameterMap( final Configuration configuration, final boolean readOnly )

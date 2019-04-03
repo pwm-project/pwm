@@ -25,11 +25,12 @@ import {IPwmService} from './pwm.service';
 import {ILogService, IPromise, IQService, IWindowService} from 'angular';
 import LocalStorageService from './local-storage.service';
 import ObjectService from './object.service';
+import SearchResult from '../models/search-result.model';
+import {IQuery} from './people.service';
 
 const VERIFICATION_PROCESS_ACTIONS = {
     ATTRIBUTES: 'validateAttributes',
-    EMAIL: 'verifyVerificationToken',
-    SMS: 'verifyVerificationToken',
+    TOKEN: 'verifyVerificationToken',
     OTP: 'validateOtpCode'
 };
 
@@ -42,19 +43,16 @@ export interface IHelpDeskService {
     customAction(actionName: string, userKey: string): IPromise<ISuccessResponse>;
     deleteUser(userKey: string): IPromise<ISuccessResponse>;
     getPerson(userKey: string): IPromise<any>;
+    getPersonCard(userKey: string): IPromise<any>;
     getRandomPassword(userKey: string): IPromise<IRandomPasswordResponse>;
     getRecentVerifications(): IPromise<IRecentVerifications>;
+    search(query: string): IPromise<SearchResult>;
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult>;
     sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse>;
     setPassword(userKey: string, random: boolean, password?: string): IPromise<ISuccessResponse>;
     unlockIntruder(userKey: string): IPromise<ISuccessResponse>;
-    validateVerificationData(userKey: string, formData: any, tokenData: any): IPromise<IVerificationStatus>;
+    validateVerificationData(userKey: string, formData: any, method: any): IPromise<IVerificationStatus>;
     showStrengthMeter: boolean;
-}
-
-export interface IButtonInfo {
-    description: string;
-    label: string;
-    name: string;
 }
 
 export type IRecentVerifications = IRecentVerification[];
@@ -78,8 +76,25 @@ interface IValidationStatus extends IVerificationStatus {
     verificationState: string;
 }
 
+export interface IVerificationOptions {
+    verificationMethods: {
+        optional: string[];
+        required: string[];
+    },
+    verificationForm: [{
+        name: string;
+        label: string;
+    }],
+    tokenDestinations: [{
+        id: string;
+        display: string;
+        type: string;
+    }]
+}
+
 export interface IVerificationStatus {
     passed: boolean;
+    verificationOptions: IVerificationOptions;
 }
 
 export interface IVerificationTokenResponse {
@@ -119,7 +134,7 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.pwmService
             .httpRequest(url, { data: data })
             .then((result: any) => {
-                return this.$q.resolve(result.data);
+                return result.data;
             });
     }
 
@@ -130,7 +145,7 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.pwmService
             .httpRequest(url, { data: data })
             .then((result: ISuccessResponse) => {
-                return this.$q.resolve(result);
+                return result;
             });
     }
 
@@ -141,7 +156,7 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.pwmService
             .httpRequest(url, {})
             .then((result: ISuccessResponse) => {
-                return this.$q.resolve(result);
+                return result;
             });
     }
 
@@ -153,7 +168,7 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.pwmService
             .httpRequest(url, { data: data })
             .then((result: ISuccessResponse) => {
-                return this.$q.resolve(result);
+                return result;
             });
     }
 
@@ -164,7 +179,7 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.pwmService
             .httpRequest(url, {})
             .then((result: ISuccessResponse) => {
-                return this.$q.resolve(result);
+                return result;
             });
     }
 
@@ -180,7 +195,18 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.pwmService
             .httpRequest(url, {})
             .then((result: any) => {
-                return this.$q.resolve(result.data);
+                return result.data;
+            });
+    }
+
+    getPersonCard(userKey: string): IPromise<any> {
+        let url = this.pwmService.getServerUrl('card');
+        url += `&userKey=${userKey}`;
+
+        return this.pwmService
+            .httpRequest(url, {})
+            .then((result: any) => {
+                return result.data;
             });
     }
 
@@ -193,7 +219,7 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.pwmService
             .httpRequest(url, { data: data })
             .then((result: { data: IRandomPasswordResponse }) => {
-                return this.$q.resolve(result.data);
+                return result.data;
             });
     }
 
@@ -211,22 +237,65 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.pwmService
             .httpRequest(url, { data: data })
             .then((result: any) => {
-                return this.$q.resolve(result.data.records);
+                return result.data.records;
             });
     }
 
-    sendVerificationToken(userKey: string, choice: string): IPromise<IVerificationTokenResponse> {
-        let url: string = this.pwmService.getServerUrl('sendVerificationToken');
-        let data: any = { userKey: userKey };
+    search(query: string): IPromise<SearchResult> {
+        let formID: string = encodeURIComponent('&pwmFormID=' + this.PWM_GLOBAL['pwmFormID']);
+        let url: string = this.pwmService.getServerUrl('search')
+            + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
 
-        if (choice) {
-            data.method = choice;
-        }
+        let data = {
+            mode: 'simple',
+            username: query,
+            pwmFormID: formID
+        };
+        return this.pwmService
+            .httpRequest(url, {
+                data: data,
+                preventCache: true
+            })
+            .then((result: any) => {
+                let receivedData: any = result.data;
+                let searchResult: SearchResult = new SearchResult(receivedData);
+                return searchResult;
+            });
+    }
+
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult> {
+        let formID: string = encodeURIComponent('&pwmFormID=' + this.PWM_GLOBAL['pwmFormID']);
+        let url: string = this.pwmService.getServerUrl('search')
+            + '&pwmFormID=' + this.PWM_GLOBAL['pwmFormID'];
+
+        let data = {
+            mode: 'advanced',
+            pwmFormID: formID,
+            searchValues: queries
+        };
+        return this.pwmService
+            .httpRequest(url, {
+                data: data,
+                preventCache: true
+            })
+            .then((result: any) => {
+                let receivedData: any = result.data;
+                let searchResult: SearchResult = new SearchResult(receivedData);
+                return searchResult;
+            });
+    }
+
+    sendVerificationToken(userKey: string, destinationID: string): IPromise<IVerificationTokenResponse> {
+        let url: string = this.pwmService.getServerUrl('sendVerificationToken');
+        let data: any = {
+            userKey: userKey,
+            id: destinationID
+        };
 
         return this.pwmService
             .httpRequest(url, { data: data })
             .then((result: IVerificationTokenResponse) => {
-                return this.$q.resolve(result);
+                return result;
             });
     }
 
@@ -243,7 +312,7 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.pwmService
             .httpRequest(url, { data: data })
             .then((result: ISuccessResponse) => {
-                return this.$q.resolve(result);
+                return result;
             });
     }
 
@@ -254,7 +323,7 @@ export default class HelpDeskService implements IHelpDeskService {
         return this.pwmService
             .httpRequest(url, {})
             .then((result: ISuccessResponse) => {
-                return this.$q.resolve(result);
+                return result;
             });
     }
 
@@ -282,7 +351,7 @@ export default class HelpDeskService implements IHelpDeskService {
                     this.localStorageService.keys.VERIFICATION_STATE,
                     validationStatus.verificationState
                 );
-                return this.$q.resolve(validationStatus);
+                return validationStatus;
             });
     }
 

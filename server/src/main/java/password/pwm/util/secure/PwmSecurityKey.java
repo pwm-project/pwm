@@ -58,7 +58,13 @@ public class PwmSecurityKey
         this.keyData = stringToKeyData( keyData );
     }
 
-    byte[] stringToKeyData( final String input ) throws PwmUnrecoverableException
+    public String keyHash( final SecureService secureService )
+            throws PwmUnrecoverableException
+    {
+        return secureService.hash( keyData );
+    }
+
+    private byte[] stringToKeyData( final String input ) throws PwmUnrecoverableException
     {
         try
         {

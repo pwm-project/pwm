@@ -22,42 +22,16 @@
 
 package password.pwm.http.servlet.oauth;
 
+import lombok.Builder;
+import lombok.Value;
+
 import java.io.Serializable;
 
+@Value
+@Builder( toBuilder = true )
 class OAuthResolveResults implements Serializable
 {
     private String accessToken;
-    private int expiresSeconds;
+    private long expiresSeconds;
     private String refreshToken;
-
-
-    public String getAccessToken( )
-    {
-        return accessToken;
-    }
-
-    public void setAccessToken( final String accessToken )
-    {
-        this.accessToken = accessToken;
-    }
-
-    public int getExpiresSeconds( )
-    {
-        return expiresSeconds;
-    }
-
-    public void setExpiresSeconds( final int expiresSeconds )
-    {
-        this.expiresSeconds = expiresSeconds;
-    }
-
-    public String getRefreshToken( )
-    {
-        return refreshToken;
-    }
-
-    public void setRefreshToken( final String refreshToken )
-    {
-        this.refreshToken = refreshToken;
-    }
 }

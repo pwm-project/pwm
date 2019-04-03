@@ -24,6 +24,7 @@ package password.pwm.http.servlet.helpdesk;
 
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -39,25 +40,26 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
 
 class HelpdeskVerificationStateBean implements Serializable
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskVerificationStateBean.class );
+    public static final String PARAMETER_VERIFICATION_STATE_KEY = "verificationState";
+
     private final UserIdentity actor;
     private final List<HelpdeskValidationRecord> records = new ArrayList<>();
 
-    public static final String PARAMETER_VERIFICATION_STATE_KEY = "verificationState";
-
     private transient TimeDuration maximumAge;
+
+
 
     private HelpdeskVerificationStateBean( final UserIdentity actor )
     {
@@ -83,7 +85,7 @@ class HelpdeskVerificationStateBean implements Serializable
         {
             records.remove( record );
         }
-        records.add( new HelpdeskValidationRecord( new Date(), identity, method ) );
+        records.add( new HelpdeskValidationRecord( Instant.now(), identity, method ) );
     }
 
     public boolean hasRecord( final UserIdentity identity, final IdentityVerificationMethod method )
@@ -110,7 +112,7 @@ class HelpdeskVerificationStateBean implements Serializable
         for ( final Iterator<HelpdeskValidationRecord> iterator = records.iterator(); iterator.hasNext(); )
         {
             final HelpdeskValidationRecord record = iterator.next();
-            final Date timestamp = record.getTimestamp();
+            final Instant timestamp = record.getTimestamp();
             final TimeDuration age = TimeDuration.fromCurrent( timestamp );
             if ( age.isLongerThan( maximumAge ) )
             {
@@ -125,7 +127,7 @@ class HelpdeskVerificationStateBean implements Serializable
     )
             throws ChaiOperationException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final Map<Date, ViewableValidationRecord> returnRecords = new TreeMap<>();
+        final Map<Instant, ViewableValidationRecord> returnRecords = new TreeMap<>();
         for ( final HelpdeskValidationRecord record : records )
         {
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, SessionLabel.SYSTEM_LABEL, record.getIdentity(), PwmConstants.DEFAULT_LOCALE );
@@ -137,69 +139,21 @@ class HelpdeskVerificationStateBean implements Serializable
         return Collections.unmodifiableList( new ArrayList<>( returnRecords.values() ) );
     }
 
+    @Value
     static class ViewableValidationRecord implements Serializable
     {
-        private Date timestamp;
+        private Instant timestamp;
         private String profile;
         private String username;
         private String method;
-
-        ViewableValidationRecord( final Date timestamp, final String profile, final String username, final String method )
-        {
-            this.timestamp = timestamp;
-            this.profile = profile;
-            this.username = username;
-            this.method = method;
-        }
-
-        public Date getTimestamp( )
-        {
-            return timestamp;
-        }
-
-        public String getProfile( )
-        {
-            return profile;
-        }
-
-        public String getUsername( )
-        {
-            return username;
-        }
-
-        public String getMethod( )
-        {
-            return method;
-        }
     }
 
+    @Value
     static class HelpdeskValidationRecord implements Serializable
     {
-        private Date timestamp;
+        private Instant timestamp;
         private UserIdentity identity;
         private IdentityVerificationMethod method;
-
-        HelpdeskValidationRecord( final Date timestamp, final UserIdentity identity, final IdentityVerificationMethod method )
-        {
-            this.timestamp = timestamp;
-            this.identity = identity;
-            this.method = method;
-        }
-
-        public Date getTimestamp( )
-        {
-            return timestamp;
-        }
-
-        public UserIdentity getIdentity( )
-        {
-            return identity;
-        }
-
-        public IdentityVerificationMethod getMethod( )
-        {
-            return method;
-        }
     }
 
     String toClientString( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
@@ -214,7 +168,7 @@ class HelpdeskVerificationStateBean implements Serializable
             throws PwmUnrecoverableException
     {
         final int maxAgeSeconds = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HELPDESK_VERIFICATION_TIMEOUT_SECONDS ) );
-        final TimeDuration maxAge = new TimeDuration( maxAgeSeconds, TimeUnit.SECONDS );
+        final TimeDuration maxAge = TimeDuration.of( maxAgeSeconds, TimeDuration.Unit.SECONDS );
         final UserIdentity actor = pwmRequest.getUserInfoIfLoggedIn();
 
         HelpdeskVerificationStateBean state = null;
@@ -231,7 +185,10 @@ class HelpdeskVerificationStateBean implements Serializable
         state.maximumAge = maxAge;
         state.purgeOldRecords();
 
-        LOGGER.debug( pwmRequest, "read current state: " + JsonUtil.serialize( state ) );
+        {
+            final HelpdeskVerificationStateBean finalState = state;
+            LOGGER.debug( pwmRequest, () -> "read current state: " + JsonUtil.serialize( finalState ) );
+        }
 
         return state;
     }

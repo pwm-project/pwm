@@ -42,8 +42,8 @@ import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
-import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -114,19 +114,15 @@ public class ConfigurationChecker implements HealthChecker
 
         final String siteUrl = config.readSettingAsString( PwmSetting.PWM_SITE_URL );
         final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
-        try
+
+        if ( siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(
+                PwmSetting.PWM_SITE_URL.getDefaultValue( config.getTemplate() ).toNativeObject() ) )
         {
-            if ( siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(
-                    PwmSetting.PWM_SITE_URL.getDefaultValue( config.getTemplate() ).toNativeObject() ) )
-            {
-                records.add(
-                        HealthRecord.forMessage( HealthMessage.Config_NoSiteURL, PwmSetting.PWM_SITE_URL.toMenuLocationDebug( null, locale ) ) );
-            }
+            records.add(
+                    HealthRecord.forMessage( HealthMessage.Config_NoSiteURL, PwmSetting.PWM_SITE_URL.toMenuLocationDebug( null, locale ) ) );
         }
-        catch ( PwmException e )
-        {
-            LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, "error while inspecting site URL setting: " + e.getMessage() );
-        }
+
+
 
         if ( config.readSettingAsBoolean( PwmSetting.LDAP_ENABLE_WIRE_TRACE ) )
         {
@@ -343,9 +339,9 @@ public class ConfigurationChecker implements HealthChecker
                     }
                 }
 
-                if ( config.readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
+                if ( config.readSettingAsEnum( PwmSetting.PW_EXPY_NOTIFY_STORAGE_MODE, DataStorageMethod.class ) == DataStorageMethod.DB )
                 {
-                    causalSettings.add( PwmSetting.PW_EXPY_NOTIFY_ENABLE );
+                    causalSettings.add( PwmSetting.PW_EXPY_NOTIFY_STORAGE_MODE );
                 }
 
                 for ( final PwmSetting setting : causalSettings )

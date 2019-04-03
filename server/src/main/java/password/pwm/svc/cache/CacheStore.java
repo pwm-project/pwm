@@ -24,15 +24,24 @@ package password.pwm.svc.cache;
 
 import password.pwm.error.PwmUnrecoverableException;
 
+import java.io.Serializable;
 import java.time.Instant;
+import java.util.List;
 
 public interface CacheStore
 {
-    void store( CacheKey cacheKey, Instant expirationDate, String data ) throws PwmUnrecoverableException;
+    void store( CacheKey cacheKey, Instant expirationDate, Serializable data ) throws PwmUnrecoverableException;
 
-    String read( CacheKey cacheKey ) throws PwmUnrecoverableException;
+    <T extends Serializable> T readAndStore( CacheKey cacheKey, Instant expirationDate, Class<T> classOfT, CacheLoader<T> cacheLoader )
+            throws PwmUnrecoverableException;
+
+    <T extends Serializable> T read( CacheKey cacheKey, Class<T> classOfT ) throws PwmUnrecoverableException;
 
     CacheStoreInfo getCacheStoreInfo( );
 
     int itemCount( );
+
+    List<CacheDebugItem> getCacheDebugItems( );
+
+    long byteCount();
 }

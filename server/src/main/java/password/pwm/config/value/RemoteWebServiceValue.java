@@ -23,7 +23,6 @@
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
-import org.jdom2.Element;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
@@ -31,6 +30,8 @@ import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.X509Utils;
@@ -82,16 +83,16 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
             }
 
             public RemoteWebServiceValue fromXmlElement(
-                    final Element settingElement,
+                    final PwmSetting pwmSetting,
+                    final XmlElement settingElement,
                     final PwmSecurityKey pwmSecurityKey
             )
                     throws PwmOperationalException
             {
-                final List valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final List<RemoteWebServiceConfiguration> values = new ArrayList<>();
-                for ( final Object loopValue : valueElements )
+                for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final Element loopValueElement = ( Element ) loopValue;
                     final String value = loopValueElement.getText();
                     if ( value != null && value.length() > 0 )
                     {
@@ -105,12 +106,12 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final RemoteWebServiceConfiguration value : values )
         {
-            final Element valueElement = new Element( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
             final RemoteWebServiceConfiguration clonedValue = JsonUtil.cloneUsingJson( value, RemoteWebServiceConfiguration.class );
             try
             {
@@ -121,7 +122,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
                 LOGGER.warn( "error decoding stored pw value: " + e.getMessage() );
             }
 
-            valueElement.addContent( JsonUtil.serialize( clonedValue ) );
+            valueElement.addText( JsonUtil.serialize( clonedValue ) );
             returnList.add( valueElement );
         }
         return returnList;

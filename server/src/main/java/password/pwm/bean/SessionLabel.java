@@ -23,11 +23,11 @@
 package password.pwm.bean;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 
 import java.io.Serializable;
 
-@Getter
+@Value
 @AllArgsConstructor
 public class SessionLabel implements Serializable
 {

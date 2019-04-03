@@ -20,7 +20,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+import 'textangular';
+import 'textangular/dist/textAngular-sanitize';
+
 import { module } from 'angular';
+
 import ConfigEditorController from './configeditor.controller';
 
 module('configeditor.module', ['textAngular'])

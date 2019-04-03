@@ -22,7 +22,10 @@
 
 package password.pwm.ws.server.rest;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.Value;
+import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
@@ -35,6 +38,7 @@ import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsBundle;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestMethodHandler;
@@ -47,7 +51,15 @@ import javax.servlet.annotation.WebServlet;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -61,13 +73,47 @@ public class RestStatisticsServer extends RestServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestStatisticsServer.class );
 
-    @Data
+    private static final String FIELD_VERSION = "version";
+    private static final String FIELD_DAYS = "days";
+    private static final int MAX_DAYS = 365 * 5;
+
+    @Value
+    @Builder
     public static class JsonOutput implements Serializable
     {
-        @SuppressWarnings( "checkstyle:MemberName" )
-        public Map<String, String> EPS;
-        public Map<String, Object> nameData;
-        public Map<String, Object> keyData;
+        public List<StatLabelData> labels;
+        public List<StatValue> eventRates;
+        public List<StatValue> current;
+        public List<StatValue> cumulative;
+        public List<HistoryData> history;
+    }
+
+    @Builder
+    @Value static class HistoryData implements Serializable
+    {
+        private String name;
+        private String date;
+        private int year;
+        private int month;
+        private int day;
+        private int daysAgo;
+        private List<StatValue> data;
+    }
+
+    @Value
+    public static class StatValue implements Serializable
+    {
+        private String name;
+        private String value;
+    }
+
+    @Value
+    public static class StatLabelData implements Serializable
+    {
+        final String name;
+        final String label;
+        final String type;
+        final String description;
     }
 
     @Override
@@ -83,79 +129,235 @@ public class RestStatisticsServer extends RestServlet
     public RestResultBean doPwmStatisticJsonGet( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
-        final String statKey = restRequest.readParameterAsString( "statKey", PwmHttpRequestWrapper.Flag.BypassValidation );
-        final String statName = restRequest.readParameterAsString( "statName", PwmHttpRequestWrapper.Flag.BypassValidation );
-        final String days = restRequest.readParameterAsString( "days", PwmHttpRequestWrapper.Flag.BypassValidation );
+        final int defaultVersion = Integer.parseInt( restRequest.getPwmApplication().getConfig().readAppProperty( AppProperty.WS_REST_SERVER_STATISTICS_DEFAULT_VERSION ) );
+        final int version = restRequest.readParameterAsInt( FIELD_VERSION, defaultVersion );
 
-        try
+        switch ( version )
         {
+
+            case 1:
+                return OutputVersion1.dataOutput( restRequest );
+
+            case 2:
+                return OutputVersion2.makeData( restRequest );
+
+            default:
+                JavaHelper.unhandledSwitchStatement( version );
+        }
+
+        // unreachable
+        return null;
+    }
+
+    private static class OutputVersion2
+    {
+        private static RestResultBean makeData( final RestRequest restRequest )
+                throws PwmUnrecoverableException
+        {
+            final Locale locale = restRequest.getLocale();
+            final int defaultDays = Integer.parseInt( restRequest.getPwmApplication().getConfig().readAppProperty( AppProperty.WS_REST_SERVER_STATISTICS_DEFAULT_HISTORY ) );
+            final int days = JavaHelper.rangeCheck(
+                    0,
+                    restRequest.readParameterAsInt( FIELD_DAYS, defaultDays ),
+                    MAX_DAYS
+            );
+
             final StatisticsManager statisticsManager = restRequest.getPwmApplication().getStatisticsManager();
-            final JsonOutput jsonOutput = new JsonOutput();
-            jsonOutput.EPS = addEpsStats( statisticsManager );
-
-            if ( statName != null && statName.length() > 0 )
-            {
-                jsonOutput.nameData = doNameStat( statisticsManager, statName, days );
-            }
-            else
-            {
-                jsonOutput.keyData = doKeyStat( statisticsManager, statKey );
-            }
-
-            StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_STATISTICS );
-
-            final RestResultBean resultBean = RestResultBean.withData( jsonOutput );
-            return resultBean;
+            final JsonOutput jsonOutput = RestStatisticsServer.JsonOutput.builder()
+                    .cumulative( makeStatInfos( statisticsManager, StatisticsManager.KEY_CUMULATIVE ) )
+                    .current( makeStatInfos( statisticsManager, StatisticsManager.KEY_CURRENT ) )
+                    .eventRates( makeEpsStatInfos( statisticsManager ) )
+                    .history( makeHistoryStatInfos( statisticsManager, days ) )
+                    .labels( makeLabels( locale ) )
+                    .build();
+            return RestResultBean.withData( jsonOutput );
         }
-        catch ( Exception e )
-        {
-            final String errorMsg = "unexpected error building json response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
-            return RestResultBean.fromError( restRequest, errorInformation );
 
+        private static List<StatValue> makeStatInfos( final StatisticsManager statisticsManager, final String key )
+        {
+            final Map<String, StatValue> output = new TreeMap<>();
+            for ( final Statistic statistic : Statistic.values() )
+            {
+                final StatisticsBundle bundle = statisticsManager.getStatBundleForKey( key );
+                final String value = bundle.getStatistic( statistic );
+                final StatValue statValue = new StatValue( statistic.name(), value );
+                output.put( statistic.name(), statValue );
+            }
+
+            return Collections.unmodifiableList( new ArrayList<>( output.values() ) );
+        }
+
+        private static List<HistoryData> makeHistoryStatInfos(
+                final StatisticsManager statisticsManager,
+                final int days
+        )
+        {
+            final List<HistoryData> outerOutput = new ArrayList<>();
+
+            StatisticsManager.DailyKey dailyKey = new StatisticsManager.DailyKey( new Date() );
+
+            for ( int daysAgo = 0; daysAgo < days; daysAgo++ )
+            {
+                final Map<String, StatValue> output = new TreeMap<>();
+                for ( final Statistic statistic : Statistic.values() )
+                {
+                    final StatisticsBundle bundle = statisticsManager.getStatBundleForKey( dailyKey.toString() );
+                    final String value = bundle.getStatistic( statistic );
+                    final StatValue statValue = new StatValue( statistic.name(), value );
+                    output.put( statistic.name(), statValue );
+                }
+                final List<StatValue> statValues = Collections.unmodifiableList( new ArrayList<>( output.values() ) );
+                final HistoryData historyData = HistoryData.builder()
+                        .name( dailyKey.toString() )
+                        .date( DateTimeFormatter.ofPattern( "yyyy-MM-dd" ).withZone( ZoneOffset.UTC )
+                                .format( dailyKey.calendar().toInstant() ) )
+                        .year( dailyKey.calendar().get( Calendar.YEAR ) )
+                        .month( dailyKey.calendar().get( Calendar.MONTH ) )
+                        .day( dailyKey.calendar().get( Calendar.DAY_OF_MONTH ) )
+                        .daysAgo( daysAgo )
+                        .data( statValues )
+                        .build();
+                outerOutput.add( historyData );
+                dailyKey = dailyKey.previous();
+            }
+
+            return Collections.unmodifiableList( outerOutput );
+        }
+
+        private static List<StatValue> makeEpsStatInfos( final StatisticsManager statisticsManager )
+        {
+            final Map<String, StatValue> output = new TreeMap<>();
+            for ( final EpsStatistic loopEps : EpsStatistic.values() )
+            {
+                for ( final Statistic.EpsDuration loopDuration : Statistic.EpsDuration.values() )
+                {
+                    final BigDecimal loopValue = statisticsManager.readEps( loopEps, loopDuration );
+                    final BigDecimal outputValue = loopValue.setScale( 3, RoundingMode.UP );
+                    final String name = loopEps.toString() + "_" + loopDuration.toString();
+                    final StatValue statValue = new StatValue( name, outputValue.toString() );
+                    output.put( name, statValue );
+                }
+            }
+
+            return Collections.unmodifiableList( new ArrayList<>( output.values() ) );
+        }
+
+        private static List<StatLabelData> makeLabels( final Locale locale )
+        {
+            final Map<String, StatLabelData> output = new TreeMap<>();
+            for ( final Statistic statistic : Statistic.values() )
+            {
+                final StatLabelData statLabelData = new StatLabelData(
+                        statistic.name(),
+                        statistic.getLabel( locale ),
+                        statistic.getType().name(),
+                        statistic.getDescription( locale ) );
+                output.put( statistic.name(), statLabelData );
+            }
+            for ( final EpsStatistic loopEps : EpsStatistic.values() )
+            {
+                for ( final Statistic.EpsDuration loopDuration : Statistic.EpsDuration.values() )
+                {
+                    final String name = loopEps.toString() + "_" + loopDuration.toString();
+                    final StatLabelData statLabelData = new StatLabelData(
+                            name,
+                            loopEps.getLabel( locale ),
+                            "EPS",
+                            null );
+                    output.put( name, statLabelData );
+                }
+            }
+
+            return Collections.unmodifiableList( new ArrayList<>( output.values() ) );
         }
     }
 
 
-    public static Map<String, Object> doNameStat( final StatisticsManager statisticsManager, final String statName, final String days )
+    public static class OutputVersion1
     {
-        final Statistic statistic = Statistic.valueOf( statName );
-        final int historyDays = StringUtil.convertStrToInt( days, 30 );
-
-        final Map<String, Object> results = new HashMap<>();
-        results.putAll( statisticsManager.getStatHistory( statistic, historyDays ) );
-        return results;
-    }
-
-    public static Map<String, Object> doKeyStat( final StatisticsManager statisticsManager, final String statKey )
-    {
-        final String key = ( statKey == null )
-                ? StatisticsManager.KEY_CUMULATIVE
-                : statKey;
-
-        final StatisticsBundle statisticsBundle = statisticsManager.getStatBundleForKey( key );
-        final Map<String, Object> outputValueMap = new TreeMap<>();
-        for ( final Statistic stat : Statistic.values() )
+        @Data
+        public static class JsonOutput implements Serializable
         {
-            outputValueMap.put( stat.getKey(), statisticsBundle.getStatistic( stat ) );
+            @SuppressWarnings( "checkstyle:MemberName" )
+            public Map<String, String> EPS;
+            public Map<String, Object> nameData;
+            public Map<String, Object> keyData;
         }
 
-        return outputValueMap;
-    }
-
-    public static Map<String, String> addEpsStats( final StatisticsManager statisticsManager )
-    {
-        final Map<String, String> outputMap = new TreeMap<>();
-        for ( final EpsStatistic loopEps : EpsStatistic.values() )
+        private static RestResultBean dataOutput( final RestRequest restRequest )
+                throws PwmUnrecoverableException
         {
-            for ( final Statistic.EpsDuration loopDuration : Statistic.EpsDuration.values() )
+            final String statKey = restRequest.readParameterAsString( "statKey", PwmHttpRequestWrapper.Flag.BypassValidation );
+            final String statName = restRequest.readParameterAsString( "statName", PwmHttpRequestWrapper.Flag.BypassValidation );
+            final String days = restRequest.readParameterAsString( "days", PwmHttpRequestWrapper.Flag.BypassValidation );
+
+            try
             {
-                final BigDecimal loopValue = statisticsManager.readEps( loopEps, loopDuration );
-                final BigDecimal outputValue = loopValue.setScale( 3, RoundingMode.UP );
-                outputMap.put( loopEps.toString() + "_" + loopDuration.toString(), outputValue.toString() );
+                final StatisticsManager statisticsManager = restRequest.getPwmApplication().getStatisticsManager();
+                final JsonOutput jsonOutput = new JsonOutput();
+                jsonOutput.EPS = addEpsStats( statisticsManager );
+
+                if ( statName != null && statName.length() > 0 )
+                {
+                    jsonOutput.nameData = doNameStat( statisticsManager, statName, days );
+                }
+                else
+                {
+                    jsonOutput.keyData = doKeyStat( statisticsManager, statKey );
+                }
+
+                StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_STATISTICS );
+
+                final RestResultBean resultBean = RestResultBean.withData( jsonOutput );
+                return resultBean;
+            }
+            catch ( Exception e )
+            {
+                final String errorMsg = "unexpected error building json response: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
+                return RestResultBean.fromError( restRequest, errorInformation );
             }
         }
 
-        return outputMap;
+        public static Map<String, Object> doNameStat( final StatisticsManager statisticsManager, final String statName, final String days )
+        {
+            final Statistic statistic = Statistic.valueOf( statName );
+            final int historyDays = StringUtil.convertStrToInt( days, 30 );
+
+            final Map<String, Object> results = new HashMap<>( statisticsManager.getStatHistory( statistic, historyDays ) );
+            return results;
+        }
+
+        public static Map<String, Object> doKeyStat( final StatisticsManager statisticsManager, final String statKey )
+        {
+            final String key = ( statKey == null )
+                    ? StatisticsManager.KEY_CUMULATIVE
+                    : statKey;
+
+            final StatisticsBundle statisticsBundle = statisticsManager.getStatBundleForKey( key );
+            final Map<String, Object> outputValueMap = new TreeMap<>();
+            for ( final Statistic stat : Statistic.values() )
+            {
+                outputValueMap.put( stat.name(), statisticsBundle.getStatistic( stat ) );
+            }
+
+            return outputValueMap;
+        }
+
+        public static Map<String, String> addEpsStats( final StatisticsManager statisticsManager )
+        {
+            final Map<String, String> outputMap = new TreeMap<>();
+            for ( final EpsStatistic loopEps : EpsStatistic.values() )
+            {
+                for ( final Statistic.EpsDuration loopDuration : Statistic.EpsDuration.values() )
+                {
+                    final BigDecimal loopValue = statisticsManager.readEps( loopEps, loopDuration );
+                    final BigDecimal outputValue = loopValue.setScale( 3, RoundingMode.UP );
+                    outputMap.put( loopEps.toString() + "_" + loopDuration.toString(), outputValue.toString() );
+                }
+            }
+
+            return outputMap;
+        }
     }
 }

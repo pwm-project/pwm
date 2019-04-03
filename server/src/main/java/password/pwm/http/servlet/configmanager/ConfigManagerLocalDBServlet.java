@@ -146,7 +146,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
             final int bufferSize = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_DOWNLOAD_BUFFER_SIZE ) );
             final OutputStream bos = new BufferedOutputStream( resp.getOutputStream(), bufferSize );
             localDBUtility.exportLocalDB( bos, LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getSessionLabel() ), true );
-            LOGGER.debug( pwmRequest, "completed localDBExport process in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+            LOGGER.debug( pwmRequest, () -> "completed localDBExport process in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         }
         catch ( Exception e )
         {
@@ -175,7 +175,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
 
         if ( !ServletFileUpload.isMultipartContent( req ) )
         {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, "no file found in upload" );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "no file found in upload" );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             LOGGER.error( pwmRequest, "error during database import: " + errorInformation.toDebugStr() );
             return;
@@ -193,16 +193,16 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
 
             localDB = LocalDBFactory.getInstance( localDBLocation, false, null, configuration );
             final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
-            LOGGER.info( pwmRequest, "beginning LocalDB import" );
+            LOGGER.info( pwmRequest, () -> "beginning LocalDB import" );
             localDBUtility.importLocalDB( inputStream,
                     LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getSessionLabel() ) );
-            LOGGER.info( pwmRequest, "completed LocalDB import" );
+            LOGGER.info( pwmRequest, () -> "completed LocalDB import" );
         }
         catch ( Exception e )
         {
             final ErrorInformation errorInformation = e instanceof PwmException
                     ? ( ( PwmException ) e ).getErrorInformation()
-                    : new ErrorInformation( PwmError.ERROR_UNKNOWN, e.getMessage() );
+                    : new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             LOGGER.error( pwmRequest, "error during LocalDB import: " + errorInformation.toDebugStr() );
             return;

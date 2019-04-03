@@ -23,6 +23,7 @@
 
 package password.pwm.svc.email;
 
+import com.sun.mail.smtp.SMTPSendFailedException;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
@@ -33,6 +34,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -52,7 +54,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 
 public class EmailServerUtil
 {
@@ -177,22 +181,36 @@ public class EmailServerUtil
         return expandedEmailItem;
     }
 
-    static boolean sendIsRetryable( final Exception e )
+    static boolean examineSendFailure( final Exception e, final Set<Integer> retyableStatusCodes )
     {
         if ( e != null )
         {
-            final Throwable cause = e.getCause();
-            if ( cause instanceof IOException )
             {
-                LOGGER.trace( "message send failure cause is due to an IOException: " + e.getMessage() );
-                return true;
-            }
-            if ( e instanceof PwmUnrecoverableException )
-            {
-                if ( ( ( PwmUnrecoverableException ) e ).getError() == PwmError.ERROR_SERVICE_UNREACHABLE )
+                final Optional<IOException> optionalIoException = JavaHelper.extractNestedExceptionType( e, IOException.class );
+                if ( optionalIoException.isPresent() )
                 {
+                    LOGGER.trace( () -> "message send failure cause is due to an I/O error: " + optionalIoException.get().getMessage() );
                     return true;
                 }
+            }
+
+            {
+                final Optional<SMTPSendFailedException> optionalSmtpSendFailedException = JavaHelper.extractNestedExceptionType( e, SMTPSendFailedException.class );
+                if ( optionalSmtpSendFailedException.isPresent() )
+                {
+                    final SMTPSendFailedException smtpSendFailedException = optionalSmtpSendFailedException.get();
+                    final int returnCode = smtpSendFailedException.getReturnCode();
+                    LOGGER.trace( () -> "message send failure cause is due to server response code: " + returnCode );
+                    if ( retyableStatusCodes.contains( returnCode ) )
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            if ( e instanceof PwmUnrecoverableException )
+            {
+                return ( ( PwmUnrecoverableException ) e ).getError() == PwmError.ERROR_SERVICE_UNREACHABLE;
             }
         }
         return false;
@@ -282,8 +300,9 @@ public class EmailServerUtil
             transport.connect();
         }
 
-        LOGGER.debug( "connected to " + server.toDebugString() + " " + ( authenticated ? "(authenticated)" : "(unauthenticated)" ) );
+        LOGGER.debug( () -> "connected to " + server.toDebugString() + " " + ( authenticated ? "(authenticated)" : "(unauthenticated)" ) );
 
         return transport;
     }
+
 }

@@ -28,6 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.option.ADPolicyComplexity;
+import password.pwm.config.option.CertificateMatchingMode;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
@@ -70,9 +71,8 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
@@ -95,6 +95,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 
 /**
  * @author Jason D. Rivard
@@ -124,12 +125,26 @@ public class Configuration implements SettingReader
         }
     }
 
-    public String toDebugString( )
+    public void outputToLog( )
     {
-        final StringBuilder outputText = new StringBuilder();
-        outputText.append( "  " );
-        outputText.append( JsonUtil.serialize( StoredConfigurationUtil.toJsonDebugObject( storedConfiguration ), JsonUtil.Flag.PrettyPrint ) );
-        return outputText.toString().replaceAll( "\n", "\n  " );
+        if ( !LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        {
+            return;
+        }
+
+        final Map<String, String> debugStrings = storedConfiguration.getModifiedSettingDebugValues( PwmConstants.DEFAULT_LOCALE, true );
+        final List<Supplier<CharSequence>> outputStrings = new ArrayList<>();
+
+        for ( final Map.Entry<String, String> entry : debugStrings.entrySet() )
+        {
+            final String spacedValue = entry.getValue().replace( "\n", "\n   " );
+            final String output = " " + entry.getKey() + "\n   " + spacedValue + "\n";
+            outputStrings.add( () -> output );
+        }
+
+        LOGGER.trace( () -> "--begin current configuration output--" );
+        outputStrings.forEach( LOGGER::trace );
+        LOGGER.trace( () -> "--end current configuration output--" );
     }
 
     public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )
@@ -940,12 +955,12 @@ public class Configuration implements SettingReader
 
     public String readAppProperty( final AppProperty property )
     {
-        final Map<String, String> configurationValues = StringUtil.convertStringListToNameValuePair( this.readSettingAsStringArray( PwmSetting.APP_PROPERTY_OVERRIDES ), "=" );
-        if ( configurationValues.containsKey( property.getKey() ) )
+        if ( dataCache.appPropertyOverrides == null )
         {
-            return configurationValues.get( property.getKey() );
+            dataCache.appPropertyOverrides = StringUtil.convertStringListToNameValuePair( this.readSettingAsStringArray( PwmSetting.APP_PROPERTY_OVERRIDES ), "=" );
         }
-        return property.getDefaultValue();
+
+        return dataCache.appPropertyOverrides.getOrDefault( property.getKey(), property.getDefaultValue() );
     }
 
     private Convenience helper = new Convenience();
@@ -1025,6 +1040,7 @@ public class Configuration implements SettingReader
         private final Map<PwmSetting, StoredValue> settings = new EnumMap<>( PwmSetting.class );
         private final Map<String, Map<Locale, String>> customText = new LinkedHashMap<>();
         private final Map<ProfileType, Map<String, Profile>> profileCache = new LinkedHashMap<>();
+        private Map<String, String> appPropertyOverrides = null;
     }
 
     public Map<AppProperty, String> readAllNonDefaultAppProperties( )
@@ -1197,5 +1213,13 @@ public class Configuration implements SettingReader
         return returnSet;
     }
 
+    public CertificateMatchingMode readCertificateMatchingMode()
+    {
+        final CertificateMatchingMode mode = readSettingAsEnum( PwmSetting.CERTIFICATE_VALIDATION_MODE, CertificateMatchingMode.class );
+        return mode == null
+                ? CertificateMatchingMode.CA_ONLY
+                : mode;
+
+    }
 
 }
