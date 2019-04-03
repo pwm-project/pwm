@@ -1395,7 +1395,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         if ( settingsElement == null )
         {
             settingsElement = xmlHelper.getXmlFactory().newElement( XML_ELEMENT_SETTINGS );
-            document.getRootElement().addContent( settingElement );
+            document.getRootElement().addContent( settingsElement );
         }
         settingsElement.addContent( settingElement );
 

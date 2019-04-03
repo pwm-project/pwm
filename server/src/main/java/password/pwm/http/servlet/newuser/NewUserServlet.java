@@ -717,11 +717,11 @@ public class NewUserServlet extends ControlledPwmServlet
                 return ProcessStatus.Halt;
             }
 
-        // log the user out if the current profiles states so
-        final boolean forceLogoutOnChange = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_LOGOUT_AFTER_CREATION );
-        if ( forceLogoutOnChange )
+            // log the user out if the current profiles states so
+            final boolean forceLogoutOnChange = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_LOGOUT_AFTER_CREATION );
+            if ( forceLogoutOnChange )
             {
-                LOGGER.trace( pwmSession, "logging out user; account created" );
+                LOGGER.trace( pwmSession, () -> "logging out user; account created" );
                 pwmRequest.sendRedirect( PwmServletDefinition.Logout );
                 return ProcessStatus.Halt;
             }
