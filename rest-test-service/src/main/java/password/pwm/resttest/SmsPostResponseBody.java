@@ -29,28 +29,12 @@ public class SmsPostResponseBody
     private String messageContent;
     private Instant date;
 
-    public SmsPostResponseBody( final String message, final Instant date )
+    public SmsPostResponseBody( final String message)
     {
         final String[] strings = message.split( "&" );
         this.messageContent = strings[strings.length - 1];
     }
 
-    public SmsPostResponseBody( final String message )
-    {
-        final String[] strings = message.split( "&" );
-        this.messageContent = strings[strings.length - 1];
-    }
-
-    public SmsPostResponseBody( final Instant date )
-    {
-        this.date = Instant.now();
-        this.messageContent = "";
-    }
-
-    public SmsPostResponseBody()
-    {
-
-    }
 
     public String getMessageContent()
     {
