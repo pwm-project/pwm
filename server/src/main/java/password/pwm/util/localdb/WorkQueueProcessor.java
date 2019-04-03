@@ -30,6 +30,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -113,12 +114,12 @@ public final class WorkQueueProcessor<W extends Serializable>
 
         this.workerThread = new WorkerThread();
         workerThread.setDaemon( true );
-        workerThread.setName( JavaHelper.makeThreadName( pwmApplication, sourceClass ) + "-worker-" );
+        workerThread.setName( PwmScheduler.makeThreadName( pwmApplication, sourceClass ) + "-worker-" );
         workerThread.start();
 
         if ( settings.getPreThreads() > 0 )
         {
-            final ThreadFactory threadFactory = JavaHelper.makePwmThreadFactory( JavaHelper.makeThreadName( pwmApplication, sourceClass ), true );
+            final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, sourceClass ), true );
             executorService = new ThreadPoolExecutor(
                     1,
                     settings.getPreThreads(),
@@ -153,10 +154,7 @@ public final class WorkQueueProcessor<W extends Serializable>
 
         if ( localWorkerThread.isRunning() )
         {
-            JavaHelper.pause(
-                    settings.getMaxShutdownWaitTime().asMillis(),
-                    CLOSE_RETRY_CYCLE_INTERVAL.asMillis(),
-                    o -> !localWorkerThread.isRunning() );
+            settings.getMaxShutdownWaitTime().pause( CLOSE_RETRY_CYCLE_INTERVAL, () -> !localWorkerThread.isRunning() );
         }
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
@@ -256,7 +254,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                             + ", item=" + itemProcessor.convertToDebugString( itemWrapper.getWorkItem() );
                     throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
                 }
-                JavaHelper.pause( SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.asMillis() );
+                SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.pause();
             }
 
             eldestItem = itemWrapper.getDate();
@@ -357,7 +355,7 @@ public final class WorkQueueProcessor<W extends Serializable>
             // rest until not running for up to 3 seconds....
             if ( running.get() )
             {
-                JavaHelper.pause( 3000, 10, o -> !running.get() );
+                TimeDuration.of( 3, TimeDuration.Unit.SECONDS ).pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> !running.get() );
             }
         }
 

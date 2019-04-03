@@ -37,6 +37,7 @@ import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -139,11 +140,11 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
                     JavaHelper.unhandledSwitchStatement( storageMethod );
             }
 
-            executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
             engine = new PwNotifyEngine( pwmApplication, storageService, () -> status() == STATUS.CLOSED, null );
 
-            pwmApplication.scheduleFixedRateJob( new PwNotifyJob(), executorService, TimeDuration.MINUTE, TimeDuration.MINUTE );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new PwNotifyJob(), executorService, TimeDuration.MINUTE, TimeDuration.MINUTE );
 
             setStatus( STATUS.OPEN );
         }
@@ -193,7 +194,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
             }
         }
 
-        final Instant nextZuluZeroTime = JavaHelper.nextZuluZeroTime();
+        final Instant nextZuluZeroTime = PwmScheduler.nextZuluZeroTime();
         final Instant adjustedNextZuluZeroTime = nextZuluZeroTime.plus( settings.getZuluOffset().as( TimeDuration.Unit.SECONDS ), ChronoUnit.SECONDS );
         final Instant previousAdjustedZuluZeroTime = adjustedNextZuluZeroTime.minus( 1, ChronoUnit.DAYS );
 
@@ -258,7 +259,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
         if ( !isRunning() )
         {
             nextExecutionTime = Instant.now();
-            pwmApplication.scheduleFutureJob( new PwNotifyJob(), executorService, TimeDuration.ZERO );
+            pwmApplication.getPwmScheduler().scheduleFutureJob( new PwNotifyJob(), executorService, TimeDuration.ZERO );
         }
     }
 

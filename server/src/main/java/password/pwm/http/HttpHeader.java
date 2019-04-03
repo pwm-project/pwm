@@ -48,6 +48,7 @@ public enum HttpHeader
     Origin( "Origin" ),
     Referer( "Referer" ),
     Server( "Server" ),
+    SetCookie( "Set-Cookie" ),
     UserAgent( "User-Agent" ),
     WWW_Authenticate( "WWW-Authenticate" ),
     XContentTypeOptions( "X-Content-Type-Options" ),

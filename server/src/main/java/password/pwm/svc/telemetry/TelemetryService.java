@@ -45,6 +45,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsBundle;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -143,7 +144,7 @@ public class TelemetryService implements PwmService
             LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "last publish time was " + JavaHelper.toIsoDate( lastPublishTime ) );
         }
 
-        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, TelemetryService.class );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, TelemetryService.class );
 
         scheduleNextJob();
 
@@ -214,7 +215,7 @@ public class TelemetryService implements PwmService
     private void scheduleNextJob( )
     {
         final TimeDuration durationUntilNextPublish = durationUntilNextPublish();
-        pwmApplication.scheduleFutureJob( new PublishJob(), executorService, durationUntilNextPublish );
+        pwmApplication.getPwmScheduler().scheduleFutureJob( new PublishJob(), executorService, durationUntilNextPublish );
         LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "next publish time: " + durationUntilNextPublish().asCompactString() );
     }
 

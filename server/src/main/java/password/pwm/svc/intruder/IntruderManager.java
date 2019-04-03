@@ -53,6 +53,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.DataStore;
 import password.pwm.util.DataStoreFactory;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
@@ -171,7 +172,7 @@ public class IntruderManager implements PwmService
         final RecordStore recordStore;
         {
             recordStore = new DataStoreRecordStore( dataStore, this );
-            final String threadName = JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + " timer";
+            final String threadName = PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + " timer";
             timer = new Timer( threadName, true );
             final long maxRecordAge = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_RETENTION_TIME_MS ) );
             final long cleanerRunFrequency = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_CLEANUP_FREQUENCY_MS ) );
@@ -444,7 +445,6 @@ public class IntruderManager implements PwmService
         delayPenalty( manager.readIntruderRecord( subject ), sessionLabel == null ? null : sessionLabel );
     }
 
-
     private void delayPenalty( final IntruderRecord intruderRecord, final SessionLabel sessionLabel )
     {
         int points = 0;
@@ -467,7 +467,7 @@ public class IntruderManager implements PwmService
                 LOGGER.trace( sessionLabel, () -> "delaying response " + finalDelay + "ms due to intruder record: " + JsonUtil.serialize( intruderRecord ) );
             }
 
-            JavaHelper.pause( delayPenalty );
+            TimeDuration.of( delayPenalty, TimeDuration.Unit.MILLISECONDS ).pause();
         }
     }
 
@@ -564,7 +564,7 @@ public class IntruderManager implements PwmService
                 final String subject = pwmSession.getSessionStateBean().getSrcAddress();
                 check( RecordType.ADDRESS, subject );
                 final int maxAllowedAttempts = ( int ) pwmApplication.getConfig().readSettingAsLong( PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS );
-                if ( maxAllowedAttempts != 0 && pwmSession.getSessionStateBean().getIntruderAttempts() > maxAllowedAttempts )
+                if ( maxAllowedAttempts != 0 && pwmSession.getSessionStateBean().getIntruderAttempts().get() > maxAllowedAttempts )
                 {
                     throw new PwmUnrecoverableException( PwmError.ERROR_INTRUDER_SESSION );
                 }
@@ -579,6 +579,7 @@ public class IntruderManager implements PwmService
                 final String subject = pwmSession.getSessionStateBean().getSrcAddress();
                 clear( RecordType.ADDRESS, subject );
                 pwmSession.getSessionStateBean().clearIntruderAttempts();
+                pwmSession.getSessionStateBean().setSessionIdRecycleNeeded( true );
             }
         }
 

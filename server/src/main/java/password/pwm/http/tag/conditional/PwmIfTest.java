@@ -364,7 +364,7 @@ public enum PwmIfTest
                 final HealthMonitor healthMonitor = pwmRequest.getPwmApplication().getHealthMonitor();
                 if ( healthMonitor != null && healthMonitor.status() == PwmService.STATUS.OPEN )
                 {
-                    if ( healthMonitor.getMostSevereHealthStatus( HealthMonitor.CheckTimeliness.NeverBlock ) == HealthStatus.WARN )
+                    if ( healthMonitor.getMostSevereHealthStatus() == HealthStatus.WARN )
                     {
                         return true;
                     }

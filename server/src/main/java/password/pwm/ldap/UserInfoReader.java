@@ -52,10 +52,11 @@ import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
-import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.svc.pwnotify.PwNotifyUserStatus;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.form.FormUtility;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CachingProxyWrapper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
@@ -74,6 +75,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class UserInfoReader implements UserInfo
@@ -867,5 +869,20 @@ public class UserInfoReader implements UserInfo
     public String getLanguage() throws PwmUnrecoverableException
     {
         return locale == null ? null : LocaleHelper.getBrowserLocaleString( locale );
+    }
+
+    @Override
+    public Instant getPasswordExpirationNoticeSendTime()
+            throws PwmUnrecoverableException
+    {
+        if ( pwmApplication.getPwNotifyService().status() == PwmService.STATUS.OPEN )
+        {
+            final Optional<PwNotifyUserStatus> optionalState = pwmApplication.getPwNotifyService().readUserNotificationState( userIdentity, sessionLabel );
+            if ( optionalState.isPresent() )
+            {
+                return optionalState.get().getExpireTime();
+            }
+        }
+        return null;
     }
 }

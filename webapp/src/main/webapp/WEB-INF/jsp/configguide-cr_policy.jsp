@@ -66,8 +66,6 @@
     </div>
     <div class="push"></div>
 </div>
-
-configeditor-settings-challenges.js
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){

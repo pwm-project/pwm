@@ -238,7 +238,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
         {
             final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication );
             final String macroedUrl = macroMachine.expandMacros( nextUrl );
-            LOGGER.debug( pwmRequest, () -> "settinging forward url to post-delete next url: " + macroedUrl );
+            LOGGER.debug( pwmRequest, () -> "setting forward url to post-delete next url: " + macroedUrl );
             pwmRequest.getPwmSession().getSessionStateBean().setForwardURL( macroedUrl );
         }
 

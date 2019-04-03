@@ -37,6 +37,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
@@ -377,7 +378,7 @@ public class PwNotifyEngine
 
     private ThreadPoolExecutor createExecutor( final PwmApplication pwmApplication )
     {
-        final ThreadFactory threadFactory = JavaHelper.makePwmThreadFactory( JavaHelper.makeThreadName( pwmApplication, this.getClass() ), true );
+        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, this.getClass() ), true );
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
                 1,
                 10,

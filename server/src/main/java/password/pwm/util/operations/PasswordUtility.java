@@ -184,7 +184,7 @@ public class PasswordUtility
             final String toAddress,
             final Locale userLocale
     )
-            throws PwmOperationalException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_SENDPASSWORD, userLocale );
@@ -195,18 +195,14 @@ public class PasswordUtility
             return new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
         }
 
-        final EmailItemBean emailItemBean = new EmailItemBean(
-                configuredEmailSetting.getTo(),
-                configuredEmailSetting.getFrom(),
-                configuredEmailSetting.getSubject(),
-                configuredEmailSetting.getBodyPlain().replace( "%TOKEN%", newPassword.getStringValue() ),
-                configuredEmailSetting.getBodyHtml().replace( "%TOKEN%", newPassword.getStringValue() )
-        );
+        final EmailItemBean emailItemBean = configuredEmailSetting.applyBodyReplacement(
+                "%TOKEN%",
+                newPassword.getStringValue() );
+
         pwmApplication.getEmailQueue().submitEmail(
                 emailItemBean,
                 userInfo,
-                macroMachine
-        );
+                macroMachine );
 
 
         LOGGER.debug( () -> "new password email to " + userInfo.getUserIdentity() + " added to send queue for " + toAddress );

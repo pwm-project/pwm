@@ -43,7 +43,6 @@ import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
-import password.pwm.svc.node.NodeService;
 import password.pwm.svc.email.EmailService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -51,6 +50,7 @@ import password.pwm.svc.event.AuditService;
 import password.pwm.svc.event.SystemAuditRecord;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.node.NodeService;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
@@ -62,8 +62,10 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistService;
+import password.pwm.util.DailySummaryJob;
 import password.pwm.util.MBeanUtility;
 import password.pwm.util.PasswordData;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseService;
@@ -100,9 +102,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -166,7 +166,7 @@ public class PwmApplication
 
     private final PwmServiceManager pwmServiceManager = new PwmServiceManager( this );
 
-    private ScheduledExecutorService applicationExecutorService;
+    private PwmScheduler pwmScheduler;
 
     public PwmApplication( final PwmEnvironment pwmEnvironment )
             throws PwmUnrecoverableException
@@ -284,7 +284,7 @@ public class PwmApplication
         LOGGER.debug( () -> "application environment flags: " + JsonUtil.serializeCollection( pwmEnvironment.getFlags() ) );
         LOGGER.debug( () -> "application environment parameters: " + JsonUtil.serializeMap( pwmEnvironment.getParameters() ) );
 
-        applicationExecutorService = JavaHelper.makeSingleThreadExecutorService( this, this.getClass() );
+        pwmScheduler = new PwmScheduler( getInstanceID() );
 
         pwmServiceManager.initAllServices();
 
@@ -298,8 +298,10 @@ public class PwmApplication
             StatisticsManager.incrementStat( this, Statistic.PWM_STARTUPS );
             LOGGER.debug( () -> "buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
-            applicationExecutorService.execute( () -> postInitTasks() );
+            pwmScheduler.immediateExecuteInNewThread( this::postInitTasks );
         }
+
+
     }
 
     private void postInitTasks( )
@@ -415,6 +417,11 @@ public class PwmApplication
         catch ( Exception e )
         {
             LOGGER.debug( () -> "error initializing UserAgentUtils: " + e.getMessage() );
+        }
+
+        {
+            final ExecutorService executorService = PwmScheduler.makeSingleThreadExecutorService( this, PwmApplication.class );
+            pwmScheduler.scheduleDailyZuluZeroStartJob( new DailySummaryJob( this ), executorService, TimeDuration.ZERO );
         }
 
         LOGGER.trace( () -> "completed post init tasks in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
@@ -785,7 +792,7 @@ public class PwmApplication
 
     public void shutdown( )
     {
-        applicationExecutorService.shutdown();
+        pwmScheduler.shutdown();
 
         LOGGER.warn( "shutting down" );
         {
@@ -1024,81 +1031,9 @@ public class PwmApplication
         return inprogressRequests;
     }
 
-    public ScheduledFuture scheduleFutureJob(
-            final Runnable runnable,
-            final ExecutorService executor,
-            final TimeDuration delay
-    )
+    public PwmScheduler getPwmScheduler()
     {
-        if ( applicationExecutorService.isShutdown() )
-        {
-            return null;
-        }
-
-        return applicationExecutorService.schedule(  new WrappedRunner( runnable, executor ), delay.asMillis(), TimeUnit.MILLISECONDS );
-    }
-
-    public void scheduleFixedRateJob(
-            final Runnable runnable,
-            final ExecutorService executor,
-            final TimeDuration initialDelay,
-            final TimeDuration frequency
-    )
-    {
-        if ( applicationExecutorService.isShutdown() )
-        {
-            return;
-        }
-
-        if ( initialDelay != null )
-        {
-            applicationExecutorService.schedule( new WrappedRunner( runnable, executor ), initialDelay.asMillis(), TimeUnit.MILLISECONDS );
-        }
-
-        final Runnable jobWithNextScheduler = () ->
-        {
-            new WrappedRunner( runnable, executor ).run();
-            scheduleFixedRateJob( runnable, executor, null, frequency );
-        };
-
-        applicationExecutorService.schedule(  jobWithNextScheduler, frequency.asMillis(), TimeUnit.MILLISECONDS );
-    }
-
-    private static class WrappedRunner implements Runnable
-    {
-        private final Runnable runnable;
-        private final ExecutorService executor;
-
-        WrappedRunner( final Runnable runnable, final ExecutorService executor )
-        {
-            this.runnable = runnable;
-            this.executor = executor;
-        }
-
-        @Override
-        public void run()
-        {
-            if ( executor.isShutdown() )
-            {
-                return;
-            }
-
-            try
-            {
-                if ( !executor.isShutdown() )
-                {
-                    executor.execute( runnable );
-                }
-                else
-                {
-                    LOGGER.trace( () -> "skipping scheduled job " + runnable + " on shutdown executor + " + executor );
-                }
-            }
-            catch ( Throwable t )
-            {
-                LOGGER.error( "unexpected error running scheduled job: " + t.getMessage(), t );
-            }
-        }
+        return pwmScheduler;
     }
 }
 

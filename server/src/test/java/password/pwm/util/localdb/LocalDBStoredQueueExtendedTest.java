@@ -28,8 +28,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.java.TimeDuration;
 
 import java.io.File;
 import java.util.Iterator;
@@ -176,7 +175,7 @@ public class LocalDBStoredQueueExtendedTest
         Assert.assertEquals( SIZE, storedQueue.size() );
         for ( int i = 0; i < SIZE; ++i )
         {
-            JavaHelper.pause( PwmRandom.getInstance().nextInt( 1000 ) );
+            TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS ).pause();
             Assert.assertEquals( SIZE - i, storedQueue.size() );
             storedQueue.remove();
         }

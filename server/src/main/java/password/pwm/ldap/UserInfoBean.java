@@ -46,7 +46,6 @@ import java.util.Map;
 @Builder
 public class UserInfoBean implements UserInfo
 {
-
     private final UserIdentity userIdentity;
     private final String username;
     private final String userEmailAddress;
@@ -87,6 +86,7 @@ public class UserInfoBean implements UserInfo
     private final Instant passwordLastModifiedTime;
     private final Instant lastLdapLoginTime;
     private final Instant accountExpirationTime;
+    private final Instant passwordExpirationNoticeSendTime;
 
     private final boolean accountEnabled;
     private final boolean accountExpired;
@@ -148,6 +148,5 @@ public class UserInfoBean implements UserInfo
         }
         return Collections.unmodifiableMap( returnObj );
     }
-
 }
 

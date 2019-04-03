@@ -59,7 +59,6 @@ import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -123,7 +122,7 @@ public class SessionFilter extends AbstractPwmFilter
                     && e.getCause() instanceof NoClassDefFoundError
                     && e.getCause().getMessage() != null
                     && e.getCause().getMessage().contains( "JaxbAnnotationIntrospector" )
-                    )
+            )
             {
                 // this is a jersey 1.18 bug that occurs once per execution
                 LOGGER.debug( pwmRequest, () -> "ignoring JaxbAnnotationIntrospector NoClassDefFoundError: " + e.getMessage() );
@@ -288,7 +287,6 @@ public class SessionFilter extends AbstractPwmFilter
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final PwmResponse pwmResponse = pwmRequest.getPwmResponse();
 
@@ -312,19 +310,31 @@ public class SessionFilter extends AbstractPwmFilter
             return ProcessStatus.Continue;
         }
 
+        final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         final String verificationParamName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_PARAM_SESSION_VERIFICATION );
         final String keyFromRequest = pwmRequest.readParameterAsString( verificationParamName, PwmHttpRequestWrapper.Flag.BypassValidation );
 
         // request doesn't have key, so make a new one, store it in the session, and redirect back here with the new key.
-        if ( keyFromRequest == null || keyFromRequest.length() < 1 )
+        if ( StringUtil.isEmpty( keyFromRequest ) )
         {
+            if ( StringUtil.isEmpty( ssBean.getSessionVerificationKey() ) )
+            {
+                ssBean.setSessionVerificationKey( pwmRequest.getPwmApplication().getSecureService().pwmRandom().randomUUID().toString() );
+            }
 
             final String returnURL = figureValidationURL( pwmRequest, ssBean.getSessionVerificationKey() );
 
             LOGGER.trace( pwmRequest, () -> "session has not been validated, redirecting with verification key to " + returnURL );
 
-            // better chance of detecting un-sticky sessions this way
-            pwmResponse.setHeader( HttpHeader.Connection, "close" );
+            {
+                final String httpVersion = pwmRequest.getHttpServletRequest().getProtocol();
+                if ( "HTTP/1.0".equals( httpVersion ) || "HTTP/1.1".equals( httpVersion ) )
+                {
+                    // better chance of detecting un-sticky sessions this way (closing connection not available in HTTP/2)
+                    pwmResponse.setHeader( HttpHeader.Connection, "close" );
+                }
+            }
+
             if ( mode == SessionVerificationMode.VERIFY_AND_CACHE )
             {
                 req.setAttribute( "Location", returnURL );
@@ -361,8 +371,7 @@ public class SessionFilter extends AbstractPwmFilter
     {
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
-        final StringBuilder sb = new StringBuilder();
-        sb.append( req.getRequestURL() );
+        String redirectURL = req.getRequestURI();
 
         final String verificationParamName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_PARAM_SESSION_VERIFICATION );
 
@@ -377,12 +386,9 @@ public class SessionFilter extends AbstractPwmFilter
                 {
                     final List<String> paramValues = Arrays.asList( req.getParameterValues( paramName ) );
 
-                    for ( final Iterator<String> valueIter = paramValues.iterator(); valueIter.hasNext(); )
+                    for ( final String value : paramValues )
                     {
-                        final String value = valueIter.next();
-                        sb.append( sb.toString().contains( "?" ) ? "&" : "?" );
-                        sb.append( StringUtil.urlEncode( paramName ) ).append( "=" );
-                        sb.append( StringUtil.urlEncode( value ) );
+                        redirectURL = PwmURL.appendAndEncodeUrlParameters( redirectURL, paramName, value );
                     }
                 }
             }
@@ -394,11 +400,10 @@ public class SessionFilter extends AbstractPwmFilter
 
         if ( validationKey != null )
         {
-            sb.append( sb.toString().contains( "?" ) ? "&" : "?" );
-            sb.append( verificationParamName ).append( "=" ).append( validationKey );
+            redirectURL = PwmURL.appendAndEncodeUrlParameters( redirectURL, verificationParamName, validationKey );
         }
 
-        return sb.toString();
+        return redirectURL;
     }
 
 

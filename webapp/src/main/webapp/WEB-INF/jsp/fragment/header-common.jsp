@@ -39,6 +39,7 @@
 <meta id="application-info" name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service"
       <pwm:if test="<%=PwmIfTest.showVersionHeader%>">data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.BUILD_VERSION%>" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>"</pwm:if>
       data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<pwm:value name="<%=PwmValue.instanceID%>"/>"
+      data-session-id="<pwm:value name="<%=PwmValue.sessionID%>"/>"
       data-jsp-name="<pwm:value name="<%=PwmValue.currentJspFilename%>"/>"
       data-url-context="<pwm:context/>"
       data-pwmFormID="<pwm:FormID/>"

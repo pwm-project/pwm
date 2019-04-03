@@ -955,12 +955,12 @@ public class Configuration implements SettingReader
 
     public String readAppProperty( final AppProperty property )
     {
-        final Map<String, String> configurationValues = StringUtil.convertStringListToNameValuePair( this.readSettingAsStringArray( PwmSetting.APP_PROPERTY_OVERRIDES ), "=" );
-        if ( configurationValues.containsKey( property.getKey() ) )
+        if ( dataCache.appPropertyOverrides == null )
         {
-            return configurationValues.get( property.getKey() );
+            dataCache.appPropertyOverrides = StringUtil.convertStringListToNameValuePair( this.readSettingAsStringArray( PwmSetting.APP_PROPERTY_OVERRIDES ), "=" );
         }
-        return property.getDefaultValue();
+
+        return dataCache.appPropertyOverrides.getOrDefault( property.getKey(), property.getDefaultValue() );
     }
 
     private Convenience helper = new Convenience();
@@ -1040,6 +1040,7 @@ public class Configuration implements SettingReader
         private final Map<PwmSetting, StoredValue> settings = new EnumMap<>( PwmSetting.class );
         private final Map<String, Map<Locale, String>> customText = new LinkedHashMap<>();
         private final Map<ProfileType, Map<String, Profile>> profileCache = new LinkedHashMap<>();
+        private Map<String, String> appPropertyOverrides = null;
     }
 
     public Map<AppProperty, String> readAllNonDefaultAppProperties( )

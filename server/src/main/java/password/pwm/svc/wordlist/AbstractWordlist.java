@@ -35,6 +35,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.svc.PwmService;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
@@ -93,7 +94,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         this.wordklistBucket = new WordlistBucket( pwmApplication, wordlistConfiguration, type );
 
-        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         if ( pwmApplication.getLocalDB() != null )
         {
@@ -107,7 +108,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             lastError = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
         }
 
-        pwmApplication.scheduleFixedRateJob( new InspectorJob(), executorService, TimeDuration.SECOND, wordlistConfiguration.getInspectorFrequency() );
+        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new InspectorJob(), executorService, TimeDuration.SECOND, wordlistConfiguration.getInspectorFrequency() );
     }
 
     boolean containsWord( final String word ) throws PwmUnrecoverableException
@@ -168,13 +169,10 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         {
             executorService.shutdown();
 
+            JavaHelper.closeAndWaitExecutor( executorService, closeWaitTime );
             if ( backgroundImportRunning.get() )
             {
-                JavaHelper.pause( closeWaitTime.asMillis(), 50, o -> !backgroundImportRunning.get() );
-                if ( backgroundImportRunning.get() )
-                {
-                    getLogger().warn( "background thread still running after waiting " + closeWaitTime.asCompactString() );
-                }
+                getLogger().warn( "background thread still running after waiting " + closeWaitTime.asCompactString() );
             }
         }
     }
@@ -326,7 +324,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         inhibitBackgroundImportFlag.set( true );
         try
         {
-            JavaHelper.pause( 10_000, 100, o -> !backgroundImportRunning.get() );
+            TimeDuration.of( 10, TimeDuration.Unit.SECONDS ).pause( () -> !backgroundImportRunning.get() );
             if ( backgroundImportRunning.get() )
             {
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_WORDLIST_IMPORT_ERROR, "unable to cancel background operation in progress" );

@@ -42,6 +42,7 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -61,7 +62,7 @@ public class SessionTrackService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SessionTrackService.class );
 
-    private final transient Map<PwmSession, Boolean> pwmSessions = new ConcurrentHashMap<>();
+    private final Map<PwmSession, String> pwmSessions = new ConcurrentHashMap<>();
 
     private final Cache<UserIdentity, Object> recentLoginCache = Caffeine.newBuilder()
             .maximumSize( 10 )
@@ -108,7 +109,7 @@ public class SessionTrackService implements PwmService
 
     public void addSessionData( final PwmSession pwmSession )
     {
-        pwmSessions.put( pwmSession, Boolean.FALSE );
+        pwmSessions.put( pwmSession, pwmSession.getSessionStateBean().getSessionID() );
     }
 
     public void removeSessionData( final PwmSession pwmSession )
@@ -263,7 +264,7 @@ public class SessionTrackService implements PwmService
         sessionStateInfoBean.setSrcAddress( loopSsBean.getSrcAddress() );
         sessionStateInfoBean.setSrcHost( loopSsBean.getSrcHostname() );
         sessionStateInfoBean.setLastUrl( loopSsBean.getLastRequestURL() );
-        sessionStateInfoBean.setIntruderAttempts( loopSsBean.getIntruderAttempts() );
+        sessionStateInfoBean.setIntruderAttempts( loopSsBean.getIntruderAttempts().get() );
 
         if ( loopSession.isAuthenticated() )
         {
@@ -306,5 +307,19 @@ public class SessionTrackService implements PwmService
         return Collections.unmodifiableList( new ArrayList<>( recentLoginCache.asMap().keySet() ) );
     }
 
+    public String generateNewSessionID()
+    {
+        final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
 
+        for ( int safetyCounter = 0; safetyCounter < 1000; safetyCounter++ )
+        {
+            final String newValue = pwmRandom.alphaNumericString( 5 );
+            if ( !pwmSessions.containsValue( newValue ) )
+            {
+                return newValue;
+            }
+        }
+
+        throw new IllegalStateException( "unable to generate unique sessionID value" );
+    }
 }

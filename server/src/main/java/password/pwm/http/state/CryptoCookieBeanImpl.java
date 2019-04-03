@@ -30,9 +30,11 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.SecureService;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -56,7 +58,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
         }
 
         final String sessionGuid = pwmRequest.getPwmSession().getLoginInfoBean().getGuid();
-        final String cookieName = nameForClass( theClass );
+        final String cookieName = nameForClass( pwmRequest, theClass );
 
         try
         {
@@ -139,7 +141,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
                     for ( final Map.Entry<Class<? extends PwmSessionBean>, PwmSessionBean> entry : beansInRequest.entrySet() )
                     {
                         final Class<? extends PwmSessionBean> theClass = entry.getKey();
-                        final String cookieName = nameForClass( theClass );
+                        final String cookieName = nameForClass( pwmRequest, theClass );
                         final PwmSessionBean bean = entry.getValue();
                         if ( bean == null )
                         {
@@ -180,9 +182,11 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
         return ( Map<Class<? extends PwmSessionBean>, PwmSessionBean> ) sessionBeans;
     }
 
-    private static String nameForClass( final Class<? extends PwmSessionBean> theClass )
+    private static String nameForClass( final PwmRequest pwmRequest, final Class<? extends PwmSessionBean> theClass )
+            throws PwmUnrecoverableException
     {
-        return theClass.getSimpleName();
+        final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
+        return "b-" + StringUtil.truncate( secureService.hash( theClass.getName() ), 8 );
     }
 
     @Override

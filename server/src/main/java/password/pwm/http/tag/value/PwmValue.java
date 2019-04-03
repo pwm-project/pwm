@@ -62,7 +62,8 @@ public enum PwmValue
     localeDir( new LocaleDirOutput() ),
     localeFlagFile( new LocaleFlagFileOutput() ),
     localeName( new LocaleNameOutput() ),
-    inactiveTimeRemaining( new InactiveTimeRemainingOutput() ),;
+    inactiveTimeRemaining( new InactiveTimeRemainingOutput() ),
+    sessionID( new SessionIDValue() ),;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmValueTag.class );
 
@@ -293,6 +294,16 @@ public enum PwmValue
                 throws PwmUnrecoverableException
         {
             return IdleTimeoutCalculator.idleTimeoutForRequest( pwmRequest ).asLongString();
+        }
+    }
+
+    static class SessionIDValue implements ValueOutput
+    {
+        @Override
+        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
+                throws PwmUnrecoverableException
+        {
+            return pwmRequest.getPwmSession().getSessionStateBean().getSessionID();
         }
     }
 }

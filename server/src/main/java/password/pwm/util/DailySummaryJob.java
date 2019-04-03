@@ -29,9 +29,9 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.i18n.Display;
+import password.pwm.svc.PwmService;
 import password.pwm.svc.report.ReportSummaryData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
@@ -46,20 +46,52 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-public abstract class AlertHandler
+public class DailySummaryJob implements Runnable
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( AlertHandler.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( DailySummaryJob.class );
+
+    private final PwmApplication pwmApplication;
+
+    public DailySummaryJob( final PwmApplication pwmApplication )
+    {
+        this.pwmApplication = pwmApplication;
+    }
+
+    @Override
+    public void run()
+    {
+        try
+        {
+            alertDailyStats();
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "error while generating daily alert statistics: " + e.getMessage() );
+        }
 
 
-    public static void alertDailyStats(
-            final PwmApplication pwmApplication,
-            final Map<String, String> dailyStatistics
-    ) throws PwmUnrecoverableException
+    }
+
+    private void alertDailyStats(
+
+    )
+            throws PwmUnrecoverableException
     {
         if ( !checkIfEnabled( pwmApplication, PwmSetting.EVENTS_ALERT_DAILY_SUMMARY ) )
         {
+            LOGGER.debug( () -> "skipping daily summary alert job, setting "
+                    + PwmSetting.EVENTS_ALERT_DAILY_SUMMARY.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE )
+                    + " not configured" );
             return;
         }
+
+        if ( pwmApplication.getStatisticsManager().status() != PwmService.STATUS.OPEN )
+        {
+            LOGGER.debug( () -> "skipping daily summary alert job, statistics service is not open" );
+            return;
+        }
+
+        final Map<String, String> dailyStatistics = pwmApplication.getStatisticsManager().dailyStatisticsAsLabelValueMap();
 
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
 
@@ -108,7 +140,7 @@ public abstract class AlertHandler
 
         {
             // health check data
-            final Collection<HealthRecord> healthRecords = pwmApplication.getHealthMonitor().getHealthRecords( HealthMonitor.CheckTimeliness.Immediate );
+            final Collection<HealthRecord> healthRecords = pwmApplication.getHealthMonitor().getHealthRecords();
             textBody.append( "-- Health Check Results --\n" );
             htmlBody.append( "<h2>Health Check Results</h2>" );
 
@@ -157,7 +189,7 @@ public abstract class AlertHandler
         textBody.append( "\n" );
         htmlBody.append( "<br/>" );
 
-        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.REPORTING_ENABLE ) )
+        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB ) )
         {
             final List<ReportSummaryData.PresentationRow> summaryData = pwmApplication.getReportService()
                     .getSummaryData().asPresentableCollection( pwmApplication.getConfig(), locale );

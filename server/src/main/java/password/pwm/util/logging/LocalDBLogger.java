@@ -28,6 +28,7 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmNumberFormat;
@@ -124,14 +125,14 @@ public class LocalDBLogger implements PwmService
         status = STATUS.OPEN;
 
         cleanerService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-cleaner-",
+                PwmScheduler.makePwmThreadFactory(
+                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-cleaner-",
                         true
                 ) );
 
         writerService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-writer-",
+                PwmScheduler.makePwmThreadFactory(
+                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-writer-",
                         true
                 ) );
 
@@ -388,7 +389,7 @@ public class LocalDBLogger implements PwmService
                         LOGGER.warn( "discarded event after waiting max buffer wait time of " + settings.getMaxBufferWaitTime().asCompactString() );
                         return;
                     }
-                    JavaHelper.pause( 100 );
+                    TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS ).pause();
                 }
             }
         }

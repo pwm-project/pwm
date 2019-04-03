@@ -38,7 +38,6 @@ import password.pwm.ldap.UserInfoBean;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -48,7 +47,6 @@ import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -61,7 +59,6 @@ import java.util.Map;
  */
 public class PwmSession implements Serializable
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSession.class );
 
     private final LocalSessionStateBean sessionStateBean;
@@ -92,25 +89,8 @@ public class PwmSession implements Serializable
             throw new IllegalStateException( "PwmApplication must be available during session creation" );
         }
 
-        final int sessionValidationKeyLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_SESSION_VALIDATION_KEY_LENGTH ) );
-        sessionStateBean = new LocalSessionStateBean( sessionValidationKeyLength );
-        sessionStateBean.regenerateSessionVerificationKey( pwmApplication );
-        this.sessionStateBean.setSessionID( null );
-
-        final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
-        if ( statisticsManager != null )
-        {
-            String nextID = pwmApplication.getStatisticsManager().getStatBundleForKey( StatisticsManager.KEY_CUMULATIVE ).getStatistic( Statistic.HTTP_SESSIONS );
-            try
-            {
-                nextID = new BigInteger( nextID ).toString();
-            }
-            catch ( NumberFormatException e )
-            {
-                LOGGER.debug( this, () -> "error generating sessionID: " + e.getMessage(), e );
-            }
-            this.getSessionStateBean().setSessionID( nextID );
-        }
+        sessionStateBean = new LocalSessionStateBean();
+        this.sessionStateBean.setSessionID( pwmApplication.getSessionTrackService().generateNewSessionID() );
 
         this.sessionStateBean.setSessionLastAccessedTime( Instant.now() );
 

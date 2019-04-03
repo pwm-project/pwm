@@ -221,8 +221,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         {
             final HealthData jsonOutput = RestHealthServer.processGetHealthCheckData(
                     pwmRequest.getPwmApplication(),
-                    pwmRequest.getLocale(),
-                    false );
+                    pwmRequest.getLocale() );
             final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
             pwmRequest.outputJsonResult( restResultBean );
         }

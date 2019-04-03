@@ -23,12 +23,12 @@
 package password.pwm.bean;
 
 import lombok.Data;
-import password.pwm.PwmApplication;
 import password.pwm.ldap.UserInfoBean;
 
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * <p>Only information that is particular to the http session is stored in the
@@ -65,30 +65,20 @@ public class LocalSessionStateBean implements Serializable
     private boolean passwordModified;
     private boolean privateUrlAccessed;
 
-    private int intruderAttempts;
+    private final AtomicInteger intruderAttempts = new AtomicInteger( 0 );
     private boolean oauthInProgress;
 
-    private int sessionVerificationKeyLength;
     private boolean sessionIdRecycleNeeded;
-
-    public LocalSessionStateBean( final int sessionVerificationKeyLength )
-    {
-        this.sessionVerificationKeyLength = sessionVerificationKeyLength;
-    }
+    private boolean sameSiteCookieRecycleRequested;
 
     public void incrementIntruderAttempts( )
     {
-        intruderAttempts++;
+        intruderAttempts.incrementAndGet();
     }
 
     public void clearIntruderAttempts( )
     {
-        intruderAttempts = 0;
-    }
-
-    public void regenerateSessionVerificationKey( final PwmApplication pwmApplication )
-    {
-        sessionVerificationKey = pwmApplication.getSecureService().pwmRandom().alphaNumericString( sessionVerificationKeyLength ) + Long.toHexString( System.currentTimeMillis() );
+        intruderAttempts.set( 0 );
     }
 }
 

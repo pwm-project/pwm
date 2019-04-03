@@ -77,7 +77,7 @@ public class SmsResponse
             int mostRecentIndex = 0;
             for ( int i = 0; i < userMessages.size(); i++ )
             {
-                if ( userMessages.get( i ).getDate().getTime() > userMessages.get( mostRecentIndex ).getDate().getTime() )
+                if ( userMessages.get( i ).getDate().toEpochMilli() > userMessages.get( mostRecentIndex ).getDate().toEpochMilli() )
                 {
                     mostRecentIndex = i;
                 }

@@ -271,7 +271,11 @@ public class ResourceServletService implements PwmService
         for ( final String testUrl : testUrls )
         {
             final String themePathUrl = ResourceFileServlet.RESOURCE_PATH + testUrl.replace( ResourceFileServlet.TOKEN_THEME, themeName );
-            final FileResource resolvedFile = ResourceFileServlet.resolveRequestedFile( servletContext, themePathUrl, getResourceServletConfiguration() );
+            final FileResource resolvedFile = ResourceFileRequest.resolveRequestedResource(
+                    pwmRequest.getConfig(),
+                    servletContext,
+                    themePathUrl,
+                    getResourceServletConfiguration() );
             if ( resolvedFile != null && resolvedFile.exists() )
             {
                 LOGGER.debug( pwmRequest, () -> "check for theme validity of '" + themeName + "' returned true" );

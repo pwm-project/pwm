@@ -33,6 +33,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -839,6 +840,8 @@ public enum PwmSetting
             "newUser.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_DELETE_ON_FAIL(
             "newUser.deleteOnFail", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
+    NEWUSER_LOGOUT_AFTER_CREATION(
+            "newUser.logoutAfterCreation", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_USERNAME_DEFINITION(
             "newUser.username.definition", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_EMAIL_VERIFICATION(
@@ -1129,16 +1132,14 @@ public enum PwmSetting
 
 
     // reporting
-    REPORTING_ENABLE(
+    REPORTING_ENABLE_DAILY_JOB(
             "reporting.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REPORTING ),
-    REPORTING_USER_MATCH(
-            "reporting.ldap.userMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REPORTING ),
-    REPORTING_MAX_CACHE_AGE(
-            "reporting.maxCacheAge", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING ),
-    REPORTING_MAX_QUERY_SIZE(
-            "reporting.ldap.maxQuerySize", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING ),
     REPORTING_JOB_TIME_OFFSET(
             "reporting.job.timeOffset", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING ),
+    REPORTING_USER_MATCH(
+            "reporting.ldap.userMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REPORTING ),
+    REPORTING_MAX_QUERY_SIZE(
+            "reporting.ldap.maxQuerySize", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING ),
     REPORTING_JOB_INTENSITY(
             "reporting.job.intensity", PwmSettingSyntax.SELECT, PwmSettingCategory.REPORTING ),
     REPORTING_SUMMARY_DAY_VALUES(
@@ -1591,14 +1592,10 @@ public enum PwmSetting
 
     public static PwmSetting forKey( final String key )
     {
-        for ( final PwmSetting loopSetting : values() )
-        {
-            if ( loopSetting.getKey().equals( key ) )
-            {
-                return loopSetting;
-            }
-        }
-        return null;
+        return Arrays.stream( values() )
+                .filter( loopValue -> loopValue.getKey().equals( key ) )
+                .findFirst()
+                .orElse( null );
     }
 
     public String toMenuLocationDebug(

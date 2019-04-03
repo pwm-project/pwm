@@ -47,6 +47,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -844,7 +845,7 @@ public class UserSearchEngine implements PwmService
             final int factor = Integer.parseInt( configuration.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_FACTOR ) );
             final int maxThreads = Integer.parseInt( configuration.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_THREAD_MAX ) );
             final int threads = Math.min( maxThreads, ( endPoints ) * factor );
-            final ThreadFactory threadFactory = JavaHelper.makePwmThreadFactory( JavaHelper.makeThreadName( pwmApplication, UserSearchEngine.class ), true );
+            final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, UserSearchEngine.class ), true );
             return new ThreadPoolExecutor(
                     threads,
                     threads,

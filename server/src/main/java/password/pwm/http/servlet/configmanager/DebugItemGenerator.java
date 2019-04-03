@@ -33,7 +33,6 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
@@ -349,7 +348,7 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream ) throws Exception
         {
-            final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords( HealthMonitor.CheckTimeliness.CurrentButNotAncient );
+            final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
             final String recordJson = JsonUtil.serializeCollection( records, JsonUtil.Flag.PrettyPrint );
             outputStream.write( recordJson.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }

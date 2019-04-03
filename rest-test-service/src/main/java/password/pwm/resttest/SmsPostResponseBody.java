@@ -22,18 +22,18 @@
 
 package password.pwm.resttest;
 
-import java.util.Date;
+import java.time.Instant;
 
 public class SmsPostResponseBody
 {
     private String messageContent;
-    private Date date;
+    private Instant date;
 
-    public SmsPostResponseBody( final String message, final Date date )
+    public SmsPostResponseBody( final String message, final Instant date )
     {
         final String[] strings = message.split( "&" );
         this.messageContent = strings[strings.length - 1];
-        this.date = new Date( date.getTime() );
+        this.date = Instant.now();
     }
 
     public SmsPostResponseBody( final String message )
@@ -42,9 +42,9 @@ public class SmsPostResponseBody
         this.messageContent = strings[strings.length - 1];
     }
 
-    public SmsPostResponseBody( final Date date )
+    public SmsPostResponseBody( final Instant date )
     {
-        this.date = new Date( date.getTime() );
+        this.date = Instant.now();
         this.messageContent = "";
     }
 
@@ -63,13 +63,13 @@ public class SmsPostResponseBody
         this.messageContent = messageContent;
     }
 
-    public Date getDate()
+    public Instant getDate()
     {
-        return new Date( this.date.getTime() );
+        return Instant.now();
     }
 
-    public void setDate( final Date date )
+    public void setDate( final Instant date )
     {
-        this.date = new Date( this.date.getTime() );
+        this.date = Instant.now();
     }
 }

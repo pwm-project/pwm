@@ -26,7 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.PwmScheduler;
 
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -52,7 +52,7 @@ public class PeopleSearchService implements PwmService
 
         final int maxThreadCount = 5;
 
-        final ThreadFactory threadFactory = JavaHelper.makePwmThreadFactory( JavaHelper.makeThreadName( pwmApplication, PeopleSearchService.class ), true );
+        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, PeopleSearchService.class ), true );
         threadPoolExecutor = new ThreadPoolExecutor(
                 maxThreadCount,
                 maxThreadCount,

@@ -998,7 +998,7 @@ class PeopleSearchDataReader
         executor.execute( job );
 
         final TimeDuration maxDuration = peopleSearchConfiguration.getExportCsvMaxDuration();
-        JavaHelper.pause( maxDuration.asMillis(), 1000, o -> ( executor.getQueue().size() + executor.getActiveCount() <= 0 ) );
+        maxDuration.pause( () -> executor.getQueue().size() + executor.getActiveCount() <= 0 );
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
         LOGGER.trace( pwmRequest, () -> "completed csv export of " + rowCounter.get() + " records in " + timeDuration.asCompactString() );

@@ -57,6 +57,7 @@ import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.DataStore;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.java.JavaHelper;
@@ -194,12 +195,12 @@ public class TokenService implements PwmService
 
         verifyPwModifyTime = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.TOKEN_VERIFY_PW_MODIFY_TIME ) );
 
-        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         {
             final int cleanerFrequencySeconds = Integer.parseInt( configuration.readAppProperty( AppProperty.TOKEN_CLEANER_INTERVAL_SECONDS ) );
             final TimeDuration cleanerFrequency = TimeDuration.of( cleanerFrequencySeconds, TimeDuration.Unit.SECONDS );
-            pwmApplication.scheduleFixedRateJob( new CleanerTask(), executorService, TimeDuration.MINUTE, cleanerFrequency );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), executorService, TimeDuration.MINUTE, cleanerFrequency );
             LOGGER.trace( () -> "token cleanup will occur every " + cleanerFrequency.asCompactString() );
         }
 
@@ -634,7 +635,7 @@ public class TokenService implements PwmService
                 && tokenPayload.getUserIdentity() != null
                 && tokenPayload.getData() != null
                 && tokenPayload.getData().containsKey( PwmConstants.TOKEN_KEY_PWD_CHG_DATE )
-                )
+        )
         {
             try
             {
@@ -739,13 +740,15 @@ public class TokenService implements PwmService
             pwmApplication.getIntruderManager().mark( RecordType.TOKEN_DEST, toAddress, null );
 
             final EmailItemBean configuredEmailSetting = tokenSendInfo.getConfiguredEmailSetting();
-            pwmApplication.getEmailQueue().submitEmailImmediate( new EmailItemBean(
-                    toAddress,
-                    configuredEmailSetting.getFrom(),
-                    configuredEmailSetting.getSubject(),
-                    configuredEmailSetting.getBodyPlain().replace( "%TOKEN%", tokenSendInfo.getTokenKey() ),
-                    configuredEmailSetting.getBodyHtml().replace( "%TOKEN%", tokenSendInfo.getTokenKey() )
-            ), tokenSendInfo.getUserInfo(), tokenSendInfo.getMacroMachine() );
+            final EmailItemBean tokenizedEmail = configuredEmailSetting.applyBodyReplacement(
+                    "%TOKEN%",
+                    tokenSendInfo.getTokenKey() );
+
+            pwmApplication.getEmailQueue().submitEmailImmediate(
+                    tokenizedEmail,
+                    tokenSendInfo.getUserInfo(),
+                    tokenSendInfo.getMacroMachine() );
+
             LOGGER.debug( () -> "token email added to send queue for " + toAddress );
             return true;
         }
@@ -771,7 +774,7 @@ public class TokenService implements PwmService
             LOGGER.debug( () -> "token SMS added to send queue for " + smsNumber );
             return true;
         }
-        }
+    }
 
     static TimeDuration maxTokenAge( final Configuration configuration )
     {

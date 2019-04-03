@@ -153,6 +153,7 @@ public class CaptchaUtility
                 {
                     writeCaptchaSkipCookie( pwmRequest );
                     LOGGER.trace( pwmRequest, () -> "captcha verification passed" );
+                    StatisticsManager.incrementStat( pwmRequest, Statistic.CAPTCHA_SUCCESSES );
                     return true;
                 }
 
@@ -179,6 +180,7 @@ public class CaptchaUtility
         }
 
         LOGGER.trace( pwmRequest, () -> "captcha verification failed" );
+        StatisticsManager.incrementStat( pwmRequest, Statistic.CAPTCHA_FAILURES );
         return false;
     }
 
@@ -356,7 +358,7 @@ public class CaptchaUtility
             return true;
         }
 
-        final int currentSessionAttempts = pwmRequest.getPwmSession().getSessionStateBean().getIntruderAttempts();
+        final int currentSessionAttempts = pwmRequest.getPwmSession().getSessionStateBean().getIntruderAttempts().get();
         if ( currentSessionAttempts >= maxIntruderCount )
         {
             LOGGER.debug( pwmRequest, () -> "session intruder attempt count '" + currentSessionAttempts + "', therefore captcha will be required" );

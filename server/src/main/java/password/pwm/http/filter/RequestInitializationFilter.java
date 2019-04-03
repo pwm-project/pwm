@@ -69,8 +69,6 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Instant;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -303,49 +301,12 @@ public class RequestInitializationFilter implements Filter
     private void checkIfSessionRecycleNeeded( final PwmRequest pwmRequest )
             throws IOException, ServletException
     {
-        if ( !pwmRequest.getPwmSession().getSessionStateBean().isSessionIdRecycleNeeded() )
+        if ( pwmRequest.getPwmSession().getSessionStateBean().isSessionIdRecycleNeeded() )
         {
-            return;
+            pwmRequest.getHttpServletRequest().changeSessionId();
+            pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded( false );
         }
 
-        final boolean recycleEnabled = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_SESSION_RECYCLE_AT_AUTH ) );
-
-        if ( !recycleEnabled )
-        {
-            return;
-        }
-        LOGGER.debug( pwmRequest, () -> "forcing new http session due to authentication" );
-
-        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-
-        // read the old session data
-        final HttpSession oldSession = req.getSession( true );
-        final int oldMaxInactiveInterval = oldSession.getMaxInactiveInterval();
-        final Map<String, Object> sessionAttributes = new HashMap<>();
-        final Enumeration oldSessionAttrNames = oldSession.getAttributeNames();
-        while ( oldSessionAttrNames.hasMoreElements() )
-        {
-            final String attrName = ( String ) oldSessionAttrNames.nextElement();
-            sessionAttributes.put( attrName, oldSession.getAttribute( attrName ) );
-        }
-
-        for ( final String attrName : sessionAttributes.keySet() )
-        {
-            oldSession.removeAttribute( attrName );
-        }
-
-        //invalidate the old session
-        oldSession.invalidate();
-
-        // make a new session
-        final HttpSession newSession = req.getSession( true );
-
-        // write back all the session data
-        sessionAttributes.keySet().forEach( attrName -> newSession.setAttribute( attrName, sessionAttributes.get( attrName ) ) );
-
-        newSession.setMaxInactiveInterval( oldMaxInactiveInterval );
-
-        pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded( false );
     }
 
     public static void addPwmResponseHeaders(

@@ -44,7 +44,6 @@ import java.util.Map;
 
 public class NodeService implements PwmService
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( NodeService.class );
 
     private PwmApplication pwmApplication;
