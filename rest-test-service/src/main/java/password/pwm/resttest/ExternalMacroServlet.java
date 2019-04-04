@@ -24,6 +24,8 @@
 package password.pwm.resttest;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.commons.io.IOUtils;
 
 import javax.servlet.ServletException;
@@ -34,11 +36,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.time.Instant;
 
 @WebServlet(
         name = "NewUserServlet",
-        urlPatterns = { "/sms", "/macro" }
+        urlPatterns = { "/sms", "/macro", "/external-token-destination", "/external-password-check" }
 )
 
 public class ExternalMacroServlet extends HttpServlet
@@ -46,11 +47,15 @@ public class ExternalMacroServlet extends HttpServlet
     private static final String USERNAME_PARAMETER = "username";
     private static final String SUCCESSFUL = "true";
     private static final String UNSUCCESSFUL = "false";
+    private static final String SMS_URL = "/sms";
+    private static final String MACRO_URL = "/macro";
+    private static final String EXTERNAL_TOKEN_DESTINATION_URL = "/external-token-destination";
+    private static final String EXTERNAL_PASSWORD_CHECK_URL = "/external-password-check";
 
     @Override
     protected void doPost( final HttpServletRequest req, final HttpServletResponse resp ) throws ServletException, IOException
     {
-        if ( req.getServletPath().equals( "/sms" ) )
+        if ( req.getServletPath().equals( SMS_URL ) )
         {
             final SmsResponse instance = SmsResponse.getInstance();
             final InputStream inputStream = req.getInputStream();
@@ -59,8 +64,7 @@ public class ExternalMacroServlet extends HttpServlet
             final String[] messageContent = body.split( "=" );
             final String message = messageContent[messageContent.length - 1];
             final String username = message.split( "\\+" )[0];
-            final Instant currentDate = Instant.now();
-            final SmsPostResponseBody messageBody = new SmsPostResponseBody( message, currentDate );
+            final SmsPostResponseBody messageBody = new SmsPostResponseBody( message );
 
             instance.addToMap( username, messageBody );
 
@@ -72,12 +76,41 @@ public class ExternalMacroServlet extends HttpServlet
             writer.write(  "{\"output\":\"Message Received\"}" );
             writer.close();
         }
+        else if ( req.getServletPath().equals( EXTERNAL_TOKEN_DESTINATION_URL ) )
+        {
+            System.out.println( "External Token Destination" );
+            final InputStream inputStream = req.getInputStream();
+            final String body = IOUtils.toString( inputStream );
+            final JsonObject jsonObject = new JsonParser().parse( body ).getAsJsonObject();
+            final String email = jsonObject.getAsJsonObject( "tokenDestination" ).get( "email" ).getAsString();
+            final String sms = jsonObject.getAsJsonObject( "tokenDestination" ).get( "sms" ).getAsString();
+            final String displayValue = "YourTokenDestination";
+
+            resp.setHeader( "Content-Type", "application/json" );
+
+            final PrintWriter writer = resp.getWriter();
+            final String response = "{\"email\":\"" + email + "\",\"sms\":\"" + sms + "\",\"displayValue\":\"" + displayValue + "\"}";
+            writer.write( response );
+            writer.close();
+        }
+        else if ( req.getServletPath().equals( EXTERNAL_PASSWORD_CHECK_URL ) )
+        {
+            System.out.println( "External Password Check" );
+            final boolean error = false;
+            final String errorMessage = "No error.";
+            resp.setHeader( "Content-Type", "application/json" );
+
+            final PrintWriter writer = resp.getWriter();
+            final String response = "{\"error\":\"" + error + "\",\"errorMessage\":\"" + errorMessage + "\"}";
+            writer.write( response );
+            writer.close();
+        }
     }
 
     @Override
     protected void doGet( final HttpServletRequest req, final HttpServletResponse resp ) throws IOException
     {
-        if ( req.getServletPath().equals( "/sms" ) )
+        if ( req.getServletPath().equals( SMS_URL ) )
         {
             //Check request
             final SmsResponse instance = SmsResponse.getInstance();

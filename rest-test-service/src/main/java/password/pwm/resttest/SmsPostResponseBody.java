@@ -27,14 +27,7 @@ import java.time.Instant;
 public class SmsPostResponseBody
 {
     private String messageContent;
-    private Instant date;
-
-    public SmsPostResponseBody( final String message, final Instant date )
-    {
-        final String[] strings = message.split( "&" );
-        this.messageContent = strings[strings.length - 1];
-        this.date = date;
-    }
+//    private Instant date;
 
     public SmsPostResponseBody( final String message )
     {
@@ -42,34 +35,29 @@ public class SmsPostResponseBody
         this.messageContent = strings[strings.length - 1];
     }
 
-    public SmsPostResponseBody( final Instant date )
-    {
-        this.date = date;
-        this.messageContent = "";
-    }
-
     public SmsPostResponseBody()
     {
 
     }
+
 
     public String getMessageContent()
     {
         return messageContent;
     }
 
-    public void setMessageContent( final String messageContent )
-    {
-        this.messageContent = messageContent;
-    }
+//    public void setMessageContent( final String messageContent )
+//    {
+//        this.messageContent = messageContent;
+//    }
 
     public Instant getDate()
     {
-        return date;
+        return Instant.now();
     }
 
-    public void setDate( final Instant date )
-    {
-        this.date = date;
-    }
+//    public void setDate( final Instant date )
+//    {
+//        this.date = Instant.now();
+//    }
 }
