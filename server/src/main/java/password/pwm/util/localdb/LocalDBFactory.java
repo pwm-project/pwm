@@ -94,8 +94,7 @@ public class LocalDBFactory
             if ( localDBUtility.readImportInprogressFlag() )
             {
                 LOGGER.error( "previous database import process did not complete successfully, clearing all data" );
-                localDBUtility.prepareForImport();
-                localDBUtility.markImportComplete();
+                localDBUtility.cancelImportProcess();
             }
         }
 

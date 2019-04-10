@@ -34,8 +34,11 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
+import password.pwm.svc.stats.AvgStatistic;
+import password.pwm.svc.stats.DailyKey;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticType;
 import password.pwm.svc.stats.StatisticsBundle;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JavaHelper;
@@ -54,9 +57,7 @@ import java.math.RoundingMode;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -194,7 +195,7 @@ public class RestStatisticsServer extends RestServlet
         {
             final List<HistoryData> outerOutput = new ArrayList<>();
 
-            StatisticsManager.DailyKey dailyKey = new StatisticsManager.DailyKey( new Date() );
+            DailyKey dailyKey = DailyKey.forToday();
 
             for ( int daysAgo = 0; daysAgo < days; daysAgo++ )
             {
@@ -210,10 +211,10 @@ public class RestStatisticsServer extends RestServlet
                 final HistoryData historyData = HistoryData.builder()
                         .name( dailyKey.toString() )
                         .date( DateTimeFormatter.ofPattern( "yyyy-MM-dd" ).withZone( ZoneOffset.UTC )
-                                .format( dailyKey.calendar().toInstant() ) )
-                        .year( dailyKey.calendar().get( Calendar.YEAR ) )
-                        .month( dailyKey.calendar().get( Calendar.MONTH ) )
-                        .day( dailyKey.calendar().get( Calendar.DAY_OF_MONTH ) )
+                                .format( dailyKey.localDate() ) )
+                        .year( dailyKey.localDate().getYear() )
+                        .month( dailyKey.localDate().getMonthValue() )
+                        .day( dailyKey.localDate().getDayOfMonth() )
                         .daysAgo( daysAgo )
                         .data( statValues )
                         .build();
@@ -250,7 +251,16 @@ public class RestStatisticsServer extends RestServlet
                 final StatLabelData statLabelData = new StatLabelData(
                         statistic.name(),
                         statistic.getLabel( locale ),
-                        statistic.getType().name(),
+                        StatisticType.INCREMENTER.name(),
+                        statistic.getDescription( locale ) );
+                output.put( statistic.name(), statLabelData );
+            }
+            for ( final AvgStatistic statistic : AvgStatistic.values() )
+            {
+                final StatLabelData statLabelData = new StatLabelData(
+                        statistic.name(),
+                        statistic.getLabel( locale ),
+                        StatisticType.AVERAGE.name(),
                         statistic.getDescription( locale ) );
                 output.put( statistic.name(), statLabelData );
             }
@@ -262,7 +272,7 @@ public class RestStatisticsServer extends RestServlet
                     final StatLabelData statLabelData = new StatLabelData(
                             name,
                             loopEps.getLabel( locale ),
-                            "EPS",
+                            StatisticType.EPS.name(),
                             null );
                     output.put( name, statLabelData );
                 }

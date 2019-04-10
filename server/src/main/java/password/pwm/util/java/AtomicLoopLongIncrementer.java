@@ -20,28 +20,41 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.stats;
+package password.pwm.util.java;
 
-import password.pwm.i18n.Admin;
-import password.pwm.util.i18n.LocaleHelper;
+import java.util.concurrent.atomic.AtomicLong;
 
-import java.util.Locale;
-
-public enum EpsStatistic
+/**
+ * Thread safe rotating int incrementer with configurable floor and ceiling values.
+ */
+public class AtomicLoopLongIncrementer
 {
-    REQUESTS(),
-    SESSIONS(),
-    PASSWORD_CHANGES(),
-    AUTHENTICATION(),
-    INTRUDER_ATTEMPTS(),
-    PWMDB_WRITES(),
-    PWMDB_READS(),
-    DB_WRITES(),
-    DB_READS(),;
+    private final AtomicLong incrementer;
+    private final long ceiling;
+    private final long floor;
 
-    public String getLabel( final Locale locale )
+    public AtomicLoopLongIncrementer( final long initialValue, final long ceiling )
     {
-        final String keyName = Admin.EPS_STATISTICS_LABEL_PREFIX + this.name();
-        return LocaleHelper.getLocalizedMessage( locale, keyName, null, Admin.class );
+        this.ceiling = ceiling;
+        this.floor = 0;
+        incrementer = new AtomicLong( JavaHelper.rangeCheck( floor, ceiling, initialValue ) );
+    }
+
+    public long get()
+    {
+        return incrementer.get();
+    }
+
+    public long incrementAndGet( )
+    {
+        return incrementer.getAndUpdate( operand ->
+        {
+            operand++;
+            if ( operand >= ceiling )
+            {
+                operand = floor;
+            }
+            return operand;
+        } );
     }
 }

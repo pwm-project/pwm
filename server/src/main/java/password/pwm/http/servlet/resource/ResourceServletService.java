@@ -33,7 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.Percent;

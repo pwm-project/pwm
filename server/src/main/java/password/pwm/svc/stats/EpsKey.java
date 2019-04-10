@@ -22,26 +22,28 @@
 
 package password.pwm.svc.stats;
 
-import password.pwm.i18n.Admin;
-import password.pwm.util.i18n.LocaleHelper;
+import lombok.Value;
 
-import java.util.Locale;
+import java.util.HashSet;
+import java.util.Set;
 
-public enum EpsStatistic
+@Value
+class EpsKey
 {
-    REQUESTS(),
-    SESSIONS(),
-    PASSWORD_CHANGES(),
-    AUTHENTICATION(),
-    INTRUDER_ATTEMPTS(),
-    PWMDB_WRITES(),
-    PWMDB_READS(),
-    DB_WRITES(),
-    DB_READS(),;
+    static final String DB_KEY_PREFIX = "EPS-";
+    private EpsStatistic epsStatistic;
+    private Statistic.EpsDuration epsDuration;
 
-    public String getLabel( final Locale locale )
+    static Set<EpsKey> allKeys()
     {
-        final String keyName = Admin.EPS_STATISTICS_LABEL_PREFIX + this.name();
-        return LocaleHelper.getLocalizedMessage( locale, keyName, null, Admin.class );
+        final Set<EpsKey> returnSet = new HashSet<>();
+        for ( final EpsStatistic epsStatistic : EpsStatistic.values() )
+        {
+            for ( final Statistic.EpsDuration epsDuration : Statistic.EpsDuration.values() )
+            {
+                returnSet.add( new EpsKey( epsStatistic, epsDuration ) );
+            }
+        }
+        return returnSet;
     }
 }

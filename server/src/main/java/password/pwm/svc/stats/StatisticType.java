@@ -22,26 +22,9 @@
 
 package password.pwm.svc.stats;
 
-import password.pwm.i18n.Admin;
-import password.pwm.util.i18n.LocaleHelper;
-
-import java.util.Locale;
-
-public enum EpsStatistic
+public enum StatisticType
 {
-    REQUESTS(),
-    SESSIONS(),
-    PASSWORD_CHANGES(),
-    AUTHENTICATION(),
-    INTRUDER_ATTEMPTS(),
-    PWMDB_WRITES(),
-    PWMDB_READS(),
-    DB_WRITES(),
-    DB_READS(),;
-
-    public String getLabel( final Locale locale )
-    {
-        final String keyName = Admin.EPS_STATISTICS_LABEL_PREFIX + this.name();
-        return LocaleHelper.getLocalizedMessage( locale, keyName, null, Admin.class );
-    }
+    INCREMENTER,
+    AVERAGE,
+    EPS,
 }

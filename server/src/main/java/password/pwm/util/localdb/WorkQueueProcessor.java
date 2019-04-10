@@ -29,7 +29,7 @@ import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.EventRateMeter;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;

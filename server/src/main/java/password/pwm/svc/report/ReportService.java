@@ -40,7 +40,7 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.EventRateMeter;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.BlockingThreadPool;

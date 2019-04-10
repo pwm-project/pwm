@@ -20,16 +20,19 @@
  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
 
-<%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.i18n.Admin" %>
+<%@ page import="password.pwm.svc.stats.AvgStatistic" %>
+<%@ page import="password.pwm.svc.stats.DailyKey" %>
 <%@ page import="password.pwm.svc.stats.Statistic" %>
+<%@ page import="password.pwm.svc.stats.StatisticType" %>
 <%@ page import="password.pwm.svc.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.svc.stats.StatisticsManager" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
-<%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="java.time.format.DateTimeFormatter" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -182,16 +185,16 @@
                                             <select name="statsPeriodSelect"
                                                     style="width: 350px;">
                                                 <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                    since installation - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %>
+                                                    since installation - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %></span>
                                                 </option>
                                                 <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                    since startup - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %>
+                                                    since startup - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %></span>
                                                 </option>
-                                                <% final Map<StatisticsManager.DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
-                                                <% for (final Map.Entry<StatisticsManager.DailyKey, String> entry : availableKeys.entrySet()) { %>
-                                                <% final StatisticsManager.DailyKey key = entry.getKey(); %>
+                                                <% final Map<DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
+                                                <% for (final Map.Entry<DailyKey, String> entry : availableKeys.entrySet()) { %>
+                                                <% final DailyKey key = entry.getKey(); %>
                                                 <option value="<%=key%>" <%= key.toString().equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                    <%= entry.getValue() %>
+                                                    <%=key.localDate().format(DateTimeFormatter.ISO_LOCAL_DATE)%>
                                                 </option>
                                                 <% } %>
                                             </select>
@@ -208,7 +211,17 @@
                                         <span id="Statistic_Key_<%=loopStat.getKey()%>"><%= loopStat.getLabel(locale) %><span/>
                                     </td>
                                     <td>
-                                        <%= stats.getStatistic(loopStat) %><%= loopStat.getType() == Statistic.Type.AVERAGE && loopStat != Statistic.AVG_PASSWORD_STRENGTH ? " ms" : "" %>
+                                        <%= stats.getStatistic(loopStat) %>
+                                    </td>
+                                </tr>
+                                <% } %>
+                                <% for (final AvgStatistic loopStat : AvgStatistic.values()) { %>
+                                <tr>
+                                    <td >
+                                        <span id="Statistic_Key_<%=loopStat.getKey()%>"><%= loopStat.getLabel(locale) %><span/>
+                                    </td>
+                                    <td>
+                                        <%= stats.getAvgStatistic(loopStat) %><%= loopStat.getUnit() %>
                                     </td>
                                 </tr>
                                 <% } %>

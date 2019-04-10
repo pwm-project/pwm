@@ -52,6 +52,7 @@ import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -349,7 +350,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
         final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
         statisticsManager.incrementValue( Statistic.AUTHENTICATIONS );
         statisticsManager.updateEps( EpsStatistic.AUTHENTICATION, 1 );
-        statisticsManager.updateAverageValue( Statistic.AVG_AUTHENTICATION_TIME,
+        statisticsManager.updateAverageValue( AvgStatistic.AVG_AUTHENTICATION_TIME,
                 TimeDuration.fromCurrent( startTime ).asMillis() );
 
 

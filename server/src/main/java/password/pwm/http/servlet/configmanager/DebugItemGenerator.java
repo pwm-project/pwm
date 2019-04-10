@@ -43,6 +43,9 @@ import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.node.NodeService;
+import password.pwm.svc.stats.EpsStatistic;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
@@ -67,6 +70,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,7 +110,9 @@ public class DebugItemGenerator
             LdapRecentUserDebugGenerator.class,
             ClusterInfoDebugGenerator.class,
             CacheServiceDebugItemGenerator.class,
-            RootFileSystemDebugItemGenerator.class
+            RootFileSystemDebugItemGenerator.class,
+            StatisticsDataDebugItemGenerator.class,
+            StatisticsEpsDataDebugItemGenerator.class
     ) );
 
     static void outputZipDebugFile(
@@ -725,6 +731,68 @@ public class DebugItemGenerator
             );
 
             outputStream.write( JsonUtil.serialize( appDashboardData, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        }
+    }
+
+    static class StatisticsDataDebugItemGenerator implements Generator
+    {
+        @Override
+        public String getFilename()
+        {
+            return "statistics.csv";
+        }
+
+        @Override
+        public void outputItem( final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream )
+                throws Exception
+        {
+            final StatisticsManager statsManager = pwmApplication.getStatisticsManager();
+            statsManager.outputStatsToCsv( outputStream, pwmRequest.getLocale(), true );
+        }
+    }
+
+    static class StatisticsEpsDataDebugItemGenerator implements Generator
+    {
+        @Override
+        public String getFilename()
+        {
+            return "statistics-eps.csv";
+        }
+
+        @Override
+        public void outputItem( final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream )
+                throws Exception
+        {
+            final StatisticsManager statsManager = pwmApplication.getStatisticsManager();
+            final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
+            {
+                final List<String> headerRow = new ArrayList<>();
+                headerRow.add( "Counter" );
+                headerRow.add( "Duration" );
+                headerRow.add( "Events/Second" );
+                csvPrinter.printComment( StringUtil.join( headerRow, "," ) );
+            }
+            for ( final EpsStatistic epsStatistic : EpsStatistic.values() )
+            {
+                for ( final Statistic.EpsDuration epsDuration : Statistic.EpsDuration.values() )
+                {
+                    try
+                    {
+                        final List<String> dataRow = new ArrayList<>();
+                        final BigDecimal value = statsManager.readEps( epsStatistic, epsDuration );
+                        final String sValue = value.toPlainString();
+                        dataRow.add( epsStatistic.getLabel( PwmConstants.DEFAULT_LOCALE ) );
+                        dataRow.add( epsDuration.getTimeDuration().asCompactString() );
+                        dataRow.add( sValue );
+                        csvPrinter.printRecord( dataRow );
+                    }
+                    catch ( Exception e )
+                    {
+                        LOGGER.trace( () -> "error generating csv-stats summary info: " + e.getMessage() );
+                    }
+                }
+            }
+            csvPrinter.flush();
         }
     }
 

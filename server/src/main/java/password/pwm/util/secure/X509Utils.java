@@ -302,7 +302,7 @@ public abstract class X509Utils
                 {
                     try
                     {
-                        LOGGER.warn( sessionLabel, "blind trusting certificate during authType=" + authType + ", subject=" + cert.getSubjectDN().toString() );
+                        LOGGER.debug( sessionLabel, () -> "promiscuous trusting certificate during authType=" + authType + ", subject=" + cert.getSubjectDN().toString() );
                     }
                     catch ( Exception e )
                     {

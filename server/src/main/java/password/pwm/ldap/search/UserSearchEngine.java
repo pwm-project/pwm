@@ -46,7 +46,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
@@ -533,7 +533,7 @@ public class UserSearchEngine implements PwmService
 
         if ( pwmApplication.getStatisticsManager() != null && pwmApplication.getStatisticsManager().status() == PwmService.STATUS.OPEN )
         {
-            pwmApplication.getStatisticsManager().updateAverageValue( Statistic.AVG_LDAP_SEARCH_TIME, searchDuration.asMillis() );
+            pwmApplication.getStatisticsManager().updateAverageValue( AvgStatistic.AVG_LDAP_SEARCH_TIME, searchDuration.asMillis() );
         }
 
         if ( results.isEmpty() )
