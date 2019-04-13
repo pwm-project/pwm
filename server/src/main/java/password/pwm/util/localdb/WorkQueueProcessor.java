@@ -72,12 +72,12 @@ public final class WorkQueueProcessor<W extends Serializable>
 
     private volatile WorkerThread workerThread;
 
-    private final AtomicLoopIntIncrementer idGenerator = new AtomicLoopIntIncrementer( 0 );
+    private final AtomicLoopIntIncrementer idGenerator = new AtomicLoopIntIncrementer();
     private Instant eldestItem = null;
 
     private ThreadPoolExecutor executorService;
 
-    private final EventRateMeter.MovingAverage avgLagTime = new EventRateMeter.MovingAverage( 60 * 60 * 1000 );
+    private final EventRateMeter.MovingAverage avgLagTime = new EventRateMeter.MovingAverage( TimeDuration.HOUR );
     private final EventRateMeter sendRate = new EventRateMeter( TimeDuration.HOUR );
 
     private final AtomicInteger preQueueSubmit = new AtomicInteger( 0 );

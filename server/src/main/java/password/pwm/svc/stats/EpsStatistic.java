@@ -37,7 +37,8 @@ public enum EpsStatistic
     PWMDB_WRITES(),
     PWMDB_READS(),
     DB_WRITES(),
-    DB_READS(),;
+    DB_READS(),
+    LDAP_BINDS,;
 
     public String getLabel( final Locale locale )
     {

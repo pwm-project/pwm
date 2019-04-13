@@ -22,10 +22,13 @@
 
 package password.pwm.http;
 
+import com.novell.ldapchai.util.StringHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.stats.EpsStatistic;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletContextEvent;
@@ -34,6 +37,9 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionActivationListener;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -82,17 +88,21 @@ public class HttpEventManager implements
         {
             if ( httpSession.getAttribute( PwmConstants.SESSION_ATTR_PWM_SESSION ) != null )
             {
+                String debugMsg = "destroyed session";
                 final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( httpSession );
                 if ( pwmSession != null )
                 {
+                    debugMsg += ": " + makeSessionDestroyedDebugMsg( pwmSession );
                     pwmSession.unauthenticateUser( null );
                 }
+
                 final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
                 if ( pwmApplication != null )
                 {
                     pwmApplication.getSessionTrackService().removeSessionData( pwmSession );
                 }
-                LOGGER.trace( pwmSession, () -> "destroyed session" );
+                final String outputMsg = debugMsg;
+                LOGGER.trace( pwmSession, () -> outputMsg );
             }
             else
             {
@@ -179,6 +189,20 @@ public class HttpEventManager implements
         {
             LOGGER.error( "unable to activate (de-passivate) session: " + e.getMessage() );
         }
+    }
+
+    private static String makeSessionDestroyedDebugMsg( final PwmSession pwmSession )
+    {
+        final LocalSessionStateBean sessionStateBean = pwmSession.getSessionStateBean();
+        final Map<String, String> debugItems = new LinkedHashMap<>();
+        debugItems.put( "requests", sessionStateBean.getRequestCount().toString() );
+        final Instant startTime = sessionStateBean.getSessionCreationTime();
+        final Instant lastAccessedTime = sessionStateBean.getSessionLastAccessedTime();
+        final TimeDuration timeDuration = TimeDuration.between( startTime, lastAccessedTime );
+        debugItems.put( "firstToLastRequestInterval", timeDuration.asCompactString() );
+        final TimeDuration avgReqDuration = TimeDuration.of( sessionStateBean.getAvgRequestDuration().getLastMillis(), TimeDuration.Unit.MILLISECONDS );
+        debugItems.put( "avgRequestDuration", avgReqDuration.asCompactString() );
+        return StringHelper.stringMapToString( debugItems, "," );
     }
 }
 

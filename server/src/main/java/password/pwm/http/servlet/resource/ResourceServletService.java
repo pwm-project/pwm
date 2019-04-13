@@ -202,7 +202,7 @@ public class ResourceServletService implements PwmService
                         {
                             for ( final FileSystemUtility.FileSummaryInformation fileSummaryInformation : FileSystemUtility.readFileInformation( resourcePath ) )
                             {
-                                checksumStream.write( ( fileSummaryInformation.getSha1sum() ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+                                checksumStream.write( JavaHelper.longToBytes( fileSummaryInformation.getChecksum() ) );
                             }
                         }
                     }

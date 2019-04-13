@@ -87,7 +87,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     private AuthenticationStrategy strategy = AuthenticationStrategy.BIND;
     private Instant startTime;
 
-    private static final AtomicLoopIntIncrementer OPERATION_COUNTER = new AtomicLoopIntIncrementer( 0 );
+    private static final AtomicLoopIntIncrementer OPERATION_COUNTER = new AtomicLoopIntIncrementer();
     private final int operationNumber;
 
 

@@ -55,6 +55,7 @@ import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
+import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.i18n.LocaleHelper;
@@ -605,7 +606,7 @@ public class LdapOperationsHelper
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        return createChaiProvider(
+        final ChaiProvider chaiProvider = createChaiProvider(
                 pwmApplication.getLdapConnectionService().getChaiProviderFactory(),
                 sessionLabel,
                 ldapProfile,
@@ -613,6 +614,10 @@ public class LdapOperationsHelper
                 userDN,
                 userPassword
         );
+
+        pwmApplication.getStatisticsManager().updateEps( EpsStatistic.LDAP_BINDS, 1 );
+
+        return chaiProvider;
     }
 
     public static ChaiProvider createChaiProvider(

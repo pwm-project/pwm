@@ -86,7 +86,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class DebugItemGenerator
+class DebugItemGenerator
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( DebugItemGenerator.class );
 
@@ -463,7 +463,7 @@ public class DebugItemGenerator
                     headerRow.add( "Filename" );
                     headerRow.add( "Last Modified" );
                     headerRow.add( "Size" );
-                    headerRow.add( "sha1sum" );
+                    headerRow.add( "Checksum" );
                     csvPrinter.printComment( StringUtil.join( headerRow, "," ) );
                 }
                 for ( final FileSystemUtility.FileSummaryInformation fileSummaryInformation : fileSummaryInformations )
@@ -475,7 +475,7 @@ public class DebugItemGenerator
                         dataRow.add( fileSummaryInformation.getFilename() );
                         dataRow.add( JavaHelper.toIsoDate( fileSummaryInformation.getModified() ) );
                         dataRow.add( String.valueOf( fileSummaryInformation.getSize() ) );
-                        dataRow.add( fileSummaryInformation.getSha1sum() );
+                        dataRow.add( Long.toString( fileSummaryInformation.getChecksum() ) );
                         csvPrinter.printRecord( dataRow );
                     }
                     catch ( Exception e )
@@ -501,7 +501,8 @@ public class DebugItemGenerator
                 final PwmApplication pwmApplication,
                 final PwmRequest pwmRequest,
                 final OutputStream outputStream
-        ) throws Exception
+        )
+                throws Exception
         {
 
             final int maxCount = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.CONFIG_MANAGER_ZIPDEBUG_MAXLOGLINES ) );
@@ -512,25 +513,23 @@ public class DebugItemGenerator
                     .maxQueryTime( TimeDuration.of( maxSeconds, TimeDuration.Unit.SECONDS ) )
                     .build();
 
-            final LocalDBSearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents(
-                    searchParameters );
-            int counter = 0;
-            while ( searchResults.hasNext() )
-            {
-                final PwmLogEvent event = searchResults.next();
-                outputStream.write( event.toLogString().getBytes( PwmConstants.DEFAULT_CHARSET ) );
-                outputStream.write( "\n".getBytes( PwmConstants.DEFAULT_CHARSET ) );
-                counter++;
-                if ( counter % 1000 == 0 )
-                {
-                    outputStream.flush();
-                }
-            }
+            final LocalDBSearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents( searchParameters );
 
+            final Writer writer = new OutputStreamWriter( outputStream, PwmConstants.DEFAULT_CHARSET );
             {
-                final int finalCounter = counter;
-                LOGGER.trace( () -> "output " + finalCounter + " lines to " + this.getFilename() );
+                while ( searchResults.hasNext() )
+                {
+                    final PwmLogEvent event = searchResults.next();
+                    writer.write( event.toLogString() );
+                    writer.write( "\n" );
+                }
+
+                final String outputMsg = "debug output " + searchResults.getReturnedEvents() + " lines in " + searchResults.getSearchTime().asCompactString();
+                writer.write( "\n#" + outputMsg + "\n" );
+                LOGGER.trace( () ->  outputMsg );
             }
+            // do not writer because underlying stream should not be closed.
+            writer.flush();
         }
     }
 
