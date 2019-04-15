@@ -59,9 +59,8 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class ContextManager implements Serializable
 {
@@ -76,8 +75,8 @@ public class ContextManager implements Serializable
     private ErrorInformation startupErrorInformation;
 
     private final AtomicInteger restartCount = new AtomicInteger( 0 );
-    private TimeDuration readApplicationLockMaxWait = TimeDuration.SECONDS_30;
-    private final Lock restartLock = new ReentrantLock();
+    private TimeDuration readApplicationLockMaxWait = TimeDuration.of( 10, TimeDuration.Unit.SECONDS );
+    private final AtomicBoolean restartInProgressFlag = new AtomicBoolean();
 
     private String contextPath;
     private File applicationPath;
@@ -143,42 +142,32 @@ public class ContextManager implements Serializable
     public PwmApplication getPwmApplication( )
             throws PwmUnrecoverableException
     {
-        PwmApplication localApplication = this.pwmApplication;
+        final Instant startTime = Instant.now();
+        PwmApplication localApplication = pwmApplication;
 
-        if ( localApplication == null )
+        while (
+                ( restartInProgressFlag.get() || pwmApplication == null )
+                        &&  TimeDuration.fromCurrent( startTime ).isShorterThan( readApplicationLockMaxWait )
+        )
         {
-            try
-            {
-                final Instant startTime = Instant.now();
-                final boolean hasLock = restartLock.tryLock( readApplicationLockMaxWait.asMillis(), TimeUnit.MILLISECONDS );
-                if ( hasLock )
-                {
-                    localApplication = this.pwmApplication;
-                    if ( localApplication == null )
-                    {
-                        LOGGER.trace( () -> "could not read pwmApplication after waiting " + TimeDuration.compactFromCurrent( startTime ) );
-                    }
-                    else
-                    {
-                        LOGGER.trace( () -> "waited " + TimeDuration.compactFromCurrent( startTime )
-                                + " to read pwmApplication due to restart in progress" );
-                    }
-                }
-            }
-            catch ( InterruptedException e )
-            {
-                LOGGER.warn( "getPwmApplication restartLock unexpectedly interrupted" );
-            }
-            finally
-            {
-                restartLock.unlock();
-            }
+            TimeDuration.SECOND.pause();
+            localApplication = pwmApplication;
         }
 
         if ( localApplication != null )
         {
+            if ( TimeDuration.fromCurrent( startTime ).isLongerThan( TimeDuration.SECOND ) )
+            {
+                LOGGER.trace( () -> "waited " + TimeDuration.compactFromCurrent( startTime )
+                        + " to read pwmApplication due to restart in progress" );
+            }
             return localApplication;
         }
+        else
+        {
+            LOGGER.trace( () -> "could not read pwmApplication after waiting " + TimeDuration.compactFromCurrent( startTime ) );
+        }
+
 
         final ErrorInformation errorInformation;
         if ( startupErrorInformation != null )
@@ -484,6 +473,11 @@ public class ContextManager implements Serializable
         {
             final Instant startTime = Instant.now();
 
+            if ( restartInProgressFlag.get() )
+            {
+                return;
+            }
+
             if ( configReader != null && configReader.isSaveInProgress() )
             {
                 final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
@@ -492,12 +486,13 @@ public class ContextManager implements Serializable
                 return;
             }
 
-            restartLock.lock();
             final PwmApplication oldPwmApplication = pwmApplication;
             pwmApplication = null;
 
             try
             {
+                restartInProgressFlag.set( true );
+
                 waitForRequestsToComplete( oldPwmApplication );
 
                 {
@@ -542,7 +537,7 @@ public class ContextManager implements Serializable
             }
             finally
             {
-                restartLock.unlock();
+                restartInProgressFlag.set( false );
             }
         }
 
@@ -551,22 +546,22 @@ public class ContextManager implements Serializable
             final Instant startTime = Instant.now();
             final TimeDuration maxRequestWaitTime = TimeDuration.of(
                     Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_RESTART_MAX_REQUEST_WAIT_MS ) ),
-                    TimeDuration.Unit.SECONDS );
-            final int startingRequetsInProgress = pwmApplication.getInprogressRequests().get();
+                    TimeDuration.Unit.MILLISECONDS );
+            final int startingRequestInProgress = pwmApplication.getInprogressRequests().get();
 
-            if ( startingRequetsInProgress == 0 )
+            if ( startingRequestInProgress == 0 )
             {
                 return;
             }
 
             LOGGER.trace( () -> "waiting up to " + maxRequestWaitTime.asCompactString()
-                    + " for " + startingRequetsInProgress  + " requests to complete." );
+                    + " for " + startingRequestInProgress  + " requests to complete." );
             maxRequestWaitTime.pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> pwmApplication.getInprogressRequests().get() == 0
             );
 
-            final int requestsInPrgoress = pwmApplication.getInprogressRequests().get();
+            final int requestsInProgress = pwmApplication.getInprogressRequests().get();
             final TimeDuration waitTime = TimeDuration.fromCurrent( startTime  );
-            LOGGER.trace( () -> "after " + waitTime.asCompactString() + ", " + requestsInPrgoress
+            LOGGER.trace( () -> "after " + waitTime.asCompactString() + ", " + requestsInProgress
                     + " requests in progress, proceeding with restart" );
         }
     }
