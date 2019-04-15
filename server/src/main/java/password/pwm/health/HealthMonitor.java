@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -370,11 +371,16 @@ public class HealthMonitor implements PwmService
 
             FileSystemUtility.rotateBackups( supportFile, rotationCount );
 
-            try ( ZipOutputStream zipOutputStream = new ZipOutputStream( new FileOutputStream( supportFile ) ) )
+            final File newSupportFile = new File ( supportFile.getPath() + ".new" );
+            Files.deleteIfExists( newSupportFile.toPath() );
+
+            try ( ZipOutputStream zipOutputStream = new ZipOutputStream( new FileOutputStream( newSupportFile ) ) )
             {
                 LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "beginning periodic support bundle filesystem output" );
                 debugItemGenerator.outputZipDebugFile( zipOutputStream );
             }
+
+            Files.move( newSupportFile.toPath(), supportFile.toPath() );
         }
     }
 }
