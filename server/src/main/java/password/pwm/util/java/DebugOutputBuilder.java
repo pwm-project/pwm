@@ -20,31 +20,24 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet.resource;
+package password.pwm.util.java;
 
-import password.pwm.http.bean.ImmutableByteArray;
+import java.time.Instant;
 
-import java.io.Serializable;
-import java.util.Map;
-
-final class CacheEntry implements Serializable
+public class DebugOutputBuilder
 {
-    private final ImmutableByteArray entity;
-    private final Map<String, String> headerStrings;
+    private final StringBuilder stringBuilder = new StringBuilder();
 
-    CacheEntry( final byte[] entity, final Map<String, String> headerStrings )
+    public void appendLine( final CharSequence charSequence )
     {
-        this.entity = ImmutableByteArray.of( entity );
-        this.headerStrings = headerStrings;
+        stringBuilder.append( JavaHelper.toIsoDate( Instant.now() ) );
+        stringBuilder.append( " " );
+        stringBuilder.append( charSequence );
+        stringBuilder.append( "\n" );
     }
 
-    public byte[] getEntity( )
+    public String toString()
     {
-        return entity.copyOf();
-    }
-
-    public Map<String, String> getHeaderStrings( )
-    {
-        return headerStrings;
+        return stringBuilder.toString();
     }
 }

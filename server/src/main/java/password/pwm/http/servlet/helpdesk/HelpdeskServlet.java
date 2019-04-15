@@ -1390,7 +1390,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
             resp.setContentType( photoData.getMimeType() );
 
-            outputStream.write( photoData.getContents().getBytes() );
+            outputStream.write( photoData.getContents().copyOf() );
         }
         return ProcessStatus.Halt;
     }

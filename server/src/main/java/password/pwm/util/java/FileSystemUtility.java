@@ -23,6 +23,7 @@
 package password.pwm.util.java;
 
 import lombok.Value;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
@@ -56,7 +57,6 @@ public class FileSystemUtility
     private static final AtomicLoopIntIncrementer OP_COUNTER = new AtomicLoopIntIncrementer();
 
     public static List<FileSummaryInformation> readFileInformation( final File rootFile )
-            throws PwmUnrecoverableException, IOException
     {
         final Instant startTime = Instant.now();
         final int operation = OP_COUNTER.next();
@@ -73,6 +73,7 @@ public class FileSystemUtility
         debugInfo.put( "bytes", StringUtil.formatDiskSizeforDebug( byteCount.get() ) );
         debugInfo.put( "files", Integer.toString( fileCount.get() ) );
         debugInfo.put( "duration", TimeDuration.compactFromCurrent( startTime ) );
+        LOGGER.trace( () -> "completed file summary load for file '" + rootFile.getAbsolutePath() + ", " + StringUtil.mapToString( debugInfo ) );
         return fileSummaryInformations;
     }
 
@@ -93,14 +94,18 @@ public class FileSystemUtility
 
             if ( theFile.isDirectory() )
             {
-                final List<RecursiveFileReaderTask> tasks = new ArrayList<>();
-                for ( final File file : theFile.listFiles() )
+                final File[] subFiles = theFile.listFiles();
+                if ( subFiles != null )
                 {
-                    final RecursiveFileReaderTask newTask = new RecursiveFileReaderTask( file );
-                    newTask.fork();
-                    tasks.add( newTask );
+                    final List<RecursiveFileReaderTask> tasks = new ArrayList<>();
+                    for ( final File file : subFiles )
+                    {
+                        final RecursiveFileReaderTask newTask = new RecursiveFileReaderTask( file );
+                        newTask.fork();
+                        tasks.add( newTask );
+                    }
+                    tasks.forEach( recursiveFileReaderTask -> results.addAll( recursiveFileReaderTask.join() ) );
                 }
-                tasks.forEach( recursiveFileReaderTask -> results.addAll( recursiveFileReaderTask.join() ) );
             }
             else
             {
@@ -119,7 +124,7 @@ public class FileSystemUtility
     }
 
     private static FileSummaryInformation fileInformationForFile( final File file )
-            throws PwmUnrecoverableException, IOException
+            throws IOException
     {
         if ( file == null || !file.exists() )
         {
@@ -254,7 +259,7 @@ public class FileSystemUtility
         deleteDirectoryContents( path, false );
     }
 
-    public static void deleteDirectoryContents( final File path, final boolean deleteThisLevel )
+    private static void deleteDirectoryContents( final File path, final boolean deleteThisLevel )
             throws IOException
     {
         if ( !path.exists() )
@@ -308,5 +313,21 @@ public class FileSystemUtility
         }
 
         return crc32.getValue();
+    }
+
+    public static void mkdirs( final File file )
+            throws PwmUnrecoverableException
+    {
+        if ( !file.exists() )
+        {
+            if ( !file.mkdirs() )
+            {
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unable to create directory: " + file.getAbsolutePath() );
+            }
+        }
+        else if ( !file.isDirectory() )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unable to create directory, file already exists: " + file.getAbsolutePath() );
+        }
     }
 }

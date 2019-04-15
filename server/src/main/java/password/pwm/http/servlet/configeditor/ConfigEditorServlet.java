@@ -776,7 +776,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 }
 
                 final Map<String, PwmRequest.FileUploadItem> fileUploads = pwmRequest.readFileUploads( maxFileSize, 1 );
-                final ByteArrayInputStream fileIs = new ByteArrayInputStream( fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD ).getContent().getBytes() );
+                final ByteArrayInputStream fileIs = new ByteArrayInputStream( fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD ).getContent().copyOf() );
 
                 HttpsServerCertificateManager.importKey(
                         configManagerBean.getStoredConfiguration(),

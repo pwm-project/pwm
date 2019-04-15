@@ -215,7 +215,7 @@ public class TelemetryService implements PwmService
     private void scheduleNextJob( )
     {
         final TimeDuration durationUntilNextPublish = durationUntilNextPublish();
-        pwmApplication.getPwmScheduler().scheduleFutureJob( new PublishJob(), executorService, durationUntilNextPublish );
+        pwmApplication.getPwmScheduler().scheduleJob( new PublishJob(), executorService, durationUntilNextPublish );
         LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "next publish time: " + durationUntilNextPublish().asCompactString() );
     }
 

@@ -1044,7 +1044,7 @@ public class LdapOperationsHelper
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, "error reading user photo ldap attribute: " + e.getMessage() ) );
         }
-        return new PhotoDataBean( mimeType, new ImmutableByteArray( photoData ) );
+        return new PhotoDataBean( mimeType, ImmutableByteArray.of( photoData ) );
     }
 
 

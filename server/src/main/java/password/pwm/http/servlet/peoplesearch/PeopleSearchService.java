@@ -42,7 +42,7 @@ public class PeopleSearchService implements PwmService
     @Override
     public STATUS status()
     {
-        return null;
+        return STATUS.OPEN;
     }
 
     @Override

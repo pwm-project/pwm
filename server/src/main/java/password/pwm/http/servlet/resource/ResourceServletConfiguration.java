@@ -196,7 +196,7 @@ class ResourceServletConfiguration
     private static Map<String, FileResource> makeMemoryFileMapFromZipInput( final ImmutableByteArray content )
             throws IOException
     {
-        final ZipInputStream stream = new ZipInputStream( new ByteArrayInputStream( content.getBytes() ) );
+        final ZipInputStream stream = new ZipInputStream( new ByteArrayInputStream( content.copyOf() ) );
         final Map<String, FileResource> memoryMap = new HashMap<>();
 
         ZipEntry entry;
@@ -208,7 +208,7 @@ class ResourceServletConfiguration
                 final long lastModified = entry.getTime();
                 final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 IOUtils.copy( stream, byteArrayOutputStream );
-                final ImmutableByteArray contents = new ImmutableByteArray( byteArrayOutputStream.toByteArray() );
+                final ImmutableByteArray contents = ImmutableByteArray.of( byteArrayOutputStream.toByteArray() );
                 memoryMap.put( name, new MemoryFileResource( name, contents, lastModified ) );
                 {
                     final String finalEntry = entry.getName();

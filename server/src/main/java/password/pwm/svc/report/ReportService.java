@@ -398,7 +398,7 @@ public class ReportService implements PwmService
                         if ( executorService != null )
                         {
                             LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "directory unavailable error during background SearchLDAP, will retry; error: " + e.getMessage() );
-                            pwmApplication.getPwmScheduler().scheduleFutureJob( new ReadLDAPTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
+                            pwmApplication.getPwmScheduler().scheduleJob( new ReadLDAPTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                             errorProcessed = true;
                         }
                     }
@@ -477,7 +477,7 @@ public class ReportService implements PwmService
                         if ( executorService != null )
                         {
                             LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "directory unavailable error during background ReadData, will retry; error: " + e.getMessage() );
-                            pwmApplication.getPwmScheduler().scheduleFutureJob( new ProcessWorkQueueTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
+                            pwmApplication.getPwmScheduler().scheduleJob( new ProcessWorkQueueTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                         }
                     }
                     else

@@ -77,7 +77,7 @@ public class DBConfiguration implements Serializable
         if ( fileValue != null && !fileValue.isEmpty() )
         {
             final FileValue.FileContent fileContent = fileValue.values().iterator().next();
-            jdbcDriverBytes = fileContent.getContents().getBytes();
+            jdbcDriverBytes = fileContent.getContents().copyOf();
         }
         else
         {
