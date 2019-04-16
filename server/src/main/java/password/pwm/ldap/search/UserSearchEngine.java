@@ -66,6 +66,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -558,21 +559,39 @@ public class UserSearchEngine implements PwmService
     private void validateSpecifiedContext( final LdapProfile profile, final String context )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final Map<String, String> selectableContexts = profile.getSelectableContexts( pwmApplication );
-        if ( selectableContexts == null || selectableContexts.isEmpty() )
-        {
-            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "context specified, but no selectable contexts are configured" );
-        }
+        Objects.requireNonNull( profile, "ldapProfile can not be null for ldap search context validation" );
+        Objects.requireNonNull( context, "context can not be null for ldap search context validation" );
 
-        for ( final String loopContext : selectableContexts.keySet() )
+        final String canonicalContext = profile.readCanonicalDN( pwmApplication, context );
+
         {
-            if ( loopContext.equals( context ) )
+            final Map<String, String> selectableContexts = profile.getSelectableContexts( pwmApplication );
+            if ( !JavaHelper.isEmpty( selectableContexts ) && selectableContexts.containsKey( canonicalContext ) )
             {
+                // config pre-validates selectable contexts so this should be permitted
                 return;
             }
         }
 
-        throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "context '" + context + "' is specified, but is not in configuration" );
+        {
+            final List<String> rootContexts = profile.getRootContexts( pwmApplication );
+            if ( !JavaHelper.isEmpty( rootContexts ) )
+            {
+                for ( final String rootContext : rootContexts )
+                {
+                    if ( canonicalContext.endsWith( rootContext ) )
+                    {
+                        return;
+                    }
+                }
+
+                final String msg = "specified search context '" + canonicalContext + "' is not contained by a configured root context";
+                throw new PwmUnrecoverableException( PwmError.CONFIG_FORMAT_ERROR, msg );
+            }
+        }
+
+        final String msg = "specified search context '" + canonicalContext + "', but no selectable contexts or root are configured";
+        throw new PwmOperationalException( PwmError.ERROR_INTERNAL, msg );
     }
 
     private boolean checkIfStringIsDN(
