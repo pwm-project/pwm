@@ -66,6 +66,7 @@ public class LocalSessionStateBean implements Serializable
 
     private boolean passwordModified;
     private boolean privateUrlAccessed;
+    private boolean captchaBypassedViaParameter;
 
     private final AtomicInteger intruderAttempts = new AtomicInteger( 0 );
     private final AtomicInteger requestCount = new AtomicInteger( 0 );

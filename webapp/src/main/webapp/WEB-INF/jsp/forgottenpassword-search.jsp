@@ -58,7 +58,6 @@
                     </button>
                 </pwm:if>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                <input type="hidden" name="skipCaptcha" value="${param.skipCaptcha}"/>
             </div>
         </form>
     </div>

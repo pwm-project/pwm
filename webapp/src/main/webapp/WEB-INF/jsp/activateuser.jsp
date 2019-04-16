@@ -50,7 +50,6 @@
                 <input type="hidden" name="processAction" value="activate"/>
                 <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                <input type="hidden" name="skipCaptcha" value="${param.skipCaptcha}"/>
             </div>
         </form>
     </div>
