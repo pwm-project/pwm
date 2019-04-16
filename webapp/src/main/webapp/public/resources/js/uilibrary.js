@@ -454,12 +454,12 @@ UILibrary.uploadFileDialog = function(options) {
     body += '<div id="fileList"></div>';
     body += '<input style="width:80%" class="btn" name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
     body += '<div class="buttonbar">';
-    body += '<button class="btn" type="button" id="uploadButton" name="Upload" disabled><span class="pwm-icon pwm-icon-upload"></span> Upload</button>';
-    body += '</div></div>';
+    body += '<button class="btn" type="button" id="uploadButton" name="Upload" disabled><span class="pwm-icon pwm-icon-upload"></span>';
+    body +=  PWM_MAIN.showString('Button_Upload') + '</button></div></div>';
 
     var currentUrl = window.location.pathname;
     var uploadUrl = 'url' in options ? options['url'] : currentUrl;
-    var title = 'title' in options ? options['title'] : 'Upload File';
+    var title = 'title' in options ? options['title'] : PWM_MAIN.showString('Title_Upload');
 
     uploadUrl = PWM_MAIN.addPwmFormIDtoURL(uploadUrl);
 

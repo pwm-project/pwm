@@ -122,7 +122,13 @@ public class SetupResponsesServlet extends ControlledPwmServlet
 
     private SetupResponsesBean getSetupResponseBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, SetupResponsesBean.class );
+        final SetupResponsesBean setupResponsesBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, SetupResponsesBean.class );
+        if ( !setupResponsesBean.isInitialized() )
+        {
+            initializeBean( pwmRequest, setupResponsesBean );
+        }
+        return setupResponsesBean;
+
     }
 
     @Override
@@ -130,7 +136,6 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final SetupResponsesBean setupResponsesBean = getSetupResponseBean( pwmRequest );
 
         if ( !pwmSession.isAuthenticated() )
         {
@@ -161,10 +166,10 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             pwmApplication.getSessionStateService().getBean( pwmRequest, SetupResponsesBean.class ).setUserLocale( pwmSession.getSessionStateBean().getLocale() );
         }
 
-        initializeBean( pwmRequest, setupResponsesBean );
-
         // check to see if the user has any challenges assigned
         final UserInfo uiBean = pwmSession.getUserInfo();
+        final SetupResponsesBean setupResponsesBean = getSetupResponseBean( pwmRequest );
+
         if ( setupResponsesBean.getResponseData().getChallengeSet() == null || setupResponsesBean.getResponseData().getChallengeSet().getChallenges().isEmpty() )
         {
             final String errorMsg = "no challenge sets configured for user " + uiBean.getUserIdentity();

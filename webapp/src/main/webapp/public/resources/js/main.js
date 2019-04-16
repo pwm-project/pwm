@@ -285,9 +285,10 @@ PWM_MAIN.applyFormAttributes = function() {
     require(["dojo"], function (dojo) {
         if(dojo.isIE){
             PWM_MAIN.doQuery("button[type=submit][form]",function(element){
-                PWM_MAIN.log('added event handler for submit button with form attribute ' + element.id);
+                PWM_MAIN.log('added IE event handler for submit button with form attribute ' + element.id);
                 PWM_MAIN.addEventHandler(element,'click',function(e){
-                    PWM_MAIN.stopEvent(e);
+                    e.preventDefault();
+                    PWM_MAIN.log('IE event handler intercepted submit for referenced form attribute ' + element.id);
                     var formID = element.getAttribute('form');
                     PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject(formID));
                 });
@@ -424,11 +425,13 @@ PWM_MAIN.handleFormSubmit = function(form, event) {
     PWM_MAIN.cancelEvent(event);
 
     PWM_GLOBAL['idle_suspendTimeout'] = true;
-    var formElements = form.elements;
-    for (var i = 0; i < formElements.length; i++) {
-        formElements[i].readOnly = true;
-        if (formElements[i].type === 'button' || formElements[i].type === 'submit') {
-            formElements[i].disabled = true;
+    if ( form.elements ) {
+        var formElements = form.elements;
+        for (var i = 0; i < formElements.length; i++) {
+            formElements[i].readOnly = true;
+            if (formElements[i].type === 'button' || formElements[i].type === 'submit') {
+                formElements[i].disabled = true;
+            }
         }
     }
 
