@@ -396,7 +396,8 @@ public class PasswordUtility
 
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(
                     pwmApplication,
-                    passwordPolicy
+                    passwordPolicy,
+                    PwmPasswordRuleValidator.Flag.BypassLdapRuleCheck
             );
 
             pwmPasswordRuleValidator.testPassword( newPassword, null, userInfo, theUser );

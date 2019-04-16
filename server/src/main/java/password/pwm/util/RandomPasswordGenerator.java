@@ -197,7 +197,7 @@ public class RandomPasswordGenerator
         password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
 
         // read a rule validator
-        final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmApplication, randomGenPolicy );
+
 
         // modify until it passes all the rules
         final int maxTryCount = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_ATTEMPTS ) );
@@ -214,8 +214,9 @@ public class RandomPasswordGenerator
                 password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
             }
 
+            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmApplication, randomGenPolicy, PwmPasswordRuleValidator.Flag.FailFast );
             final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(
-                    password.toString(), null, null, PwmPasswordRuleValidator.Flag.FailFast );
+                    password.toString(), null, null );
             if ( errors != null && !errors.isEmpty() )
             {
                 validPassword = false;
@@ -232,6 +233,7 @@ public class RandomPasswordGenerator
         // report outcome
         {
             final TimeDuration td = TimeDuration.fromCurrent( startTime );
+            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmApplication, randomGenPolicy );
             if ( validPassword )
             {
                 final int finalTryCount = tryCount;
