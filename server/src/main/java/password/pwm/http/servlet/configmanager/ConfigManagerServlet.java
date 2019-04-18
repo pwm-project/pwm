@@ -372,39 +372,20 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     }
 
     private void doGenerateSupportZip( final PwmRequest pwmRequest )
-            throws IOException, ServletException
+            throws IOException, PwmUnrecoverableException
     {
+        final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel() );
         final PwmResponse resp = pwmRequest.getPwmResponse();
         resp.setHeader( HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip" );
         resp.setContentType( HttpContentType.zip );
-
-        final String pathPrefix = PwmConstants.PWM_APP_NAME + "-Support" + "/";
-
-        ZipOutputStream zipOutput = null;
-        try
+        try ( ZipOutputStream zipOutput = new ZipOutputStream( resp.getOutputStream(), PwmConstants.DEFAULT_CHARSET ) )
         {
-            zipOutput = new ZipOutputStream( resp.getOutputStream(), PwmConstants.DEFAULT_CHARSET );
-            DebugItemGenerator.outputZipDebugFile( pwmRequest, zipOutput, pathPrefix );
+            debugItemGenerator.outputZipDebugFile( zipOutput );
         }
         catch ( Exception e )
         {
             LOGGER.error( pwmRequest, "error during zip debug building: " + e.getMessage() );
         }
-        finally
-        {
-            if ( zipOutput != null )
-            {
-                try
-                {
-                    zipOutput.close();
-                }
-                catch ( Exception e )
-                {
-                    LOGGER.error( pwmRequest, "error during zip debug closing: " + e.getMessage() );
-                }
-            }
-        }
-
     }
 
 

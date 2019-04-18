@@ -67,7 +67,7 @@ import java.util.Locale;
 
 public abstract class RestServlet extends HttpServlet
 {
-    private static final AtomicLoopIntIncrementer REQUEST_COUNTER = new AtomicLoopIntIncrementer( Integer.MAX_VALUE );
+    private static final AtomicLoopIntIncrementer REQUEST_COUNTER = new AtomicLoopIntIncrementer();
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestServlet.class );
 

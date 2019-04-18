@@ -18,6 +18,15 @@
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
     </properties>
 
+    <profiles>
+        <profile>
+            <id>skip-frontend</id>
+            <properties>
+                <skip.npm>true</skip.npm>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>

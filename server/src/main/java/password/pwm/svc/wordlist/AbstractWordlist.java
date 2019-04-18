@@ -40,7 +40,6 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmHashAlgorithm;
 
 import java.io.InputStream;
 import java.time.Instant;
@@ -53,7 +52,6 @@ import java.util.function.BooleanSupplier;
 
 abstract class AbstractWordlist implements Wordlist, PwmService
 {
-    static final PwmHashAlgorithm CHECKSUM_HASH_ALG = PwmHashAlgorithm.SHA256;
     static final TimeDuration DEBUG_OUTPUT_FREQUENCY = TimeDuration.MINUTE;
 
     private WordlistConfiguration wordlistConfiguration;

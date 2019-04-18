@@ -57,7 +57,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
 
     WordlistZipReader( final InputStream inputStream ) throws PwmUnrecoverableException
     {
-        checksumInputStream = new ChecksumInputStream( AbstractWordlist.CHECKSUM_HASH_ALG, inputStream );
+        checksumInputStream = new ChecksumInputStream( inputStream );
         countingInputStream = new CountingInputStream( checksumInputStream );
 
         zipStream = new ZipInputStream( countingInputStream );
@@ -161,6 +161,6 @@ class WordlistZipReader implements AutoCloseable, Closeable
 
     String getChecksum()
     {
-        return JavaHelper.binaryArrayToHex( checksumInputStream.getInProgressChecksum() );
+        return JavaHelper.binaryArrayToHex( checksumInputStream.checksum().copyOf() );
     }
 }

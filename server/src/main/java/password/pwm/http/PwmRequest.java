@@ -270,7 +270,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
                     final FileUploadItem fileUploadItem = new FileUploadItem(
                             item.getName(),
                             item.getContentType(),
-                            new ImmutableByteArray( outputFile )
+                            ImmutableByteArray.of( outputFile )
                     );
                     returnObj.put( item.getFieldName(), fileUploadItem );
                 }

@@ -22,34 +22,21 @@
 
 package password.pwm.util.secure;
 
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.JavaHelper;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.zip.CRC32;
 
 public class ChecksumInputStream extends InputStream
 {
-    private final MessageDigest messageDigest;
+    private final CRC32 crc32 = new CRC32();
     private final InputStream wrappedStream;
 
-    public ChecksumInputStream( final PwmHashAlgorithm hash, final InputStream wrappedStream ) throws PwmUnrecoverableException
+    public ChecksumInputStream( final InputStream wrappedStream )
     {
         this.wrappedStream = wrappedStream;
-
-        try
-        {
-            messageDigest = MessageDigest.getInstance( hash.getAlgName() );
-        }
-        catch ( NoSuchAlgorithmException e )
-        {
-            final String errorMsg = "missing hash algorithm: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
     }
 
     @Override
@@ -58,7 +45,7 @@ public class ChecksumInputStream extends InputStream
         final int value = wrappedStream.read();
         if ( value >= 0 )
         {
-            messageDigest.update( ( byte ) value );
+            crc32.update( ( byte ) value );
         }
         return value;
     }
@@ -69,7 +56,7 @@ public class ChecksumInputStream extends InputStream
         final int length = wrappedStream.read( b );
         if ( length > 0 )
         {
-            messageDigest.update( b, 0, length );
+            crc32.update( b, 0, length );
         }
         return length;
     }
@@ -80,7 +67,7 @@ public class ChecksumInputStream extends InputStream
         final int length = wrappedStream.read( b, off, len );
         if ( length > 0 )
         {
-            messageDigest.update( b, off, length );
+            crc32.update( b, off, length );
         }
         return length;
     }
@@ -121,12 +108,12 @@ public class ChecksumInputStream extends InputStream
         return false;
     }
 
-    public byte[] getInProgressChecksum( )
+    public ImmutableByteArray checksum( )
     {
-        return messageDigest.digest();
+        return ImmutableByteArray.of( JavaHelper.longToBytes( crc32.getValue() ) );
     }
 
-    public byte[] closeAndFinalChecksum( ) throws IOException
+    public ImmutableByteArray readUntilEndAndChecksum( ) throws IOException
     {
         final byte[] buffer = new byte[ 1024 ];
 
@@ -135,6 +122,6 @@ public class ChecksumInputStream extends InputStream
             // read out the remainder of the stream contents
         }
 
-        return getInProgressChecksum();
+        return checksum();
     }
 }

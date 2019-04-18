@@ -25,9 +25,11 @@ package password.pwm.i18n;
 import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.PwmConstants;
+import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -48,13 +50,22 @@ public class AdminPropertyKeysTest
                     password.pwm.i18n.Admin.STATISTICS_DESCRIPTION_PREFIX + statistic.getKey(),
                     password.pwm.i18n.Admin.STATISTICS_LABEL_PREFIX + statistic.getKey(),
             };
-            for ( final String key : keys )
-            {
-                expectedKeys.add( key );
-                Assert.assertTrue(
-                        "Admin.properties missing record for " + key,
-                        resourceBundle.containsKey( key ) );
-            }
+            Collections.addAll( expectedKeys, keys );
+        }
+        for ( final AvgStatistic statistic : AvgStatistic.values() )
+        {
+            final String[] keys = new String[] {
+                    password.pwm.i18n.Admin.STATISTICS_DESCRIPTION_PREFIX + statistic.getKey(),
+                    password.pwm.i18n.Admin.STATISTICS_LABEL_PREFIX + statistic.getKey(),
+            };
+            Collections.addAll( expectedKeys, keys );
+        }
+
+        for ( final String key : expectedKeys )
+        {
+            Assert.assertTrue(
+                    "Admin.properties missing record for " + key,
+                    resourceBundle.containsKey( key ) );
         }
 
         final Set<String> extraKeys = new HashSet<>( resourceBundle.keySet() );

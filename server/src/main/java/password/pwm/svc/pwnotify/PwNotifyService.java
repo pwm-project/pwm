@@ -259,7 +259,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
         if ( !isRunning() )
         {
             nextExecutionTime = Instant.now();
-            pwmApplication.getPwmScheduler().scheduleFutureJob( new PwNotifyJob(), executorService, TimeDuration.ZERO );
+            pwmApplication.getPwmScheduler().scheduleJob( new PwNotifyJob(), executorService, TimeDuration.ZERO );
         }
     }
 

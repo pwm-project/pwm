@@ -45,6 +45,7 @@ public class SetupResponsesBean extends PwmSessionBean
     private boolean helpdeskResponsesSatisfied;
     private boolean confirmed;
     private Locale userLocale;
+    private boolean initialized;
 
     public Type getType( )
     {

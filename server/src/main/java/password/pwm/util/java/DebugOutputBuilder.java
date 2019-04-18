@@ -20,29 +20,24 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.stats;
+package password.pwm.util.java;
 
-import password.pwm.i18n.Admin;
-import password.pwm.util.i18n.LocaleHelper;
+import java.time.Instant;
 
-import java.util.Locale;
-
-public enum EpsStatistic
+public class DebugOutputBuilder
 {
-    REQUESTS(),
-    SESSIONS(),
-    PASSWORD_CHANGES(),
-    AUTHENTICATION(),
-    INTRUDER_ATTEMPTS(),
-    PWMDB_WRITES(),
-    PWMDB_READS(),
-    DB_WRITES(),
-    DB_READS(),
-    LDAP_BINDS,;
+    private final StringBuilder stringBuilder = new StringBuilder();
 
-    public String getLabel( final Locale locale )
+    public void appendLine( final CharSequence charSequence )
     {
-        final String keyName = Admin.EPS_STATISTICS_LABEL_PREFIX + this.name();
-        return LocaleHelper.getLocalizedMessage( locale, keyName, null, Admin.class );
+        stringBuilder.append( JavaHelper.toIsoDate( Instant.now() ) );
+        stringBuilder.append( " " );
+        stringBuilder.append( charSequence );
+        stringBuilder.append( "\n" );
+    }
+
+    public String toString()
+    {
+        return stringBuilder.toString();
     }
 }

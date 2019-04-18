@@ -141,7 +141,7 @@ class WordlistSource
 
             inputStream = this.streamProvider.getInputStream();
 
-            final ChecksumInputStream checksumInputStream = new ChecksumInputStream( AbstractWordlist.CHECKSUM_HASH_ALG, inputStream );
+            final ChecksumInputStream checksumInputStream = new ChecksumInputStream( inputStream );
             final CountingInputStream countingInputStream = new CountingInputStream( checksumInputStream );
 
             final ConditionalTaskExecutor debugOutputter = new ConditionalTaskExecutor(
@@ -162,7 +162,7 @@ class WordlistSource
                 return null;
             }
 
-            final String hash = JavaHelper.binaryArrayToHex( checksumInputStream.closeAndFinalChecksum() );
+            final String hash = JavaHelper.binaryArrayToHex( checksumInputStream.readUntilEndAndChecksum().copyOf() );
 
             final WordlistSourceInfo wordlistSourceInfo = new WordlistSourceInfo(
                     hash,

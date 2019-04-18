@@ -76,6 +76,7 @@ import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
+import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.PasswordCharCounter;
@@ -395,7 +396,8 @@ public class PasswordUtility
 
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(
                     pwmApplication,
-                    passwordPolicy
+                    passwordPolicy,
+                    PwmPasswordRuleValidator.Flag.BypassLdapRuleCheck
             );
 
             pwmPasswordRuleValidator.testPassword( newPassword, null, userInfo, theUser );
@@ -465,7 +467,7 @@ public class PasswordUtility
         pwmApplication.getStatisticsManager().updateEps( EpsStatistic.PASSWORD_CHANGES, 1 );
 
         final int passwordStrength = PasswordUtility.judgePasswordStrength( pwmApplication.getConfig(), newPassword.getStringValue() );
-        pwmApplication.getStatisticsManager().updateAverageValue( Statistic.AVG_PASSWORD_STRENGTH, passwordStrength );
+        pwmApplication.getStatisticsManager().updateAverageValue( AvgStatistic.AVG_PASSWORD_STRENGTH, passwordStrength );
 
         // at this point the password has been changed, so log it.
         final String msg = ( bindIsSelf

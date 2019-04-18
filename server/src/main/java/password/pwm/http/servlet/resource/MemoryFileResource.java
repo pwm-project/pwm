@@ -43,12 +43,12 @@ class MemoryFileResource implements FileResource
 
     public InputStream getInputStream( ) throws IOException
     {
-        return new ByteArrayInputStream( contents.getBytes() );
+        return new ByteArrayInputStream( contents.copyOf() );
     }
 
     public long length( )
     {
-        return contents.getBytes().length;
+        return contents.copyOf().length;
     }
 
     public long lastModified( )

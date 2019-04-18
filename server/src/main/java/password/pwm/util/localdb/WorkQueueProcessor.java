@@ -29,7 +29,7 @@ import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.EventRateMeter;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
@@ -72,12 +72,12 @@ public final class WorkQueueProcessor<W extends Serializable>
 
     private volatile WorkerThread workerThread;
 
-    private final AtomicLoopIntIncrementer idGenerator = new AtomicLoopIntIncrementer( 0 );
+    private final AtomicLoopIntIncrementer idGenerator = new AtomicLoopIntIncrementer();
     private Instant eldestItem = null;
 
     private ThreadPoolExecutor executorService;
 
-    private final EventRateMeter.MovingAverage avgLagTime = new EventRateMeter.MovingAverage( 60 * 60 * 1000 );
+    private final EventRateMeter.MovingAverage avgLagTime = new EventRateMeter.MovingAverage( TimeDuration.HOUR );
     private final EventRateMeter sendRate = new EventRateMeter( TimeDuration.HOUR );
 
     private final AtomicInteger preQueueSubmit = new AtomicInteger( 0 );

@@ -86,7 +86,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
         }
         catch ( ChaiException e )
         {
-            throw new PwmUnrecoverableException( PwmError.ERROR_LDAP_DATA_ERROR, "error reading cluster data: " + e.getMessage() );
+            throw new PwmUnrecoverableException( PwmError.ERROR_LDAP_DATA_ERROR, "error reading node service data: " + e.getMessage() );
         }
 
         return returnData;
@@ -116,7 +116,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
         }
         catch ( ChaiException e )
         {
-            throw new PwmUnrecoverableException( PwmError.ERROR_LDAP_DATA_ERROR, "error writing cluster data: " + e.getMessage() );
+            throw new PwmUnrecoverableException( PwmError.ERROR_LDAP_DATA_ERROR, "error writing node service data: " + e.getMessage() );
         }
 
     }
@@ -148,7 +148,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
                 }
                 catch ( ChaiException e )
                 {
-                    throw new PwmUnrecoverableException( PwmError.ERROR_LDAP_DATA_ERROR, "error purging cluster data: " + e.getMessage() );
+                    throw new PwmUnrecoverableException( PwmError.ERROR_LDAP_DATA_ERROR, "error purging node service data: " + e.getMessage() );
                 }
             }
         }

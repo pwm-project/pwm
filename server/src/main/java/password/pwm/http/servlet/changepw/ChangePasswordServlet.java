@@ -53,7 +53,7 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
-import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.RandomPasswordGenerator;
@@ -366,7 +366,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                 final TimeDuration totalTime = TimeDuration.fromCurrent( progressTracker.getBeginTime() );
                 try
                 {
-                    pwmRequest.getPwmApplication().getStatisticsManager().updateAverageValue( Statistic.AVG_PASSWORD_SYNC_TIME, totalTime.asMillis() );
+                    pwmRequest.getPwmApplication().getStatisticsManager().updateAverageValue( AvgStatistic.AVG_PASSWORD_SYNC_TIME, totalTime.asMillis() );
                     LOGGER.trace( pwmRequest, () -> "password sync process marked completed (" + totalTime.asCompactString() + ")" );
                 }
                 catch ( Exception e )

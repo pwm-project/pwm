@@ -272,7 +272,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
             if ( photoData.getContents() != null )
             {
-                outputStream.write( photoData.getContents().getBytes() );
+                outputStream.write( photoData.getContents().copyOf() );
             }
         }
         return ProcessStatus.Halt;

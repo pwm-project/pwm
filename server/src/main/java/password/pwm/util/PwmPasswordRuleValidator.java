@@ -57,7 +57,6 @@ import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.client.rest.RestClientHelper;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -77,28 +76,34 @@ public class PwmPasswordRuleValidator
     private final PwmApplication pwmApplication;
     private final PwmPasswordPolicy policy;
     private final Locale locale;
+    private final Flag[] flags;
+
 
     public enum Flag
     {
         FailFast,
+        BypassLdapRuleCheck,
     }
 
-    public PwmPasswordRuleValidator( final PwmApplication pwmApplication, final PwmPasswordPolicy policy )
+    public PwmPasswordRuleValidator( final PwmApplication pwmApplication, final PwmPasswordPolicy policy, final Flag... flags )
     {
         this.pwmApplication = pwmApplication;
         this.policy = policy;
         this.locale = PwmConstants.DEFAULT_LOCALE;
+        this.flags = flags;
     }
 
     public PwmPasswordRuleValidator(
             final PwmApplication pwmApplication,
             final PwmPasswordPolicy policy,
-            final Locale locale
+            final Locale locale,
+            final Flag... flags
     )
     {
         this.pwmApplication = pwmApplication;
         this.policy = policy;
         this.locale = locale;
+        this.flags = flags;
     }
 
     public boolean testPassword(
@@ -116,7 +121,7 @@ public class PwmPasswordRuleValidator
             throw new PwmDataValidationException( errorResults.iterator().next() );
         }
 
-        if ( user != null )
+        if ( user != null && !JavaHelper.enumArrayContainsValue( flags, Flag.BypassLdapRuleCheck ) )
         {
             try
             {
@@ -183,26 +188,24 @@ public class PwmPasswordRuleValidator
     public List<ErrorInformation> internalPwmPolicyValidator(
             final PasswordData password,
             final PasswordData oldPassword,
-            final UserInfo userInfo,
-            final Flag... flags
+            final UserInfo userInfo
     )
             throws PwmUnrecoverableException
     {
         final String passwordString = password == null ? "" : password.getStringValue();
         final String oldPasswordString = oldPassword == null ? null : oldPassword.getStringValue();
-        return internalPwmPolicyValidator( passwordString, oldPasswordString, userInfo, flags );
+        return internalPwmPolicyValidator( passwordString, oldPasswordString, userInfo );
     }
 
     @SuppressWarnings( "checkstyle:MethodLength" )
     public List<ErrorInformation> internalPwmPolicyValidator(
             final String passwordString,
             final String oldPasswordString,
-            final UserInfo userInfo,
-            final Flag... flags
+            final UserInfo userInfo
     )
             throws PwmUnrecoverableException
     {
-        final boolean failFast = flags != null && Arrays.asList( flags ).contains( Flag.FailFast );
+        final boolean failFast = JavaHelper.enumArrayContainsValue( flags, Flag.FailFast );
 
         // null check
         if ( passwordString == null )

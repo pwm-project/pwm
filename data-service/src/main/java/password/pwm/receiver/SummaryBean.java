@@ -125,11 +125,8 @@ public class SummaryBean
                     final Statistic statistic = Statistic.forKey( statKey );
                     if ( statistic != null )
                     {
-                        if ( statistic.getType() == Statistic.Type.INCREMENTER )
-                        {
-                            final int count = Integer.parseInt( bean.getStatistics().get( statKey ) );
-                            incrementCounterMap( statCount, statistic.getLabel( null ), count );
-                        }
+                        final int count = Integer.parseInt( bean.getStatistics().get( statKey ) );
+                        incrementCounterMap( statCount, statistic.getLabel( null ), count );
                     }
                 }
             }
