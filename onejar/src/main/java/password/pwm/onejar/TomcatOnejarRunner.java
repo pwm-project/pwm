@@ -25,6 +25,7 @@ package password.pwm.onejar;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.util.ServerInfo;
+import org.apache.coyote.http2.Http2Protocol;
 
 import javax.servlet.ServletException;
 import java.io.BufferedReader;
@@ -159,6 +160,7 @@ public class TomcatOnejarRunner
         }
         connector.setSecure( true );
         connector.setScheme( "https" );
+        connector.addUpgradeProtocol( new Http2Protocol() );
         connector.setAttribute( "SSLEnabled", "true" );
         connector.setAttribute( "keystoreFile", onejarConfig.getKeystoreFile().getAbsolutePath() );
         connector.setAttribute( "keystorePass", onejarConfig.getKeystorePass() );

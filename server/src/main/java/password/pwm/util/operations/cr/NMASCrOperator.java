@@ -116,7 +116,7 @@ public class NMASCrOperator implements CrOperator
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( NMASCrOperator.class );
 
-    private final AtomicLoopIntIncrementer threadCounter = new AtomicLoopIntIncrementer( Integer.MAX_VALUE );
+    private final AtomicLoopIntIncrementer threadCounter = new AtomicLoopIntIncrementer();
     private final List<NMASSessionThread> sessionMonitorThreads = Collections.synchronizedList( new ArrayList<NMASSessionThread>() );
     private final PwmApplication pwmApplication;
     private final TimeDuration maxThreadIdleTime;

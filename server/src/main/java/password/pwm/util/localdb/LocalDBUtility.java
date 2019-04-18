@@ -24,16 +24,17 @@ package password.pwm.util.localdb;
 
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.EventRateMeter;
 import password.pwm.util.ProgressInfo;
 import password.pwm.util.TransactionSizeCalculator;
+import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -45,7 +46,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
-import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.Date;
@@ -62,10 +63,10 @@ public class LocalDBUtility
 {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( LocalDBUtility.class );
+    private static final String IN_PROGRESS_STATUS_VALUE = "in-progress";
 
     private final LocalDB localDB;
     private int exportLineCounter;
-    private int importLineCounter;
 
     private static final int GZIP_BUFFER_SIZE = 1024 * 512;
 
@@ -221,18 +222,20 @@ public class LocalDBUtility
     private void importLocalDB( final InputStream inputStream, final Appendable out, final long totalBytes )
             throws PwmOperationalException, IOException
     {
-        this.prepareForImport();
 
-        importLineCounter = 0;
-        if ( totalBytes > 0 )
-        {
-            writeStringToOut( out, "total bytes in localdb import source: " + totalBytes );
-        }
+        final ImportLocalDBMachine importLocalDBMachine = new ImportLocalDBMachine( localDB, totalBytes, out );
+        importLocalDBMachine.doImport( inputStream );
+    }
 
-        writeStringToOut( out, "beginning localdb import..." );
-
-        final Instant startTime = Instant.now();
-        final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
+    private static class ImportLocalDBMachine
+    {
+        private int lineReaderCounter;
+        private long byteReaderCounter;
+        private int recordImportCounter;
+        private final Instant startTime = Instant.now();
+        final Map<LocalDB.DB, Map<String, String>> transactionMap = new HashMap<>();
+        private final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
+        private final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
                 TransactionSizeCalculator.Settings.builder()
                         .durationGoal( TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS ) )
                         .minTransactions( 50 )
@@ -240,95 +243,138 @@ public class LocalDBUtility
                         .build()
         );
 
-        final Map<LocalDB.DB, Map<String, String>> transactionMap = new HashMap<>();
-        for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
+        private final long totalBytes;
+        private final Appendable debugOutput;
+        private final LocalDB localDB;
+
+        private final ConditionalTaskExecutor debugOutputWriter;
+
+        ImportLocalDBMachine( final LocalDB localDB, final long totalBytes, final Appendable debugOutput )
         {
-            transactionMap.put( loopDB, new TreeMap<>() );
+            this.localDB = localDB;
+            this.totalBytes = totalBytes;
+            this.debugOutput = debugOutput;
+
+            for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
+            {
+                transactionMap.put( loopDB, new TreeMap<>() );
+            }
+
+            this.debugOutputWriter = ConditionalTaskExecutor.forPeriodicTask( () ->
+            {
+                writeStringToOut( debugOutput, debugStatsString() );
+            }, TimeDuration.of( 30, TimeDuration.Unit.SECONDS ) );
         }
 
-        final CountingInputStream countingInputStream = new CountingInputStream( inputStream );
-        final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
-
-        final Timer statTimer = new Timer( true );
-        statTimer.scheduleAtFixedRate( new TimerTask()
+        void doImport( final InputStream inputStream )
+                throws IOException, LocalDBException
         {
-            @Override
-            public void run( )
+            this.prepareForImport();
+
+            if ( totalBytes > 0 )
             {
-                String output = "";
-                if ( totalBytes > 0 )
-                {
-                    final ProgressInfo progressInfo = new ProgressInfo( startTime, totalBytes, countingInputStream.getByteCount() );
-                    output += progressInfo.debugOutput();
-                }
-                else
-                {
-                    output += "recordsImported=" + importLineCounter;
-                }
-                output += ", avgTransactionSize=" + transactionCalculator.getTransactionSize()
-                        + ", recordsPerMinute=" + eventRateMeter.readEventRate().setScale( 2, BigDecimal.ROUND_DOWN );
-                writeStringToOut( out, output );
+                writeStringToOut( debugOutput, "total bytes in localdb import source: " + totalBytes );
             }
-        }, 30 * 1000, 30 * 1000 );
 
+            writeStringToOut( debugOutput, "beginning localdb import..." );
 
-        Reader csvReader = null;
-        try
-        {
-            csvReader = new InputStreamReader( new GZIPInputStream( countingInputStream, GZIP_BUFFER_SIZE ), PwmConstants.DEFAULT_CHARSET );
-            for ( final CSVRecord record : PwmConstants.DEFAULT_CSV_FORMAT.parse( csvReader ) )
+            try ( CountingInputStream countingInputStream = new CountingInputStream( inputStream ) )
             {
-                importLineCounter++;
-                eventRateMeter.markEvents( 1 );
-                final String dbNameRecordStr = record.get( 0 );
-                final LocalDB.DB db = JavaHelper.readEnumFromString( LocalDB.DB.class, null, dbNameRecordStr );
-                final String key = record.get( 1 );
-                final String value = record.get( 2 );
-                if ( db == null )
+                try ( Reader csvReader = new InputStreamReader( new GZIPInputStream( countingInputStream, GZIP_BUFFER_SIZE ), PwmConstants.DEFAULT_CHARSET ) )
                 {
-                    writeStringToOut( out, "ignoring localdb import record #" + importLineCounter + ", invalid DB name '" + dbNameRecordStr + "'" );
-                }
-                else
-                {
-                    transactionMap.get( db ).put( key, value );
                     int cachedTransactions = 0;
-                    for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
+                    for ( final CSVRecord record : PwmConstants.DEFAULT_CSV_FORMAT.parse( csvReader ) )
                     {
-                        cachedTransactions += transactionMap.get( loopDB ).size();
-                    }
-                    if ( cachedTransactions >= transactionCalculator.getTransactionSize() )
-                    {
-                        final long startTxnTime = System.currentTimeMillis();
-                        for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
+                        lineReaderCounter++;
+                        eventRateMeter.markEvents( 1 );
+                        byteReaderCounter = countingInputStream.getByteCount();
+                        final String dbNameRecordStr = record.get( 0 );
+                        final LocalDB.DB db = JavaHelper.readEnumFromString( LocalDB.DB.class, null, dbNameRecordStr );
+                        final String key = record.get( 1 );
+                        final String value = record.get( 2 );
+                        if ( db == null )
                         {
-                            localDB.putAll( loopDB, transactionMap.get( loopDB ) );
-                            transactionMap.get( loopDB ).clear();
+                            writeStringToOut( debugOutput, "ignoring localdb import record #" + lineReaderCounter + ", invalid DB name '" + dbNameRecordStr + "'" );
                         }
-                        transactionCalculator.recordLastTransactionDuration( TimeDuration.fromCurrent( startTxnTime ) );
+                        else
+                        {
+                            transactionMap.get( db ).put( key, value );
+                            cachedTransactions++;
+                            if ( cachedTransactions >= transactionCalculator.getTransactionSize() )
+                            {
+                                flushCachedTransactions();
+                                cachedTransactions = 0;
+                            }
+                        }
+                        debugOutputWriter.conditionallyExecuteTask();
                     }
                 }
             }
+
+            flushCachedTransactions();
+            this.markImportComplete();
+
+            final String completeMsg = "import process completed: " + debugStatsString();
+            LOGGER.info( () -> completeMsg );
+            writeStringToOut( debugOutput, completeMsg );
         }
-        finally
+
+        private void flushCachedTransactions( )
+                throws LocalDBException
         {
-            LOGGER.trace( () -> "import process completed" );
-            statTimer.cancel();
-            IOUtils.closeQuietly( csvReader );
-            IOUtils.closeQuietly( countingInputStream );
+            final Instant startTxnTime = Instant.now();
+            for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
+            {
+                localDB.putAll( loopDB, transactionMap.get( loopDB ) );
+                recordImportCounter += transactionMap.get( loopDB ).size();
+                transactionMap.get( loopDB ).clear();
+            }
+            transactionCalculator.recordLastTransactionDuration( TimeDuration.fromCurrent( startTxnTime ) );
         }
 
-        for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
+        private void prepareForImport( )
+                throws LocalDBException
         {
-            localDB.putAll( loopDB, transactionMap.get( loopDB ) );
-            transactionMap.get( loopDB ).clear();
+            LOGGER.info( () -> "preparing LocalDB for import procedure" );
+            localDB.put( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey(), IN_PROGRESS_STATUS_VALUE );
+            for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
+            {
+                if ( loopDB != LocalDB.DB.PWM_META )
+                {
+                    localDB.truncate( loopDB );
+                }
+            }
+
+            // save meta for last so flag is cleared last.
+            localDB.truncate( LocalDB.DB.PWM_META );
+            localDB.put( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey(), IN_PROGRESS_STATUS_VALUE  );
         }
 
-        this.markImportComplete();
+        private void markImportComplete()
+                throws LocalDBException
+        {
+            LOGGER.info( () -> "marking LocalDB import procedure completed" );
+            localDB.remove( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey() );
+        }
 
-        writeStringToOut( out, "restore complete, restored " + importLineCounter + " records in " + TimeDuration.fromCurrent( startTime ).asLongString() );
-        statTimer.cancel();
+        private String debugStatsString()
+        {
+            final Map<String, String> stats = new LinkedHashMap<>();
+            if ( totalBytes > 0 && byteReaderCounter > 0 )
+            {
+                final ProgressInfo progressInfo = new ProgressInfo( startTime, totalBytes, byteReaderCounter );
+                stats.put( "progress", progressInfo.debugOutput() );
+            }
+
+            stats.put( "linesRead", Integer.toString( lineReaderCounter ) );
+            stats.put( "bytesRead", Long.toString( byteReaderCounter ) );
+            stats.put( "recordsImported", Integer.toString( recordImportCounter ) );
+            stats.put( "avgTransactionSize", Integer.toString( transactionCalculator.getTransactionSize() ) );
+            stats.put( "recordsPerMinute", eventRateMeter.readEventRate().setScale( 2, RoundingMode.DOWN ).toString() );
+            stats.put( "duration", TimeDuration.compactFromCurrent( startTime ) );
+            return StringUtil.mapToString( stats );
+        }
     }
-
 
     public static Map<StatsKey, Object> dbStats(
             final LocalDB localDB,
@@ -381,40 +427,23 @@ public class LocalDBUtility
         AVG_VALUE_LENGTH,
     }
 
-    public void prepareForImport( )
-            throws LocalDBException
-    {
-        LOGGER.info( () -> "preparing LocalDB for import procedure" );
-        localDB.put( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey(), "inprogress" );
-        for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
-        {
-            if ( loopDB != LocalDB.DB.PWM_META )
-            {
-                localDB.truncate( loopDB );
-            }
-        }
-
-        // save meta for last so flag is cleared last.
-        localDB.truncate( LocalDB.DB.PWM_META );
-        localDB.put( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey(), "inprogress" );
-    }
-
-    public void markImportComplete( )
-            throws LocalDBException
-    {
-        LOGGER.info( () -> "marking LocalDB import procedure completed" );
-        localDB.remove( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey() );
-    }
-
     public boolean readImportInprogressFlag( )
             throws LocalDBException
     {
-        return "inprogress".equals(
+        return IN_PROGRESS_STATUS_VALUE.equals(
                 localDB.get( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey() ) );
     }
 
     static boolean hasBooleanParameter( final LocalDBProvider.Parameter parameter, final Map<LocalDBProvider.Parameter, String> parameters )
     {
         return parameters != null && parameters.containsKey( parameter ) && Boolean.parseBoolean( parameters.get( parameter ) );
+    }
+
+    public void cancelImportProcess()
+            throws LocalDBException
+    {
+        final ImportLocalDBMachine importLocalDBMachine = new ImportLocalDBMachine( localDB, 0, new StringBuilder() );
+        importLocalDBMachine.prepareForImport();
+        importLocalDBMachine.markImportComplete();
     }
 }

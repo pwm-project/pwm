@@ -225,7 +225,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
         if ( privatekey != null && !privatekey.isEmpty() )
         {
             final FileValue.FileContent fileContent = privatekey.values().iterator().next();
-            privateKeyBytes = fileContent.getContents().getBytes();
+            privateKeyBytes = fileContent.getContents().copyOf();
         }
         else
         {

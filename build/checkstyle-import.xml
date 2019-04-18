@@ -38,6 +38,7 @@
     <allow pkg="java.security"/>
 
     <allow pkg="org.apache.catalina"/>
+    <allow pkg="org.apache.coyote"/>
 
     <!-- chai -->
     <allow pkg="com.novell.ldapchai"/>

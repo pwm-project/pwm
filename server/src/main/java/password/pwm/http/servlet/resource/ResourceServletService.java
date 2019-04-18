@@ -32,8 +32,9 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.Percent;
@@ -41,7 +42,6 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.ChecksumOutputStream;
-import password.pwm.util.secure.PwmHashAlgorithm;
 
 import javax.servlet.ServletContext;
 import java.io.File;
@@ -175,7 +175,7 @@ public class ResourceServletService implements PwmService
     }
 
     private String makeResourcePathNonce( )
-            throws PwmUnrecoverableException, IOException
+            throws IOException
     {
         final int nonceLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_PATH_NONCE_LENGTH ) );
         final boolean enablePathNonce = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE ) );
@@ -185,56 +185,9 @@ public class ResourceServletService implements PwmService
         }
 
         final Instant startTime = Instant.now();
-        final ChecksumOutputStream checksumStream = new ChecksumOutputStream( PwmHashAlgorithm.SHA512, new NullOutputStream() );
+        final ImmutableByteArray checksumBytes = checksumAllResources( pwmApplication );
 
-        if ( pwmApplication.getPwmEnvironment().getContextManager() != null )
-        {
-            try
-            {
-                final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
-                if ( webInfPath != null && webInfPath.exists() )
-                {
-                    final File basePath = webInfPath.getParentFile();
-                    if ( basePath != null && basePath.exists() )
-                    {
-                        final File resourcePath = new File( basePath.getAbsolutePath() + File.separator + "public" + File.separator + "resources" );
-                        if ( resourcePath.exists() )
-                        {
-                            for ( final FileSystemUtility.FileSummaryInformation fileSummaryInformation : FileSystemUtility.readFileInformation( resourcePath ) )
-                            {
-                                checksumStream.write( ( fileSummaryInformation.getSha1sum() ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
-                            }
-                        }
-                    }
-                }
-            }
-            catch ( Exception e )
-            {
-                LOGGER.error( "unable to generate resource path nonce: " + e.getMessage() );
-            }
-        }
-
-        for ( final FileResource fileResource : getResourceServletConfiguration().getCustomFileBundle().values() )
-        {
-            JavaHelper.copy( fileResource.getInputStream(), checksumStream );
-        }
-
-        if ( getResourceServletConfiguration().getZipResources() != null )
-        {
-            for ( final String key : getResourceServletConfiguration().getZipResources().keySet() )
-            {
-                final ZipFile zipFile = getResourceServletConfiguration().getZipResources().get( key );
-                checksumStream.write( key.getBytes( PwmConstants.DEFAULT_CHARSET ) );
-                for ( Enumeration<? extends ZipEntry> zipEnum = zipFile.entries(); zipEnum.hasMoreElements(); )
-                {
-                    final ZipEntry entry = zipEnum.nextElement();
-                    JavaHelper.copy( zipFile.getInputStream( entry ), checksumStream );
-                }
-            }
-        }
-
-        final byte[] checksumBytes = checksumStream.getInProgressChecksum();
-        final String nonce = StringUtil.truncate( JavaHelper.byteArrayToHexString( checksumBytes ).toLowerCase(), nonceLength );
+        final String nonce = StringUtil.truncate( JavaHelper.byteArrayToHexString( checksumBytes.copyOf() ).toLowerCase(), nonceLength );
         LOGGER.debug( () -> "completed generation of nonce '" + nonce + "' in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
 
         final String noncePrefix = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
@@ -285,5 +238,64 @@ public class ResourceServletService implements PwmService
 
         LOGGER.debug( pwmRequest, () -> "check for theme validity of '" + themeName + "' returned false" );
         return false;
+    }
+
+    private ImmutableByteArray checksumAllResources( final PwmApplication pwmApplication )
+            throws IOException
+    {
+        try ( ChecksumOutputStream checksumStream = new ChecksumOutputStream( new NullOutputStream() ) )
+        {
+            checksumResourceFilePath( pwmApplication, checksumStream );
+
+            for ( final FileResource fileResource : getResourceServletConfiguration().getCustomFileBundle().values() )
+            {
+                JavaHelper.copy( fileResource.getInputStream(), checksumStream );
+            }
+
+            if ( getResourceServletConfiguration().getZipResources() != null )
+            {
+                for ( final String key : getResourceServletConfiguration().getZipResources().keySet() )
+                {
+                    final ZipFile zipFile = getResourceServletConfiguration().getZipResources().get( key );
+                    checksumStream.write( key.getBytes( PwmConstants.DEFAULT_CHARSET ) );
+                    for ( Enumeration<? extends ZipEntry> zipEnum = zipFile.entries(); zipEnum.hasMoreElements(); )
+                    {
+                        final ZipEntry entry = zipEnum.nextElement();
+                        JavaHelper.copy( zipFile.getInputStream( entry ), checksumStream );
+                    }
+                }
+            }
+            return checksumStream.checksum();
+        }
+    }
+
+    private static void checksumResourceFilePath( final PwmApplication pwmApplication, final ChecksumOutputStream checksumStream )
+    {
+        if ( pwmApplication.getPwmEnvironment().getContextManager() != null )
+        {
+            try
+            {
+                final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                if ( webInfPath != null && webInfPath.exists() )
+                {
+                    final File basePath = webInfPath.getParentFile();
+                    if ( basePath != null && basePath.exists() )
+                    {
+                        final File resourcePath = new File( basePath.getAbsolutePath() + File.separator + "public" + File.separator + "resources" );
+                        if ( resourcePath.exists() )
+                        {
+                            for ( final FileSystemUtility.FileSummaryInformation fileSummaryInformation : FileSystemUtility.readFileInformation( resourcePath ) )
+                            {
+                                checksumStream.write( JavaHelper.longToBytes( fileSummaryInformation.getChecksum() ) );
+                            }
+                        }
+                    }
+                }
+            }
+            catch ( Exception e )
+            {
+                LOGGER.error( "unable to generate resource path nonce: " + e.getMessage() );
+            }
+        }
     }
 }

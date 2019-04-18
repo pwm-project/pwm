@@ -32,7 +32,7 @@ import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.PwmServlet;
-import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.EventRateMeter;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JavaHelper;

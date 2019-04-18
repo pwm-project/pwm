@@ -22,34 +22,21 @@
 
 package password.pwm.util.secure;
 
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.JavaHelper;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.zip.CRC32;
 
 public class ChecksumOutputStream extends OutputStream
 {
-    private final MessageDigest messageDigest;
+    private final CRC32 crc32 = new CRC32();
     private final OutputStream wrappedStream;
 
-    public ChecksumOutputStream( final PwmHashAlgorithm hash, final OutputStream wrappedStream ) throws PwmUnrecoverableException
+    public ChecksumOutputStream( final OutputStream wrappedStream )
     {
         this.wrappedStream = wrappedStream;
-
-        try
-        {
-            messageDigest = MessageDigest.getInstance( hash.getAlgName() );
-        }
-        catch ( NoSuchAlgorithmException e )
-        {
-            final String errorMsg = "missing hash algorithm: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
     }
 
     @Override
@@ -61,7 +48,7 @@ public class ChecksumOutputStream extends OutputStream
     @Override
     public void write( final byte[] b ) throws IOException
     {
-        messageDigest.update( b );
+        crc32.update( b );
         wrappedStream.write( b );
     }
 
@@ -70,7 +57,7 @@ public class ChecksumOutputStream extends OutputStream
     {
         if ( len > 0 )
         {
-            messageDigest.update( b, off, len );
+            crc32.update( b, off, len );
         }
 
         wrappedStream.write( b, off, len );
@@ -85,12 +72,12 @@ public class ChecksumOutputStream extends OutputStream
     @Override
     public void write( final int b ) throws IOException
     {
-        messageDigest.update( ( byte ) b );
+        crc32.update( ( byte ) b );
         wrappedStream.write( b );
     }
 
-    public byte[] getInProgressChecksum( )
+    public ImmutableByteArray checksum( )
     {
-        return messageDigest.digest();
+        return ImmutableByteArray.of( JavaHelper.longToBytes( crc32.getValue() ) );
     }
 }

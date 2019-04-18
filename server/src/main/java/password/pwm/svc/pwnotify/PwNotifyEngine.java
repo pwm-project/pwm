@@ -185,6 +185,11 @@ public class PwNotifyEngine
                     + ", sent " + noticeCount + " notices."
             );
         }
+        catch ( PwmUnrecoverableException | PwmOperationalException e )
+        {
+            log( "error while executing job: " + e.getMessage() );
+            throw e;
+        }
         finally
         {
             running = false;

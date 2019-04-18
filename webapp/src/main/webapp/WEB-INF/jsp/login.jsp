@@ -71,7 +71,6 @@
                         <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                     </pwm:if>
                     <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-                    <input type="hidden" name="skipCaptcha" value="${param.skipCaptcha}"/>
                 </div>
             </div>
         </form>

@@ -84,7 +84,7 @@ public class NodeService implements PwmService
                 {
                     case DB:
                     {
-                        LOGGER.trace( () -> "starting database-backed cluster provider" );
+                        LOGGER.trace( () -> "starting database-backed node service provider" );
                         nodeServiceSettings = NodeServiceSettings.fromConfigForDB( pwmApplication.getConfig() );
                         clusterDataServiceProvider = new DatabaseNodeDataService( pwmApplication );
                     }
@@ -92,7 +92,7 @@ public class NodeService implements PwmService
 
                     case LDAP:
                     {
-                        LOGGER.trace( () -> "starting ldap-backed cluster provider" );
+                        LOGGER.trace( () -> "starting ldap-backed node service provider" );
                         nodeServiceSettings = NodeServiceSettings.fromConfigForLDAP( pwmApplication.getConfig() );
                         clusterDataServiceProvider = new LDAPNodeDataService( pwmApplication );
                     }

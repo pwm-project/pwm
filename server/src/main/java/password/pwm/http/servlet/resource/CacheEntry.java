@@ -34,13 +34,13 @@ final class CacheEntry implements Serializable
 
     CacheEntry( final byte[] entity, final Map<String, String> headerStrings )
     {
-        this.entity = new ImmutableByteArray( entity );
+        this.entity = ImmutableByteArray.of( entity );
         this.headerStrings = headerStrings;
     }
 
     public byte[] getEntity( )
     {
-        return entity.getBytes();
+        return entity.copyOf();
     }
 
     public Map<String, String> getHeaderStrings( )

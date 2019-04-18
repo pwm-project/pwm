@@ -57,7 +57,7 @@ PWM_RESPONSES.validateResponses=function() {
 };
 
 PWM_RESPONSES.updateDisplay=function(resultInfo) {
-    if (resultInfo === null) {
+    if (!resultInfo) {
         PWM_MAIN.getObject("button-setResponses").disabled = false;
         return;
     }

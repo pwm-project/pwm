@@ -331,6 +331,12 @@ public class CaptchaUtility
     private static boolean checkIfCaptchaParamPresent( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
+        if ( pwmRequest.getPwmSession().getSessionStateBean().isCaptchaBypassedViaParameter() )
+        {
+            LOGGER.trace( pwmRequest, () -> "valid skipCaptcha value previously received in session, skipping captcha check" );
+            return true;
+        }
+
         final String skipCaptcha = pwmRequest.readParameterAsString( PwmConstants.PARAM_SKIP_CAPTCHA );
         if ( skipCaptcha != null && skipCaptcha.length() > 0 )
         {
@@ -338,6 +344,7 @@ public class CaptchaUtility
             if ( configValue != null && configValue.equals( skipCaptcha ) )
             {
                 LOGGER.trace( pwmRequest, () -> "valid skipCaptcha value in request, skipping captcha check for this session" );
+                pwmRequest.getPwmSession().getSessionStateBean().setCaptchaBypassedViaParameter( true );
                 return true;
             }
             else

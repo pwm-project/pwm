@@ -90,7 +90,7 @@ public class PwmScheduler
         scheduleFixedRateJob( runnable, executorService, delayTillNextOFfiset, TimeDuration.DAY );
     }
 
-    public Future scheduleFutureJob(
+    public Future scheduleJob(
             final Runnable runnable,
             final ExecutorService executor,
             final TimeDuration delay

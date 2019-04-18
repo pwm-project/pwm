@@ -89,30 +89,30 @@ public class FileValue extends AbstractValue implements StoredValue
                 throws IOException
         {
             final byte[] convertedBytes = StringUtil.base64Decode( input );
-            return new FileContent( new ImmutableByteArray( convertedBytes ) );
+            return new FileContent( ImmutableByteArray.of( convertedBytes ) );
         }
 
         public String toEncodedString( )
                 throws IOException
         {
-            return StringUtil.base64Encode( contents.getBytes(), StringUtil.Base64Options.GZIP );
+            return StringUtil.base64Encode( contents.copyOf(), StringUtil.Base64Options.GZIP );
         }
 
         public String md5sum( )
                 throws PwmUnrecoverableException
         {
-            return SecureEngine.hash( new ByteArrayInputStream( contents.getBytes() ), PwmHashAlgorithm.MD5 );
+            return SecureEngine.hash( new ByteArrayInputStream( contents.copyOf() ), PwmHashAlgorithm.MD5 );
         }
 
         public String sha1sum( )
                 throws PwmUnrecoverableException
         {
-            return SecureEngine.hash( new ByteArrayInputStream( contents.getBytes() ), PwmHashAlgorithm.SHA1 );
+            return SecureEngine.hash( new ByteArrayInputStream( contents.copyOf() ), PwmHashAlgorithm.SHA1 );
         }
 
         public int size( )
         {
-            return contents.getBytes().length;
+            return contents.copyOf().length;
         }
     }
 

@@ -27,22 +27,48 @@ import password.pwm.util.i18n.LocaleHelper;
 
 import java.util.Locale;
 
-public enum EpsStatistic
+public enum AvgStatistic
 {
-    REQUESTS(),
-    SESSIONS(),
-    PASSWORD_CHANGES(),
-    AUTHENTICATION(),
-    INTRUDER_ATTEMPTS(),
-    PWMDB_WRITES(),
-    PWMDB_READS(),
-    DB_WRITES(),
-    DB_READS(),
-    LDAP_BINDS,;
+    AVG_PASSWORD_SYNC_TIME( "AvgPasswordSyncTime", null, "ms" ),
+    AVG_AUTHENTICATION_TIME( "AvgAuthenticationTime", null, "ms" ),
+    AVG_PASSWORD_STRENGTH( "AvgPasswordStrength", null, "" ),
+    AVG_LDAP_SEARCH_TIME( "AvgLdapSearchTime", null, "ms" ),
+    AVG_REQUEST_PROCESS_TIME( "AvgRequestProcessTime", null, "ms" ),;
+
+    private final String key;
+    private final Statistic.StatDetail statDetail;
+    private final String unit;
+
+    AvgStatistic(
+            final String key,
+            final Statistic.StatDetail statDetail,
+            final String unit
+    )
+    {
+        this.key = key;
+        this.statDetail = statDetail;
+        this.unit = unit;
+    }
+
+    public String getKey( )
+    {
+        return key;
+    }
+
+    public String getUnit()
+    {
+        return unit;
+    }
 
     public String getLabel( final Locale locale )
     {
-        final String keyName = Admin.EPS_STATISTICS_LABEL_PREFIX + this.name();
+        final String keyName = Admin.STATISTICS_LABEL_PREFIX + this.getKey();
+        return LocaleHelper.getLocalizedMessage( locale, keyName, null, Admin.class );
+    }
+
+    public String getDescription( final Locale locale )
+    {
+        final String keyName = Admin.STATISTICS_DESCRIPTION_PREFIX + this.getKey();
         return LocaleHelper.getLocalizedMessage( locale, keyName, null, Admin.class );
     }
 }

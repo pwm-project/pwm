@@ -24,6 +24,8 @@ package password.pwm.bean;
 
 import lombok.Data;
 import password.pwm.ldap.UserInfoBean;
+import password.pwm.util.EventRateMeter;
+import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -64,8 +66,11 @@ public class LocalSessionStateBean implements Serializable
 
     private boolean passwordModified;
     private boolean privateUrlAccessed;
+    private boolean captchaBypassedViaParameter;
 
     private final AtomicInteger intruderAttempts = new AtomicInteger( 0 );
+    private final AtomicInteger requestCount = new AtomicInteger( 0 );
+    private final EventRateMeter.MovingAverage avgRequestDuration = new EventRateMeter.MovingAverage( TimeDuration.DAY );
     private boolean oauthInProgress;
 
     private boolean sessionIdRecycleNeeded;

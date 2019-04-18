@@ -33,6 +33,12 @@ public class AtomicLoopIntIncrementer
     private final int ceiling;
     private final int floor;
 
+    public AtomicLoopIntIncrementer()
+    {
+        this.ceiling = Integer.MAX_VALUE;
+        this.floor = 0;
+    }
+
     public AtomicLoopIntIncrementer( final int ceiling )
     {
         this.ceiling = ceiling;

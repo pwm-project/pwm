@@ -641,4 +641,16 @@ public class JavaHelper
                 && input <= Long.MAX_VALUE
                 && input >= Long.MIN_VALUE;
     }
+
+    public static byte[] longToBytes( final long input )
+    {
+        final byte[] result = new byte[Byte.SIZE];
+        long shift = input;
+        for ( int i = Byte.SIZE - 1; i >= 0; i-- )
+        {
+            result[i] = (byte) ( shift & 0xFF );
+            shift >>= Byte.SIZE;
+        }
+        return result;
+    }
 }

@@ -38,6 +38,7 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -129,7 +130,7 @@ public class ConfigGuideForm
             storedConfiguration.writeSetting( PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE_NAME, newValue, null );
         }
 
-        if ( configGuideBean.isUseConfiguredCerts() )
+        if ( configGuideBean.isUseConfiguredCerts() && !JavaHelper.isEmpty( configGuideBean.getLdapCertificates() ) )
         {
             final StoredValue newStoredValue = new X509CertificateValue( configGuideBean.getLdapCertificates() );
             storedConfiguration.writeSetting( PwmSetting.LDAP_SERVER_CERTS, LDAP_PROFILE_NAME, newStoredValue, null );

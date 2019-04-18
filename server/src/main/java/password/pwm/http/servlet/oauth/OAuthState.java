@@ -39,7 +39,7 @@ import java.time.Instant;
 @Builder
 class OAuthState implements Serializable
 {
-    private static final AtomicLoopIntIncrementer OAUTH_STATE_ID_COUNTER = new AtomicLoopIntIncrementer( Integer.MAX_VALUE );
+    private static final AtomicLoopIntIncrementer OAUTH_STATE_ID_COUNTER = new AtomicLoopIntIncrementer();
 
     @SerializedName( "c" )
     @Builder.Default
