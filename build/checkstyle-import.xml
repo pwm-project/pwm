@@ -64,6 +64,7 @@
     <allow pkg="com.github.tomakehurst.wiremock"/>
     <allow pkg="org.reflections"/>
     <allow pkg="org.bouncycastle.jce.provider"/>
+    <allow pkg="org.openjdk.jmh"/>
 
     <!-- gson -->
     <allow pkg="com.google.gson"/>

@@ -25,6 +25,7 @@ package password.pwm.util;
 import org.jetbrains.annotations.NotNull;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -66,16 +67,15 @@ public class PwmScheduler
     {
         Objects.requireNonNull( runnable );
 
-        final ExecutorService executor = makeSingleThreadExecutorService( instanceID, runnable.getClass() );
+        final ScheduledExecutorService executor = makeSingleThreadExecutorService( instanceID, runnable.getClass() );
 
         if ( applicationExecutorService.isShutdown() )
         {
             return null;
         }
 
-        final WrappedRunner wrappedRunner = new WrappedRunner( runnable, executor );
-        applicationExecutorService.schedule( wrappedRunner, 0, TimeUnit.MILLISECONDS );
-        executor.shutdown();
+        final WrappedRunner wrappedRunner = new WrappedRunner( runnable, executor, WrappedRunner.Flag.ShutdownExecutorAfterExecution );
+        applicationExecutorService.submit( wrappedRunner );
         return wrappedRunner.getFuture();
     }
 
@@ -222,13 +222,20 @@ public class PwmScheduler
     {
         private final Runnable runnable;
         private final ExecutorService executor;
+        private final Flag[] flags;
         private volatile Future innerFuture;
         private volatile boolean hasFailed;
 
-        WrappedRunner( final Runnable runnable, final ExecutorService executor )
+        enum Flag
+        {
+            ShutdownExecutorAfterExecution,
+        }
+
+        WrappedRunner( final Runnable runnable, final ExecutorService executor, final Flag... flags )
         {
             this.runnable = runnable;
             this.executor = executor;
+            this.flags = flags;
         }
 
         Future getFuture()
@@ -286,6 +293,11 @@ public class PwmScheduler
             {
                 LOGGER.error( "unexpected error running scheduled job: " + t.getMessage(), t );
                 hasFailed = true;
+            }
+
+            if ( JavaHelper.enumArrayContainsValue( flags, Flag.ShutdownExecutorAfterExecution ) )
+            {
+                executor.shutdown();
             }
         }
     }

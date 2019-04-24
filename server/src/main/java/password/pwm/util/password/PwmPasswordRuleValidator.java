@@ -20,13 +20,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.util.password;
 
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import password.pwm.AppProperty;
@@ -38,7 +40,6 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.config.profile.PwmPasswordPolicy.RuleHelper;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
@@ -48,15 +49,17 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.PasswordCharCounter;
+import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.client.rest.RestClientHelper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -85,7 +88,11 @@ public class PwmPasswordRuleValidator
         BypassLdapRuleCheck,
     }
 
-    public PwmPasswordRuleValidator( final PwmApplication pwmApplication, final PwmPasswordPolicy policy, final Flag... flags )
+    public PwmPasswordRuleValidator(
+            final PwmApplication pwmApplication,
+            final PwmPasswordPolicy policy,
+            final Flag... flags
+    )
     {
         this.pwmApplication = pwmApplication;
         this.policy = policy;
@@ -216,7 +223,7 @@ public class PwmPasswordRuleValidator
         }
 
         final List<ErrorInformation> errorList = new ArrayList<>();
-        final PwmPasswordPolicy.RuleHelper ruleHelper = policy.getRuleHelper();
+        final PasswordRuleHelper ruleHelper = policy.getRuleHelper();
         final MacroMachine macroMachine = userInfo == null || userInfo.getUserIdentity() == null
                 ? MacroMachine.forNonUserSpecific( pwmApplication, SessionLabel.SYSTEM_LABEL )
                 : MacroMachine.forUser(
@@ -309,7 +316,7 @@ public class PwmPasswordRuleValidator
         // check disallowed attributes.
         if ( !policy.getRuleHelper().getDisallowedAttributes().isEmpty() )
         {
-            final List<String> paramConfigs = policy.getRuleHelper().getDisallowedAttributes( RuleHelper.Flag.KeepThresholds );
+            final List<String> paramConfigs = policy.getRuleHelper().getDisallowedAttributes( PasswordRuleHelper.Flag.KeepThresholds );
             if ( userInfo != null )
             {
                 final Map<String, String> userValues = userInfo.getCachedPasswordRuleAttributes();
@@ -322,7 +329,7 @@ public class PwmPasswordRuleValidator
                     final String disallowedValue = StringUtils.defaultString( userValues.get( attrName ) );
                     final int threshold = parts.length > 1 ? NumberUtils.toInt( parts[ 1 ] ) : 0;
 
-                    if ( containsDisallowedValue( passwordString, disallowedValue, threshold ) )
+                    if ( PwmPasswordRuleUtil.containsDisallowedValue( passwordString, disallowedValue, threshold ) )
                     {
                         LOGGER.trace( () -> "password rejected, same as user attr " + attrName );
                         errorList.add( new ErrorInformation( PwmError.PASSWORD_SAMEASATTR ) );
@@ -488,219 +495,6 @@ public class PwmPasswordRuleValidator
         return errorList;
     }
 
-    static boolean containsDisallowedValue( final String password, final String disallowedValue, final int threshold )
-    {
-        if ( StringUtils.isNotBlank( disallowedValue ) )
-        {
-            if ( threshold > 0 )
-            {
-                if ( disallowedValue.length() >= threshold )
-                {
-                    final String[] disallowedValueChunks = StringUtil.createStringChunks( disallowedValue, threshold );
-                    for ( final String chunk : disallowedValueChunks )
-                    {
-                        if ( StringUtils.containsIgnoreCase( password, chunk ) )
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // No threshold?  Then the password can't contain the whole disallowed value
-                return StringUtils.containsIgnoreCase( password, disallowedValue );
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Check a supplied password for it's validity according to AD complexity rules.
-     * - Not contain the user's account name or parts of the user's full name that exceed two consecutive characters
-     * - Be at least six characters in length
-     * - Contain characters from three of the following five categories:
-     * - English uppercase characters (A through Z)
-     * - English lowercase characters (a through z)
-     * - Base 10 digits (0 through 9)
-     * - Non-alphabetic characters (for example, !, $, #, %)
-     * - Any character categorized as an alphabetic but is not uppercase or lowercase.
-     * <p/>
-     * See this article: http://technet.microsoft.com/en-us/library/cc786468%28WS.10%29.aspx
-     *
-     * @param userInfo    userInfoBean
-     * @param password    password to test
-     * @param charCounter associated charCounter for the password.
-     * @return list of errors if the password does not meet requirements, or an empty list if the password complies
-     *         with AD requirements
-     */
-
-    private static List<ErrorInformation> checkPasswordForADComplexity(
-            final ADPolicyComplexity complexityLevel,
-            final UserInfo userInfo,
-            final String password,
-            final PasswordCharCounter charCounter,
-            final int maxGroupViolationCount
-    ) throws PwmUnrecoverableException
-    {
-        final List<ErrorInformation> errorList = new ArrayList<>();
-
-        if ( password == null || password.length() < 6 )
-        {
-            errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_SHORT ) );
-            return errorList;
-        }
-
-        final int maxLength = complexityLevel == ADPolicyComplexity.AD2003 ? 128 : 512;
-        if ( password.length() > maxLength )
-        {
-            errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_LONG ) );
-            return errorList;
-        }
-
-        if ( userInfo != null && userInfo.getCachedPasswordRuleAttributes() != null )
-        {
-            final Map<String, String> userAttrs = userInfo.getCachedPasswordRuleAttributes();
-            final String samAccountName = userAttrs.get( "sAMAccountName" );
-            if ( samAccountName != null
-                    && samAccountName.length() > 2
-                    && samAccountName.length() >= password.length() )
-            {
-                if ( password.toLowerCase().contains( samAccountName.toLowerCase() ) )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_INWORDLIST ) );
-                    LOGGER.trace( () -> "Password violation due to ADComplexity check: Password contains sAMAccountName" );
-                }
-            }
-            final String displayName = userAttrs.get( "displayName" );
-            if ( displayName != null && displayName.length() > 2 )
-            {
-                if ( checkContainsTokens( password, displayName ) )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_INWORDLIST ) );
-                    LOGGER.trace( () -> "Password violation due to ADComplexity check: Tokens from displayName used in password" );
-                }
-            }
-        }
-
-        int complexityPoints = 0;
-        if ( charCounter.getUpperCharCount() > 0 )
-        {
-            complexityPoints++;
-        }
-        if ( charCounter.getLowerCharCount() > 0 )
-        {
-            complexityPoints++;
-        }
-        if ( charCounter.getNumericCharCount() > 0 )
-        {
-            complexityPoints++;
-        }
-        switch ( complexityLevel )
-        {
-            case AD2003:
-                if ( charCounter.getSpecialCharsCount() > 0 || charCounter.getOtherLetterCharCount() > 0 )
-                {
-                    complexityPoints++;
-                }
-                break;
-
-            case AD2008:
-                if ( charCounter.getSpecialCharsCount() > 0 )
-                {
-                    complexityPoints++;
-                }
-                if ( charCounter.getOtherLetterCharCount() > 0 )
-                {
-                    complexityPoints++;
-                }
-                break;
-
-            default:
-                JavaHelper.unhandledSwitchStatement( complexityLevel );
-        }
-
-        switch ( complexityLevel )
-        {
-            case AD2008:
-                final int totalGroups = 5;
-                final int violations = totalGroups - complexityPoints;
-                if ( violations <= maxGroupViolationCount )
-                {
-                    return errorList;
-                }
-                break;
-
-            case AD2003:
-                if ( complexityPoints >= 3 )
-                {
-                    return errorList;
-                }
-                break;
-
-            default:
-                JavaHelper.unhandledSwitchStatement( complexityLevel );
-        }
-
-        if ( charCounter.getUpperCharCount() < 1 )
-        {
-            errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_UPPER ) );
-        }
-        if ( charCounter.getLowerCharCount() < 1 )
-        {
-            errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_LOWER ) );
-        }
-        if ( charCounter.getNumericCharCount() < 1 )
-        {
-            errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_NUM ) );
-        }
-        if ( charCounter.getSpecialCharsCount() < 1 )
-        {
-            errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_SPECIAL ) );
-        }
-        if ( charCounter.getOtherLetterCharCount() < 1 )
-        {
-            errorList.add( new ErrorInformation( PwmError.PASSWORD_UNKNOWN_VALIDATION ) );
-        }
-
-        return errorList;
-    }
-
-    // escape characters permitted because they match the exact AD specification
-    @SuppressWarnings( "checkstyle:avoidescapedunicodecharacters" )
-    private static boolean checkContainsTokens( final String baseValue, final String checkPattern )
-    {
-        if ( baseValue == null || baseValue.length() == 0 )
-        {
-            return false;
-        }
-
-        if ( checkPattern == null || checkPattern.length() == 0 )
-        {
-            return false;
-        }
-
-        final String baseValueLower = baseValue.toLowerCase();
-
-        final String[] tokens = checkPattern.toLowerCase().split( "[,\\.\\-\u2013\u2014_ \u00a3\\t]+" );
-
-        if ( tokens != null && tokens.length > 0 )
-        {
-            for ( final String token : tokens )
-            {
-                if ( token.length() > 2 )
-                {
-                    if ( baseValueLower.contains( token ) )
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
     private static final String REST_RESPONSE_KEY_ERROR = "error";
     private static final String REST_RESPONSE_KEY_ERROR_MSG = "errorMessage";
 
@@ -788,257 +582,376 @@ public class PwmPasswordRuleValidator
         return returnedErrors;
     }
 
-    @SuppressWarnings( "checkstyle:MethodLength" )
-    private static List<ErrorInformation> basicSyntaxRuleChecks(
+    public static List<ErrorInformation> basicSyntaxRuleChecks(
             final String password,
             final PwmPasswordPolicy policy,
             final UserInfo userInfo
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         final List<ErrorInformation> errorList = new ArrayList<>();
-        final PwmPasswordPolicy.RuleHelper ruleHelper = policy.getRuleHelper();
-        final PasswordCharCounter charCounter = new PasswordCharCounter( password );
+        final RuleCheckerHelper ruleCheckerHelper = new RuleCheckerHelper( policy, userInfo, policy.getRuleHelper(), new PasswordCharCounter( password ) );
 
-        final int passwordLength = password.length();
-
-        //Check minimum length
-        if ( passwordLength < ruleHelper.readIntValue( PwmPasswordRule.MinimumLength ) )
+        for ( final RuleChecker ruleChecker : BASIC_RULE_CHECKERS )
         {
-            errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_SHORT ) );
-        }
-
-        //Check maximum length
-        {
-            final int passwordMaximumLength = ruleHelper.readIntValue( PwmPasswordRule.MaximumLength );
-
-            if ( passwordMaximumLength > 0 && passwordLength > passwordMaximumLength )
-            {
-                errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_LONG ) );
-            }
-        }
-
-        //check number of numeric characters
-        {
-            final int numberOfNumericChars = charCounter.getNumericCharCount();
-            if ( ruleHelper.readBooleanValue( PwmPasswordRule.AllowNumeric ) )
-            {
-                if ( numberOfNumericChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumNumeric ) )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_NUM ) );
-                }
-
-                final int maxNumeric = ruleHelper.readIntValue( PwmPasswordRule.MaximumNumeric );
-                if ( maxNumeric > 0 && numberOfNumericChars > maxNumeric )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_NUMERIC ) );
-                }
-
-                if ( !ruleHelper.readBooleanValue(
-                        PwmPasswordRule.AllowFirstCharNumeric ) && charCounter.isFirstNumeric() )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_FIRST_IS_NUMERIC ) );
-                }
-
-                if ( !ruleHelper.readBooleanValue(
-                        PwmPasswordRule.AllowLastCharNumeric ) && charCounter.isLastNumeric() )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_LAST_IS_NUMERIC ) );
-                }
-            }
-            else
-            {
-                if ( numberOfNumericChars > 0 )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_NUMERIC ) );
-                }
-            }
-        }
-
-        //check number of upper characters
-        {
-            final int numberOfUpperChars = charCounter.getUpperCharCount();
-            if ( numberOfUpperChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumUpperCase ) )
-            {
-                errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_UPPER ) );
-            }
-
-            final int maxUpper = ruleHelper.readIntValue( PwmPasswordRule.MaximumUpperCase );
-            if ( maxUpper > 0 && numberOfUpperChars > maxUpper )
-            {
-                errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_UPPER ) );
-            }
-        }
-
-        //check number of alpha characters
-        {
-            final int numberOfAlphaChars = charCounter.getAlphaCharCount();
-            if ( numberOfAlphaChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumAlpha ) )
-            {
-                errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_ALPHA ) );
-            }
-
-            final int maxAlpha = ruleHelper.readIntValue( PwmPasswordRule.MaximumAlpha );
-            if ( maxAlpha > 0 && numberOfAlphaChars > maxAlpha )
-            {
-                errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_ALPHA ) );
-            }
-        }
-
-        //check number of non-alpha characters
-        {
-            final int numberOfNonAlphaChars = charCounter.getNonAlphaCharCount();
-
-            if ( ruleHelper.readBooleanValue( PwmPasswordRule.AllowNonAlpha ) )
-            {
-                if ( numberOfNonAlphaChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumNonAlpha ) )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_NONALPHA ) );
-                }
-
-                final int maxNonAlpha = ruleHelper.readIntValue( PwmPasswordRule.MaximumNonAlpha );
-                if ( maxNonAlpha > 0 && numberOfNonAlphaChars > maxNonAlpha )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_NONALPHA ) );
-                }
-            }
-            else
-            {
-                if ( numberOfNonAlphaChars > 0 )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_NONALPHA ) );
-                }
-            }
-        }
-
-        //check number of lower characters
-        {
-            final int numberOfLowerChars = charCounter.getLowerCharCount();
-            if ( numberOfLowerChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumLowerCase ) )
-            {
-                errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_LOWER ) );
-            }
-
-            final int maxLower = ruleHelper.readIntValue( PwmPasswordRule.MaximumLowerCase );
-            if ( maxLower > 0 && numberOfLowerChars > maxLower )
-            {
-                errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_UPPER ) );
-            }
-        }
-
-        //check number of special characters
-        {
-            final int numberOfSpecialChars = charCounter.getSpecialCharsCount();
-            if ( ruleHelper.readBooleanValue( PwmPasswordRule.AllowSpecial ) )
-            {
-                if ( numberOfSpecialChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumSpecial ) )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_SPECIAL ) );
-                }
-
-                final int maxSpecial = ruleHelper.readIntValue( PwmPasswordRule.MaximumSpecial );
-                if ( maxSpecial > 0 && numberOfSpecialChars > maxSpecial )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_SPECIAL ) );
-                }
-
-                if ( !ruleHelper.readBooleanValue(
-                        PwmPasswordRule.AllowFirstCharSpecial ) && charCounter.isFirstSpecial() )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_FIRST_IS_SPECIAL ) );
-                }
-
-                if ( !ruleHelper.readBooleanValue(
-                        PwmPasswordRule.AllowLastCharSpecial ) && charCounter.isLastSpecial() )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_LAST_IS_SPECIAL ) );
-                }
-            }
-            else
-            {
-                if ( numberOfSpecialChars > 0 )
-                {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_SPECIAL ) );
-                }
-            }
-        }
-
-        //Check maximum character repeats (sequential)
-        {
-            final int maxSequentialRepeat = ruleHelper.readIntValue( PwmPasswordRule.MaximumSequentialRepeat );
-            if ( maxSequentialRepeat > 0 && charCounter.getSequentialRepeatedChars() > maxSequentialRepeat )
-            {
-                errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_REPEAT ) );
-            }
-
-            //Check maximum character repeats (overall)
-            final int maxRepeat = ruleHelper.readIntValue( PwmPasswordRule.MaximumRepeat );
-            if ( maxRepeat > 0 && charCounter.getRepeatedChars() > maxRepeat )
-            {
-                errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_REPEAT ) );
-            }
-        }
-
-        //Check minimum unique character
-        {
-            final int minUnique = ruleHelper.readIntValue( PwmPasswordRule.MinimumUnique );
-            if ( minUnique > 0 && charCounter.getUniqueChars() < minUnique )
-            {
-                errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_UNIQUE ) );
-            }
-        }
-
-        // check ad-complexity
-        {
-            final ADPolicyComplexity complexityLevel = ruleHelper.getADComplexityLevel();
-            if ( complexityLevel == ADPolicyComplexity.AD2003 || complexityLevel == ADPolicyComplexity.AD2008 )
-            {
-                final int maxGroupViolations = ruleHelper.readIntValue( PwmPasswordRule.ADComplexityMaxViolations );
-                errorList.addAll( checkPasswordForADComplexity( complexityLevel, userInfo, password, charCounter,
-                        maxGroupViolations ) );
-            }
-        }
-
-        // check consecutive characters
-        {
-            final int maximumConsecutive = ruleHelper.readIntValue( PwmPasswordRule.MaximumConsecutive );
-            if ( tooManyConsecutiveChars( password, maximumConsecutive ) )
-            {
-                errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_CONSECUTIVE ) );
-            }
+            errorList.addAll( ruleChecker.test( password, ruleCheckerHelper ) );
         }
 
         return errorList;
     }
 
-    public static boolean tooManyConsecutiveChars( final String str, final int maximumConsecutive )
+
+    private interface RuleChecker
     {
-        if ( str != null && maximumConsecutive > 1 && str.length() >= maximumConsecutive )
+        List<ErrorInformation> test(
+                String password,
+                RuleCheckerHelper ruleCheckerHelper
+        )
+                throws PwmUnrecoverableException;
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class RuleCheckerHelper
+    {
+        private PwmPasswordPolicy policy;
+        private UserInfo userInfo;
+        private PasswordRuleHelper ruleHelper;
+        private PasswordCharCounter charCounter;
+    }
+
+    private static final List<RuleChecker> BASIC_RULE_CHECKERS = Collections.unmodifiableList( Arrays.asList(
+            new MinimumLengthRuleChecker(),
+            new MaximumLengthRuleChecker(),
+            new NumericLimitsRuleChecker(),
+            new AlphaLimitsRuleChecker(),
+            new CasingLimitsRuleChecker(),
+            new SpecialLimitsRuleChecker(),
+            new UniqueCharRuleChecker(),
+            new CharSequenceRuleChecker(),
+            new ActiveDirectoryRuleChecker()
+    ) );
+
+    private static class MinimumLengthRuleChecker implements RuleChecker
+    {
+        @Override
+        public List<ErrorInformation> test( final String password, final RuleCheckerHelper ruleCheckerHelper )
+                throws PwmUnrecoverableException
         {
-            final int[] codePoints = StringUtil.toCodePointArray( str.toLowerCase() );
-
-            int lastCodePoint = -1;
-            int consecutiveCharCount = 1;
-
-            for ( int i = 0; i < codePoints.length; i++ )
+            //Check minimum length
+            if ( password.length() < ruleCheckerHelper.getRuleHelper().readIntValue( PwmPasswordRule.MinimumLength ) )
             {
-                if ( codePoints[ i ] == lastCodePoint + 1 )
+                return Collections.singletonList( new ErrorInformation( PwmError.PASSWORD_TOO_SHORT ) );
+            }
+            return Collections.emptyList();
+        }
+    }
+
+    private static class MaximumLengthRuleChecker implements RuleChecker
+    {
+        @Override
+        public List<ErrorInformation> test( final String password, final RuleCheckerHelper ruleCheckerHelper )
+                throws PwmUnrecoverableException
+        {
+            //Check maximum length
+            {
+                final int passwordMaximumLength = ruleCheckerHelper.getRuleHelper().readIntValue( PwmPasswordRule.MaximumLength );
+
+                if ( passwordMaximumLength > 0 && password.length() > passwordMaximumLength )
                 {
-                    consecutiveCharCount++;
+                    return Collections.singletonList( new ErrorInformation( PwmError.PASSWORD_TOO_LONG ) );
+                }
+            }
+            return Collections.emptyList();
+        }
+    }
+
+    private static class NumericLimitsRuleChecker implements RuleChecker
+    {
+        @Override
+        public List<ErrorInformation> test( final String password, final RuleCheckerHelper ruleCheckerHelper )
+                throws PwmUnrecoverableException
+        {
+            //check number of numeric characters
+            final List<ErrorInformation> errorList = new ArrayList<>();
+            final PasswordRuleHelper ruleHelper = ruleCheckerHelper.getRuleHelper();
+            final PasswordCharCounter charCounter = ruleCheckerHelper.getCharCounter();
+            {
+                final int numberOfNumericChars = charCounter.getNumericCharCount();
+                if ( ruleHelper.readBooleanValue( PwmPasswordRule.AllowNumeric ) )
+                {
+                    if ( numberOfNumericChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumNumeric ) )
+                    {
+                        errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_NUM ) );
+                    }
+
+                    final int maxNumeric = ruleHelper.readIntValue( PwmPasswordRule.MaximumNumeric );
+                    if ( maxNumeric > 0 && numberOfNumericChars > maxNumeric )
+                    {
+                        errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_NUMERIC ) );
+                    }
+
+                    if ( !ruleHelper.readBooleanValue(
+                            PwmPasswordRule.AllowFirstCharNumeric ) && charCounter.isFirstNumeric() )
+                    {
+                        errorList.add( new ErrorInformation( PwmError.PASSWORD_FIRST_IS_NUMERIC ) );
+                    }
+
+                    if ( !ruleHelper.readBooleanValue(
+                            PwmPasswordRule.AllowLastCharNumeric ) && charCounter.isLastNumeric() )
+                    {
+                        errorList.add( new ErrorInformation( PwmError.PASSWORD_LAST_IS_NUMERIC ) );
+                    }
                 }
                 else
                 {
-                    consecutiveCharCount = 1;
-                }
-
-                lastCodePoint = codePoints[ i ];
-
-                if ( consecutiveCharCount == maximumConsecutive )
-                {
-                    return true;
+                    if ( numberOfNumericChars > 0 )
+                    {
+                        errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_NUMERIC ) );
+                    }
                 }
             }
+            return Collections.unmodifiableList( errorList );
         }
+    }
 
-        return false;
+    private static class CasingLimitsRuleChecker implements RuleChecker
+    {
+        @Override
+        public List<ErrorInformation> test( final String password, final RuleCheckerHelper ruleCheckerHelper )
+                throws PwmUnrecoverableException
+        {
+            final List<ErrorInformation> errorList = new ArrayList<>();
+            final PasswordRuleHelper ruleHelper = ruleCheckerHelper.getRuleHelper();
+            final PasswordCharCounter charCounter = ruleCheckerHelper.getCharCounter();
+
+            //check number of upper characters
+            {
+                final int numberOfUpperChars = charCounter.getUpperCharCount();
+                if ( numberOfUpperChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumUpperCase ) )
+                {
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_UPPER ) );
+                }
+
+                final int maxUpper = ruleHelper.readIntValue( PwmPasswordRule.MaximumUpperCase );
+                if ( maxUpper > 0 && numberOfUpperChars > maxUpper )
+                {
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_UPPER ) );
+                }
+            }
+
+            //check number of lower characters
+            {
+                final int numberOfLowerChars = charCounter.getLowerCharCount();
+                if ( numberOfLowerChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumLowerCase ) )
+                {
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_LOWER ) );
+                }
+
+                final int maxLower = ruleHelper.readIntValue( PwmPasswordRule.MaximumLowerCase );
+                if ( maxLower > 0 && numberOfLowerChars > maxLower )
+                {
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_UPPER ) );
+                }
+            }
+            return Collections.unmodifiableList( errorList );
+        }
+    }
+
+    private static class AlphaLimitsRuleChecker implements RuleChecker
+    {
+        @Override
+        public List<ErrorInformation> test( final String password, final RuleCheckerHelper ruleCheckerHelper )
+                throws PwmUnrecoverableException
+        {
+            final List<ErrorInformation> errorList = new ArrayList<>();
+            final PasswordRuleHelper ruleHelper = ruleCheckerHelper.getRuleHelper();
+            final PasswordCharCounter charCounter = ruleCheckerHelper.getCharCounter();
+
+            //check number of alpha characters
+            {
+                final int numberOfAlphaChars = charCounter.getAlphaCharCount();
+                if ( numberOfAlphaChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumAlpha ) )
+                {
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_ALPHA ) );
+                }
+
+                final int maxAlpha = ruleHelper.readIntValue( PwmPasswordRule.MaximumAlpha );
+                if ( maxAlpha > 0 && numberOfAlphaChars > maxAlpha )
+                {
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_ALPHA ) );
+                }
+            }
+
+            //check number of non-alpha characters
+            {
+                final int numberOfNonAlphaChars = charCounter.getNonAlphaCharCount();
+
+                if ( ruleHelper.readBooleanValue( PwmPasswordRule.AllowNonAlpha ) )
+                {
+                    if ( numberOfNonAlphaChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumNonAlpha ) )
+                    {
+                        errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_NONALPHA ) );
+                    }
+
+                    final int maxNonAlpha = ruleHelper.readIntValue( PwmPasswordRule.MaximumNonAlpha );
+                    if ( maxNonAlpha > 0 && numberOfNonAlphaChars > maxNonAlpha )
+                    {
+                        errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_NONALPHA ) );
+                    }
+                }
+                else
+                {
+                    if ( numberOfNonAlphaChars > 0 )
+                    {
+                        errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_NONALPHA ) );
+                    }
+                }
+            }
+            return Collections.unmodifiableList( errorList );
+        }
+    }
+
+    private static class SpecialLimitsRuleChecker implements RuleChecker
+    {
+        @Override
+        public List<ErrorInformation> test( final String password, final RuleCheckerHelper ruleCheckerHelper )
+                throws PwmUnrecoverableException
+        {
+            final List<ErrorInformation> errorList = new ArrayList<>();
+            final PasswordRuleHelper ruleHelper = ruleCheckerHelper.getRuleHelper();
+            final PasswordCharCounter charCounter = ruleCheckerHelper.getCharCounter();
+
+            //check number of special characters
+            {
+                final int numberOfSpecialChars = charCounter.getSpecialCharsCount();
+                if ( ruleHelper.readBooleanValue( PwmPasswordRule.AllowSpecial ) )
+                {
+                    if ( numberOfSpecialChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumSpecial ) )
+                    {
+                        errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_SPECIAL ) );
+                    }
+
+                    final int maxSpecial = ruleHelper.readIntValue( PwmPasswordRule.MaximumSpecial );
+                    if ( maxSpecial > 0 && numberOfSpecialChars > maxSpecial )
+                    {
+                        errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_SPECIAL ) );
+                    }
+
+                    if ( !ruleHelper.readBooleanValue(
+                            PwmPasswordRule.AllowFirstCharSpecial ) && charCounter.isFirstSpecial() )
+                    {
+                        errorList.add( new ErrorInformation( PwmError.PASSWORD_FIRST_IS_SPECIAL ) );
+                    }
+
+                    if ( !ruleHelper.readBooleanValue(
+                            PwmPasswordRule.AllowLastCharSpecial ) && charCounter.isLastSpecial() )
+                    {
+                        errorList.add( new ErrorInformation( PwmError.PASSWORD_LAST_IS_SPECIAL ) );
+                    }
+                }
+                else
+                {
+                    if ( numberOfSpecialChars > 0 )
+                    {
+                        errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_SPECIAL ) );
+                    }
+                }
+            }
+
+            return Collections.unmodifiableList( errorList );
+        }
+    }
+
+    private static class CharSequenceRuleChecker implements RuleChecker
+    {
+        @Override
+        public List<ErrorInformation> test( final String password, final RuleCheckerHelper ruleCheckerHelper )
+                throws PwmUnrecoverableException
+        {
+            final List<ErrorInformation> errorList = new ArrayList<>();
+            final PasswordRuleHelper ruleHelper = ruleCheckerHelper.getRuleHelper();
+            final PasswordCharCounter charCounter = ruleCheckerHelper.getCharCounter();
+
+            //Check maximum character repeats (sequential)
+            {
+                final int maxSequentialRepeat = ruleHelper.readIntValue( PwmPasswordRule.MaximumSequentialRepeat );
+                if ( maxSequentialRepeat > 0 && charCounter.getSequentialRepeatedChars() > maxSequentialRepeat )
+                {
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_REPEAT ) );
+                }
+
+                //Check maximum character repeats (overall)
+                final int maxRepeat = ruleHelper.readIntValue( PwmPasswordRule.MaximumRepeat );
+                if ( maxRepeat > 0 && charCounter.getRepeatedChars() > maxRepeat )
+                {
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_REPEAT ) );
+                }
+            }
+
+            // check consecutive characters
+            {
+                final int maximumConsecutive = ruleHelper.readIntValue( PwmPasswordRule.MaximumConsecutive );
+                if ( PwmPasswordRuleUtil.tooManyConsecutiveChars( password, maximumConsecutive ) )
+                {
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_CONSECUTIVE ) );
+                }
+            }
+
+            return Collections.unmodifiableList( errorList );
+        }
+    }
+
+    private static class UniqueCharRuleChecker implements RuleChecker
+    {
+        @Override
+        public List<ErrorInformation> test( final String password, final RuleCheckerHelper ruleCheckerHelper )
+                throws PwmUnrecoverableException
+        {
+            final List<ErrorInformation> errorList = new ArrayList<>();
+            final PasswordRuleHelper ruleHelper = ruleCheckerHelper.getRuleHelper();
+            final PasswordCharCounter charCounter = ruleCheckerHelper.getCharCounter();
+
+            //Check minimum unique character
+            {
+                final int minUnique = ruleHelper.readIntValue( PwmPasswordRule.MinimumUnique );
+                if ( minUnique > 0 && charCounter.getUniqueChars() < minUnique )
+                {
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_UNIQUE ) );
+                }
+            }
+
+            return Collections.unmodifiableList( errorList );
+        }
+    }
+
+    private static class ActiveDirectoryRuleChecker implements RuleChecker
+    {
+        @Override
+        public List<ErrorInformation> test( final String password, final RuleCheckerHelper ruleCheckerHelper )
+                throws PwmUnrecoverableException
+        {
+            final List<ErrorInformation> errorList = new ArrayList<>();
+            final PasswordRuleHelper ruleHelper = ruleCheckerHelper.getRuleHelper();
+            final PasswordCharCounter charCounter = ruleCheckerHelper.getCharCounter();
+
+            // check ad-complexity
+            {
+                final ADPolicyComplexity complexityLevel = ruleHelper.getADComplexityLevel();
+                if ( complexityLevel == ADPolicyComplexity.AD2003 || complexityLevel == ADPolicyComplexity.AD2008 )
+                {
+                    final int maxGroupViolations = ruleHelper.readIntValue( PwmPasswordRule.ADComplexityMaxViolations );
+                    errorList.addAll( PwmPasswordRuleUtil.checkPasswordForADComplexity(
+                            complexityLevel,
+                            ruleCheckerHelper.getUserInfo(),
+                            password,
+                            charCounter,
+                            maxGroupViolations ) );
+                }
+            }
+
+            return Collections.unmodifiableList( errorList );
+        }
     }
 }
+

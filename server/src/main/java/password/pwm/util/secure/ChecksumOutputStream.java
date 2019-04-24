@@ -22,9 +22,6 @@
 
 package password.pwm.util.secure;
 
-import password.pwm.http.bean.ImmutableByteArray;
-import password.pwm.util.java.JavaHelper;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.CRC32;
@@ -46,21 +43,20 @@ public class ChecksumOutputStream extends OutputStream
     }
 
     @Override
-    public void write( final byte[] b ) throws IOException
+    public void write( final byte[] bytes ) throws IOException
     {
-        crc32.update( b );
-        wrappedStream.write( b );
+        write( bytes, 0, bytes.length );
     }
 
     @Override
-    public void write( final byte[] b, final int off, final int len ) throws IOException
+    public void write( final byte[] bytes, final int off, final int len ) throws IOException
     {
         if ( len > 0 )
         {
-            crc32.update( b, off, len );
+            crc32.update( bytes, off, len );
         }
 
-        wrappedStream.write( b, off, len );
+        wrappedStream.write( bytes, off, len );
     }
 
     @Override
@@ -76,8 +72,13 @@ public class ChecksumOutputStream extends OutputStream
         wrappedStream.write( b );
     }
 
-    public ImmutableByteArray checksum( )
+    public String checksum( )
     {
-        return ImmutableByteArray.of( JavaHelper.longToBytes( crc32.getValue() ) );
+        return stringifyChecksum( crc32.getValue() );
+    }
+
+    static String stringifyChecksum( final long value )
+    {
+        return Long.toString( value, 36 ).toLowerCase();
     }
 }

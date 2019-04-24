@@ -32,13 +32,11 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.svc.PwmService;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.Percent;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.ChecksumOutputStream;
@@ -177,7 +175,6 @@ public class ResourceServletService implements PwmService
     private String makeResourcePathNonce( )
             throws IOException
     {
-        final int nonceLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_PATH_NONCE_LENGTH ) );
         final boolean enablePathNonce = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE ) );
         if ( !enablePathNonce )
         {
@@ -185,9 +182,7 @@ public class ResourceServletService implements PwmService
         }
 
         final Instant startTime = Instant.now();
-        final ImmutableByteArray checksumBytes = checksumAllResources( pwmApplication );
-
-        final String nonce = StringUtil.truncate( JavaHelper.byteArrayToHexString( checksumBytes.copyOf() ).toLowerCase(), nonceLength );
+        final String nonce = checksumAllResources( pwmApplication );
         LOGGER.debug( () -> "completed generation of nonce '" + nonce + "' in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
 
         final String noncePrefix = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
@@ -240,7 +235,7 @@ public class ResourceServletService implements PwmService
         return false;
     }
 
-    private ImmutableByteArray checksumAllResources( final PwmApplication pwmApplication )
+    private String checksumAllResources( final PwmApplication pwmApplication )
             throws IOException
     {
         try ( ChecksumOutputStream checksumStream = new ChecksumOutputStream( new NullOutputStream() ) )

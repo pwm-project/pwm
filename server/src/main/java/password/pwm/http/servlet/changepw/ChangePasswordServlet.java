@@ -55,7 +55,7 @@ import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.util.PasswordData;
-import password.pwm.util.PwmPasswordRuleValidator;
+import password.pwm.util.password.PwmPasswordRuleValidator;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;

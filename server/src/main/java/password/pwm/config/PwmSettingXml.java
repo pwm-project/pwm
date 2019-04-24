@@ -35,6 +35,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -56,12 +57,12 @@ public class PwmSettingXml
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSettingXml.class );
 
-    private static XmlDocument xmlDocCache;
+    private static WeakReference<XmlDocument> xmlDocCache = new WeakReference<>( null );
     private static final AtomicInteger LOAD_COUNTER = new AtomicInteger( 0 );
 
     private static XmlDocument readXml( )
     {
-        final XmlDocument docRefCopy = xmlDocCache;
+        final XmlDocument docRefCopy = xmlDocCache.get();
         if ( docRefCopy == null )
         {
             final InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( SETTING_XML_FILENAME );
@@ -70,30 +71,9 @@ public class PwmSettingXml
                 final Instant startTime = Instant.now();
                 final XmlDocument newDoc = XmlFactory.getFactory().parseXml( inputStream );
                 final TimeDuration parseDuration = TimeDuration.fromCurrent( startTime );
-                LOGGER.trace( () -> "parsed PwmSettingXml in " + parseDuration.toString() + ", loads=" + LOAD_COUNTER.getAndIncrement() );
+                LOGGER.trace( () -> "parsed PwmSettingXml in " + parseDuration.asCompactString() + ", loads=" + LOAD_COUNTER.getAndIncrement() );
 
-                xmlDocCache = newDoc;
-
-                // clear cached dom after 30 seconds.
-                final Thread t = new Thread( "PwmSettingXml static cache thread" )
-                {
-                    @Override
-                    public void run( )
-                    {
-                        try
-                        {
-                            Thread.sleep( 30_000 );
-                        }
-                        catch ( InterruptedException e )
-                        {
-                            //ignored
-                        }
-                        LOGGER.trace( () -> "cached PwmSettingXml discarded" );
-                        xmlDocCache = null;
-                    }
-                };
-                t.setDaemon( true );
-                t.start();
+                xmlDocCache = new WeakReference<>( newDoc );
 
                 return newDoc;
             }

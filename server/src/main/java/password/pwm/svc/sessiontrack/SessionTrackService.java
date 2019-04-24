@@ -119,10 +119,7 @@ public class SessionTrackService implements PwmService
 
     private Set<PwmSession> copyOfSessionSet( )
     {
-        final Set<PwmSession> newSet = new HashSet<>();
-        newSet.addAll( pwmSessions.keySet() );
-        return newSet;
-
+        return new HashSet<>( pwmSessions.keySet() );
     }
 
     public Map<DebugKey, String> getDebugData( )

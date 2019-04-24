@@ -27,6 +27,7 @@ import org.junit.Test;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -38,12 +39,20 @@ public class PwmSettingTest
     @Test
     public void testDefaultValues() throws PwmUnrecoverableException, PwmOperationalException
     {
+        final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( "abcdefghijklmnopqrstuvwxyz" );
         for ( final PwmSetting pwmSetting : PwmSetting.values() )
         {
             for ( final PwmSettingTemplate template : PwmSettingTemplate.values() )
             {
                 final PwmSettingTemplateSet templateSet = new PwmSettingTemplateSet( Collections.singleton( template ) );
-                pwmSetting.getDefaultValue( templateSet );
+                final StoredValue storedValue = pwmSetting.getDefaultValue( templateSet );
+                storedValue.toNativeObject();
+                storedValue.toDebugString( PwmConstants.DEFAULT_LOCALE );
+                storedValue.toDebugJsonObject( PwmConstants.DEFAULT_LOCALE );
+                storedValue.toXmlValues( "value", pwmSecurityKey );
+                storedValue.validateValue( pwmSetting );
+                storedValue.requiresStoredUpdate();
+                Assert.assertNotNull( storedValue.valueHash() );
             }
         }
     }

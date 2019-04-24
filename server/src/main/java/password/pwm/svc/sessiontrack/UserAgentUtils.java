@@ -31,6 +31,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmRequest;
+import password.pwm.util.java.LazySoftReference;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -42,30 +43,27 @@ public class UserAgentUtils
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserAgentUtils.class );
 
-    private static UserAgentParser cachedParser;
+    private static final LazySoftReference<UserAgentParser> CACHED_PARSER = new LazySoftReference<>( UserAgentUtils::loadUserAgentParser );
 
-    private static UserAgentParser getUserAgentParser( ) throws PwmUnrecoverableException
+    private static UserAgentParser loadUserAgentParser( )
     {
-        if ( cachedParser == null )
+        try
         {
-            try
-            {
-                cachedParser = new UserAgentService().loadParser();
-            }
-            catch ( IOException | ParseException e )
-            {
-                final String msg = "error loading user-agent parser: " + e.getMessage();
-                LOGGER.error( msg, e );
-                throw new PwmUnrecoverableException( PwmError.ERROR_INTERNAL, msg );
-            }
+            return new UserAgentService().loadParser();
         }
-        return cachedParser;
+        catch ( IOException | ParseException e )
+        {
+            final String msg = "error loading user-agent parser: " + e.getMessage();
+            LOGGER.error( msg, e );
+        }
+
+        return null;
     }
 
     public static void initializeCache() throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
-        getUserAgentParser();
+        CACHED_PARSER.get();
         LOGGER.trace( () -> "loaded useragent parser in " + TimeDuration.compactFromCurrent( startTime ) );
     }
 
@@ -79,7 +77,7 @@ public class UserAgentUtils
 
         boolean badBrowser = false;
 
-        final UserAgentParser userAgentParser = getUserAgentParser();
+        final UserAgentParser userAgentParser = CACHED_PARSER.get();
         final Capabilities capabilities = userAgentParser.parse( userAgentString );
         final String browser = capabilities.getBrowser();
         final String browserMajorVersion = capabilities.getBrowserMajorVersion();

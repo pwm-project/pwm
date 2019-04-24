@@ -94,11 +94,11 @@
         <flag>Select_AllowUserInput</flag>
         <regex>^/.+</regex>
         <default>
-            <value>/private</value>
+            <value>/private/</value>
         </default>
         <options>
-            <option value="/private">/private</option>
-            <option value="/public">/public</option>
+            <option value="/private/">/private</option>
+            <option value="/public/">/public</option>
         </options>
     </setting>
     <setting hidden="false" key="idleTimeoutSeconds" level="1" required="true">
@@ -1315,9 +1315,7 @@
         <default/>
     </setting>
     <setting hidden="false" key="password.policy.ruleText" level="2">
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="password.policy.disallowCurrent" level="2" required="true">
         <default>
@@ -3074,9 +3072,7 @@
         </default>
     </setting>
     <setting hidden="false" key="updateAttributes.customLinks" level="1">
-        <default>
-            <value></value>
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="updateAttributes.token.lifetime" level="1" required="true">
         <default>

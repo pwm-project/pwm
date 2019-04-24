@@ -31,7 +31,7 @@ PWM_API.formatDate = function(dateObj) {
     return PWM_MAIN.TimestampHandler.formatDate(dateObj);
 };
 
-PWM_MAIN.ajaxTimeout = 120 * 1000;
+PWM_MAIN.ajaxTimeout = 60 * 1000;
 
 PWM_MAIN.pageLoadHandler = function() {
     PWM_GLOBAL['localeBundle']=PWM_GLOBAL['localeBundle'] || [];

@@ -162,7 +162,7 @@ class WordlistSource
                 return null;
             }
 
-            final String hash = JavaHelper.binaryArrayToHex( checksumInputStream.readUntilEndAndChecksum().copyOf() );
+            final String hash = checksumInputStream.checksum();
 
             final WordlistSourceInfo wordlistSourceInfo = new WordlistSourceInfo(
                     hash,

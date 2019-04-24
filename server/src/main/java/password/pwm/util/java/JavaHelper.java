@@ -47,6 +47,7 @@ import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -644,13 +645,6 @@ public class JavaHelper
 
     public static byte[] longToBytes( final long input )
     {
-        final byte[] result = new byte[Byte.SIZE];
-        long shift = input;
-        for ( int i = Byte.SIZE - 1; i >= 0; i-- )
-        {
-            result[i] = (byte) ( shift & 0xFF );
-            shift >>= Byte.SIZE;
-        }
-        return result;
+        return ByteBuffer.allocate( 8 ).putLong( input ).array();
     }
 }

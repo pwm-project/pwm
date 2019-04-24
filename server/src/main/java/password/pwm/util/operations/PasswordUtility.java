@@ -82,7 +82,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.util.PasswordCharCounter;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PostChangePasswordAction;
-import password.pwm.util.PwmPasswordRuleValidator;
+import password.pwm.util.password.PwmPasswordRuleValidator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;

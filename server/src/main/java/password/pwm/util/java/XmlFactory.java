@@ -27,7 +27,7 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.input.sax.XMLReaders;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
-import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -53,11 +53,17 @@ import java.util.List;
 
 public interface XmlFactory
 {
+    enum FactoryType
+    {
+        JDOM,
+        W3C,
+    }
+
     XmlDocument parseXml( InputStream inputStream )
             throws PwmUnrecoverableException;
 
     void outputDocument( XmlDocument document, OutputStream outputStream )
-                    throws IOException;
+            throws IOException;
 
     XmlDocument newDocument( String rootElementName );
 
@@ -65,9 +71,27 @@ public interface XmlFactory
 
     static XmlFactory getFactory()
     {
-        //return new XmlFactoryW3c();
         return new XmlFactoryJDOM();
     }
+
+    static XmlFactory getFactory( final FactoryType factoryType )
+    {
+        switch ( factoryType )
+        {
+            case JDOM:
+                return new XmlFactoryJDOM();
+
+            case W3C:
+                return new XmlFactoryW3c();
+
+            default:
+                JavaHelper.unhandledSwitchStatement( factoryType );
+
+        }
+
+        return null;
+    }
+
 
     class XmlFactoryJDOM implements XmlFactory
     {
@@ -222,7 +246,11 @@ public interface XmlFactory
             {
                 for ( int i = 0; i < nodeList.getLength(); i++ )
                 {
-                    returnList.add( new XmlElement.XmlElementW3c( ( Element ) nodeList.item( i ) ) );
+                    final Node node = nodeList.item( i );
+                    if ( node.getNodeType() == Node.ELEMENT_NODE )
+                    {
+                        returnList.add( new XmlElement.XmlElementW3c( ( org.w3c.dom.Element ) node ) );
+                    }
                 }
                 return returnList;
             }
