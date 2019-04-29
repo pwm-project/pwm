@@ -32,7 +32,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.password.PasswordRuleHelper;
+import password.pwm.util.password.PasswordRuleReaderHelper;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -142,9 +142,9 @@ public class PwmPasswordPolicy implements Profile, Serializable
         return chaiPasswordPolicy;
     }
 
-    public PasswordRuleHelper getRuleHelper( )
+    public PasswordRuleReaderHelper getRuleHelper( )
     {
-        return new PasswordRuleHelper( this );
+        return new PasswordRuleReaderHelper( this );
     }
 
     public String getValue( final PwmPasswordRule rule )
@@ -328,7 +328,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
 
     public List<HealthRecord> health( final Locale locale )
     {
-        final PasswordRuleHelper ruleHelper = this.getRuleHelper();
+        final PasswordRuleReaderHelper ruleHelper = this.getRuleHelper();
         final List<HealthRecord> returnList = new ArrayList<>();
         final Map<PwmPasswordRule, PwmPasswordRule> rulePairs = new LinkedHashMap<>();
         rulePairs.put( PwmPasswordRule.MinimumLength, PwmPasswordRule.MaximumLength );

@@ -79,7 +79,7 @@ import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.PasswordCharCounter;
+import password.pwm.util.password.PasswordCharCounter;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.password.PwmPasswordRuleValidator;

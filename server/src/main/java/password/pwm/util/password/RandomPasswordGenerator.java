@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.util.password;
 
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import lombok.Builder;
@@ -35,15 +35,14 @@ import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.wordlist.SeedlistService;
+import password.pwm.util.PasswordData;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.util.password.PwmPasswordRuleValidator;
 import password.pwm.util.secure.PwmRandom;
 
 import java.time.Instant;
@@ -78,16 +77,6 @@ public class RandomPasswordGenerator
     ) ) );
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( RandomPasswordGenerator.class );
-
-    public static PasswordData createRandomPassword(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication
-    )
-            throws PwmUnrecoverableException
-    {
-        final PwmPasswordPolicy userPasswordPolicy = pwmSession.getUserInfo().getPasswordPolicy();
-        return createRandomPassword( pwmSession.getLabel(), userPasswordPolicy, pwmApplication );
-    }
 
     public static PasswordData createRandomPassword(
             final SessionLabel sessionLabel,

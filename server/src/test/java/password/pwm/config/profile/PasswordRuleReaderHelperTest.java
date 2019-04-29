@@ -31,12 +31,12 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.password.PasswordRuleHelper;
+import password.pwm.util.password.PasswordRuleReaderHelper;
 
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class PasswordRuleHelperTest
+public class PasswordRuleReaderHelperTest
 {
     private static final String[][] MACRO_MAP = new String[][] {
             {"@User:ID@", "fflintstone"},
@@ -46,7 +46,7 @@ public class PasswordRuleHelperTest
     };
 
     private MacroMachine macroMachine = Mockito.mock( MacroMachine.class );
-    private PasswordRuleHelper ruleHelper = Mockito.mock( PasswordRuleHelper.class );
+    private PasswordRuleReaderHelper ruleHelper = Mockito.mock( PasswordRuleReaderHelper.class );
 
     @Before
     public void setUp() throws Exception

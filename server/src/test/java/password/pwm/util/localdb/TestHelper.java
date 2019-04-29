@@ -29,6 +29,16 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
+import password.pwm.PwmEnvironment;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.value.StringValue;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.logging.PwmLogLevel;
+
+import java.io.File;
 
 public class TestHelper
 {
@@ -47,8 +57,17 @@ public class TestHelper
         chaiPackageLogger.setLevel( level );
     }
 
-    public static void t()
+    public static PwmApplication makeTestPwmApplication( final File tempFolder )
+            throws PwmUnrecoverableException
     {
-
+        Logger.getRootLogger().setLevel( Level.OFF );
+        final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
+        storedConfiguration.writeSetting( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL, new StringValue( PwmLogLevel.FATAL.toString() ), null );
+        final Configuration configuration = new Configuration( storedConfiguration );
+        final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder( configuration, tempFolder )
+                .setApplicationMode( PwmApplicationMode.READ_ONLY )
+                .setInternalRuntimeInstance( true )
+                .createPwmEnvironment();
+        return new PwmApplication( pwmEnvironment );
     }
 }

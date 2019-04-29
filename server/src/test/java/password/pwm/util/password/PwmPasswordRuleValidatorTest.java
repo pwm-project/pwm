@@ -20,35 +20,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.util.password;
 
 import org.junit.Assert;
 import org.junit.Test;
-import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.config.profile.PwmPasswordRule;
-import password.pwm.util.password.PwmPasswordRuleUtil;
-import password.pwm.util.password.PwmPasswordRuleValidator;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class PwmPasswordRuleValidatorTest
 {
-    @Test
-    public void complexPolicyTest()
-            throws Exception
-    {
-        final Map<String, String> policyMap = new HashMap<>( PwmPasswordPolicy.defaultPolicy().getPolicyMap() );
-        policyMap.put( PwmPasswordRule.MinimumLength.getKey(), "3" );
-        policyMap.put( PwmPasswordRule.AllowNumeric.getKey(), "true" );
-
-        final PwmPasswordPolicy pwmPasswordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy( policyMap );
-
-        final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( null, pwmPasswordPolicy );
-        Assert.assertTrue( pwmPasswordRuleValidator.testPassword( new PasswordData( "123" ), null, null, null ) );
-
-    }
-
     @Test
     public void testContainsDisallowedValue() throws Exception
     {

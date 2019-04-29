@@ -56,7 +56,7 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.PasswordData;
-import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;

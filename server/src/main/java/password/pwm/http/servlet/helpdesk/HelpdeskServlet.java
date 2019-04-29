@@ -77,7 +77,7 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;

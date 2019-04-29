@@ -38,9 +38,9 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-public class PasswordRuleHelper
+public class PasswordRuleReaderHelper
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( PasswordRuleHelper.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PasswordRuleReaderHelper.class );
 
     public enum Flag
     {
@@ -50,7 +50,7 @@ public class PasswordRuleHelper
     private final PwmPasswordPolicy passwordPolicy;
     private final com.novell.ldapchai.util.PasswordRuleHelper chaiRuleHelper;
 
-    public PasswordRuleHelper( final PwmPasswordPolicy passwordPolicy )
+    public PasswordRuleReaderHelper( final PwmPasswordPolicy passwordPolicy )
     {
         this.passwordPolicy = passwordPolicy;
         chaiRuleHelper = DefaultChaiPasswordPolicy.createDefaultChaiPasswordPolicy( passwordPolicy.getPolicyMap() ).getRuleHelper();

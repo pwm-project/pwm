@@ -56,7 +56,7 @@ import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.util.PasswordData;
 import password.pwm.util.password.PwmPasswordRuleValidator;
-import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -429,7 +429,11 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     @ActionHandler( action = "randomPassword" )
     private ProcessStatus processRandomPasswordAction( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PasswordData passwordData = RandomPasswordGenerator.createRandomPassword( pwmRequest.getPwmSession(), pwmRequest.getPwmApplication() );
+        final PasswordData passwordData = RandomPasswordGenerator.createRandomPassword(
+                pwmRequest.getSessionLabel(),
+                pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy(),
+                pwmRequest.getPwmApplication() );
+
         final RestRandomPasswordServer.JsonOutput jsonOutput = new RestRandomPasswordServer.JsonOutput();
         jsonOutput.setPassword( passwordData.getStringValue() );
         final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
