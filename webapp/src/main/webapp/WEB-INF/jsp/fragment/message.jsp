@@ -35,7 +35,7 @@
     <span id="errorCode" style="display: none"><%=requestError.getError().getErrorCode()%></span>
     <span id="errorName" style="display: none"><%=requestError.getError().toString()%></span>
 <% } else { %>
-    <span style="display:none" id="message" class="message">&nbsp;</span>
+    <span id="message" class="message display-none">&nbsp;</span>
 <% } %>
-    <div id="capslockwarning" style="display:none;"><pwm:display key="Display_CapsLockIsOn"/></div>
+    <div id="capslockwarning" class="display-none"><pwm:display key="Display_CapsLockIsOn"/></div>
 </div>
