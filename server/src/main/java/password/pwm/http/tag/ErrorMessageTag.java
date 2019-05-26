@@ -58,7 +58,9 @@ public class ErrorMessageTag extends PwmAbstractTag
                 pwmApplication = ContextManager.getPwmApplication( pageContext.getRequest() );
             }
             catch ( PwmException e )
-            { /* noop */ }
+            {
+                /* noop */
+            }
 
             if ( pwmRequest == null || pwmApplication == null )
             {

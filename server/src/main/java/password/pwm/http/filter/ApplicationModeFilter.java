@@ -72,7 +72,9 @@ public class ApplicationModeFilter extends AbstractPwmFilter
                         LOGGER.error( e.getMessage() );
                     }
                     catch ( Exception ignore )
-                    { /* noop */ }
+                    {
+                        /* noop */
+                    }
                 }
                 pwmRequest.respondWithError( e.getErrorInformation(), true );
                 return;

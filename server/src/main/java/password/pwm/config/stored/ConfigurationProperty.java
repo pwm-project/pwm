@@ -30,7 +30,8 @@ public enum ConfigurationProperty
     NOTES( "notes" ),
     PASSWORD_HASH( "configPasswordHash" ),
     CONFIG_ON_START( "saveConfigOnStart" ),
-    MODIFIFICATION_TIMESTAMP( "modificationTimestamp" ),;
+    MODIFIFICATION_TIMESTAMP( "modificationTimestamp" ),
+    IMPORT_LDAP_CERTIFICATES( "importLdapCertificates" ),;
 
     private final String key;
 

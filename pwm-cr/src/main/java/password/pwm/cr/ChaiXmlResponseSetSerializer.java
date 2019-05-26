@@ -276,12 +276,16 @@ public class ChaiXmlResponseSetSerializer
         final String salt = element.getAttribute( XML_ATTRIBUTE_SALT ) == null ? "" : element.getAttribute( XML_ATTRIBUTE_SALT ).getValue();
         final String hashCount = element.getAttribute( XML_ATTRIBUTE_HASH_COUNT ) == null ? "1" : element.getAttribute( XML_ATTRIBUTE_HASH_COUNT ).getValue();
         int saltCount = 1;
+
         try
         {
             saltCount = Integer.parseInt( hashCount );
         }
         catch ( NumberFormatException e )
-        { /* noop */ }
+        {
+            /* noop */
+        }
+
         final String formatStr = element.getAttributeValue( XML_ATTRIBUTE_CONTENT_FORMAT ) == null ? "" : element.getAttributeValue( XML_ATTRIBUTE_CONTENT_FORMAT );
 
         return StoredResponseItem.builder()

@@ -96,6 +96,12 @@ public class LdapProfile extends AbstractProfile implements Profile
         return Collections.unmodifiableList( canonicalValues );
     }
 
+    public List<String> getLdapUrls(
+    )
+    {
+        return readSettingAsStringArray( PwmSetting.LDAP_SERVER_URLS );
+    }
+
     @Override
     public String getDisplayName( final Locale locale )
     {

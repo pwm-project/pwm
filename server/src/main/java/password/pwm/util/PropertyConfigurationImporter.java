@@ -66,9 +66,12 @@ public class PropertyConfigurationImporter
         ID_VAULT_LDAPS_PORT,
         ID_VAULT_ADMIN_LDAP,
         ID_VAULT_PASSWORD,
-        USER_CONTAINER,
+        UA_SERVER_HOST,
         UA_ADMIN,
 
+        SSPR_SERVER_HOST,
+        SSPR_SERVER_PORT,
+        USER_CONTAINER,
         SSO_SERVER_HOST,
         SSO_SERVER_SSL_PORT,
         SSO_SERVICE_PWD,
@@ -102,9 +105,11 @@ public class PropertyConfigurationImporter
         final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.newStoredConfiguration( );
         storedConfiguration.initNewRandomSecurityKey( );
         storedConfiguration.writeConfigProperty( 
-                ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( true ) );
+                ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( false ) );
         storedConfiguration.writeConfigProperty( 
                 ConfigurationProperty.CONFIG_EPOCH, String.valueOf( 0 ) );
+        storedConfiguration.writeConfigProperty(
+                ConfigurationProperty.IMPORT_LDAP_CERTIFICATES, Boolean.toString( true ) );
 
         // static values
         storedConfiguration.writeSetting( PwmSetting.TEMPLATE_LDAP, new StringValue( 
@@ -131,7 +136,7 @@ public class PropertyConfigurationImporter
         // ldap server
         storedConfiguration.writeSetting( PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE, makeLdapServerUrlValue( ), null );
         storedConfiguration.writeSetting( PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE,
-                new PasswordValue( PasswordData.forStringValue( inputMap.get( PropertyKey.ID_VAULT_ADMIN_LDAP.name( ) ) ) ), null );
+                new StringValue( inputMap.get( PropertyKey.ID_VAULT_ADMIN_LDAP.name( ) ) ), null );
         storedConfiguration.writeSetting( PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE,
                 new PasswordValue( PasswordData.forStringValue( inputMap.get( PropertyKey.ID_VAULT_PASSWORD.name( ) ) ) ), null );
         storedConfiguration.writeSetting( PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE,
@@ -185,7 +190,7 @@ public class PropertyConfigurationImporter
 
     private String makeOAuthBaseUrl( )
     {
-        return "https://" + inputMap.get( PropertyKey.SSO_SERVER_HOST.name( ) )
+        return "https://" + inputMap.get( PropertyKey.UA_SERVER_HOST.name( ) )
                 + ":" + inputMap.get( PropertyKey.SSO_SERVER_SSL_PORT.name( ) )
                 + "/osp/a/idm/auth/oauth2";
     }
@@ -199,22 +204,20 @@ public class PropertyConfigurationImporter
     private StoredValue makeSelfUrl( )
     {
         return new StringValue( "https://" + inputMap.get( PropertyKey.SSO_SERVER_HOST.name( ) )
-                + ":" + inputMap.get( PropertyKey.SSO_SERVER_SSL_PORT.name( ) )
+                + ":" + inputMap.getOrDefault( PropertyKey.SSPR_SERVER_PORT.name( ), "9443" )
                 + "/sspr" );
     }
 
     private StoredValue makeForwardUrl( )
     {
-        return new StringValue( "https://" + inputMap.get( PropertyKey.SSO_SERVER_HOST.name( ) )
+        return new StringValue( "https://" + inputMap.get( PropertyKey.SSPR_SERVER_HOST.name( ) )
                 + ":" + inputMap.get( PropertyKey.SSO_SERVER_SSL_PORT.name( ) )
                 + "/idmdash/#/landing" );
     }
 
     private StoredValue makeLogoutUrl( )
     {
-        final String targetValue = "https://" + inputMap.get( PropertyKey.SSO_SERVER_HOST.name( ) )
-                + ":" + inputMap.get( PropertyKey.SSO_SERVER_SSL_PORT.name( ) )
-                + "/sspr";
+        final String targetValue = makeSelfUrl().toNativeObject().toString();
 
         return new StringValue( "https://" + inputMap.get( PropertyKey.SSO_SERVER_HOST.name( ) )
                 + ":" + inputMap.get( PropertyKey.SSO_SERVER_SSL_PORT.name( ) )

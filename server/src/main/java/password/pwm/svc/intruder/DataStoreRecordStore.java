@@ -98,7 +98,10 @@ class DataStoreRecordStore implements RecordStore
             dataStore.remove( key );
         }
         catch ( PwmDataStoreException e )
-        { /*noop*/ }
+        {
+            /*noop*/
+        }
+
         return null;
     }
 

@@ -455,7 +455,9 @@ public class LDAPHealthChecker implements HealthChecker
                         chaiProvider.close();
                     }
                     catch ( Exception e )
-                    { /* ignore */ }
+                    {
+                        /* ignore */
+                    }
                 }
             }
         }
@@ -582,7 +584,9 @@ public class LDAPHealthChecker implements HealthChecker
                     chaiProvider.close();
                 }
                 catch ( Exception e )
-                { /* ignore */ }
+                {
+                    /* ignore */
+                }
             }
         }
 

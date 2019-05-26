@@ -155,7 +155,9 @@ public class UserSearchEngine implements PwmService
                 inputIdentity = UserIdentity.fromKey( username, pwmApplication );
             }
             catch ( PwmException e )
-            { /* input is not a userIdentity */ }
+            {
+                /* input is not a userIdentity */
+            }
 
             if ( inputIdentity != null )
             {

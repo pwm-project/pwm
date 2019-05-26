@@ -220,7 +220,9 @@ public class JsonUtil
                 return ISO_DATE_FORMAT.parse( jsonElement.getAsString() );
             }
             catch ( ParseException e )
-            { /* noop */ }
+            {
+                /* noop */
+            }
 
             // for backwards compatibility
             try

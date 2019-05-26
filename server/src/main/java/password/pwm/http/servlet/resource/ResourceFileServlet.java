@@ -160,7 +160,9 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                 pwmRequest.debugHttpRequestToLog( "returning HTTP 500 status" );
             }
             catch ( PwmUnrecoverableException e2 )
-            { /* noop */ }
+            {
+                /* noop */
+            }
             return;
         }
 
@@ -172,7 +174,9 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                 pwmRequest.debugHttpRequestToLog( "returning HTTP 404 status" );
             }
             catch ( PwmUnrecoverableException e )
-            { /* noop */ }
+            {
+                /* noop */
+            }
             return;
         }
 
@@ -373,7 +377,9 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                 pwmRequest.debugHttpRequestToLog( "returning HTTP 304 status" );
             }
             catch ( PwmUnrecoverableException e2 )
-            { /* noop */ }
+            {
+                /* noop */
+            }
             return true;
         }
 

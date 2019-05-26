@@ -29,17 +29,12 @@ import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.X509CertificateValue;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Message;
 import password.pwm.util.secure.X509Utils;
 
-import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -47,49 +42,30 @@ import java.util.Set;
 
 public class LdapCertImportFunction implements SettingUIFunction
 {
-
     @Override
     public String provideFunction(
             final PwmRequest pwmRequest,
             final StoredConfigurationImpl storedConfiguration,
             final PwmSetting setting,
             final String profile,
-            final String extraData )
-            throws PwmOperationalException, PwmUnrecoverableException
+            final String extraData
+    )
+            throws PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final StringArrayValue ldapUrlsValue = ( StringArrayValue ) storedConfiguration.readSetting( PwmSetting.LDAP_SERVER_URLS, profile );
         final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
-        try
+        if ( ldapUrlsValue != null && ldapUrlsValue.toNativeObject() != null )
         {
-            if ( ldapUrlsValue != null && ldapUrlsValue.toNativeObject() != null )
-            {
-                final List<String> ldapUrlStrings = ldapUrlsValue.toNativeObject();
-                for ( final String ldapUrlString : ldapUrlStrings )
-                {
-                    final URI ldapURI = new URI( ldapUrlString );
-                    final List<X509Certificate> certs = X509Utils.readRemoteCertificates( ldapURI, pwmApplication.getConfig() );
-                    if ( certs != null )
-                    {
-                        resultCertificates.addAll( certs );
-                    }
-                }
-            }
-        }
-        catch ( Exception e )
-        {
-            if ( e instanceof PwmException )
-            {
-                throw new PwmOperationalException( ( ( PwmException ) e ).getErrorInformation() );
-            }
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error importing certificates: " + e.getMessage() );
-            throw new PwmOperationalException( errorInformation );
+            final List<String> ldapUrlStrings = ldapUrlsValue.toNativeObject();
+            resultCertificates.addAll( X509Utils.readCertsForListOfLdapUrls( ldapUrlStrings, pwmRequest.getConfig() ) );
         }
 
         final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
         storedConfiguration.writeSetting( setting, profile, new X509CertificateValue( resultCertificates ), userIdentity );
         return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig() );
     }
+
 }

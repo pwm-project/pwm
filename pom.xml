@@ -167,12 +167,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.1.0</version>
                 <dependencies>
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.19</version>
+                        <version>8.20</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -247,7 +247,7 @@
                     <dependency>
                         <groupId>com.github.spotbugs</groupId>
                         <artifactId>spotbugs</artifactId>
-                        <version>4.0.0-beta1</version>
+                        <version>4.0.0-beta2</version>
                     </dependency>
                 </dependencies>
                 <configuration>
@@ -268,7 +268,7 @@
             <plugin> <!-- checks owsp vulnerability database -->
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>5.0.0-M2</version>
+                <version>5.0.0-M3</version>
                 <executions>
                     <execution>
                         <goals>
@@ -285,13 +285,13 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.6</version>
+            <version>1.18.8</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.0.0-beta1</version>
+            <version>4.0.0-beta2</version>
             <scope>provided</scope>
         </dependency>
 

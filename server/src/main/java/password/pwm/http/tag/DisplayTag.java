@@ -123,7 +123,9 @@ public class DisplayTag extends PwmAbstractTag
                 pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
             }
             catch ( PwmException e )
-            { /* noop */ }
+            {
+                /* noop */
+            }
 
             final Locale locale = pwmRequest == null ? PwmConstants.DEFAULT_LOCALE : pwmRequest.getLocale();
 
@@ -165,14 +167,18 @@ public class DisplayTag extends PwmAbstractTag
             return Class.forName( bundle );
         }
         catch ( ClassNotFoundException e )
-        { /* no op */ }
+        {
+            /* no op */
+        }
 
         try
         {
             return Class.forName( Display.class.getPackage().getName() + "." + bundle );
         }
         catch ( ClassNotFoundException e )
-        { /* no op */ }
+        {
+            /* no op */
+        }
 
         return Display.class;
     }

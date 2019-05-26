@@ -65,8 +65,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class X509Utils
 {
@@ -570,4 +572,33 @@ public abstract class X509Utils
             throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unexpected error encoding certificate: " + e.getMessage() );
         }
     }
+
+    public static Set<X509Certificate> readCertsForListOfLdapUrls( final List<String> ldapUrls, final Configuration configuration )
+            throws PwmUnrecoverableException
+    {
+        final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
+        try
+        {
+            for ( final String ldapUrlString : ldapUrls )
+            {
+                final URI ldapURI = new URI( ldapUrlString );
+                final List<X509Certificate> certs = X509Utils.readRemoteCertificates( ldapURI, configuration );
+                if ( certs != null )
+                {
+                    resultCertificates.addAll( certs );
+                }
+            }
+        }
+        catch ( Exception e )
+        {
+            if ( e instanceof PwmException )
+            {
+                throw new PwmUnrecoverableException( ( ( PwmException ) e ).getErrorInformation() );
+            }
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error importing certificates: " + e.getMessage() );
+            throw new PwmUnrecoverableException( errorInformation );
+        }
+        return Collections.unmodifiableSet( resultCertificates );
+    }
+
 }

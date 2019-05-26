@@ -69,7 +69,9 @@ public class PwmUrlTag extends PwmAbstractTag
             pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
         }
         catch ( PwmException e )
-        { /* noop */ }
+        {
+            /* noop */
+        }
 
         String workingUrl = url;
 

@@ -152,7 +152,7 @@ public class ConfigurationChecker implements HealthChecker
 
         for ( final LdapProfile ldapProfile : config.getLdapProfiles().values() )
         {
-            final List<String> ldapServerURLs = ldapProfile.readSettingAsStringArray( PwmSetting.LDAP_SERVER_URLS );
+            final List<String> ldapServerURLs = ldapProfile.getLdapUrls();
             if ( ldapServerURLs != null && !ldapServerURLs.isEmpty() )
             {
                 for ( final String urlStringValue : ldapServerURLs )
