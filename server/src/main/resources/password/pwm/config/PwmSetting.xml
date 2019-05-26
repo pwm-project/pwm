@@ -1569,7 +1569,7 @@
     </setting>
     <setting hidden="false" key="security.certificate.validationMode" level="2">
         <default>
-            <value>CERTIFICATE_CHAIN</value>
+            <value>CA_ONLY</value>
         </default>
         <options>
             <option value="CA_ONLY">Root Certificate Only</option>

@@ -320,12 +320,14 @@ public abstract class X509Utils
     {
         final List<X509Certificate> trustedCertificates;
         final boolean validateTimestamps;
+        final boolean allowSelfSigned;
         final CertificateMatchingMode certificateMatchingMode;
 
         public CertMatchingTrustManager( final Configuration config, final List<X509Certificate> trustedCertificates )
         {
             this.trustedCertificates = new ArrayList<>( trustedCertificates );
             validateTimestamps = config != null && Boolean.parseBoolean( config.readAppProperty( AppProperty.SECURITY_CERTIFICATES_VALIDATE_TIMESTAMPS ) );
+            allowSelfSigned = config != null && Boolean.parseBoolean( config.readAppProperty( AppProperty.SECURITY_CERTIFICATES_ALLOW_SELF_SIGNED ) );
             certificateMatchingMode = config == null
                     ? CertificateMatchingMode.CERTIFICATE_CHAIN
                     : config.readCertificateMatchingMode();
@@ -339,17 +341,34 @@ public abstract class X509Utils
         @Override
         public void checkServerTrusted( final X509Certificate[] x509Certificates, final String s ) throws CertificateException
         {
+            final List<X509Certificate> trustedRootCA = X509Utils.identifyRootCACertificate( trustedCertificates );
+            final List<X509Certificate> remoteCertificates = Arrays.asList( x509Certificates );
+            if ( trustedCertificates.size() == 1 && trustedRootCA.isEmpty() && remoteCertificates.size() == 1 )
+            {
+                if ( allowSelfSigned )
+                {
+                    doValidation( remoteCertificates, trustedCertificates, validateTimestamps );
+                    return;
+                }
+                else
+                {
+                    final String msg = "unable to trust self-signed certificate due to app property '"
+                            + AppProperty.SECURITY_CERTIFICATES_ALLOW_SELF_SIGNED.getKey() + "'";
+                    throw new CertificateException( msg );
+                }
+            }
+
+
             switch ( certificateMatchingMode )
             {
                 case CERTIFICATE_CHAIN:
                 {
-                    doValidation( trustedCertificates, Arrays.asList( x509Certificates ), validateTimestamps );
+                    doValidation( trustedCertificates, remoteCertificates, validateTimestamps );
                     break;
                 }
 
                 case CA_ONLY:
                 {
-                    final List<X509Certificate> trustedRootCA = X509Utils.identifyRootCACertificate( trustedCertificates );
                     if ( trustedRootCA.isEmpty() )
                     {
                         final String errorMsg = "no root CA certificates in configuration trust store for this operation";
@@ -357,7 +376,7 @@ public abstract class X509Utils
                     }
                     doValidation(
                             trustedRootCA,
-                            X509Utils.identifyRootCACertificate( Arrays.asList( x509Certificates ) ),
+                            X509Utils.identifyRootCACertificate( remoteCertificates ),
                             validateTimestamps
                     );
                     break;

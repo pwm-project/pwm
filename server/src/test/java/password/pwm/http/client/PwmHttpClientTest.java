@@ -29,6 +29,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.ContentType;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,6 +40,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
 
 import javax.net.ssl.SSLHandshakeException;
 import java.io.InputStream;
@@ -149,7 +151,7 @@ public class PwmHttpClientTest
         // Stub out our local HTTP server
         wireMockRule.stubFor( WireMock.get( WireMock.urlEqualTo( "/simpleHello" ) )
                 .willReturn( WireMock.aResponse()
-                        .withHeader( "Content-Type", "text/plain" )
+                        .withHeader( HttpHeader.ContentType.getHttpName(), ContentType.TEXT_PLAIN.getMimeType() )
                         .withBody( "PwmAbout from the local mock server" ) ) );
 
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
@@ -181,7 +183,7 @@ public class PwmHttpClientTest
         // Stub out our local HTTP server
         wireMockRule.stubFor( WireMock.get( WireMock.urlEqualTo( "/simpleHello" ) )
                 .willReturn( WireMock.aResponse()
-                        .withHeader( "Content-Type", "text/plain" )
+                        .withHeader( HttpHeader.ContentType.getHttpName(), ContentType.TEXT_PLAIN.getMimeType() )
                         .withBody( "PwmAbout from the local mock server" ) ) );
 
         // Stub out some mock object behavior
