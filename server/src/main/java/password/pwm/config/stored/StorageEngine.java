@@ -25,7 +25,7 @@ package password.pwm.config.stored;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.StoredValue;
 
-interface StorageEngine
+public interface StorageEngine
 {
     StoredValue read( StoredConfigReference storedConfigReference );
 

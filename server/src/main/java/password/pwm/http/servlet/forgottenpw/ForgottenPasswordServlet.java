@@ -628,7 +628,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         final boolean otpPassed;
         if ( otpUserRecord != null )
         {
-            LOGGER.info( pwmRequest, () -> "checking entered OTP" );
+            LOGGER.info( pwmRequest, () -> "checking entered OTP for user " + userInfo.getUserIdentity().toDisplayString() );
             try
             {
                 // forces service to use proxy account to update (write) updated otp record if necessary.

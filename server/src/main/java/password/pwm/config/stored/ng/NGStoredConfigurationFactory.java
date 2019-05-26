@@ -20,11 +20,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config.stored;
+package password.pwm.config.stored.ng;
 
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.StoredConfigReference;
+import password.pwm.config.stored.StoredConfigReferenceBean;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.ValueMetaData;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.PwmUnrecoverableException;
@@ -38,8 +42,6 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 
 public class NGStoredConfigurationFactory
@@ -59,12 +61,10 @@ public class NGStoredConfigurationFactory
 
     private static class XmlEngine
     {
-
         static NGStoredConfiguration fromXmlImpl( final InputStream inputStream )
                 throws PwmUnrecoverableException
         {
-            final Map<StoredConfigReference, StoredValue> values = new LinkedHashMap<>();
-            final Map<StoredConfigReference, ValueMetaData> metaData = new LinkedHashMap<>();
+            final NGStorageEngineImpl storageEngine = new NGStorageEngineImpl();
 
             final XmlDocument inputDocument = XmlFactory.getFactory().parseXml( inputStream );
             final XmlElement rootElement = inputDocument.getRootElement();
@@ -79,22 +79,21 @@ public class NGStoredConfigurationFactory
                 {
                     for ( final XmlElement propertyElement : loopElement.getChildren( StoredConfiguration.XML_ELEMENT_PROPERTY ) )
                     {
-                        readInterestingElement( propertyElement, pwmSecurityKey, values, metaData );
+                        readInterestingElement( propertyElement, pwmSecurityKey, storageEngine );
                     }
                 }
                 else if ( StoredConfiguration.XML_ELEMENT_SETTING.equals( loopElement.getName() ) )
                 {
-                    readInterestingElement( loopElement, pwmSecurityKey, values, metaData );
+                    readInterestingElement( loopElement, pwmSecurityKey, storageEngine );
                 }
             }
-            return new NGStoredConfiguration( values, metaData, readSecurityKey( rootElement ) );
+            return new NGStoredConfiguration( storageEngine, pwmSecurityKey );
         }
 
         static void readInterestingElement(
                 final XmlElement loopElement,
                 final PwmSecurityKey pwmSecurityKey,
-                final Map<StoredConfigReference, StoredValue> values,
-                final Map<StoredConfigReference, ValueMetaData> metaData
+                final NGStorageEngineImpl engine
         )
         {
             final StoredConfigReference reference = referenceForElement( loopElement );
@@ -107,7 +106,7 @@ public class NGStoredConfigurationFactory
                         final StoredValue storedValue = readSettingValue( reference, loopElement, pwmSecurityKey );
                         if ( storedValue != null )
                         {
-                            values.put( reference, storedValue );
+                            engine.write( reference, storedValue, null );
                         }
                     }
                     break;
@@ -115,17 +114,17 @@ public class NGStoredConfigurationFactory
                     case PROPERTY:
                     {
                         final StoredValue storedValue = readPropertyValue( reference, loopElement );
+                        if ( storedValue != null )
+                        {
+                            engine.write( reference, storedValue, null );
+                        }
                     }
                     break;
 
                     default:
                         throw new IllegalArgumentException( "unimplemented setting recordtype in reader" );
                 }
-                final ValueMetaData valueMetaData = readValueMetaData( loopElement );
-                if ( valueMetaData != null )
-                {
-                    metaData.put( reference, valueMetaData );
-                }
+                engine.writeMetaData( reference, readValueMetaData( loopElement ) );
             }
         }
 
@@ -246,7 +245,10 @@ public class NGStoredConfigurationFactory
                     ? new UserIdentity( modifyUser, modifyUserProfile )
                     : null;
 
-            return new ValueMetaData( modifyDate, userIdentity );
+            return ValueMetaData.builder()
+                    .modifyDate( modifyDate )
+                    .userIdentity( userIdentity )
+                    .build();
         }
     }
 

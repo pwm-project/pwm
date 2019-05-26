@@ -178,6 +178,7 @@ public class XodusLocalDB implements LocalDBProvider
         environmentConfig.setEnvCloseForcedly( true );
         environmentConfig.setMemoryUsage( 50 * 1024 * 1024 );
         environmentConfig.setEnvGatherStatistics( true );
+        environmentConfig.setGcUtilizationFromScratch( true );
 
         for ( final Map.Entry<String, String> entry : initParameters.entrySet() )
         {

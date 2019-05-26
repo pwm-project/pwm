@@ -77,19 +77,12 @@ public class UserIdentity implements Serializable, Comparable
         {
             return null;
         }
-        if ( configuration.getLdapProfiles().containsKey( this.getLdapProfileID() ) )
-        {
-            return configuration.getLdapProfiles().get( this.getLdapProfileID() );
-        }
-        else
-        {
-            return null;
-        }
+        return configuration.getLdapProfiles().getOrDefault( this.getLdapProfileID(), null );
     }
 
     public String toString( )
     {
-        return "UserIdentity" + JsonUtil.serialize( this );
+        return toDisplayString();
     }
 
     public String toObfuscatedKey( final PwmApplication pwmApplication )

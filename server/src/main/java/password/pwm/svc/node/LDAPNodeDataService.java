@@ -86,7 +86,8 @@ class LDAPNodeDataService implements NodeDataServiceProvider
         }
         catch ( ChaiException e )
         {
-            throw new PwmUnrecoverableException( PwmError.ERROR_LDAP_DATA_ERROR, "error reading node service data: " + e.getMessage() );
+            throw new PwmUnrecoverableException( PwmError.ERROR_LDAP_DATA_ERROR, "error reading node service data "
+                    + ldapHelper.debugInfo() + ", error: " + e.getMessage() );
         }
 
         return returnData;
@@ -116,7 +117,8 @@ class LDAPNodeDataService implements NodeDataServiceProvider
         }
         catch ( ChaiException e )
         {
-            throw new PwmUnrecoverableException( PwmError.ERROR_LDAP_DATA_ERROR, "error writing node service data: " + e.getMessage() );
+            throw new PwmUnrecoverableException( PwmError.ERROR_LDAP_DATA_ERROR, "error writing node service data "
+                    + ldapHelper.debugInfo() + ", error: " + e.getMessage() );
         }
 
     }
@@ -148,7 +150,8 @@ class LDAPNodeDataService implements NodeDataServiceProvider
                 }
                 catch ( ChaiException e )
                 {
-                    throw new PwmUnrecoverableException( PwmError.ERROR_LDAP_DATA_ERROR, "error purging node service data: " + e.getMessage() );
+                    throw new PwmUnrecoverableException( PwmError.ERROR_LDAP_DATA_ERROR, "error purging node service data "
+                          + ldapHelper.debugInfo() + ", error: " + e.getMessage() );
                 }
             }
         }
@@ -188,6 +191,11 @@ class LDAPNodeDataService implements NodeDataServiceProvider
         static LDAPHelper createLDAPHelper( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
         {
             return new LDAPHelper( pwmApplication );
+        }
+
+        String debugInfo()
+        {
+            return "user '" + this.userIdentity.toDisplayString() + "' attribute '" + attr  + "'";
         }
     }
 }

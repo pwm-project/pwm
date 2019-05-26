@@ -96,10 +96,17 @@ public class ConfigAccessFilter extends AbstractPwmFilter
             }
         }
 
-        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
-        if ( checkAuthentication( pwmRequest, configManagerBean ) == ProcessStatus.Continue )
+        try
         {
-            filterChain.doFilter();
+            final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
+            if ( checkAuthentication( pwmRequest, configManagerBean ) == ProcessStatus.Continue )
+            {
+                filterChain.doFilter();
+            }
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            pwmRequest.respondWithError( e.getErrorInformation() );
         }
     }
 
@@ -120,21 +127,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
         final ConfigurationReader runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
         final StoredConfigurationImpl storedConfig = runningConfigReader.getStoredConfiguration();
 
-        if ( !checkIfAuthIsRequired( pwmRequest, storedConfig ) )
-        {
-            return ProcessStatus.Continue;
-        }
-
-        if ( !storedConfig.hasPassword() )
-        {
-            final String errorMsg = "config file does not have a configuration password";
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg, new String[]
-                    {
-                            errorMsg,
-                    }
-            );
-            return denyAndError( pwmRequest, errorInformation );
-        }
+        checkPreconditions( pwmRequest, storedConfig );
 
         if ( configManagerBean.isPasswordVerified() )
         {
@@ -252,15 +245,22 @@ public class ConfigAccessFilter extends AbstractPwmFilter
     }
 
 
-    private static boolean checkIfAuthIsRequired(
+    private static void checkPreconditions(
             final PwmRequest pwmRequest,
             final StoredConfigurationImpl storedConfig
     )
             throws PwmUnrecoverableException
     {
-        if ( storedConfig.hasPassword() )
+
+        if ( !storedConfig.hasPassword() )
         {
-            return true;
+            final String errorMsg = "config file does not have a configuration password";
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg, new String[]
+                    {
+                            errorMsg,
+                    }
+            );
+            throw new PwmUnrecoverableException( errorInformation );
         }
 
         if ( PwmApplicationMode.RUNNING == pwmRequest.getPwmApplication().getApplicationMode() )
@@ -274,14 +274,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
             {
                 throw new PwmUnrecoverableException( PwmError.ERROR_UNAUTHORIZED );
             }
-        }
-
-        if ( PwmApplicationMode.CONFIGURATION != pwmRequest.getPwmApplication().getApplicationMode() )
-        {
-            return true;
-        }
-
-        return false;
+         }
     }
 
     private static boolean persistentLoginEnabled(
@@ -410,8 +403,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
     private static ProcessStatus denyAndError( final PwmRequest pwmRequest, final ErrorInformation errorInformation )
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        pwmRequest.setAttribute( PwmRequestAttribute.PwmErrorInfo, errorInformation );
-        forwardToJsp( pwmRequest );
+        pwmRequest.respondWithError( errorInformation );
         return ProcessStatus.Halt;
     }
 

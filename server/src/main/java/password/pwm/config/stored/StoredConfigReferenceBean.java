@@ -22,15 +22,18 @@
 
 package password.pwm.config.stored;
 
+import lombok.Value;
+
 import java.io.Serializable;
 
-class StoredConfigReferenceBean implements StoredConfigReference, Serializable, Comparable
+@Value
+public class StoredConfigReferenceBean implements StoredConfigReference, Serializable, Comparable
 {
     private RecordType recordType;
     private String recordID;
     private String profileID;
 
-    StoredConfigReferenceBean( final RecordType type, final String recordID, final String profileID )
+    public StoredConfigReferenceBean( final RecordType type, final String recordID, final String profileID )
     {
         if ( type == null )
         {
@@ -47,36 +50,6 @@ class StoredConfigReferenceBean implements StoredConfigReference, Serializable, 
         this.profileID = profileID;
     }
 
-    public RecordType getRecordType( )
-    {
-        return recordType;
-    }
-
-    public String getRecordID( )
-    {
-        return recordID;
-    }
-
-    @Override
-    public String getProfileID( )
-    {
-        return profileID;
-    }
-
-    @Override
-    public boolean equals( final Object o )
-    {
-        return o != null
-                && o instanceof StoredConfigReference
-                && toString().equals( o.toString() );
-
-    }
-
-    @Override
-    public int hashCode( )
-    {
-        return toString().hashCode();
-    }
 
     @Override
     public String toString( )

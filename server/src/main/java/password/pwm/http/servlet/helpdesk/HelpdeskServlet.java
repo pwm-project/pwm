@@ -339,7 +339,12 @@ public class HelpdeskServlet extends ControlledPwmServlet
         String userID = null;
         try
         {
-            userID = pwmSession.getUserInfo().getUsername();
+            final UserInfo deletedUserInfo = UserInfoFactory.newUserInfoUsingProxy(
+                    pwmApplication,
+                    pwmSession.getLabel(),
+                    userIdentity,
+                    pwmRequest.getLocale() );
+            userID = deletedUserInfo.getUsername();
         }
         catch ( PwmUnrecoverableException e )
         {

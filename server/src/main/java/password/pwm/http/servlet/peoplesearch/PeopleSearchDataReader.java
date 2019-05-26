@@ -281,7 +281,8 @@ class PeopleSearchDataReader
 
         userDetailBean.setLinks( makeUserDetailLinks( userIdentity ) );
 
-        LOGGER.trace( pwmRequest, () -> "finished building userDetail result in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.trace( pwmRequest, () -> "finished building userDetail result of " + userIdentity
+                + " in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         storeDataInCache( pwmRequest.getPwmApplication(), cacheKey, userDetailBean );
         return userDetailBean;
     }
@@ -480,6 +481,7 @@ class PeopleSearchDataReader
     )
             throws PwmUnrecoverableException
     {
+        final Instant startTime = Instant.now();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final boolean enabled = peopleSearchConfiguration.isPhotosEnabled( pwmRequest.getUserInfoIfLoggedIn(), pwmRequest.getSessionLabel() );
         if ( !enabled )
@@ -492,7 +494,8 @@ class PeopleSearchDataReader
             final boolean hasPermission = LdapPermissionTester.testUserPermissions( pwmApplication, pwmRequest.getSessionLabel(), userIdentity, permissions );
             if ( !hasPermission )
             {
-                LOGGER.debug( pwmRequest, () -> "user " + userIdentity.toString() + " failed photo query filter, denying photo view" );
+                LOGGER.debug( pwmRequest, () -> "user " + userIdentity + " failed photo query filter, denying photo view ("
+                        + TimeDuration.compactFromCurrent( startTime ) + ")" );
                 return null;
             }
         }
@@ -512,7 +515,8 @@ class PeopleSearchDataReader
             }
             catch ( PwmOperationalException e )
             {
-                LOGGER.debug( pwmRequest, () -> "determined " + userIdentity + " does not have photo data available while generating detail data" );
+                LOGGER.debug( pwmRequest, () -> "determined " + userIdentity.toDisplayString() + " does not have photo data available while generating detail data ("
+                        + TimeDuration.compactFromCurrent( startTime ) + ")" );
                 return null;
             }
         }

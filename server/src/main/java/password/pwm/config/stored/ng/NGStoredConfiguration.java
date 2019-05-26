@@ -20,12 +20,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config.stored;
+package password.pwm.config.stored.ng;
 
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.ConfigurationProperty;
+import password.pwm.config.stored.StoredConfigReference;
+import password.pwm.config.stored.StoredConfigReferenceBean;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.ValueMetaData;
 import password.pwm.config.value.StringValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
@@ -33,20 +38,19 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.time.Instant;
-import java.util.Map;
 
-class NGStoredConfiguration implements StoredConfiguration
+public class NGStoredConfiguration implements StoredConfiguration
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( NGStoredConfiguration.class );
     private final PwmSecurityKey configurationSecurityKey;
-    private final StorageEngine engine;
+    private final NGStorageEngineImpl engine;
+    private boolean readOnly = false;
 
     NGStoredConfiguration(
-            final Map<StoredConfigReference, StoredValue> values,
-            final Map<StoredConfigReference, ValueMetaData> metaValues,
+            final NGStorageEngineImpl storageEngine,
             final PwmSecurityKey pwmSecurityKey )
     {
-        engine = new NGStorageEngineImpl( values, metaValues );
+        engine = storageEngine;
         configurationSecurityKey = pwmSecurityKey;
     }
 
@@ -65,7 +69,9 @@ class NGStoredConfiguration implements StoredConfiguration
         return ( String ) storedValue.toNativeObject();
     }
 
-    public void writeConfigProperty( final ConfigurationProperty configurationProperty, final String value )
+    public void writeConfigProperty(
+            final ConfigurationProperty configurationProperty,
+            final String value )
     {
         final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.PROPERTY,
@@ -73,7 +79,7 @@ class NGStoredConfiguration implements StoredConfiguration
                 null
         );
         final StoredValue storedValue = new StringValue( value );
-        engine.write( storedConfigReference, storedValue, null );
+        engine.write( storedConfigReference, storedValue, null  );
     }
 
     public void resetSetting( final PwmSetting setting, final String profileID, final UserIdentity userIdentity )
@@ -158,13 +164,13 @@ class NGStoredConfiguration implements StoredConfiguration
     @Override
     public boolean isLocked( )
     {
-        return engine.isWriteLocked();
+        return readOnly;
     }
 
     @Override
     public void lock( )
     {
-        engine.writeLock();
+        readOnly = true;
     }
 
     @Override

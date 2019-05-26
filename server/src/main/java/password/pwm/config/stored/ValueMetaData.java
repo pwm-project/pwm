@@ -22,6 +22,7 @@
 
 package password.pwm.config.stored;
 
+import lombok.Builder;
 import lombok.Value;
 import password.pwm.bean.UserIdentity;
 
@@ -29,6 +30,7 @@ import java.io.Serializable;
 import java.time.Instant;
 
 @Value
+@Builder( toBuilder = true )
 public class ValueMetaData implements Serializable
 {
     private Instant modifyDate;
