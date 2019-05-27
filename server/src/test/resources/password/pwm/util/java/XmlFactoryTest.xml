@@ -236,7 +236,7 @@
       <value locale="de"><![CDATA[{"text":"Welches ist Ihre Lieblingsmannschaft?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3,"points":0}]]></value>
       <value locale="de"><![CDATA[{"text":"In welcher Straße haben Sie als Kind gewohnt?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3,"points":0}]]></value>
       <value locale="de"><![CDATA[{"text":"Wie lautet Ihr Geburtsort?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3,"points":0}]]></value>
-      <value locale="de"><![CDATA[{"text":"Welches ist Ihr bevorzugtes Fahrzeug?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3,"points":0}]]></value>
+      <value locale="de"><![CDATA[{"text":"Welches ist Ihr bevorzugtes Verkehrsmittel?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3,"points":0}]]></value>
       <value locale="de"><![CDATA[{"text":"Welche historische Persönlichkeit würden Sie gerne kennenlernen?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3,"points":0}]]></value>
       <value locale="de"><![CDATA[{"text":"Wie heißt der schlechteste Film, den Sie je gesehen haben?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3,"points":0}]]></value>
       <value locale="de"><![CDATA[{"text":"Wie hieß der Lehrer, den Sie am wenigsten mochten?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3,"points":0}]]></value>
