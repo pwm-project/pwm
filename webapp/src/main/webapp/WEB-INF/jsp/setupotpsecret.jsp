@@ -95,21 +95,15 @@
                     <pwm:display key="Button_Skip"/>
                 </button>
                 <% } %>
-                <pwm:if test="<%=PwmIfTest.showCancel%>">
-                    <pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">
-                        <button type="submit" name="button" class="btn" id="button-cancel">
-                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
-                            <pwm:display key="Button_Cancel"/>
-                        </button>
-                    </pwm:if>
-                </pwm:if>
             </form>
+            <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
         </div>
     </div>
     <div class="push"></div>
 </div>
 <pwm:script-ref url="/public/resources/js/responses.js"/>
 <pwm:script-ref url="/public/resources/js/otpsecret.js"/>
+<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
