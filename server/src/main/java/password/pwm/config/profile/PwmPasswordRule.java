@@ -30,10 +30,14 @@ import password.pwm.i18n.Message;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Password rules.
@@ -517,5 +521,15 @@ public enum PwmPasswordRule
         {
             return "MissingKey-" + key;
         }
+    }
+
+    public static List<PwmPasswordRule> sortedByLabel ( final Locale locale, final Configuration config )
+    {
+        final TreeMap<String, PwmPasswordRule> sortedMap = new TreeMap<>();
+        for ( final PwmPasswordRule rule : PwmPasswordRule.values() )
+        {
+            sortedMap.put( rule.getLabel( locale, config ), rule );
+        }
+        return Collections.unmodifiableList( new ArrayList<>( sortedMap.values() ) );
     }
 }

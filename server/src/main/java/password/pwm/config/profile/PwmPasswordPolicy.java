@@ -25,10 +25,13 @@ package password.pwm.config.profile;
 import com.novell.ldapchai.ChaiPasswordPolicy;
 import com.novell.ldapchai.ChaiPasswordRule;
 import com.novell.ldapchai.util.StringHelper;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -44,6 +47,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 
@@ -65,12 +69,26 @@ public class PwmPasswordPolicy implements Profile, Serializable
     private List<UserPermission> userPermissions;
     private String ruleText;
 
+    public static PwmPasswordPolicy createPwmPasswordPolicy( final Map<String, String> policyMap )
+    {
+        return createPwmPasswordPolicy( policyMap, null );
+    }
+
     public static PwmPasswordPolicy createPwmPasswordPolicy(
             final Map<String, String> policyMap,
             final ChaiPasswordPolicy chaiPasswordPolicy
     )
     {
-        return new PwmPasswordPolicy( policyMap, chaiPasswordPolicy );
+        return new PwmPasswordPolicy( policyMap, chaiPasswordPolicy, null );
+    }
+
+    public static PwmPasswordPolicy createPwmPasswordPolicy(
+            final Map<String, String> policyMap,
+            final ChaiPasswordPolicy chaiPasswordPolicy,
+            final PolicyMetaData policyMetaData
+    )
+    {
+        return new PwmPasswordPolicy( policyMap, chaiPasswordPolicy, policyMetaData );
     }
 
     public String getIdentifier( )
@@ -110,7 +128,8 @@ public class PwmPasswordPolicy implements Profile, Serializable
 
     private PwmPasswordPolicy(
             final Map<String, String> policyMap,
-            final ChaiPasswordPolicy chaiPasswordPolicy
+            final ChaiPasswordPolicy chaiPasswordPolicy,
+            final PolicyMetaData policyMetaData
     )
     {
         if ( policyMap != null )
@@ -129,6 +148,12 @@ public class PwmPasswordPolicy implements Profile, Serializable
             }
         }
         this.chaiPasswordPolicy = chaiPasswordPolicy;
+        if ( policyMetaData != null )
+        {
+            this.ruleText = policyMetaData.getRuleText();
+            this.userPermissions = policyMetaData.getUserPermissions();
+            this.profileID = policyMetaData.getProfileID();
+        }
     }
 
     @Override
@@ -152,29 +177,16 @@ public class PwmPasswordPolicy implements Profile, Serializable
         return policyMap.get( rule.getKey() );
     }
 
-    public void setProfileID( final String profileID )
-    {
-        this.profileID = profileID;
-    }
+
 
     public List<UserPermission> getUserPermissions( )
     {
         return userPermissions;
     }
 
-    public void setUserPermissions( final List<UserPermission> userPermissions )
-    {
-        this.userPermissions = userPermissions;
-    }
-
     public String getRuleText( )
     {
         return ruleText;
-    }
-
-    public void setRuleText( final String ruleText )
-    {
-        this.ruleText = ruleText;
     }
 
     public PwmPasswordPolicy merge( final PwmPasswordPolicy otherPolicy )
@@ -230,6 +242,10 @@ public class PwmPasswordPolicy implements Profile, Serializable
                         newPasswordPolicies.put( ruleKey, mergeMin( minimumLifetimeLocalValue, minimumLifetimeOtherValue ) );
                         break;
 
+                    case ADComplexityLevel:
+                        newPasswordPolicies.put( ruleKey, mergeADComplexityLevel( policyMap.get( ruleKey ), otherPolicy.policyMap.get( ruleKey ) ) );
+                        break;
+
                     default:
                         final String localValueString = StringUtil.defaultString( policyMap.get( ruleKey ), rule.getDefaultValue() );
                         final String otherValueString = StringUtil.defaultString( otherPolicy.policyMap.get( ruleKey ), rule.getDefaultValue() );
@@ -269,8 +285,16 @@ public class PwmPasswordPolicy implements Profile, Serializable
         final ChaiPasswordPolicy backingPolicy = this.chaiPasswordPolicy != null ? chaiPasswordPolicy : otherPolicy.chaiPasswordPolicy;
         final PwmPasswordPolicy returnPolicy = createPwmPasswordPolicy( newPasswordPolicies, backingPolicy );
         final String newRuleText = ( ruleText != null && !ruleText.isEmpty() ) ? ruleText : otherPolicy.ruleText;
-        returnPolicy.setRuleText( newRuleText );
+        returnPolicy.ruleText = ( newRuleText );
         return returnPolicy;
+    }
+
+    private static String mergeADComplexityLevel( final String value1, final String value2 )
+    {
+        final TreeSet<ADPolicyComplexity> seenValues = new TreeSet<>();
+        seenValues.add( JavaHelper.readEnumFromString( ADPolicyComplexity.class, ADPolicyComplexity.NONE, value1 ) );
+        seenValues.add( JavaHelper.readEnumFromString( ADPolicyComplexity.class, ADPolicyComplexity.NONE, value2 ) );
+        return seenValues.last().name();
     }
 
     protected static String mergeMin( final String value1, final String value2 )
@@ -302,11 +326,6 @@ public class PwmPasswordPolicy implements Profile, Serializable
         }
 
         return returnValue;
-    }
-
-    public static PwmPasswordPolicy createPwmPasswordPolicy( final Map<String, String> policyMap )
-    {
-        return createPwmPasswordPolicy( policyMap, null );
     }
 
     public Map<String, String> getPolicyMap( )
@@ -371,5 +390,14 @@ public class PwmPasswordPolicy implements Profile, Serializable
         }
 
         return Collections.unmodifiableList( returnList );
+    }
+
+    @Value
+    @Builder
+    public static class PolicyMetaData
+    {
+        private String profileID;
+        private List<UserPermission> userPermissions;
+        private String ruleText;
     }
 }

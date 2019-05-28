@@ -357,7 +357,7 @@
                             <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getDisplayName(JspUtility.locale(request)))%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, userPolicy.getDisplayName(JspUtility.locale(request)))%></td>
                         </tr>
-                        <% for (final PwmPasswordRule rule : PwmPasswordRule.values()) { %>
+                        <% for (final PwmPasswordRule rule : PwmPasswordRule.sortedByLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getConfig())) { %>
                         <tr>
                             <td><span title="<%=rule.getKey()%>"><%=rule.getLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getConfig())%></span></td>
                             <td><%=rule.getRuleType()%></td>

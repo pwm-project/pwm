@@ -667,14 +667,16 @@ public class Configuration implements SettingReader
         }
 
         // set pwm-specific values
-        final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy( passwordPolicySettings );
-        passwordPolicy.setProfileID( profile );
-        {
-            final List<UserPermission> queryMatch = ( List<UserPermission> ) storedConfiguration.readSetting( PwmSetting.PASSWORD_POLICY_QUERY_MATCH, profile ).toNativeObject();
-            passwordPolicy.setUserPermissions( queryMatch );
-        }
-        passwordPolicy.setRuleText( JavaTypeConverter.valueToLocalizedString( storedConfiguration.readSetting( PwmSetting.PASSWORD_POLICY_RULE_TEXT, profile ), locale ) );
-        return passwordPolicy;
+        final List<UserPermission> queryMatch = ( List<UserPermission> ) storedConfiguration.readSetting( PwmSetting.PASSWORD_POLICY_QUERY_MATCH, profile ).toNativeObject();
+        final String ruleText = JavaTypeConverter.valueToLocalizedString( storedConfiguration.readSetting( PwmSetting.PASSWORD_POLICY_RULE_TEXT, profile ), locale );
+
+        final PwmPasswordPolicy.PolicyMetaData policyMetaData = PwmPasswordPolicy.PolicyMetaData.builder()
+                .profileID( profile )
+                .userPermissions( queryMatch )
+                .ruleText( ruleText )
+                .build();
+
+        return  PwmPasswordPolicy.createPwmPasswordPolicy( passwordPolicySettings, null, policyMetaData );
     }
 
     public List<String> readSettingAsStringArray( final PwmSetting setting )
