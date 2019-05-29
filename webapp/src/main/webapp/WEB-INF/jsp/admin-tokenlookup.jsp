@@ -28,6 +28,8 @@
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="password.pwm.util.java.JsonUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="password.pwm.bean.TokenDestinationItem" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -53,30 +55,29 @@
         <h1 id="page-content-title"><pwm:display key="Title_TokenLookup" bundle="Admin" displayIfMissing="true"/></h1>
         <%@ include file="fragment/admin-nav.jsp" %>
         <% final String tokenKey = tokenlookup_pwmRequest.readParameterAsString("token");%>
-        <% if (tokenKey != null && tokenKey.length() > 0) { %>
+        <%
+            TokenPayload tokenPayload = null;
+            boolean tokenExpired = false;
+            String lookupError = null;
+        %>
+        <%
+            if ( !StringUtil.isEmpty( tokenKey ) )
+            {
+                try
+                {
+                    tokenPayload = tokenlookup_pwmRequest.getPwmApplication().getTokenService().retrieveTokenData(tokenlookup_pwmRequest.getSessionLabel(), tokenKey);
+                } catch ( PwmOperationalException e )
+                {
+                    tokenExpired = e.getError() == PwmError.ERROR_TOKEN_EXPIRED;
+                    lookupError = e.getMessage();
+                }
+            }
+        %>
+        <% if ( !StringUtil.isEmpty( tokenKey ) ) { %>
         <table>
             <tr>
                 <td colspan="10" class="title">Token Information</td>
             </tr>
-            <tr>
-                <td class="key">
-                    Key
-                </td>
-                <td>
-                    <%=tokenKey%>
-                </td>
-            </tr>
-            <%
-                TokenPayload tokenPayload = null;
-                boolean tokenExpired = false;
-                String lookupError = null;
-                try {
-                    tokenPayload = tokenlookup_pwmRequest.getPwmApplication().getTokenService().retrieveTokenData(tokenlookup_pwmRequest.getSessionLabel(), tokenKey);
-                } catch (PwmOperationalException e) {
-                    tokenExpired= e.getError() == PwmError.ERROR_TOKEN_EXPIRED;
-                    lookupError = e.getMessage();
-                }
-            %>
             <% if (tokenPayload != null) { %>
             <tr>
                 <td class="key">
@@ -123,7 +124,17 @@
                     Destination(s)
                 </td>
                 <td>
-                    <%=JspUtility.friendlyWrite(pageContext, JsonUtil.serialize( tokenPayload.getDestination() ) )%>
+                    <% TokenDestinationItem tokenDestinationItem = tokenPayload.getDestination(); %>
+                    <% if ( tokenDestinationItem != null ) { %>
+                    <table>
+                        <tr>
+                            <td>Type</td><td><%=tokenDestinationItem.getType()%></td>
+                        </tr>
+                        <tr>
+                            <td>Destination</td><td><%=tokenDestinationItem.getDisplay()%></td>
+                        </tr>
+                    </table>
+                    <% } %>
                 </td>
             </tr>
             <tr>
@@ -145,15 +156,13 @@
                     </table>
                 </td>
             </tr>
-            <% } else { %>
+            <% } %>
+            <% if ( tokenPayload == null && lookupError == null ) { %>
             <tr>
-                <td class="key">
-                    Status
-                </td>
-                <td>
-                    <% if (tokenExpired) { %>Expired<% } else { %>Token Not Found<% } %>
-                </td>
+                <td>Status</td><td>Not Found</td>
             </tr>
+            <% } %>
+            <%  if ( lookupError != null ) { %>
             <tr>
                 <td class="key">
                     Lookup Error
@@ -164,8 +173,8 @@
             </tr>
             <% } %>
         </table>
-        <br/>
         <% } %>
+        <br/>
         <form id="tokenForm" action="<pwm:current-url/>" method="post">
             <textarea name="token" id="token" style="width: 580px; height: 150px"></textarea>
             <div class="buttonbar">
