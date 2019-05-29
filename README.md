@@ -46,7 +46,7 @@ Official project page is at [https://github.com/pwm-project/pwm/](https://github
   * Microsoft Active Directory
   * OpenLDAP
 
-[NetIQ SSPR](https://www.netiq.com/products/self-service-password-reset/) is a commercial, supported self service password reset product based on PWM.
+[NetIQ Self Service Password Reset](https://www.microfocus.com/en-us/products/netiq-self-service-password-reset/overview) is a commercial, supported self service password reset product based on PWM.
 
 # Build Information
 
@@ -71,6 +71,7 @@ A docker image is created in `docker/target` as jib-image.tar.  You can import t
 `docker load --input=jib-image.tar`
 
 Create docker container and run using:
+
 `docker run -d --name <container name> -p 8443:8443 pwm/pwm-webapp`
 
 This will expose the https port to 8443.  If you want the configuration to persist to you can also exposed configuration volume of `/config` using the docker `-v` option during the container
