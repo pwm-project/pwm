@@ -82,8 +82,8 @@
         <ias-menu name="menu1" ias-align="end end" class="ias-styles-root">
             <div class="ias-input-container">
                 <div class="checkbox-button" ng-repeat="(key, value) in $ctrl.columnConfiguration">
-                    <input type="checkbox" ng-checked="value.visible" aria-label="Toggle column visibility" disabled/>
-                    <ias-button ng-click="$ctrl.toggleColumnVisible($event, key)">{{value.label}}</ias-button>
+                    <input type="checkbox" ng-model="value.visible" aria-label="Toggle column visibility" />
+                    <ias-button class="toggle-column-btn" ng-click="value.visible = !value.visible; $event.stopImmediatePropagation();">{{value.label}}</ias-button>
                 </div>
             </div>
         </ias-menu>
