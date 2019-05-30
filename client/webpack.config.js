@@ -119,8 +119,8 @@ module.exports = function (env, argv) {
         // Development-specific configuration
         return webpackMerge(commonConfig, {
             entry: {
-                'peoplesearch.ng': './src/modules/peoplesearch/main.dev',
-                'helpdesk.ng': './src/modules/helpdesk/main.dev'
+                'peoplesearch.ng': './src/modules/peoplesearch/main',
+                'helpdesk.ng': './src/modules/helpdesk/main'
             },
             plugins: [
                 new HtmlWebpackPlugin({

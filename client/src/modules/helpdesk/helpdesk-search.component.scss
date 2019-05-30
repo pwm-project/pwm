@@ -110,4 +110,11 @@
       }
     }
   }
+
+  .ias-input-container > .checkbox-button > .ias-button.toggle-column-btn {
+    &:focus, &:hover {
+      background-color: transparent;
+      box-shadow: none;
+    }
+  }
 }
