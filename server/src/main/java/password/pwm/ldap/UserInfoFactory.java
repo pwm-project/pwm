@@ -62,6 +62,18 @@ public class UserInfoFactory
         );
     }
 
+    public static UserInfo newUserInfoUsingProxyForOfflineUser(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        final Locale ldapLocale = LdapOperationsHelper.readLdapStoredLanguage( pwmApplication, userIdentity );
+        final ChaiProvider provider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        return newUserInfo( pwmApplication, sessionLabel, ldapLocale, userIdentity, provider, null );
+    }
+
     public static UserInfo newUserInfoUsingProxy(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,

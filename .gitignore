@@ -1,10 +1,28 @@
-/.idea
-/*.iml
-/client/target
-/client/.node
-/client/.idea
-/client/*.iml
-pwm-parent.iml
-pwmconfig/
-ssprconfig/
-/server/src/main/webapp/public/resources/webjars
+# PWM Project gitignore files
+
+# Eclipse Project Files
+/.project
+/.settings
+/.classpath
+
+# IntelliJ Project Files
+**/.idea/
+**/*.iml
+*/.idea/
+*/*.iml
+
+# OS folder info
+.directory
+.DS_Store
+.DS_Store?
+
+# Maven Output
+*/target
+
+
+/target
+/webapp/src/main/webapp/public/resources/themes/netiq
+/webapp/src/main/webapp/public/resources/themes/netiq32
+/webapp/src/main/webapp/public/resources/themes/idm
+/webapp/src/main/webapp/public/resources/themes/mdefault
+/webapp/src/main/webapp/public/resources/themes/mdefault44

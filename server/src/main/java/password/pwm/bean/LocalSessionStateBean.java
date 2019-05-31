@@ -24,18 +24,20 @@ package password.pwm.bean;
 
 import lombok.Data;
 import password.pwm.ldap.UserInfoBean;
-import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.EventRateMeter;
+import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Only information that is particular to the http session is stored in the
- * session bean.  Information more topical to the user is stored in {@link UserInfoBean}.
- * <p/>
- * For any given HTTP session using PWM, one and only one {@link LocalSessionStateBean} will be
- * created.
+ * <p>Only information that is particular to the http session is stored in the
+ * session bean.  Information more topical to the user is stored in {@link UserInfoBean}.</p>
+ *
+ * <p>For any given HTTP session using PWM, one and only one {@link LocalSessionStateBean} will be
+ * created.</p>
  *
  * @author Jason D. Rivard
  */
@@ -64,31 +66,24 @@ public class LocalSessionStateBean implements Serializable
 
     private boolean passwordModified;
     private boolean privateUrlAccessed;
+    private boolean captchaBypassedViaParameter;
 
-    private int intruderAttempts;
+    private final AtomicInteger intruderAttempts = new AtomicInteger( 0 );
+    private final AtomicInteger requestCount = new AtomicInteger( 0 );
+    private final EventRateMeter.MovingAverage avgRequestDuration = new EventRateMeter.MovingAverage( TimeDuration.DAY );
     private boolean oauthInProgress;
 
-    private int sessionVerificationKeyLength;
     private boolean sessionIdRecycleNeeded;
-
-    public LocalSessionStateBean( final int sessionVerificationKeyLength )
-    {
-        this.sessionVerificationKeyLength = sessionVerificationKeyLength;
-    }
+    private boolean sameSiteCookieRecycleRequested;
 
     public void incrementIntruderAttempts( )
     {
-        intruderAttempts++;
+        intruderAttempts.incrementAndGet();
     }
 
     public void clearIntruderAttempts( )
     {
-        intruderAttempts = 0;
-    }
-
-    public void regenerateSessionVerificationKey( )
-    {
-        sessionVerificationKey = PwmRandom.getInstance().alphaNumericString( sessionVerificationKeyLength ) + Long.toHexString( System.currentTimeMillis() );
+        intruderAttempts.set( 0 );
     }
 }
 

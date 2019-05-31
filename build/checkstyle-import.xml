@@ -1,0 +1,157 @@
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2016 The PWM Project
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  -->
+
+<!DOCTYPE import-control PUBLIC
+        "-//Puppy Crawl//DTD Import Control 1.2//EN"
+        "http://checkstyle.sourceforge.net/dtds/import_control_1_2.dtd">
+<import-control pkg="password.pwm">
+    <allow pkg="password.pwm"/>
+
+    <!-- java core -->
+    <allow pkg="java.text"/>
+    <allow pkg="java.math"/>
+    <allow pkg="java.io"/>
+    <allow pkg="java.net"/>
+    <allow pkg="java.nio"/>
+    <allow pkg="java.util"/>
+    <allow pkg="java.time"/>
+    <allow pkg="java.lang"/>
+    <allow pkg="java.security"/>
+
+    <allow pkg="org.apache.catalina"/>
+    <allow pkg="org.apache.coyote"/>
+
+    <!-- chai -->
+    <allow pkg="com.novell.ldapchai"/>
+
+    <!-- commons ftp client -->
+    <allow pkg="org.apache.commons.net.ftp"/>
+
+    <!-- xml -->
+    <allow pkg="org.jdom2"/>
+    <allow pkg="javax.xml"/>
+    <allow pkg="org.w3c"/>
+    <allow pkg="org.xml"/>
+
+    <!-- graylog2 -->
+    <allow pkg="org.graylog2"/>
+
+    <!-- log4j -->
+    <allow pkg="org.apache.log4j"/>
+
+    <!-- testing -->
+    <allow pkg="org.junit"/>
+    <allow pkg="org.mockito"/>
+    <allow pkg="com.github.tomakehurst.wiremock"/>
+    <allow pkg="org.reflections"/>
+    <allow pkg="org.bouncycastle.jce.provider"/>
+    <allow pkg="org.openjdk.jmh"/>
+
+    <!-- gson -->
+    <allow pkg="com.google.gson"/>
+
+    <allow pkg="javax.management"/>
+
+    <!-- to be removed/scoped -->
+    <allow pkg="org.apache.http"/>
+    <allow pkg="org.apache.commons"/>
+    <allow pkg="org.jasig.cas"/>
+    <allow pkg="net.iharder"/>
+    <allow pkg="org.jetbrains.annotations"/>
+    <allow pkg="com.novell.ldap"/>
+    <allow pkg="java.security"/>
+    <allow pkg="javax.swing"/>
+    <allow pkg="javax.annotation"/>
+    <allow pkg="java.awt"/>
+    <allow pkg="javax.security"/>
+    <allow pkg="javax.servlet"/>
+    <allow pkg="javax.net"/>
+    <allow pkg="javax.crypto"/>
+    <allow pkg="javax.mail"/>
+    <allow class="com.sun.mail.smtp.SMTPSendFailedException"/>
+    <allow pkg="org.xeustechnologies"/>
+    <allow pkg="net.glxn"/>
+    <allow pkg="org.webjars"/>
+    <allow pkg="lombok"/>
+    <allow pkg="com.github.benmanes.caffeine"/>
+
+    <allow pkg="edu.umd.cs.findbugs.annotations"/>
+    <allow pkg="com.nulabinc.zxcvbn" />
+    <allow pkg="jetbrains.exodus"/>
+
+    <subpackage name="password.pwm.util">
+        <allow pkg="sun.management"/>
+    </subpackage>
+
+
+    <!--servlet -->
+    <subpackage name="http.servlet">
+        <allow pkg="javax.servlet"/>
+    </subpackage>
+
+    <!-- web services -->
+    <subpackage name="ws.server">
+        <allow pkg="javax.ws"/>
+        <allow pkg="javax.servlet"/>
+        <allow pkg="org.glassfish.jersey"/>
+    </subpackage>
+
+    <!-- security -->
+    <subpackage name="util.secure">
+        <allow pkg="org.bouncycastle"/>
+        <allow pkg="javax.net"/>
+    </subpackage>
+
+    <!-- nmas -->
+    <subpackage name="util.operations.cr">
+        <allow pkg="com.novell.ldap"/>
+        <allow pkg="com.novell.security.nmas"/>
+    </subpackage>
+
+    <!-- database -->
+    <subpackage name="util.db">
+        <allow pkg="java.sql"/>
+    </subpackage>
+
+    <subpackage name="util.java">
+        <allow class="net.iharder.Base64"/>
+        <allow pkg="org.apache.commons.codec"/>
+        <allow pkg="org.apache.commons.lang3"/>
+    </subpackage>
+
+    <subpackage name="util.localdb">
+        <allow pkg="java.sql"/>
+    </subpackage>
+
+    <subpackage name="http.client">
+        <allow pkg="org.apache.http"/>
+    </subpackage>
+
+    <subpackage name="http.filter">
+        <allow pkg="com.github.ziplet.filter.compression"/>
+    </subpackage>
+
+    <subpackage name="svc.sessiontrack">
+        <allow pkg="com.blueconic.browscap"/>
+    </subpackage>
+
+</import-control>

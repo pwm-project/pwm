@@ -44,6 +44,8 @@ public interface UserInfo
 
     Instant getLastLdapLoginTime( ) throws PwmUnrecoverableException;
 
+    String getLanguage( ) throws PwmUnrecoverableException;
+
     ChallengeProfile getChallengeProfile( ) throws PwmUnrecoverableException;
 
     PwmPasswordPolicy getPasswordPolicy( ) throws PwmUnrecoverableException;
@@ -100,9 +102,13 @@ public interface UserInfo
 
     String readStringAttribute( String attribute ) throws PwmUnrecoverableException;
 
+    byte[] readBinaryAttribute( String attribute ) throws PwmUnrecoverableException;
+
     Instant readDateAttribute( String attribute ) throws PwmUnrecoverableException;
 
     List<String> readMultiStringAttribute( String attribute ) throws PwmUnrecoverableException;
 
     Map<String, String> readStringAttributes( Collection<String> attributes ) throws PwmUnrecoverableException;
+
+    Instant getPasswordExpirationNoticeSendTime( ) throws PwmUnrecoverableException;
 }

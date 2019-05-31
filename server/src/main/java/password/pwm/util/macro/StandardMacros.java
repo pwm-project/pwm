@@ -175,13 +175,13 @@ public abstract class StandardMacros
                 }
                 catch ( PwmUnrecoverableException e )
                 {
-                    LOGGER.trace( "could not replace value for '" + matchValue + "', ldap error: " + e.getMessage() );
+                    LOGGER.trace( () -> "could not replace value for '" + matchValue + "', ldap error: " + e.getMessage() );
                     return "";
                 }
 
                 if ( ldapValue == null || ldapValue.length() < 1 )
                 {
-                    LOGGER.trace( "could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'" );
+                    LOGGER.trace( () -> "could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'" );
                     return "";
                 }
             }
@@ -415,7 +415,7 @@ public abstract class StandardMacros
             {
                 final Instant pwdExpirationTime = userInfo.getPasswordExpirationTime();
                 final TimeDuration timeUntilExpiration = TimeDuration.fromCurrent( pwdExpirationTime );
-                final long daysUntilExpiration = timeUntilExpiration.getDays();
+                final long daysUntilExpiration = timeUntilExpiration.as( TimeDuration.Unit.DAYS );
                 return String.valueOf( daysUntilExpiration );
             }
             catch ( PwmUnrecoverableException e )

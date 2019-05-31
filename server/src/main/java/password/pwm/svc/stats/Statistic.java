@@ -25,114 +25,103 @@ package password.pwm.svc.stats;
 import password.pwm.PwmApplication;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Admin;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.logging.PwmLogger;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Locale;
-import java.util.MissingResourceException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 public enum Statistic
 {
-    AUDIT_EVENTS( Type.INCREMENTOR, "AuditEvents", null ),
-    AUTHENTICATIONS( Type.INCREMENTOR, "Authentications", null ),
-    AUTHENTICATION_FAILURES( Type.INCREMENTOR, "AuthenticationFailures", null ),
-    AUTHENTICATION_EXPIRED( Type.INCREMENTOR, "Authentications_Expired", null ),
-    AUTHENTICATION_PRE_EXPIRED( Type.INCREMENTOR, "Authentications_PreExpired", null ),
-    AUTHENTICATION_EXPIRED_WARNING( Type.INCREMENTOR, "Authentications_ExpiredWarning", null ),
-    PWM_STARTUPS( Type.INCREMENTOR, "PWM_Startups", null ),
-    PWM_UNKNOWN_ERRORS( Type.INCREMENTOR, "PWM_UnknownErrors", null ),
-    PASSWORD_CHANGES( Type.INCREMENTOR, "PasswordChanges", null ),
-    FORGOTTEN_USERNAME_FAILURES( Type.INCREMENTOR, "ForgottenUsernameFailures", null ),
-    FORGOTTEN_USERNAME_SUCCESSES( Type.INCREMENTOR, "ForgottenUsernameSuccesses", null ),
-    EMAIL_SEND_SUCCESSES( Type.INCREMENTOR, "EmailSendSuccesses", null ),
-    EMAIL_SEND_FAILURES( Type.INCREMENTOR, "EmailSendFailures", null ),
-    EMAIL_SEND_DISCARDS( Type.INCREMENTOR, "EmailSendDiscards", null ),
-    SMS_SEND_SUCCESSES( Type.INCREMENTOR, "SmsSendSuccesses", null ),
-    SMS_SEND_FAILURES( Type.INCREMENTOR, "SmsSendFailures", null ),
-    SMS_SEND_DISCARDS( Type.INCREMENTOR, "SmsSendDiscards", null ),
-    PASSWORD_RULE_CHECKS( Type.INCREMENTOR, "PasswordRuleChecks", null ),
-    HTTP_REQUESTS( Type.INCREMENTOR, "HttpRequests", null ),
-    HTTP_RESOURCE_REQUESTS( Type.INCREMENTOR, "HttpResourceRequests", null ),
-    HTTP_SESSIONS( Type.INCREMENTOR, "HttpSessions", null ),
-    ACTIVATED_USERS( Type.INCREMENTOR, "ActivatedUsers", null ),
-    NEW_USERS( Type.INCREMENTOR, "NewUsers", new ConfigSettingDetail( PwmSetting.NEWUSER_ENABLE ) ),
-    GUESTS( Type.INCREMENTOR, "Guests", new ConfigSettingDetail( PwmSetting.GUEST_ENABLE ) ),
-    UPDATED_GUESTS( Type.INCREMENTOR, "UpdatedGuests", new ConfigSettingDetail( PwmSetting.GUEST_ENABLE ) ),
-    LOCKED_USERS( Type.INCREMENTOR, "LockedUsers", null ),
-    LOCKED_ADDRESSES( Type.INCREMENTOR, "LockedAddresses", null ),
-    LOCKED_USERIDS( Type.INCREMENTOR, "LockedUserDNs", null ),
-    LOCKED_ATTRIBUTES( Type.INCREMENTOR, "LockedAttributes", null ),
-    LOCKED_TOKENDESTS( Type.INCREMENTOR, "LockedTokenDests", null ),
-    CAPTCHA_SUCCESSES( Type.INCREMENTOR, "CaptchaSuccessess", null ),
-    CAPTCHA_FAILURES( Type.INCREMENTOR, "CaptchaFailures", null ),
-    CAPTCHA_PRESENTATIONS( Type.INCREMENTOR, "CaptchaPresentations", null ),
-    LDAP_UNAVAILABLE_COUNT( Type.INCREMENTOR, "LdapUnavailableCount", null ),
-    DB_UNAVAILABLE_COUNT( Type.INCREMENTOR, "DatabaseUnavailableCount", null ),
-    SETUP_RESPONSES( Type.INCREMENTOR, "SetupResponses", null ),
-    SETUP_OTP_SECRET( Type.INCREMENTOR, "SetupOtpSecret", null ),
-    UPDATE_ATTRIBUTES( Type.INCREMENTOR, "UpdateAttributes", new ConfigSettingDetail( PwmSetting.UPDATE_PROFILE_ENABLE ) ),
-    SHORTCUTS_SELECTED( Type.INCREMENTOR, "ShortcutsSelected", new ConfigSettingDetail( PwmSetting.SHORTCUT_ENABLE ) ),
-    GENERATED_PASSWORDS( Type.INCREMENTOR, "GeneratedPasswords", null ),
-    RECOVERY_SUCCESSES( Type.INCREMENTOR, "RecoverySuccesses", null ),
-    RECOVERY_FAILURES( Type.INCREMENTOR, "RecoveryFailures", null ),
-    TOKENS_SENT( Type.INCREMENTOR, "TokensSent", null ),
-    TOKENS_PASSSED( Type.INCREMENTOR, "TokensPassed", null ),
-    RECOVERY_TOKENS_SENT( Type.INCREMENTOR, "RecoveryTokensSent", null ),
-    RECOVERY_TOKENS_PASSED( Type.INCREMENTOR, "RecoveryTokensPassed", null ),
-    RECOVERY_TOKENS_FAILED( Type.INCREMENTOR, "RecoveryTokensFailed", null ),
-    RECOVERY_OTP_PASSED( Type.INCREMENTOR, "RecoveryOTPPassed", null ),
-    RECOVERY_OTP_FAILED( Type.INCREMENTOR, "RecoveryOTPFailed", null ),
-    PEOPLESEARCH_CACHE_HITS( Type.INCREMENTOR, "PeopleSearchCacheHits", new ConfigSettingDetail( PwmSetting.PEOPLE_SEARCH_ENABLE ) ),
-    PEOPLESEARCH_CACHE_MISSES( Type.INCREMENTOR, "PeopleSearchCacheMisses", new ConfigSettingDetail( PwmSetting.PEOPLE_SEARCH_ENABLE ) ),
-    PEOPLESEARCH_SEARCHES( Type.INCREMENTOR, "PeopleSearchSearches", new ConfigSettingDetail( PwmSetting.PEOPLE_SEARCH_ENABLE ) ),
-    PEOPLESEARCH_DETAILS( Type.INCREMENTOR, "PeopleSearchDetails", new ConfigSettingDetail( PwmSetting.PEOPLE_SEARCH_ENABLE ) ),
-    PEOPLESEARCH_ORGCHART( Type.INCREMENTOR, "PeopleSearchOrgChart", new ConfigSettingDetail( PwmSetting.PEOPLE_SEARCH_ENABLE ) ),
-    PWNOTIFY_JOBS ( Type.INCREMENTOR, "PwNotifyJobs", null ),
-    PWNOTIFY_JOB_ERRORS ( Type.INCREMENTOR, "PwNotifyJobErrors", null ),
-    PWNOTIFY_EMAILS_SENT ( Type.INCREMENTOR, "PwNotifyJobEmailsSent", null ),
-    HELPDESK_PASSWORD_SET( Type.INCREMENTOR, "HelpdeskPasswordSet", null ),
-    HELPDESK_USER_LOOKUP( Type.INCREMENTOR, "HelpdeskUserLookup", null ),
-    HELPDESK_TOKENS_SENT( Type.INCREMENTOR, "HelpdeskTokenSent", null ),
-    HELPDESK_UNLOCK( Type.INCREMENTOR, "HelpdeskUnlock", null ),
-    HELPDESK_VERIFY_OTP( Type.INCREMENTOR, "HelpdeskVerifyOTP", null ),
-    REST_STATUS( Type.INCREMENTOR, "RestStatus", null ),
-    REST_CHECKPASSWORD( Type.INCREMENTOR, "RestCheckPassword", null ),
-    REST_SETPASSWORD( Type.INCREMENTOR, "RestSetPassword", null ),
-    REST_RANDOMPASSWORD( Type.INCREMENTOR, "RestRandomPassword", null ),
-    REST_PROFILE( Type.INCREMENTOR, "RestProfile", null ),
-    REST_SIGNING_FORM( Type.INCREMENTOR, "RestSigningForm", null ),
-    REST_CHALLENGES( Type.INCREMENTOR, "RestChallenges", null ),
-    REST_HEALTH( Type.INCREMENTOR, "RestHealth", null ),
-    REST_STATISTICS( Type.INCREMENTOR, "RestStatistics", null ),
-    REST_VERIFYCHALLENGES( Type.INCREMENTOR, "RestVerifyChallenges", null ),
-    REST_VERIFYOTP( Type.INCREMENTOR, "RestVerifyOTP", null ),
-    INTRUDER_ATTEMPTS( Type.INCREMENTOR, "IntruderAttempts", null ),
-    FOREIGN_SESSIONS_ACCEPTED( Type.INCREMENTOR, "ForeignSessionsAccepted", null ),
-    OBSOLETE_URL_REQUESTS( Type.INCREMENTOR, "ObsoleteUrlRequests", null ),
-    SYSLOG_MESSAGES_SENT( Type.INCREMENTOR, "SyslogMessagesSent", null ),
+    AUDIT_EVENTS( "AuditEvents", null ),
+    AUTHENTICATIONS( "Authentications", null ),
+    AUTHENTICATION_FAILURES( "AuthenticationFailures", null ),
+    AUTHENTICATION_EXPIRED( "Authentications_Expired", null ),
+    AUTHENTICATION_PRE_EXPIRED( "Authentications_PreExpired", null ),
+    AUTHENTICATION_EXPIRED_WARNING( "Authentications_ExpiredWarning", null ),
+    PWM_STARTUPS( "PWM_Startups", null ),
+    PWM_UNKNOWN_ERRORS( "PWM_UnknownErrors", null ),
+    PASSWORD_CHANGES( "PasswordChanges", null ),
+    FORGOTTEN_USERNAME_FAILURES( "ForgottenUsernameFailures", null ),
+    FORGOTTEN_USERNAME_SUCCESSES( "ForgottenUsernameSuccesses", null ),
+    EMAIL_SEND_SUCCESSES( "EmailSendSuccesses", null ),
+    EMAIL_SEND_FAILURES( "EmailSendFailures", null ),
+    EMAIL_SEND_DISCARDS( "EmailSendDiscards", null ),
+    SMS_SEND_SUCCESSES( "SmsSendSuccesses", null ),
+    SMS_SEND_FAILURES( "SmsSendFailures", null ),
+    SMS_SEND_DISCARDS( "SmsSendDiscards", null ),
+    PASSWORD_RULE_CHECKS( "PasswordRuleChecks", null ),
+    HTTP_REQUESTS( "HttpRequests", null ),
+    HTTP_RESOURCE_REQUESTS( "HttpResourceRequests", null ),
+    HTTP_SESSIONS( "HttpSessions", null ),
+    ACTIVATED_USERS( "ActivatedUsers", null ),
+    NEW_USERS( "NewUsers", new ConfigSettingDetail( PwmSetting.NEWUSER_ENABLE ) ),
+    GUESTS( "Guests", new ConfigSettingDetail( PwmSetting.GUEST_ENABLE ) ),
+    UPDATED_GUESTS( "UpdatedGuests", new ConfigSettingDetail( PwmSetting.GUEST_ENABLE ) ),
+    LOCKED_USERS( "LockedUsers", null ),
+    LOCKED_ADDRESSES( "LockedAddresses", null ),
+    LOCKED_USERIDS( "LockedUserDNs", null ),
+    LOCKED_ATTRIBUTES( "LockedAttributes", null ),
+    LOCKED_TOKENDESTS( "LockedTokenDests", null ),
+    CAPTCHA_SUCCESSES( "CaptchaSuccessess", null ),
+    CAPTCHA_FAILURES( "CaptchaFailures", null ),
+    CAPTCHA_PRESENTATIONS( "CaptchaPresentations", null ),
+    LDAP_UNAVAILABLE_COUNT( "LdapUnavailableCount", null ),
+    DB_UNAVAILABLE_COUNT( "DatabaseUnavailableCount", null ),
+    SETUP_RESPONSES( "SetupResponses", null ),
+    SETUP_OTP_SECRET( "SetupOtpSecret", null ),
+    UPDATE_ATTRIBUTES( "UpdateAttributes", new ConfigSettingDetail( PwmSetting.UPDATE_PROFILE_ENABLE ) ),
+    SHORTCUTS_SELECTED( "ShortcutsSelected", new ConfigSettingDetail( PwmSetting.SHORTCUT_ENABLE ) ),
+    GENERATED_PASSWORDS( "GeneratedPasswords", null ),
+    RECOVERY_SUCCESSES( "RecoverySuccesses", null ),
+    RECOVERY_FAILURES( "RecoveryFailures", null ),
+    TOKENS_SENT( "TokensSent", null ),
+    TOKENS_PASSSED( "TokensPassed", null ),
+    RECOVERY_TOKENS_SENT( "RecoveryTokensSent", null ),
+    RECOVERY_TOKENS_PASSED( "RecoveryTokensPassed", null ),
+    RECOVERY_TOKENS_FAILED( "RecoveryTokensFailed", null ),
+    RECOVERY_OTP_PASSED( "RecoveryOTPPassed", null ),
+    RECOVERY_OTP_FAILED( "RecoveryOTPFailed", null ),
+    PEOPLESEARCH_CACHE_HITS( "PeopleSearchCacheHits", new ConfigSettingDetail( PwmSetting.PEOPLE_SEARCH_ENABLE ) ),
+    PEOPLESEARCH_CACHE_MISSES( "PeopleSearchCacheMisses", new ConfigSettingDetail( PwmSetting.PEOPLE_SEARCH_ENABLE ) ),
+    PEOPLESEARCH_SEARCHES( "PeopleSearchSearches", new ConfigSettingDetail( PwmSetting.PEOPLE_SEARCH_ENABLE ) ),
+    PEOPLESEARCH_DETAILS( "PeopleSearchDetails", new ConfigSettingDetail( PwmSetting.PEOPLE_SEARCH_ENABLE ) ),
+    PEOPLESEARCH_ORGCHART( "PeopleSearchOrgChart", new ConfigSettingDetail( PwmSetting.PEOPLE_SEARCH_ENABLE ) ),
+    PWNOTIFY_JOBS ( "PwNotifyJobs", null ),
+    PWNOTIFY_JOB_ERRORS ( "PwNotifyJobErrors", null ),
+    PWNOTIFY_EMAILS_SENT ( "PwNotifyJobEmailsSent", null ),
+    HELPDESK_PASSWORD_SET( "HelpdeskPasswordSet", null ),
+    HELPDESK_USER_LOOKUP( "HelpdeskUserLookup", null ),
+    HELPDESK_TOKENS_SENT( "HelpdeskTokenSent", null ),
+    HELPDESK_UNLOCK( "HelpdeskUnlock", null ),
+    HELPDESK_VERIFY_OTP( "HelpdeskVerifyOTP", null ),
+    REST_STATUS( "RestStatus", null ),
+    REST_CHECKPASSWORD( "RestCheckPassword", null ),
+    REST_SETPASSWORD( "RestSetPassword", null ),
+    REST_RANDOMPASSWORD( "RestRandomPassword", null ),
+    REST_PROFILE( "RestProfile", null ),
+    REST_SIGNING_FORM( "RestSigningForm", null ),
+    REST_CHALLENGES( "RestChallenges", null ),
+    REST_HEALTH( "RestHealth", null ),
+    REST_STATISTICS( "RestStatistics", null ),
+    REST_VERIFYCHALLENGES( "RestVerifyChallenges", null ),
+    REST_VERIFYOTP( "RestVerifyOTP", null ),
+    INTRUDER_ATTEMPTS( "IntruderAttempts", null ),
+    FOREIGN_SESSIONS_ACCEPTED( "ForeignSessionsAccepted", null ),
+    OBSOLETE_URL_REQUESTS( "ObsoleteUrlRequests", null ),
+    SYSLOG_MESSAGES_SENT( "SyslogMessagesSent", null ),;
 
-    AVG_PASSWORD_SYNC_TIME( Type.AVERAGE, "AvgPasswordSyncTime", null ),
-    AVG_AUTHENTICATION_TIME( Type.AVERAGE, "AvgAuthenticationTime", null ),
-    AVG_PASSWORD_STRENGTH( Type.AVERAGE, "AvgPasswordStrength", null ),
-    AVG_LDAP_SEARCH_TIME( Type.AVERAGE, "AvgLdapSearchTime", null ),;
-
-    private static final PwmLogger LOGGER = PwmLogger.forClass( Statistic.class );
-    private final Type type;
     private final String key;
     private final StatDetail statDetail;
 
     Statistic(
-            final Type type,
             final String key,
             final StatDetail statDetail
     )
     {
-        this.type = type;
         this.key = key;
         this.statDetail = statDetail;
     }
@@ -140,11 +129,6 @@ public enum Statistic
     public String getKey( )
     {
         return key;
-    }
-
-    public Type getType( )
-    {
-        return type;
     }
 
     public boolean isActive( final PwmApplication pwmApplication )
@@ -164,37 +148,16 @@ public enum Statistic
         return set;
     }
 
-    public enum Type
-    {
-        INCREMENTOR,
-        AVERAGE,
-    }
-
     public String getLabel( final Locale locale )
     {
-        try
-        {
-            final String keyName = Admin.STATISTICS_LABEL_PREFIX + this.getKey();
-            return LocaleHelper.getLocalizedMessage( locale, keyName, null, Admin.class );
-        }
-        catch ( MissingResourceException e )
-        {
-            return "MISSING STATISTIC LABEL for " + this.getKey();
-        }
+        final String keyName = Admin.STATISTICS_LABEL_PREFIX + this.getKey();
+        return LocaleHelper.getLocalizedMessage( locale, keyName, null, Admin.class );
     }
 
     public String getDescription( final Locale locale )
     {
         final String keyName = Admin.STATISTICS_DESCRIPTION_PREFIX + this.getKey();
-        try
-        {
-            return LocaleHelper.getLocalizedMessage( locale, keyName, null, Admin.class );
-        }
-        catch ( Exception e )
-        {
-            LOGGER.error( "unable to load localization for " + keyName + ", error: " + e.getMessage() );
-            return "missing localization for " + keyName;
-        }
+        return LocaleHelper.getLocalizedMessage( locale, keyName, null, Admin.class );
     }
 
     public enum EpsDuration

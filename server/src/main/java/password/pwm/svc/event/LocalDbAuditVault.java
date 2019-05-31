@@ -26,8 +26,8 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.TransactionSizeCalculator;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
@@ -39,9 +39,7 @@ import password.pwm.util.logging.PwmLogger;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 public class LocalDbAuditVault implements AuditVault
 {
@@ -53,7 +51,7 @@ public class LocalDbAuditVault implements AuditVault
 
     private int maxBulkRemovals = 105;
 
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
     private volatile PwmService.STATUS status = PwmService.STATUS.NEW;
 
 
@@ -76,14 +74,11 @@ public class LocalDbAuditVault implements AuditVault
 
         readOldestRecord();
 
-        executorService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
-                        true
-                ) );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         status = PwmService.STATUS.OPEN;
-        executorService.scheduleWithFixedDelay( new TrimmerThread(), 0, 10, TimeUnit.MINUTES );
+        final TimeDuration jobFrequency = TimeDuration.of( 10, TimeDuration.Unit.MINUTES );
+        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new TrimmerThread(), executorService, TimeDuration.SECONDS_10, jobFrequency );
     }
 
     public void close( )
@@ -185,7 +180,8 @@ public class LocalDbAuditVault implements AuditVault
         {
             errorMsg = e.getMessage();
         }
-        LOGGER.debug( "unable to deserialize stored record '" + input + "', error: " + errorMsg );
+        final String finalErrorMsg = errorMsg;
+        LOGGER.debug( () -> "unable to deserialize stored record '" + input + "', error: " + finalErrorMsg );
         return null;
     }
 
@@ -226,11 +222,11 @@ public class LocalDbAuditVault implements AuditVault
 
         // keep transaction duration around 100ms if possible.
         final TransactionSizeCalculator transactionSizeCalculator = new TransactionSizeCalculator(
-                new TransactionSizeCalculator.SettingsBuilder()
-                        .setDurationGoal( new TimeDuration( 101, TimeUnit.MILLISECONDS ) )
-                        .setMaxTransactions( 5003 )
-                        .setMinTransactions( 3 )
-                        .createSettings()
+                TransactionSizeCalculator.Settings.builder()
+                        .durationGoal( TimeDuration.of( 101, TimeDuration.Unit.MILLISECONDS ) )
+                        .maxTransactions( 5003 )
+                        .minTransactions( 3 )
+                        .build()
         );
 
         @Override

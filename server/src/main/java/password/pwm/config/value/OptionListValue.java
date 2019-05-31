@@ -23,11 +23,12 @@
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -55,14 +56,14 @@ public class OptionListValue extends AbstractValue implements StoredValue
             {
                 if ( input == null )
                 {
-                    return new OptionListValue( Collections.<String>emptySet() );
+                    return new OptionListValue( Collections.emptySet() );
                 }
                 else
                 {
                     Set<String> srcList = JsonUtil.deserialize( input, new TypeToken<Set<String>>()
                     {
                     } );
-                    srcList = srcList == null ? Collections.<String>emptySet() : srcList;
+                    srcList = srcList == null ? Collections.emptySet() : srcList;
                     while ( srcList.contains( null ) )
                     {
                         srcList.remove( null );
@@ -71,14 +72,13 @@ public class OptionListValue extends AbstractValue implements StoredValue
                 }
             }
 
-            public OptionListValue fromXmlElement( final Element settingElement, final PwmSecurityKey key )
+            public OptionListValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
-                final List valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final Set<String> values = new TreeSet<>();
-                for ( final Object loopValue : valueElements )
+                for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final Element loopValueElement = ( Element ) loopValue;
                     final String value = loopValueElement.getText();
                     if ( value != null && !value.trim().isEmpty() )
                     {
@@ -90,13 +90,13 @@ public class OptionListValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final String value : values )
         {
-            final Element valueElement = new Element( valueElementName );
-            valueElement.addContent( value );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+            valueElement.addText( value );
             returnList.add( valueElement );
         }
         return returnList;

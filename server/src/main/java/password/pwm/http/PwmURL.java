@@ -23,8 +23,10 @@
 package password.pwm.http;
 
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
@@ -34,9 +36,12 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class PwmURL
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmURL.class );
+
     private URI uri;
     private String contextPath;
 
@@ -59,6 +64,10 @@ public class PwmURL
     /**
      * Compare two uri strings for equality of 'base'.  Specifically, the schema, host and port
      * are compared for equality.
+     *
+     * @param uri1 uri to compare
+     * @param uri2 uri to compare
+     * @return true if scheama, host and port of uri1 and uri2 are equal.
      */
     public static boolean compareUriBase( final String uri1, final String uri2 )
     {
@@ -219,6 +228,18 @@ public class PwmURL
         return isPwmServletURL( PwmServletDefinition.UpdateProfile );
     }
 
+    public PwmServletDefinition forServletDefinition()
+    {
+        for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
+        {
+            if ( isPwmServletURL( pwmServletDefinition ) )
+            {
+                return pwmServletDefinition;
+            }
+        }
+        return null;
+    }
+
     public boolean isLocalizable( )
     {
         return !isConfigGuideURL()
@@ -331,6 +352,28 @@ public class PwmURL
         return output.toString();
     }
 
+    public static String encodeParametersToFormBody( final Map<String, String> parameters )
+    {
+        final StringBuilder output = new StringBuilder( );
+
+        for ( final Map.Entry<String, String> entry : parameters.entrySet() )
+        {
+            final String paramName = entry.getKey();
+            final String value = entry.getValue();
+            final String encodedValue = value == null
+                    ? ""
+                    : StringUtil.urlEncode( value );
+
+            output.append( output.length() > 0 ? "&" : "" );
+            output.append( paramName );
+            output.append( "=" );
+            output.append( encodedValue );
+        }
+
+        return output.toString();
+    }
+
+
     public static int portForUriSchema( final URI uri )
     {
         final int port = uri.getPort();
@@ -395,5 +438,53 @@ public class PwmURL
             }
         }
         return requestPath;
+    }
+
+    public static boolean testIfUrlMatchesAllowedPattern(
+            final String testURI,
+            final List<String> whiteList,
+            final SessionLabel sessionLabel
+            )
+    {
+        final String regexPrefix = "regex:";
+        for ( final String loopFragment : whiteList )
+        {
+            if ( loopFragment.startsWith( regexPrefix ) )
+            {
+                try
+                {
+                    final String strPattern = loopFragment.substring( regexPrefix.length() );
+                    final Pattern pattern = Pattern.compile( strPattern );
+                    if ( pattern.matcher( testURI ).matches() )
+                    {
+                        LOGGER.debug( sessionLabel, () -> "positive URL match for regex pattern: " + strPattern );
+                        return true;
+                    }
+                    else
+                    {
+                        LOGGER.trace( sessionLabel, () -> "negative URL match for regex pattern: " + strPattern );
+                    }
+                }
+                catch ( Exception e )
+                {
+                    LOGGER.error( sessionLabel, "error while testing URL match for regex pattern: '" + loopFragment + "', error: " + e.getMessage() );
+                }
+
+            }
+            else
+            {
+                if ( testURI.startsWith( loopFragment ) )
+                {
+                    LOGGER.debug( sessionLabel, () -> "positive URL match for pattern: " + loopFragment );
+                    return true;
+                }
+                else
+                {
+                    LOGGER.trace( sessionLabel, () -> "negative URL match for pattern: " + loopFragment );
+                }
+            }
+        }
+
+        return false;
     }
 }

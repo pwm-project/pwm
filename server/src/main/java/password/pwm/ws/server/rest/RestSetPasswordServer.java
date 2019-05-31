@@ -40,7 +40,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
-import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.server.RestMethodHandler;
@@ -225,7 +225,7 @@ public class RestSetPasswordServer extends RestServlet
         catch ( Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
             LOGGER.error( "error during set password REST operation: " + e.getMessage(), e );
             return RestResultBean.fromError( restRequest, errorInformation );
         }

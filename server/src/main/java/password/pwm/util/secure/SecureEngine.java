@@ -43,6 +43,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.GeneralSecurityException;
@@ -62,6 +63,7 @@ public class SecureEngine
     private static final PwmLogger LOGGER = PwmLogger.forClass( SecureEngine.class );
 
     private static final int HASH_BUFFER_SIZE = 1024 * 4;
+    private static final int HASH_FILE_BUFFER_SIZE = 1024 * 64;
 
     private static final NonceGenerator AES_GCM_NONCE_GENERATOR = new NonceGenerator( 8, 8 );
 
@@ -277,7 +279,7 @@ public class SecureEngine
             final File file,
             final PwmHashAlgorithm hashAlgorithm
     )
-            throws IOException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         FileInputStream fileInputStream = null;
         try
@@ -285,13 +287,17 @@ public class SecureEngine
             final MessageDigest messageDigest = MessageDigest.getInstance( hashAlgorithm.getAlgName() );
             fileInputStream = new FileInputStream( file );
             final FileChannel fileChannel = fileInputStream.getChannel();
-            final ByteBuffer byteBuffer = ByteBuffer.allocateDirect( 1024 * 8 );
+            final ByteBuffer byteBuffer = ByteBuffer.allocateDirect( HASH_FILE_BUFFER_SIZE );
 
             while ( fileChannel.read( byteBuffer ) > 0 )
             {
-                byteBuffer.flip();
+                // redundant cast to buffer to solve jdk8/9 inter-op issue
+                ( ( Buffer ) byteBuffer ).flip();
+
                 messageDigest.update( byteBuffer );
-                byteBuffer.clear();
+
+                // redundant cast to buffer to solve jdk8/9 inter-op issue
+                ( ( Buffer ) byteBuffer ).clear();
             }
 
             return JavaHelper.byteArrayToHexString( messageDigest.digest() );
@@ -507,7 +513,7 @@ public class SecureEngine
                 final TimeDuration executionDuration = TimeDuration.fromCurrent( startTime );
                 outputData.write( "processed " + testIterations + " iterations using "
                         + alg.toString() + " (" + alg.getLabel() + ") in "
-                        + executionDuration.getTotalMilliseconds() + "ms" );
+                        + executionDuration.asMillis() + "ms" );
                 outputData.write( "\n" );
             }
         }

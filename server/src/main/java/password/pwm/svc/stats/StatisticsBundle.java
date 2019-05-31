@@ -22,153 +22,105 @@
 
 package password.pwm.svc.stats;
 
+import password.pwm.util.java.AtomicLoopLongIncrementer;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.text.SimpleDateFormat;
-import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.TimeZone;
 
 public class StatisticsBundle
 {
+    private final Map<Statistic, AtomicLoopLongIncrementer> incrementerMap = new EnumMap<>( Statistic.class );
+    private final Map<AvgStatistic, AverageBean> avgMap = new EnumMap<>( AvgStatistic.class );
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass( StatisticsBundle.class );
-
-    static final SimpleDateFormat STORED_DATETIME_FORMATTER = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss Z" );
-
-    static
+    StatisticsBundle( )
     {
-        STORED_DATETIME_FORMATTER.setTimeZone( TimeZone.getTimeZone( "Zulu" ) );
-    }
-
-
-    private final Map<Statistic, String> valueMap = new HashMap<>();
-
-    public StatisticsBundle( )
-    {
+        for ( final Statistic statistic : Statistic.values() )
+        {
+            incrementerMap.put( statistic, new AtomicLoopLongIncrementer( 0, Long.MAX_VALUE ) );
+        }
+        for ( final AvgStatistic avgStatistic : AvgStatistic.values() )
+        {
+            avgMap.put( avgStatistic, new AverageBean() );
+        }
     }
 
     public String output( )
     {
-        return JsonUtil.serializeMap( valueMap );
+        final Map<String, String> outputMap = new LinkedHashMap<>();
+
+        for ( final Statistic statistic : Statistic.values() )
+        {
+            final long currentValue = incrementerMap.get( statistic ).get();
+            if ( currentValue > 0 )
+            {
+                outputMap.put( statistic.name(), Long.toString( currentValue ) );
+            }
+        }
+        for ( final AvgStatistic epsStatistic : AvgStatistic.values() )
+        {
+            final AverageBean averageBean = avgMap.get( epsStatistic );
+            if ( !averageBean.isZero() )
+            {
+                outputMap.put( epsStatistic.name(), JsonUtil.serialize( averageBean ) );
+            }
+        }
+
+        return JsonUtil.serializeMap( outputMap );
     }
 
     public static StatisticsBundle input( final String inputString )
     {
-        final Map<Statistic, String> srcMap = new HashMap<>();
         final Map<String, String> loadedMap = JsonUtil.deserializeStringMap( inputString );
-        for ( final Map.Entry<String, String> entry : loadedMap.entrySet() )
-        {
-            final String key = entry.getKey();
-            try
-            {
-                srcMap.put( Statistic.valueOf( key ), entry.getValue() );
-            }
-            catch ( IllegalArgumentException e )
-            {
-                LOGGER.error( "error parsing statistic key '" + key + "', reason: " + e.getMessage() );
-            }
-        }
         final StatisticsBundle bundle = new StatisticsBundle();
 
         for ( final Statistic loopStat : Statistic.values() )
         {
-            final String value = srcMap.get( loopStat );
+            final String value = loadedMap.get( loopStat.name() );
             if ( !StringUtil.isEmpty( value ) )
             {
-                bundle.valueMap.put( loopStat, value );
+                final long longValue = JavaHelper.silentParseLong( value, 0 );
+                final AtomicLoopLongIncrementer incrementer = new AtomicLoopLongIncrementer( longValue, Long.MAX_VALUE );
+                bundle.incrementerMap.put( loopStat, incrementer );
+            }
+        }
+
+        for ( final AvgStatistic loopStat : AvgStatistic.values() )
+        {
+            final String value = loadedMap.get( loopStat.name() );
+            if ( !StringUtil.isEmpty( value ) )
+            {
+                final AverageBean avgBean = JsonUtil.deserialize( value, AverageBean.class );
+                bundle.avgMap.put( loopStat, avgBean );
             }
         }
 
         return bundle;
     }
 
-    public synchronized void incrementValue( final Statistic statistic )
+    void incrementValue( final Statistic statistic )
     {
-        if ( Statistic.Type.INCREMENTOR != statistic.getType() )
-        {
-            LOGGER.error( "attempt to increment non-counter/incremental stat " + statistic );
-            return;
-        }
-
-        BigInteger currentValue = BigInteger.ZERO;
-        try
-        {
-            if ( valueMap.containsKey( statistic ) )
-            {
-                currentValue = new BigInteger( valueMap.get( statistic ) );
-            }
-            else
-            {
-                currentValue = BigInteger.ZERO;
-            }
-        }
-        catch ( NumberFormatException e )
-        {
-            LOGGER.error( "error reading counter/incremental stat " + statistic );
-        }
-        final BigInteger newValue = currentValue.add( BigInteger.ONE );
-        valueMap.put( statistic, newValue.toString() );
+        incrementerMap.get( statistic ).incrementAndGet();
     }
 
-    public synchronized void updateAverageValue( final Statistic statistic, final long timeDuration )
+    void updateAverageValue( final AvgStatistic statistic, final long timeDuration )
     {
-        if ( Statistic.Type.AVERAGE != statistic.getType() )
-        {
-            LOGGER.error( "attempt to update average value of non-average stat " + statistic );
-            return;
-        }
-
-        final String avgStrValue = valueMap.get( statistic );
-
-        AverageBean avgBean = new AverageBean();
-        if ( avgStrValue != null && avgStrValue.length() > 0 )
-        {
-            try
-            {
-                avgBean = JsonUtil.deserialize( avgStrValue, AverageBean.class );
-            }
-            catch ( Exception e )
-            {
-                LOGGER.trace( "unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue );
-            }
-        }
-
-        avgBean.appendValue( timeDuration );
-        valueMap.put( statistic, JsonUtil.serialize( avgBean ) );
+        avgMap.get( statistic ).appendValue( timeDuration );
     }
 
     public String getStatistic( final Statistic statistic )
     {
-        switch ( statistic.getType() )
-        {
-            case INCREMENTOR:
-                return valueMap.containsKey( statistic ) ? valueMap.get( statistic ) : "0";
+        return Long.toString( incrementerMap.get( statistic ).get() );
+    }
 
-            case AVERAGE:
-                final String avgStrValue = valueMap.get( statistic );
-
-                AverageBean avgBean = new AverageBean();
-                if ( avgStrValue != null && avgStrValue.length() > 0 )
-                {
-                    try
-                    {
-                        avgBean = JsonUtil.deserialize( avgStrValue, AverageBean.class );
-                    }
-                    catch ( Exception e )
-                    {
-                        LOGGER.trace( "unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue );
-                    }
-                }
-                return avgBean.getAverage().toString();
-
-            default:
-                return "";
-        }
+    public String getAvgStatistic( final AvgStatistic statistic )
+    {
+        return avgMap.get( statistic ).getAverage().toString();
     }
 
     private static class AverageBean implements Serializable
@@ -180,7 +132,7 @@ public class StatisticsBundle
         {
         }
 
-        BigInteger getAverage( )
+        synchronized BigInteger getAverage( )
         {
             if ( BigInteger.ZERO.equals( count ) )
             {
@@ -190,10 +142,15 @@ public class StatisticsBundle
             return total.divide( count );
         }
 
-        void appendValue( final long value )
+        synchronized void appendValue( final long value )
         {
             count = count.add( BigInteger.ONE );
             total = total.add( BigInteger.valueOf( value ) );
+        }
+
+        synchronized boolean isZero()
+        {
+            return total.equals( BigInteger.ZERO );
         }
     }
 }

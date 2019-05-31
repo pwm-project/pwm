@@ -77,6 +77,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * User interaction servlet for creating new users (self registration).
@@ -280,7 +281,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
             pwmApplication.getIntruderManager().convenience().markAttributes( formValues, pwmSession );
             pwmApplication.getIntruderManager().convenience().markAddressAndSession( pwmSession );
             setLastError( pwmRequest, e.getErrorInformation() );
-            LOGGER.debug( pwmSession.getLabel(), e.getErrorInformation().toDebugStr() );
+            LOGGER.debug( pwmSession, e.getErrorInformation() );
         }
 
         return ProcessStatus.Continue;
@@ -290,7 +291,6 @@ public class ActivateUserServlet extends ControlledPwmServlet
     private ProcessStatus processTokenChoice( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final ActivateUserBean activateUserBean = activateUserBean( pwmRequest );
         final UserInfo userInfo = userInfo( pwmRequest );
         final MessageSendMethod tokenSendMethod = pwmRequest.getConfig().readSettingAsEnum( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class );
 
@@ -304,15 +304,11 @@ public class ActivateUserServlet extends ControlledPwmServlet
 
         final String requestedID = pwmRequest.readParameterAsString( "choice", PwmHttpRequestWrapper.Flag.BypassValidation );
 
-        if ( !StringUtil.isEmpty( requestedID ) )
+        final Optional<TokenDestinationItem> tokenDestinationItem = TokenDestinationItem.tokenDestinationItemForID( tokenDestinationItems, requestedID );
+        if ( tokenDestinationItem.isPresent() )
         {
-            for ( final TokenDestinationItem item : tokenDestinationItems )
-            {
-                if ( requestedID.equals( item.getId() ) )
-                {
-                    activateUserBean.setTokenDestination( item );
-                }
-            }
+            final ActivateUserBean activateUserBean = activateUserBean( pwmRequest );
+            activateUserBean.setTokenDestination( tokenDestinationItem.get() );
         }
 
         return ProcessStatus.Continue;
@@ -323,7 +319,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     public ProcessStatus handleEnterCode(
             final PwmRequest pwmRequest
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+            throws PwmUnrecoverableException, IOException, ServletException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -346,6 +342,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
             activateUserBean.setTokenPassed( true );
             activateUserBean.setFormValidated( true );
             activateUserBean.setTokenDestination( tokenPayload.getDestination() );
+            activateUserBean.setTokenSent( true );
 
             if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
             {
@@ -356,7 +353,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
         }
         catch ( PwmUnrecoverableException e )
         {
-            LOGGER.debug( pwmRequest, "error while checking entered token: " );
+            LOGGER.debug( pwmRequest, () -> "error while checking entered token: " );
             errorInformation = e.getErrorInformation();
         }
 
@@ -367,7 +364,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
             {
                 errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT );
             }
-            LOGGER.debug( pwmSession.getLabel(), errorInformation.toDebugStr() );
+            LOGGER.debug( pwmSession, errorInformation );
             setLastError( pwmRequest, errorInformation );
         }
 
@@ -380,7 +377,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        LOGGER.debug( pwmRequest, "user accepted agreement" );
+        LOGGER.debug( pwmRequest, () -> "user accepted agreement" );
 
         final ActivateUserBean activateUserBean = activateUserBean( pwmRequest );
 
@@ -442,7 +439,6 @@ public class ActivateUserServlet extends ControlledPwmServlet
 
             if ( !activateUserBean.isTokenSent() && activateUserBean.getTokenDestination() != null )
             {
-
                 TokenUtil.initializeAndSendToken(
                         pwmRequest,
                         TokenUtil.TokenInitAndSendRequest.builder()
@@ -453,6 +449,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
                                 .smsToSend( PwmSetting.SMS_ACTIVATION_VERIFICATION_TEXT )
                                 .build()
                 );
+                activateUserBean.setTokenSent( true );
             }
 
             if ( !activateUserBean.isTokenPassed() )

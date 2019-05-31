@@ -20,6 +20,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+// These need to be at the top so imported components can override the default styling
+require('../../styles.scss');
+require('./peoplesearch.scss');
+
+import 'angular-aria';
 
 import {IComponentOptions, module} from 'angular';
 import { HighlightFilter } from './string.filters';
@@ -33,8 +38,9 @@ import PersonDetailsDialogComponent from './person-details-dialog.component';
 import LocalStorageService from '../../services/local-storage.service';
 import PromiseService from '../../services/promise.service';
 import uxModule from '../../ux/ux.module';
-
-require('./peoplesearch.scss');
+import CommonSearchService from '../../services/common-search.service';
+import OrgchartExportController from './orgchart-export.controller';
+import OrgchartEmailController from './orgchart-email.controller';
 
 const moduleName = 'people-search';
 
@@ -51,7 +57,10 @@ module(moduleName, [
     .component('peopleSearchTable', PeopleSearchTableComponent as IComponentOptions)
     .component('peopleSearchCards', PeopleSearchCardsComponent as IComponentOptions)
     .component('personDetailsDialogComponent', PersonDetailsDialogComponent as IComponentOptions)
+    .controller('OrgchartExportController', OrgchartExportController)
+    .controller('OrgchartEmailController', OrgchartEmailController)
     .service('PromiseService', PromiseService)
-    .service('LocalStorageService', LocalStorageService);
+    .service('LocalStorageService', LocalStorageService)
+    .service('CommonSearchService', CommonSearchService);
 
 export default moduleName;

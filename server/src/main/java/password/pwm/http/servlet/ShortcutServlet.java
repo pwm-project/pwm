@@ -103,13 +103,13 @@ public class ShortcutServlet extends AbstractPwmServlet
         final ShortcutsBean shortcutsBean = pwmApplication.getSessionStateService().getBean( pwmRequest, ShortcutsBean.class );
         if ( shortcutsBean.getVisibleItems() == null )
         {
-            LOGGER.debug( pwmSession, "building visible shortcut list for user" );
+            LOGGER.debug( pwmSession, () -> "building visible shortcut list for user" );
             final Map<String, ShortcutItem> visibleItems = figureVisibleShortcuts( pwmRequest );
             shortcutsBean.setVisibleItems( visibleItems );
         }
         else
         {
-            LOGGER.trace( pwmSession, "using cashed shortcut values" );
+            LOGGER.trace( pwmSession, () -> "using cashed shortcut values" );
         }
 
         final ShortcutAction action = readProcessAction( pwmRequest );
@@ -178,7 +178,7 @@ public class ShortcutServlet extends AbstractPwmServlet
 
         if ( !labelsFromHeader.isEmpty() )
         {
-            LOGGER.trace( "detected the following labels from headers: " + StringHelper.stringCollectionToString( labelsFromHeader, "," ) );
+            LOGGER.trace( () -> "detected the following labels from headers: " + StringHelper.stringCollectionToString( labelsFromHeader, "," ) );
             visibleItems.keySet().retainAll( labelsFromHeader );
         }
         else
@@ -219,7 +219,7 @@ public class ShortcutServlet extends AbstractPwmServlet
             final ShortcutItem item = visibleItems.get( link );
 
             pwmApplication.getStatisticsManager().incrementValue( Statistic.SHORTCUTS_SELECTED );
-            LOGGER.trace( pwmSession, "shortcut link selected: " + link + ", setting link for 'forwardURL' to " + item.getShortcutURI() );
+            LOGGER.trace( pwmSession, () -> "shortcut link selected: " + link + ", setting link for 'forwardURL' to " + item.getShortcutURI() );
             pwmSession.getSessionStateBean().setForwardURL( item.getShortcutURI().toString() );
 
             pwmRequest.sendRedirectToContinue();

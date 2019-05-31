@@ -28,13 +28,14 @@ import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.util.password.PasswordRuleReaderHelper;
 import password.pwm.error.PwmException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.servlet.newuser.NewUserServlet;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -71,7 +72,7 @@ public class PasswordRequirementsTag extends TagSupport
         final ADPolicyComplexity adPolicyLevel = pwordPolicy.getRuleHelper().getADComplexityLevel();
 
 
-        final PwmPasswordPolicy.RuleHelper ruleHelper = pwordPolicy.getRuleHelper();
+        final PasswordRuleReaderHelper ruleHelper = pwordPolicy.getRuleHelper();
 
         if ( ruleHelper.readBooleanValue( PwmPasswordRule.CaseSensitive ) )
         {

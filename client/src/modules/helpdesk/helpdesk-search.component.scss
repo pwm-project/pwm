@@ -20,42 +20,101 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+.ias-styles-root {
+  help-desk-search-cards,
+  help-desk-search-table {
+    display: flex;
+    flex-flow: column nowrap;
+    height: 100%;
 
-.verifications-button {
-  margin: 5px 5px 5px 0;
-}
+    #page-content-title {
+      margin-bottom: 0;
+    }
 
-help-desk-search-cards,
-help-desk-search-table {
-  display: flex;
-  flex-flow: column nowrap;
-  height: 100%;
+    .verifications-button {
+      margin: 5px 5px 5px 0;
+    }
 
-  #page-content-title {
-    margin-bottom: 0;
+    > .people-search-component-content {
+      flex: 1 1;
+      overflow: auto;
+    }
+
+    .helpdesk-search-header {
+      display: flex;
+      align-items: flex-start;
+
+      .basic-search-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+
+        > * + * {
+          margin-left: 10px;
+        }
+      }
+
+      .advanced-search-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 15px;
+
+        > * + * {
+          margin-top: 5px;
+        }
+
+        & + div {
+          margin-top: 15px;
+        }
+      }
+    }
   }
 
-  > .people-search-component-content {
-    flex: 1 1;
-    overflow: auto;
+  .aligned-input {
+    margin-top: 15px;
+
+    > * {
+      vertical-align: middle;
+    }
+
+    .ias-button {
+      margin-right: 5px;
+    }
   }
-}
 
-.aligned-input {
-  margin-top: 15px;
-
-  > * {
-    vertical-align: middle;
+  .loading-gif-25 {
+    background-image: url('../../../images/icons/wait_25.gif');
+    display: inline-block;
+    height: 25px;
+    width: 25px;
   }
 
-  .ias-button {
-    margin-right: 5px;
-  }
-}
+  [dir="rtl"] {
+    help-desk-search-cards,
+    help-desk-search-table {
+      .ias-search {
+        margin-left: 10px;
+        margin-right: 0;
+      }
 
-.loading-gif-25 {
-  background-image: url('../../../images/icons/wait_25.gif');
-  display: inline-block;
-  height: 25px;
-  width: 25px;
+      .verifications-button {
+        margin: 5px 0 5px 5px;
+      }
+    }
+
+    .aligned-input {
+      .ias-button {
+        margin-left: 5px;
+        margin-right: 0;
+      }
+    }
+  }
+
+  .ias-input-container > .checkbox-button > .ias-button.toggle-column-btn {
+    &:focus, &:hover {
+      background-color: transparent;
+      box-shadow: none;
+    }
+  }
 }

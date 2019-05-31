@@ -36,6 +36,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmURL;
@@ -47,6 +48,7 @@ import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -65,17 +67,33 @@ public class CaptchaUtility
 
     private static final String COOKIE_SKIP_INSTANCE_VALUE = "INSTANCEID";
 
+    public static final String PARAM_RECAPTCHA_FORM_NAME = "g-recaptcha-response";
+
+    public enum CaptchaMode
+    {
+        V3,
+        V3_INVISIBLE,
+    }
+
+    public static CaptchaMode readCaptchaMode( final PwmRequest pwmRequest )
+    {
+        return pwmRequest.getConfig().readSettingAsEnum( PwmSetting.CAPTCHA_RECAPTCHA_MODE, CaptchaMode.class );
+    }
 
     /**
      * Verify a reCaptcha request.  The reCaptcha request API is documented at
-     * <a href="http://recaptcha.net/apidocs/captcha/"/>reCaptcha API.
+     * <a href="http://recaptcha.net/apidocs/captcha/">reCaptcha API</a>.
+     *
+     * @param pwmRequest request object
+     * @return true if captcha passes
+     * @throws PwmUnrecoverableException if the operation fails.
      */
     public static boolean verifyReCaptcha(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException
     {
-        final String recaptchaResponse = pwmRequest.readParameterAsString( "g-recaptcha-response" );
+        final String recaptchaResponse = pwmRequest.readParameterAsString( PARAM_RECAPTCHA_FORM_NAME );
         return verifyReCaptcha( pwmRequest, recaptchaResponse );
     }
 
@@ -90,25 +108,31 @@ public class CaptchaUtility
             return true;
         }
 
+        if ( StringUtil.isEmpty( recaptchaResponse ) )
+        {
+            final String msg = "missing recaptcha validation response";
+            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CAPTCHA_API_ERROR, msg );
+            throw new PwmUnrecoverableException( errorInfo );
+        }
+
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PasswordData privateKey = pwmApplication.getConfig().readSettingAsPassword( PwmSetting.RECAPTCHA_KEY_PRIVATE );
 
-        final StringBuilder bodyText = new StringBuilder();
-        bodyText.append( "secret=" ).append( privateKey.getStringValue() );
-        bodyText.append( "&" );
-        bodyText.append( "remoteip=" ).append( pwmRequest.getSessionLabel().getSrcAddress() );
-        bodyText.append( "&" );
-        bodyText.append( "response=" ).append( recaptchaResponse );
+        final String bodyText = "secret=" + StringUtil.urlEncode( privateKey.getStringValue() )
+                + "&"
+                + "remoteip=" + StringUtil.urlEncode( pwmRequest.getSessionLabel().getSrcAddress() )
+                + "&"
+                + "response=" + StringUtil.urlEncode( recaptchaResponse );
 
         try
         {
             final PwmHttpClientRequest clientRequest = new PwmHttpClientRequest(
                     HttpMethod.POST,
                     pwmApplication.getConfig().readAppProperty( AppProperty.RECAPTCHA_VALIDATE_URL ),
-                    bodyText.toString(),
+                    bodyText,
                     Collections.singletonMap( "Content-Type", HttpContentType.form.getHeaderValue() )
             );
-            LOGGER.debug( pwmRequest, "sending reCaptcha verification request" );
+            LOGGER.debug( pwmRequest, () -> "sending reCaptcha verification request" );
             final PwmHttpClient client = new PwmHttpClient( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel() );
             final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest );
 
@@ -128,6 +152,8 @@ public class CaptchaUtility
                 if ( success )
                 {
                     writeCaptchaSkipCookie( pwmRequest );
+                    LOGGER.trace( pwmRequest, () -> "captcha verification passed" );
+                    StatisticsManager.incrementStat( pwmRequest, Statistic.CAPTCHA_SUCCESSES );
                     return true;
                 }
 
@@ -139,7 +165,7 @@ public class CaptchaUtility
                         final String errorCode = element.getAsString();
                         errorCodes.add( errorCode );
                     }
-                    LOGGER.debug( pwmRequest, "recaptcha error codes: " + JsonUtil.serializeCollection( errorCodes ) );
+                    LOGGER.debug( pwmRequest, () -> "recaptcha error codes: " + JsonUtil.serializeCollection( errorCodes ) );
                 }
             }
         }
@@ -153,6 +179,8 @@ public class CaptchaUtility
             throw pwmE;
         }
 
+        LOGGER.trace( pwmRequest, () -> "captcha verification failed" );
+        StatisticsManager.incrementStat( pwmRequest, Statistic.CAPTCHA_FAILURES );
         return false;
     }
 
@@ -170,7 +198,8 @@ public class CaptchaUtility
             pwmRequest.getPwmResponse().writeCookie(
                     captchaSkipCookieName,
                     cookieValue,
-                    captchaSkipCookieLifetimeSeconds
+                    captchaSkipCookieLifetimeSeconds,
+                    PwmHttpResponseWrapper.CookiePath.Application
             );
         }
     }
@@ -202,7 +231,7 @@ public class CaptchaUtility
             final String cookieValue = pwmRequest.readCookie( captchaSkipCookieName );
             if ( allowedSkipValue.equals( cookieValue ) )
             {
-                LOGGER.debug( pwmRequest, "browser has a valid " + captchaSkipCookieName + " cookie value of " + figureSkipCookieValue( pwmRequest ) + ", skipping captcha check" );
+                LOGGER.debug( pwmRequest, () -> "browser has a valid " + captchaSkipCookieName + " cookie value of " + allowedSkipValue + ", skipping captcha check" );
                 return true;
             }
         }
@@ -302,13 +331,20 @@ public class CaptchaUtility
     private static boolean checkIfCaptchaParamPresent( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final String skipCaptcha = pwmRequest.readParameterAsString( PwmConstants.PARAM_SKIP_CAPTCHA );
-        if ( skipCaptcha != null && skipCaptcha.length() > 0 )
+        if ( pwmRequest.getPwmSession().getSessionStateBean().isCaptchaBypassedViaParameter() )
         {
-            final String configValue = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_PARAM );
-            if ( configValue != null && configValue.equals( skipCaptcha ) )
+            LOGGER.trace( pwmRequest, () -> "valid skipCaptcha value previously received in session, skipping captcha check" );
+            return true;
+        }
+
+        final String configValue = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_PARAM );
+        if ( !StringUtil.isEmpty( configValue ) )
+        {
+            final String skipCaptcha = pwmRequest.readParameterAsString( PwmConstants.PARAM_SKIP_CAPTCHA );
+            if ( StringUtil.nullSafeEquals( configValue, skipCaptcha ) )
             {
-                LOGGER.trace( pwmRequest, "valid skipCaptcha value in request, skipping captcha check for this session" );
+                LOGGER.trace( pwmRequest, () -> "valid skipCaptcha value in request, skipping captcha check for this session" );
+                pwmRequest.getPwmSession().getSessionStateBean().setCaptchaBypassedViaParameter( true );
                 return true;
             }
             else
@@ -329,10 +365,10 @@ public class CaptchaUtility
             return true;
         }
 
-        final int currentSessionAttempts = pwmRequest.getPwmSession().getSessionStateBean().getIntruderAttempts();
+        final int currentSessionAttempts = pwmRequest.getPwmSession().getSessionStateBean().getIntruderAttempts().get();
         if ( currentSessionAttempts >= maxIntruderCount )
         {
-            LOGGER.debug( pwmRequest, "session intruder attempt count '" + currentSessionAttempts + "', therefore captcha will be required" );
+            LOGGER.debug( pwmRequest, () -> "session intruder attempt count '" + currentSessionAttempts + "', therefore captcha will be required" );
             return true;
         }
 
@@ -345,7 +381,7 @@ public class CaptchaUtility
         final int intruderAttemptCount = intruderManager.countForNetworkEndpointInRequest( pwmRequest );
         if ( intruderAttemptCount >= maxIntruderCount )
         {
-            LOGGER.debug( pwmRequest, "network intruder attempt count '" + intruderAttemptCount + "', therefore captcha will be required" );
+            LOGGER.debug( pwmRequest, () -> "network intruder attempt count '" + intruderAttemptCount + "', therefore captcha will be required" );
             return true;
         }
 

@@ -1,0 +1,132 @@
+#--
+#-- Password Management Servlet (PWM) schema ldif
+#-- The PWM schema is used to manage additional
+#-- password related attributes for users.
+#--
+#--
+#-- This LDIF handles both new and existing systems.
+#-- To update directories with a pre-existing pwm schema
+#-- import using a "continue after error" option.
+#--
+#-- Last updated - 5/31/2013
+#--
+#-- ASN Private Enterprise Number registered to PWM Project:
+#-- 35015
+#-- http://www.iana.org/assignments/enterprise-numbers
+#--
+
+#------------------------------------------------------
+#-- Attribute:  	pwmEventLog
+#-- Syntax:      	OCTET STRING
+#-- Description:	User event log
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.1
+  NAME 'pwmEventLog'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+
+#------------------------------------------------------
+#-- Attribute:  	pwmResponseSet
+#-- Syntax:      	OCTET STRING
+#-- Description:    Stores the user's challenge/response answers
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.2
+  NAME 'pwmResponseSet'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+
+#------------------------------------------------------
+#-- Attribute:  	pwmLastPwdUpdate
+#-- Syntax:      	TIME
+#-- Description:	Marks the last time the password was changed by user.
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.3
+  NAME 'pwmLastPwdUpdate'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+ )
+
+#------------------------------------------------------
+#-- Attribute:  	pwmGUID
+#-- Syntax:      	STRING
+#-- Description:	Marks the last time the password was changed by user.
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.4
+  NAME 'pwmGUID'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+ )
+
+#------------------------------------------------------
+#-- Attribute:  	pwmToken
+#-- Syntax:      	STRING
+#-- Description:	Storage of validation token
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.5
+  NAME 'pwmToken'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+ )
+
+#------------------------------------------------------
+#-- Attribute:  	pwmOtpSecret
+#-- Syntax:      	OCTET STRING
+#-- Description:    Stores the user's challenge/response answers
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.6
+  NAME 'pwmOtpSecret'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+
+#------------------------------------------------------
+#-- Attribute:  	pwmData
+#-- Syntax:      	OCTET STRING
+#-- Description:    Stores application data
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.7
+  NAME 'pwmData'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+
+#------------------------------------------------------
+#-- Class:        pwmUser
+#-- Description:  Aux class
+#-- Req:          none
+#--
+#-- pwmUser aux class
+#--
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: objectClasses
+objectClasses: (
+  1.3.6.1.4.1.35015.1.1.1
+  NAME 'pwmUser'
+  AUXILIARY
+  MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID $ pwmToken $ pwmOtpSecret $ pwmData )
+ )

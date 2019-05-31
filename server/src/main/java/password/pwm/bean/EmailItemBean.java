@@ -24,13 +24,13 @@ package password.pwm.bean;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 
 import java.io.Serializable;
 
-@Getter
+@Value
 @AllArgsConstructor
-@Builder
+@Builder( toBuilder = true )
 public class EmailItemBean implements Serializable
 {
     private final String to;
@@ -38,6 +38,14 @@ public class EmailItemBean implements Serializable
     private final String subject;
     private final String bodyPlain;
     private final String bodyHtml;
+
+    public EmailItemBean applyBodyReplacement( final CharSequence target, final CharSequence replacement )
+    {
+        return this.toBuilder()
+                .bodyPlain( this.getBodyPlain().replace( target, replacement ) )
+                .bodyHtml( this.getBodyHtml().replace( target, replacement ) )
+                .build();
+    }
 
     public String toDebugString( )
     {

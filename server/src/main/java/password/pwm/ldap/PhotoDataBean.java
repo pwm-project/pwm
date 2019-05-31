@@ -23,23 +23,11 @@
 package password.pwm.ldap;
 
 import lombok.Value;
-
-import java.util.Arrays;
+import password.pwm.http.bean.ImmutableByteArray;
 
 @Value
 public class PhotoDataBean
 {
     private String mimeType;
-    private byte[] contents;
-
-    public PhotoDataBean( final String mimeType, final byte[] contents )
-    {
-        this.mimeType = mimeType;
-        this.contents = contents == null ? null : Arrays.copyOf( contents, contents.length );
-    }
-
-    public byte[] getContents( )
-    {
-        return contents == null ? null : Arrays.copyOf( contents, contents.length );
-    }
+    private ImmutableByteArray contents;
 }

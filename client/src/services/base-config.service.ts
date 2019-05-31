@@ -23,12 +23,37 @@
 import {IHttpService, ILogService, IPromise, IQService} from 'angular';
 import {IPwmService} from './pwm.service';
 
-const PHOTO_ENABLED = 'enablePhoto';
+const COLUMN_CONFIG = 'searchColumns';
+export const PHOTO_ENABLED = 'enablePhoto';
+const PRINTING_ENABLED = 'enableOrgChartPrinting';
+
+export const ADVANCED_SEARCH_ENABLED = 'enableAdvancedSearch';
+export const ADVANCED_SEARCH_MAX_ATTRIBUTES = 'maxAdvancedSearchAttributes';
+export const ADVANCED_SEARCH_ATTRIBUTES = 'advancedSearchAttributes';
 
 export interface IConfigService {
     getColumnConfig(): IPromise<any>;
     getValue(key: string): IPromise<any>;
     photosEnabled(): IPromise<boolean>;
+    printingEnabled(): IPromise<boolean>;
+}
+
+export interface IAttributeMetadata {
+    attribute: string;
+    label: string;
+    type: string;
+    options: any;
+}
+
+export interface IAdvancedSearchConfig {
+    enabled: boolean;
+    maxRows: number;
+    attributes: IAttributeMetadata[];
+}
+
+export interface IAdvancedSearchQuery {
+    key: string;
+    value: string;
 }
 
 export abstract class ConfigBaseService implements IConfigService {
@@ -39,7 +64,9 @@ export abstract class ConfigBaseService implements IConfigService {
                 protected pwmService: IPwmService) {
     }
 
-    abstract getColumnConfig(): IPromise<any>;
+    getColumnConfig(): IPromise<any> {
+        return this.getValue(COLUMN_CONFIG);
+    }
 
     private getEndpointValue(endpoint: string, key: string): IPromise<any> {
         return this.$http
@@ -49,7 +76,7 @@ export abstract class ConfigBaseService implements IConfigService {
                     return this.handlePwmError(response);
                 }
 
-                return this.$q.resolve(response.data['data'][key]);
+                return response.data['data'][key];
             }, this.handleHttpError);
     }
 
@@ -71,6 +98,11 @@ export abstract class ConfigBaseService implements IConfigService {
 
     photosEnabled(): IPromise<boolean> {
         return this.getValue(PHOTO_ENABLED)
-            .then(null, () => { return this.$q.resolve(true); }); // On error use default
+            .then(null, () => { return true; }); // On error use default
+    }
+
+    printingEnabled(): IPromise<boolean> {
+        return this.getValue(PRINTING_ENABLED)
+            .then(null, () => { return true; }); // On error use default
     }
 }

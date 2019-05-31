@@ -24,12 +24,18 @@
 import { IHttpService, ILogService, IPromise, IQService } from 'angular';
 import IPwmService from './pwm.service';
 import PwmService from './pwm.service';
-import {ConfigBaseService, IConfigService} from './base-config.service';
+import {ConfigBaseService,
+    IAdvancedSearchConfig,
+    IConfigService,
+    ADVANCED_SEARCH_ENABLED,
+    ADVANCED_SEARCH_MAX_ATTRIBUTES,
+    ADVANCED_SEARCH_ATTRIBUTES
+} from './base-config.service';
 
 const CLEAR_RESPONSES_CONFIG = 'clearResponses';
-const COLUMN_CONFIG = 'searchColumns';
+const CUSTOM_BUTTON_CONFIG = 'actions';
 const MASK_PASSWORDS_CONFIG = 'maskPasswords';
-const PASSWORD_UI_MODE_CONFIG = 'PwUiMode';
+const PASSWORD_UI_MODE_CONFIG = 'pwUiMode';
 const TOKEN_SEND_METHOD_CONFIG = 'tokenSendMethod';
 const TOKEN_VERIFICATION_METHOD = 'TOKEN';
 const TOKEN_SMS_ONLY = 'SMSONLY';
@@ -48,21 +54,15 @@ export const PASSWORD_UI_MODES = {
 
 export const VERIFICATION_METHOD_NAMES = {
     ATTRIBUTES: 'ATTRIBUTES',
-    EMAIL: 'EMAIL',
-    SMS: 'SMS',
+    TOKEN: 'TOKEN',
     OTP: 'OTP'
 };
 
 export const VERIFICATION_METHOD_LABELS = {
     ATTRIBUTES: 'Button_Attributes',
-    EMAIL: 'Button_Email',
-    SMS: 'Button_SMS',
+    TOKEN: 'Button_TokenVerification',
     OTP: 'Button_OTP'
 };
-
-export interface IActionButtons {
-    [key: string]: {name: string, description: string};
-}
 
 interface IVerificationResponse {
     optional: string[];
@@ -71,14 +71,20 @@ interface IVerificationResponse {
 
 export type IVerificationMap = {name: string, label: string}[];
 
+export interface IActionButton {
+    description: string;
+    name: string;
+}
+
 export interface IHelpDeskConfigService extends IConfigService {
     getClearResponsesSetting(): IPromise<string>;
+    getCustomButtons(): IPromise<{[key: string]: IActionButton}>;
     getPasswordUiMode(): IPromise<string>;
     getTokenSendMethod(): IPromise<string>;
     getVerificationAttributes(): IPromise<IVerificationMap>;
-    getVerificationMethods(options?: {includeOptional: boolean}): IPromise<IVerificationMap>;
     maskPasswordsEnabled(): IPromise<boolean>;
     verificationsEnabled(): IPromise<boolean>;
+    advancedSearchConfig(): IPromise<IAdvancedSearchConfig>;
 }
 
 export default class HelpDeskConfigService extends ConfigBaseService implements IConfigService, IHelpDeskConfigService {
@@ -92,8 +98,8 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
         return this.getValue(CLEAR_RESPONSES_CONFIG);
     }
 
-    getColumnConfig(): IPromise<any> {
-        return this.getValue(COLUMN_CONFIG);
+    getCustomButtons(): IPromise<{[key: string]: IActionButton}> {
+        return this.getValue(CUSTOM_BUTTON_CONFIG);
     }
 
     getPasswordUiMode(): IPromise<string> {
@@ -108,47 +114,6 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
         return this.getValue(VERIFICATION_FORM_CONFIG);
     }
 
-    private getVerificationMethod(methodName): {name: string, label: string} {
-        return {
-            name: methodName,
-            label: VERIFICATION_METHOD_LABELS[methodName]
-        };
-    }
-
-    getVerificationMethods(options?: {includeOptional: boolean}): IPromise<IVerificationMap> {
-        let promise = this.$q.all([
-            this.getValue(VERIFICATION_METHODS_CONFIG),
-            this.getTokenSendMethod()
-        ]);
-
-        return promise.then((result) => {
-            let availableMethods: string[] = result[0].required;
-            if (options && options.includeOptional) {
-                availableMethods = Array.from(new Set([].concat(result[0].required, result[0].optional)));
-            }
-
-            let tokenSendMethod: string = result[1];
-
-            let verificationMethods: IVerificationMap = [];
-            availableMethods.forEach((method) => {
-                if (method === TOKEN_VERIFICATION_METHOD) {
-                    if (tokenSendMethod === TOKEN_EMAIL_ONLY || tokenSendMethod === TOKEN_CHOICE) {
-                        verificationMethods.push(this.getVerificationMethod(VERIFICATION_METHOD_NAMES.EMAIL));
-                    }
-
-                    if (tokenSendMethod === TOKEN_SMS_ONLY || tokenSendMethod === TOKEN_CHOICE) {
-                        verificationMethods.push(this.getVerificationMethod(VERIFICATION_METHOD_NAMES.SMS));
-                    }
-                }
-                else {
-                    verificationMethods.push(this.getVerificationMethod(method));
-                }
-            });
-
-            return verificationMethods;
-        });
-    }
-
     maskPasswordsEnabled(): IPromise<boolean> {
         return this.getValue(MASK_PASSWORDS_CONFIG);
     }
@@ -158,5 +123,19 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
             .then((result: IVerificationResponse) => {
                 return !!result.required.length;
             });
+    }
+
+    advancedSearchConfig(): IPromise<IAdvancedSearchConfig> {
+        return this.$q.all([
+            this.getValue(ADVANCED_SEARCH_ENABLED),
+            this.getValue(ADVANCED_SEARCH_MAX_ATTRIBUTES),
+            this.getValue(ADVANCED_SEARCH_ATTRIBUTES)
+        ]).then((result) => {
+            return {
+                enabled: result[0],
+                maxRows: result[1],
+                attributes: result[2]
+            };
+        });
     }
 }

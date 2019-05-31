@@ -40,8 +40,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class StringUtil
 {
@@ -181,6 +183,13 @@ public abstract class StringUtil
         return "";
     }
 
+    public static String formatDiskSizeforDebug( final long diskSize )
+    {
+        return diskSize == 0
+                ? "0"
+                : PwmNumberFormat.forDefaultLocale().format( diskSize ) + " (" + formatDiskSize( diskSize ) + ")";
+    }
+
     public static String formatDiskSize( final long diskSize )
     {
         final float count = 1000;
@@ -218,9 +227,9 @@ public abstract class StringUtil
 
     public static boolean nullSafeEqualsIgnoreCase( final String value1, final String value2 )
     {
-        return value1 == null
-                ? value2 == null
-                : value1.equalsIgnoreCase( value2 );
+        final String compare1 = value1 == null ? "" : value1;
+        final String compare2 = value2 == null ? "" : value2;
+        return compare1.equalsIgnoreCase( compare2 );
     }
 
     public static boolean nullSafeEquals( final String value1, final String value2 )
@@ -364,6 +373,20 @@ public abstract class StringUtil
         return sb.toString();
     }
 
+    public static List<String> splitAndTrim( final String input, final String seperator )
+    {
+        if ( StringUtil.isEmpty( input ) )
+        {
+            return Collections.emptyList();
+        }
+
+        final String[] splitValues = StringUtils.split( input, seperator );
+
+        return Arrays.stream( splitValues )
+                .map( String::trim )
+                .collect( Collectors.toList() );
+    }
+
     public static Collection<String> whitespaceSplit( final String input )
     {
         if ( input == null )
@@ -396,6 +419,11 @@ public abstract class StringUtil
         return chunks.toArray( new String[ numOfChunks ] );
     }
 
+    public static String collectionToString( final Collection collection )
+    {
+        return collectionToString( collection, "," );
+    }
+
     public static String collectionToString( final Collection collection, final String recordSeparator )
     {
         final StringBuilder sb = new StringBuilder();
@@ -425,10 +453,12 @@ public abstract class StringUtil
     public static String mapToString( final Map map, final String keyValueSeparator, final String recordSeparator )
     {
         final StringBuilder sb = new StringBuilder();
-        for ( final Iterator iterator = map.keySet().iterator(); iterator.hasNext(); )
+        for ( final Iterator iterator = map.entrySet().iterator(); iterator.hasNext(); )
         {
-            final String key = iterator.next().toString();
-            final String value = map.get( key ) == null ? "" : map.get( key ).toString();
+            final Map.Entry entrySet = ( Map.Entry ) iterator.next();
+            final String key = entrySet.getKey().toString();
+            final String value = entrySet.getValue() == null ? "" : entrySet.getValue().toString();
+
             if ( key != null && value != null && !key.trim().isEmpty() && !value.trim().isEmpty() )
             {
                 sb.append( key.trim() );

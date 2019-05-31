@@ -43,7 +43,7 @@ public class ConfigUnlockCommand extends AbstractCliCommand
 
         storedConfiguration.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( true ) );
         configurationReader.saveConfiguration( storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
-        out( "success" );
+        out( "success: configuration has been unlocked" );
     }
 
     @Override

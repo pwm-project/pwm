@@ -72,7 +72,7 @@ public class HelpdeskCardInfoBean implements Serializable
     {
         final HelpdeskCardInfoBean.HelpdeskCardInfoBeanBuilder builder = HelpdeskCardInfoBean.builder();
         final Instant startTime = Instant.now();
-        LOGGER.trace( pwmRequest, "beginning to assemble card data report for user " + userIdentity );
+        LOGGER.trace( pwmRequest, () -> "beginning to assemble card data report for user " + userIdentity );
         final Locale actorLocale = pwmRequest.getLocale();
         final ChaiUser theUser = HelpdeskServlet.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
 
@@ -101,7 +101,7 @@ public class HelpdeskCardInfoBean implements Serializable
 
         if ( pwmRequest.getConfig().isDevDebugMode() )
         {
-            LOGGER.trace( pwmRequest, "completed assembly of card data report for user " + userIdentity
+            LOGGER.trace( pwmRequest, () -> "completed assembly of card data report for user " + userIdentity
                     + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize( helpdeskCardInfoBean ) );
         }
 
@@ -157,13 +157,13 @@ public class HelpdeskCardInfoBean implements Serializable
 
         if ( !enabled )
         {
-            LOGGER.debug( pwmRequest, "detailed user data lookup for " + userIdentity.toString() + ", failed photo query filter, denying photo view" );
+            LOGGER.debug( pwmRequest, () -> "detailed user data lookup for " + userIdentity.toString() + ", failed photo query filter, denying photo view" );
             return null;
         }
 
         final LdapProfile ldapProfile = userIdentity.getLdapProfile(  pwmApplication.getConfig() );
 
-        final String overrideURL = ldapProfile.readSettingAsString( PwmSetting.PEOPLE_SEARCH_PHOTO_URL_OVERRIDE );
+        final String overrideURL = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO_URL_OVERRIDE );
         try
         {
             if ( !StringUtil.isEmpty( overrideURL ) )
@@ -177,7 +177,7 @@ public class HelpdeskCardInfoBean implements Serializable
             }
             catch ( PwmOperationalException e )
             {
-                LOGGER.debug( pwmRequest, "determined " + userIdentity + " does not have photo data available while generating detail data" );
+                LOGGER.debug( pwmRequest, () -> "determined " + userIdentity + " does not have photo data available while generating detail data" );
                 return null;
             }
         }

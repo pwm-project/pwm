@@ -23,7 +23,7 @@
 package password.pwm.i18n;
 
 import password.pwm.config.Configuration;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 
 import java.util.Locale;
 
@@ -111,10 +111,12 @@ public enum Display implements PwmDisplayBundle
     Display_Login,
     Display_LoginPasswordOnly,
     Display_Logout,
+    Display_MatchCondition,
     Display_Minute,
     Display_Minutes,
     Display_NewUser,
     Display_NewUserProfile,
+    Display_NoResponses,
     Display_PasswordExpired,
     Display_PasswordGeneration,
     Display_PasswordNoExpire,
@@ -150,6 +152,7 @@ public enum Display implements PwmDisplayBundle
     Display_SearchCompleted,
     Display_SearchResultsInfo,
     Display_SearchResultsExceeded,
+    Display_SearchAttrsUnique,
     Display_SetRandomPasswordPrompt,
     Display_SearchResultsNone,
     Display_Second,
@@ -278,12 +281,15 @@ public enum Display implements PwmDisplayBundle
     Title_GuestRegistration,
     Title_GuestUpdate,
     Title_Helpdesk,
+    Title_HelpDeskCard,
+    Title_HelpDeskTable,
     Title_LocaleSelect,
     Title_Login,
     Title_Logout,
     Title_MainPage,
     Title_NewUser,
     Title_OrgChart,
+    Title_Settings,
     Title_PasswordGuide,
     Title_PasswordPolicy,
     Title_PasswordStrength,

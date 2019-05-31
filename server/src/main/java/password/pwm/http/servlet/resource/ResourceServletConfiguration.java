@@ -69,7 +69,7 @@ class ResourceServletConfiguration
 
     private ResourceServletConfiguration( final PwmApplication pwmApplication )
     {
-        LOGGER.trace( "initializing" );
+        LOGGER.trace( () -> "initializing" );
         final Configuration configuration = pwmApplication.getConfig();
         maxCacheItems = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_RESOURCES_MAX_CACHE_ITEMS ) );
         cacheExpireSeconds = Long.parseLong( configuration.readAppProperty( AppProperty.HTTP_RESOURCES_EXPIRATION_SECONDS ) );
@@ -101,7 +101,7 @@ class ResourceServletConfiguration
                         );
                         final ZipFile zipFile = new ZipFile( zipFileFile );
                         zipResources.put( ResourceFileServlet.RESOURCE_PATH + configuredZipFileResource.getUrl(), zipFile );
-                        LOGGER.debug( "registered resource-zip file " + configuredZipFileResource.getZipFile() + " at path " + zipFileFile.getAbsolutePath() );
+                        LOGGER.debug( () -> "registered resource-zip file " + configuredZipFileResource.getZipFile() + " at path " + zipFileFile.getAbsolutePath() );
                     }
                     catch ( IOException e )
                     {
@@ -121,7 +121,7 @@ class ResourceServletConfiguration
             final Map.Entry<FileValue.FileInformation, FileValue.FileContent> entry = files.entrySet().iterator().next();
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileValue.FileContent fileContent = entry.getValue();
-            LOGGER.debug( "examining configured zip file resource for items name=" + fileInformation.getFilename() + ", size=" + fileContent.size() );
+            LOGGER.debug( () -> "examining configured zip file resource for items name=" + fileInformation.getFilename() + ", size=" + fileContent.size() );
 
             try
             {
@@ -196,7 +196,7 @@ class ResourceServletConfiguration
     private static Map<String, FileResource> makeMemoryFileMapFromZipInput( final ImmutableByteArray content )
             throws IOException
     {
-        final ZipInputStream stream = new ZipInputStream( new ByteArrayInputStream( content.getBytes() ) );
+        final ZipInputStream stream = new ZipInputStream( new ByteArrayInputStream( content.copyOf() ) );
         final Map<String, FileResource> memoryMap = new HashMap<>();
 
         ZipEntry entry;
@@ -208,9 +208,12 @@ class ResourceServletConfiguration
                 final long lastModified = entry.getTime();
                 final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 IOUtils.copy( stream, byteArrayOutputStream );
-                final ImmutableByteArray contents = new ImmutableByteArray( byteArrayOutputStream.toByteArray() );
+                final ImmutableByteArray contents = ImmutableByteArray.of( byteArrayOutputStream.toByteArray() );
                 memoryMap.put( name, new MemoryFileResource( name, contents, lastModified ) );
-                LOGGER.trace( "discovered file in configured resource bundle: " + entry.getName() );
+                {
+                    final String finalEntry = entry.getName();
+                    LOGGER.trace( () -> "discovered file in configured resource bundle: " + finalEntry );
+                }
             }
         }
         return memoryMap;

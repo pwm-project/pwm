@@ -24,13 +24,13 @@ package password.pwm;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
-import password.pwm.util.LocaleHelper;
 import password.pwm.util.db.DatabaseService;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmRandom;
 
+import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.Collections;
@@ -41,74 +41,83 @@ import java.util.TreeMap;
 public enum PwmAboutProperty
 {
 
-    app_version( null ),
-    app_chaiApiVersion( null ),
-    app_currentTime( null ),
-    app_startTime( null ),
-    app_installTime( null ),
-    app_currentPublishedVersion( null ),
-    app_currentPublishedVersionCheckTime( null ),
-    app_siteUrl( null ),
-    app_instanceID( null ),
-    app_trialMode( null ),
-    app_mode_appliance( null ),
-    app_mode_docker( null ),
-    app_mode_manageHttps( null ),
-    app_applicationPath( null ),
-    app_environmentFlags( null ),
-    app_wordlistSize( null ),
-    app_seedlistSize( null ),
-    app_sharedHistorySize( null ),
-    app_sharedHistoryOldestTime( null ),
-    app_emailQueueSize( null ),
-    app_emailQueueOldestTime( null ),
-    app_smsQueueSize( null ),
-    app_smsQueueOldestTime( null ),
-    app_syslogQueueSize( null ),
-    app_localDbLogSize( null ),
-    app_localDbLogOldestTime( null ),
-    app_localDbStorageSize( null ),
-    app_localDbFreeSpace( null ),
-    app_configurationRestartCounter( null ),
-    app_secureBlockAlgorithm( null ),
-    app_secureHashAlgorithm( null ),
-    app_ldapProfileCount( null ),
+    app_version( null, pwmApplication -> PwmConstants.SERVLET_VERSION ),
+    app_chaiApiVersion( null, pwmApplication -> PwmConstants.CHAI_API_VERSION ),
+    app_currentTime( null, pwmApplication -> format( Instant.now() ) ),
+    app_startTime( null, pwmApplication -> format( pwmApplication.getStartupTime() ) ),
+    app_installTime( null, pwmApplication -> format( pwmApplication.getInstallTime() ) ),
+    app_siteUrl( null, pwmApplication -> pwmApplication.getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL ) ),
+    app_instanceID( null, PwmApplication::getInstanceID ),
+    app_trialMode( null, pwmApplication -> Boolean.toString( PwmConstants.TRIAL_MODE ) ),
+    app_mode_appliance( null, pwmApplication -> Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Appliance ) ) ),
+    app_mode_docker( null, pwmApplication -> Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Docker ) ) ),
+    app_mode_manageHttps( null, pwmApplication -> Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.ManageHttps ) ) ),
+    app_applicationPath( null, pwmApplication -> pwmApplication.getPwmEnvironment().getApplicationPath().getAbsolutePath() ),
+    app_environmentFlags( null, pwmApplication -> StringUtil.collectionToString( pwmApplication.getPwmEnvironment().getFlags() ) ),
+    app_wordlistSize( null, pwmApplication -> Long.toString( pwmApplication.getWordlistManager().size() ) ),
+    app_seedlistSize( null, pwmApplication -> Long.toString( pwmApplication.getSeedlistManager().size() ) ),
+    app_sharedHistorySize( null, pwmApplication -> Long.toString( pwmApplication.getSharedHistoryManager().size() ) ),
+    app_sharedHistoryOldestTime( null, pwmApplication -> format( pwmApplication.getSharedHistoryManager().getOldestEntryTime() ) ),
+    app_emailQueueSize( null, pwmApplication -> Integer.toString( pwmApplication.getEmailQueue().queueSize() ) ),
+    app_emailQueueOldestTime( null, pwmApplication -> format( Date.from( pwmApplication.getEmailQueue().eldestItem() ) ) ),
+    app_smsQueueSize( null, pwmApplication -> Integer.toString( pwmApplication.getSmsQueue().queueSize() ) ),
+    app_smsQueueOldestTime( null, pwmApplication -> format( Date.from( pwmApplication.getSmsQueue().eldestItem() ) ) ),
+    app_syslogQueueSize( null, pwmApplication -> Integer.toString( pwmApplication.getAuditManager().syslogQueueSize() ) ),
+    app_localDbLogSize( null, pwmApplication -> Integer.toString( pwmApplication.getLocalDBLogger().getStoredEventCount() ) ),
+    app_localDbLogOldestTime( null, pwmApplication -> format( pwmApplication.getLocalDBLogger().getTailDate() ) ),
+    app_localDbStorageSize( null, pwmApplication -> StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( pwmApplication.getLocalDB().getFileLocation() ) ) ),
+    app_localDbFreeSpace( null, pwmApplication -> StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining( pwmApplication.getLocalDB().getFileLocation() ) ) ),
+    app_configurationRestartCounter( null, pwmApplication -> Integer.toString( pwmApplication.getPwmEnvironment().getContextManager().getRestartCount() ) ),
+    app_secureBlockAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().getDefaultBlockAlgorithm().getLabel() ),
+    app_secureHashAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().getDefaultHashAlgorithm().toString() ),
+    app_ldapProfileCount( null, pwmApplication -> Integer.toString( pwmApplication.getConfig().getLdapProfiles().size() ) ),
 
-    build_Time( null ),
-    build_Number( null ),
-    build_Type( null ),
-    build_User( null ),
-    build_Revision( null ),
-    build_JavaVendor( null ),
-    build_JavaVersion( null ),
-    build_Version( null ),
+    build_Time( "Build Time", pwmApplication -> PwmConstants.BUILD_TIME ),
+    build_Number( "Build Number", pwmApplication -> PwmConstants.BUILD_NUMBER ),
+    build_Revision( "Build Revision", pwmApplication -> PwmConstants.BUILD_REVISION ),
+    build_JavaVendor( "Build Java Vendor", pwmApplication -> PwmConstants.BUILD_JAVA_VENDOR ),
+    build_JavaVersion( "Build Java Version", pwmApplication -> PwmConstants.BUILD_JAVA_VERSION ),
+    build_Version( "Build Version", pwmApplication -> PwmConstants.BUILD_VERSION ),
 
-    java_memoryFree( "Java Memory Free" ),
-    java_memoryAllocated( "Java Memory Allocated" ),
-    java_memoryMax( "Java Memory Max" ),
-    java_threadCount( "Java Thread Count" ),
-    java_vmVendor( "Java Vendor" ),
-    java_vmLocation( "Java VM Location" ),
-    java_vmVersion( "Java VM Version" ),
-    java_runtimeVersion( "Java Runtime Version" ),
-    java_vmName( "Java VM Name" ),
-    java_osName( "Java OS Name" ),
-    java_osVersion( "Java OS Version" ),
-    java_osArch( "Java OS Architecture" ),
-    java_randomAlgorithm( null ),
-    java_defaultCharset( null ),
-    java_appServerInfo( "Java AppServer Info" ),
+    java_memoryFree( "Java Memory Free", pwmApplication -> Long.toString( Runtime.getRuntime().freeMemory() ) ),
+    java_memoryAllocated( "Java Memory Allocated", pwmApplication -> Long.toString( Runtime.getRuntime().totalMemory() ) ),
+    java_memoryMax( "Java Memory Max", pwmApplication -> Long.toString( Runtime.getRuntime().maxMemory() ) ),
+    java_processors( "Java Available Processors", pwmApplication -> Integer.toString( Runtime.getRuntime().availableProcessors() ) ),
+    java_threadCount( "Java Thread Count", pwmApplication -> Integer.toString( Thread.activeCount() ) ),
+    java_runtimeVersion( "Java Runtime Version", pwmApplication -> System.getProperty( "java.runtime.version" ) ),
+    java_vmName( "Java VM Name", pwmApplication -> System.getProperty( "java.vm.name" ) ),
+    java_vmVendor( "Java VM Vendor", pwmApplication -> System.getProperty( "java.vm.vendor" ) ),
+    java_vmLocation( "Java VM Location", pwmApplication -> System.getProperty( "java.home" ) ),
+    java_vmVersion( "Java VM Version", pwmApplication -> System.getProperty( "java.vm.version" ) ),
+    java_vmCommandLine( "Java VM Command Line", pwmApplication -> StringUtil.collectionToString( ManagementFactory.getRuntimeMXBean().getInputArguments() ) ),
+    java_osName( "Operating System Name", pwmApplication -> System.getProperty( "os.name" ) ),
+    java_osVersion( "Operating System Version", pwmApplication -> System.getProperty( "os.version" ) ),
+    java_osArch( "Operating System Architecture", pwmApplication -> System.getProperty( "os.arch" ) ),
+    java_randomAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().pwmRandom().getAlgorithm() ),
+    java_defaultCharset( null, pwmApplication -> Charset.defaultCharset().name() ),
+    java_appServerInfo( "Java AppServer Info", pwmApplication -> pwmApplication.getPwmEnvironment().getContextManager().getServerInfo() ),
 
-    database_driverName( null ),
-    database_driverVersion( null ),
-    database_databaseProductName( null ),
-    database_databaseProductVersion( null ),;
+    database_driverName( null,
+            pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseAboutProperty.driverName ) ),
+    database_driverVersion( null,
+            pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseAboutProperty.driverVersion ) ),
+    database_databaseProductName( null,
+            pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseAboutProperty.databaseProductName ) ),
+    database_databaseProductVersion( null,
+            pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseAboutProperty.databaseProductVersion ) ),;
 
     private final String label;
+    private final ValueProvider valueProvider;
 
-    PwmAboutProperty( final String label )
+    PwmAboutProperty( final String label, final ValueProvider valueProvider )
     {
         this.label = label;
+        this.valueProvider = valueProvider;
+    }
+
+    private interface ValueProvider
+    {
+        String value( PwmApplication pwmApplication );
     }
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmAboutProperty.class );
@@ -117,139 +126,42 @@ public enum PwmAboutProperty
             final PwmApplication pwmApplication
     )
     {
-        final Map<PwmAboutProperty, String> aboutMap = new TreeMap<>();
+        final Map<String, String> aboutMap = new TreeMap<>();
 
-        // about page
-        aboutMap.put( app_version, PwmConstants.SERVLET_VERSION );
-        aboutMap.put( app_currentTime, dateFormatForInfoBean( new Date() ) );
-        aboutMap.put( app_startTime, dateFormatForInfoBean( pwmApplication.getStartupTime() ) );
-        aboutMap.put( app_installTime, dateFormatForInfoBean( pwmApplication.getInstallTime() ) );
-        aboutMap.put( app_siteUrl, pwmApplication.getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL ) );
-        aboutMap.put( app_ldapProfileCount, Integer.toString( pwmApplication.getConfig().getLdapProfiles().size() ) );
-        aboutMap.put( app_instanceID, pwmApplication.getInstanceID() );
-        aboutMap.put( app_trialMode, Boolean.toString( PwmConstants.TRIAL_MODE ) );
-        if ( pwmApplication.getPwmEnvironment() != null )
+        for ( final PwmAboutProperty pwmAboutProperty : PwmAboutProperty.values() )
         {
-            aboutMap.put( app_mode_appliance, Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Appliance ) ) );
-            aboutMap.put( app_mode_docker, Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Docker ) ) );
-            aboutMap.put( app_mode_manageHttps, Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.ManageHttps ) ) );
-            aboutMap.put( app_applicationPath, pwmApplication.getPwmEnvironment().getApplicationPath().getAbsolutePath() );
-            aboutMap.put( app_environmentFlags, StringUtil.collectionToString( pwmApplication.getPwmEnvironment().getFlags(), "," ) );
-        }
-        aboutMap.put( app_chaiApiVersion, PwmConstants.CHAI_API_VERSION );
-
-        aboutMap.put( app_secureBlockAlgorithm, pwmApplication.getSecureService().getDefaultBlockAlgorithm().getLabel() );
-        aboutMap.put( app_secureHashAlgorithm, pwmApplication.getSecureService().getDefaultHashAlgorithm().toString() );
-
-        aboutMap.put( app_wordlistSize, Integer.toString( pwmApplication.getWordlistManager().size() ) );
-        aboutMap.put( app_seedlistSize, Integer.toString( pwmApplication.getSeedlistManager().size() ) );
-        if ( pwmApplication.getSharedHistoryManager() != null )
-        {
-            aboutMap.put( app_sharedHistorySize, Integer.toString( pwmApplication.getSharedHistoryManager().size() ) );
-            aboutMap.put( app_sharedHistoryOldestTime, dateFormatForInfoBean( pwmApplication.getSharedHistoryManager().getOldestEntryTime() ) );
-        }
-
-
-        if ( pwmApplication.getEmailQueue() != null )
-        {
-            aboutMap.put( app_emailQueueSize, Integer.toString( pwmApplication.getEmailQueue().queueSize() ) );
-            if ( pwmApplication.getEmailQueue().eldestItem() != null )
+            final ValueProvider valueProvider = pwmAboutProperty.valueProvider;
+            if ( valueProvider != null )
             {
-                aboutMap.put( app_emailQueueOldestTime, dateFormatForInfoBean( Date.from( pwmApplication.getEmailQueue().eldestItem() ) ) );
-            }
-        }
-
-        if ( pwmApplication.getSmsQueue() != null )
-        {
-            aboutMap.put( app_smsQueueSize, Integer.toString( pwmApplication.getSmsQueue().queueSize() ) );
-            if ( pwmApplication.getSmsQueue().eldestItem() != null )
-            {
-                aboutMap.put( app_smsQueueOldestTime, dateFormatForInfoBean( Date.from( pwmApplication.getSmsQueue().eldestItem() ) ) );
-            }
-        }
-
-        if ( pwmApplication.getAuditManager() != null )
-        {
-            aboutMap.put( app_syslogQueueSize, Integer.toString( pwmApplication.getAuditManager().syslogQueueSize() ) );
-        }
-
-        if ( pwmApplication.getLocalDB() != null )
-        {
-            aboutMap.put( app_localDbLogSize, Integer.toString( pwmApplication.getLocalDBLogger().getStoredEventCount() ) );
-            aboutMap.put( app_localDbLogOldestTime, dateFormatForInfoBean( pwmApplication.getLocalDBLogger().getTailDate() ) );
-
-            aboutMap.put( app_localDbStorageSize, StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( pwmApplication.getLocalDB().getFileLocation() ) ) );
-            aboutMap.put( app_localDbFreeSpace, StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining( pwmApplication.getLocalDB().getFileLocation() ) ) );
-        }
-
-
-        {
-            // java info
-            final Runtime runtime = Runtime.getRuntime();
-            aboutMap.put( java_memoryFree, Long.toString( runtime.freeMemory() ) );
-            aboutMap.put( java_memoryAllocated, Long.toString( runtime.totalMemory() ) );
-            aboutMap.put( java_memoryMax, Long.toString( runtime.maxMemory() ) );
-            aboutMap.put( java_threadCount, Integer.toString( Thread.activeCount() ) );
-
-            aboutMap.put( java_vmVendor, System.getProperty( "java.vm.vendor" ) );
-
-            aboutMap.put( java_runtimeVersion, System.getProperty( "java.runtime.version" ) );
-            aboutMap.put( java_vmVersion, System.getProperty( "java.vm.version" ) );
-            aboutMap.put( java_vmName, System.getProperty( "java.vm.name" ) );
-            aboutMap.put( java_vmLocation, System.getProperty( "java.home" ) );
-
-            aboutMap.put( java_osName, System.getProperty( "os.name" ) );
-            aboutMap.put( java_osVersion, System.getProperty( "os.version" ) );
-            aboutMap.put( java_osArch, System.getProperty( "os.arch" ) );
-
-            aboutMap.put( java_randomAlgorithm, PwmRandom.getInstance().getAlgorithm() );
-            aboutMap.put( java_defaultCharset, Charset.defaultCharset().name() );
-        }
-
-        {
-            // build info
-            aboutMap.put( build_Time, PwmConstants.BUILD_TIME );
-            aboutMap.put( build_Number, PwmConstants.BUILD_NUMBER );
-            aboutMap.put( build_Type, PwmConstants.BUILD_TYPE );
-            aboutMap.put( build_User, PwmConstants.BUILD_USER );
-            aboutMap.put( build_Revision, PwmConstants.BUILD_REVISION );
-            aboutMap.put( build_JavaVendor, PwmConstants.BUILD_JAVA_VENDOR );
-            aboutMap.put( build_JavaVersion, PwmConstants.BUILD_JAVA_VERSION );
-            aboutMap.put( build_Version, PwmConstants.BUILD_VERSION );
-        }
-
-        {
-            // database info
-            try
-            {
-                final DatabaseService databaseService = pwmApplication.getDatabaseService();
-                if ( databaseService != null )
+                try
                 {
-                    final Map<PwmAboutProperty, String> debugData = databaseService.getConnectionDebugProperties();
-                    aboutMap.putAll( debugData );
+                    final String value = valueProvider.value( pwmApplication );
+                    aboutMap.put( pwmAboutProperty.name(), value == null ? "" : value );
+                }
+                catch ( Throwable t )
+                {
+                    aboutMap.put( pwmAboutProperty.name(), LocaleHelper.getLocalizedMessage( null, Display.Value_NotApplicable, null ) );
+                    LOGGER.trace( () -> "error generating about value for '" + pwmAboutProperty.name() + "', error: " + t.getMessage() );
                 }
             }
-            catch ( Throwable t )
-            {
-                LOGGER.error( "error reading database debug properties" );
-            }
         }
 
-        if ( pwmApplication.getPwmEnvironment().getContextManager() != null
-                && pwmApplication.getPwmEnvironment().getContextManager().getServerInfo() != null )
+        final Map<PwmAboutProperty, String> returnMap = new TreeMap<>();
+        for ( final Map.Entry<String, String> entry : aboutMap.entrySet() )
         {
-            aboutMap.put( java_appServerInfo, pwmApplication.getPwmEnvironment().getContextManager().getServerInfo() );
+            returnMap.put( PwmAboutProperty.valueOf( entry.getKey() ), entry.getValue() );
         }
 
-        return Collections.unmodifiableMap( aboutMap );
+        return Collections.unmodifiableMap( returnMap );
     }
 
-    private static String dateFormatForInfoBean( final Date date )
+    private static String format( final Date date )
     {
-        return dateFormatForInfoBean( date == null ? null : date.toInstant() );
+        return format( date == null ? null : date.toInstant() );
     }
 
-    private static String dateFormatForInfoBean( final Instant date )
+
+    private static String format( final Instant date )
     {
         if ( date != null )
         {
@@ -265,5 +177,17 @@ public enum PwmAboutProperty
     public String getLabel( )
     {
         return label == null ? this.name() : label;
+    }
+
+    public static Map<String, String> toStringMap( final Map<PwmAboutProperty, String> infoBeanMap )
+    {
+        final Map<String, String> outputProps = new TreeMap<>( );
+        for ( final Map.Entry<PwmAboutProperty, String> entry : infoBeanMap.entrySet() )
+        {
+            final PwmAboutProperty aboutProperty = entry.getKey();
+            final String value = entry.getValue();
+            outputProps.put( aboutProperty.toString().replace( "_", "." ), value );
+        }
+        return Collections.unmodifiableMap( outputProps );
     }
 }

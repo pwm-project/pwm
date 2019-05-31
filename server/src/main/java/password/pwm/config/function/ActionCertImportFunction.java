@@ -22,6 +22,7 @@
 
 package password.pwm.config.function;
 
+import com.google.gson.reflect.TypeToken;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationImpl;
@@ -35,26 +36,33 @@ import password.pwm.util.java.JsonUtil;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ActionCertImportFunction extends AbstractUriCertImportFunction
 {
+    private static final String KEY_ITERATION = "iteration";
+    private static final String KEY_WEB_ACTION_ITERATION = "webActionIter";
 
-    @Override
+            @Override
     String getUri( final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
     {
+        final Map<String, Integer> extraDataMap = JsonUtil.deserialize( extraData, new TypeToken<Map<String, Integer>>()
+        {
+        } );
+
         final ActionValue actionValue = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, profile );
-        final String actionName = actionNameFromExtraData( extraData );
-        final ActionConfiguration action = actionValue.forName( actionName );
-        final String uriString = action.getUrl();
+        final ActionConfiguration action = ( actionValue.toNativeObject() ).get( extraDataMap.get( KEY_ITERATION ) );
+        final ActionConfiguration.WebAction webAction = action.getWebActions().get( extraDataMap.get( KEY_WEB_ACTION_ITERATION ) );
+
+        final String uriString = webAction.getUrl();
 
         if ( uriString == null || uriString.isEmpty() )
         {
             final ErrorInformation errorInformation = new ErrorInformation(
                     PwmError.CONFIG_FORMAT_ERROR,
                     "Setting " + pwmSetting.toMenuLocationDebug( profile, null )
-                            + " action " + actionName + " must first be configured" );
+                            + " action URL must first be configured" );
             throw new PwmOperationalException( errorInformation );
         }
         try
@@ -65,15 +73,10 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
         {
             final ErrorInformation errorInformation = new ErrorInformation(
                     PwmError.CONFIG_FORMAT_ERROR, "Setting "
-                    + pwmSetting.toMenuLocationDebug( profile, null ) + " action " + actionName + " has an invalid URL syntax" );
+                    + pwmSetting.toMenuLocationDebug( profile, null ) + " action URL has an invalid URL syntax" );
             throw new PwmOperationalException( errorInformation );
         }
         return uriString;
-    }
-
-    private String actionNameFromExtraData( final String extraData )
-    {
-        return extraData;
     }
 
     void store(
@@ -86,23 +89,22 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final ActionValue actionValue = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, profile );
-        final String actionName = actionNameFromExtraData( extraData );
-        final List<ActionConfiguration> newList = new ArrayList<>();
-        for ( final ActionConfiguration loopConfiguration : actionValue.toNativeObject() )
+        final Map<String, Integer> extraDataMap = JsonUtil.deserialize( extraData, new TypeToken<Map<String, Integer>>()
         {
-            if ( actionName.equals( loopConfiguration.getName() ) )
-            {
-                final ActionConfiguration newConfig = loopConfiguration.copyWithNewCertificate( certs );
-                newList.add( newConfig );
-            }
-            else
-            {
-                newList.add( JsonUtil.cloneUsingJson( loopConfiguration, ActionConfiguration.class ) );
-            }
-        }
-        final ActionValue newActionValue = new ActionValue( newList );
+        } );
+
+        final ActionValue actionValue = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, profile );
+        final List<ActionConfiguration> actionConfigurations = actionValue.toNativeObject();
+        final ActionConfiguration action = actionConfigurations.get( extraDataMap.get( KEY_ITERATION ) );
+        final ActionConfiguration.WebAction webAction = action.getWebActions().get( extraDataMap.get( KEY_WEB_ACTION_ITERATION ) );
+
+        final ActionConfiguration.WebAction clonedAction = webAction.toBuilder()
+                .certificates( certs )
+                .build();
+
+        action.getWebActions().set( extraDataMap.get( KEY_WEB_ACTION_ITERATION ), clonedAction );
+
+        final ActionValue newActionValue = new ActionValue( actionConfigurations );
         storedConfiguration.writeSetting( pwmSetting, profile, newActionValue, userIdentity );
     }
-
 }

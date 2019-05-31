@@ -96,7 +96,7 @@ public class AccountInformationBean implements Serializable
         ) );
         builder.passwordRules( makePasswordRules( pwmRequest ) );
 
-        LOGGER.trace( pwmRequest, "generated account information bean in " + TimeDuration.compactFromCurrent( startTime ) );
+        LOGGER.trace( pwmRequest, () -> "generated account information bean in " + TimeDuration.compactFromCurrent( startTime ) );
         return builder.build();
     }
 
@@ -130,7 +130,7 @@ public class AccountInformationBean implements Serializable
         }
         catch ( PwmUnrecoverableException e )
         {
-            LOGGER.debug( sessionLabel, "error reading audit data for user: " + e.getMessage() );
+            LOGGER.debug( sessionLabel, () -> "error reading audit data for user: " + e.getMessage() );
         }
 
         final List<ActivityRecord> returnData = new ArrayList<>();

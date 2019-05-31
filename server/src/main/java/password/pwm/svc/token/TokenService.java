@@ -57,6 +57,7 @@ import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.DataStore;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.java.JavaHelper;
@@ -76,9 +77,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 /**
  * This PWM service is responsible for reading/writing tokens used for forgotten password,
@@ -92,7 +91,7 @@ public class TokenService implements PwmService
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( TokenService.class );
 
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
 
     private PwmApplication pwmApplication;
     private Configuration configuration;
@@ -133,7 +132,7 @@ public class TokenService implements PwmService
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
-        LOGGER.trace( "opening" );
+        LOGGER.trace( () -> "opening" );
         status = STATUS.OPENING;
 
         this.pwmApplication = pwmApplication;
@@ -194,25 +193,20 @@ public class TokenService implements PwmService
             return;
         }
 
-        executorService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
-                        true
-                ) );
+        verifyPwModifyTime = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.TOKEN_VERIFY_PW_MODIFY_TIME ) );
 
-        final TimerTask cleanerTask = new CleanerTask();
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         {
             final int cleanerFrequencySeconds = Integer.parseInt( configuration.readAppProperty( AppProperty.TOKEN_CLEANER_INTERVAL_SECONDS ) );
-            final TimeDuration cleanerFrequency = new TimeDuration( cleanerFrequencySeconds, TimeUnit.SECONDS );
-            executorService.scheduleAtFixedRate( cleanerTask, 10, cleanerFrequencySeconds, TimeUnit.SECONDS );
-            LOGGER.trace( "token cleanup will occur every " + cleanerFrequency.asCompactString() );
+            final TimeDuration cleanerFrequency = TimeDuration.of( cleanerFrequencySeconds, TimeDuration.Unit.SECONDS );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), executorService, TimeDuration.MINUTE, cleanerFrequency );
+            LOGGER.trace( () -> "token cleanup will occur every " + cleanerFrequency.asCompactString() );
         }
 
-        verifyPwModifyTime = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.TOKEN_VERIFY_PW_MODIFY_TIME ) );
 
         status = STATUS.OPEN;
-        LOGGER.debug( "open" );
+        LOGGER.debug( () -> "open" );
     }
 
     public boolean supportsName( )
@@ -238,7 +232,7 @@ public class TokenService implements PwmService
             throw new PwmOperationalException( errorInformation );
         }
 
-        LOGGER.trace( sessionLabel, "generated token with payload: " + tokenPayload.toDebugString() );
+        LOGGER.trace( sessionLabel, () -> "generated token with payload: " + tokenPayload.toDebugString() );
 
         final AuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createUserAuditRecord(
                 AuditEvent.TOKEN_ISSUED,
@@ -269,7 +263,7 @@ public class TokenService implements PwmService
         {
             try
             {
-                LOGGER.trace( pwmSession, "removing claimed token: " + tokenPayload.toDebugString() );
+                LOGGER.trace( pwmSession, () -> "removing claimed token: " + tokenPayload.toDebugString() );
                 tokenMachine.removeToken( tokenKey );
             }
             catch ( PwmOperationalException e )
@@ -424,7 +418,7 @@ public class TokenService implements PwmService
         }
     }
 
-    public int size( ) throws PwmUnrecoverableException
+    public long size( )
     {
         if ( status != STATUS.OPEN )
         {
@@ -452,7 +446,7 @@ public class TokenService implements PwmService
         while ( tokenKey == null && attempts < maxUniqueCreateAttempts )
         {
             tokenKey = makeRandomCode( configuration );
-            LOGGER.trace( sessionLabel, "generated new token random code, checking for uniqueness" );
+            LOGGER.trace( sessionLabel, () -> "generated new token random code, checking for uniqueness" );
             final TokenPayload existingPayload = machine.retrieveToken( tokenMachine.keyFromKey( tokenKey ) );
             if ( existingPayload != null )
             {
@@ -463,10 +457,13 @@ public class TokenService implements PwmService
 
         if ( tokenKey == null )
         {
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_UNKNOWN, "unable to generate a unique token key after " + attempts + " attempts" ) );
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unable to generate a unique token key after " + attempts + " attempts" ) );
         }
 
-        LOGGER.trace( sessionLabel, "created new unique random token value after " + attempts + " attempts" );
+        {
+            final int finalAttempts = attempts;
+            LOGGER.trace( sessionLabel, () -> "created new unique random token value after " + finalAttempts + " attempts" );
+        }
         return tokenKey;
     }
 
@@ -573,7 +570,7 @@ public class TokenService implements PwmService
                 errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, e.getMessage() );
             }
 
-            LOGGER.debug( pwmSession, errorInformation.toDebugStr() );
+            LOGGER.debug( pwmSession, errorInformation );
 
             if ( sessionUserIdentity != null && tokenEntryType == TokenEntryType.unauthenticated )
             {
@@ -612,7 +609,7 @@ public class TokenService implements PwmService
             throw new PwmOperationalException( errorInformation );
         }
 
-        LOGGER.trace( pwmSession, "retrieved tokenPayload: " + tokenPayload.toDebugString() );
+        LOGGER.trace( pwmSession, () -> "retrieved tokenPayload: " + tokenPayload.toDebugString() );
 
         if ( tokenType != null && pwmApplication.getTokenService().supportsName() )
         {
@@ -638,7 +635,7 @@ public class TokenService implements PwmService
                 && tokenPayload.getUserIdentity() != null
                 && tokenPayload.getData() != null
                 && tokenPayload.getData().containsKey( PwmConstants.TOKEN_KEY_PWD_CHG_DATE )
-                )
+        )
         {
             try
             {
@@ -649,7 +646,7 @@ public class TokenService implements PwmService
 
                 final String dateStringInToken = tokenPayload.getData().get( PwmConstants.TOKEN_KEY_PWD_CHG_DATE );
 
-                LOGGER.trace( pwmSession, "tokenPayload=" + tokenPayload.toDebugString()
+                LOGGER.trace( pwmSession, () -> "tokenPayload=" + tokenPayload.toDebugString()
                         + ", sessionUser=" + ( sessionUserIdentity == null ? "null" : sessionUserIdentity.toDisplayString() )
                         + ", payloadUserIdentity=" + tokenPayload.getUserIdentity().toDisplayString()
                         + ", userLastPasswordChange=" + JavaHelper.toIsoDate( userLastPasswordChange )
@@ -664,7 +661,7 @@ public class TokenService implements PwmService
                     {
                         final String errorString = "user password has changed since token issued, token rejected;"
                                 + " currentValue=" + userChangeString + ", tokenValue=" + dateStringInToken;
-                        LOGGER.trace( pwmSession, errorString + "; token=" + tokenPayload.toDebugString() );
+                        LOGGER.trace( pwmSession, () -> errorString + "; token=" + tokenPayload.toDebugString() );
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_EXPIRED, errorString );
                         throw new PwmOperationalException( errorInformation );
                     }
@@ -678,7 +675,7 @@ public class TokenService implements PwmService
             }
         }
 
-        LOGGER.debug( pwmSession, "token validation has been passed" );
+        LOGGER.debug( pwmSession, () -> "token validation has been passed" );
         return tokenPayload;
     }
 
@@ -743,14 +740,16 @@ public class TokenService implements PwmService
             pwmApplication.getIntruderManager().mark( RecordType.TOKEN_DEST, toAddress, null );
 
             final EmailItemBean configuredEmailSetting = tokenSendInfo.getConfiguredEmailSetting();
-            pwmApplication.getEmailQueue().submitEmailImmediate( new EmailItemBean(
-                    toAddress,
-                    configuredEmailSetting.getFrom(),
-                    configuredEmailSetting.getSubject(),
-                    configuredEmailSetting.getBodyPlain().replace( "%TOKEN%", tokenSendInfo.getTokenKey() ),
-                    configuredEmailSetting.getBodyHtml().replace( "%TOKEN%", tokenSendInfo.getTokenKey() )
-            ), tokenSendInfo.getUserInfo(), tokenSendInfo.getMacroMachine() );
-            LOGGER.debug( "token email added to send queue for " + toAddress );
+            final EmailItemBean tokenizedEmail = configuredEmailSetting.applyBodyReplacement(
+                    "%TOKEN%",
+                    tokenSendInfo.getTokenKey() );
+
+            pwmApplication.getEmailQueue().submitEmailImmediate(
+                    tokenizedEmail,
+                    tokenSendInfo.getUserInfo(),
+                    tokenSendInfo.getMacroMachine() );
+
+            LOGGER.debug( () -> "token email added to send queue for " + toAddress );
             return true;
         }
 
@@ -772,10 +771,10 @@ public class TokenService implements PwmService
             pwmApplication.getIntruderManager().mark( RecordType.TOKEN_DEST, smsNumber, tokenSendInfo.getSessionLabel() );
 
             pwmApplication.sendSmsUsingQueue( smsNumber, modifiedMessage, tokenSendInfo.getSessionLabel(), tokenSendInfo.getMacroMachine() );
-            LOGGER.debug( "token SMS added to send queue for " + smsNumber );
+            LOGGER.debug( () -> "token SMS added to send queue for " + smsNumber );
             return true;
         }
-        }
+    }
 
     static TimeDuration maxTokenAge( final Configuration configuration )
     {
@@ -787,6 +786,6 @@ public class TokenService implements PwmService
             maxValue = Math.max( maxValue, newUserProfile.readSettingAsLong( PwmSetting.NEWUSER_TOKEN_LIFETIME_EMAIL ) );
             maxValue = Math.max( maxValue, newUserProfile.readSettingAsLong( PwmSetting.NEWUSER_TOKEN_LIFETIME_SMS ) );
         }
-        return new TimeDuration( maxValue, TimeUnit.SECONDS );
+        return TimeDuration.of( maxValue, TimeDuration.Unit.SECONDS );
     }
 }

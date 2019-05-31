@@ -23,7 +23,7 @@
 package password.pwm.health;
 
 import password.pwm.i18n.Health;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 
 import java.util.Locale;
 
@@ -36,6 +36,7 @@ public enum HealthMessage
     LDAP_AD_Unsecure( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_AD_StaticIP( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_ProxyTestSameUser( HealthStatus.WARN, HealthTopic.Configuration ),
+    LDAP_ProxyUserPwExpired( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_TestUserUnavailable( HealthStatus.CAUTION, HealthTopic.LDAP ),
     LDAP_TestUserUnexpected( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_TestUserError( HealthStatus.WARN, HealthTopic.LDAP ),
@@ -43,12 +44,13 @@ public enum HealthMessage
     LDAP_TestUserReadPwError( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_TestUserOK( HealthStatus.GOOD, HealthTopic.LDAP ),
     Email_SendFailure( HealthStatus.WARN, HealthTopic.Email ),
-    PwNotify_Failure( HealthStatus.WARN, HealthTopic.Email ),
+    PwNotify_Failure( HealthStatus.WARN, HealthTopic.Application ),
     MissingResource( HealthStatus.DEBUG, HealthTopic.Integrity ),
     BrokenMethod( HealthStatus.DEBUG, HealthTopic.Integrity ),
     Appliance_PendingUpdates( HealthStatus.CAUTION, HealthTopic.Appliance ),
     Appliance_UpdatesNotEnabled( HealthStatus.CAUTION, HealthTopic.Appliance ),
     Appliance_UpdateServiceNotConfigured( HealthStatus.WARN, HealthTopic.Appliance ),
+    Cluster_Error( HealthStatus.CAUTION, HealthTopic.Application ),
     Config_MissingProxyDN( HealthStatus.CONFIG, HealthTopic.Configuration ),
     Config_MissingProxyPassword( HealthStatus.CONFIG, HealthTopic.Configuration ),
     Config_NoSiteURL( HealthStatus.WARN, HealthTopic.Configuration ),
@@ -86,6 +88,8 @@ public enum HealthMessage
     LocalDBLogger_NOTOPEN( HealthStatus.CAUTION, HealthTopic.LocalDB ),
     LocalDBLogger_HighRecordCount( HealthStatus.CAUTION, HealthTopic.LocalDB ),
     LocalDBLogger_OldRecordPresent( HealthStatus.CAUTION, HealthTopic.LocalDB ),
+    NewUser_PwTemplateBad( HealthStatus.CAUTION, HealthTopic.Configuration ),
+    ServiceClosed( HealthStatus.CAUTION, HealthTopic.Application ),
     ServiceClosed_LocalDBUnavail( HealthStatus.CAUTION, HealthTopic.Application ),
     ServiceClosed_AppReadOnly( HealthStatus.CAUTION, HealthTopic.Application ),
     SMS_SendFailure( HealthStatus.WARN, HealthTopic.SMS ),

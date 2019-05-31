@@ -29,12 +29,17 @@ public class ImmutableByteArray implements Serializable
 {
     private final byte[] bytes;
 
-    public ImmutableByteArray( final byte[] bytes )
+    private ImmutableByteArray( final byte[] bytes )
     {
         this.bytes = bytes == null ? null : Arrays.copyOf( bytes, bytes.length );
     }
 
-    public byte[] getBytes( )
+    public static ImmutableByteArray of( final byte[] bytes )
+    {
+        return new ImmutableByteArray( bytes );
+    }
+
+    public byte[] copyOf( )
     {
         return bytes == null ? null : Arrays.copyOf( bytes, bytes.length );
     }

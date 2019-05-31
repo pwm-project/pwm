@@ -25,14 +25,14 @@ import { Component } from '../../component';
 import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
 import { IPeopleService } from '../../services/people.service';
 import IPwmService from '../../services/pwm.service';
-import {isArray, isString, IPromise, IQService, IScope, ITimeoutService} from 'angular';
+import {isArray, isString, IPromise, IQService, IScope, ITimeoutService, IWindowService} from 'angular';
 import LocalStorageService from '../../services/local-storage.service';
 import IOrgChartData from '../../models/orgchart-data.model';
 import { IPerson } from '../../models/person.model';
 
 @Component({
-    stylesheetUrl: require('modules/peoplesearch/orgchart-search.component.scss'),
-    templateUrl: require('modules/peoplesearch/orgchart-search.component.html')
+    stylesheetUrl: require('./orgchart-search.component.scss'),
+    templateUrl: require('./orgchart-search.component.html')
 })
 export default class OrgChartSearchComponent {
     directReports: IPerson[];
@@ -44,11 +44,13 @@ export default class OrgChartSearchComponent {
     managementChainLimit: number;
     query: string;
     searchTextLocalStorageKey: string;
+    printEnabled: boolean;
 
     static $inject = [
         '$state',
         '$stateParams',
         '$timeout',
+        '$window',
         'ConfigService',
         'LocalStorageService',
         'PeopleService',
@@ -57,6 +59,7 @@ export default class OrgChartSearchComponent {
     constructor(private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
                 private $timeout: ITimeoutService,
+                private $window: IWindowService,
                 private configService: IPeopleSearchConfigService,
                 private localStorageService: LocalStorageService,
                 private peopleService: IPeopleService,
@@ -76,6 +79,11 @@ export default class OrgChartSearchComponent {
         this.configService.getOrgChartMaxParents().then(
             (orgChartMaxParents: number) => {
                 this.managementChainLimit = orgChartMaxParents;
+            });
+
+        this.configService.printingEnabled().then(
+            (printingEnabled: boolean) => {
+                this.printEnabled = printingEnabled;
             });
 
         this.query = this.getSearchText();
@@ -162,5 +170,9 @@ export default class OrgChartSearchComponent {
 
     protected storeSearchText(query): void {
         this.localStorageService.setItem(this.searchTextLocalStorageKey, query || '');
+    }
+
+    private printOrgChart(): void {
+        this.$window.print();
     }
 }

@@ -47,6 +47,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -62,7 +63,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,6 +75,7 @@ public class SmsQueueManager implements PwmService
 
     public enum SmsNumberFormat
     {
+        RAW,
         PLAIN,
         PLUS,
         ZEROS
@@ -126,8 +127,11 @@ public class SmsQueueManager implements PwmService
 
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
                 .maxEvents( Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.QUEUE_SMS_MAX_COUNT ) ) )
-                .retryDiscardAge( new TimeDuration( pwmApplication.getConfig().readSettingAsLong( PwmSetting.SMS_MAX_QUEUE_AGE ), TimeUnit.SECONDS ) )
-                .retryInterval( new TimeDuration( Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.QUEUE_SMS_RETRY_TIMEOUT_MS ) ) ) )
+                .retryDiscardAge( TimeDuration.of( pwmApplication.getConfig().readSettingAsLong( PwmSetting.SMS_MAX_QUEUE_AGE ), TimeDuration.Unit.SECONDS ) )
+                .retryInterval( TimeDuration.of(
+                        Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.QUEUE_SMS_RETRY_TIMEOUT_MS ) ),
+                        TimeDuration.Unit.MILLISECONDS )
+                )
                 .build();
 
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SMS_QUEUE );
@@ -223,13 +227,13 @@ public class SmsQueueManager implements PwmService
         final PasswordData gatewayPass = config.readSettingAsPassword( PwmSetting.SMS_GATEWAY_PASSWORD );
         if ( gatewayUrl == null || gatewayUrl.length() < 1 )
         {
-            LOGGER.debug( "SMS gateway url is not configured" );
+            LOGGER.debug( () -> "SMS gateway url is not configured" );
             return false;
         }
 
         if ( gatewayUser != null && gatewayUser.length() > 0 && ( gatewayPass == null ) )
         {
-            LOGGER.debug( "SMS gateway user configured, but no password provided" );
+            LOGGER.debug( () -> "SMS gateway user configured, but no password provided" );
             return false;
         }
 
@@ -246,13 +250,13 @@ public class SmsQueueManager implements PwmService
 
         if ( smsItem.getTo() == null || smsItem.getTo().length() < 1 )
         {
-            LOGGER.debug( "discarding sms send event (no to address) " + smsItem.toString() );
+            LOGGER.debug( () -> "discarding sms send event (no to address) " + smsItem.toString() );
             return false;
         }
 
         if ( smsItem.getMessage() == null || smsItem.getMessage().length() < 1 )
         {
-            LOGGER.debug( "discarding sms send event (no message) " + smsItem.toString() );
+            LOGGER.debug( () -> "discarding sms send event (no message) " + smsItem.toString() );
             return false;
         }
 
@@ -393,7 +397,7 @@ public class SmsQueueManager implements PwmService
             final Matcher m = p.matcher( resultBody );
             if ( m.matches() )
             {
-                LOGGER.trace( "result body matched configured regex match setting: " + regex );
+                LOGGER.trace( () -> "result body matched configured regex match setting: " + regex );
                 return;
             }
         }
@@ -406,6 +410,13 @@ public class SmsQueueManager implements PwmService
 
     static String formatSmsNumber( final Configuration config, final String smsNumber )
     {
+        final SmsNumberFormat format = config.readSettingAsEnum( PwmSetting.SMS_PHONE_NUMBER_FORMAT, SmsNumberFormat.class );
+
+        if ( format == SmsNumberFormat.RAW )
+        {
+            return smsNumber;
+        }
+
         final long ccLong = config.readSettingAsLong( PwmSetting.SMS_DEFAULT_COUNTRY_CODE );
         String countryCodeNumber = "";
         if ( ccLong > 0 )
@@ -413,7 +424,6 @@ public class SmsQueueManager implements PwmService
             countryCodeNumber = String.valueOf( ccLong );
         }
 
-        final SmsNumberFormat format = config.readSettingAsEnum( PwmSetting.SMS_PHONE_NUMBER_FORMAT, SmsNumberFormat.class );
         String returnValue = smsNumber;
 
         // Remove (0)
@@ -485,15 +495,25 @@ public class SmsQueueManager implements PwmService
 
             final String requestData = makeRequestData( to, message );
 
-            LOGGER.trace( "preparing to send SMS data: " + requestData );
+            LOGGER.trace( () -> "preparing to send SMS data: " + requestData );
 
             final PwmHttpClientRequest pwmHttpClientRequest = makeRequest( requestData );
 
-            final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                    .certificates( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) )
-                    .build();
+            final PwmHttpClient pwmHttpClient;
+            {
+                if ( JavaHelper.isEmpty( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) ) )
+                {
+                    pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel );
+                }
+                else
+                {
+                    final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
+                            .certificates( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) )
+                            .build();
 
-            final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel, pwmHttpClientConfiguration );
+                    pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel, clientConfiguration );
+                }
+            }
 
             try
             {
@@ -504,7 +524,7 @@ public class SmsQueueManager implements PwmService
                 lastResponseBody = responseBody;
 
                 determineIfResultSuccessful( config, resultCode, responseBody );
-                LOGGER.debug( "SMS send successful, HTTP status: " + resultCode );
+                LOGGER.debug( () -> "SMS send successful, HTTP status: " + resultCode );
             }
             catch ( PwmUnrecoverableException e )
             {
@@ -547,9 +567,10 @@ public class SmsQueueManager implements PwmService
 
             if ( requestData.contains( TOKEN_REQUESTID ) )
             {
+                final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
                 final String chars = config.readSettingAsString( PwmSetting.SMS_REQUESTID_CHARS );
                 final int idLength = Long.valueOf( config.readSettingAsLong( PwmSetting.SMS_REQUESTID_LENGTH ) ).intValue();
-                final String requestId = PwmRandom.getInstance().alphaNumericString( chars, idLength );
+                final String requestId = pwmRandom.alphaNumericString( chars, idLength );
                 requestData = requestData.replaceAll( TOKEN_REQUESTID, smsDataEncode( requestId, encoding ) );
             }
 
@@ -584,7 +605,7 @@ public class SmsQueueManager implements PwmService
 
                 if ( !StringUtil.isEmpty( contentType ) && httpMethod == HttpMethod.POST )
                 {
-                    headers.put( HttpHeader.Content_Type.getHttpName(), contentType );
+                    headers.put( HttpHeader.ContentType.getHttpName(), contentType );
                 }
 
                 if ( extraHeaders != null )

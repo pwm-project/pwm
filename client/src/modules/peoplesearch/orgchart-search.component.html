@@ -47,6 +47,11 @@
                 ng-attr-title="{{ 'Title_OrgChart' | translate }}">
         <ias-icon class="ias-selected" icon="orgchart_thin"></ias-icon>
     </ias-button>
+    <ias-button id="print-icon" class="ias-icon-button"
+                ng-click="$ctrl.printOrgChart()" ng-if="$ctrl.printEnabled"
+                ng-attr-title="{{ 'Title_Print' | translate }}">
+        <ias-icon class="ias-selected" icon="printer"></ias-icon>
+    </ias-button>
 </div>
 
 

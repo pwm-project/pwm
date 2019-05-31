@@ -43,7 +43,7 @@ public class ConfigLockCommand extends AbstractCliCommand
 
         storedConfiguration.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( false ) );
         configurationReader.saveConfiguration( storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
-        out( "success" );
+        out( "success: configuration has been locked" );
     }
 
     @Override

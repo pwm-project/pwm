@@ -22,8 +22,8 @@
 
 package password.pwm.util.queue;
 
-import junit.framework.Assert;
 import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import password.pwm.AppProperty;
@@ -40,37 +40,44 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-public class EmailQueueManagerTest {
+public class EmailQueueManagerTest
+{
     @Test
-    public void testConvertEmailItemToMessage() throws MessagingException, IOException {
-        EmailService emailService = new EmailService();
+    public void testConvertEmailItemToMessage() throws MessagingException, IOException
+    {
+        final EmailService emailService = new EmailService();
 
-        Configuration config = Mockito.mock(Configuration.class);
-        Mockito.when(config.readAppProperty(AppProperty.SMTP_SUBJECT_ENCODING_CHARSET)).thenReturn("UTF8");
+        final Configuration config = Mockito.mock( Configuration.class );
+        Mockito.when( config.readAppProperty( AppProperty.SMTP_SUBJECT_ENCODING_CHARSET ) ).thenReturn( "UTF8" );
 
-        EmailItemBean emailItemBean = new EmailItemBean("fred@flintstones.tv, barney@flintstones.tv", "bedrock-admin@flintstones.tv", "Test Subject", "bodyPlain", "bodyHtml");
+        final EmailItemBean emailItemBean = new EmailItemBean(
+                "fred@flintstones.tv, barney@flintstones.tv",
+                "bedrock-admin@flintstones.tv",
+                "Test Subject",
+                "bodyPlain",
+                "bodyHtml" );
 
-        EmailServer emailServer = EmailServer.builder()
-                .javaMailProps( new Properties(  ) )
+        final EmailServer emailServer = EmailServer.builder()
+                .javaMailProps( new Properties() )
                 .build();
 
-        List<Message> messages = EmailServerUtil.convertEmailItemToMessages(emailItemBean, config, emailServer);
-        Assert.assertEquals(2, messages.size());
+        final List<Message> messages = EmailServerUtil.convertEmailItemToMessages( emailItemBean, config, emailServer );
+        Assert.assertEquals( 2, messages.size() );
 
-        Message message = messages.get(0);
-        Assert.assertEquals(new InternetAddress("fred@flintstones.tv"), message.getRecipients(Message.RecipientType.TO)[0]);
-        Assert.assertEquals(new InternetAddress("bedrock-admin@flintstones.tv"), message.getFrom()[0]);
-        Assert.assertEquals("Test Subject", message.getSubject());
-        String content = IOUtils.toString(message.getInputStream());
-        Assert.assertTrue(content.contains("bodyPlain"));
-        Assert.assertTrue(content.contains("bodyHtml"));
+        Message message = messages.get( 0 );
+        Assert.assertEquals( new InternetAddress( "fred@flintstones.tv" ), message.getRecipients( Message.RecipientType.TO )[0] );
+        Assert.assertEquals( new InternetAddress( "bedrock-admin@flintstones.tv" ), message.getFrom()[0] );
+        Assert.assertEquals( "Test Subject", message.getSubject() );
+        String content = IOUtils.toString( message.getInputStream() );
+        Assert.assertTrue( content.contains( "bodyPlain" ) );
+        Assert.assertTrue( content.contains( "bodyHtml" ) );
 
-        message = messages.get(1);
-        Assert.assertEquals(new InternetAddress("barney@flintstones.tv"), message.getRecipients(Message.RecipientType.TO)[0]);
-        Assert.assertEquals(new InternetAddress("bedrock-admin@flintstones.tv"), message.getFrom()[0]);
-        Assert.assertEquals("Test Subject", message.getSubject());
-        content = IOUtils.toString(message.getInputStream());
-        Assert.assertTrue(content.contains("bodyPlain"));
-        Assert.assertTrue(content.contains("bodyHtml"));
+        message = messages.get( 1 );
+        Assert.assertEquals( new InternetAddress( "barney@flintstones.tv" ), message.getRecipients( Message.RecipientType.TO )[0] );
+        Assert.assertEquals( new InternetAddress( "bedrock-admin@flintstones.tv" ), message.getFrom()[0] );
+        Assert.assertEquals( "Test Subject", message.getSubject() );
+        content = IOUtils.toString( message.getInputStream() );
+        Assert.assertTrue( content.contains( "bodyPlain" ) );
+        Assert.assertTrue( content.contains( "bodyHtml" ) );
     }
 }

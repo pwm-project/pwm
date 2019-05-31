@@ -29,7 +29,12 @@ import password.pwm.http.PwmSession;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * An ErrorInformation is a package of error data generated within PWM.  Error information includes an error code
@@ -47,7 +52,7 @@ public class ErrorInformation implements Serializable
     // private constructor used for gson de-serialization
     private ErrorInformation( )
     {
-        error = PwmError.ERROR_UNKNOWN;
+        error = PwmError.ERROR_INTERNAL;
         detailedErrorMsg = null;
         fieldValues = null;
         userStrOverride = null;
@@ -55,7 +60,7 @@ public class ErrorInformation implements Serializable
 
     public ErrorInformation( final PwmError error )
     {
-        this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
+        this.error = error == null ? PwmError.ERROR_INTERNAL : error;
         this.detailedErrorMsg = null;
         this.userStrOverride = null;
         this.fieldValues = new String[ 0 ];
@@ -63,7 +68,7 @@ public class ErrorInformation implements Serializable
 
     public ErrorInformation( final PwmError error, final String detailedErrorMsg )
     {
-        this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
+        this.error = error == null ? PwmError.ERROR_INTERNAL : error;
         this.detailedErrorMsg = detailedErrorMsg;
         this.userStrOverride = null;
         this.fieldValues = new String[ 0 ];
@@ -71,7 +76,7 @@ public class ErrorInformation implements Serializable
 
     public ErrorInformation( final PwmError error, final String detailedErrorMsg, final String[] fields )
     {
-        this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
+        this.error = error == null ? PwmError.ERROR_INTERNAL : error;
         this.detailedErrorMsg = detailedErrorMsg;
         this.userStrOverride = null;
         this.fieldValues = fields == null ? new String[ 0 ] : fields;
@@ -79,7 +84,7 @@ public class ErrorInformation implements Serializable
 
     public ErrorInformation( final PwmError error, final String detailedErrorMsg, final String userStrOverride, final String[] fields )
     {
-        this.error = error == null ? PwmError.ERROR_UNKNOWN : error;
+        this.error = error == null ? PwmError.ERROR_INTERNAL : error;
         this.detailedErrorMsg = detailedErrorMsg;
         this.userStrOverride = userStrOverride;
         this.fieldValues = fields == null ? new String[ 0 ] : fields;
@@ -174,5 +179,22 @@ public class ErrorInformation implements Serializable
         }
         return new ErrorInformation( pwmError, this.getDetailedErrorMsg() );
 
+    }
+
+    public static boolean listsContainSameErrors( final List<ErrorInformation> errorInformation1, final List<ErrorInformation> errorInformation2 )
+    {
+        Objects.requireNonNull( errorInformation1 );
+        Objects.requireNonNull( errorInformation2 );
+        return extractErrorSet( errorInformation1 ).equals( extractErrorSet( errorInformation2 ) );
+    }
+
+    private static Set<PwmError> extractErrorSet( final List<ErrorInformation> errors )
+    {
+        if ( errors != null )
+        {
+            return errors.stream().map( ErrorInformation::getError ).collect( Collectors.toSet() );
+        }
+
+        return Collections.emptySet();
     }
 }

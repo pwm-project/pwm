@@ -23,13 +23,15 @@
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
-import org.jdom2.Element;
+
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -74,22 +76,22 @@ public class EmailValue extends AbstractValue implements StoredValue
             }
 
             public EmailValue fromXmlElement(
-                    final Element settingElement,
+                    final PwmSetting pwmSetting,
+                    final XmlElement settingElement,
                     final PwmSecurityKey input
             )
                     throws PwmOperationalException
             {
                 final Map<String, EmailItemBean> values = new TreeMap<>();
                 {
-                    final List valueElements = settingElement.getChildren( "value" );
-                    for ( final Object loopValue : valueElements )
+                    final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                    for ( final XmlElement loopValueElement : valueElements )
                     {
-                        final Element loopValueElement = ( Element ) loopValue;
                         final String value = loopValueElement.getText();
                         if ( value != null && value.length() > 0 )
                         {
-                            final String localeValue = loopValueElement.getAttribute(
-                                    "locale" ) == null ? "" : loopValueElement.getAttribute( "locale" ).getValue();
+                            final String localeValue = loopValueElement.getAttributeValue(
+                                    "locale" ) == null ? "" : loopValueElement.getAttributeValue( "locale" );
                             values.put( localeValue, JsonUtil.deserialize( value, EmailItemBean.class ) );
                         }
                     }
@@ -99,19 +101,19 @@ public class EmailValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<String, EmailItemBean> entry : values.entrySet() )
         {
             final String localeValue = entry.getKey();
             final EmailItemBean emailItemBean = entry.getValue();
-            final Element valueElement = new Element( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
             if ( localeValue.length() > 0 )
             {
                 valueElement.setAttribute( "locale", localeValue );
             }
-            valueElement.addContent( JsonUtil.serialize( emailItemBean ) );
+            valueElement.addText( JsonUtil.serialize( emailItemBean ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -124,6 +126,8 @@ public class EmailValue extends AbstractValue implements StoredValue
 
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
+        final int maxBodyChars = 500_000;
+
         if ( pwmSetting.isRequired() )
         {
             if ( values == null || values.isEmpty() || values.values().iterator().next() == null )
@@ -150,6 +154,18 @@ public class EmailValue extends AbstractValue implements StoredValue
             if ( emailItemBean.getBodyPlain() == null || emailItemBean.getBodyPlain().length() < 1 )
             {
                 return Collections.singletonList( "plain body field is required" + ( loopLocale.length() > 0 ? " for locale " + loopLocale : "" ) );
+            }
+
+            if ( emailItemBean.getBodyPlain() == null || emailItemBean.getBodyPlain().length() > maxBodyChars )
+            {
+                return Collections.singletonList( "plain body field is too large" + ( loopLocale.length() > 0 ? " for locale " + loopLocale : "" )
+                        + ", chars=" + emailItemBean.getBodyPlain().length() + ", max=" + maxBodyChars );
+            }
+
+            if ( emailItemBean.getBodyHtml() == null || emailItemBean.getBodyHtml().length() > maxBodyChars )
+            {
+                return Collections.singletonList( "html body field is too large" + ( loopLocale.length() > 0 ? " for locale " + loopLocale : "" )
+                        + ", chars=" + emailItemBean.getBodyHtml().length() + ", max=" + maxBodyChars );
             }
         }
 

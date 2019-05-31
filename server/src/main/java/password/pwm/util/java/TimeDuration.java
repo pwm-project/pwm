@@ -23,85 +23,116 @@
 package password.pwm.util.java;
 
 import com.novell.ldapchai.util.StringHelper;
+import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Display;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.SecureService;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.meta.When;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 
 /**
- * An immutable class representing a time period.  The internal value of the time period is
- * stored as milliseconds.
- * <p/>
- * Negative time durations are not permitted.  Operations that would result in a negative value
- * are negated and will instead result in positive values.
+ * <p>An immutable class representing a time period.  The internal value of the time period is
+ * stored as milliseconds.</p>
+ *
+ * <p>Negative time durations are not permitted.  Operations that would result in a negative value
+ * are ignored and will instead result in a zero value.</p>
  *
  * @author Jason D. Rivard
  */
 public class TimeDuration implements Comparable, Serializable
 {
+    public enum Unit
+    {
+        MILLISECONDS( ChronoUnit.MILLIS, TimeUnit.MILLISECONDS ),
+        SECONDS( ChronoUnit.SECONDS, TimeUnit.SECONDS ),
+        MINUTES( ChronoUnit.MINUTES, TimeUnit.MINUTES ),
+        HOURS( ChronoUnit.HOURS, TimeUnit.HOURS ),
+        DAYS( ChronoUnit.DAYS, TimeUnit.DAYS ),;
+
+        private final TemporalUnit temporalUnit;
+        private final TimeUnit timeUnit;
+
+        Unit( final TemporalUnit temporalUnit, final TimeUnit timeUnit )
+        {
+            this.temporalUnit = temporalUnit;
+            this.timeUnit = timeUnit;
+        }
+
+        public TemporalUnit getTemporalUnit( )
+        {
+            return temporalUnit;
+        }
+
+        public TimeUnit getTimeUnit( )
+        {
+            return timeUnit;
+        }
+    }
+
     public static final TimeDuration ZERO = new TimeDuration( 0 );
-    public static final TimeDuration MILLISECOND = new TimeDuration( 1, TimeUnit.MILLISECONDS );
-    public static final TimeDuration SECOND = new TimeDuration( 1, TimeUnit.SECONDS );
-    public static final TimeDuration SECONDS_10 = new TimeDuration( 10, TimeUnit.SECONDS );
-    public static final TimeDuration SECONDS_30 = new TimeDuration( 30, TimeUnit.SECONDS );
-    public static final TimeDuration MINUTE = new TimeDuration( 1, TimeUnit.MINUTES );
-    public static final TimeDuration HOUR = new TimeDuration( 1, TimeUnit.HOURS );
-    public static final TimeDuration DAY = new TimeDuration( 1, TimeUnit.DAYS );
+    public static final TimeDuration MILLISECOND = new TimeDuration( 1 );
+    public static final TimeDuration MILLISECONDS_2 = new TimeDuration( 2 );
+    public static final TimeDuration MILLISECONDS_3 = new TimeDuration( 3 );
+    public static final TimeDuration SECOND = new TimeDuration( 1000 );
+    public static final TimeDuration SECONDS_10 = new TimeDuration( 10 * 1000 );
+    public static final TimeDuration SECONDS_30 = new TimeDuration( 30 * 1000 );
+    public static final TimeDuration MINUTE = new TimeDuration( 60 * 1000 );
+    public static final TimeDuration HOUR = new TimeDuration( 60 * 60 * 1000 );
+    public static final TimeDuration DAY = new TimeDuration( 24 * 60 * 60 * 1000 );
 
     private final long ms;
-    private transient TimeDetail cachedTimeDetail;
 
     /**
      * Create a new TimeDuration using the specified duration, in milliseconds.
      *
      * @param durationMilliseconds a time period in milliseconds
      */
-    public TimeDuration( final long durationMilliseconds )
+    private TimeDuration( final long durationMilliseconds )
     {
-        if ( durationMilliseconds < 0 )
-        {
-            this.ms = 0;
-        }
-        else
-        {
-            this.ms = durationMilliseconds;
-        }
+        this.ms = durationMilliseconds < 0 ? 0 : durationMilliseconds;
     }
 
-    public TimeDuration( final long duration, final TimeUnit timeUnit )
+    private static TimeDuration newTimeDuration( final long durationMilliseconds )
     {
-        this( timeUnit.toMillis( duration ) );
+        switch ( (int) durationMilliseconds )
+        {
+            case 0: return ZERO;
+            case 1: return MILLISECOND;
+            case 2: return MILLISECONDS_2;
+            case 3: return MILLISECONDS_3;
+            case 1000: return SECOND;
+            case 10 * 1000: return SECONDS_10;
+            case 30 * 1000: return SECONDS_30;
+            case 60 * 1000: return MINUTE;
+            case 60 * 60 * 1000: return HOUR;
+            case 24 * 60 * 60 * 1000: return DAY;
+            default: return new TimeDuration( durationMilliseconds );
+        }
     }
 
     public static TimeDuration fromCurrent( final long ms )
     {
-        return new TimeDuration( System.currentTimeMillis(), ms );
-    }
-
-    public static TimeDuration fromCurrent( final Date date )
-    {
-        return new TimeDuration( System.currentTimeMillis(), date.getTime() );
+        return between( Instant.now(), Instant.ofEpochMilli( ms ) );
     }
 
     public static TimeDuration fromCurrent( final Instant instant )
     {
-        return new TimeDuration( System.currentTimeMillis(), instant.toEpochMilli() );
-    }
-
-    public static TimeDuration between( final Instant start, final Instant finish )
-    {
-        return new TimeDuration( start, finish );
+        return between( Instant.now(), instant );
     }
 
     public static String compactFromCurrent( final Instant instant )
@@ -111,32 +142,17 @@ public class TimeDuration implements Comparable, Serializable
 
     public static String asCompactString( final long ms )
     {
-        return new TimeDuration( ms ).asCompactString();
+        return newTimeDuration( ms ).asCompactString();
     }
 
-
-    /**
-     * Create a new TimeDuration using the absolute difference as the time
-     * period between the two supplied timestamps.
-     *
-     * @param date         timestamp in Date format
-     * @param milliseconds timestamp in ms
-     */
-    public TimeDuration( final Date date, final long milliseconds )
+    public long asMillis()
     {
-        this( date.getTime(), milliseconds );
+        return ms;
     }
 
-    /**
-     * Create a new TimeDuration using the absolute difference as the time
-     * period between the two supplied timestamps.
-     *
-     * @param date         timestamp in Date format
-     * @param milliseconds timestamp in ms
-     */
-    public TimeDuration( final long milliseconds, final Date date )
+    public String asIso()
     {
-        this( milliseconds, date.getTime() );
+        return this.asDuration().toString();
     }
 
     /**
@@ -146,33 +162,9 @@ public class TimeDuration implements Comparable, Serializable
      * @param instant1 timestamp in Instant format
      * @param instant2 timestamp in Instant format
      */
-    public TimeDuration( final Instant instant1, final Instant instant2 )
+    public static TimeDuration between( final Instant instant1, final Instant instant2 )
     {
-        this( instant1.toEpochMilli(), instant2.toEpochMilli() );
-    }
-
-    /**
-     * Create a new TimeDuration using the absolute difference as the time
-     * period between the two supplied timestamps.
-     *
-     * @param date1 timestamp in Date format
-     * @param date2 timestamp in Date format
-     */
-    public TimeDuration( final Date date1, final Date date2 )
-    {
-        this( date1.getTime(), date2.getTime() );
-    }
-
-    /**
-     * Create a new TimeDuration using the absolute difference as the time
-     * period between the two supplied timestamps.
-     *
-     * @param milliseconds1 timestamp in ms
-     * @param milliseconds2 timestamp in ms
-     */
-    public TimeDuration( final long milliseconds1, final long milliseconds2 )
-    {
-        this( Math.abs( milliseconds1 - milliseconds2 ) );
+        return newTimeDuration( Math.abs( instant1.toEpochMilli() - instant2.toEpochMilli() ) );
     }
 
     public boolean equals( final Object o )
@@ -196,41 +188,26 @@ public class TimeDuration implements Comparable, Serializable
         return ( int ) ( ms ^ ( ms >>> 32 ) );
     }
 
-
     public TimeDuration add( final TimeDuration duration )
     {
-        return new TimeDuration( this.getTotalMilliseconds() + duration.getTotalMilliseconds() );
+        return newTimeDuration( this.ms + duration.ms );
     }
 
     public Instant incrementFromInstant( final Instant input )
     {
         final long inputMillis = input.toEpochMilli();
-        final long nextMills = inputMillis + this.getTotalMilliseconds();
+        final long nextMills = inputMillis + this.ms;
         return Instant.ofEpochMilli( nextMills );
     }
 
-    public long getTotalMilliseconds( )
+    public long as( final Unit unit )
     {
-        return ms;
-    }
-
-    public long getTotalSeconds( )
-    {
-        return ms / 1000;
-    }
-
-    public long getTotalMinutes( )
-    {
-        return ms / ( 60 * 1000 );
-    }
-
-    public long getTotalDays( )
-    {
-        return ms / ( 60 * 1000 * 60 * 24 );
+        return unit.getTimeUnit().convert( ms, TimeUnit.MILLISECONDS );
     }
 
     public String asCompactString( )
     {
+        final FractionalTimeDetail fractionalTimeDetail = new FractionalTimeDetail( ms );
         final StringBuilder sb = new StringBuilder();
 
         if ( this.equals( ZERO ) )
@@ -240,32 +217,32 @@ public class TimeDuration implements Comparable, Serializable
 
         if ( this.equals( DAY ) || this.isLongerThan( DAY ) )
         {
-            sb.append( this.getDays() );
+            sb.append( fractionalTimeDetail.getDays() );
             sb.append( "d" );
         }
 
         if ( this.equals( HOUR ) || this.isLongerThan( HOUR ) )
         {
-            if ( getHours() != 0 && getHours() != 24 )
+            if ( fractionalTimeDetail.getHours() != 0 && fractionalTimeDetail.getHours() != 24 )
             {
                 if ( sb.length() > 0 )
                 {
                     sb.append( ":" );
                 }
-                sb.append( getHours() );
+                sb.append( fractionalTimeDetail.getHours() );
                 sb.append( "h" );
             }
         }
 
         if ( this.equals( MINUTE ) || this.isLongerThan( MINUTE ) )
         {
-            if ( getMinutes() != 0 )
+            if ( fractionalTimeDetail.getMinutes() != 0 )
             {
                 if ( sb.length() > 0 )
                 {
                     sb.append( ":" );
                 }
-                sb.append( getMinutes() );
+                sb.append( fractionalTimeDetail.getMinutes() );
                 sb.append( "m" );
             }
         }
@@ -273,13 +250,13 @@ public class TimeDuration implements Comparable, Serializable
         if ( this.isShorterThan( 1000 * 60 * 10 ) && this.isLongerThan( 1000 * 3 ) )
         {
             // 10 minutes to 3 seconds
-            if ( getSeconds() != 0 )
+            if ( fractionalTimeDetail.getSeconds() != 0 )
             {
                 if ( sb.length() > 0 )
                 {
                     sb.append( ":" );
                 }
-                sb.append( getSeconds() );
+                sb.append( fractionalTimeDetail.getSeconds() );
                 sb.append( "s" );
             }
         }
@@ -287,13 +264,13 @@ public class TimeDuration implements Comparable, Serializable
         if ( this.isShorterThan( 1000 * 3 ) )
         {
             // 3 seconds
-            if ( getMilliseconds() != 0 )
+            if ( ms != 0 )
             {
                 if ( sb.length() > 0 )
                 {
                     sb.append( ":" );
                 }
-                sb.append( getMilliseconds() );
+                sb.append( ms );
                 sb.append( "ms" );
             }
         }
@@ -307,26 +284,6 @@ public class TimeDuration implements Comparable, Serializable
         return sb.toString();
     }
 
-    public long getDays( )
-    {
-        return getTimeDetail().days;
-    }
-
-    private TimeDetail getTimeDetail( )
-    {
-        // lazy init, but not sync'd, no big deal if dupes created
-        if ( cachedTimeDetail == null )
-        {
-            cachedTimeDetail = new TimeDetail( ms );
-        }
-        return cachedTimeDetail;
-    }
-
-    public long getHours( )
-    {
-        return getTimeDetail().hours;
-    }
-
     public boolean isLongerThan( final TimeDuration duration )
     {
         return this.compareTo( duration ) > 0;
@@ -335,43 +292,28 @@ public class TimeDuration implements Comparable, Serializable
     public int compareTo( final Object o )
     {
         final TimeDuration td = ( TimeDuration ) o;
-        final long otherMS = td.getTotalMilliseconds();
-        return ( ms == otherMS ? 0 : ( ms < otherMS ? -1 : 1 ) );
-    }
-
-    public long getMinutes( )
-    {
-        return getTimeDetail().minutes;
+        final long otherMS = td.as( Unit.MILLISECONDS );
+        return Long.compare( ms, otherMS );
     }
 
     public boolean isLongerThan( final long durationMS )
     {
-        return this.isLongerThan( new TimeDuration( durationMS ) );
+        return this.isLongerThan( newTimeDuration( durationMS ) );
     }
 
-    public boolean isLongerThan( final long duration, final TimeUnit timeUnit )
+    public boolean isLongerThan( final long duration, final Unit timeUnit )
     {
-        return this.isLongerThan( timeUnit.toMillis( duration ) );
+        return this.isLongerThan( TimeDuration.of( duration, timeUnit ) );
     }
 
-    public boolean isShorterThan( final long duration, final TimeUnit timeUnit )
+    public boolean isShorterThan( final long duration, final Unit timeUnit )
     {
-        return this.isShorterThan( timeUnit.toMillis( duration ) );
-    }
-
-    public long getSeconds( )
-    {
-        return getTimeDetail().seconds;
+        return this.isShorterThan( TimeDuration.of( duration, timeUnit ) );
     }
 
     public boolean isShorterThan( final long durationMS )
     {
-        return this.isShorterThan( new TimeDuration( durationMS ) );
-    }
-
-    public long getMilliseconds( )
-    {
-        return ms;
+        return this.isShorterThan( newTimeDuration( durationMS ) );
     }
 
     public String asLongString( )
@@ -381,47 +323,44 @@ public class TimeDuration implements Comparable, Serializable
 
     public String asLongString( final Locale locale )
     {
-        final TimeDetail timeDetail = getTimeDetail();
+        final FractionalTimeDetail fractionalTimeDetail = new FractionalTimeDetail( ms );
         final List<String> segments = new ArrayList<>();
 
         //output number of days
-        if ( timeDetail.days > 0 )
+        if ( fractionalTimeDetail.days > 0 )
         {
-            final StringBuilder sb = new StringBuilder();
-            sb.append( timeDetail.days );
-            sb.append( " " );
-            sb.append( timeDetail.days == 1
+            segments.add( fractionalTimeDetail.days
+                    + " "
+                    + ( fractionalTimeDetail.days == 1
                     ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Day, null )
-                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Days, null ) );
-            segments.add( sb.toString() );
+                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Days, null ) )
+            );
         }
 
         //output number of hours
-        if ( timeDetail.hours > 0 )
+        if ( fractionalTimeDetail.hours > 0 )
         {
-            final StringBuilder sb = new StringBuilder();
-            sb.append( timeDetail.hours );
-            sb.append( " " );
-            sb.append( timeDetail.hours == 1
+            segments.add( fractionalTimeDetail.hours
+                    + " "
+                    + ( fractionalTimeDetail.hours == 1
                     ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Hour, null )
-                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Hours, null ) );
-            segments.add( sb.toString() );
+                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Hours, null ) )
+            );
         }
 
         //output number of minutes
-        if ( timeDetail.minutes > 0 )
+        if ( fractionalTimeDetail.minutes > 0 )
         {
-            final StringBuilder sb = new StringBuilder();
-            sb.append( timeDetail.minutes );
-            sb.append( " " );
-            sb.append( timeDetail.minutes == 1
+            segments.add( fractionalTimeDetail.minutes
+                    + " "
+                    + ( fractionalTimeDetail.minutes == 1
                     ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Minute, null )
-                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Minutes, null ) );
-            segments.add( sb.toString() );
+                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Minutes, null ) )
+            );
         }
 
         //seconds & ms
-        if ( timeDetail.seconds > 0 || segments.isEmpty() )
+        if ( fractionalTimeDetail.seconds > 0 || segments.isEmpty() )
         {
             final StringBuilder sb = new StringBuilder();
             if ( sb.length() == 0 )
@@ -449,12 +388,12 @@ public class TimeDuration implements Comparable, Serializable
                 }
                 else
                 {
-                    sb.append( timeDetail.seconds );
+                    sb.append( fractionalTimeDetail.seconds );
                 }
             }
             else
             {
-                sb.append( timeDetail.seconds );
+                sb.append( fractionalTimeDetail.seconds );
             }
             sb.append( " " );
             sb.append( ms == 1000
@@ -467,16 +406,6 @@ public class TimeDuration implements Comparable, Serializable
         return StringHelper.stringCollectionToString( segments, ", " );
     }
 
-    public Date getDateAfterNow( )
-    {
-        return this.getDateAfter( new Date( System.currentTimeMillis() ) );
-    }
-
-    public Date getDateAfter( final Date specifiedDate )
-    {
-        return new Date( specifiedDate.getTime() + ms );
-    }
-
     public Instant getInstantAfter( final Instant specifiedDate )
     {
         return specifiedDate.minusMillis( ms );
@@ -487,15 +416,6 @@ public class TimeDuration implements Comparable, Serializable
         return Instant.now().minusMillis( ms );
     }
 
-    public Date getDateBeforeNow( )
-    {
-        return this.getDateBefore( new Date( System.currentTimeMillis() ) );
-    }
-
-    public Date getDateBefore( final Date specifiedDate )
-    {
-        return new Date( specifiedDate.getTime() - ms );
-    }
 
     public boolean isShorterThan( final TimeDuration duration )
     {
@@ -504,7 +424,7 @@ public class TimeDuration implements Comparable, Serializable
 
     public TimeDuration subtract( final TimeDuration duration )
     {
-        return new TimeDuration( Math.abs( this.getTotalMilliseconds() - duration.getTotalMilliseconds() ) );
+        return newTimeDuration( Math.abs( ms - duration.ms ) );
     }
 
     @Override
@@ -513,36 +433,6 @@ public class TimeDuration implements Comparable, Serializable
         return "TimeDuration[" + this.asCompactString() + "]";
     }
 
-    /**
-     * Pause the calling thread the specified amount of time.
-     *
-     * @param sleepTimeMS - a time duration in milliseconds
-     * @return time actually spent sleeping
-     */
-    public static TimeDuration pause( final long sleepTimeMS )
-    {
-        if ( sleepTimeMS < 1 )
-        {
-            return TimeDuration.ZERO;
-        }
-
-        final long startTime = System.currentTimeMillis();
-        do
-        {
-            try
-            {
-                final long sleepTime = sleepTimeMS - ( System.currentTimeMillis() - startTime );
-                Thread.sleep( sleepTime > 0 ? sleepTime : 5 );
-            }
-            catch ( InterruptedException e )
-            {
-                //who cares
-            }
-        }
-        while ( ( System.currentTimeMillis() - startTime ) < sleepTimeMS );
-
-        return TimeDuration.fromCurrent( startTime );
-    }
 
     /**
      * Pause the calling thread the specified amount of time.
@@ -552,11 +442,73 @@ public class TimeDuration implements Comparable, Serializable
     @CheckReturnValue( when = When.NEVER )
     public TimeDuration pause( )
     {
-        return pause( this.getTotalMilliseconds() );
+        return pause( this, () -> false );
     }
 
+    /**
+     * Pause the calling thread the specified amount of time.
+     *
+     * @return time actually spent sleeping
+     */
+    @CheckReturnValue( when = When.NEVER )
+    public TimeDuration jitterPause( final SecureService secureService, final float factor )
+    {
+        final PwmRandom pwmRandom = secureService.pwmRandom();
+        final long jitterMs = (long) ( this.ms * factor );
+        final long deviation = pwmRandom.nextBoolean() ? jitterMs + this.ms : jitterMs - this.ms;
+        return pause( TimeDuration.of( deviation, Unit.MILLISECONDS ), () -> false );
+    }
 
-    private static class TimeDetail implements Serializable
+    @CheckReturnValue( when = When.NEVER )
+    public TimeDuration pause(
+            final BooleanSupplier interruptBoolean
+    )
+    {
+        final long interruptMs = JavaHelper.rangeCheck( 5, 1000, this.asMillis() / 100 );
+        return pause( TimeDuration.of( interruptMs, Unit.MILLISECONDS ), interruptBoolean );
+    }
+
+    @CheckReturnValue( when = When.NEVER )
+    public TimeDuration pause(
+            final TimeDuration interruptCheckInterval,
+            final BooleanSupplier interruptBoolean
+    )
+    {
+        final long startTime = System.currentTimeMillis();
+        final long pauseTime = JavaHelper.rangeCheck( this.asMillis(), this.asMillis(), interruptCheckInterval.asMillis()  );
+
+        while ( ( System.currentTimeMillis() - startTime ) < this.asMillis() && !interruptBoolean.getAsBoolean() )
+        {
+            try
+            {
+                Thread.sleep( pauseTime );
+            }
+            catch ( InterruptedException e )
+            {
+                // ignore
+            }
+        }
+
+        return TimeDuration.fromCurrent( startTime );
+    }
+
+    public Duration asDuration()
+    {
+        return Duration.of( this.ms, ChronoUnit.MILLIS );
+    }
+
+    public static TimeDuration fromDuration( final Duration duration )
+    {
+        return newTimeDuration( duration.toMillis() );
+    }
+
+    public static TimeDuration of ( final long value, final Unit timeUnit )
+    {
+        return fromDuration( Duration.of( value, timeUnit.getTemporalUnit() ) );
+    }
+
+    @Value
+    private static class FractionalTimeDetail implements Serializable
     {
         private final long milliseconds;
         private final long seconds;
@@ -564,7 +516,7 @@ public class TimeDuration implements Comparable, Serializable
         private final long hours;
         private final long days;
 
-        TimeDetail( final long duration )
+        FractionalTimeDetail( final long duration )
         {
             final long totalSeconds = new BigDecimal( duration ).movePointLeft( 3 ).longValue();
             milliseconds = duration % 1000;
@@ -573,6 +525,11 @@ public class TimeDuration implements Comparable, Serializable
             hours = ( ( totalSeconds / 60 ) / 60 ) % 24;
             days = ( ( ( totalSeconds / 60 ) / 60 ) / 24 );
         }
+    }
+
+    public boolean isZero()
+    {
+        return ms <= 0;
     }
 }
 

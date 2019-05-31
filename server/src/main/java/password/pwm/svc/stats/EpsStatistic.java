@@ -23,33 +23,22 @@
 package password.pwm.svc.stats;
 
 import password.pwm.i18n.Admin;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 
 import java.util.Locale;
 
 public enum EpsStatistic
 {
-    REQUESTS( null ),
-    SESSIONS( null ),
-    PASSWORD_CHANGES( Statistic.PASSWORD_CHANGES ),
-    AUTHENTICATION( Statistic.AUTHENTICATIONS ),
-    INTRUDER_ATTEMPTS( Statistic.INTRUDER_ATTEMPTS ),
-    PWMDB_WRITES( null ),
-    PWMDB_READS( null ),
-    DB_WRITES( null ),
-    DB_READS( null ),;
-
-    private Statistic relatedStatistic;
-
-    EpsStatistic( final Statistic relatedStatistic )
-    {
-        this.relatedStatistic = relatedStatistic;
-    }
-
-    public Statistic getRelatedStatistic( )
-    {
-        return relatedStatistic;
-    }
+    REQUESTS(),
+    SESSIONS(),
+    PASSWORD_CHANGES(),
+    AUTHENTICATION(),
+    INTRUDER_ATTEMPTS(),
+    PWMDB_WRITES(),
+    PWMDB_READS(),
+    DB_WRITES(),
+    DB_READS(),
+    LDAP_BINDS,;
 
     public String getLabel( final Locale locale )
     {

@@ -22,27 +22,14 @@
 
 package password.pwm.http.servlet.oauth;
 
+import lombok.Value;
+
 import java.io.Serializable;
 
+@Value
 public class OAuthRequestState implements Serializable
 {
     @SuppressWarnings( "checkstyle:MemberName" )
     private OAuthState oAuthState;
     private boolean sessionMatch;
-
-    public OAuthRequestState( final OAuthState oAuthState, final boolean sessionMatch )
-    {
-        this.oAuthState = oAuthState;
-        this.sessionMatch = sessionMatch;
-    }
-
-    public OAuthState getoAuthState( )
-    {
-        return oAuthState;
-    }
-
-    public boolean isSessionMatch( )
-    {
-        return sessionMatch;
-    }
 }

@@ -37,7 +37,6 @@ import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.ViewStatusFields;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.PwmPasswordRule;
-import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
@@ -48,7 +47,7 @@ import password.pwm.i18n.Display;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.ViewableUserInfoDisplayReader;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -90,16 +89,9 @@ public class HelpdeskDetailInfoBean implements Serializable
 
     private Set<StandardButton> visibleButtons;
     private Set<StandardButton> enabledButtons;
-    private List<ButtonInfo> customButtons;
 
-    @Value
-    public static class ButtonInfo implements Serializable
-    {
-        private String name;
-        private String label;
-        private String description;
-    }
-
+    private HelpdeskVerificationOptionsBean verificationOptions;
+    
     public enum StandardButton
     {
         back,
@@ -121,7 +113,7 @@ public class HelpdeskDetailInfoBean implements Serializable
     {
         final HelpdeskDetailInfoBeanBuilder builder = HelpdeskDetailInfoBean.builder();
         final Instant startTime = Instant.now();
-        LOGGER.trace( pwmRequest, "beginning to assemble detail data report for user " + userIdentity );
+        LOGGER.trace( pwmRequest, () -> "beginning to assemble detail data report for user " + userIdentity );
         final Locale actorLocale = pwmRequest.getLocale();
         final ChaiUser theUser = HelpdeskServlet.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
 
@@ -231,14 +223,15 @@ public class HelpdeskDetailInfoBean implements Serializable
             final Set<HelpdeskDetailInfoBean.StandardButton> visibleButtons = determineVisibleButtons( helpdeskProfile );
             builder.visibleButtons( visibleButtons );
             builder.enabledButtons( determineEnabledButtons( visibleButtons, userInfo ) );
-            builder.customButtons( determineCustomButtons( helpdeskProfile ) );
         }
+
+        builder.verificationOptions( HelpdeskVerificationOptionsBean.makeBean( pwmRequest, helpdeskProfile, userIdentity ) );
 
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = builder.build();
 
         if ( pwmRequest.getConfig().isDevDebugMode() )
         {
-            LOGGER.trace( pwmRequest, "completed assembly of detail data report for user " + userIdentity
+            LOGGER.trace( pwmRequest, () -> "completed assembly of detail data report for user " + userIdentity
                     + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize( helpdeskDetailInfoBean ) );
         }
 
@@ -327,30 +320,6 @@ public class HelpdeskDetailInfoBean implements Serializable
         }
 
         return Collections.unmodifiableSet( buttons );
-    }
-
-    static List<ButtonInfo> determineCustomButtons(
-            final HelpdeskProfile helpdeskProfile
-    )
-    {
-        final List<ActionConfiguration> actions = helpdeskProfile.readSettingAsAction( PwmSetting.HELPDESK_ACTIONS );
-
-        final List<ButtonInfo> buttons = new ArrayList<>();
-        if ( actions != null )
-        {
-            int count = 0;
-            for ( final ActionConfiguration action : actions )
-            {
-                buttons.add( new ButtonInfo(
-                        "custom_" + count++,
-                        action.getName(),
-                        action.getDescription()
-                ) );
-            }
-        }
-
-        return Collections.unmodifiableList( buttons );
-
     }
 
 

@@ -8,7 +8,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later versionI.
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,14 +20,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-
 import { IPromise, IQService, ITimeoutService } from 'angular';
 import { IPerson } from '../models/person.model';
-import { IPeopleService } from './people.service';
+import {IPeopleService, IQuery} from './people.service';
 import IOrgChartData from '../models/orgchart-data.model';
 import SearchResult from '../models/search-result.model';
 
-const peopleData = require('./people.data');
+const peopleData = require('./people.data.json');
 
 const MAX_RESULTS = 10;
 const SIMULATED_RESPONSE_TIME = 0;
@@ -62,6 +61,33 @@ export default class PeopleService implements IPeopleService {
         }, this);
     }
 
+    advancedSearch(queries: IQuery[]): IPromise<SearchResult> {
+        let self = this;
+
+        let deferred = this.$q.defer();
+        let deferredAbort = this.$q.defer();
+
+        let timeoutPromise = this.$timeout(() => {
+
+            let people = this.getAdvancedSearchResults(queries);
+            const sizeExceeded = (people.length > MAX_RESULTS);
+            if (sizeExceeded) {
+                people = people.slice(MAX_RESULTS);
+            }
+
+            deferred.resolve(new SearchResult({sizeExceeded: sizeExceeded, searchResults: people}));
+        }, SIMULATED_RESPONSE_TIME * 6);
+
+        // To simulate an abortable promise, edit SIMULATED_RESPONSE_TIME
+        deferred.promise['_httpTimeout'] = deferredAbort;
+        deferredAbort.promise.then(() => {
+            self.$timeout.cancel(timeoutPromise);
+            deferred.resolve();
+        });
+
+        return deferred.promise as IPromise<SearchResult>;
+    }
+
     autoComplete(query: string): IPromise<IPerson[]> {
         return this.search(query)
             .then((searchResult: SearchResult) => {
@@ -70,10 +96,10 @@ export default class PeopleService implements IPeopleService {
                 people = people.sort((person1, person2) => person1._displayName.localeCompare(person2._displayName));
 
                 if (people && people.length > 10) {
-                    return this.$q.resolve(people.slice(0, 10));
+                    return people.slice(0, 10);
                 }
 
-                return this.$q.resolve(people);
+                return people;
             });
     }
 
@@ -119,7 +145,7 @@ export default class PeopleService implements IPeopleService {
     getNumberOfDirectReports(personId: string): IPromise<number> {
         return this.getDirectReports(personId)
             .then((directReports: IPerson[]) => {
-                return this.$q.resolve(directReports.length);
+                return directReports.length;
             });
     }
 
@@ -206,5 +232,31 @@ export default class PeopleService implements IPeopleService {
         }
 
         return null;
+    }
+
+    private getAdvancedSearchResults(queries: IQuery[]): IPerson[] {
+        let people = queries.length ? this.people : [];
+
+        queries.forEach((query: IQuery) => {
+            people = people.filter((person: IPerson) => {
+                if (!query.value) {
+                    return false;
+                }
+
+                let property = person[query.name];
+
+                if (!property) {
+                    return false;
+                }
+
+                if (typeof property === 'object' || typeof property === 'number') {
+                    property = JSON.stringify(property);
+                }
+
+                return property.toLowerCase().indexOf(query.value.toLowerCase()) >= 0;
+            });
+        });
+
+        return people;
     }
 }

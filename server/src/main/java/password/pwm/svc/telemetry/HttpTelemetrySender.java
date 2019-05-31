@@ -37,6 +37,7 @@ import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.X509Utils;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -62,12 +63,12 @@ public class HttpTelemetrySender implements TelemetrySender
             throws PwmUnrecoverableException
     {
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                .promiscuous( true )
+                .trustManager( new X509Utils.PromiscuousTrustManager( SessionLabel.TELEMETRY_SESSION_LABEL ) )
                 .build();
         final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, SessionLabel.TELEMETRY_SESSION_LABEL, pwmHttpClientConfiguration );
         final String body = JsonUtil.serialize( statsPublishBean );
         final Map<String, String> headers = new HashMap<>();
-        headers.put( HttpHeader.Content_Type.getHttpName(), HttpContentType.json.getHeaderValue() );
+        headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
         headers.put( HttpHeader.Accept.getHttpName(), PwmConstants.AcceptValue.json.getHeaderValue() );
         final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
                 HttpMethod.POST,
@@ -75,9 +76,9 @@ public class HttpTelemetrySender implements TelemetrySender
                 body,
                 headers
         );
-        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "preparing to send telemetry data to '" + settings.getUrl() + ")" );
+        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "preparing to send telemetry data to '" + settings.getUrl() + ")" );
         pwmHttpClient.makeRequest( pwmHttpClientRequest );
-        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "sent telemetry data to '" + settings.getUrl() + ")" );
+        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "sent telemetry data to '" + settings.getUrl() + ")" );
     }
 
     @Getter

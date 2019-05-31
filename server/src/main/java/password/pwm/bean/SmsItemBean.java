@@ -24,12 +24,12 @@ package password.pwm.bean;
 
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.util.java.JsonUtil;
 
 import java.io.Serializable;
 
-@Getter
+@Value
 @AllArgsConstructor
 public class SmsItemBean implements Serializable
 {

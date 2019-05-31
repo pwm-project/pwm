@@ -30,10 +30,11 @@ import LocalStorageService from '../../services/local-storage.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import PromiseService from '../../services/promise.service';
 import SearchResult from '../../models/search-result.model';
+import CommonSearchService from '../../services/common-search.service';
 
 @Component({
-    stylesheetUrl: require('modules/peoplesearch/peoplesearch-table.component.scss'),
-    templateUrl: require('modules/peoplesearch/peoplesearch-table.component.html')
+    stylesheetUrl: require('./peoplesearch-table.component.scss'),
+    templateUrl: require('./peoplesearch-table.component.html')
 })
 export default class PeopleSearchTableComponent extends PeopleSearchBaseComponent {
     columnConfiguration: any;
@@ -49,7 +50,8 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         'LocalStorageService',
         'PeopleService',
         'PromiseService',
-        'PwmService'
+        'PwmService',
+        'CommonSearchService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
@@ -61,7 +63,8 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
                 localStorageService: LocalStorageService,
                 peopleService: IPeopleService,
                 promiseService: PromiseService,
-                pwmService: IPwmService) {
+                pwmService: IPwmService,
+                commonSearchService: CommonSearchService) {
         super($q,
             $scope,
             $state,
@@ -72,12 +75,14 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
             localStorageService,
             peopleService,
             promiseService,
-            pwmService);
+            pwmService,
+            commonSearchService);
     }
 
     $onInit(): void {
-        this.initialize();
-        this.fetchData();
+        this.initialize().then(() => {
+            this.fetchData();
+        });
 
         let self = this;
 
@@ -109,18 +114,6 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         if (searchResult) {
             searchResult.then(this.onSearchResult.bind(this));
         }
-    }
-
-    toggleColumnVisible(event, columnId): void {
-        const visibleColumns = Object.keys(this.columnConfiguration).filter((columnId) => {
-            return this.columnConfiguration[columnId].visible;
-        });
-
-        if (!(visibleColumns.length === 1 && this.columnConfiguration[columnId].visible)) {
-            this.columnConfiguration[columnId].visible = !this.columnConfiguration[columnId].visible;
-        }
-
-        event.stopImmediatePropagation();
     }
 
     private onSearchResult(searchResult: SearchResult): void {

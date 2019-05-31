@@ -83,10 +83,10 @@ public class RestFormDataClient
     {
         final Map<String, String> httpHeaders = new LinkedHashMap<>();
         httpHeaders.put( HttpHeader.Accept.getHttpName(), PwmConstants.AcceptValue.json.getHeaderValue() );
-        httpHeaders.put( HttpHeader.Content_Type.getHttpName(), HttpContentType.json.getHeaderValue() );
+        httpHeaders.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
         if ( locale != null )
         {
-            httpHeaders.put( HttpHeader.Accept_Language.getHttpName(), locale.toString() );
+            httpHeaders.put( HttpHeader.AcceptLanguage.getHttpName(), locale.toString() );
         }
 
         {
@@ -119,7 +119,7 @@ public class RestFormDataClient
         {
             httpResponse = getHttpClient( pwmApplication.getConfig() ).makeRequest( pwmHttpClientRequest );
             final String responseBody = httpResponse.getBody();
-            LOGGER.trace( "external rest call returned: " + httpResponse.getStatusPhrase() + ", body: " + responseBody );
+            LOGGER.trace( () -> "external rest call returned: " + httpResponse.getStatusPhrase() + ", body: " + responseBody );
             if ( httpResponse.getStatusCode() != 200 )
             {
                 final String errorMsg = "received non-200 response code (" + httpResponse.getStatusCode() + ") when executing web-service";

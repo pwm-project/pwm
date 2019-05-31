@@ -51,7 +51,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @WebServlet(
         urlPatterns = {
@@ -72,13 +71,28 @@ public class RestFormSigningServer extends RestServlet
         }
     }
 
-    @RestMethodHandler( method = HttpMethod.POST, produces = HttpContentType.json )
+    @RestMethodHandler( method = HttpMethod.POST, produces = HttpContentType.json, consumes = HttpContentType.json )
     private RestResultBean handleRestJsonPostRequest( final RestRequest restRequest )
             throws IOException, PwmUnrecoverableException
     {
-
         final Map<String, String> inputFormData = restRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
+        return handleRestPostRequest( restRequest, inputFormData );
+    }
 
+    @RestMethodHandler( method = HttpMethod.POST, produces = HttpContentType.json, consumes = HttpContentType.form )
+    private RestResultBean handleRestFormPostRequest( final RestRequest restRequest )
+            throws IOException, PwmUnrecoverableException
+    {
+        final Map<String, String> inputFormData = restRequest.readParametersAsMap();
+        return handleRestPostRequest( restRequest, inputFormData );
+    }
+
+    private RestResultBean handleRestPostRequest(
+            final RestRequest restRequest,
+            final Map<String, String> inputFormData
+    )
+            throws PwmUnrecoverableException
+    {
         if ( !restRequest.getRestAuthentication().getUsages().contains( WebServiceUsage.SigningForm ) )
         {
             final String errorMsg = "request is not authenticated with permission for " + WebServiceUsage.SigningForm;
@@ -106,7 +120,7 @@ public class RestFormSigningServer extends RestServlet
             }
 
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }
@@ -114,7 +128,7 @@ public class RestFormSigningServer extends RestServlet
     public static Map<String, String> readSignedFormValue( final PwmApplication pwmApplication, final String input ) throws PwmUnrecoverableException
     {
         final Integer maxAgeSeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS ) );
-        final TimeDuration maxAge = new TimeDuration( maxAgeSeconds, TimeUnit.SECONDS );
+        final TimeDuration maxAge = TimeDuration.of( maxAgeSeconds, TimeDuration.Unit.SECONDS );
         final SignedFormData signedFormData = pwmApplication.getSecureService().decryptObject( input, SignedFormData.class );
         if ( signedFormData != null )
         {

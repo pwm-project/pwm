@@ -232,7 +232,7 @@ public class LdapBrowser
                     }
                     catch ( Exception e )
                     {
-                        LOGGER.debug( "error during subordinate entry count of " + dn + ", error: " + e.getMessage() );
+                        LOGGER.debug( () -> "error during subordinate entry count of " + dn + ", error: " + e.getMessage() );
                     }
                 }
                 returnMap.put( resultDN, hasSubs );

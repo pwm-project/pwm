@@ -38,6 +38,9 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.svc.PwmService;
+import password.pwm.svc.pwnotify.PwNotifyUserStatus;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
 
@@ -45,10 +48,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 public class UserDebugDataReader
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( UserDebugDataReader.class );
+
     public static UserDebugDataBean readUserDebugData(
             final PwmApplication pwmApplication,
             final Locale locale,
@@ -57,7 +63,9 @@ public class UserDebugDataReader
     )
             throws PwmUnrecoverableException
     {
-        final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, sessionLabel, userIdentity, locale );
+
+
+        final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxyForOfflineUser( pwmApplication, sessionLabel, userIdentity );
 
         final Map<Permission, String> permissions = UserDebugDataReader.permissionMap( pwmApplication, sessionLabel, userIdentity );
 
@@ -84,7 +92,9 @@ public class UserDebugDataReader
 
         final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, locale, sessionLabel, userIdentity );
 
-        final UserDebugDataBean userDebugData = UserDebugDataBean.builder()
+        final PwNotifyUserStatus pwNotifyUserStatus = readPwNotifyUserStatus( pwmApplication, userIdentity, sessionLabel );
+
+        return UserDebugDataBean.builder()
                 .userInfo( userInfo )
                 .publicUserInfoBean( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), locale, macroMachine ) )
                 .permissions( permissions )
@@ -93,9 +103,8 @@ public class UserDebugDataReader
                 .configuredPasswordPolicy( configPasswordPolicy )
                 .passwordReadable( readablePassword )
                 .passwordWithinMinimumLifetime( userInfo.isWithinPasswordMinimumLifetime() )
+                .pwNotifyUserStatus( pwNotifyUserStatus )
                 .build();
-
-        return userDebugData;
     }
 
 
@@ -145,5 +154,30 @@ public class UserDebugDataReader
             results.put( profileType, id );
         }
         return Collections.unmodifiableMap( results );
+    }
+
+    private static PwNotifyUserStatus readPwNotifyUserStatus(
+            final PwmApplication pwmApplication,
+            final UserIdentity userIdentity,
+            final SessionLabel sessionLabel
+    )
+    {
+        if ( pwmApplication.getPwNotifyService().status() == PwmService.STATUS.OPEN )
+        {
+            try
+            {
+                final Optional<PwNotifyUserStatus> value = pwmApplication.getPwNotifyService().readUserNotificationState( userIdentity, sessionLabel );
+                if ( value.isPresent() )
+                {
+                    return value.get();
+                }
+            }
+            catch ( PwmUnrecoverableException e )
+            {
+                LOGGER.debug( () -> "error reading user pwNotify status: " + e.getMessage() );
+            }
+        }
+
+        return null;
     }
 }

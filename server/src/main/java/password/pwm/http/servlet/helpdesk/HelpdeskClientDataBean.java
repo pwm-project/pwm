@@ -32,6 +32,7 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.http.servlet.peoplesearch.bean.SearchAttributeBean;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -55,6 +56,10 @@ public class HelpdeskClientDataBean implements Serializable
     private Map<String, ActionInformation> actions;
     private Map<String, Collection<IdentityVerificationMethod>> verificationMethods;
     private List<FormInformation> verificationForm;
+    private int maxAdvancedSearchAttributes;
+    private List<SearchAttributeBean> advancedSearchAttributes;
+    private boolean enableAdvancedSearch;
+
 
     @Value
     public static class ActionInformation implements Serializable
@@ -70,6 +75,7 @@ public class HelpdeskClientDataBean implements Serializable
         private String label;
     }
 
+
     static HelpdeskClientDataBean fromConfig(
             final HelpdeskProfile helpdeskProfile,
             final Locale locale
@@ -78,7 +84,7 @@ public class HelpdeskClientDataBean implements Serializable
         final HelpdeskClientDataBean.HelpdeskClientDataBeanBuilder builder = HelpdeskClientDataBean.builder();
         {
             // search page
-            final List<FormConfiguration> searchForm = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM );
+            final List<FormConfiguration> searchForm = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_RESULT_FORM );
             final Map<String, String> searchColumns = new LinkedHashMap<>();
             for ( final FormConfiguration formConfiguration : searchForm )
             {
@@ -130,6 +136,15 @@ public class HelpdeskClientDataBean implements Serializable
                 }
             }
             builder.verificationForm( formInformations );
+        }
+        {
+            final List<SearchAttributeBean> searchAttributes = SearchAttributeBean.searchAttributesFromForm(
+                    locale,
+                    helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM ) );
+
+                    builder.enableAdvancedSearch( helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE_ADVANCED_SEARCH ) );
+                    builder.maxAdvancedSearchAttributes( 3 );
+                    builder.advancedSearchAttributes( searchAttributes );
         }
 
 

@@ -21,97 +21,125 @@
  */
 
 
-body, html {
-  height: 100%;
-}
-
-body {
-  > ui-view {
-    box-sizing: border-box;
-    display: block;
+.ias-styles-root {
+  .help-desk-search-component,
+  .people-search-component {
     height: 100%;
-    overflow: hidden;
-    padding: 5px;
-    width: 100%;
-  }
-}
 
-.help-desk-search-component,
-.people-search-component {
-  height: 100%;
+    > ui-view {
+      height: 100%;
+      overflow: auto;
+    }
 
-  > ui-view {
-    height: 100%;
-    overflow: auto;
-  }
+    .peoplesearch-header {
+      display: flex;
+      align-items: flex-start;
 
-  .search-info-container {
-    text-align: left;
+      .basic-search-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
 
-    .search-info {
-      background-color: #fff6ce;
-      border: 1px solid #dae1e1;
-      border-radius: 3px;
-      color: #808080;
-      display: inline-block;
-      font-size: 14px;
-      margin: 0 auto 10px;
-      padding: 5px;
+        > * + * {
+          margin-left: 10px;
+        }
+      }
 
-      &.loading {
-        background-color: white;
+      .advanced-search-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 15px;
+
+        > * + * {
+          margin-top: 5px;
+        }
+
+        & + div {
+          margin-top: 15px;
+        }
+
+        select.attribute-value {
+          min-width: 210px;
+        }
+      }
+    }
+
+    .search-info-container {
+      text-align: left;
+
+      .search-info {
+        background-color: #fff6ce;
+        border: 1px solid #dae1e1;
+        border-radius: 3px;
+        color: #808080;
+        display: inline-block;
+        font-size: 14px;
+        margin: 0 auto 10px;
+        padding: 5px;
+
+        &.loading {
+          background-color: white;
+        }
       }
     }
   }
-}
 
-.highlight {
-  color: #01a9e7;
-}
+  .highlight {
+    color: #01a9e7;
+  }
 
-[dir="rtl"] {
-  .people-search-component {
-    .search-info-container {
-      text-align: right;
+  .ias-avatar {
+    background: transparent url('../../../images/user.png') no-repeat center center;
+    background-size: contain;
+  }
+
+  .ias-header {
+    max-width: 100%;
+  }
+
+  .checkbox-button {
+    align-items: center;
+    display: flex;
+    flex-flow: row nowrap;
+  }
+
+  .icon-divider {
+    &.vertical {
+      background-color: rgba(#808080, .5);
+      height: 25px;
+      margin: 0 5px;
+      width: 1px;
     }
   }
-}
 
-.ias-avatar {
-  background: transparent url('../../../images/user.png') no-repeat center center;
-  background-size: contain;
-}
-
-.ias-header {
-  max-width: 100%;
-}
-
-.checkbox-button {
-  align-items: center;
-  display: flex;
-  flex-flow: row nowrap;
-}
-
-.icon-divider {
-  &.vertical {
-    background-color: rgba(#808080, .5);
-    height: 25px;
-    margin: 0 5px;
-    width: 1px;
+  .single-line {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
-}
 
-.single-line {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+  @media (min-width: 768px) {
+    .ias-dialog {
+      .ias-dialog-container {
+        max-width: 100%;
+        width: 375px;
+      }
+    }
+  }
 
-@media (min-width: 768px) {
-  .ias-dialog {
-    .ias-dialog-container {
-      max-width: 100%;
-      width: 375px;
+  [dir="rtl"] {
+    .ias-search {
+      > .ias-icon-button {
+        right: auto; // Can remove once https://github.com/MicroFocus/ux-ias/issues/18 is fixed
+      }
+    }
+
+    .help-desk-search-component,
+    .people-search-component {
+      .search-info-container {
+        text-align: right;
+      }
     }
   }
 }

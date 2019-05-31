@@ -31,10 +31,11 @@ import {IPerson} from '../../models/person.model';
 import PromiseService from '../../services/promise.service';
 import {IHelpDeskService} from '../../services/helpdesk.service';
 import IPwmService from '../../services/pwm.service';
+import CommonSearchService from '../../services/common-search.service';
 
 @Component({
-    stylesheetUrl: require('modules/helpdesk/helpdesk-search.component.scss'),
-    templateUrl: require('modules/helpdesk/helpdesk-search-cards.component.html')
+    stylesheetUrl: require('./helpdesk-search.component.scss'),
+    templateUrl: require('./helpdesk-search-cards.component.html')
 })
 export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComponent {
     static $inject = [
@@ -49,11 +50,12 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
         'IasDialogService',
         'LocalStorageService',
         'PromiseService',
-        'PwmService'
+        'PwmService',
+        'CommonSearchService'
     ];
     constructor($q: IQService,
                 $scope: IScope,
-                private $state: angular.ui.IStateService,
+                $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
                 $timeout: ITimeoutService,
                 $translate: angular.translate.ITranslateService,
@@ -62,14 +64,16 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
                 IasDialogService: any,
                 localStorageService: LocalStorageService,
                 promiseService: PromiseService,
-                pwmService: IPwmService) {
-        super($q, $scope, $stateParams, $timeout, $translate, configService, helpDeskService, IasDialogService,
-            localStorageService, promiseService, pwmService);
+                pwmService: IPwmService,
+                commonSearchService: CommonSearchService) {
+        super($q, $scope, $state, $stateParams, $timeout, $translate, configService, helpDeskService, IasDialogService,
+            localStorageService, promiseService, pwmService, commonSearchService);
     }
 
     $onInit() {
-        this.initialize();
-        this.fetchData();
+        this.initialize().then(() => {
+            this.fetchData();
+        });
 
         this.configService.photosEnabled().then((photosEnabled: boolean) => {
             this.photosEnabled = photosEnabled;
@@ -84,7 +88,7 @@ export default class HelpDeskSearchCardsComponent extends HelpDeskSearchBaseComp
     }
 
     gotoTableView(): void {
-        this.$state.go('search.table', {query: this.query});
+        this.toggleView('search.table');
     }
 
     private onSearchResult(searchResult: SearchResult): void {

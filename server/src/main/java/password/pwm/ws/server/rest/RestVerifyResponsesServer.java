@@ -113,7 +113,7 @@ public class RestVerifyResponsesServer extends RestServlet
 
         final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 
-        LOGGER.debug( restRequest.getSessionLabel(), "beginning /verifyresponses REST service against "
+        LOGGER.debug( restRequest.getSessionLabel(), () -> "beginning /verifyresponses REST service against "
                 + ( targetUserIdentity.isSelf() ? "self" : targetUserIdentity.getUserIdentity().toDisplayString() ) );
 
         try
@@ -124,12 +124,12 @@ public class RestVerifyResponsesServer extends RestServlet
                     targetUserIdentity.getChaiUser()
             );
 
-            final boolean verified = responseSet.test( jsonInput.toCrMap() );
+            final boolean verified = responseSet != null && responseSet.test( jsonInput.toCrMap() );
 
             final RestResultBean restResultBean = RestResultBean.forSuccessMessage( verified, restRequest, Message.Success_Unknown );
 
-            LOGGER.debug( restRequest.getSessionLabel(), "completed /verifyresponses REST service in "
-                    + TimeDuration.fromCurrent( startTime ).asCompactString()
+            LOGGER.debug( restRequest.getSessionLabel(), () -> "completed /verifyresponses REST service in "
+                    + TimeDuration.compactFromCurrent( startTime )
                     + ", response: " + JsonUtil.serialize( restResultBean ) );
 
             return restResultBean;

@@ -29,25 +29,31 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 
 public class CacheService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( CacheService.class );
 
     private MemoryCacheStore memoryCacheStore;
-    private LocalDBCacheStore localDBCacheStore;
 
     private STATUS status = STATUS.NEW;
 
-    private Instant lastTraceOutput;
+    private ConditionalTaskExecutor traceDebugOutputter;
 
     @Override
     public STATUS status( )
@@ -62,32 +68,32 @@ public class CacheService implements PwmService
         final boolean enabled = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_ENABLE ) );
         if ( !enabled )
         {
-            LOGGER.debug( "skipping cache service init due to app property setting" );
+            LOGGER.debug( () -> "skipping cache service init due to app property setting" );
             status = STATUS.CLOSED;
             return;
         }
 
         if ( pwmApplication.getLocalDB() == null )
         {
-            LOGGER.debug( "skipping cache service init due to localDB not being available" );
+            LOGGER.debug( () -> "skipping cache service init due to localDB not being available" );
             status = STATUS.CLOSED;
             return;
         }
 
         if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
-            LOGGER.debug( "skipping cache service init due to read-only application mode" );
+            LOGGER.debug( () -> "skipping cache service init due to read-only application mode" );
             status = STATUS.CLOSED;
             return;
         }
 
         status = STATUS.OPENING;
         final int maxMemItems = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_MEMORY_MAX_ITEMS ) );
-        if ( pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN )
-        {
-            localDBCacheStore = new LocalDBCacheStore( pwmApplication );
-        }
         memoryCacheStore = new MemoryCacheStore( maxMemItems );
+        this.traceDebugOutputter = new ConditionalTaskExecutor(
+                ( ) -> outputTraceInfo(),
+                new ConditionalTaskExecutor.TimeDurationPredicate( 1, TimeDuration.Unit.MINUTES )
+        );
         status = STATUS.OPEN;
     }
 
@@ -95,7 +101,6 @@ public class CacheService implements PwmService
     public void close( )
     {
         status = STATUS.CLOSED;
-        localDBCacheStore = null;
     }
 
     @Override
@@ -107,90 +112,92 @@ public class CacheService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        return new ServiceInfoBean( Collections.emptyList() );
+        final Map<String, String> debugInfo = new TreeMap<>( );
+        debugInfo.put( "itemCount", String.valueOf( memoryCacheStore.itemCount() ) );
+        debugInfo.put( "byteCount", String.valueOf( memoryCacheStore.byteCount() ) );
+        debugInfo.putAll( JsonUtil.deserializeStringMap( JsonUtil.serialize( memoryCacheStore.getCacheStoreInfo() ) ) );
+        debugInfo.putAll( JsonUtil.deserializeStringMap( JsonUtil.serializeMap( memoryCacheStore.storedClassHistogram( "histogram." ) ) ) );
+        return new ServiceInfoBean( Collections.emptyList(), debugInfo );
     }
 
-    public void put( final CacheKey cacheKey, final CachePolicy cachePolicy, final String payload )
+    public Map<String, Serializable> debugInfo( )
+    {
+        final Map<String, Serializable> debugInfo = new LinkedHashMap<>( );
+        debugInfo.put( "memory-statistics", memoryCacheStore.getCacheStoreInfo() );
+        debugInfo.put( "memory-items", new ArrayList<Serializable>( memoryCacheStore.getCacheDebugItems() ) );
+        debugInfo.put( "memory-histogram", new HashMap<>( memoryCacheStore.storedClassHistogram( "" ) ) );
+        return Collections.unmodifiableMap( debugInfo );
+    }
+
+    public void put( final CacheKey cacheKey, final CachePolicy cachePolicy, final Serializable payload )
             throws PwmUnrecoverableException
     {
         if ( status != STATUS.OPEN )
         {
             return;
         }
-        if ( cacheKey == null )
-        {
-            throw new NullPointerException( "cacheKey can not be null" );
-        }
-        if ( cachePolicy == null )
-        {
-            throw new NullPointerException( "cachePolicy can not be null" );
-        }
-        if ( payload == null )
-        {
-            throw new NullPointerException( "payload can not be null" );
-        }
+
+        Objects.requireNonNull( cacheKey );
+        Objects.requireNonNull( cachePolicy );
+        Objects.requireNonNull( payload );
+
         final Instant expirationDate = cachePolicy.getExpiration();
         memoryCacheStore.store( cacheKey, expirationDate, payload );
-        if ( localDBCacheStore != null )
-        {
-            localDBCacheStore.store( cacheKey, expirationDate, payload );
-        }
-        outputTraceInfo();
+
+        traceDebugOutputter.conditionallyExecuteTask();
     }
 
-    public String get( final CacheKey cacheKey )
-            throws PwmUnrecoverableException
+    public <T extends Serializable> T get( final CacheKey cacheKey, final Class<T> classOfT  )
     {
-        if ( cacheKey == null )
-        {
-            return null;
-        }
+        Objects.requireNonNull( cacheKey );
+        Objects.requireNonNull( classOfT );
 
         if ( status != STATUS.OPEN )
         {
             return null;
         }
 
-        String payload = null;
+        T payload = null;
         if ( memoryCacheStore != null )
         {
-            payload = memoryCacheStore.read( cacheKey );
+            payload = memoryCacheStore.read( cacheKey, classOfT );
         }
 
-        if ( payload == null && localDBCacheStore != null )
-        {
-            payload = localDBCacheStore.read( cacheKey );
-        }
-
-        outputTraceInfo();
+        traceDebugOutputter.conditionallyExecuteTask();
 
         return payload;
     }
 
-    private void outputTraceInfo( )
+    public <T extends Serializable> T get( final CacheKey cacheKey, final CachePolicy cachePolicy, final Class<T> classOfT, final CacheLoader<T> cacheLoader )
+            throws PwmUnrecoverableException
     {
-        if ( lastTraceOutput == null || TimeDuration.fromCurrent( lastTraceOutput ).isLongerThan( 30 * 1000 ) )
+        Objects.requireNonNull( cacheKey );
+        Objects.requireNonNull( cachePolicy );
+        Objects.requireNonNull( classOfT );
+        Objects.requireNonNull( cacheLoader );
+
+        if ( status != STATUS.OPEN )
         {
-            lastTraceOutput = Instant.now();
-        }
-        else
-        {
-            return;
+            return cacheLoader.read();
         }
 
+        traceDebugOutputter.conditionallyExecuteTask();
+
+        final Instant expirationDate = cachePolicy.getExpiration();
+        return memoryCacheStore.readAndStore( cacheKey, expirationDate, classOfT, cacheLoader );
+    }
+
+    private void outputTraceInfo( )
+    {
         final StringBuilder traceOutput = new StringBuilder();
         if ( memoryCacheStore != null )
         {
             final CacheStoreInfo info = memoryCacheStore.getCacheStoreInfo();
-            traceOutput.append( ", memCache=" );
+            traceOutput.append( "memCache=" );
             traceOutput.append( JsonUtil.serialize( info ) );
+            traceOutput.append( ", histogram=" );
+            traceOutput.append( JsonUtil.serializeMap( memoryCacheStore.storedClassHistogram( "" ) ) );
         }
-        if ( localDBCacheStore != null )
-        {
-            final CacheStoreInfo info = localDBCacheStore.getCacheStoreInfo();
-            traceOutput.append( ", localDbCache=" );
-            traceOutput.append( JsonUtil.serialize( info ) );
-        }
-        LOGGER.trace( traceOutput );
+        LOGGER.trace( () -> traceOutput );
     }
 }

@@ -125,7 +125,7 @@ class DataStoreRecordStore implements RecordStore
         }
         catch ( PwmDataStoreException e )
         {
-            throw new PwmOperationalException( PwmError.ERROR_UNKNOWN, "iterator unavailable:" + e.getMessage() );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "iterator unavailable:" + e.getMessage() );
         }
     }
 
@@ -180,7 +180,7 @@ class DataStoreRecordStore implements RecordStore
         }
         eldestRecord = Instant.now();
 
-        final long startTime = System.currentTimeMillis();
+        final Instant startTime = Instant.now();
         final int recordsExamined = 0;
         int recordsRemoved = 0;
 
@@ -208,17 +208,19 @@ class DataStoreRecordStore implements RecordStore
             recordsRemoved += recordsToRemove.size();
             recordsToRemove.clear();
         }
-        final TimeDuration totalDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.trace( "completed cleanup of intruder table in " + totalDuration.asCompactString() + ", recordsExamined=" + recordsExamined + ", recordsRemoved=" + recordsRemoved );
+        {
+            final int finalRemoved = recordsRemoved;
+            LOGGER.trace( () -> "completed cleanup of intruder table in "
+                    + TimeDuration.compactFromCurrent( startTime ) + ", recordsExamined="
+                    + recordsExamined + ", recordsRemoved=" + finalRemoved );
+        }
     }
 
     private List<String> discoverPurgableKeys( final TimeDuration maxRecordAge )
     {
         final List<String> recordsToRemove = new ArrayList<>();
-        ClosableIterator<String> dbIterator = null;
-        try
+        try ( ClosableIterator<String> dbIterator = dataStore.iterator() )
         {
-            dbIterator = dataStore.iterator();
             while ( intruderManager.status() == PwmService.STATUS.OPEN && dbIterator.hasNext() && recordsToRemove.size() < MAX_REMOVALS_PER_CYCLE )
             {
                 final String key = dbIterator.next();
@@ -236,20 +238,9 @@ class DataStoreRecordStore implements RecordStore
                 }
             }
         }
-        catch ( PwmDataStoreException e )
+        catch ( PwmDataStoreException | PwmUnrecoverableException e )
         {
             LOGGER.error( "unable to perform intruder table cleanup: " + e.getMessage() );
-        }
-        catch ( PwmUnrecoverableException e )
-        {
-            LOGGER.error( "unable to perform intruder table cleanup: " + e.getMessage() );
-        }
-        finally
-        {
-            if ( dbIterator != null )
-            {
-                dbIterator.close();
-            }
         }
         return recordsToRemove;
     }

@@ -114,7 +114,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         // quit if settings no good;
         if ( corAttribute == null || corAttribute.length() < 1 )
         {
-            LOGGER.debug( "no user event log attribute configured, skipping write of log data" );
+            LOGGER.debug( () -> "no user event log attribute configured, skipping write of log data" );
             return;
         }
 
@@ -129,7 +129,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         catch ( Exception e )
         {
             final String errorMsg = "error reading LDAP user event history for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMsg );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             LOGGER.error( errorInformation.toDebugStr(), e );
             throw new PwmUnrecoverableException( errorInformation, e );
         }
@@ -199,7 +199,7 @@ class LdapXmlUserHistory implements UserHistoryStore
 
         if ( corAttribute == null || corAttribute.length() < 1 )
         {
-            LOGGER.trace( "no user event log attribute configured, skipping read of log data" );
+            LOGGER.trace( () -> "no user event log attribute configured, skipping read of log data" );
             return new StoredHistory();
         }
 

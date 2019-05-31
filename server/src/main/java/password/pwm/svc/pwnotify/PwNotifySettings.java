@@ -34,11 +34,10 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Value
 @Builder
-public class PwNotifySettings implements Serializable
+class PwNotifySettings implements Serializable
 {
     private final List<Integer> notificationIntervals;
     private final TimeDuration maximumSkipWindow;
@@ -61,12 +60,13 @@ public class PwNotifySettings implements Serializable
             builder.notificationIntervals( Collections.unmodifiableList( timeDurations ) );
         }
 
-        builder.zuluOffset( new TimeDuration( configuration.readSettingAsLong( PwmSetting.PW_EXPY_NOTIFY_JOB_OFFSET ), TimeUnit.SECONDS ) );
+        builder.zuluOffset( TimeDuration.of( configuration.readSettingAsLong( PwmSetting.PW_EXPY_NOTIFY_JOB_OFFSET ), TimeDuration.Unit.SECONDS ) );
         builder.batchCount( Integer.parseInt( configuration.readAppProperty( AppProperty.PWNOTIFY_BATCH_COUNT ) ) );
         builder.maxLdapSearchSize( Integer.parseInt( configuration.readAppProperty( AppProperty.PWNOTIFY_MAX_LDAP_SEARCH_SIZE ) ) );
         builder.batchTimeMultiplier( new BigDecimal( configuration.readAppProperty( AppProperty.PWNOTIFY_BATCH_DELAY_TIME_MULTIPLIER ) ) );
-        builder.maximumSkipWindow( new TimeDuration(
-                Long.parseLong( configuration.readAppProperty( AppProperty.PWNOTIFY_MAX_SKIP_RERUN_WINDOW_SECONDS ) ), TimeUnit.SECONDS ) );
+        builder.maximumSkipWindow( TimeDuration.of(
+                Long.parseLong( configuration.readAppProperty( AppProperty.PWNOTIFY_MAX_SKIP_RERUN_WINDOW_SECONDS ) ), TimeDuration.Unit.SECONDS ) );
+
         return builder.build();
     }
 }

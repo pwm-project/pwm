@@ -103,7 +103,7 @@ class ActivateUserUtils
         {
             {
                 // execute configured actions
-                LOGGER.debug( pwmSession.getLabel(), "executing configured pre-actions to user " + theUser.getEntryDN() );
+                LOGGER.debug( pwmSession.getLabel(), () -> "executing configured pre-actions to user " + theUser.getEntryDN() );
                 final List<ActionConfiguration> configValues = config.readSettingAsAction( PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES );
                 if ( configValues != null && !configValues.isEmpty() )
                 {
@@ -153,7 +153,7 @@ class ActivateUserUtils
                     {
                         {
                             // execute configured actions
-                            LOGGER.debug( pwmSession.getLabel(), "executing post-activate configured actions to user " + userIdentity.toDisplayString() );
+                            LOGGER.debug( pwmSession.getLabel(), () -> "executing post-activate configured actions to user " + userIdentity.toDisplayString() );
 
                             final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( pwmApplication );
                             final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction( PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES );
@@ -191,7 +191,7 @@ class ActivateUserUtils
         }
         catch ( ImpossiblePasswordPolicyException e )
         {
-            final ErrorInformation info = new ErrorInformation( PwmError.ERROR_UNKNOWN, "unexpected ImpossiblePasswordPolicyException error while activating user" );
+            final ErrorInformation info = new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected ImpossiblePasswordPolicyException error while activating user" );
             LOGGER.warn( pwmSession, info, e );
             throw new PwmOperationalException( info );
         }
@@ -217,7 +217,7 @@ class ActivateUserUtils
             final String tokenizedAttrName = "%" + attrName + "%";
             if ( searchFilter.contains( tokenizedAttrName ) )
             {
-                LOGGER.trace( pwmSession, "skipping validation of ldap value for '" + attrName + "' because it is in search filter" );
+                LOGGER.trace( pwmSession, () -> "skipping validation of ldap value for '" + attrName + "' because it is in search filter" );
             }
             else
             {
@@ -232,10 +232,10 @@ class ActivateUserUtils
                                         attrName,
                                 }
                         );
-                        LOGGER.debug( pwmSession.getLabel(), errorInfo.toDebugStr() );
+                        LOGGER.debug( pwmSession, errorInfo );
                         throw new PwmDataValidationException( errorInfo );
                     }
-                    LOGGER.trace( pwmSession.getLabel(), "successful validation of ldap value for '" + attrName + "'" );
+                    LOGGER.trace( pwmSession, () -> "successful validation of ldap value for '" + attrName + "'" );
                 }
                 catch ( ChaiOperationException e )
                 {
@@ -296,7 +296,7 @@ class ActivateUserUtils
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmSession, "skipping send activation email for '" + userInfo.getUserIdentity() + "' no email configured" );
+            LOGGER.debug( pwmSession, () -> "skipping send activation email for '" + userInfo.getUserIdentity() + "' no email configured" );
             return false;
         }
 
@@ -327,13 +327,13 @@ class ActivateUserUtils
         }
         catch ( Exception e )
         {
-            LOGGER.debug( pwmSession.getLabel(), "error reading SMS attribute from user '" + pwmSession.getUserInfo().getUserIdentity() + "': " + e.getMessage() );
+            LOGGER.debug( pwmSession, () -> "error reading SMS attribute from user '" + pwmSession.getUserInfo().getUserIdentity() + "': " + e.getMessage() );
             return false;
         }
 
         if ( toSmsNumber == null || toSmsNumber.length() < 1 )
         {
-            LOGGER.debug( pwmSession.getLabel(), "skipping send activation SMS for '" + pwmSession.getUserInfo().getUserIdentity() + "' no SMS number configured" );
+            LOGGER.debug( pwmSession, () -> "skipping send activation SMS for '" + pwmSession.getUserInfo().getUserIdentity() + "' no SMS number configured" );
             return false;
         }
 
@@ -358,7 +358,7 @@ class ActivateUserUtils
         if ( configuredSearchFilter == null || configuredSearchFilter.isEmpty() )
         {
             searchFilter = FormUtility.ldapSearchFilterForForm( pwmApplication, configuredActivationForm );
-            LOGGER.trace( pwmRequest, "auto generated search filter based on activation form: " + searchFilter );
+            LOGGER.trace( pwmRequest, () -> "auto generated search filter based on activation form: " + searchFilter );
         }
         else
         {

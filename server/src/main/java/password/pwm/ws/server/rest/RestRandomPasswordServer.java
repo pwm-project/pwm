@@ -36,7 +36,7 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
-import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -90,6 +90,17 @@ public class RestRandomPasswordServer extends RestServlet
     public RestResultBean doPostRandomPasswordForm( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
+        /* Check for parameter conflicts. */
+        if ( restRequest.hasParameter( "username" )
+             && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
+        {
+            LOGGER.error( restRequest.getSessionLabel(),
+              "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
+            final String errorMessage = "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified.";
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_PARAMETER_CONFLICT, errorMessage );
+            return RestResultBean.fromError( restRequest, errorInformation );
+        }
+
         final JsonInput jsonInput = new JsonInput();
         jsonInput.username = restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation );
         jsonInput.strength = restRequest.readParameterAsInt( "strength", 0 );
@@ -112,7 +123,7 @@ public class RestRandomPasswordServer extends RestServlet
         catch ( Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
@@ -122,6 +133,17 @@ public class RestRandomPasswordServer extends RestServlet
     public RestResultBean doPlainRandomPassword( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
+        /* Check for parameter conflicts. */
+        if ( restRequest.hasParameter( "username" )
+             && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
+        {
+            LOGGER.error( restRequest.getSessionLabel(),
+              "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
+            final String errorMessage = "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified.";
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_PARAMETER_CONFLICT, errorMessage );
+            return RestResultBean.fromError( restRequest, errorInformation );
+        }
+
         final JsonInput jsonInput = new JsonInput();
         jsonInput.username = restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation );
         jsonInput.strength = restRequest.readParameterAsInt( "strength", 0 );
@@ -139,7 +161,7 @@ public class RestRandomPasswordServer extends RestServlet
         {
             LOGGER.error( restRequest.getSessionLabel(), "error executing rest-json random password request: " + e.getMessage(), e );
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
@@ -165,7 +187,7 @@ public class RestRandomPasswordServer extends RestServlet
         {
             LOGGER.error( restRequest.getSessionLabel(), "error executing rest-form random password request: " + e.getMessage(), e );
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNKNOWN, errorMessage );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }
