@@ -201,10 +201,11 @@
             <script type="text/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
                     PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>', 'input', function (event) {
-                        event.target.setCustomValidity("");
-                    });
-                    PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>', 'invalid', function (event) {
-                        event.target.setCustomValidity('<%=StringUtil.escapeJS(loopConfiguration.getRegexError(formLocale))%>');
+                        var input = event.target;
+                        var regexError = '<%=StringUtil.escapeJS(loopConfiguration.getRegexError(formLocale))%>';
+                        var msg = input.value.search(new RegExp(input.getAttribute('pattern'))) >= 0 ? '' : regexError;
+                        input.setCustomValidity(msg);
+                        input.title = msg;
                     });
                 });
             </script>
