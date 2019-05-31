@@ -29,7 +29,12 @@ import password.pwm.http.PwmSession;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * An ErrorInformation is a package of error data generated within PWM.  Error information includes an error code
@@ -174,5 +179,22 @@ public class ErrorInformation implements Serializable
         }
         return new ErrorInformation( pwmError, this.getDetailedErrorMsg() );
 
+    }
+
+    public static boolean listsContainSameErrors( final List<ErrorInformation> errorInformation1, final List<ErrorInformation> errorInformation2 )
+    {
+        Objects.requireNonNull( errorInformation1 );
+        Objects.requireNonNull( errorInformation2 );
+        return extractErrorSet( errorInformation1 ).equals( extractErrorSet( errorInformation2 ) );
+    }
+
+    private static Set<PwmError> extractErrorSet( final List<ErrorInformation> errors )
+    {
+        if ( errors != null )
+        {
+            return errors.stream().map( ErrorInformation::getError ).collect( Collectors.toSet() );
+        }
+
+        return Collections.emptySet();
     }
 }

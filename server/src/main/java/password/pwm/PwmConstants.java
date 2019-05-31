@@ -168,7 +168,7 @@ public abstract class PwmConstants
     public static final String PARAM_USERKEY = "userKey";
 
 
-    public static final String COOKIE_PERSISTENT_CONFIG_LOGIN = "persistentConfigLogin";
+    public static final String COOKIE_PERSISTENT_CONFIG_LOGIN = "CONFIG-AUTH";
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
 

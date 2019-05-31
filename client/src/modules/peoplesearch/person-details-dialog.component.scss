@@ -36,11 +36,29 @@
   }
 
   .person-details-dialog {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: left;
     overflow: hidden;
 
     .ias-dialog-container {
+      display: flex;
+      margin: 0;
       padding: 0;
+      position: relative;
+      top: auto;
+      transform: none;
+
+      > .ias-dialog-content {
+        display: grid;
+        grid-template-rows: max-content 1fr;
+        flex-grow: 1;
+
+        > .person-details-content {
+          overflow: auto;
+        }
+      }
     }
 
     .ias-avatar {

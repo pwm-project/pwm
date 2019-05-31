@@ -98,7 +98,8 @@
                 <version>3.2.2</version>
                 <configuration>
                     <archiveClasses>true</archiveClasses>
-                    <packagingExcludes>WEB-INF/classes</packagingExcludes>
+                    <packagingExcludes>**/*.jsp</packagingExcludes>
+                    <webXml>${project.build.directory}/web.xml</webXml>
                     <archive>
                         <manifestEntries>
                             <Implementation-Archive-Name>${warArtifactID}</Implementation-Archive-Name>
@@ -127,6 +128,7 @@
                         </goals>
                         <phase>compile</phase>
                         <configuration>
+                            <trimSpaces>true</trimSpaces>
                             <compilerVersion>${maven.compiler.source}</compilerVersion>
                             <keepSources>false</keepSources>
                         </configuration>

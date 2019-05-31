@@ -494,6 +494,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             }
             catch ( Exception e )
             {
+                LOGGER.error( pwmRequest, "error during save: " + e.getMessage(), e );
                 final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation(
                         PwmError.ERROR_INTERNAL,
                         "error during save: " + e.getMessage()

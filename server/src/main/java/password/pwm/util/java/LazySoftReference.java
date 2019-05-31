@@ -1,4 +1,4 @@
-/*!
+/*
  * Password Management Servlets (PWM)
  * http://www.pwm-project.org
  *
@@ -20,34 +20,29 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-.ias-styles-root {
-    people-search-table {
-        #page-content-title {
-            margin-bottom: 0;
-        }
+package password.pwm.util.java;
 
-        display: flex;
-        flex-flow: column nowrap;
-        height: 100%;
+import java.lang.ref.SoftReference;
+import java.util.function.Supplier;
 
-        > .people-search-component-content {
-            flex: 1 1;
-            overflow: auto;
-            position: relative;
-            text-align: center;
+public class LazySoftReference<E>
+{
+    private volatile SoftReference<E> reference = new SoftReference<>( null );
+    private final Supplier<E> supplier;
 
-            .table-configuration-menu-toggle {
-                position: absolute;
-                top: 0;
-                right: 0;
-            }
-        }
+    public LazySoftReference( final Supplier<E> supplier )
+    {
+        this.supplier = supplier;
     }
 
-    .ias-input-container > .checkbox-button > .ias-button.toggle-column-btn {
-        &:focus, &:hover {
-            background-color: transparent;
-            box-shadow: none;
+    public synchronized E get()
+    {
+        E localValue = reference.get();
+        if ( localValue == null )
+        {
+            localValue = supplier.get();
+            reference = new SoftReference<>( localValue );
         }
+        return localValue;
     }
 }

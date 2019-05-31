@@ -116,18 +116,6 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         }
     }
 
-    toggleColumnVisible(event, columnId): void {
-        const visibleColumns = Object.keys(this.columnConfiguration).filter((columnId) => {
-            return this.columnConfiguration[columnId].visible;
-        });
-
-        if (!(visibleColumns.length === 1 && this.columnConfiguration[columnId].visible)) {
-            this.columnConfiguration[columnId].visible = !this.columnConfiguration[columnId].visible;
-        }
-
-        event.stopImmediatePropagation();
-    }
-
     private onSearchResult(searchResult: SearchResult): void {
         this.searchResult = searchResult;
     }

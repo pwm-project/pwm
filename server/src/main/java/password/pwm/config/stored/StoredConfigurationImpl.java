@@ -246,13 +246,13 @@ public class StoredConfigurationImpl implements StoredConfiguration
             // remove existing element
             {
                 final XmlElement propertyElement  = xmlHelper.xpathForConfigProperty( propertyName );
-                propertyElement.detach();
+                if ( propertyElement != null )
+                {
+                    propertyElement.detach();
+                }
             }
 
             // add new property
-            {
-
-            }
             final XmlElement propertyElement = xmlHelper.getXmlFactory().newElement( XML_ELEMENT_PROPERTY );
             propertyElement.setAttribute( XML_ATTRIBUTE_KEY, propertyName.getKey() );
             propertyElement.addText( value );

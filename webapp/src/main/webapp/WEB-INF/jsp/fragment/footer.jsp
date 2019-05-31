@@ -68,7 +68,7 @@
 </pwm:if>
 <pwm:script>
     <script type="text/javascript">
-        var dojoConfig = { has: { "csp-restrictions":false }, async:true }
+        var dojoConfig = { has: { "csp-restrictions":true }, async:true}
     </script>
 </pwm:script>
 <pwm:if test="<%=PwmIfTest.hasCustomJavascript%>">

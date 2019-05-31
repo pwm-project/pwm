@@ -300,8 +300,6 @@ public class PwmApplication
 
             pwmScheduler.immediateExecuteInNewThread( this::postInitTasks );
         }
-
-
     }
 
     private void postInitTasks( )

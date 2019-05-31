@@ -31,7 +31,7 @@ PWM_API.formatDate = function(dateObj) {
     return PWM_MAIN.TimestampHandler.formatDate(dateObj);
 };
 
-PWM_MAIN.ajaxTimeout = 120 * 1000;
+PWM_MAIN.ajaxTimeout = 60 * 1000;
 
 PWM_MAIN.pageLoadHandler = function() {
     PWM_GLOBAL['localeBundle']=PWM_GLOBAL['localeBundle'] || [];
@@ -474,19 +474,19 @@ PWM_MAIN.checkForCapsLock = function(e) {
 
         if(dojo.isIE){
             if (capsLockKeyDetected) {
-                capsLockWarningElement.style.display = 'block';
+                PWM_MAIN.removeCssClass('capslockwarning','display-none');
                 PWM_GLOBAL['lastCapsLockErrorTime'] = (new Date().getTime());
                 setTimeout(function(){
                     if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
-                        capsLockWarningElement.style.display = 'none';
+                        PWM_MAIN.addCssClass('capslockwarning','display-none');
                     }
                 },displayDuration + 500);
             } else {
-                capsLockWarningElement.style.display = 'none';
+                PWM_MAIN.addCssClass('capslockwarning','display-none');
             }
         } else {
             if (capsLockKeyDetected) {
-                capsLockWarningElement.style.display = null;
+                PWM_MAIN.removeCssClass('capslockwarning','display-none');
                 fx.fadeIn(fadeInArgs).play();
                 PWM_GLOBAL['lastCapsLockErrorTime'] = (new Date().getTime());
                 setTimeout(function(){
@@ -494,7 +494,7 @@ PWM_MAIN.checkForCapsLock = function(e) {
                         dojo.fadeOut(fadeOutArgs).play();
                         setTimeout(function(){
                             if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
-                                capsLockWarningElement.style.display = 'none';
+                                PWM_MAIN.addCssClass('capslockwarning','display-none');
                             }
                         },5 * 1000);
                     }
@@ -1392,10 +1392,10 @@ PWM_MAIN.updateLoginContexts = function() {
         var selectedProfile = ldapProfileElement.options[ldapProfileElement.selectedIndex].value;
         var contextList = PWM_GLOBAL['ldapProfiles'][selectedProfile];
         if (PWM_MAIN.JSLibrary.isEmpty(contextList)) {
-            PWM_MAIN.getObject('contextSelectorWrapper').style.display = 'none';
+            PWM_MAIN.addCssClass( 'contentSelectorWrapper', 'display-none' );
         } else {
             contextElement.innerHTML = '';
-            PWM_MAIN.getObject('contextSelectorWrapper').style.display = 'inherit';
+            PWM_MAIN.removeCssClass( 'contentSelectorWrapper', 'display-none' );
             for (var iter in contextList) {
                 (function (key) {
                     var display = contextList[key];

@@ -119,10 +119,10 @@ public class CaptchaUtility
         final PasswordData privateKey = pwmApplication.getConfig().readSettingAsPassword( PwmSetting.RECAPTCHA_KEY_PRIVATE );
 
         final String bodyText = "secret=" + StringUtil.urlEncode( privateKey.getStringValue() )
-                        + "&"
-                        + "remoteip=" + StringUtil.urlEncode( pwmRequest.getSessionLabel().getSrcAddress() )
-                        + "&"
-                        + "response=" + StringUtil.urlEncode( recaptchaResponse );
+                + "&"
+                + "remoteip=" + StringUtil.urlEncode( pwmRequest.getSessionLabel().getSrcAddress() )
+                + "&"
+                + "response=" + StringUtil.urlEncode( recaptchaResponse );
 
         try
         {
@@ -337,11 +337,11 @@ public class CaptchaUtility
             return true;
         }
 
-        final String skipCaptcha = pwmRequest.readParameterAsString( PwmConstants.PARAM_SKIP_CAPTCHA );
-        if ( skipCaptcha != null && skipCaptcha.length() > 0 )
+        final String configValue = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_PARAM );
+        if ( !StringUtil.isEmpty( configValue ) )
         {
-            final String configValue = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_PARAM );
-            if ( configValue != null && configValue.equals( skipCaptcha ) )
+            final String skipCaptcha = pwmRequest.readParameterAsString( PwmConstants.PARAM_SKIP_CAPTCHA );
+            if ( StringUtil.nullSafeEquals( configValue, skipCaptcha ) )
             {
                 LOGGER.trace( pwmRequest, () -> "valid skipCaptcha value in request, skipping captcha check for this session" );
                 pwmRequest.getPwmSession().getSessionStateBean().setCaptchaBypassedViaParameter( true );

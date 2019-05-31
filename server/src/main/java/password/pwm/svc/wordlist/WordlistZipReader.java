@@ -26,7 +26,6 @@ import org.apache.commons.io.input.CountingInputStream;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.ChecksumInputStream;
 
@@ -161,6 +160,6 @@ class WordlistZipReader implements AutoCloseable, Closeable
 
     String getChecksum()
     {
-        return JavaHelper.binaryArrayToHex( checksumInputStream.checksum().copyOf() );
+        return checksumInputStream.checksum();
     }
 }

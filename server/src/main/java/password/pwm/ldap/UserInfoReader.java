@@ -54,7 +54,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
 import password.pwm.util.PasswordData;
-import password.pwm.util.PwmPasswordRuleValidator;
+import password.pwm.util.password.PwmPasswordRuleValidator;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CachingProxyWrapper;

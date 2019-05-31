@@ -278,7 +278,7 @@ public class LoginServlet extends ControlledPwmServlet
         final LoginServletBean loginServletBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, LoginServletBean.class );
         final String decryptedValue = loginServletBean.getNextUrl();
 
-        if ( decryptedValue != null && !decryptedValue.isEmpty() )
+        if ( !StringUtil.isEmpty( decryptedValue ) )
         {
             final PwmURL originalPwmURL = new PwmURL( URI.create( decryptedValue ), pwmRequest.getContextPath() );
             if ( !originalPwmURL.isLoginServlet() )

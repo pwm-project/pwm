@@ -178,7 +178,7 @@ public class PwmHttpResponseWrapper
         }
 
         final boolean httpOnlyEnabled = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.HTTP_COOKIE_HTTPONLY_ENABLE ) );
-        final boolean httpOnly = httpOnlyEnabled && JavaHelper.enumArrayContainsValue( flags, Flag.NonHttpOnly );
+        final boolean httpOnly = httpOnlyEnabled && !JavaHelper.enumArrayContainsValue( flags, Flag.NonHttpOnly );
 
         final String value;
         {

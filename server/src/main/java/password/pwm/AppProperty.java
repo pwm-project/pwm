@@ -276,6 +276,7 @@ public enum AppProperty
     PASSWORD_STRENGTH_THRESHOLD_GOOD                ( "password.strength.threshold.good" ),
     PASSWORD_STRENGTH_THRESHOLD_WEAK                ( "password.strength.threshold.weak" ),
     PASSWORD_STRENGTH_THRESHOLD_VERY_WEAK           ( "password.strength.threshold.veryWeak" ),
+    PASSWORD_RULE_WORDLIST_FAIL_WHEN_CLOSED         ( "password.rule.wordlist.failWhenClosed" ),
     PWNOTIFY_BATCH_COUNT                            ( "pwNotify.batch.count" ),
     PWNOTIFY_BATCH_DELAY_TIME_MULTIPLIER            ( "pwNotify.batch.delayTimeMultiplier" ),
     PWNOTIFY_MAX_LDAP_SEARCH_SIZE                   ( "pwNotify.maxLdapSearchSize" ),

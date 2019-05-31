@@ -274,7 +274,7 @@ public interface XmlElement
         public String getText()
         {
             final String value = element.getTextContent();
-            return StringUtil.isEmpty( value ) ? null : value;
+            return value == null ? "" : value;
         }
 
         @Override
