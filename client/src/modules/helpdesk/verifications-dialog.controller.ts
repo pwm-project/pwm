@@ -96,6 +96,13 @@ export default class VerificationsDialogController {
                     this.status = STATUS_SELECT;
                     this.determineAvailableVerificationMethods();
                 }
+            })
+            .catch((reason: any) => {
+                alert(reason);
+
+                this.status = STATUS_NONE;
+                this.verificationStatus = STATUS_NONE;
+                this.IasDialogService.close();
             });
     }
 

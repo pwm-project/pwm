@@ -289,6 +289,7 @@ public enum Display implements PwmDisplayBundle
     Title_MainPage,
     Title_NewUser,
     Title_OrgChart,
+    Title_Settings,
     Title_PasswordGuide,
     Title_PasswordPolicy,
     Title_PasswordStrength,
