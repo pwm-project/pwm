@@ -20,12 +20,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-
 package password.pwm.resttest;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.apache.commons.io.IOUtils;
 
 import javax.servlet.ServletException;
@@ -38,25 +35,18 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 
 @WebServlet(
-        name = "NewUserServlet",
-        urlPatterns = { "/sms", "/macro", "/external-token-destination", "/external-password-check" }
+        name = "RestTestSmsGatewayServlet",
+        urlPatterns = { "/sms" }
 )
-
-public class ExternalMacroServlet extends HttpServlet
+public class RestTestSmsGatewayServlet extends HttpServlet
 {
     private static final String USERNAME_PARAMETER = "username";
     private static final String SUCCESSFUL = "true";
     private static final String UNSUCCESSFUL = "false";
-    private static final String SMS_URL = "/sms";
-    private static final String MACRO_URL = "/macro";
-    private static final String EXTERNAL_TOKEN_DESTINATION_URL = "/external-token-destination";
-    private static final String EXTERNAL_PASSWORD_CHECK_URL = "/external-password-check";
 
     @Override
     protected void doPost( final HttpServletRequest req, final HttpServletResponse resp ) throws ServletException, IOException
     {
-        if ( req.getServletPath().equals( SMS_URL ) )
-        {
             final SmsResponse instance = SmsResponse.getInstance();
             final InputStream inputStream = req.getInputStream();
             final String body = IOUtils.toString( inputStream );
@@ -75,43 +65,11 @@ public class ExternalMacroServlet extends HttpServlet
             final PrintWriter writer = resp.getWriter();
             writer.write(  "{\"output\":\"Message Received\"}" );
             writer.close();
-        }
-        else if ( req.getServletPath().equals( EXTERNAL_TOKEN_DESTINATION_URL ) )
-        {
-            System.out.println( "External Token Destination" );
-            final InputStream inputStream = req.getInputStream();
-            final String body = IOUtils.toString( inputStream );
-            final JsonObject jsonObject = new JsonParser().parse( body ).getAsJsonObject();
-            final String email = jsonObject.getAsJsonObject( "tokenDestination" ).get( "email" ).getAsString();
-            final String sms = jsonObject.getAsJsonObject( "tokenDestination" ).get( "sms" ).getAsString();
-            final String displayValue = "YourTokenDestination";
-
-            resp.setHeader( "Content-Type", "application/json" );
-
-            final PrintWriter writer = resp.getWriter();
-            final String response = "{\"email\":\"" + email + "\",\"sms\":\"" + sms + "\",\"displayValue\":\"" + displayValue + "\"}";
-            writer.write( response );
-            writer.close();
-        }
-        else if ( req.getServletPath().equals( EXTERNAL_PASSWORD_CHECK_URL ) )
-        {
-            System.out.println( "External Password Check" );
-            final boolean error = false;
-            final String errorMessage = "No error.";
-            resp.setHeader( "Content-Type", "application/json" );
-
-            final PrintWriter writer = resp.getWriter();
-            final String response = "{\"error\":\"" + error + "\",\"errorMessage\":\"" + errorMessage + "\"}";
-            writer.write( response );
-            writer.close();
-        }
     }
 
     @Override
     protected void doGet( final HttpServletRequest req, final HttpServletResponse resp ) throws IOException
     {
-        if ( req.getServletPath().equals( SMS_URL ) )
-        {
             //Check request
             final SmsResponse instance = SmsResponse.getInstance();
             final String requestUsername = req.getParameter( USERNAME_PARAMETER );
@@ -136,5 +94,5 @@ public class ExternalMacroServlet extends HttpServlet
             writer.close();
 
         }
-    }
+
 }
