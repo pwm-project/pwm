@@ -207,7 +207,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
-            <version>1.6</version>
+            <version>1.7</version>
         </dependency>
         <dependency>
             <groupId>commons-fileupload</groupId>
@@ -232,7 +232,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.8</version>
+            <version>4.5.9</version>
         </dependency>
         <dependency>
             <groupId>org.graylog2</groupId>
@@ -257,12 +257,12 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.61</version>
+            <version>1.62</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.61</version>
+            <version>1.62</version>
         </dependency>
         <dependency>
             <groupId>jaxen</groupId>
