@@ -33,11 +33,15 @@ var PWM_CHANGEPW = PWM_CHANGEPW || {};
 
 // takes password values in the password fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
+
+PWM_CHANGEPW.passwordField = "password1";
+PWM_CHANGEPW.passwordConfirmField = "password2";
+
 PWM_CHANGEPW.validatePasswords = function(userDN, nextFunction)
 {
-    if (PWM_GLOBAL['previousP1'] !== PWM_MAIN.getObject("password1").value) {  // if p1 is changing, then clear out p2.
-        PWM_MAIN.getObject("password2").value = "";
-        PWM_GLOBAL['previousP1'] = PWM_MAIN.getObject("password1").value;
+    if (PWM_GLOBAL['previousP1'] !== PWM_MAIN.getObject(PWM_CHANGEPW.passwordField).value) {  // if p1 is changing, then clear out p2.
+        PWM_MAIN.getObject(PWM_CHANGEPW.passwordConfirmField ).value = "";
+        PWM_GLOBAL['previousP1'] = PWM_MAIN.getObject(PWM_CHANGEPW.passwordField).value;
     }
 
     var validationProps = {};
@@ -47,8 +51,8 @@ PWM_CHANGEPW.validatePasswords = function(userDN, nextFunction)
     validationProps['serviceURL'] = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','checkPassword');
     validationProps['readDataFunction'] = function(){
         var returnObj = {};
-        returnObj['password1'] = PWM_MAIN.getObject("password1").value;
-        returnObj['password2'] = PWM_MAIN.getObject("password2").value;
+        returnObj[PWM_CHANGEPW.passwordField ] = PWM_MAIN.getObject(PWM_CHANGEPW.passwordField ).value;
+        returnObj[PWM_CHANGEPW.passwordConfirmField ] = PWM_MAIN.getObject(PWM_CHANGEPW.passwordConfirmField ).value;
         if (userDN) {
             returnObj['username'] = userDN;
         }
@@ -131,7 +135,7 @@ PWM_CHANGEPW.markStrength = function(strength) { //strength meter
         return;
     }
 
-    if (PWM_MAIN.getObject("password1").value.length > 0) {
+    if (PWM_MAIN.getObject(PWM_CHANGEPW.passwordField).value.length > 0) {
         PWM_MAIN.getObject("strengthBox").style.visibility = 'visible';
     } else {
         PWM_MAIN.getObject("strengthBox").style.visibility = 'hidden';
@@ -177,9 +181,9 @@ PWM_CHANGEPW.copyToPasswordFields = function(text) { // used to copy auto-genera
 
     PWM_MAIN.closeWaitDialog();
 
-    PWM_MAIN.getObject("password1").value = text;
+    PWM_MAIN.getObject(PWM_CHANGEPW.passwordField).value = text;
     PWM_CHANGEPW.validatePasswords();
-    PWM_MAIN.getObject("password2").focus();
+    PWM_MAIN.getObject(PWM_CHANGEPW.passwordConfirmField).focus();
 
     ShowHidePasswordHandler.show('password1');
 };
@@ -206,13 +210,13 @@ PWM_CHANGEPW.handleChangePasswordSubmit=function(event) {
             PWM_MAIN.closeWaitDialog();
             var match = data['data']['match'];
             if ('MATCH' !== match) {
-                PWM_MAIN.getObject("password2").value = '';
+                PWM_MAIN.getObject(PWM_CHANGEPW.passwordConfirmField).value = '';
             }
             var okFunction = function() {
                 if ('MATCH' === match || 'EMPTY' === match) {
-                    PWM_MAIN.getObject("password1").focus();
+                    PWM_MAIN.getObject(PWM_CHANGEPW.passwordField).focus();
                 } else {
-                    PWM_MAIN.getObject("password2").focus();
+                    PWM_MAIN.getObject(PWM_CHANGEPW.passwordConfirmField).focus();
                 }
                 PWM_CHANGEPW.validatePasswords();
             };
@@ -382,8 +386,8 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
     PWM_MAIN.addEventHandler('button-reset','click',function(event){
         console.log('intercepted reset button');
 
-        var p1Value = PWM_MAIN.getObject("password1").value;
-        var p2Value = PWM_MAIN.getObject("password2").value;
+        var p1Value = PWM_MAIN.getObject(PWM_CHANGEPW.passwordField).value;
+        var p2Value = PWM_MAIN.getObject(PWM_CHANGEPW.passwordConfirmField).value;
 
         var submitForm = function(){
             var resetForm = PWM_MAIN.getObject('form-reset');

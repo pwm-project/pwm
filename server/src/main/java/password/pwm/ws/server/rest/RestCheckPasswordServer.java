@@ -62,7 +62,7 @@ import java.time.Instant;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/checkpassword"
         }
 )
-@RestWebServer( webService = WebServiceUsage.CheckPassword, requireAuthentication = true )
+@RestWebServer( webService = WebServiceUsage.CheckPassword )
 public class RestCheckPasswordServer extends RestServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestCheckPasswordServer.class );

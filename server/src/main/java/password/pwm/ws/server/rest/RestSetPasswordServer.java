@@ -59,7 +59,7 @@ import java.io.Serializable;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/setpassword"
         }
 )
-@RestWebServer( webService = WebServiceUsage.SetPassword, requireAuthentication = true )
+@RestWebServer( webService = WebServiceUsage.SetPassword )
 public class RestSetPasswordServer extends RestServlet
 {
 

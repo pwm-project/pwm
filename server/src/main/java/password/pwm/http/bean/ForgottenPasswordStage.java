@@ -20,18 +20,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.ws.server;
+package password.pwm.http.bean;
 
-import password.pwm.config.option.WebServiceUsage;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Retention( RetentionPolicy.RUNTIME )
-@Target( ElementType.TYPE )
-public @interface RestWebServer
+public enum ForgottenPasswordStage
 {
-    WebServiceUsage webService( );
+    IDENTIFICATION,
+    METHOD_CHOICE,
+    TOKEN_CHOICE,
+    VERIFICATION,
+    ACTION_CHOICE,
+    NEW_PASSWORD,
+    COMPLETE,
 }

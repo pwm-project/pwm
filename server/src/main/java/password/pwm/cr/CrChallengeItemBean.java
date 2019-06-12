@@ -22,69 +22,46 @@
 
 package password.pwm.cr;
 
+import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.bean.ChallengeBean;
+import lombok.Builder;
+import lombok.Value;
+
 import java.io.Serializable;
 
-public class CrChallengeItemBean implements Serializable
+@Value
+@Builder
+public class CrChallengeItemBean implements Serializable, Challenge
 {
-    public String challengeText;
-    public int minLength;
-    public int maxLength;
-    public boolean adminDefined;
-    public boolean required;
-    public int maxQuestionCharsInAnswer;
-    public boolean enforceWordlist;
+    private String challengeText;
+    private int minLength;
+    private int maxLength;
+    private boolean adminDefined;
+    private boolean required;
+    private int maxQuestionCharsInAnswer;
+    private boolean enforceWordlist;
 
-    public CrChallengeItemBean(
-            final String challengeText,
-            final int minLength,
-            final int maxLength,
-            final boolean adminDefined,
-            final boolean required,
-            final int maxQuestionCharsInAnswer,
-            final boolean enforceWordlist
-    )
+    @Override
+    public boolean isLocked()
     {
-        this.challengeText = challengeText;
-        this.minLength = minLength;
-        this.maxLength = maxLength;
-        this.adminDefined = adminDefined;
-        this.required = required;
-        this.maxQuestionCharsInAnswer = maxQuestionCharsInAnswer;
-        this.enforceWordlist = enforceWordlist;
+        return true;
     }
 
-    public String getChallengeText( )
+    @Override
+    public void lock()
     {
-        return challengeText;
+
     }
 
-    public int getMinLength( )
+    @Override
+    public void setChallengeText( final String challengeText )
     {
-        return minLength;
+        throw new IllegalStateException();
     }
 
-    public int getMaxLength( )
+    @Override
+    public ChallengeBean asChallengeBean()
     {
-        return maxLength;
-    }
-
-    public boolean isAdminDefined( )
-    {
-        return adminDefined;
-    }
-
-    public boolean isRequired( )
-    {
-        return required;
-    }
-
-    public int getMaxQuestionCharsInAnswer( )
-    {
-        return maxQuestionCharsInAnswer;
-    }
-
-    public boolean isEnforceWordlist( )
-    {
-        return enforceWordlist;
+        throw new IllegalStateException();
     }
 }

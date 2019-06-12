@@ -32,6 +32,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
+import com.novell.ldapchai.cr.ChallengeSet;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.PwmLdapVendor;
 import password.pwm.util.PasswordData;
@@ -260,6 +261,26 @@ public class JsonUtil
             catch ( Exception e )
             {
                 LOGGER.debug( () -> "unable to parse stored json Instant.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage() );
+                throw new JsonParseException( e );
+            }
+        }
+    }
+
+    private static class ChallengeSetAdapter implements JsonDeserializer<ChallengeSet>
+    {
+        private ChallengeSetAdapter( )
+        {
+        }
+
+        public synchronized ChallengeSet deserialize( final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext )
+        {
+            try
+            {
+                return null;
+            }
+            catch ( Exception e )
+            {
+                LOGGER.debug( () -> "unable to parse stored json ChallengeSet.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage() );
                 throw new JsonParseException( e );
             }
         }

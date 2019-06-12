@@ -22,16 +22,20 @@
 
 package password.pwm.ws.server;
 
-import password.pwm.config.option.WebServiceUsage;
+import lombok.Builder;
+import lombok.Singular;
+import lombok.Value;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.io.Serializable;
+import java.util.List;
 
-@Retention( RetentionPolicy.RUNTIME )
-@Target( ElementType.TYPE )
-public @interface RestWebServer
+@Value
+@Builder
+public class PresentableForm implements Serializable
 {
-    WebServiceUsage webService( );
+    @Singular
+    private List<PresentableFormRow> formRows;
+    private String label;
+    private String message;
+    private String messageDetail;
 }

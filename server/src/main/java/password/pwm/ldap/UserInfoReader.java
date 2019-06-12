@@ -591,14 +591,7 @@ public class UserInfoReader implements UserInfo
     @Override
     public String getUserGuid( ) throws PwmUnrecoverableException
     {
-        try
-        {
-            return LdapOperationsHelper.readLdapGuidValue( pwmApplication, sessionLabel, userIdentity, false );
-        }
-        catch ( ChaiUnavailableException e )
-        {
-            throw PwmUnrecoverableException.fromChaiException( e );
-        }
+        return LdapOperationsHelper.readLdapGuidValue( pwmApplication, sessionLabel, userIdentity, false );
     }
 
     @Override
@@ -884,5 +877,11 @@ public class UserInfoReader implements UserInfo
             }
         }
         return null;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "UserInfoReader: " + this.getUserIdentity().toDisplayString();
     }
 }

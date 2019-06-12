@@ -184,4 +184,10 @@ public class SecureService implements PwmService
         }
         return pwmRandom;
     }
+
+    public PwmSecurityKey appendedSecurityKey( final String appendage ) throws PwmUnrecoverableException
+    {
+        final String hash = this.pwmSecurityKey.keyHash( this  );
+        return new PwmSecurityKey( hash + appendage );
+    }
 }

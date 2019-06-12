@@ -56,7 +56,7 @@ import java.time.Instant;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/status",
         }
 )
-@RestWebServer( webService = WebServiceUsage.Status, requireAuthentication = true )
+@RestWebServer( webService = WebServiceUsage.Status )
 public class RestStatusServer extends RestServlet
 {
     public static final PwmLogger LOGGER = PwmLogger.forClass( RestStatusServer.class );

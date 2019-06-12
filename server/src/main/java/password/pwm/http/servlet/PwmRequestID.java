@@ -20,18 +20,32 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.ws.server;
+package password.pwm.http.servlet;
 
-import password.pwm.config.option.WebServiceUsage;
+import password.pwm.util.java.AtomicLoopIntIncrementer;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Retention( RetentionPolicy.RUNTIME )
-@Target( ElementType.TYPE )
-public @interface RestWebServer
+public class PwmRequestID
 {
-    WebServiceUsage webService( );
+    private final int value;
+    private static final AtomicLoopIntIncrementer INCREMENTER = new AtomicLoopIntIncrementer( Integer.MAX_VALUE );
+
+    private PwmRequestID( final int value )
+    {
+        this.value = value;
+    }
+
+    private String value()
+    {
+        return String.valueOf( value );
+    }
+
+    public String toString()
+    {
+        return value();
+    }
+
+    public static PwmRequestID next()
+    {
+        return new PwmRequestID( INCREMENTER.next() );
+    }
 }

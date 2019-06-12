@@ -44,7 +44,6 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -123,32 +122,23 @@ public class RestAuthenticationProcessor
                         RestAuthenticationType.LDAP,
                         null,
                         userIdentity,
-                        Collections.unmodifiableSet( new HashSet<>( Arrays.asList( WebServiceUsage.values() ) ) ),
+                        Collections.unmodifiableSet( new HashSet<>( WebServiceUsage.forType( RestAuthenticationType.LDAP ) ) ),
                         thirdParty,
                         chaiProvider
                 );
             }
         }
 
-        final Set<WebServiceUsage> publicUsages;
-        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES ) )
-        {
-            final WebServiceUsage[] usages = {
-                    WebServiceUsage.Health,
-                    WebServiceUsage.Statistics,
-            };
-            publicUsages = Collections.unmodifiableSet( new HashSet<>( Arrays.asList( usages ) ) );
-        }
-        else
-        {
-            publicUsages = Collections.emptySet();
-        }
+        final Set<WebServiceUsage> publicUsages = WebServiceUsage.forType( RestAuthenticationType.PUBLIC );
+        final Set<WebServiceUsage> enabledUsages = new HashSet<>(
+                pwmApplication.getConfig().readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class ) );
+        enabledUsages.retainAll( publicUsages );
 
         return new RestAuthentication(
                 RestAuthenticationType.PUBLIC,
                 null,
                 null,
-                publicUsages,
+                Collections.unmodifiableSet( enabledUsages ),
                 false,
                 null
         );

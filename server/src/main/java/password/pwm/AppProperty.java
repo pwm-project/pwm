@@ -344,6 +344,8 @@ public enum AppProperty
     TOKEN_REMOVE_ON_CLAIM                           ( "token.removeOnClaim" ),
     TOKEN_VERIFY_PW_MODIFY_TIME                     ( "token.verifyPwModifyTime" ),
     TOKEN_STORAGE_MAX_KEY_LENGTH                    ( "token.storage.maxKeyLength" ),
+    REST_SERVER_FORGOTTEN_PW_TOKEN_DISPLAY          ( "rest.server.forgottenPW.token.display" ),
+    REST_SERVER_FORGOTTEN_PW_RULE_DELIMITER         ( "rest.server.forgottenPW.ruleDelimiter" ),
     TELEMETRY_SENDER_IMPLEMENTATION                 ( "telemetry.senderImplementation" ),
     TELEMETRY_SENDER_SETTINGS                       ( "telemetry.senderSettings" ),
     TELEMETRY_SEND_FREQUENCY_SECONDS                ( "telemetry.sendFrequencySeconds" ),

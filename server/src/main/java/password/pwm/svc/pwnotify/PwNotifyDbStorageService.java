@@ -22,7 +22,6 @@
 
 package password.pwm.svc.pwnotify;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -62,15 +61,8 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
     )
             throws PwmUnrecoverableException
     {
-        final String guid;
-        try
-        {
-            guid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, sessionLabel, userIdentity, true );
-        }
-        catch ( ChaiUnavailableException e )
-        {
-            throw new PwmUnrecoverableException( PwmUnrecoverableException.fromChaiException( e ).getErrorInformation() );
-        }
+        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, sessionLabel, userIdentity, true );
+
         if ( StringUtil.isEmpty( guid ) )
         {
             throw new PwmUnrecoverableException( PwmError.ERROR_MISSING_GUID );
@@ -101,15 +93,8 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
     )
             throws PwmUnrecoverableException
     {
-        final String guid;
-        try
-        {
-            guid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, sessionLabel, userIdentity, true );
-        }
-        catch ( ChaiUnavailableException e )
-        {
-            throw new PwmUnrecoverableException( PwmUnrecoverableException.fromChaiException( e ).getErrorInformation() );
-        }
+        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, sessionLabel, userIdentity, true );
+
         if ( StringUtil.isEmpty( guid ) )
         {
             throw new PwmUnrecoverableException( PwmError.ERROR_MISSING_GUID );

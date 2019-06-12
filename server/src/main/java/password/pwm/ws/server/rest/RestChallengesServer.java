@@ -72,7 +72,7 @@ import java.util.Map;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/challenges"
         }
 )
-@RestWebServer( webService = WebServiceUsage.CheckPassword, requireAuthentication = true )
+@RestWebServer( webService = WebServiceUsage.CheckPassword )
 public class RestChallengesServer extends RestServlet
 {
 

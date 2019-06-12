@@ -215,7 +215,7 @@ public class LdapOperationsHelper
             final UserIdentity userIdentity,
             final boolean throwExceptionOnError
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final boolean enableCache = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_CACHE_USER_GUID_ENABLE ) );
         final CacheKey cacheKey = CacheKey.newKey( LdapOperationsHelper.class, userIdentity, "guidValue" );
@@ -442,7 +442,7 @@ public class LdapOperationsHelper
                 final UserIdentity userIdentity,
                 final boolean throwExceptionOnError
         )
-                throws ChaiUnavailableException, PwmUnrecoverableException
+                throws PwmUnrecoverableException
         {
             final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
             final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
@@ -485,6 +485,10 @@ public class LdapOperationsHelper
                         + userIdentity + " from '" + guidAttributeName + "', error: " + e.getMessage();
                 return processError( errorMsg, throwExceptionOnError );
             }
+            catch ( ChaiUnavailableException e )
+            {
+                throw PwmUnrecoverableException.fromChaiException( e );
+            }
         }
 
         private static String processError( final String errorMsg, final boolean throwExceptionOnError )
@@ -504,7 +508,7 @@ public class LdapOperationsHelper
                 final SessionLabel sessionLabel,
                 final String guidValue
         )
-                throws ChaiUnavailableException, PwmUnrecoverableException
+                throws PwmUnrecoverableException
         {
             boolean exists = false;
             for ( final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values() )
@@ -541,7 +545,7 @@ public class LdapOperationsHelper
                 final UserIdentity userIdentity,
                 final String guidAttributeName
         )
-                throws ChaiUnavailableException, PwmUnrecoverableException
+                throws PwmUnrecoverableException
         {
             int attempts = 0;
             String newGuid = null;
@@ -581,6 +585,10 @@ public class LdapOperationsHelper
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                 LOGGER.error( errorInformation.toDebugStr() );
                 throw new PwmUnrecoverableException( errorInformation );
+            }
+            catch ( ChaiUnavailableException e )
+            {
+                throw PwmUnrecoverableException.fromChaiException( e );
             }
         }
 

@@ -623,13 +623,13 @@ public class IntruderManager implements PwmService
             }
         }
 
-        public void markAttributes( final Map<FormConfiguration, String> formValues, final PwmSession pwmSession )
+        public void markAttributes( final Map<FormConfiguration, String> formValues, final SessionLabel sessionLabel )
                 throws PwmUnrecoverableException
         {
             final List<String> subjects = attributeFormToList( formValues );
             for ( final String subject : subjects )
             {
-                mark( RecordType.ATTRIBUTE, subject, pwmSession.getLabel() );
+                mark( RecordType.ATTRIBUTE, subject, sessionLabel );
             }
         }
 

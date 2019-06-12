@@ -173,7 +173,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         try
         {
             TokenUtil.checkEnteredCode(
-                    pwmRequest,
+                    pwmRequest.commonValues(),
                     userEnteredCode,
                     tokenDestinationItem,
                     pwmRequest.getUserInfoIfLoggedIn(),

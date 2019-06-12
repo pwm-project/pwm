@@ -27,6 +27,8 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.option.ADPolicyComplexity;
+import password.pwm.config.option.WebServiceUsage;
+import password.pwm.config.value.OptionListValue;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.error.PwmUnrecoverableException;
@@ -36,7 +38,9 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 class ConfigurationCleaner
 {
@@ -337,6 +341,19 @@ class ConfigurationCleaner
                 storedConfiguration.writeSetting( PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS, profileID, value, newActor );
                 storedConfiguration.resetSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID, actor );
             }
+        }
+
+        if ( !storedConfiguration.isDefaultValue( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES ) )
+        {
+            LOGGER.warn( "converting deprecated non-default setting "
+                    + PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE )
+                    + " to replacement setting " + PwmSetting.WEBSERVICES_PUBLIC_ENABLE.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ) );
+            final Set<String> existingValues = (Set<String>) storedConfiguration.readSetting( PwmSetting.WEBSERVICES_PUBLIC_ENABLE ).toNativeObject();
+            final Set<String> newValues = new LinkedHashSet<>( existingValues );
+            newValues.add( WebServiceUsage.Health.name() );
+            newValues.add( WebServiceUsage.Statistics.name() );
+            storedConfiguration.writeSetting( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, null, new OptionListValue( newValues ), actor );
+            storedConfiguration.resetSetting( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES, null, actor );
         }
     }
 }

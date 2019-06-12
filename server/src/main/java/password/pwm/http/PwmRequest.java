@@ -42,6 +42,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.http.servlet.PwmRequestID;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.command.CommandServlet;
 import password.pwm.ldap.UserInfo;
@@ -75,6 +76,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     private final PwmResponse pwmResponse;
     private final PwmURL pwmURL;
+    private final PwmRequestID pwmRequestID;
 
     private transient PwmApplication pwmApplication;
     private transient PwmSession pwmSession;
@@ -107,6 +109,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
             throws PwmUnrecoverableException
     {
         super( httpServletRequest, pwmApplication.getConfig() );
+        this.pwmRequestID = PwmRequestID.next();
         this.pwmResponse = new PwmResponse( httpServletResponse, this, pwmApplication.getConfig() );
         this.pwmSession = pwmSession;
         this.pwmApplication = pwmApplication;
@@ -566,6 +569,11 @@ public class PwmRequest extends PwmHttpRequestWrapper
             return true;
         }
         return false;
+    }
+
+    public CommonValues commonValues()
+    {
+        return new CommonValues( pwmApplication, this.getSessionLabel(), this.getLocale(), pwmRequestID );
     }
 
 }

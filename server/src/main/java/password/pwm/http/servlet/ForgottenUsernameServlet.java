@@ -232,7 +232,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
                     : e.getErrorInformation();
             setLastError( pwmRequest, errorInfo );
             pwmApplication.getIntruderManager().convenience().markAddressAndSession( pwmSession );
-            pwmApplication.getIntruderManager().convenience().markAttributes( formValues, pwmSession );
+            pwmApplication.getIntruderManager().convenience().markAttributes( formValues, pwmRequest.getSessionLabel() );
         }
 
         pwmApplication.getStatisticsManager().incrementValue( Statistic.FORGOTTEN_USERNAME_FAILURES );

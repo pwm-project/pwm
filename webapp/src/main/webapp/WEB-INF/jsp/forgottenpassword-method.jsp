@@ -58,7 +58,7 @@
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                             <%=method.getLabel(pwmRequest.getConfig(),pwmRequest.getLocale())%>
                         </button>
-                        <input type="hidden" name="choice" value="<%=method.toString()%>"/>
+                        <input type="hidden" name="<%=PwmConstants.PARAM_METHOD_CHOICE%>" value="<%=method.toString()%>"/>
                         <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>

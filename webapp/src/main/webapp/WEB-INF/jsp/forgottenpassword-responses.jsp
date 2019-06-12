@@ -20,15 +20,15 @@
  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
 
-<%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="com.novell.ldapchai.cr.ChallengeSet" %>
+<%@ page import="com.novell.ldapchai.cr.bean.ChallengeBean" %>
+<%@ page import="com.novell.ldapchai.cr.bean.ChallengeSetBean" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final ChallengeSet challengeSet = (ChallengeSet)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordChallengeSet); %>
+<% final ChallengeSetBean challengeSet = (ChallengeSetBean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordChallengeSet); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <%--
@@ -49,7 +49,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
 
             <% // loop through challenges
                 int counter = 0;
-                for (final Challenge loopChallenge : challengeSet.getChallenges()) {
+                for (final ChallengeBean loopChallenge : challengeSet.getChallenges()) {
                     counter++;
             %>
             <h2><label for="PwmResponse_R_<%=counter%>"><%= loopChallenge.getChallengeText() %>

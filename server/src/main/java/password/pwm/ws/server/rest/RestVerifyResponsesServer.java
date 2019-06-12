@@ -58,7 +58,7 @@ import java.util.Map;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/verifyresponses",
         }
 )
-@RestWebServer( webService = WebServiceUsage.VerifyResponses, requireAuthentication = true )
+@RestWebServer( webService = WebServiceUsage.VerifyResponses )
 public class RestVerifyResponsesServer extends RestServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestVerifyResponsesServer.class );

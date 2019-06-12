@@ -69,7 +69,7 @@ import java.util.TreeMap;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/statistics"
         }
 )
-@RestWebServer( webService = WebServiceUsage.Statistics, requireAuthentication = true )
+@RestWebServer( webService = WebServiceUsage.Statistics )
 public class RestStatisticsServer extends RestServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestStatisticsServer.class );
@@ -120,10 +120,6 @@ public class RestStatisticsServer extends RestServlet
     @Override
     public void preCheckRequest( final RestRequest restRequest ) throws PwmUnrecoverableException
     {
-        if ( !restRequest.getRestAuthentication().getUsages().contains( WebServiceUsage.Health ) )
-        {
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "public statistics service is not enabled" );
-        }
     }
 
     @RestMethodHandler( method = HttpMethod.GET, consumes = HttpContentType.form, produces = HttpContentType.json )

@@ -36,7 +36,7 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmRequest;
+import password.pwm.http.CommonValues;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -141,7 +141,7 @@ public class TokenUtil
     }
 
     public static TokenPayload checkEnteredCode(
-            final PwmRequest pwmRequest,
+            final CommonValues commonValues,
             final String userEnteredCode,
             final TokenDestinationItem tokenDestinationItem,
             final UserIdentity userIdentity,
@@ -150,11 +150,13 @@ public class TokenUtil
     )
             throws PwmUnrecoverableException
     {
+        final PwmApplication pwmApplication = commonValues.getPwmApplication();
+
         try
         {
-            final TokenPayload tokenPayload = pwmRequest.getPwmApplication().getTokenService().processUserEnteredCode(
-                    pwmRequest.getPwmSession(),
-                    pwmRequest.getUserInfoIfLoggedIn(),
+            final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
+                    commonValues,
+                    userIdentity,
                     tokenType,
                     userEnteredCode,
                     tokenEntryType
@@ -175,7 +177,7 @@ public class TokenUtil
                         throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
                     }
 
-                    if ( !userIdentity.canonicalEquals( pwmRequest.getUserInfoIfLoggedIn(), pwmRequest.getPwmApplication() ) )
+                    if ( !userIdentity.canonicalEquals( tokenPayload.getUserIdentity(), pwmApplication ) )
                     {
                         final String errorMsg = "received token is not for currently authenticated user, received token is for: "
                                 + tokenPayload.getUserIdentity().toDisplayString();
@@ -206,12 +208,12 @@ public class TokenUtil
     }
 
     public static void initializeAndSendToken(
-            final PwmRequest pwmRequest,
+            final CommonValues commonValues,
             final TokenInitAndSendRequest tokenInitAndSendRequest
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getConfig();
+        final Configuration config = commonValues.getConfig();
         final UserInfo userInfo = tokenInitAndSendRequest.getUserInfo();
         final Map<String, String> tokenMapData = new LinkedHashMap<>();
         final MacroMachine macroMachine;
@@ -222,7 +224,12 @@ public class TokenUtil
             }
             else if ( tokenInitAndSendRequest.getUserInfo() != null )
             {
-                macroMachine = MacroMachine.forUser( pwmRequest, userInfo.getUserIdentity(), makeTokenDestStringReplacer( tokenInitAndSendRequest.getTokenDestinationItem() ) );
+                macroMachine = MacroMachine.forUser(
+                        commonValues.getPwmApplication(),
+                        commonValues.getLocale(),
+                        commonValues.getSessionLabel(),
+                        userInfo.getUserIdentity(),
+                        makeTokenDestStringReplacer( tokenInitAndSendRequest.getTokenDestinationItem() ) );
             }
             else
             {
@@ -256,14 +263,14 @@ public class TokenUtil
 
             try
             {
-                tokenPayload = pwmRequest.getPwmApplication().getTokenService().createTokenPayload(
+                tokenPayload = commonValues.getPwmApplication().getTokenService().createTokenPayload(
                         tokenInitAndSendRequest.getTokenType(),
                         tokenLifetime,
                         tokenMapData,
                         userInfo == null ? null : userInfo.getUserIdentity(),
                         tokenInitAndSendRequest.getTokenDestinationItem()
                 );
-                tokenKey = pwmRequest.getPwmApplication().getTokenService().generateNewToken( tokenPayload, pwmRequest.getSessionLabel() );
+                tokenKey = commonValues.getPwmApplication().getTokenService().generateNewToken( tokenPayload, commonValues.getSessionLabel() );
             }
             catch ( PwmOperationalException e )
             {
@@ -273,22 +280,22 @@ public class TokenUtil
 
         final EmailItemBean emailItemBean = tokenInitAndSendRequest.getEmailToSend() == null
                 ? null
-                : config.readSettingAsEmail( tokenInitAndSendRequest.getEmailToSend(), pwmRequest.getLocale() );
+                : config.readSettingAsEmail( tokenInitAndSendRequest.getEmailToSend(), commonValues.getLocale() );
 
         final String smsMessage = tokenInitAndSendRequest.getSmsToSend() == null
                 ? null
-                : config.readSettingAsLocalizedString( tokenInitAndSendRequest.getSmsToSend(), pwmRequest.getLocale() );
+                : config.readSettingAsLocalizedString( tokenInitAndSendRequest.getSmsToSend(), commonValues.getLocale() );
 
         TokenService.TokenSender.sendToken(
                 TokenService.TokenSendInfo.builder()
-                        .pwmApplication( pwmRequest.getPwmApplication() )
+                        .pwmApplication( commonValues.getPwmApplication() )
                         .userInfo( userInfo )
                         .macroMachine( macroMachine )
                         .configuredEmailSetting( emailItemBean )
                         .tokenDestinationItem( tokenInitAndSendRequest.getTokenDestinationItem() )
                         .smsMessage( smsMessage )
                         .tokenKey( tokenKey )
-                        .sessionLabel( pwmRequest.getSessionLabel() )
+                        .sessionLabel( commonValues.getSessionLabel() )
                         .build()
         );
     }

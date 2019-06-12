@@ -22,9 +22,11 @@
 
 package password.pwm.http;
 
+import com.google.gson.JsonParseException;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.ServletUtility;
@@ -543,6 +545,25 @@ public class PwmHttpRequestWrapper
         }
 
         return sb.toString();
+    }
+
+
+    public <T> T readBodyAsJsonObject( final Class<T> classOfT )
+            throws IOException, PwmUnrecoverableException
+    {
+        final String json = readRequestBodyAsString();
+        try
+        {
+            return JsonUtil.deserialize( json, classOfT );
+        }
+        catch ( Exception e )
+        {
+            if ( e instanceof JsonParseException )
+            {
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_REST_INVOCATION_ERROR, "unable to parse json body: " + e.getCause().getMessage() );
+            }
+            throw e;
+        }
     }
 }
 

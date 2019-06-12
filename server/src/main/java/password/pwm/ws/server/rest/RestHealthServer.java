@@ -52,7 +52,7 @@ import java.util.Locale;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/health",
         }
 )
-@RestWebServer( webService = WebServiceUsage.Health, requireAuthentication = false )
+@RestWebServer( webService = WebServiceUsage.Health )
 public class RestHealthServer extends RestServlet
 {
     private static final String PARAM_IMMEDIATE_REFRESH = "refreshImmediate";
@@ -60,10 +60,6 @@ public class RestHealthServer extends RestServlet
     @Override
     public void preCheckRequest( final RestRequest restRequest ) throws PwmUnrecoverableException
     {
-        if ( !restRequest.getRestAuthentication().getUsages().contains( WebServiceUsage.Health ) )
-        {
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "public health service is not enabled" );
-        }
     }
 
     @RestMethodHandler( method = HttpMethod.GET, produces = HttpContentType.plain )

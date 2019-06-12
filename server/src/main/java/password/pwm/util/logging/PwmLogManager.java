@@ -175,6 +175,7 @@ public class PwmLogManager
                 final RollingFileAppender fileAppender = new RollingFileAppender( patternLayout, fileName, true );
                 final Level level = Level.toLevel( fileLogLevel );
                 fileAppender.setThreshold( level );
+                fileAppender.setEncoding( PwmConstants.DEFAULT_CHARSET.name() );
                 fileAppender.setMaxBackupIndex( Integer.parseInt( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_ROLLOVER ) ) );
                 fileAppender.setMaxFileSize( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_SIZE ) );
 

@@ -30,6 +30,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.CommonValues;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
@@ -300,6 +301,15 @@ public class MacroMachine
     public interface StringReplacer
     {
         String replace( String matchedMacro, String newValue );
+    }
+
+    public static MacroMachine forUser(
+            final CommonValues commonValues,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        return forUser( commonValues.getPwmApplication(), commonValues.getLocale(), commonValues.getSessionLabel(), userIdentity );
     }
 
     public static MacroMachine forUser(

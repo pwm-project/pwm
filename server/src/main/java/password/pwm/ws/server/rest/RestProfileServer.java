@@ -71,7 +71,7 @@ import java.util.Set;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/profile",
         }
 )
-@RestWebServer( webService = WebServiceUsage.RandomPassword, requireAuthentication = false )
+@RestWebServer( webService = WebServiceUsage.RandomPassword )
 public class RestProfileServer extends RestServlet
 {
 

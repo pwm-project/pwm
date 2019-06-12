@@ -697,7 +697,7 @@ class NewUserUtils
 
 
                     TokenUtil.initializeAndSendToken(
-                            pwmRequest,
+                            pwmRequest.commonValues(),
                             TokenUtil.TokenInitAndSendRequest.builder()
                                     .userInfo(  null )
                                     .tokenDestinationItem( tokenDestinationItem )

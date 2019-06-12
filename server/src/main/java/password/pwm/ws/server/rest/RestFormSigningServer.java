@@ -57,7 +57,7 @@ import java.util.Map;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/signing/form",
         }
 )
-@RestWebServer( webService = WebServiceUsage.SigningForm, requireAuthentication = true )
+@RestWebServer( webService = WebServiceUsage.SigningForm )
 public class RestFormSigningServer extends RestServlet
 {
 
@@ -93,13 +93,6 @@ public class RestFormSigningServer extends RestServlet
     )
             throws PwmUnrecoverableException
     {
-        if ( !restRequest.getRestAuthentication().getUsages().contains( WebServiceUsage.SigningForm ) )
-        {
-            final String errorMsg = "request is not authenticated with permission for " + WebServiceUsage.SigningForm;
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
-            return RestResultBean.fromError( errorInformation );
-        }
-
         try
         {
             if ( !JavaHelper.isEmpty( inputFormData ) )

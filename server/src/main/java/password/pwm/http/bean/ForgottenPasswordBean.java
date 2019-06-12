@@ -23,7 +23,7 @@
 package password.pwm.http.bean;
 
 import com.google.gson.annotations.SerializedName;
-import com.novell.ldapchai.cr.ChallengeSet;
+import com.novell.ldapchai.cr.bean.ChallengeSetBean;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -32,6 +32,7 @@ import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.IdentityVerificationMethod;
+import password.pwm.config.option.RecoveryAction;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.config.value.data.FormConfiguration;
 
@@ -50,12 +51,14 @@ import java.util.Set;
 @EqualsAndHashCode( callSuper = false )
 public class ForgottenPasswordBean extends PwmSessionBean
 {
+    @SerializedName( "pr" )
+    private String profile;
 
     @SerializedName( "u" )
     private UserIdentity userIdentity;
 
     @SerializedName( "pc" )
-    private ChallengeSet presentableChallengeSet;
+    private ChallengeSetBean presentableChallengeSet;
 
     @SerializedName( "l" )
     private Locale userLocale;
@@ -97,6 +100,9 @@ public class ForgottenPasswordBean extends PwmSessionBean
         private IdentityVerificationMethod inProgressVerificationMethod;
 
         private transient VerificationMethodSystem remoteRecoveryMethod;
+
+        @SerializedName( "ra" )
+        private RecoveryAction executedRecoveryAction;
 
         public void clearTokenSentStatus( )
         {

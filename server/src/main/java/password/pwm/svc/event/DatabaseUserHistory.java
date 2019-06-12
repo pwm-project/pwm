@@ -22,7 +22,6 @@
 
 package password.pwm.svc.event;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
@@ -70,16 +69,7 @@ class DatabaseUserHistory implements UserHistoryStore
             userIdentity = new UserIdentity( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile() );
         }
 
-        final String guid;
-        try
-        {
-            guid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, null, userIdentity, false );
-        }
-        catch ( ChaiUnavailableException e )
-        {
-            LOGGER.error( "unable to read guid for user '" + userIdentity + "', cannot update user history, error: " + e.getMessage() );
-            return;
-        }
+        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, null, userIdentity, false );
 
         try
         {

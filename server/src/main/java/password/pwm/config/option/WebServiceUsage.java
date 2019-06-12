@@ -22,17 +22,47 @@
 
 package password.pwm.config.option;
 
+import password.pwm.ws.server.RestAuthenticationType;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public enum WebServiceUsage
 {
-    Challenges,
-    CheckPassword,
-    Health,
-    Profile,
-    RandomPassword,
-    SetPassword,
-    SigningForm,
-    Statistics,
-    Status,
-    VerifyOtp,
-    VerifyResponses,
+    Challenges( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    CheckPassword( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    ForgottenPassword( RestAuthenticationType.PUBLIC ),
+    Health( RestAuthenticationType.PUBLIC ),
+    Profile( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    RandomPassword( RestAuthenticationType.PUBLIC, RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    SetPassword( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    SigningForm( RestAuthenticationType.NAMED_SECRET ),
+    Statistics( RestAuthenticationType.PUBLIC, RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    Status( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    VerifyOtp( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    VerifyResponses( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),;
+
+    private Set<RestAuthenticationType> type;
+
+    WebServiceUsage( final RestAuthenticationType... type )
+    {
+        this.type = type == null ? Collections.emptySet() : Collections.unmodifiableSet( new HashSet<>( Arrays.asList( type ) ) );
+    }
+
+    public Set<RestAuthenticationType> getTypes()
+    {
+        return type;
+    }
+
+    public static Set<WebServiceUsage> forType( final RestAuthenticationType type )
+    {
+        return Collections.unmodifiableSet(
+                Arrays.stream( WebServiceUsage.values() )
+                        .filter( webServiceUsage -> webServiceUsage.getTypes().contains( type ) )
+                        .collect( Collectors.toSet() )
+        );
+    }
 }

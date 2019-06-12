@@ -25,4 +25,5 @@
 
 <suppressions>
     <suppress files="XmlFactoryTest\.xml" checks="[a-zA-Z0-9]*"/>
+    <suppress files="rest.jsp" checks="FileLength"/>
 </suppressions>

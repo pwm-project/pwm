@@ -1189,17 +1189,16 @@ public enum PwmSetting
 
     ENABLE_EXTERNAL_WEBSERVICES(
             "external.webservices.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REST_SERVER ),
-    ENABLE_WEBSERVICES_READANSWERS(
-            "webservices.enableReadAnswers", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REST_SERVER ),
-    PUBLIC_HEALTH_STATS_WEBSERVICES(
-            "webservices.healthStats.makePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REST_SERVER ),
+    WEBSERVICES_PUBLIC_ENABLE(
+            "webservices.public.enable", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.REST_SERVER ),
     WEBSERVICES_EXTERNAL_SECRET(
             "webservices.external.secrets", PwmSettingSyntax.NAMED_SECRET, PwmSettingCategory.REST_SERVER ),
     WEBSERVICES_QUERY_MATCH(
             "webservices.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REST_SERVER ),
     WEBSERVICES_THIRDPARTY_QUERY_MATCH(
             "webservices.thirdParty.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REST_SERVER ),
-
+    ENABLE_WEBSERVICES_READANSWERS(
+            "webservices.enableReadAnswers", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REST_SERVER ),
 
     EXTERNAL_MACROS_DEST_TOKEN_URLS(
             "external.destToken.urls", PwmSettingSyntax.STRING, PwmSettingCategory.REST_CLIENT ),
@@ -1223,6 +1222,10 @@ public enum PwmSetting
 
 
     // deprecated.
+
+    // deprecated 2019-06-01
+    PUBLIC_HEALTH_STATS_WEBSERVICES(
+            "webservices.healthStats.makePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REST_SERVER ),
 
     // deprecated 2019-01-20
     PEOPLE_SEARCH_DISPLAY_NAME(

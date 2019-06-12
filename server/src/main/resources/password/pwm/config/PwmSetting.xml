@@ -3939,11 +3939,6 @@
             <value>false</value>
         </default>
     </setting>
-    <setting hidden="false" key="webservices.healthStats.makePublic" level="2">
-        <default>
-            <value>false</value>
-        </default>
-    </setting>
     <setting hidden="false" key="webservices.external.secrets" level="2">
         <default/>
         <options>
@@ -3974,6 +3969,14 @@
         <default syntaxVersion="2">
             <value/>
         </default>
+    </setting>
+    <setting hidden="false" key="webservices.public.enable" level="2">
+        <default/>
+        <options>
+            <option value="Health">Health - /health</option>
+            <option value="ForgottenPassword">Forgotten Password - /forgottenpassword</option>
+            <option value="Statistics">Statistics - /statistics</option>
+        </options>
     </setting>
     <setting hidden="false" key="external.macros.urls" level="2">
         <default />
@@ -4077,6 +4080,11 @@
         </default>
     </setting>
     <setting hidden="true" key="helpdesk.otp.verify" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="true" key="webservices.healthStats.makePublic" level="2">
         <default>
             <value>false</value>
         </default>

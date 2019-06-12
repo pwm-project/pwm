@@ -53,7 +53,7 @@ import java.io.Serializable;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/verifyotp",
         }
 )
-@RestWebServer( webService = WebServiceUsage.VerifyOtp, requireAuthentication = true )
+@RestWebServer( webService = WebServiceUsage.VerifyOtp )
 public class RestVerifyOtpServer extends RestServlet
 {
 

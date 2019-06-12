@@ -20,18 +20,26 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.ws.server;
+package password.pwm.http;
 
-import password.pwm.config.option.WebServiceUsage;
+import lombok.Value;
+import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
+import password.pwm.config.Configuration;
+import password.pwm.http.servlet.PwmRequestID;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.Locale;
 
-@Retention( RetentionPolicy.RUNTIME )
-@Target( ElementType.TYPE )
-public @interface RestWebServer
+@Value
+public class CommonValues
 {
-    WebServiceUsage webService( );
+    final PwmApplication pwmApplication;
+    final SessionLabel sessionLabel;
+    final Locale locale;
+    final PwmRequestID requestID;
+
+    public Configuration getConfig()
+    {
+        return pwmApplication.getConfig();
+    }
 }

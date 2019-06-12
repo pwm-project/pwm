@@ -58,7 +58,7 @@ import java.util.List;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/randompassword",
         }
 )
-@RestWebServer( webService = WebServiceUsage.RandomPassword, requireAuthentication = false )
+@RestWebServer( webService = WebServiceUsage.RandomPassword )
 public class RestRandomPasswordServer extends RestServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestRandomPasswordServer.class );

@@ -27,9 +27,11 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.CommonValues;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmHttpRequestWrapper;
+import password.pwm.http.servlet.PwmRequestID;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
@@ -44,6 +46,7 @@ public class RestRequest extends PwmHttpRequestWrapper
     private final PwmApplication pwmApplication;
     private final RestAuthentication restAuthentication;
     private final SessionLabel sessionLabel;
+    private final PwmRequestID requestID;
 
     public static RestRequest forRequest(
             final PwmApplication pwmApplication,
@@ -67,6 +70,7 @@ public class RestRequest extends PwmHttpRequestWrapper
         this.pwmApplication = pwmApplication;
         this.restAuthentication = restAuthentication;
         this.sessionLabel = sessionLabel;
+        this.requestID = PwmRequestID.next();
     }
 
     public RestAuthentication getRestAuthentication( )
@@ -120,6 +124,11 @@ public class RestRequest extends PwmHttpRequestWrapper
             return getRestAuthentication().getChaiProvider();
         }
         return getPwmApplication().getProxyChaiProvider( ldapProfileID );
+    }
+
+    public CommonValues commonValues()
+    {
+        return new CommonValues( pwmApplication, this.getSessionLabel(), this.getLocale(), requestID );
     }
 }
 

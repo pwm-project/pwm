@@ -499,4 +499,14 @@ public class LocaleHelper
                 ? TextDirection.rtl
                 : TextDirection.ltr;
     }
+
+    public static Map<String, String> localeMapToStringMap( final Map<Locale, String> localeStringMap )
+    {
+        final Map<String, String> returnMap = new LinkedHashMap<>();
+        for ( final Map.Entry<Locale, String> entry : localeStringMap.entrySet() )
+        {
+            returnMap.put( LocaleHelper.getBrowserLocaleString( entry.getKey() ), entry.getValue() );
+        }
+        return Collections.unmodifiableMap( returnMap );
+    }
 }

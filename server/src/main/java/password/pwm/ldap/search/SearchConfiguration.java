@@ -62,7 +62,7 @@ public class SearchConfiguration implements Serializable
     {
         if ( this.username != null && this.formValues != null )
         {
-            throw new IllegalArgumentException( "username OR formValues cannot both be supplied" );
+            throw new IllegalArgumentException( "username OR formRows cannot both be supplied" );
         }
     }
 

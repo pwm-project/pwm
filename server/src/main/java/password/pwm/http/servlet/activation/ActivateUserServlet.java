@@ -278,7 +278,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
         }
         catch ( PwmOperationalException e )
         {
-            pwmApplication.getIntruderManager().convenience().markAttributes( formValues, pwmSession );
+            pwmApplication.getIntruderManager().convenience().markAttributes( formValues, pwmRequest.getSessionLabel() );
             pwmApplication.getIntruderManager().convenience().markAddressAndSession( pwmSession );
             setLastError( pwmRequest, e.getErrorInformation() );
             LOGGER.debug( pwmSession, e.getErrorInformation() );
@@ -330,10 +330,10 @@ public class ActivateUserServlet extends ControlledPwmServlet
         try
         {
             final TokenPayload tokenPayload = TokenUtil.checkEnteredCode(
-                    pwmRequest,
+                    pwmRequest.commonValues(),
                     userEnteredCode,
                     activateUserBean.getTokenDestination(),
-                    null,
+                    activateUserBean.getUserIdentity(),
                     TokenType.ACTIVATION,
                     TokenService.TokenEntryType.unauthenticated
             );
@@ -440,7 +440,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
             if ( !activateUserBean.isTokenSent() && activateUserBean.getTokenDestination() != null )
             {
                 TokenUtil.initializeAndSendToken(
-                        pwmRequest,
+                        pwmRequest.commonValues(),
                         TokenUtil.TokenInitAndSendRequest.builder()
                                 .userInfo( userInfo )
                                 .tokenDestinationItem( activateUserBean.getTokenDestination() )

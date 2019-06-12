@@ -64,6 +64,7 @@ public enum Display implements PwmDisplayBundle
     Button_SetResponses,
     Button_Show,
     Button_Show_Responses,
+    Button_Select,
     Button_Skip,
     Button_SMS,
     Button_Unlock,
