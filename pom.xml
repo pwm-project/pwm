@@ -11,8 +11,8 @@
 
     <licenses>
         <license>
-            <name>The GNU General Public License (GPL) Version 2</name>
-            <url>http://www.gnu.org/licenses/gpl-2.0.html</url>
+            <name>Apache License Version 2.0, January 2004</name>
+            <url>http://www.apache.org/licenses/</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
