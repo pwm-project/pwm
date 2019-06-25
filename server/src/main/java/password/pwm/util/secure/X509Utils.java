@@ -229,13 +229,13 @@ public abstract class X509Utils
         return false;
     }
 
-    private static class CertReaderTrustManager implements X509TrustManager
+    public static class CertReaderTrustManager implements X509TrustManager
     {
         private final ReadCertificateFlag[] readCertificateFlags;
 
-        private X509Certificate[] certificates;
+        private List<X509Certificate> certificates = new ArrayList<>();
 
-        CertReaderTrustManager( final ReadCertificateFlag[] readCertificateFlags )
+        public CertReaderTrustManager( final ReadCertificateFlag... readCertificateFlags )
         {
             this.readCertificateFlags = readCertificateFlags;
         }
@@ -254,9 +254,10 @@ public abstract class X509Utils
         public void checkServerTrusted( final X509Certificate[] chain, final String authType )
                 throws CertificateException
         {
-            certificates = chain;
-            final List<Map<String, String>> certDebugInfo = X509Utils.makeDebugInfoMap( Arrays.asList( certificates ) );
-            LOGGER.debug( () -> "read certificates from remote server via httpclient: "
+            final List<X509Certificate> asList = Arrays.asList( chain );
+            certificates.addAll( asList );
+            final List<Map<String, String>> certDebugInfo = X509Utils.makeDebugInfoMap( certificates );
+            LOGGER.debug( () -> "read certificates from remote server: "
                     + JsonUtil.serialize( new ArrayList<>( certDebugInfo ) ) );
         }
 
@@ -264,9 +265,9 @@ public abstract class X509Utils
         {
             if ( JavaHelper.enumArrayContainsValue( readCertificateFlags, ReadCertificateFlag.ReadOnlyRootCA ) )
             {
-                return Collections.unmodifiableList( identifyRootCACertificate( Arrays.asList( certificates ) ) );
+                return Collections.unmodifiableList( identifyRootCACertificate( certificates ) );
             }
-            return Collections.unmodifiableList( Arrays.asList( certificates ) );
+            return Collections.unmodifiableList( certificates );
         }
     }
 
@@ -443,10 +444,11 @@ public abstract class X509Utils
             throws CertificateEncodingException, PwmUnrecoverableException
     {
         return x509Certificate.toString()
-                + "\n:MD5 checksum: " + hash( x509Certificate, PwmHashAlgorithm.MD5 )
-                + "\n:SHA1 checksum: " + hash( x509Certificate, PwmHashAlgorithm.SHA1 )
-                + "\n:SHA2-256 checksum: " + hash( x509Certificate, PwmHashAlgorithm.SHA256 )
-                + "\n:SHA2-512 checksum: " + hash( x509Certificate, PwmHashAlgorithm.SHA512 );
+                + "\nMD5: " + hash( x509Certificate, PwmHashAlgorithm.MD5 )
+                + "\nSHA1: " + hash( x509Certificate, PwmHashAlgorithm.SHA1 )
+                + "\nSHA2-256: " + hash( x509Certificate, PwmHashAlgorithm.SHA256 )
+                + "\nSHA2-512: " + hash( x509Certificate, PwmHashAlgorithm.SHA512 )
+                + "\n:IsRootCA: " + certIsRootCA( x509Certificate );
     }
 
     public static String makeDebugText( final X509Certificate x509Certificate )
@@ -545,19 +547,30 @@ public abstract class X509Utils
 
     private static List<X509Certificate> identifyRootCACertificate( final List<X509Certificate> certificates )
     {
-        final int keyCertSignBitPosition = 5;
         for ( final X509Certificate certificate : certificates )
         {
             final boolean[] keyUsages = certificate.getKeyUsage();
-            if ( keyUsages != null && keyUsages.length > keyCertSignBitPosition - 1 )
+            if ( certIsRootCA( certificate ) )
             {
-                if ( keyUsages[keyCertSignBitPosition] )
-                {
-                    return Collections.singletonList( certificate );
-                }
+                return Collections.singletonList( certificate );
             }
         }
         return Collections.emptyList();
+    }
+
+    private static boolean certIsRootCA( final X509Certificate certificate )
+    {
+        final int keyCertSignBitPosition = 5;
+        final boolean[] keyUsages = certificate.getKeyUsage();
+        if ( keyUsages != null && keyUsages.length > keyCertSignBitPosition - 1 )
+        {
+            if ( keyUsages[keyCertSignBitPosition] )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static TrustManager[] getDefaultJavaTrustManager( final Configuration configuration )

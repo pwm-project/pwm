@@ -59,7 +59,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -69,11 +68,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class EmailService implements PwmService
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( EmailService.class );
 
     private PwmApplication pwmApplication;
-    private final Map<EmailServer, Optional<ErrorInformation>> serverErrors = new ConcurrentHashMap<>( );
+    private final Map<EmailServer, ErrorInformation> serverErrors = new ConcurrentHashMap<>( );
+    private ErrorInformation startupError;
     private final List<EmailServer> servers = new ArrayList<>( );
     private WorkQueueProcessor<EmailItemBean> workQueueProcessor;
     private AtomicLoopIntIncrementer serverIncrementer;
@@ -89,18 +88,23 @@ public class EmailService implements PwmService
         status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
-        servers.addAll( EmailServerUtil.makeEmailServersMap( pwmApplication.getConfig() ) );
+        try
+        {
+            servers.addAll( EmailServerUtil.makeEmailServersMap( pwmApplication.getConfig() ) );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            startupError = e.getErrorInformation();
+            LOGGER.error( "unable to startup email service: " + e.getMessage() );
+            status = STATUS.CLOSED;
+            return;
+        }
 
         if ( servers.isEmpty() )
         {
             status = STATUS.CLOSED;
             LOGGER.debug( () -> "no email servers configured, will remain closed" );
             return;
-        }
-
-        for ( final EmailServer emailServer : servers )
-        {
-            serverErrors.put( emailServer, Optional.empty() );
         }
 
         serverIncrementer = new AtomicLoopIntIncrementer( servers.size() - 1 );
@@ -127,7 +131,6 @@ public class EmailService implements PwmService
 
         retryableStatusResponses = readRetryableStatusCodes( pwmApplication.getConfig() );
 
-
         status = STATUS.OPEN;
     }
 
@@ -148,6 +151,11 @@ public class EmailService implements PwmService
 
     public List<HealthRecord> healthCheck( )
     {
+        if ( startupError != null )
+        {
+            return Collections.singletonList( HealthRecord.forMessage( HealthMessage.ServiceClosed, this.getClass().getSimpleName(), startupError.toDebugStr() ) );
+        }
+
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
             return Collections.singletonList( HealthRecord.forMessage( HealthMessage.ServiceClosed_LocalDBUnavail, this.getClass().getSimpleName() ) );
@@ -159,13 +167,11 @@ public class EmailService implements PwmService
         }
 
         final List<HealthRecord> records = new ArrayList<>( );
-        for ( final Map.Entry<EmailServer, Optional<ErrorInformation>> entry : serverErrors.entrySet() )
+        final Map<EmailServer, ErrorInformation> localMap = new HashMap<>( serverErrors );
+        for ( final Map.Entry<EmailServer, ErrorInformation> entry : localMap.entrySet() )
         {
-            if ( entry.getValue().isPresent() )
-            {
-                final ErrorInformation errorInformation = entry.getValue().get();
-                records.add( HealthRecord.forMessage( HealthMessage.Email_SendFailure, errorInformation.toDebugStr() ) );
-            }
+            final ErrorInformation errorInformation = entry.getValue();
+            records.add( HealthRecord.forMessage( HealthMessage.Email_SendFailure, errorInformation.toDebugStr() ) );
         }
 
         return records;
@@ -391,7 +397,7 @@ public class EmailService implements PwmService
                 serverTransport.getTransport().sendMessage( message, message.getAllRecipients() );
             }
 
-            serverErrors.put( serverTransport.getEmailServer(), Optional.empty() );
+            serverErrors.remove( serverTransport.getEmailServer() );
 
             LOGGER.debug( () -> "sent email: " + emailItemBean.toDebugString() );
             StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_SUCCESSES );
@@ -420,7 +426,7 @@ public class EmailService implements PwmService
 
             if ( serverTransport != null )
             {
-                serverErrors.put( serverTransport.getEmailServer(), Optional.of( errorInformation ) );
+                serverErrors.put( serverTransport.getEmailServer(), errorInformation );
             }
             LOGGER.error( errorInformation );
 
@@ -457,14 +463,15 @@ public class EmailService implements PwmService
             {
                 final Transport transport = EmailServerUtil.makeSmtpTransport( server );
 
-                serverErrors.put( server, Optional.empty() );
+                serverErrors.remove( server );
                 return new EmailConnection( server, transport );
             }
-            catch ( MessagingException e )
+            catch ( Exception e )
             {
-                final String msg = "unable to connect to email server '" + server.toDebugString() + "', error: " + e.getMessage();
+                final String exceptionMsg = JavaHelper.readHostileExceptionMessage( e );
+                final String msg = "unable to connect to email server '" + server.toDebugString() + "', error: " + exceptionMsg;
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_UNREACHABLE, msg );
-                serverErrors.put( server, Optional.of( errorInformation ) );
+                serverErrors.put( server, errorInformation );
                 LOGGER.warn( errorInformation.toDebugStr() );
             }
         }

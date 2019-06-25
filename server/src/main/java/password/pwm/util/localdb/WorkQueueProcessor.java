@@ -58,7 +58,6 @@ import java.util.concurrent.locks.LockSupport;
  */
 public final class WorkQueueProcessor<W extends Serializable>
 {
-
     private static final TimeDuration SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
     private static final TimeDuration CLOSE_RETRY_CYCLE_INTERVAL = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
 

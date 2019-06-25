@@ -329,6 +329,8 @@ public enum AppProperty
     SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG            ( "security.defaultEphemeralBlockAlg" ),
     SECURITY_DEFAULT_EPHEMERAL_HASH_ALG             ( "security.defaultEphemeralHashAlg" ),
     SEEDLIST_BUILTIN_PATH                           ( "seedlist.builtin.path" ),
+    SMTP_IO_CONNECT_TIMEOUT                         ( "smtp.io.connectTimeoutMs" ),
+    SMTP_IO_READ_TIMEOUT                            ( "smtp.io.readTimeoutMs" ),
     SMTP_SUBJECT_ENCODING_CHARSET                   ( "smtp.subjectEncodingCharset" ),
     SMTP_RETRYABLE_SEND_RESPONSE_STATUSES           ( "smtp.retryableSendResponseStatus" ),
     TOKEN_CLEANER_INTERVAL_SECONDS                  ( "token.cleaner.intervalSeconds" ),

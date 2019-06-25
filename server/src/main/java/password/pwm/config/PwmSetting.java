@@ -310,8 +310,12 @@ public enum PwmSetting
             "email.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
     EMAIL_SERVER_ADDRESS(
             "email.smtp.address", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SERVERS ),
+    EMAIL_SERVER_TYPE(
+            "email.smtp.type", PwmSettingSyntax.SELECT, PwmSettingCategory.EMAIL_SERVERS ),
     EMAIL_SERVER_PORT(
             "email.smtp.port", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_SERVERS ),
+    EMAIL_SERVER_CERTS(
+            "email.smtp.serverCerts", PwmSettingSyntax.X509CERT, PwmSettingCategory.EMAIL_SERVERS ),
     EMAIL_USERNAME(
             "email.smtp.username", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SERVERS ),
     EMAIL_PASSWORD(

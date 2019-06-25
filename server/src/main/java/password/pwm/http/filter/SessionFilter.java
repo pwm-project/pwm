@@ -157,7 +157,7 @@ public class SessionFilter extends AbstractPwmFilter
         // debug the http session headers
         if ( !pwmSession.getSessionStateBean().isDebugInitialized() )
         {
-            LOGGER.trace( pwmSession, () -> pwmRequest.debugHttpHeaders() );
+            LOGGER.trace( pwmSession, pwmRequest::debugHttpHeaders );
             pwmSession.getSessionStateBean().setDebugInitialized( true );
         }
 
@@ -309,6 +309,13 @@ public class SessionFilter extends AbstractPwmFilter
 
         if ( pwmRequest.getURL().isCommandServletURL() )
         {
+            LOGGER.debug( pwmRequest, () -> "session is unvalidated but can not be validated during a command servlet request, will allow" );
+            return ProcessStatus.Continue;
+        }
+
+        if ( pwmRequest.getURL().isResourceURL() )
+        {
+            LOGGER.debug( pwmRequest, () -> "session is unvalidated but can not be validated during a resource request, will allow" );
             return ProcessStatus.Continue;
         }
 
