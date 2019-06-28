@@ -29,8 +29,6 @@
 
 <module name="Checker">
 
-    <property name="cacheFile" value="target/checkstyle.cache"/>
-
     <module name="SuppressionFilter">
         <property name="file" value="${basedir}/build/checkstyle-suppression.xml" />
     </module>
