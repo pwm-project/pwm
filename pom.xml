@@ -264,6 +264,7 @@
                     <excludeFilterFile>${project.root.basedir}/build/spotbugs-exclude.xml</excludeFilterFile>
                     <includeTests>false</includeTests>
                     <skip>${skipSpotbugs}</skip>
+                    <effort>max</effort>
                 </configuration>
                 <executions>
                     <execution>

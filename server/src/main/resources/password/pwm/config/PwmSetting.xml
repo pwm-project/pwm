@@ -711,6 +711,22 @@
             <property key="Maximum">65535</property>
         </properties>
     </setting>
+    <setting hidden="false" key="email.smtp.type" level="1">
+        <default>
+            <value>SMTP</value>
+        </default>
+        <options>
+            <option value="SMTP">SMTP (Plaintext)</option>
+            <option value="START_TLS">StartTLS</option>
+            <option value="SMTPS">SMTPS (SSL/TLS)</option>
+        </options>
+    </setting>
+    <setting hidden="false" key="email.smtp.serverCerts" level="0" required="true">
+        <default/>
+        <properties>
+            <property key="Cert_ImportHandler">password.pwm.config.function.SmtpCertImportFunction</property>
+        </properties>
+    </setting>
     <setting hidden="false" key="email.smtp.username" level="1">
         <default>
             <value />
