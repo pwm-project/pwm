@@ -35,7 +35,7 @@ public enum JspUrl
     ADMIN_LOGVIEW( "admin-logview.jsp" ),
     ADMIN_URLREFERENCE( "admin-urlreference.jsp" ),
     ADMIN_DEBUG( "admin-user-debug.jsp" ),
-    ACTIVATE_USER( "activateuser.jsp" ),
+    ACTIVATE_USER_SEARCH( "activateuser-search.jsp" ),
     ACTIVATE_USER_AGREEMENT( "activateuser-agreement.jsp" ),
     ACTIVATE_USER_TOKEN_CHOICE( "activateuser-tokenchoice.jsp" ),
     ACTIVATE_USER_ENTER_CODE( "activateuser-entercode.jsp" ),

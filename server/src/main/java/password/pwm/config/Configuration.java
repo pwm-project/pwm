@@ -31,19 +31,19 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.ChallengeProfile;
-import password.pwm.config.profile.DeleteAccountProfile;
 import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.Profile;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
+import password.pwm.config.profile.ActivateUserProfile;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.StoredConfigurationUtil;
@@ -69,8 +69,8 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.PasswordData;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
@@ -159,25 +159,8 @@ public class Configuration implements SettingReader
 
     public Map<String, LdapProfile> getLdapProfiles( )
     {
-        if ( dataCache.ldapProfiles != null )
-        {
-            return dataCache.ldapProfiles;
-        }
-
-        final List<String> profiles = StoredConfigurationUtil.profilesForSetting( PwmSetting.LDAP_PROFILE_LIST, storedConfiguration );
-        final LinkedHashMap<String, LdapProfile> returnList = new LinkedHashMap<>();
-        for ( final String profileID : profiles )
-        {
-            final LdapProfile ldapProfile = LdapProfile.makeFromStoredConfiguration( this.storedConfiguration, profileID );
-            if ( ldapProfile.readSettingAsBoolean( PwmSetting.LDAP_PROFILE_ENABLED ) )
-            {
-                returnList.put( profileID, ldapProfile );
-            }
-        }
-
-        dataCache.ldapProfiles = Collections.unmodifiableMap( returnList );
-        return dataCache.ldapProfiles;
-    }
+        return getProfileMap( ProfileDefinition.LdapProfile, LdapProfile.class );
+     }
 
     public EmailItemBean readSettingAsEmail( final PwmSetting setting, final Locale locale )
     {
@@ -1036,10 +1019,9 @@ public class Configuration implements SettingReader
     {
         private final Map<String, Map<Locale, PwmPasswordPolicy>> cachedPasswordPolicy = new LinkedHashMap<>();
         private Map<Locale, String> localeFlagMap = null;
-        private Map<String, LdapProfile> ldapProfiles;
         private final Map<PwmSetting, StoredValue> settings = new EnumMap<>( PwmSetting.class );
         private final Map<String, Map<Locale, String>> customText = new LinkedHashMap<>();
-        private final Map<ProfileType, Map<String, Profile>> profileCache = new LinkedHashMap<>();
+        private final Map<ProfileDefinition, Map> profileCache = new LinkedHashMap<>();
         private Map<String, String> appPropertyOverrides = null;
     }
 
@@ -1059,126 +1041,80 @@ public class Configuration implements SettingReader
     }
 
     /* generic profile stuff */
-
-
     public Map<String, NewUserProfile> getNewUserProfiles( )
     {
-        final Map<String, NewUserProfile> returnMap = new LinkedHashMap<>();
-        final Map<String, Profile> profileMap = profileMap( ProfileType.NewUser );
-        for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
-        {
-            returnMap.put( entry.getKey(), ( NewUserProfile ) entry.getValue() );
-        }
-        return returnMap;
+        return getProfileMap( ProfileDefinition.NewUser, NewUserProfile.class );
+    }
+
+    public Map<String, ActivateUserProfile> getUserActivationProfiles( )
+    {
+        return getProfileMap( ProfileDefinition.ActivateUser, ActivateUserProfile.class );
     }
 
     public Map<String, HelpdeskProfile> getHelpdeskProfiles( )
     {
-        final Map<String, HelpdeskProfile> returnMap = new LinkedHashMap<>();
-        final Map<String, Profile> profileMap = profileMap( ProfileType.Helpdesk );
-        for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
-        {
-            returnMap.put( entry.getKey(), ( HelpdeskProfile ) entry.getValue() );
-        }
-        return returnMap;
+        return getProfileMap( ProfileDefinition.Helpdesk, HelpdeskProfile.class );
     }
 
     public Map<String, EmailServerProfile> getEmailServerProfiles( )
     {
-        final Map<String, EmailServerProfile> returnMap = new LinkedHashMap<>();
-        final Map<String, Profile> profileMap = profileMap( ProfileType.EmailServers );
-        for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
-        {
-            returnMap.put( entry.getKey(), ( EmailServerProfile ) entry.getValue() );
-        }
-        return returnMap;
+        return getProfileMap( ProfileDefinition.EmailServers, EmailServerProfile.class );
     }
 
     public Map<String, SetupOtpProfile> getSetupOTPProfiles( )
     {
-        final Map<String, SetupOtpProfile> returnMap = new LinkedHashMap<>();
-        final Map<String, Profile> profileMap = profileMap( ProfileType.SetupOTPProfile );
-        for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
-        {
-            returnMap.put( entry.getKey(), ( SetupOtpProfile ) entry.getValue() );
-        }
-        return returnMap;
+        return getProfileMap( ProfileDefinition.SetupOTPProfile, SetupOtpProfile.class );
     }
 
     public Map<String, UpdateProfileProfile> getUpdateAttributesProfile( )
     {
-        final Map<String, UpdateProfileProfile> returnMap = new LinkedHashMap<>();
-        final Map<String, Profile> profileMap = profileMap( ProfileType.UpdateAttributes );
-        for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
-        {
-            returnMap.put( entry.getKey(), ( UpdateProfileProfile ) entry.getValue() );
-        }
-        return returnMap;
+        return getProfileMap( ProfileDefinition.UpdateAttributes, UpdateProfileProfile.class );
     }
 
     public Map<String, ForgottenPasswordProfile> getForgottenPasswordProfiles( )
     {
-        final Map<String, ForgottenPasswordProfile> returnMap = new LinkedHashMap<>();
-        final Map<String, Profile> profileMap = profileMap( ProfileType.ForgottenPassword );
-        for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
-        {
-            returnMap.put( entry.getKey(), ( ForgottenPasswordProfile ) entry.getValue() );
-        }
-        return returnMap;
+        return getProfileMap( ProfileDefinition.ForgottenPassword, ForgottenPasswordProfile.class );
     }
 
-    public Map<String, Profile> profileMap( final ProfileType profileType )
+    private <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition, final Class<T> classOfT  )
     {
-        if ( !dataCache.profileCache.containsKey( profileType ) )
+        if ( !dataCache.profileCache.containsKey( profileDefinition ) )
         {
-            dataCache.profileCache.put( profileType, new LinkedHashMap<>() );
-            for ( final String profileID : ProfileUtility.profileIDsForCategory( this, profileType.getCategory() ) )
+            final Map<String, T> returnMap = new LinkedHashMap<>();
+            final Map<String, Profile> profileMap = profileMap( profileDefinition );
+            for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
             {
-                final Profile newProfile = newProfileForID( profileType, profileID );
-                dataCache.profileCache.get( profileType ).put( profileID, newProfile );
+                returnMap.put( entry.getKey(), ( T ) entry.getValue() );
             }
+            dataCache.profileCache.put( profileDefinition, Collections.unmodifiableMap( returnMap ) );
         }
-        return dataCache.profileCache.get( profileType );
+        return dataCache.profileCache.get( profileDefinition );
     }
 
-    private Profile newProfileForID( final ProfileType profileType, final String profileID )
+    public Map<String, Profile> profileMap( final ProfileDefinition profileDefinition )
     {
-        final Profile newProfile;
-        switch ( profileType )
+        final Map<String, Profile> returnMap = new LinkedHashMap<>();
+        for ( final String profileID : ProfileUtility.profileIDsForCategory( this, profileDefinition.getCategory() ) )
         {
-            case Helpdesk:
-                newProfile = HelpdeskProfile.makeFromStoredConfiguration( storedConfiguration, profileID );
-                break;
-
-            case ForgottenPassword:
-                newProfile = ForgottenPasswordProfile.makeFromStoredConfiguration( storedConfiguration, profileID );
-                break;
-
-            case NewUser:
-                newProfile = NewUserProfile.makeFromStoredConfiguration( storedConfiguration, profileID );
-                break;
-
-            case UpdateAttributes:
-                newProfile = UpdateProfileProfile.makeFromStoredConfiguration( storedConfiguration, profileID );
-                break;
-
-            case DeleteAccount:
-                newProfile = DeleteAccountProfile.makeFromStoredConfiguration( storedConfiguration, profileID );
-                break;
-
-            case EmailServers:
-                newProfile = EmailServerProfile.makeFromStoredConfiguration( storedConfiguration, profileID );
-                break;
-
-            case SetupOTPProfile:
-                newProfile = SetupOtpProfile.makeFromStoredConfiguration( storedConfiguration, profileID );
-                break;
-
-            default:
-                throw new IllegalArgumentException( "unknown profile type: " + profileType.toString() );
+            final Profile newProfile = newProfileForID( profileDefinition, profileID );
+            returnMap.put( profileID, newProfile );
         }
+        return Collections.unmodifiableMap( returnMap );
+    }
 
-        return newProfile;
+    private Profile newProfileForID( final ProfileDefinition profileDefinition, final String profileID )
+    {
+        final Class<? extends Profile.ProfileFactory> profileFactoryClass = profileDefinition.getProfileFactoryClass();
+        final Profile.ProfileFactory profileFactory;
+        try
+        {
+            profileFactory = profileFactoryClass.getDeclaredConstructor().newInstance();
+        }
+        catch ( InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
+        {
+            throw new IllegalStateException( "unable to create profile instance for " + profileDefinition );
+        }
+        return profileFactory.makeFromStoredConfiguration( storedConfiguration, profileID );
     }
 
     public StoredConfigurationImpl getStoredConfiguration( ) throws PwmUnrecoverableException

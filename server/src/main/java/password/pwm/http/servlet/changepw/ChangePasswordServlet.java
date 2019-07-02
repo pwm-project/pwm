@@ -83,7 +83,6 @@ import java.util.Map;
 
 public abstract class ChangePasswordServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ChangePasswordServlet.class );
 
     public enum ChangePasswordAction implements ControlledPwmServlet.ProcessAction

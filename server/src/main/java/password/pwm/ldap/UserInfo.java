@@ -24,7 +24,7 @@ import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.ChallengeProfile;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.operations.otp.OTPUserRecord;
@@ -96,7 +96,7 @@ public interface UserInfo
 
     Instant getAccountExpirationTime( ) throws PwmUnrecoverableException;
 
-    Map<ProfileType, String> getProfileIDs( ) throws PwmUnrecoverableException;
+    Map<ProfileDefinition, String> getProfileIDs( ) throws PwmUnrecoverableException;
 
     String readStringAttribute( String attribute ) throws PwmUnrecoverableException;
 

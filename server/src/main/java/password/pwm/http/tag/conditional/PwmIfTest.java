@@ -28,7 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
@@ -76,9 +76,9 @@ public enum PwmIfTest
     activateUserEnabled( new BooleanPwmSettingTest( PwmSetting.ACTIVATE_USER_ENABLE ) ),
     newUserRegistrationEnabled( new BooleanPwmSettingTest( PwmSetting.NEWUSER_ENABLE ) ),
 
-    updateProfileAvailable( new BooleanPwmSettingTest( PwmSetting.UPDATE_PROFILE_ENABLE ), new ActorHasProfileTest( ProfileType.UpdateAttributes ) ),
-    helpdeskAvailable( new BooleanPwmSettingTest( PwmSetting.HELPDESK_ENABLE ), new ActorHasProfileTest( ProfileType.Helpdesk ) ),
-    DeleteAccountAvailable( new BooleanPwmSettingTest( PwmSetting.DELETE_ACCOUNT_ENABLE ), new ActorHasProfileTest( ProfileType.DeleteAccount ) ),
+    updateProfileAvailable( new BooleanPwmSettingTest( PwmSetting.UPDATE_PROFILE_ENABLE ), new ActorHasProfileTest( ProfileDefinition.UpdateAttributes ) ),
+    helpdeskAvailable( new BooleanPwmSettingTest( PwmSetting.HELPDESK_ENABLE ), new ActorHasProfileTest( ProfileDefinition.Helpdesk ) ),
+    DeleteAccountAvailable( new BooleanPwmSettingTest( PwmSetting.DELETE_ACCOUNT_ENABLE ), new ActorHasProfileTest( ProfileDefinition.DeleteAccount ) ),
     guestRegistrationAvailable( new BooleanPwmSettingTest( PwmSetting.GUEST_ENABLE ), new BooleanPermissionTest( Permission.GUEST_REGISTRATION ) ),
 
     booleanSetting( new BooleanPwmSettingTest( null ) ),
@@ -413,17 +413,17 @@ public enum PwmIfTest
     private static class ActorHasProfileTest implements Test
     {
 
-        private final ProfileType profileType;
+        private final ProfileDefinition profileDefinition;
 
-        ActorHasProfileTest( final ProfileType profileType )
+        ActorHasProfileTest( final ProfileDefinition profileDefinition )
         {
-            this.profileType = profileType;
+            this.profileDefinition = profileDefinition;
         }
 
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmSession().getSessionManager().getProfile( pwmRequest.getPwmApplication(), profileType ) != null;
+            return pwmRequest.getPwmSession().getSessionManager().getProfile( pwmRequest.getPwmApplication(), profileDefinition ) != null;
         }
     }
 

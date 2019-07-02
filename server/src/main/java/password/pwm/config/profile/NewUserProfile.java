@@ -42,10 +42,10 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public class NewUserProfile extends AbstractProfile
+public class NewUserProfile extends AbstractProfile implements Profile
 {
 
-    private static final ProfileType PROFILE_TYPE = ProfileType.NewUser;
+    private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.NewUser;
     public static final String TEST_USER_CONFIG_VALUE = "TESTUSER";
 
     private Instant newUserPasswordPolicyCacheTime;
@@ -56,15 +56,8 @@ public class NewUserProfile extends AbstractProfile
         super( identifier, storedValueMap );
     }
 
-    public static NewUserProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
-    {
-        final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
-        return new NewUserProfile( identifier, valueMap );
-
-    }
-
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         return PROFILE_TYPE;
     }
@@ -172,5 +165,14 @@ public class NewUserProfile extends AbstractProfile
             return TimeDuration.of( defaultDuration, TimeDuration.Unit.SECONDS );
         }
         return TimeDuration.of( newUserDuration, TimeDuration.Unit.SECONDS );
+    }
+
+    public static class NewUserProfileFactory implements ProfileFactory
+    {
+        @Override
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        {
+            return new NewUserProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+        }
     }
 }

@@ -332,7 +332,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
     }
 
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         throw new UnsupportedOperationException();
     }

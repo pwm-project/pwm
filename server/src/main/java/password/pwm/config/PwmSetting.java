@@ -763,8 +763,6 @@ public enum PwmSetting
             "recovery.response.writePreference", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS ),
     CHALLENGE_STORAGE_HASHED(
             "response.hashMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS ),
-    FORGOTTEN_USER_POST_ACTIONS(
-            "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY_SETTINGS ),
     RECOVERY_BOGUS_USER_ENABLE(
             "recovery.bogus.user.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS ),
 
@@ -793,6 +791,8 @@ public enum PwmSetting
             "recovery.token.resend.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_OPTIONS ),
     RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS(
             "recovery.minimumPasswordLifetimeOptions", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_OPTIONS ),
+    FORGOTTEN_USER_POST_ACTIONS(
+            "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY_OPTIONS ),
 
 
     // recovery oauth
@@ -892,23 +892,27 @@ public enum PwmSetting
 
     // activation settings
     ACTIVATE_USER_ENABLE(
-            "activateUser.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVATION ),
-    ACTIVATE_USER_UNLOCK(
-            "activateUser.allowUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVATION ),
-    ACTIVATE_TOKEN_SEND_METHOD(
-            "activateUser.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.ACTIVATION ),
-    ACTIVATE_AGREEMENT_MESSAGE(
-            "display.activateUser.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.ACTIVATION ),
+            "activateUser.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVATION_SETTINGS ),
     ACTIVATE_USER_FORM(
-            "activateUser.form", PwmSettingSyntax.FORM, PwmSettingCategory.ACTIVATION ),
+            "activateUser.form", PwmSettingSyntax.FORM, PwmSettingCategory.ACTIVATION_SETTINGS ),
     ACTIVATE_USER_SEARCH_FILTER(
-            "activateUser.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.ACTIVATION ),
+            "activateUser.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.ACTIVATION_SETTINGS ),
+
+    ACTIVATE_USER_PROFILE_LIST(
+            "activateUser.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+
     ACTIVATE_USER_QUERY_MATCH(
-            "activateUser.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.ACTIVATION ),
+            "activateUser.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.ACTIVATION_PROFILE ),
+    ACTIVATE_USER_UNLOCK(
+            "activateUser.allowUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVATION_PROFILE ),
+    ACTIVATE_TOKEN_SEND_METHOD(
+            "activateUser.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.ACTIVATION_PROFILE ),
+    ACTIVATE_AGREEMENT_MESSAGE(
+            "display.activateUser.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.ACTIVATION_PROFILE ),
     ACTIVATE_USER_PRE_WRITE_ATTRIBUTES(
-            "activateUser.writePreAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.ACTIVATION ),
+            "activateUser.writePreAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.ACTIVATION_PROFILE ),
     ACTIVATE_USER_POST_WRITE_ATTRIBUTES(
-            "activateUser.writePostAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.ACTIVATION ),
+            "activateUser.writePostAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.ACTIVATION_PROFILE ),
 
     // update profile
     UPDATE_PROFILE_ENABLE(

@@ -45,7 +45,7 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.RecoveryAction;
 import password.pwm.config.option.RecoveryMinLifetimeOption;
 import password.pwm.config.profile.ForgottenPasswordProfile;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -67,11 +67,11 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.RandomPasswordGenerator;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -96,8 +96,7 @@ public class ForgottenPasswordUtil
     {
         final ForgottenPasswordBean.RecoveryFlags recoveryFlags = forgottenPasswordBean.getRecoveryFlags();
         final ForgottenPasswordBean.Progress progress = forgottenPasswordBean.getProgress();
-        final Set<IdentityVerificationMethod> result = new LinkedHashSet<>();
-        result.addAll( recoveryFlags.getOptionalAuthMethods() );
+        final Set<IdentityVerificationMethod> result = new LinkedHashSet<>( recoveryFlags.getOptionalAuthMethods() );
         result.removeAll( progress.getSatisfiedMethods() );
 
         for ( final IdentityVerificationMethod recoveryVerificationMethods : new LinkedHashSet<>( result ) )
@@ -115,7 +114,7 @@ public class ForgottenPasswordUtil
         return Collections.unmodifiableSet( result );
     }
 
-    public static RecoveryAction getRecoveryAction( final Configuration configuration, final ForgottenPasswordBean forgottenPasswordBean )
+    static RecoveryAction getRecoveryAction( final Configuration configuration, final ForgottenPasswordBean forgottenPasswordBean )
     {
         final ForgottenPasswordProfile forgottenPasswordProfile = configuration.getForgottenPasswordProfiles().get( forgottenPasswordBean.getForgottenPasswordProfileID() );
         return forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_ACTION, RecoveryAction.class );
@@ -189,7 +188,7 @@ public class ForgottenPasswordUtil
             final CommonValues commonValues,
             final ForgottenPasswordBean forgottenPasswordBean
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
+            throws PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = commonValues.getPwmApplication();
         final Configuration config = commonValues.getConfig();
@@ -219,7 +218,6 @@ public class ForgottenPasswordUtil
     }
 
     static boolean checkAuthRecord( final PwmRequest pwmRequest, final String userGuid )
-            throws PwmUnrecoverableException
     {
         if ( userGuid == null || userGuid.isEmpty() )
         {
@@ -463,9 +461,6 @@ public class ForgottenPasswordUtil
             LOGGER.info( pwmRequest, () -> "user successfully supplied password recovery responses, emailing new password to: "
                     + theUser.getEntryDN() );
 
-            // add post change actions
-            ForgottenPasswordServlet.addPostChangeAction( pwmRequest, userIdentity );
-
             // create new password
             final PasswordData newPassword = RandomPasswordGenerator.createRandomPassword(
                     pwmRequest.getSessionLabel(),
@@ -639,7 +634,7 @@ public class ForgottenPasswordUtil
                 pwmApplication,
                 sessionLabel,
                 userIdentity,
-                ProfileType.ForgottenPassword
+                ProfileDefinition.ForgottenPassword
         );
 
         if ( StringUtil.isEmpty( forgottenProfileID ) )

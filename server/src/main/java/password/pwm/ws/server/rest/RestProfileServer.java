@@ -25,7 +25,7 @@ import lombok.Data;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.WebServiceUsage;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.value.data.FormConfiguration;
@@ -126,7 +126,7 @@ public class RestProfileServer extends RestServlet
                 restRequest.getPwmApplication(),
                 restRequest.getSessionLabel(),
                 targetUserIdentity.getUserIdentity(),
-                ProfileType.UpdateAttributes
+                ProfileDefinition.UpdateAttributes
         );
 
         if ( StringUtil.isEmpty( updateProfileID ) )
@@ -205,7 +205,7 @@ public class RestProfileServer extends RestServlet
                 restRequest.getPwmApplication(),
                 restRequest.getSessionLabel(),
                 targetUserIdentity.getUserIdentity(),
-                ProfileType.UpdateAttributes
+                ProfileDefinition.UpdateAttributes
         );
 
         if ( StringUtil.isEmpty( updateProfileID ) )

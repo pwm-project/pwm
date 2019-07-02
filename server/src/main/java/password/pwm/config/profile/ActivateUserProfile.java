@@ -27,11 +27,11 @@ import password.pwm.config.stored.StoredConfiguration;
 import java.util.Locale;
 import java.util.Map;
 
-public class SetupOtpProfile extends AbstractProfile
+public class ActivateUserProfile extends AbstractProfile implements Profile
 {
-    private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.SetupOTPProfile;
+    private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.ActivateUser;
 
-    protected SetupOtpProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    protected ActivateUserProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
     {
         super( identifier, storedValueMap );
     }
@@ -48,12 +48,12 @@ public class SetupOtpProfile extends AbstractProfile
         return PROFILE_TYPE;
     }
 
-    public static class SetupOtpProfileFactory implements ProfileFactory
+    public static class UserActivationProfileFactory implements ProfileFactory
     {
         @Override
         public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
         {
-            return new SetupOtpProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+            return new ActivateUserProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
         }
     }
 }

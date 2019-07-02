@@ -20,6 +20,8 @@
 
 
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.PwmConstants" %>
+<%@ page import="password.pwm.http.servlet.activation.ActivateUserServlet" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -46,9 +48,9 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Activate"/>
                 </button>
-                <input type="hidden" name="processAction" value="activate"/>
+                <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ActivateUserServlet.ActivateUserAction.search%>"/>
                 <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="<%=PwmConstants.PARAM_FORM_ID%>" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>

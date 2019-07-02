@@ -67,7 +67,7 @@ public class ActionExecutor
             final List<ActionConfiguration> configValues,
             final SessionLabel sessionLabel
     )
-            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         for ( final ActionConfiguration loopAction : configValues )
         {
@@ -79,7 +79,7 @@ public class ActionExecutor
             final ActionConfiguration actionConfiguration,
             final SessionLabel sessionLabel
     )
-            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         LOGGER.trace( sessionLabel, () -> "preparing to execute action(s) for " + actionConfiguration.getName() );
 
@@ -101,7 +101,7 @@ public class ActionExecutor
             final ActionConfiguration actionConfiguration,
             final ActionConfiguration.LdapAction ldapAction
             )
-            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         String attributeName = ldapAction.getAttributeName();
         String attributeValue = ldapAction.getAttributeValue();
@@ -134,14 +134,21 @@ public class ActionExecutor
             attributeValue = macroMachine.expandMacros( attributeValue );
         }
 
-        writeLdapAttribute(
-                sessionLabel,
-                theUser,
-                attributeName,
-                attributeValue,
-                ldapAction.getLdapMethod(),
-                settings.getMacroMachine()
-        );
+        try
+        {
+            writeLdapAttribute(
+                    sessionLabel,
+                    theUser,
+                    attributeName,
+                    attributeValue,
+                    ldapAction.getLdapMethod(),
+                    settings.getMacroMachine()
+            );
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
     }
 
     private void executeWebserviceAction(

@@ -215,7 +215,7 @@ public class ChangePasswordServletUtil
         final ChangePasswordBean cpb = pwmApplication.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
 
         // change password
-        PasswordUtility.setActorPassword( pwmSession, pwmApplication, newPassword );
+        PasswordUtility.setActorPassword( pwmRequest, pwmApplication, newPassword );
 
         //init values for progress screen
         {

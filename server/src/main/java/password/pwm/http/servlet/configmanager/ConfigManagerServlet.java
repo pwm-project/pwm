@@ -220,22 +220,11 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             return;
         }
 
-        if ( !pwmSession.isAuthenticated() )
+        if ( !pwmSession.isAuthenticated()
+                || !pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN ) )
         {
             final ErrorInformation errorInfo = new ErrorInformation(
                     PwmError.ERROR_AUTHENTICATION_REQUIRED,
-                    "You must be authenticated before restricting the configuration"
-            );
-            final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmSession, errorInfo );
-            pwmRequest.outputJsonResult( restResultBean );
-            return;
-        }
-
-        if ( !pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN ) )
-        {
-            final ErrorInformation errorInfo = new ErrorInformation(
-                    PwmError.ERROR_UNAUTHORIZED,
                     "You must be authenticated with admin privileges before restricting the configuration"
             );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );

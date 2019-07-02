@@ -32,18 +32,11 @@ import java.util.Map;
 public class UpdateProfileProfile extends AbstractProfile implements Profile
 {
 
-    private static final ProfileType PROFILE_TYPE = ProfileType.UpdateAttributes;
+    private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.UpdateAttributes;
 
     protected UpdateProfileProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
     {
         super( identifier, storedValueMap );
-    }
-
-    public static UpdateProfileProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
-    {
-        final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
-        return new UpdateProfileProfile( identifier, valueMap );
-
     }
 
     @Override
@@ -53,7 +46,7 @@ public class UpdateProfileProfile extends AbstractProfile implements Profile
     }
 
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         return PROFILE_TYPE;
     }
@@ -78,5 +71,14 @@ public class UpdateProfileProfile extends AbstractProfile implements Profile
             return TimeDuration.of( defaultDuration, TimeDuration.Unit.SECONDS );
         }
         return TimeDuration.of( duration, TimeDuration.Unit.SECONDS );
+    }
+
+    public static class UpdateProfileProfileFactory implements ProfileFactory
+    {
+        @Override
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        {
+            return new UpdateProfileProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+        }
     }
 }

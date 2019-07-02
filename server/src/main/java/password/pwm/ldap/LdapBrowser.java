@@ -151,7 +151,7 @@ public class LdapBrowser
         if ( !providerCache.containsKey( profile ) )
         {
             final Configuration configuration = new Configuration( storedConfiguration );
-            final LdapProfile ldapProfile = LdapProfile.makeFromStoredConfiguration( storedConfiguration, profile );
+            final LdapProfile ldapProfile = configuration.getLdapProfiles().get( profile );
             final ChaiProvider chaiProvider = LdapOperationsHelper.openProxyChaiProvider( chaiProviderFactory, null, ldapProfile, configuration, null );
             providerCache.put( profile, chaiProvider );
         }

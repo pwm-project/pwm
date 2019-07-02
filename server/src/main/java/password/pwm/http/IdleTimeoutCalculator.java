@@ -31,7 +31,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.HelpdeskProfile;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.ldap.UserInfo;
@@ -111,7 +111,7 @@ public class IdleTimeoutCalculator
 
         if ( configuration.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE ) )
         {
-            final String helpdeskProfileID = userInfo.getProfileIDs().get( ProfileType.Helpdesk );
+            final String helpdeskProfileID = userInfo.getProfileIDs().get( ProfileDefinition.Helpdesk );
             if ( !StringUtil.isEmpty( helpdeskProfileID ) )
             {
                 final HelpdeskProfile helpdeskProfile = configuration.getHelpdeskProfiles().get( helpdeskProfileID );

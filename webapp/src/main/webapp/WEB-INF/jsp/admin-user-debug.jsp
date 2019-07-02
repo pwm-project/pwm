@@ -24,7 +24,7 @@
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
 <%@ page import="password.pwm.bean.pub.PublicUserInfoBean" %>
 <%@ page import="password.pwm.config.profile.ChallengeProfile" %>
-<%@ page import="password.pwm.config.profile.ProfileType" %>
+<%@ page import="password.pwm.config.profile.ProfileDefinition" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordPolicy" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordRule" %>
 <%@ page import="password.pwm.http.servlet.admin.UserDebugDataBean" %>
@@ -296,10 +296,10 @@
                             <td class="key">Service</td>
                             <td class="key">ProfileID</td>
                         </tr>
-                        <% for (final ProfileType profileType : userDebugDataBean.getProfiles().keySet()) { %>
+                        <% for (final ProfileDefinition profileDefinition : userDebugDataBean.getProfiles().keySet()) { %>
                         <tr>
-                            <td><%=profileType%></td>
-                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getProfiles().get(profileType))%></td>
+                            <td><%=profileDefinition%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getProfiles().get(profileDefinition))%></td>
                         </tr>
                         <% } %>
                     </table>

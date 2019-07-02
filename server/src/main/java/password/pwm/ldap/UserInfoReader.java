@@ -37,7 +37,7 @@ import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.ForceSetupPolicy;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.LdapProfile;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
@@ -52,7 +52,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
 import password.pwm.util.PasswordData;
-import password.pwm.util.password.PwmPasswordRuleValidator;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CachingProxyWrapper;
@@ -63,6 +62,7 @@ import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.util.password.PwmPasswordRuleValidator;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -426,10 +426,10 @@ public class UserInfoReader implements UserInfo
         LOGGER.trace( sessionLabel, () ->  "checkOtp: beginning process to check if user OTP setup is required" );
 
         SetupOtpProfile setupOtpProfile = null;
-        final Map<ProfileType, String> profileIDs = selfCachedReference.getProfileIDs();
-        if ( profileIDs.containsKey( ProfileType.UpdateAttributes ) )
+        final Map<ProfileDefinition, String> profileIDs = selfCachedReference.getProfileIDs();
+        if ( profileIDs.containsKey( ProfileDefinition.UpdateAttributes ) )
         {
-            setupOtpProfile = pwmApplication.getConfig().getSetupOTPProfiles().get( profileIDs.get( ProfileType.SetupOTPProfile ) );
+            setupOtpProfile = pwmApplication.getConfig().getSetupOTPProfiles().get( profileIDs.get( ProfileDefinition.SetupOTPProfile ) );
         }
 
         if ( setupOtpProfile == null )
@@ -478,10 +478,10 @@ public class UserInfoReader implements UserInfo
         }
 
         UpdateProfileProfile updateProfileProfile = null;
-        final Map<ProfileType, String> profileIDs = selfCachedReference.getProfileIDs();
-        if ( profileIDs.containsKey( ProfileType.UpdateAttributes ) )
+        final Map<ProfileDefinition, String> profileIDs = selfCachedReference.getProfileIDs();
+        if ( profileIDs.containsKey( ProfileDefinition.UpdateAttributes ) )
         {
-            updateProfileProfile = configuration.getUpdateAttributesProfile().get( profileIDs.get( ProfileType.UpdateAttributes ) );
+            updateProfileProfile = configuration.getUpdateAttributesProfile().get( profileIDs.get( ProfileDefinition.UpdateAttributes ) );
         }
 
         if ( updateProfileProfile == null )
@@ -643,22 +643,22 @@ public class UserInfoReader implements UserInfo
     }
 
     @Override
-    public Map<ProfileType, String> getProfileIDs( ) throws PwmUnrecoverableException
+    public Map<ProfileDefinition, String> getProfileIDs( ) throws PwmUnrecoverableException
     {
-        final Map<ProfileType, String> returnMap = new HashMap<>();
-        for ( final ProfileType profileType : ProfileType.values() )
+        final Map<ProfileDefinition, String> returnMap = new HashMap<>();
+        for ( final ProfileDefinition profileDefinition : ProfileDefinition.values() )
         {
-            if ( profileType.isAuthenticated() )
+            if ( profileDefinition.isAuthenticated() )
             {
-                final String profileID = ProfileUtility.discoverProfileIDforUser( pwmApplication, sessionLabel, userIdentity, profileType );
-                returnMap.put( profileType, profileID );
+                final String profileID = ProfileUtility.discoverProfileIDforUser( pwmApplication, sessionLabel, userIdentity, profileDefinition );
+                returnMap.put( profileDefinition, profileID );
                 if ( profileID != null )
                 {
-                    LOGGER.debug( sessionLabel, () -> "assigned " + profileType.toString() + " profileID \"" + profileID + "\" to " + userIdentity.toDisplayString() );
+                    LOGGER.debug( sessionLabel, () -> "assigned " + profileDefinition.toString() + " profileID \"" + profileID + "\" to " + userIdentity.toDisplayString() );
                 }
                 else
                 {
-                    LOGGER.debug( sessionLabel, () -> profileType.toString() + " has no matching profiles for user " + userIdentity.toDisplayString() );
+                    LOGGER.debug( sessionLabel, () -> profileDefinition.toString() + " has no matching profiles for user " + userIdentity.toDisplayString() );
                 }
             }
         }
