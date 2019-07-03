@@ -168,23 +168,22 @@ public class EmailServerUtil
         try
         {
             final SmtpServerType smtpServerType = profile.readSettingAsEnum( PwmSetting.EMAIL_SERVER_TYPE, SmtpServerType.class );
-            if ( smtpServerType == SmtpServerType.SMTP )
+            if ( smtpServerType == SmtpServerType.START_TLS )
             {
-                return properties;
+                    properties.put( "mail.smtp.starttls.enable", true );
+                    properties.put( "mail.smtp.starttls.required", true );
             }
+            else if ( smtpServerType == SmtpServerType.SMTPS )
+            {
+                    final MailSSLSocketFactory mailSSLSocketFactory = new MailSSLSocketFactory();
+                    mailSSLSocketFactory.setTrustManagers( trustManager );
 
-            final MailSSLSocketFactory mailSSLSocketFactory = new MailSSLSocketFactory();
-            mailSSLSocketFactory.setTrustManagers( trustManager );
-
-            properties.put( "mail.smtp.ssl.enable", true );
-            properties.put( "mail.smtp.ssl.checkserveridentity", true );
-            properties.put( "mail.smtp.socketFactory.fallback", false );
-            properties.put( "mail.smtp.ssl.socketFactory", mailSSLSocketFactory );
-            properties.put( "mail.smtp.ssl.socketFactory.port", port );
-
-            final boolean useStartTls = smtpServerType == SmtpServerType.START_TLS;
-            properties.put( "mail.smtp.starttls.enable", useStartTls );
-            properties.put( "mail.smtp.starttls.required", useStartTls );
+                    properties.put( "mail.smtp.ssl.enable", true );
+                    properties.put( "mail.smtp.ssl.checkserveridentity", true );
+                    properties.put( "mail.smtp.socketFactory.fallback", false );
+                    properties.put( "mail.smtp.ssl.socketFactory", mailSSLSocketFactory );
+                    properties.put( "mail.smtp.ssl.socketFactory.port", port );
+            }
         }
         catch ( Exception e )
         {
