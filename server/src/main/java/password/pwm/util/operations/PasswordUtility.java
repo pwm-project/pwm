@@ -48,7 +48,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.StrengthMeterType;
-import password.pwm.config.profile.ActivateUserProfile;
+import password.pwm.config.profile.AbstractProfile;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
@@ -669,12 +669,12 @@ public class PasswordUtility
         if ( authenticationSource == PwmAuthenticationSource.USER_ACTIVATION )
         {
             LOGGER.debug( pwmRequest, () -> "executing post-activate configured actions " );
-            executePostUserActivationMethods(  pwmRequest );
+            executePostActionMethods(  pwmRequest, ProfileDefinition.ActivateUser, PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES );
         }
         else if ( authenticationSource == PwmAuthenticationSource.FORGOTTEN_PASSWORD )
         {
             LOGGER.debug( pwmRequest, () -> "executing post-forgotten password configured actions" );
-            executePostForgottenPasswordMethods( pwmRequest );
+            executePostActionMethods(  pwmRequest, ProfileDefinition.ForgottenPassword, PwmSetting.RECOVERY_POST_ACTIONS );
         }
         else
         {
@@ -682,57 +682,25 @@ public class PasswordUtility
         }
     }
 
-    private static void executePostForgottenPasswordMethods( final PwmRequest pwmRequest )
+    private static void executePostActionMethods(
+            final PwmRequest pwmRequest,
+            final ProfileDefinition profileDefinition,
+            final PwmSetting pwmSetting
+    )
             throws PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final UserIdentity userIdentity = pwmRequest.getUserInfoIfLoggedIn();
-        final ForgottenPasswordProfile forgottenPasswordProfile = ProfileUtility.profileForUser(
+        final AbstractProfile activateUserProfile = ProfileUtility.profileForUser(
                 pwmRequest.commonValues(),
                 userIdentity,
-                ProfileDefinition.ForgottenPassword,
-                ForgottenPasswordProfile.class );
+                profileDefinition,
+                AbstractProfile.class );
 
         try
         {
             {
-                // execute configured actions
-                final List<ActionConfiguration> configValues = forgottenPasswordProfile.readSettingAsAction( PwmSetting.FORGOTTEN_USER_POST_ACTIONS );
-                final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
-                        .setMacroMachine( pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication ) )
-                        .setExpandPwmMacros( true )
-                        .createActionExecutor();
-
-                actionExecutor.executeActions( configValues, pwmRequest.getSessionLabel() );
-            }
-        }
-        catch ( PwmOperationalException e )
-        {
-            final ErrorInformation info = new ErrorInformation(
-                    PwmError.ERROR_SERVICE_UNREACHABLE,
-                    e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues()
-            );
-            final PwmUnrecoverableException newException = new PwmUnrecoverableException( info );
-            newException.initCause( e );
-            throw newException;
-        }
-    }
-
-    private static void executePostUserActivationMethods( final PwmRequest pwmRequest )
-            throws PwmUnrecoverableException
-    {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final UserIdentity userIdentity = pwmRequest.getUserInfoIfLoggedIn();
-        final ActivateUserProfile activateUserProfile = ProfileUtility.profileForUser(
-                pwmRequest.commonValues(),
-                userIdentity,
-                ProfileDefinition.ActivateUser,
-                ActivateUserProfile.class );
-
-        try
-        {
-            {
-                final List<ActionConfiguration> configValues = activateUserProfile.readSettingAsAction( PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES );
+                final List<ActionConfiguration> configValues = activateUserProfile.readSettingAsAction( pwmSetting );
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
                         .setExpandPwmMacros( true )
@@ -744,7 +712,7 @@ public class PasswordUtility
         catch ( PwmException e )
         {
             final ErrorInformation info = new ErrorInformation(
-                    PwmError.ERROR_ACTIVATION_FAILURE,
+                    PwmError.ERROR_SERVICE_UNREACHABLE,
                     e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues()
             );
             final PwmUnrecoverableException newException = new PwmUnrecoverableException( info );
@@ -752,6 +720,7 @@ public class PasswordUtility
             throw newException;
         }
     }
+
 
     /*
     static Map<String, ReplicationStatus> checkIfPasswordIsReplicated(final ChaiUser user, final PwmSession pwmSession)

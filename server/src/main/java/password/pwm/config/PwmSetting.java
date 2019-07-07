@@ -791,7 +791,7 @@ public enum PwmSetting
             "recovery.token.resend.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_OPTIONS ),
     RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS(
             "recovery.minimumPasswordLifetimeOptions", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_OPTIONS ),
-    FORGOTTEN_USER_POST_ACTIONS(
+    RECOVERY_POST_ACTIONS(
             "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY_OPTIONS ),
 
 
