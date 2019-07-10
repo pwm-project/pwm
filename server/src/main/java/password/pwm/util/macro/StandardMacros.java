@@ -38,6 +38,8 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -51,7 +53,7 @@ public abstract class StandardMacros
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( StandardMacros.class );
 
-    public static final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> STANDARD_MACROS;
+    static final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> STANDARD_MACROS;
 
     static
     {
@@ -59,6 +61,7 @@ public abstract class StandardMacros
 
         // system macros
         defaultMacros.put( CurrentTimeMacro.class, MacroImplementation.Scope.System );
+        defaultMacros.put( Iso8601DateTimeMacro.class, MacroImplementation.Scope.System );
         defaultMacros.put( InstanceIDMacro.class, MacroImplementation.Scope.System );
         defaultMacros.put( DefaultEmailFromAddressMacro.class, MacroImplementation.Scope.System );
         defaultMacros.put( SiteURLMacro.class, MacroImplementation.Scope.System );
@@ -289,6 +292,47 @@ public abstract class StandardMacros
 
             dateFormat.setTimeZone( tz );
             return dateFormat.format( new Date() );
+        }
+    }
+
+    public static class Iso8601DateTimeMacro extends AbstractMacro
+    {
+        private static final Pattern PATTERN = Pattern.compile( "@Iso8601" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
+
+        public Pattern getRegExPattern( )
+        {
+            return PATTERN;
+        }
+
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
+
+        ) throws MacroParseException
+        {
+            final List<String> parameters = splitMacroParameters( matchValue, "Iso8601" );
+
+            if ( JavaHelper.isEmpty(  parameters ) || parameters.size() != 1 )
+            {
+                throw new MacroParseException( "exactly one parameter is required" );
+            }
+
+            final String param = parameters.get( 0 );
+
+            if ( "DateTime".equalsIgnoreCase( param ) )
+            {
+                return JavaHelper.toIsoDate( Instant.now() );
+            }
+            else if ( "Date".equalsIgnoreCase( param ) )
+            {
+                return Instant.now().atOffset( ZoneOffset.UTC ).format( DateTimeFormatter.ofPattern( "uuuu-MM-dd" ) );
+            }
+            else if ( "Time".equalsIgnoreCase( param ) )
+            {
+                return Instant.now().atOffset( ZoneOffset.UTC ).format( DateTimeFormatter.ofPattern( "HH:mm:ss" ) );
+            }
+
+            throw new MacroParseException( "unknown parameter" );
         }
     }
 
