@@ -30,12 +30,14 @@ import password.pwm.config.option.CertificateMatchingMode;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
+import password.pwm.config.profile.ActivateUserProfile;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
+import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.ProfileUtility;
@@ -43,7 +45,6 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
-import password.pwm.config.profile.ActivateUserProfile;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.StoredConfigurationUtil;
@@ -91,6 +92,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Supplier;
@@ -160,7 +162,7 @@ public class Configuration implements SettingReader
     public Map<String, LdapProfile> getLdapProfiles( )
     {
         return getProfileMap( ProfileDefinition.LdapProfile, LdapProfile.class );
-     }
+    }
 
     public EmailItemBean readSettingAsEmail( final PwmSetting setting, final Locale locale )
     {
@@ -1061,6 +1063,11 @@ public class Configuration implements SettingReader
         return getProfileMap( ProfileDefinition.EmailServers, EmailServerProfile.class );
     }
 
+    public Map<String, PeopleSearchProfile> getPeopleSearchProfiles( )
+    {
+        return getProfileMap( ProfileDefinition.PeopleSearch, PeopleSearchProfile.class );
+    }
+
     public Map<String, SetupOtpProfile> getSetupOTPProfiles( )
     {
         return getProfileMap( ProfileDefinition.SetupOTPProfile, SetupOtpProfile.class );
@@ -1105,6 +1112,7 @@ public class Configuration implements SettingReader
     private Profile newProfileForID( final ProfileDefinition profileDefinition, final String profileID )
     {
         final Class<? extends Profile.ProfileFactory> profileFactoryClass = profileDefinition.getProfileFactoryClass();
+
         final Profile.ProfileFactory profileFactory;
         try
         {
@@ -1158,4 +1166,14 @@ public class Configuration implements SettingReader
 
     }
 
+    public Optional<PeopleSearchProfile> getPublicPeopleSearchProfile()
+    {
+        if ( readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC ) )
+        {
+            final String profileID = readSettingAsString( PwmSetting.PEOPLE_SEARCH_PUBLIC_PROFILE );
+            final Map<String, PeopleSearchProfile> profiles = this.getProfileMap( ProfileDefinition.PeopleSearchPublic, PeopleSearchProfile.class );
+            return Optional.ofNullable( profiles.get( profileID ) );
+        }
+        return Optional.empty();
+    }
 }

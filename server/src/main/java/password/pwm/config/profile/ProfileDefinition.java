@@ -67,6 +67,18 @@ public enum ProfileDefinition
             SetupOtpProfile.SetupOtpProfileFactory.class,
             PwmSettingCategory.OTP_PROFILE,
             PwmSetting.OTP_SETUP_USER_PERMISSION ),
+    PeopleSearch(
+            Type.AUTHENTICATED,
+            PeopleSearchProfile.class,
+            PeopleSearchProfile.PeopleSearchProfileFactory.class,
+            PwmSettingCategory.PEOPLE_SEARCH_PROFILE,
+            PwmSetting.PEOPLE_SEARCH_QUERY_MATCH ),
+    PeopleSearchPublic(
+            Type.PUBLIC,
+            PeopleSearchProfile.class,
+            PeopleSearchProfile.PeopleSearchProfileFactory.class,
+            PwmSettingCategory.PEOPLE_SEARCH_PROFILE,
+            null ),
     EmailServers(
             Type.SERVICE,
             EmailServerProfile.class,

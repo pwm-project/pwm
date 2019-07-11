@@ -21,10 +21,7 @@
 package password.pwm.http.servlet.peoplesearch;
 
 
-import password.pwm.Permission;
 import password.pwm.PwmConstants;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
@@ -49,11 +46,7 @@ public class PrivatePeopleSearchServlet extends PeopleSearchServlet
     @Override
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
-        if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PEOPLE_SEARCH ) )
-        {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNAUTHORIZED ) );
-        }
-
-        return super.preProcessCheck( pwmRequest );
+        PeopleSearchServlet.peopleSearchProfile( pwmRequest );
+        return ProcessStatus.Continue;
     }
 }

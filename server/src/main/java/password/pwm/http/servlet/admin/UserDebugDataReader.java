@@ -143,13 +143,17 @@ public class UserDebugDataReader
         final Map<ProfileDefinition, String> results = new TreeMap<>();
         for ( final ProfileDefinition profileDefinition : ProfileDefinition.values() )
         {
-            final String id = ProfileUtility.discoverProfileIDforUser(
-                    pwmApplication,
-                    sessionLabel,
-                    userIdentity,
-                    profileDefinition
-            );
-            results.put( profileDefinition, id );
+            if ( profileDefinition.isAuthenticated() )
+            {
+                final String id = ProfileUtility.discoverProfileIDforUser(
+                        pwmApplication,
+                        sessionLabel,
+                        userIdentity,
+                        profileDefinition
+                );
+
+                results.put( profileDefinition, id );
+            }
         }
         return Collections.unmodifiableMap( results );
     }

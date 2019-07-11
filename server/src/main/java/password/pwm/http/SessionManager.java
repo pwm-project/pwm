@@ -29,6 +29,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.DeleteAccountProfile;
 import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.SetupOtpProfile;
@@ -281,6 +282,11 @@ public class SessionManager
     public UpdateProfileProfile getUpdateAttributeProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
         return ( UpdateProfileProfile ) getProfile( pwmApplication, ProfileDefinition.UpdateAttributes );
+    }
+
+    public PeopleSearchProfile getPeopleSearchProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    {
+        return ( PeopleSearchProfile ) getProfile( pwmApplication, ProfileDefinition.PeopleSearch );
     }
 
     public DeleteAccountProfile getSelfDeleteProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException

@@ -28,6 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.error.PwmUnrecoverableException;
@@ -35,12 +36,12 @@ import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
-import password.pwm.http.servlet.peoplesearch.PeopleSearchConfiguration;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public enum PwmIfTest
 {
@@ -63,7 +64,7 @@ public enum PwmIfTest
     hasCustomJavascript( new HasCustomJavascript() ),
     setupChallengeEnabled( new BooleanPwmSettingTest( PwmSetting.CHALLENGE_ENABLE ) ),
     shortcutsEnabled( new BooleanPwmSettingTest( PwmSetting.SHORTCUT_ENABLE ) ),
-    peopleSearchEnabled( new BooleanPwmSettingTest( PwmSetting.PEOPLE_SEARCH_ENABLE ) ),
+    peopleSearchAvailable(  new BooleanPwmSettingTest( PwmSetting.PEOPLE_SEARCH_ENABLE ), new ActorHasProfileTest( ProfileDefinition.PeopleSearch )  ),
     orgChartEnabled( new OrgChartEnabled() ),
     passwordExpired( new PasswordExpired() ),
     showMaskedTokenSelection( new BooleanAppPropertyTest( AppProperty.TOKEN_MASK_SHOW_SELECTION ) ),
@@ -239,8 +240,8 @@ public enum PwmIfTest
 
             return pwmRequest != null
                     && pwmRequest.getPwmSession().getSessionManager().checkPermission(
-                            pwmRequest.getPwmApplication(),
-                            permission );
+                    pwmRequest.getPwmApplication(),
+                    permission );
         }
     }
 
@@ -472,12 +473,19 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
+            if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
             {
-                return false;
+                final Optional<PeopleSearchProfile> peopleSearchProfile = pwmRequest.isAuthenticated()
+                        ? Optional.ofNullable( pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile( pwmRequest.getPwmApplication() ) )
+                        : pwmRequest.getConfig().getPublicPeopleSearchProfile();
+
+                if ( peopleSearchProfile.isPresent() )
+                {
+                    return peopleSearchProfile.get().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_ORGCHART );
+                }
             }
 
-            return PeopleSearchConfiguration.forRequest( pwmRequest ).isOrgChartEnabled();
+            return false;
         }
     }
 

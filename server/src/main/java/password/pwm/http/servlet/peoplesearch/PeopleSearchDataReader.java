@@ -32,6 +32,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
@@ -100,10 +101,11 @@ class PeopleSearchDataReader
         searchResultBean,
     }
 
-    PeopleSearchDataReader( final PwmRequest pwmRequest )
+    PeopleSearchDataReader( final PwmRequest pwmRequest, final PeopleSearchProfile peopleSearchProfile )
+            throws PwmUnrecoverableException
     {
         this.pwmRequest = pwmRequest;
-        this.peopleSearchConfiguration = PeopleSearchConfiguration.forRequest( pwmRequest );
+        this.peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getConfig(), peopleSearchProfile );
     }
 
     SearchResultBean makeSearchResultBean(
@@ -262,7 +264,7 @@ class PeopleSearchDataReader
 
         final UserDetailBean userDetailBean = new UserDetailBean();
         userDetailBean.setUserKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
-        final List<FormConfiguration> detailFormConfig = pwmRequest.getConfig().readSettingAsForm( PwmSetting.PEOPLE_SEARCH_DETAIL_FORM );
+        final List<FormConfiguration> detailFormConfig = this.peopleSearchConfiguration.getSearchDetailForm();
         final Map<String, AttributeDetailBean> attributeBeans = convertResultMapToBeans( pwmRequest, userIdentity, detailFormConfig, searchResults );
 
         userDetailBean.setDetail( attributeBeans );
@@ -443,17 +445,17 @@ class PeopleSearchDataReader
         return returnObj;
     }
 
-    private static void storeDataInCache(
+    private void storeDataInCache(
             final PwmApplication pwmApplication,
             final CacheKey cacheKey,
             final Serializable data
     )
             throws PwmUnrecoverableException
     {
-        final long maxCacheSeconds = pwmApplication.getConfig().readSettingAsLong( PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS );
-        if ( maxCacheSeconds > 0 )
+        final TimeDuration maxCacheTime = this.peopleSearchConfiguration.getMaxCacheTime();
+        if ( !maxCacheTime.isZero() )
         {
-            final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS( maxCacheSeconds * 1000 );
+            final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( maxCacheTime );
             pwmApplication.getCacheService().put( cacheKey, cachePolicy, data );
         }
     }
@@ -468,8 +470,8 @@ class PeopleSearchDataReader
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final CacheKey cacheKey = makeCacheKey( operationIdentifier.name(), dataIdentifier );
-        final long maxCacheSeconds = pwmApplication.getConfig().readSettingAsLong( PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS );
-        final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS( maxCacheSeconds * 1000 );
+        final TimeDuration maxCacheTime = this.peopleSearchConfiguration.getMaxCacheTime();
+        final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( maxCacheTime );
         return pwmApplication.getCacheService().get( cacheKey, cachePolicy, classOfT, cacheLoader );
     }
 
@@ -488,7 +490,7 @@ class PeopleSearchDataReader
         }
 
         {
-            final List<UserPermission> permissions = pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER );
+            final List<UserPermission> permissions = peopleSearchConfiguration.getSearchPhotoFilter();
             final boolean hasPermission = LdapPermissionTester.testUserPermissions( pwmApplication, pwmRequest.getSessionLabel(), userIdentity, permissions );
             if ( !hasPermission )
             {
@@ -536,7 +538,7 @@ class PeopleSearchDataReader
             throws PwmUnrecoverableException
     {
         final MacroMachine macroMachine = getMacroMachine( userIdentity );
-        final String settingValue = pwmRequest.getConfig().readSettingAsString( PwmSetting.PEOPLE_SEARCH_DISPLAY_NAME );
+        final String settingValue = this.peopleSearchConfiguration.getDisplayName();
         return macroMachine.expandMacros( settingValue );
     }
 
@@ -547,7 +549,7 @@ class PeopleSearchDataReader
             throws PwmUnrecoverableException
     {
         final List<String> displayLabels = new ArrayList<>();
-        final List<String> displayStringSettings = pwmRequest.getConfig().readSettingAsStringArray( PwmSetting.PEOPLE_SEARCH_DISPLAY_NAMES_CARD_LABELS );
+        final List<String> displayStringSettings = this.peopleSearchConfiguration.getDisplayNameCardLables();
         if ( displayStringSettings != null )
         {
             final MacroMachine macroMachine = getMacroMachine( userIdentity );
@@ -691,7 +693,7 @@ class PeopleSearchDataReader
 
     private String makeSimpleSearchFilter()
     {
-        final String configuredFilter = pwmRequest.getConfig().readSettingAsString( PwmSetting.PEOPLE_SEARCH_SEARCH_FILTER );
+        final String configuredFilter = this.peopleSearchConfiguration.getSearchFilter();
         if ( configuredFilter != null && !configuredFilter.isEmpty() )
         {
             return configuredFilter;
@@ -734,11 +736,10 @@ class PeopleSearchDataReader
 
     private boolean useProxy( )
     {
+        final boolean useProxy = peopleSearchConfiguration.isUseProxy();
+        final boolean publicAccess = pwmRequest.getURL().isPublicUrl();
 
-        final boolean useProxy = pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_USE_PROXY );
-        final boolean publicAccessEnabled = pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC );
-
-        return useProxy || !pwmRequest.isAuthenticated() && publicAccessEnabled;
+        return useProxy || ( !pwmRequest.isAuthenticated() && publicAccess );
     }
 
     private UserSearchResults doDetailLookup(
@@ -746,7 +747,7 @@ class PeopleSearchDataReader
     )
             throws PwmUnrecoverableException
     {
-        final List<FormConfiguration> detailFormConfig = pwmRequest.getConfig().readSettingAsForm( PwmSetting.PEOPLE_SEARCH_DETAIL_FORM );
+        final List<FormConfiguration> detailFormConfig = this.peopleSearchConfiguration.getSearchDetailForm();
         final Map<String, String> attributeHeaderMap = UserSearchResults.fromFormConfiguration(
                 detailFormConfig, pwmRequest.getLocale() );
 
@@ -810,7 +811,7 @@ class PeopleSearchDataReader
         final SearchConfiguration searchConfiguration;
         {
             final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
-            builder.contexts( pwmRequest.getConfig().readSettingAsStringArray( PwmSetting.PEOPLE_SEARCH_SEARCH_BASE ) );
+            builder.contexts( this.peopleSearchConfiguration.getLdapBase() );
             builder.enableContextValidation( false );
             builder.enableValueEscaping( false );
             builder.enableSplitWhitespace( true );
@@ -956,7 +957,7 @@ class PeopleSearchDataReader
             throws PwmUnrecoverableException
     {
         final List<String> returnValues = new ArrayList<>(  );
-        final String mailtoAttr = userIdentity.getLdapProfile( pwmRequest.getConfig() ).readSettingAsString( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
+        final String mailtoAttr = this.peopleSearchConfiguration.getEmailAttribute( userIdentity );
         final String value = readUserAttribute( userIdentity, mailtoAttr );
         if ( !StringUtil.isEmpty( value ) )
         {

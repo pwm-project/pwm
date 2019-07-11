@@ -35,7 +35,6 @@ import java.util.Set;
 
 public class HelpdeskProfile extends AbstractProfile implements Profile
 {
-
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.Helpdesk;
 
     protected HelpdeskProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )

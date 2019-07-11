@@ -22,10 +22,7 @@ package password.pwm.http.servlet.peoplesearch.bean;
 
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
@@ -63,18 +60,15 @@ public class PeopleSearchClientConfigBean implements Serializable
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final Configuration configuration = pwmApplication.getConfig();
         final Locale locale = pwmRequest.getLocale();
 
         final Map<String, String> searchColumns = new LinkedHashMap<>();
-        final List<FormConfiguration> searchForm = configuration.readSettingAsForm( PwmSetting.PEOPLE_SEARCH_RESULT_FORM );
+        final List<FormConfiguration> searchForm = peopleSearchConfiguration.getSearchResultForm();
         for ( final FormConfiguration formConfiguration : searchForm )
         {
             searchColumns.put( formConfiguration.getName(),
                     formConfiguration.getLabel( locale ) );
         }
-
 
         final List<SearchAttributeBean> searchAttributeBeans = SearchAttributeBean.searchAttributesFromForm(
                 locale,

@@ -956,45 +956,49 @@ public enum PwmSetting
 
     // peoplesearch settings
     PEOPLE_SEARCH_ENABLE(
-            "peopleSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_QUERY_MATCH(
-            "peopleSearch.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_SEARCH_FORM(
-            "peopleSearch.search.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_RESULT_FORM(
-            "peopleSearch.result.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_DETAIL_FORM(
-            "peopleSearch.detail.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_RESULT_LIMIT(
-            "peopleSearch.result.limit", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_USE_PROXY(
-            "peopleSearch.useProxy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_DISPLAY_NAMES_CARD_LABELS(
-            "peopleSearch.displayName.cardLabels", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_MAX_CACHE_SECONDS(
-            "peopleSearch.maxCacheSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_ENABLE_PHOTO(
-            "peopleSearch.enablePhoto", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_PHOTO_QUERY_FILTER(
-            "peopleSearch.photo.queryFilter", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_SEARCH_FILTER(
-            "peopleSearch.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_SEARCH_BASE(
-            "peopleSearch.searchBase", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_SETTINGS ),
     PEOPLE_SEARCH_ENABLE_PUBLIC(
-            "peopleSearch.enablePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.enablePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_SETTINGS ),
+    PEOPLE_SEARCH_PUBLIC_PROFILE(
+            "peopleSearch.public.profile", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH_SETTINGS ),
+    PEOPLESEARCH_PROFILE_LIST(
+            "peopleSearch.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+    PEOPLE_SEARCH_QUERY_MATCH(
+            "peopleSearch.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_SEARCH_FORM(
+            "peopleSearch.search.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_RESULT_FORM(
+            "peopleSearch.result.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_DETAIL_FORM(
+            "peopleSearch.detail.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_RESULT_LIMIT(
+            "peopleSearch.result.limit", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_USE_PROXY(
+            "peopleSearch.useProxy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_DISPLAY_NAMES_CARD_LABELS(
+            "peopleSearch.displayName.cardLabels", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_MAX_CACHE_SECONDS(
+            "peopleSearch.maxCacheSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_ENABLE_PHOTO(
+            "peopleSearch.enablePhoto", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_PHOTO_QUERY_FILTER(
+            "peopleSearch.photo.queryFilter", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_SEARCH_FILTER(
+            "peopleSearch.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_SEARCH_BASE(
+            "peopleSearch.searchBase", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
     PEOPLE_SEARCH_ENABLE_ORGCHART(
-            "peopleSearch.enableOrgChart", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.enableOrgChart", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
     PEOPLE_SEARCH_ENABLE_EXPORT(
-            "peopleSearch.enableExport", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.enableExport", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
     PEOPLE_SEARCH_ENABLE_TEAM_MAILTO(
-            "peopleSearch.enableTeamMailto", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.enableTeamMailto", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
     PEOPLE_SEARCH_ENABLE_PRINTING(
-            "peopleSearch.enablePrinting", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.enablePrinting", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
     PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS(
-            "peopleSearch.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
     PEOPLE_SEARCH_ENABLE_ADVANCED_SEARCH(
-            "peopleSearch.advancedSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.advancedSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
 
 
 
@@ -1235,12 +1239,11 @@ public enum PwmSetting
 
     // deprecated 2019-01-20
     PEOPLE_SEARCH_DISPLAY_NAME(
-            "peopleSearch.displayName.user", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.displayName.user", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
 
     // deprecated 2019-01-20
     HELPDESK_DETAIL_DISPLAY_NAME(
             "helpdesk.displayName", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK_BASE ),
-
 
     // deprecated 2018-12-05
     REPORTING_SEARCH_FILTER(
