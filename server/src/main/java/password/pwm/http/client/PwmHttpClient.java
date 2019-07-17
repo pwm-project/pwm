@@ -198,8 +198,9 @@ public class PwmHttpClient
     )
     {
         final boolean isBinary = dataType == HttpEntityDataType.ByteArray;
-        final boolean emptyBody = ( isBinary && ( binaryBody == null || binaryBody.isEmpty() ) )
-            || StringUtil.isEmpty( body );
+        final boolean emptyBody = isBinary
+                ? binaryBody == null || binaryBody.isEmpty()
+                : StringUtil.isEmpty( body );
 
 
         final StringBuilder msg = new StringBuilder();
@@ -245,21 +246,38 @@ public class PwmHttpClient
             msg.append( "  body: " );
 
             final boolean alwaysOutput = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_ALWAYS_LOG_ENTITIES ) );
-            if ( alwaysOutput || !pwmHttpClientConfiguration.isMaskBodyDebugOutput() )
+
+
+            if ( isBinary )
             {
-                if ( !binaryBody.isEmpty() )
+                if ( binaryBody != null && !binaryBody.isEmpty() )
                 {
-                    msg.append( StringUtil.base64Encode( binaryBody.copyOf() ) );
+                    msg.append( "[binary, " ).append( binaryBody.size() ).append( " bytes]" );
                 }
                 else
                 {
-                    msg.append( body );
+                    msg.append( "[no data]" );
                 }
             }
             else
             {
-                final String output =  PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT + ( isBinary ? " [binary]" : "" );
-                msg.append( output );
+                if ( StringUtil.isEmpty( body ) )
+                {
+                    msg.append( "[no data]" );
+                }
+                else
+                {
+                    msg.append( "[" ).append( body.length() ).append( " chars] " );
+
+                    if ( alwaysOutput || !pwmHttpClientConfiguration.isMaskBodyDebugOutput() )
+                    {
+                        msg.append( body );
+                    }
+                    else
+                    {
+                        msg.append( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
+                    }
+                }
             }
         }
 

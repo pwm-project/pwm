@@ -292,7 +292,7 @@
         <dependency>
             <groupId>com.blueconic</groupId>
             <artifactId>browscap-java</artifactId>
-            <version>1.2.9</version>
+            <version>1.2.11</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.xodus</groupId>
@@ -317,7 +317,7 @@
         <dependency>
             <groupId>com.nulab-inc</groupId>
             <artifactId>zxcvbn</artifactId>
-            <version>1.2.5</version>
+            <version>1.2.6</version>
         </dependency>
         <dependency>
             <groupId>com.github.ziplet</groupId>
