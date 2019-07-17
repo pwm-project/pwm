@@ -21,7 +21,6 @@
 package password.pwm.http.servlet.peoplesearch;
 
 import password.pwm.AppProperty;
-import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -39,8 +38,6 @@ import java.util.Set;
 
 public class PeopleSearchConfiguration
 {
-    //private final PwmRequest pwmRequest;
-  //  private final PwmApplication pwmApplication;
     private final PeopleSearchProfile peopleSearchProfile;
     private final Configuration configuration;
 
@@ -51,26 +48,13 @@ public class PeopleSearchConfiguration
         this.peopleSearchProfile = peopleSearchProfile;
     }
 
-    public String getPhotoAttribute( final UserIdentity userIdentity )
-    {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
-        return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO );
-    }
-
-    String getPhotoUrlOverride( final UserIdentity userIdentity )
-    {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
-        return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO_URL_OVERRIDE );
-    }
-
     String getEmailAttribute( final UserIdentity userIdentity )
     {
         final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
         return ldapProfile.readSettingAsString( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
     }
 
-    public boolean isPhotosEnabled( final UserIdentity actor, final SessionLabel sessionLabel )
-            throws PwmUnrecoverableException
+    public boolean isPhotosEnabled( )
     {
         return peopleSearchProfile.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PHOTO );
     }

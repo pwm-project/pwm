@@ -100,7 +100,7 @@ public class ActionExecutor
             final SessionLabel sessionLabel,
             final ActionConfiguration actionConfiguration,
             final ActionConfiguration.LdapAction ldapAction
-            )
+    )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         String attributeName = ldapAction.getAttributeName();
@@ -200,7 +200,13 @@ public class ActionExecutor
 
             final HttpMethod method = HttpMethod.fromString( webAction.getMethod().toString() );
 
-            final PwmHttpClientRequest clientRequest = new PwmHttpClientRequest( method, url, body, headers );
+            final PwmHttpClientRequest clientRequest = PwmHttpClientRequest.builder()
+                    .method( method )
+                    .url( url )
+                    .body( body )
+                    .headers( headers )
+                    .build();
+
             final PwmHttpClient client;
             {
                 if ( webAction.getCertificates() != null )

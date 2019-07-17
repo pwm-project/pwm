@@ -18,16 +18,22 @@
  * limitations under the License.
  */
 
-package password.pwm.ldap;
+package password.pwm.http;
 
-import lombok.Value;
-import password.pwm.http.bean.ImmutableByteArray;
+import org.junit.Assert;
+import org.junit.Test;
+import password.pwm.util.java.StringUtil;
 
-import java.io.Serializable;
-
-@Value
-public class PhotoDataBean implements Serializable
+public class HttpContentTypeTest
 {
-    private String mimeType;
-    private ImmutableByteArray contents;
+
+    @Test
+    public void getHeaderValueWithEncoding()
+    {
+        for ( final HttpContentType httpContentType : HttpContentType.values() )
+        {
+            final String headerValue = httpContentType.getMimeType();
+            Assert.assertFalse( StringUtil.isEmpty( headerValue ) );
+        }
+    }
 }

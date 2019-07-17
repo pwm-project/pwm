@@ -281,9 +281,14 @@ public class OAuthMachine
                 headers.put( HttpHeader.Authorization.getHttpName(),
                         "Bearer " + accessToken );
             }
-            headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValue() );
+            headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValueWithEncoding() );
 
-            pwmHttpClientRequest = new PwmHttpClientRequest( HttpMethod.POST, requestUrl, requestBody, headers );
+            pwmHttpClientRequest = PwmHttpClientRequest.builder()
+                    .method( HttpMethod.POST )
+                    .url( requestUrl )
+                    .body( requestBody )
+                    .headers( headers )
+                    .build();
         }
 
         final PwmHttpClientResponse pwmHttpClientResponse;

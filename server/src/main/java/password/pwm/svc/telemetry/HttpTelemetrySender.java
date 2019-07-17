@@ -66,14 +66,15 @@ public class HttpTelemetrySender implements TelemetrySender
         final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, SessionLabel.TELEMETRY_SESSION_LABEL, pwmHttpClientConfiguration );
         final String body = JsonUtil.serialize( statsPublishBean );
         final Map<String, String> headers = new HashMap<>();
-        headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
+        headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
         headers.put( HttpHeader.Accept.getHttpName(), PwmConstants.AcceptValue.json.getHeaderValue() );
-        final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
-                HttpMethod.POST,
-                settings.getUrl(),
-                body,
-                headers
-        );
+        final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder()
+                .method( HttpMethod.POST )
+                .url( settings.getUrl() )
+                .body( body )
+                .headers( headers )
+                .build();
+
         LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "preparing to send telemetry data to '" + settings.getUrl() + ")" );
         pwmHttpClient.makeRequest( pwmHttpClientRequest );
         LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "sent telemetry data to '" + settings.getUrl() + ")" );

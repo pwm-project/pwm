@@ -364,7 +364,7 @@ public abstract class RestServlet extends HttpServlet
             {
                 case json:
                 {
-                    resp.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
+                    resp.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
                     final String formatParameter = request.getParameter( "format" );
                     try ( PrintWriter pw = resp.getWriter() )
                     {
@@ -382,7 +382,7 @@ public abstract class RestServlet extends HttpServlet
 
                 case plain:
                 {
-                    resp.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.plain.getHeaderValue() );
+                    resp.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.plain.getHeaderValueWithEncoding() );
                     if ( restResultBean.isError() )
                     {
                         resp.sendError( HttpServletResponse.SC_INTERNAL_SERVER_ERROR, restResultBean.getErrorMessage() );
@@ -426,7 +426,7 @@ public abstract class RestServlet extends HttpServlet
     private static void outputLastHopeError( final String msg, final HttpServletResponse response ) throws IOException
     {
         response.setStatus( HttpServletResponse.SC_INTERNAL_SERVER_ERROR );
-        response.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
+        response.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
         try ( PrintWriter pw = response.getWriter() )
         {
             pw.write( "Error: " );

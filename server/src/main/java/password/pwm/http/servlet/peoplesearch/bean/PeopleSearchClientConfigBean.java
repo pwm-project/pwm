@@ -76,7 +76,7 @@ public class PeopleSearchClientConfigBean implements Serializable
 
         return PeopleSearchClientConfigBean.builder()
                 .searchColumns( searchColumns )
-                .enablePhoto( peopleSearchConfiguration.isPhotosEnabled( userIdentity, pwmRequest.getSessionLabel() ) )
+                .enablePhoto( peopleSearchConfiguration.isPhotosEnabled() )
                 .orgChartEnabled( peopleSearchConfiguration.isOrgChartEnabled() )
                 .orgChartShowChildCount( peopleSearchConfiguration.isOrgChartShowChildCount() )
                 .orgChartMaxParents( peopleSearchConfiguration.getOrgChartMaxParents() )

@@ -25,22 +25,16 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.HelpdeskProfile;
-import password.pwm.config.profile.LdapProfile;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmURL;
-import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.http.servlet.peoplesearch.PhotoDataReader;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -86,11 +80,11 @@ public class HelpdeskCardInfoBean implements Serializable
                 userIdentity,
                 theUser.getChaiProvider()
         );
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null );
 
         builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
 
-        builder.photoURL( figurePhotoURL( pwmRequest, helpdeskProfile, theUser, macroMachine, userIdentity ) );
+        final PhotoDataReader photoDataReader = HelpdeskServlet.photoDataReader( pwmRequest, helpdeskProfile, userIdentity );
+        builder.photoURL( photoDataReader.figurePhotoURL( ) );
 
         builder.displayNames( figureDisplayNames( pwmRequest.getPwmApplication(), helpdeskProfile, pwmRequest.getSessionLabel(), userInfo ) );
 
@@ -139,54 +133,5 @@ public class HelpdeskCardInfoBean implements Serializable
             }
         }
         return displayLabels;
-    }
-
-    private static String figurePhotoURL(
-            final PwmRequest pwmRequest,
-            final HelpdeskProfile helpdeskProfile,
-            final ChaiUser chaiUser,
-            final MacroMachine macroMachine,
-            final UserIdentity userIdentity
-    )
-            throws PwmUnrecoverableException
-    {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final boolean enabled = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE_PHOTOS );
-
-        if ( !enabled )
-        {
-            LOGGER.debug( pwmRequest, () -> "detailed user data lookup for " + userIdentity.toString() + ", failed photo query filter, denying photo view" );
-            return null;
-        }
-
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile(  pwmApplication.getConfig() );
-
-        final String overrideURL = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO_URL_OVERRIDE );
-        try
-        {
-            if ( !StringUtil.isEmpty( overrideURL ) )
-            {
-                return macroMachine.expandMacros( overrideURL );
-            }
-
-            try
-            {
-                LdapOperationsHelper.readPhotoDataFromLdap( pwmApplication.getConfig(), chaiUser, userIdentity );
-            }
-            catch ( PwmOperationalException e )
-            {
-                LOGGER.debug( pwmRequest, () -> "determined " + userIdentity + " does not have photo data available while generating detail data" );
-                return null;
-            }
-        }
-        catch ( ChaiUnavailableException e )
-        {
-            throw PwmUnrecoverableException.fromChaiException( e );
-        }
-
-        String returnUrl = pwmRequest.getContextPath() + PwmServletDefinition.Helpdesk.servletUrl();
-        returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_ACTION_REQUEST, HelpdeskServlet.HelpdeskAction.photo.name() );
-        returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_USERKEY,  userIdentity.toObfuscatedKey( pwmApplication ) );
-        return returnUrl;
     }
 }

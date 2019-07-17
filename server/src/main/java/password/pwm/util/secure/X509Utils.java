@@ -159,7 +159,10 @@ public abstract class X509Utils
                 .trustManager( certReaderTrustManager )
                 .build();
         final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel, pwmHttpClientConfiguration );
-        final PwmHttpClientRequest request = new PwmHttpClientRequest( HttpMethod.GET, uri.toString(), "", Collections.emptyMap() );
+        final PwmHttpClientRequest request = PwmHttpClientRequest.builder()
+                .method( HttpMethod.GET )
+                .url( uri.toString() )
+                .build();
 
         LOGGER.debug( sessionLabel, () -> "beginning attempt to import certificates via httpclient" );
 

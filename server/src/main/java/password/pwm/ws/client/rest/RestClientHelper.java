@@ -55,7 +55,7 @@ public class RestClientHelper
         {
             httpPost.setHeader( "Accept-Locale", locale.toString() );
         }
-        httpPost.setHeader( "Content-Type", HttpContentType.json.getHeaderValue() );
+        httpPost.setHeader( "Content-Type", HttpContentType.json.getHeaderValueWithEncoding() );
         final HttpResponse httpResponse;
         try
         {

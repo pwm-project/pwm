@@ -93,7 +93,12 @@ public class ApplianceStatusChecker implements HealthChecker
                 .build();
 
         final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, SessionLabel.HEALTH_SESSION_LABEL, pwmHttpClientConfiguration );
-        final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest( HttpMethod.GET, url, null, requestHeaders );
+        final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder()
+                .method( HttpMethod.GET )
+                .url( url )
+                .headers( requestHeaders )
+                .build();
+
         final PwmHttpClientResponse response = pwmHttpClient.makeRequest( pwmHttpClientRequest );
 
         LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "https response from appliance server request: " + response.getBody() );

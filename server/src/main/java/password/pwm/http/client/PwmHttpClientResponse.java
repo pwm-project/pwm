@@ -20,22 +20,33 @@
 
 package password.pwm.http.client;
 
+import lombok.Builder;
 import lombok.Value;
+import password.pwm.http.HttpContentType;
+import password.pwm.http.bean.ImmutableByteArray;
 
 import java.io.Serializable;
 import java.util.Map;
 
 @Value
+@Builder
 public class PwmHttpClientResponse implements Serializable
 {
     private final int statusCode;
     private final String statusPhrase;
     private final Map<String, String> headers;
+
+    @Builder.Default
+    private final HttpEntityDataType httpEntityDataType = HttpEntityDataType.String;
+
+    private final HttpContentType contentType;
+
     private final String body;
+    private final ImmutableByteArray byteBody;
 
     public String toDebugString( final PwmHttpClient pwmHttpClient )
     {
-        return pwmHttpClient.entityToDebugString( "HTTP response status " + statusCode + " " + statusPhrase, headers, body );
+        final String topLine = "HTTP response status " + statusCode + " " + statusPhrase;
+        return pwmHttpClient.entityToDebugString( topLine, headers, httpEntityDataType, body, byteBody );
     }
-
 }

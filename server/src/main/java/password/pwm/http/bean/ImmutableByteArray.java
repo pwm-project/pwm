@@ -27,6 +27,8 @@ public class ImmutableByteArray implements Serializable
 {
     private final byte[] bytes;
 
+    private static final ImmutableByteArray EMPTY = ImmutableByteArray.of( new byte[0] );
+
     private ImmutableByteArray( final byte[] bytes )
     {
         this.bytes = bytes == null ? null : Arrays.copyOf( bytes, bytes.length );
@@ -34,11 +36,28 @@ public class ImmutableByteArray implements Serializable
 
     public static ImmutableByteArray of( final byte[] bytes )
     {
-        return new ImmutableByteArray( bytes );
+        return bytes == null || bytes.length == 0
+                ? EMPTY
+                : new ImmutableByteArray( bytes );
     }
 
     public byte[] copyOf( )
     {
         return bytes == null ? null : Arrays.copyOf( bytes, bytes.length );
+    }
+
+    public int size()
+    {
+        return bytes == null ? 0 : bytes.length;
+    }
+
+    public boolean isEmpty()
+    {
+        return bytes == null || bytes.length == 0;
+    }
+
+    public static ImmutableByteArray empty()
+    {
+        return EMPTY;
     }
 }

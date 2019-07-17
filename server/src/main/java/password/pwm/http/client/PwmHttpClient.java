@@ -20,7 +20,10 @@
 
 package password.pwm.http.client;
 
+import org.apache.commons.io.input.CountingInputStream;
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -60,15 +63,19 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmURL;
+import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.net.ssl.SSLContext;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -76,6 +83,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -183,54 +192,74 @@ public class PwmHttpClient
     String entityToDebugString(
             final String topLine,
             final Map<String, String> headers,
-            final String body
+            final HttpEntityDataType dataType,
+            final String body,
+            final ImmutableByteArray binaryBody
     )
     {
+        final boolean isBinary = dataType == HttpEntityDataType.ByteArray;
+        final boolean emptyBody = ( isBinary && ( binaryBody == null || binaryBody.isEmpty() ) )
+            || StringUtil.isEmpty( body );
+
+
         final StringBuilder msg = new StringBuilder();
         msg.append( topLine );
-        if ( StringUtil.isEmpty( body ) )
+
+        if ( emptyBody )
         {
             msg.append( " (no body)" );
         }
         msg.append( "\n" );
-        for ( final Map.Entry<String, String> headerEntry : headers.entrySet() )
-        {
-            final HttpHeader httpHeader = HttpHeader.forHttpHeader( headerEntry.getKey() );
-            if ( httpHeader != null )
-            {
-                final boolean sensitive = httpHeader.isSensitive();
-                msg.append( "  header: " ).append( httpHeader.getHttpName() ).append( "=" );
 
-                if ( sensitive )
+        if ( headers != null )
+        {
+            for ( final Map.Entry<String, String> headerEntry : headers.entrySet() )
+            {
+                final HttpHeader httpHeader = HttpHeader.forHttpHeader( headerEntry.getKey() );
+                if ( httpHeader != null )
                 {
-                    msg.append( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
+                    final boolean sensitive = httpHeader.isSensitive();
+                    msg.append( "  header: " ).append( httpHeader.getHttpName() ).append( "=" );
+
+                    if ( sensitive )
+                    {
+                        msg.append( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
+                    }
+                    else
+                    {
+                        msg.append( headerEntry.getValue() );
+                    }
                 }
                 else
                 {
-                    msg.append( headerEntry.getValue() );
+                    // We encountered a header name that doesn't have a corresponding enum in HttpHeader,
+                    // so we can't check the sensitive flag.
+                    msg.append( "  header: " ).append( headerEntry.getKey() ).append( "=" ).append( headerEntry.getValue() );
                 }
+                msg.append( "\n" );
             }
-            else
-            {
-                // We encountered a header name that doesn't have a corresponding enum in HttpHeader,
-                // so we can't check the sensitive flag.
-                msg.append( "  header: " ).append( headerEntry.getKey() ).append( "=" ).append( headerEntry.getValue() );
-            }
-            msg.append( "\n" );
         }
 
-        if ( !StringUtil.isEmpty( body ) )
+        if ( !emptyBody )
         {
             msg.append( "  body: " );
 
             final boolean alwaysOutput = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_ALWAYS_LOG_ENTITIES ) );
             if ( alwaysOutput || !pwmHttpClientConfiguration.isMaskBodyDebugOutput() )
             {
-                msg.append( body );
+                if ( !binaryBody.isEmpty() )
+                {
+                    msg.append( StringUtil.base64Encode( binaryBody.copyOf() ) );
+                }
+                else
+                {
+                    msg.append( body );
+                }
             }
             else
             {
-                msg.append( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
+                final String output =  PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT + ( isBinary ? " [binary]" : "" );
+                msg.append( output );
             }
         }
 
@@ -243,14 +272,14 @@ public class PwmHttpClient
         {
             return makeRequestImpl( request );
         }
-        catch ( URISyntaxException | IOException e )
+        catch ( IOException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_UNREACHABLE, "error while making http request: " + e.getMessage() ), e );
         }
     }
 
     private PwmHttpClientResponse makeRequestImpl( final PwmHttpClientRequest clientRequest )
-            throws IOException, URISyntaxException, PwmUnrecoverableException
+            throws IOException, PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
         final int counter = REQUEST_COUNTER.getAndIncrement();
@@ -273,22 +302,33 @@ public class PwmHttpClient
         }
 
         final HttpResponse httpResponse = executeRequest( clientRequest );
-        final String responseBody = EntityUtils.toString( httpResponse.getEntity() );
+
+        final PwmHttpClientResponse.PwmHttpClientResponseBuilder httpClientResponseBuilder = PwmHttpClientResponse.builder();
+        final HttpContentType httpContentType = contentTypeForEntity( httpResponse.getEntity() );
+
+        if ( httpContentType != null && httpContentType.getDataType() ==  HttpEntityDataType.ByteArray )
+        {
+            httpClientResponseBuilder.byteBody( readBinaryEntityBody( httpResponse.getEntity() ) );
+            httpClientResponseBuilder.httpEntityDataType( HttpEntityDataType.ByteArray );
+        }
+        else
+        {
+            httpClientResponseBuilder.body( EntityUtils.toString( httpResponse.getEntity() ) );
+            httpClientResponseBuilder.httpEntityDataType( HttpEntityDataType.String );
+        }
+
         final Map<String, String> responseHeaders = new LinkedHashMap<>();
         if ( httpResponse.getAllHeaders() != null )
         {
-            for ( final Header header : httpResponse.getAllHeaders() )
-            {
-                responseHeaders.put( header.getName(), header.getValue() );
-            }
+            Arrays.stream( httpResponse.getAllHeaders() ).forEach( header -> responseHeaders.put( header.getName(), header.getValue() ) );
         }
 
-        final PwmHttpClientResponse httpClientResponse = new PwmHttpClientResponse(
-                httpResponse.getStatusLine().getStatusCode(),
-                httpResponse.getStatusLine().getReasonPhrase(),
-                responseHeaders,
-                responseBody
-        );
+        final PwmHttpClientResponse httpClientResponse = httpClientResponseBuilder
+                .statusCode( httpResponse.getStatusLine().getStatusCode() )
+                .contentType( httpContentType )
+                .statusPhrase( httpResponse.getStatusLine().getReasonPhrase() )
+                .headers( Collections.unmodifiableMap( responseHeaders ) )
+                .build();
 
         final TimeDuration duration = TimeDuration.fromCurrent( startTime );
         LOGGER.trace( sessionLabel, () -> "received response (id=" + counter + ") in "
@@ -374,12 +414,11 @@ public class PwmHttpClient
 
         if ( "http".equals( url.getProtocol() ) || "https".equals( url.getProtocol() ) )
         {
-            final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
-                    HttpMethod.GET,
-                    inputUrl,
-                    null,
-                    null
-            );
+
+            final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder()
+                    .method( HttpMethod.GET )
+                    .url( inputUrl )
+                    .build();
 
             final HttpResponse httpResponse = executeRequest( pwmHttpClientRequest );
             if ( httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK )
@@ -426,6 +465,50 @@ public class PwmHttpClient
 
             final boolean secure = "https".equalsIgnoreCase( target.getSchemeName() );
             return new HttpRoute( target, null, proxyServer, secure );
+        }
+    }
+
+    private static HttpContentType contentTypeForEntity( final HttpEntity httpEntity )
+    {
+        if ( httpEntity != null )
+        {
+            final Header header = httpEntity.getContentType();
+            if ( header != null )
+            {
+                final HeaderElement[] headerElements = header.getElements();
+                if ( headerElements != null )
+                {
+                    for ( final HeaderElement headerElement : headerElements )
+                    {
+                        if ( headerElement != null )
+                        {
+                            final String name = headerElement.getName();
+                            if ( name != null )
+                            {
+                                final HttpContentType httpContentType = HttpContentType.fromContentTypeHeader( name, null );
+                                if ( httpContentType != null )
+                                {
+                                    return httpContentType;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private ImmutableByteArray readBinaryEntityBody( final HttpEntity httpEntity )
+            throws IOException
+    {
+        final long maxSize = JavaHelper.silentParseLong( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_RESPONSE_MAX_SIZE ), 100_000_000L );
+        try ( CountingInputStream contentStream = new CountingInputStream( httpEntity.getContent() ) )
+        {
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream(  );
+            JavaHelper.copyWhilePredicate( contentStream, baos, aLong -> contentStream.getByteCount() <= maxSize );
+            return ImmutableByteArray.of( baos.toByteArray() );
         }
     }
 }

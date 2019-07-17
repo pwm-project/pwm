@@ -141,7 +141,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
         lastResponse = null;
 
         final Map<String, String> headers = new LinkedHashMap<>();
-        headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
+        headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
         headers.put( HttpHeader.AcceptLanguage.getHttpName(), locale.toLanguageTag() );
 
         final RemoteVerificationRequestBean remoteVerificationRequestBean = new RemoteVerificationRequestBean();
@@ -150,12 +150,12 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
         remoteVerificationRequestBean.setUserInfo( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), locale, macroMachine ) );
         remoteVerificationRequestBean.setUserResponses( userResponses );
 
-        final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
-                HttpMethod.POST,
-                url,
-                JsonUtil.serialize( remoteVerificationRequestBean ),
-                headers
-        );
+        final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder()
+                .method( HttpMethod.POST )
+                .url( url )
+                .body( JsonUtil.serialize( remoteVerificationRequestBean ) )
+                .headers( headers )
+                .build();
 
         try
         {

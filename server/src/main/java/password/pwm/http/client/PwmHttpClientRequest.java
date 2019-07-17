@@ -20,21 +20,30 @@
 
 package password.pwm.http.client;
 
+import lombok.Builder;
 import lombok.Value;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.net.URI;
+import java.util.Collections;
 import java.util.Map;
 
 @Value
+@Builder
 public class PwmHttpClientRequest implements Serializable
 {
-    private final HttpMethod method;
+    @Builder.Default
+    private final HttpMethod method = HttpMethod.GET;
+
     private final String url;
+
     private final String body;
-    private final Map<String, String> headers;
+
+    @Builder.Default
+    private final Map<String, String> headers = Collections.emptyMap();
 
     public String toDebugString( final PwmHttpClient pwmHttpClient, final String additionalText )
     {
@@ -42,7 +51,7 @@ public class PwmHttpClientRequest implements Serializable
                 + ( StringUtil.isEmpty( additionalText )
                 ? ""
                 : " " + additionalText );
-        return pwmHttpClient.entityToDebugString( topLine, headers, body );
+        return pwmHttpClient.entityToDebugString( topLine, headers, HttpEntityDataType.String, body, ImmutableByteArray.empty() );
     }
 
     public boolean isHttps()

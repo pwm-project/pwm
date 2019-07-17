@@ -635,7 +635,12 @@ public class SmsQueueManager implements PwmService
                     ? requestData
                     : null;
 
-            return new PwmHttpClientRequest( httpMethod, fullUrl, body, headers );
+            return PwmHttpClientRequest.builder()
+                    .method( httpMethod )
+                    .url( fullUrl )
+                    .body( body )
+                    .headers( headers )
+                    .build();
         }
 
         public String getLastResponseBody( )

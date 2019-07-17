@@ -124,7 +124,7 @@ public class PwmHttpResponseWrapper
 
     public void setContentType( final HttpContentType contentType )
     {
-        this.getHttpServletResponse().setContentType( contentType.getHeaderValue() );
+        this.getHttpServletResponse().setContentType( contentType.getHeaderValueWithEncoding() );
     }
 
     public PrintWriter getWriter( )

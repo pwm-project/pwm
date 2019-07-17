@@ -81,7 +81,7 @@ public class RestFormDataClient
     {
         final Map<String, String> httpHeaders = new LinkedHashMap<>();
         httpHeaders.put( HttpHeader.Accept.getHttpName(), PwmConstants.AcceptValue.json.getHeaderValue() );
-        httpHeaders.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
+        httpHeaders.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
         if ( locale != null )
         {
             httpHeaders.put( HttpHeader.AcceptLanguage.getHttpName(), locale.toString() );
@@ -104,13 +104,12 @@ public class RestFormDataClient
 
         final String jsonRequestBody = JsonUtil.serialize( formDataRequestBean );
 
-        final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
-                HttpMethod.POST,
-                remoteWebServiceConfiguration.getUrl(),
-                jsonRequestBody,
-                httpHeaders
-
-        );
+        final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder()
+                .method( HttpMethod.POST )
+                .url( remoteWebServiceConfiguration.getUrl() )
+                .body( jsonRequestBody )
+                .headers( httpHeaders )
+                .build();
 
         final PwmHttpClientResponse httpResponse;
         try

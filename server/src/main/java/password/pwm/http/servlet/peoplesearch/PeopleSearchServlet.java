@@ -27,7 +27,6 @@ import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
@@ -53,14 +52,13 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 public abstract class PeopleSearchServlet extends ControlledPwmServlet
 {
@@ -245,31 +243,9 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
         LOGGER.debug( pwmRequest, () -> "received user photo request to view user " + userIdentity.toString() );
 
-        final PhotoDataBean photoData;
-        try
-        {
-            photoData = peopleSearchDataReader.readPhotoDataFromLdap( userIdentity );
-        }
-        catch ( PwmOperationalException e )
-        {
-            final ErrorInformation errorInformation = e.getErrorInformation();
-            LOGGER.error( pwmRequest, errorInformation );
-            pwmRequest.respondWithError( errorInformation, false );
-            return ProcessStatus.Halt;
-        }
+        final Callable<Optional<PhotoDataBean>> callablePhotoReader = () -> peopleSearchDataReader.readPhotoData( userIdentity );
 
-        addExpiresHeadersToResponse( pwmRequest );
-
-        try ( OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream() )
-        {
-            final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
-            resp.setContentType( photoData.getMimeType() );
-
-            if ( photoData.getContents() != null )
-            {
-                outputStream.write( photoData.getContents().copyOf() );
-            }
-        }
+        PhotoDataReader.servletRespondWithPhoto( pwmRequest, callablePhotoReader );
         return ProcessStatus.Halt;
     }
 

@@ -22,6 +22,7 @@ package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiEntry;
+import com.novell.ldapchai.ChaiEntryFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Answer;
 import com.novell.ldapchai.exception.ChaiException;
@@ -56,8 +57,8 @@ import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.PasswordData;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -79,6 +80,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 
@@ -1020,12 +1022,12 @@ public class LdapOperationsHelper
         return null;
     }
 
-    public static PhotoDataBean readPhotoDataFromLdap(
+    public static Optional<PhotoDataBean> readPhotoDataFromLdap(
             final Configuration configuration,
-            final ChaiUser chaiUser,
+            final ChaiProvider chaiProvider,
             final UserIdentity userIdentity
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
         final String attribute = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO );
@@ -1038,6 +1040,7 @@ public class LdapOperationsHelper
         final String mimeType;
         try
         {
+            final ChaiUser chaiUser = ChaiEntryFactory.newChaiFactory( chaiProvider ).newChaiUser( userIdentity.getUserDN() );
             final byte[][] photoAttributeData = chaiUser.readMultiByteAttribute( attribute );
             if ( photoAttributeData == null || photoAttributeData.length == 0 || photoAttributeData[ 0 ].length == 0 )
             {
@@ -1050,7 +1053,11 @@ public class LdapOperationsHelper
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, "error reading user photo ldap attribute: " + e.getMessage() ) );
         }
-        return new PhotoDataBean( mimeType, ImmutableByteArray.of( photoData ) );
+        catch ( ChaiUnavailableException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
+        return Optional.of( new PhotoDataBean( mimeType, ImmutableByteArray.of( photoData ) ) );
     }
 
 
