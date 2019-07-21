@@ -29,8 +29,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -38,7 +38,6 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.ChecksumInputStream;
-import password.pwm.util.secure.X509Utils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,9 +79,9 @@ class WordlistSource
             {
                 final boolean promiscuous = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_PROMISCUOUS_WORDLIST_ENABLE ) );
                 final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                        .trustManager( promiscuous ? new X509Utils.PromiscuousTrustManager( null ) : null )
+                        .trustManagerType( promiscuous ? PwmHttpClientConfiguration.TrustManagerType.promiscuous : PwmHttpClientConfiguration.TrustManagerType.defaultJava )
                         .build();
-                final PwmHttpClient client = new PwmHttpClient( pwmApplication, null, pwmHttpClientConfiguration );
+                final PwmHttpClient client = pwmApplication.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
                 return client.streamForUrl( wordlistConfiguration.getAutoImportUrl() );
             }
 

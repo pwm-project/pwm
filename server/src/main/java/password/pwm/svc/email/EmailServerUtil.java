@@ -386,7 +386,9 @@ public class EmailServerUtil
             throws PwmUnrecoverableException
     {
         final EmailServerProfile emailServerProfile = configuration.getEmailServerProfiles().get( profile );
-        final X509Utils.CertReaderTrustManager certReaderTm = new X509Utils.CertReaderTrustManager( X509Utils.ReadCertificateFlag.ReadOnlyRootCA );
+        final X509Utils.CertReaderTrustManager certReaderTm = new X509Utils.CertReaderTrustManager(
+                new X509Utils.PromiscuousTrustManager(),
+                X509Utils.ReadCertificateFlag.ReadOnlyRootCA );
         final TrustManager[] trustManagers =  new TrustManager[]
                 {
                         certReaderTm,

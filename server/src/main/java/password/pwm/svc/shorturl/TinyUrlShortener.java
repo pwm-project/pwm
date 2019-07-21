@@ -20,13 +20,12 @@
 
 package password.pwm.svc.shorturl;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.util.EntityUtils;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.client.PwmHttpClient;
+import password.pwm.http.HttpMethod;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -49,31 +48,29 @@ public class TinyUrlShortener extends BasicUrlShortener
         this.configuration = configuration;
     }
 
-    public String shorten( final String input, final PwmApplication context ) throws PwmUnrecoverableException
+    public String shorten( final String input, final PwmApplication context )
+            throws PwmUnrecoverableException
     {
-        try
+        LOGGER.debug( () -> "Trying to shorten url: " + input );
+        final String encodedUrl = StringUtil.urlEncode( input );
+        final String callUrl = apiUrl + encodedUrl;
+        final PwmHttpClient pwmHttpClient = context.getHttpClientService().getPwmHttpClient(  );
+
+        final PwmHttpClientRequest request = PwmHttpClientRequest.builder()
+                .method( HttpMethod.GET )
+                .url( callUrl )
+                .build();
+        final PwmHttpClientResponse httpResponse = pwmHttpClient.makeRequest( request, null );
+        final int httpResponseCode = httpResponse.getStatusCode();
+        if ( httpResponseCode == 200 )
         {
-            LOGGER.debug( () -> "Trying to shorten url: " + input );
-            final String encodedUrl = StringUtil.urlEncode( input );
-            final String callUrl = apiUrl + encodedUrl;
-            final HttpClient httpClient = PwmHttpClient.getHttpClient( context.getConfig() );
-            final HttpGet httpRequest = new HttpGet( callUrl );
-            final HttpResponse httpResponse = httpClient.execute( httpRequest );
-            final int httpResponseCode = httpResponse.getStatusLine().getStatusCode();
-            if ( httpResponseCode == 200 )
-            {
-                final String responseBody = EntityUtils.toString( httpResponse.getEntity() );
-                LOGGER.debug( () -> "Result: " + responseBody );
-                return responseBody;
-            }
-            else
-            {
-                LOGGER.error( "Failed to get shorter URL: " + httpResponse.getStatusLine().getReasonPhrase() );
-            }
+            final String responseBody = httpResponse.getBody();
+            LOGGER.debug( () -> "Result: " + responseBody );
+            return responseBody;
         }
-        catch ( java.io.IOException e )
+        else
         {
-            LOGGER.error( "IOException: " + e.getMessage() );
+            LOGGER.error( "Failed to get shorter URL: " + httpResponse.getStatusPhrase() );
         }
         return input;
     }

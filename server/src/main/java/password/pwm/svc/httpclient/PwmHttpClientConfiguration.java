@@ -18,12 +18,11 @@
  * limitations under the License.
  */
 
-package password.pwm.http.client;
+package password.pwm.svc.httpclient;
 
 import lombok.Builder;
 import lombok.Value;
 
-import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -32,6 +31,17 @@ import java.util.List;
 public class PwmHttpClientConfiguration
 {
     private List<X509Certificate> certificates;
-    private X509TrustManager trustManager;
+
+    @Builder.Default
+    private TrustManagerType trustManagerType = TrustManagerType.defaultJava;
+
     private boolean maskBodyDebugOutput;
+
+    public enum TrustManagerType
+    {
+        promiscuousCertReader,
+        promiscuous,
+        configuredCertificates,
+        defaultJava,
+    }
 }

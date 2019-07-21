@@ -30,13 +30,12 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.X509Utils;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -55,9 +54,9 @@ public class RestClientHelper
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final PwmHttpClientConfiguration clientConfig = PwmHttpClientConfiguration.builder()
-                .trustManager( new X509Utils.PromiscuousTrustManager( SessionLabel.SYSTEM_LABEL ) )
+                .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
                 .build();
-        final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, SessionLabel.SYSTEM_LABEL, clientConfig );
+        final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( clientConfig );
 
         final Map<String, String> httpPost = new LinkedHashMap<>();
         if ( locale != null )
@@ -79,9 +78,9 @@ public class RestClientHelper
         try
         {
             LOGGER.debug( () -> "beginning external rest call to: " + url + ", body: " + jsonRequestBody );
-            httpResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
+            httpResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, SessionLabel.SYSTEM_LABEL  );
             final String responseBody = httpResponse.getBody();
-            LOGGER.trace( () -> "external rest call returned: " + httpResponse.getStatusPhrase().toString()  );
+            LOGGER.trace( () -> "external rest call returned: " + httpResponse.getStatusPhrase()  );
             if ( httpResponse.getStatusCode() != 200 )
             {
                 final String errorMsg = "received non-200 response code (" + httpResponse.getStatusCode() + ") when executing web-service";

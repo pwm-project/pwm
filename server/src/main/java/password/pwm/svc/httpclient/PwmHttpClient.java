@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.http.client;
+package password.pwm.svc.httpclient;
 
 import org.apache.commons.io.input.CountingInputStream;
 import org.apache.http.Header;
@@ -31,7 +31,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -49,6 +48,7 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.ProxyAuthenticationStrategy;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
@@ -64,6 +64,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
+import password.pwm.http.HttpEntityDataType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmURL;
@@ -73,8 +74,10 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.X509Utils;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,7 +85,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -90,53 +95,73 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class PwmHttpClient
+public class PwmHttpClient implements AutoCloseable
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmHttpClient.class );
 
-    private static final AtomicInteger REQUEST_COUNTER = new AtomicInteger( 0 );
+    private static final AtomicInteger CLIENT_COUNTER = new AtomicInteger( 0 );
 
+    private final int clientID = CLIENT_COUNTER.getAndIncrement();
     private final PwmApplication pwmApplication;
-    private final SessionLabel sessionLabel;
     private final PwmHttpClientConfiguration pwmHttpClientConfiguration;
 
-    public PwmHttpClient( final PwmApplication pwmApplication, final SessionLabel sessionLabel )
-    {
-        this.pwmApplication = pwmApplication;
-        this.sessionLabel = sessionLabel;
-        this.pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder().certificates( null ).build();
-    }
+    private final TrustManager[] trustManagers;
+    private final CloseableHttpClient httpClient;
 
-    public PwmHttpClient( final PwmApplication pwmApplication, final SessionLabel sessionLabel, final PwmHttpClientConfiguration pwmHttpClientConfiguration )
-    {
-        this.pwmApplication = pwmApplication;
-        this.sessionLabel = sessionLabel;
-        this.pwmHttpClientConfiguration = pwmHttpClientConfiguration;
-    }
+    private volatile boolean open = true;
 
-    public static HttpClient getHttpClient( final Configuration configuration )
+    PwmHttpClient( final PwmApplication pwmApplication, final PwmHttpClientConfiguration pwmHttpClientConfiguration )
             throws PwmUnrecoverableException
     {
-        return getHttpClient( configuration, PwmHttpClientConfiguration.builder().certificates( null ).build(), null );
+        this.pwmApplication = pwmApplication;
+        this.pwmHttpClientConfiguration = pwmHttpClientConfiguration;
+
+        this.trustManagers = makeTrustManager( pwmApplication.getConfig(), pwmHttpClientConfiguration );
+        this.httpClient = makeHttpClient( pwmApplication, pwmHttpClientConfiguration, this.trustManagers );
     }
 
-    static HttpClient getHttpClient(
+    @Override
+    public void close()
+            throws Exception
+    {
+        LOGGER.trace( () -> "closed client #" + clientID );
+        httpClient.close();
+        open = false;
+    }
+
+    boolean isClosed()
+    {
+        return !open;
+    }
+
+    private static TrustManager[] makeTrustManager(
             final Configuration configuration,
-            final PwmHttpClientConfiguration pwmHttpClientConfiguration,
-            final SessionLabel sessionLabel
+            final PwmHttpClientConfiguration pwmHttpClientConfiguration
     )
             throws PwmUnrecoverableException
     {
+        final HttpTrustManagerHelper httpTrustManagerHelper = new HttpTrustManagerHelper( configuration, pwmHttpClientConfiguration );
+        return httpTrustManagerHelper.makeTrustManager();
+    }
+
+    private static CloseableHttpClient makeHttpClient(
+            final PwmApplication pwmApplication,
+            final PwmHttpClientConfiguration pwmHttpClientConfiguration,
+            final TrustManager[] trustManagers
+    )
+            throws PwmUnrecoverableException
+    {
+        final Configuration configuration = pwmApplication.getConfig();
         final HttpClientBuilder clientBuilder = HttpClientBuilder.create();
-        clientBuilder.setUserAgent( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION );
+        clientBuilder.setUserAgent( PwmConstants.PWM_APP_NAME );
+        final HttpTrustManagerHelper httpTrustManagerHelper = new HttpTrustManagerHelper( configuration, pwmHttpClientConfiguration );
 
         try
         {
             final SSLContext sslContext = SSLContext.getInstance( "TLS" );
-            final HttpTrustManagerHelper httpTrustManagerHelper = new HttpTrustManagerHelper( configuration, sessionLabel, pwmHttpClientConfiguration );
             sslContext.init(
                     null,
-                    httpTrustManagerHelper.makeTrustManager(),
+                    trustManagers,
                     new SecureRandom() );
             final SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory( sslContext, httpTrustManagerHelper.hostnameVerifier() );
             final Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
@@ -177,7 +202,7 @@ public class PwmHttpClient
                 clientBuilder.setProxyAuthenticationStrategy( new ProxyAuthenticationStrategy() );
             }
 
-            clientBuilder.setRoutePlanner( new ProxyRoutePlanner( proxyHost, configuration, sessionLabel ) );
+            clientBuilder.setRoutePlanner( new ProxyRoutePlanner( proxyHost, configuration ) );
         }
 
         clientBuilder.setDefaultRequestConfig( RequestConfig.copy( RequestConfig.DEFAULT )
@@ -191,12 +216,14 @@ public class PwmHttpClient
 
     String entityToDebugString(
             final String topLine,
-            final Map<String, String> headers,
-            final HttpEntityDataType dataType,
-            final String body,
-            final ImmutableByteArray binaryBody
+            final PwmHttpClientMessage pwmHttpClientMessage
     )
     {
+        final HttpEntityDataType dataType = pwmHttpClientMessage.getDataType();
+        final ImmutableByteArray binaryBody = pwmHttpClientMessage.getBinaryBody();
+        final String body = pwmHttpClientMessage.getBody();
+        final Map<String, String> headers = pwmHttpClientMessage.getHeaders();
+
         final boolean isBinary = dataType == HttpEntityDataType.ByteArray;
         final boolean emptyBody = isBinary
                 ? binaryBody == null || binaryBody.isEmpty()
@@ -205,17 +232,18 @@ public class PwmHttpClient
 
         final StringBuilder msg = new StringBuilder();
         msg.append( topLine );
+        msg.append( " id=" ).append( pwmHttpClientMessage.getRequestID() ).append( ") " );
 
         if ( emptyBody )
         {
             msg.append( " (no body)" );
         }
-        msg.append( "\n" );
 
         if ( headers != null )
         {
             for ( final Map.Entry<String, String> headerEntry : headers.entrySet() )
             {
+                msg.append( "\n" );
                 final HttpHeader httpHeader = HttpHeader.forHttpHeader( headerEntry.getKey() );
                 if ( httpHeader != null )
                 {
@@ -237,13 +265,12 @@ public class PwmHttpClient
                     // so we can't check the sensitive flag.
                     msg.append( "  header: " ).append( headerEntry.getKey() ).append( "=" ).append( headerEntry.getValue() );
                 }
-                msg.append( "\n" );
             }
         }
 
         if ( !emptyBody )
         {
-            msg.append( "  body: " );
+            msg.append( "\n  body: " );
 
             final boolean alwaysOutput = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_ALWAYS_LOG_ENTITIES ) );
 
@@ -284,11 +311,15 @@ public class PwmHttpClient
         return msg.toString();
     }
 
-    public PwmHttpClientResponse makeRequest( final PwmHttpClientRequest request ) throws PwmUnrecoverableException
+    public PwmHttpClientResponse makeRequest(
+            final PwmHttpClientRequest clientRequest,
+            final SessionLabel sessionLabel
+    )
+            throws PwmUnrecoverableException
     {
         try
         {
-            return makeRequestImpl( request );
+            return makeRequestImpl( clientRequest, sessionLabel );
         }
         catch ( IOException e )
         {
@@ -296,18 +327,19 @@ public class PwmHttpClient
         }
     }
 
-    private PwmHttpClientResponse makeRequestImpl( final PwmHttpClientRequest clientRequest )
+    private PwmHttpClientResponse makeRequestImpl(
+            final PwmHttpClientRequest clientRequest,
+            final SessionLabel sessionLabel
+    )
             throws IOException, PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
-        final int counter = REQUEST_COUNTER.getAndIncrement();
-
         if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
         {
             final String sslDebugText;
             if ( clientRequest.isHttps() )
             {
-                final HttpTrustManagerHelper httpTrustManagerHelper = new HttpTrustManagerHelper( pwmApplication.getConfig(), sessionLabel, pwmHttpClientConfiguration );
+                final HttpTrustManagerHelper httpTrustManagerHelper = new HttpTrustManagerHelper( pwmApplication.getConfig(), pwmHttpClientConfiguration );
                 sslDebugText = "using " + httpTrustManagerHelper.debugText();
             }
             else
@@ -315,24 +347,26 @@ public class PwmHttpClient
                 sslDebugText = "";
             }
 
-            LOGGER.trace( sessionLabel, () -> "preparing to send (id=" + counter + ") "
+            LOGGER.trace( sessionLabel, () -> "client #" + clientID + " preparing to send "
                     + clientRequest.toDebugString( this, sslDebugText ) );
         }
 
         final HttpResponse httpResponse = executeRequest( clientRequest );
 
         final PwmHttpClientResponse.PwmHttpClientResponseBuilder httpClientResponseBuilder = PwmHttpClientResponse.builder();
+        httpClientResponseBuilder.requestID( clientRequest.getRequestID() );
+
         final HttpContentType httpContentType = contentTypeForEntity( httpResponse.getEntity() );
 
         if ( httpContentType != null && httpContentType.getDataType() ==  HttpEntityDataType.ByteArray )
         {
-            httpClientResponseBuilder.byteBody( readBinaryEntityBody( httpResponse.getEntity() ) );
-            httpClientResponseBuilder.httpEntityDataType( HttpEntityDataType.ByteArray );
+            httpClientResponseBuilder.binaryBody( readBinaryEntityBody( httpResponse.getEntity() ) );
+            httpClientResponseBuilder.dataType( HttpEntityDataType.ByteArray );
         }
         else
         {
             httpClientResponseBuilder.body( EntityUtils.toString( httpResponse.getEntity() ) );
-            httpClientResponseBuilder.httpEntityDataType( HttpEntityDataType.String );
+            httpClientResponseBuilder.dataType( HttpEntityDataType.String );
         }
 
         final Map<String, String> responseHeaders = new LinkedHashMap<>();
@@ -349,7 +383,7 @@ public class PwmHttpClient
                 .build();
 
         final TimeDuration duration = TimeDuration.fromCurrent( startTime );
-        LOGGER.trace( sessionLabel, () -> "received response (id=" + counter + ") in "
+        LOGGER.trace( sessionLabel, () -> "client #" + clientID + " received response (id=" + clientRequest.getRequestID() + ") in "
                 + duration.asCompactString() + ": "
                 + httpClientResponse.toDebugString( this ) );
         return httpClientResponse;
@@ -417,7 +451,6 @@ public class PwmHttpClient
             }
         }
 
-        final HttpClient httpClient = getHttpClient( pwmApplication.getConfig(), pwmHttpClientConfiguration, sessionLabel );
         return httpClient.execute( httpRequest );
     }
 
@@ -456,14 +489,11 @@ public class PwmHttpClient
     {
         private final HttpHost proxyServer;
         private final Configuration configuration;
-        private final SessionLabel sessionLabel;
 
-
-        ProxyRoutePlanner( final HttpHost proxyServer, final Configuration configuration, final SessionLabel sessionLabel )
+        ProxyRoutePlanner( final HttpHost proxyServer, final Configuration configuration )
         {
             this.proxyServer = proxyServer;
             this.configuration = configuration;
-            this.sessionLabel = sessionLabel;
         }
 
         public HttpRoute determineRoute(
@@ -476,7 +506,7 @@ public class PwmHttpClient
 
             final List<String> proxyExceptionUrls = configuration.readSettingAsStringArray( PwmSetting.HTTP_PROXY_EXCEPTIONS );
 
-            if ( PwmURL.testIfUrlMatchesAllowedPattern( targetUri, proxyExceptionUrls, sessionLabel ) )
+            if ( PwmURL.testIfUrlMatchesAllowedPattern( targetUri, proxyExceptionUrls, null ) )
             {
                 return new HttpRoute( target );
             }
@@ -528,6 +558,22 @@ public class PwmHttpClient
             JavaHelper.copyWhilePredicate( contentStream, baos, aLong -> contentStream.getByteCount() <= maxSize );
             return ImmutableByteArray.of( baos.toByteArray() );
         }
+    }
+
+    public List<X509Certificate> readServerCertificates()
+    {
+        final List<X509Certificate> returnList = new ArrayList<>(  );
+        if ( trustManagers != null )
+        {
+            for ( final TrustManager trustManager : trustManagers )
+            {
+                if ( trustManager instanceof X509Utils.CertReaderTrustManager )
+                {
+                    returnList.addAll( ( (X509Utils.CertReaderTrustManager) trustManager ).getCertificates() );
+                }
+            }
+        }
+        return Collections.unmodifiableList( returnList );
     }
 }
 

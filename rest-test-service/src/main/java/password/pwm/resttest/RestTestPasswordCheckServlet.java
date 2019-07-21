@@ -49,8 +49,8 @@ public class RestTestPasswordCheckServlet extends HttpServlet
                 }.getType() );
         final String inputPassword = inputJson.get( "password" );
         final boolean error = inputPassword.contains( "aaa" );
-
-        final String errorMessage = error ? "TOO Many aaa's (REMOTE REST SERVICE)" : "No error. (REMOTE REST SERVICE)";
+        final String errorMessage = ( error ? "TOO Many aaa's (REMOTE REST SERVICE)" : "No error. (REMOTE REST SERVICE)" )
+                + ", pw=" + inputPassword;
 
         resp.setHeader( "Content-Type", "application/json" );
         final PrintWriter writer = resp.getWriter();

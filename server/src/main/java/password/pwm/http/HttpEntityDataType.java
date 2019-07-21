@@ -18,22 +18,10 @@
  * limitations under the License.
  */
 
-package password.pwm.ldap;
+package password.pwm.http;
 
-import lombok.Value;
-import password.pwm.http.bean.ImmutableByteArray;
-
-import java.io.Serializable;
-
-@Value
-public class PhotoDataBean implements Serializable
+public enum HttpEntityDataType
 {
-    private String mimeType;
-    private ImmutableByteArray contents;
-
-    @Override
-    public String toString()
-    {
-        return "[image " + contents.size() + " bytes, mime=" + mimeType +  "]";
-    }
+    String,
+    ByteArray,
 }

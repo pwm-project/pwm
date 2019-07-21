@@ -21,7 +21,6 @@
 package password.pwm.http;
 
 import password.pwm.PwmConstants;
-import password.pwm.http.client.HttpEntityDataType;
 import password.pwm.util.java.StringUtil;
 
 import java.nio.charset.Charset;

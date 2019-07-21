@@ -35,6 +35,7 @@ public enum PwmServiceEnum
 {
     LocalDBService( password.pwm.util.localdb.LocalDBService.class, Flag.StartDuringRuntimeInstance ),
     SecureService( password.pwm.util.secure.SecureService.class, Flag.StartDuringRuntimeInstance ),
+    HttpClientService( password.pwm.svc.httpclient.HttpClientService.class, Flag.StartDuringRuntimeInstance ),
     LdapConnectionService( password.pwm.ldap.LdapConnectionService.class, Flag.StartDuringRuntimeInstance ),
     DatabaseService( password.pwm.util.db.DatabaseService.class, Flag.StartDuringRuntimeInstance ),
     SharedHistoryManager( password.pwm.svc.wordlist.SharedHistoryManager.class ),

@@ -18,10 +18,22 @@
  * limitations under the License.
  */
 
-package password.pwm.http.client;
+package password.pwm.svc.httpclient;
 
-public enum HttpEntityDataType
+import password.pwm.http.HttpEntityDataType;
+import password.pwm.http.bean.ImmutableByteArray;
+
+import java.util.Map;
+
+public interface PwmHttpClientMessage
 {
-    String,
-    ByteArray,
+    int getRequestID();
+
+    String getBody();
+
+    Map<String, String> getHeaders();
+
+    HttpEntityDataType getDataType();
+
+    ImmutableByteArray getBinaryBody();
 }

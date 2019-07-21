@@ -18,11 +18,12 @@
  * limitations under the License.
  */
 
-package password.pwm.http.client;
+package password.pwm.svc.httpclient;
 
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.http.HttpContentType;
+import password.pwm.http.HttpEntityDataType;
 import password.pwm.http.bean.ImmutableByteArray;
 
 import java.io.Serializable;
@@ -30,23 +31,24 @@ import java.util.Map;
 
 @Value
 @Builder
-public class PwmHttpClientResponse implements Serializable
+public class PwmHttpClientResponse implements Serializable, PwmHttpClientMessage
 {
+    private final int requestID;
     private final int statusCode;
     private final String statusPhrase;
     private final Map<String, String> headers;
 
     @Builder.Default
-    private final HttpEntityDataType httpEntityDataType = HttpEntityDataType.String;
+    private final HttpEntityDataType dataType = HttpEntityDataType.String;
 
     private final HttpContentType contentType;
 
     private final String body;
-    private final ImmutableByteArray byteBody;
+    private final ImmutableByteArray binaryBody;
 
     public String toDebugString( final PwmHttpClient pwmHttpClient )
     {
         final String topLine = "HTTP response status " + statusCode + " " + statusPhrase;
-        return pwmHttpClient.entityToDebugString( topLine, headers, httpEntityDataType, body, byteBody );
+        return pwmHttpClient.entityToDebugString( topLine, this );
     }
 }

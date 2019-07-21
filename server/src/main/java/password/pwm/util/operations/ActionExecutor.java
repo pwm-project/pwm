@@ -34,10 +34,10 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
@@ -212,17 +212,18 @@ public class ActionExecutor
                 if ( webAction.getCertificates() != null )
                 {
                     final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
+                            .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
                             .certificates( webAction.getCertificates() )
                             .build();
 
-                    client = new PwmHttpClient( pwmApplication, sessionLabel, clientConfiguration );
+                    client = pwmApplication.getHttpClientService().getPwmHttpClient( clientConfiguration );
                 }
                 else
                 {
-                    client = new PwmHttpClient( pwmApplication, sessionLabel );
+                    client = pwmApplication.getHttpClientService().getPwmHttpClient( );
                 }
             }
-            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest );
+            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, sessionLabel );
 
             final List<Integer> successStatus = webAction.getSuccessStatus() == null
                     ? Collections.emptyList()

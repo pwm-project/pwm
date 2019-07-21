@@ -46,6 +46,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditService;
 import password.pwm.svc.event.SystemAuditRecord;
+import password.pwm.svc.httpclient.HttpClientService;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.node.NodeService;
@@ -549,6 +550,11 @@ public class PwmApplication
     public HealthMonitor getHealthMonitor( )
     {
         return ( HealthMonitor ) pwmServiceManager.getService( HealthMonitor.class );
+    }
+
+    public HttpClientService getHttpClientService()
+    {
+        return ( HttpClientService ) pwmServiceManager.getService( HttpClientService.class );
     }
 
     public List<PwmService> getPwmServices( )

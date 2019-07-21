@@ -38,19 +38,18 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ImmutableByteArray;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.PhotoDataBean;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.secure.X509Utils;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
@@ -176,31 +175,40 @@ public class PhotoDataReader
 
         final PhotoReaderMethod method = figurePhotoDataReaderMethod( );
 
+        Optional<PhotoDataBean> photoDataBean = Optional.empty();
         try
         {
             switch ( method )
             {
-                case ClientHttp:
-                    return  Optional.empty();
-
                 case Ldap:
-                    return readPhotoDataFromLdap();
+                    photoDataBean = readPhotoDataFromLdap();
+                    break;
 
                 case ServerHttp:
-                    return readPhotoDataFromHTTP();
+                    photoDataBean = readPhotoDataFromHTTP();
+                    break;
 
                 default:
                     JavaHelper.unhandledSwitchStatement( method );
-
             }
-
-            return  Optional.empty();
         }
         finally
         {
-            LOGGER.trace( pwmRequest, () -> "read user photo data of " + userIdentity.toDisplayString() + " in "
-                    + TimeDuration.compactFromCurrent( startTime ) );
+            final Optional<PhotoDataBean> finalData = photoDataBean;
+            if ( finalData.isPresent() )
+            {
+                LOGGER.trace( pwmRequest, () -> "user photo data received for " + userIdentity.toDisplayString()
+                        + " " + finalData.get().toString()
+                        + " (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
+            }
+            else
+            {
+                LOGGER.trace( pwmRequest, () -> "no user photo data received for " + userIdentity.toDisplayString()
+                        + " (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
+            }
         }
+
+        return photoDataBean;
     }
 
     private Optional<PhotoDataBean> readPhotoDataFromLdap()
@@ -225,17 +233,17 @@ public class PhotoDataReader
         try
         {
             final PwmHttpClientConfiguration configuration = PwmHttpClientConfiguration.builder()
-                    .trustManager( new X509Utils.PromiscuousTrustManager( pwmRequest.getSessionLabel() ) )
+                    .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
                     .build();
-            final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), configuration );
+            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient( configuration );
             final PwmHttpClientRequest clientRequest = PwmHttpClientRequest.builder()
                     .method( HttpMethod.GET )
                     .url( overrideURL.get() )
                     .build();
-            final PwmHttpClientResponse response = pwmHttpClient.makeRequest( clientRequest );
+            final PwmHttpClientResponse response = pwmHttpClient.makeRequest( clientRequest, pwmRequest.getSessionLabel() );
             if ( response != null )
             {
-                final ImmutableByteArray bodyContents = response.getByteBody();
+                final ImmutableByteArray bodyContents = response.getBinaryBody();
                 if ( bodyContents != null && !bodyContents.isEmpty() )
                 {
                     final String mimeType = response.getContentType().getMimeType();
@@ -246,7 +254,7 @@ public class PhotoDataReader
         }
         catch ( Exception e )
         {
-            final String msg = "error reading remote http photo data: " + e.getMessage();
+            final String msg = "error reading remote http photo data: " + JavaHelper.readHostileExceptionMessage( e );
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_UNREACHABLE, msg ) );
         }
     }

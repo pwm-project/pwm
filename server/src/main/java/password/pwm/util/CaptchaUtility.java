@@ -39,9 +39,9 @@ import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmURL;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.stats.Statistic;
@@ -133,8 +133,8 @@ public class CaptchaUtility
                     .build();
 
             LOGGER.debug( pwmRequest, () -> "sending reCaptcha verification request" );
-            final PwmHttpClient client = new PwmHttpClient( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel() );
-            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest );
+            final PwmHttpClient client = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient();
+            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, pwmRequest.getSessionLabel()  );
 
             if ( clientResponse.getStatusCode() != HttpServletResponse.SC_OK )
             {
