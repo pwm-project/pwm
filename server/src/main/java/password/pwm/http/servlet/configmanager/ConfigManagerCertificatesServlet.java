@@ -98,6 +98,8 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
+        ConfigManagerServlet.verifyConfigAccess( pwmRequest );
+
         final ConfigManagerCertificateAction action = readProcessAction( pwmRequest );
         final ArrayList<CertificateDebugDataItem> certificateDebugDataItems = new ArrayList<>( makeCertificateDebugData( pwmRequest.getConfig() ) );
 
