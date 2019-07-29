@@ -20,7 +20,6 @@
 
 package password.pwm.http.servlet.configmanager;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -102,8 +101,9 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
     }
 
     protected void processAction( final PwmRequest pwmRequest )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+            throws ServletException, IOException, PwmUnrecoverableException
     {
+        ConfigManagerServlet.verifyConfigAccess( pwmRequest );
 
         final ConfigManagerAction processAction = readProcessAction( pwmRequest );
         if ( processAction != null )

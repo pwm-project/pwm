@@ -20,7 +20,6 @@
 
 package password.pwm.http.servlet.configmanager;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -103,8 +102,9 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
     }
 
     protected void processAction( final PwmRequest pwmRequest )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+            throws ServletException, IOException, PwmUnrecoverableException
     {
+        ConfigManagerServlet.verifyConfigAccess( pwmRequest );
 
         final ConfigManagerAction processAction = readProcessAction( pwmRequest );
         if ( processAction != null )
