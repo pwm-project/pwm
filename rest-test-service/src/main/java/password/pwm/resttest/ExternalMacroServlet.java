@@ -96,6 +96,9 @@ public class ExternalMacroServlet extends HttpServlet
         else if ( req.getServletPath().equals( EXTERNAL_PASSWORD_CHECK_URL ) )
         {
             System.out.println( "External Password Check" );
+            final InputStream inputStream = req.getInputStream();
+            final String body = IOUtils.toString( inputStream );
+            System.out.println( body );
             final boolean error = false;
             final String errorMessage = "No error.";
             resp.setHeader( "Content-Type", "application/json" );
