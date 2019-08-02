@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.pwm-project</groupId>
         <artifactId>pwm-parent</artifactId>
-        <version>1.9.0</version>
+        <version>1.9.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -17,7 +17,7 @@
 
     <properties>
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
-        <tomcat.version>9.0.21</tomcat.version>
+        <tomcat.version>9.0.22</tomcat.version>
     </properties>
 
     <build>
