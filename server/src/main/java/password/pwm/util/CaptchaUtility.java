@@ -338,16 +338,19 @@ public class CaptchaUtility
         final String configValue = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_PARAM );
         if ( !StringUtil.isEmpty( configValue ) )
         {
-            final String skipCaptcha = pwmRequest.readParameterAsString( PwmConstants.PARAM_SKIP_CAPTCHA );
-            if ( StringUtil.nullSafeEquals( configValue, skipCaptcha ) )
+            final String requestValue = pwmRequest.readParameterAsString( PwmConstants.PARAM_SKIP_CAPTCHA );
+            if ( !StringUtil.isEmpty( requestValue ) )
             {
-                LOGGER.trace( pwmRequest, () -> "valid skipCaptcha value in request, skipping captcha check for this session" );
-                pwmRequest.getPwmSession().getSessionStateBean().setCaptchaBypassedViaParameter( true );
-                return true;
-            }
-            else
-            {
-                LOGGER.error( pwmRequest, "skipCaptcha value is in request, however value '" + skipCaptcha + "' does not match configured value" );
+                if ( StringUtil.nullSafeEquals( configValue, requestValue ) )
+                {
+                    LOGGER.trace( pwmRequest, () -> "valid skipCaptcha value in request, skipping captcha check for this session" );
+                    pwmRequest.getPwmSession().getSessionStateBean().setCaptchaBypassedViaParameter( true );
+                    return true;
+                }
+                else
+                {
+                    LOGGER.error( pwmRequest, "skipCaptcha value is in request, however value '" + requestValue + "' does not match configured value" );
+                }
             }
         }
 
