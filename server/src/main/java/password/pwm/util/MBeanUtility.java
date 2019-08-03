@@ -64,7 +64,7 @@ public class MBeanUtility
         }
         catch ( Exception e )
         {
-            LOGGER.error( "error registering mbean: " + e.getMessage() );
+            LOGGER.debug( () -> "error registering mbean: " + e.getMessage() );
         }
     }
 
@@ -77,7 +77,7 @@ public class MBeanUtility
         }
         catch ( Exception e )
         {
-            LOGGER.error( "error unregistering mbean: " + e.getMessage() );
+            LOGGER.debug( () -> "error unregistering mbean: " + e.getMessage() );
         }
     }
 
