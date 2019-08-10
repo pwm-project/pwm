@@ -102,7 +102,7 @@ public abstract class RestServlet extends HttpServlet
                     "rest-" + REQUEST_COUNTER.next(),
                     null,
                     null,
-                    RequestInitializationFilter.readUserIPAddress( req, pwmApplication.getConfig() ),
+                    RequestInitializationFilter.readUserNetworkAddress( req, pwmApplication.getConfig() ),
                     RequestInitializationFilter.readUserHostname( req, pwmApplication.getConfig() )
             );
         }
