@@ -104,7 +104,6 @@ public class IntruderManager implements PwmService
     }
 
     @Override
-    @SuppressWarnings( "checkstyle:MethodLength" )
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
@@ -193,63 +192,7 @@ public class IntruderManager implements PwmService
 
         try
         {
-            {
-                final IntruderSettings settings = new IntruderSettings();
-                settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_USER_MAX_ATTEMPTS ) );
-                settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_USER_RESET_TIME ), TimeDuration.Unit.SECONDS ) );
-                settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_USER_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
-                if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
-                {
-                    LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
-                }
-                else
-                {
-                    recordManagers.put( RecordType.USERNAME, new RecordManagerImpl( RecordType.USERNAME, recordStore, settings ) );
-                    recordManagers.put( RecordType.USER_ID, new RecordManagerImpl( RecordType.USER_ID, recordStore, settings ) );
-                }
-            }
-            {
-                final IntruderSettings settings = new IntruderSettings();
-                settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_MAX_ATTEMPTS ) );
-                settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_RESET_TIME ), TimeDuration.Unit.MILLISECONDS ) );
-                settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_CHECK_TIME ), TimeDuration.Unit.MILLISECONDS ) );
-                if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
-                {
-                    LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
-                }
-                else
-                {
-                    recordManagers.put( RecordType.ATTRIBUTE, new RecordManagerImpl( RecordType.ATTRIBUTE, recordStore, settings ) );
-                }
-            }
-            {
-                final IntruderSettings settings = new IntruderSettings();
-                settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_MAX_ATTEMPTS ) );
-                settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_RESET_TIME ), TimeDuration.Unit.SECONDS ) );
-                settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
-                if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
-                {
-                    LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
-                }
-                else
-                {
-                    recordManagers.put( RecordType.TOKEN_DEST, new RecordManagerImpl( RecordType.TOKEN_DEST, recordStore, settings ) );
-                }
-            }
-            {
-                final IntruderSettings settings = new IntruderSettings();
-                settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_MAX_ATTEMPTS ) );
-                settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_RESET_TIME ), TimeDuration.Unit.SECONDS ) );
-                settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
-                if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
-                {
-                    LOGGER.info( () -> "intruder address checking will remain disabled due to configuration settings" );
-                }
-                else
-                {
-                    recordManagers.put( RecordType.ADDRESS, new RecordManagerImpl( RecordType.ADDRESS, recordStore, settings ) );
-                }
-            }
+            initializeRecordManagers( config, recordStore );
             status = STATUS.OPEN;
         }
         catch ( Exception e )
@@ -258,6 +201,67 @@ public class IntruderManager implements PwmService
             LOGGER.error( errorInformation.toDebugStr() );
             startupError = errorInformation;
             close();
+        }
+    }
+
+    private void initializeRecordManagers( final Configuration config, final RecordStore recordStore )
+    {
+        {
+            final IntruderSettings settings = new IntruderSettings();
+            settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_USER_MAX_ATTEMPTS ) );
+            settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_USER_RESET_TIME ), TimeDuration.Unit.SECONDS ) );
+            settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_USER_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
+            if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
+            {
+                LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
+            }
+            else
+            {
+                recordManagers.put( RecordType.USERNAME, new RecordManagerImpl( RecordType.USERNAME, recordStore, settings ) );
+                recordManagers.put( RecordType.USER_ID, new RecordManagerImpl( RecordType.USER_ID, recordStore, settings ) );
+            }
+        }
+        {
+            final IntruderSettings settings = new IntruderSettings();
+            settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_MAX_ATTEMPTS ) );
+            settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_RESET_TIME ), TimeDuration.Unit.MILLISECONDS ) );
+            settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_CHECK_TIME ), TimeDuration.Unit.MILLISECONDS ) );
+            if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
+            {
+                LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
+            }
+            else
+            {
+                recordManagers.put( RecordType.ATTRIBUTE, new RecordManagerImpl( RecordType.ATTRIBUTE, recordStore, settings ) );
+            }
+        }
+        {
+            final IntruderSettings settings = new IntruderSettings();
+            settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_MAX_ATTEMPTS ) );
+            settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_RESET_TIME ), TimeDuration.Unit.SECONDS ) );
+            settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
+            if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
+            {
+                LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
+            }
+            else
+            {
+                recordManagers.put( RecordType.TOKEN_DEST, new RecordManagerImpl( RecordType.TOKEN_DEST, recordStore, settings ) );
+            }
+        }
+        {
+            final IntruderSettings settings = new IntruderSettings();
+            settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_MAX_ATTEMPTS ) );
+            settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_RESET_TIME ), TimeDuration.Unit.SECONDS ) );
+            settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
+            if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
+            {
+                LOGGER.info( () -> "intruder address checking will remain disabled due to configuration settings" );
+            }
+            else
+            {
+                recordManagers.put( RecordType.ADDRESS, new RecordManagerImpl( RecordType.ADDRESS, recordStore, settings ) );
+            }
         }
     }
 

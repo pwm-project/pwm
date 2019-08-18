@@ -32,6 +32,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.time.Instant;
@@ -63,8 +64,7 @@ public class PwmSettingXml
         final XmlDocument docRefCopy = xmlDocCache.get();
         if ( docRefCopy == null )
         {
-            final InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( SETTING_XML_FILENAME );
-            try
+            try ( InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( SETTING_XML_FILENAME ) )
             {
                 final Instant startTime = Instant.now();
                 final XmlDocument newDoc = XmlFactory.getFactory().parseXml( inputStream );
@@ -75,7 +75,7 @@ public class PwmSettingXml
 
                 return newDoc;
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( IOException | PwmUnrecoverableException e )
             {
                 throw new IllegalStateException( "error parsing " + SETTING_XML_FILENAME + ": " + e.getMessage() );
             }
