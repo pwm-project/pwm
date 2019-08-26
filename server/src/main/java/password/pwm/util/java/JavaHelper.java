@@ -3,30 +3,30 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.java;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jetbrains.exodus.core.dataStructures.hash.LinkedHashMap;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
 import password.pwm.util.logging.PwmLogger;
 
@@ -44,31 +44,30 @@ import java.lang.management.LockInfo;
 import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.TimeZone;
-import java.util.TreeSet;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class JavaHelper
 {
@@ -139,54 +138,6 @@ public class JavaHelper
         return out.toString();
     }
 
-    /**
-     * Pause the calling thread the specified amount of time.
-     *
-     * @param sleepTimeMS - a time duration in milliseconds
-     * @return time actually spent sleeping
-     */
-    @CheckReturnValue( when = javax.annotation.meta.When.NEVER )
-    public static long pause( final long sleepTimeMS )
-    {
-        final long startTime = System.currentTimeMillis();
-        final long sliceTime = Math.max( 5, sleepTimeMS / 10 );
-        do
-        {
-            try
-            {
-                final long sleepTime = sleepTimeMS - ( System.currentTimeMillis() - startTime );
-                Thread.sleep( Math.min( sleepTime, sliceTime ) );
-            }
-            catch ( InterruptedException e )
-            {
-                // ignore
-            }
-        }
-        while ( ( System.currentTimeMillis() - startTime ) < sleepTimeMS );
-
-        return System.currentTimeMillis() - startTime;
-    }
-
-    public static long pause(
-            final long sleepTimeMS,
-            final long predicateCheckIntervalMS,
-            final Predicate predicate
-    )
-    {
-        final long startTime = System.currentTimeMillis();
-        final long pauseTime = Math.min( sleepTimeMS, predicateCheckIntervalMS );
-        while ( ( System.currentTimeMillis() - startTime ) < sleepTimeMS )
-        {
-            JavaHelper.pause( pauseTime );
-            if ( predicate.test( null ) )
-            {
-                break;
-            }
-        }
-
-        return System.currentTimeMillis() - startTime;
-    }
-
     public static String binaryArrayToHex( final byte[] buf )
     {
         final char[] hexChars = "0123456789ABCDEF".toCharArray();
@@ -197,16 +148,6 @@ public class JavaHelper
             chars[ 2 * i + 1 ] = hexChars[ buf[ i ] & 0x0F ];
         }
         return new String( chars );
-    }
-
-    public static Instant nextZuluZeroTime( )
-    {
-        final Calendar nextZuluMidnight = GregorianCalendar.getInstance( TimeZone.getTimeZone( "Zulu" ) );
-        nextZuluMidnight.set( Calendar.HOUR_OF_DAY, 0 );
-        nextZuluMidnight.set( Calendar.MINUTE, 0 );
-        nextZuluMidnight.set( Calendar.SECOND, 0 );
-        nextZuluMidnight.add( Calendar.HOUR, 24 );
-        return nextZuluMidnight.getTime().toInstant();
     }
 
     public static <E extends Enum<E>> List<E> readEnumListFromStringCollection( final Class<E> enumClass, final Collection<String> inputs )
@@ -322,10 +263,25 @@ public class JavaHelper
         return IOUtils.copyLarge( input, output, 0, -1, buffer );
     }
 
-    public static long copyWhilePredicate( final InputStream input, final OutputStream output, final Predicate<Long> predicate )
+    public static long copyWhilePredicate(
+            final InputStream input,
+            final OutputStream output,
+            final Predicate<Long> predicate
+    )
             throws IOException
     {
-        final int bufferSize = 4 * 1024;
+        return copyWhilePredicate( input, output, 4 * 1024, predicate, null );
+    }
+
+    public static long copyWhilePredicate(
+            final InputStream input,
+            final OutputStream output,
+            final int bufferSize,
+            final Predicate<Long> predicate,
+            final ConditionalTaskExecutor condtionalTaskExecutor
+    )
+            throws IOException
+    {
         final byte[] buffer = new byte[ bufferSize ];
         long bytesCopied;
         long totalCopied = 0;
@@ -335,6 +291,10 @@ public class JavaHelper
             if ( bytesCopied > 0 )
             {
                 totalCopied += bytesCopied;
+            }
+            if ( condtionalTaskExecutor != null )
+            {
+                condtionalTaskExecutor.conditionallyExecuteTask();
             }
             if ( !predicate.test( bytesCopied ) )
             {
@@ -392,49 +352,6 @@ public class JavaHelper
         return false;
     }
 
-    public static String makeThreadName( final PwmApplication pwmApplication, final Class theClass )
-    {
-        String instanceName = "-";
-        if ( pwmApplication != null && pwmApplication.getInstanceID() != null )
-        {
-            instanceName = pwmApplication.getInstanceID();
-        }
-
-        return PwmConstants.PWM_APP_NAME + "-" + instanceName + "-" + theClass.getSimpleName();
-    }
-
-    public static Properties newSortedProperties( )
-    {
-        return new Properties()
-        {
-            public synchronized Enumeration<Object> keys( )
-            {
-                return Collections.enumeration( new TreeSet<>( super.keySet() ) );
-            }
-        };
-    }
-
-    public static ThreadFactory makePwmThreadFactory( final String namePrefix, final boolean daemon )
-    {
-        return new ThreadFactory()
-        {
-            private final ThreadFactory realThreadFactory = Executors.defaultThreadFactory();
-
-            @Override
-            public Thread newThread( final Runnable r )
-            {
-                final Thread t = realThreadFactory.newThread( r );
-                t.setDaemon( daemon );
-                if ( namePrefix != null )
-                {
-                    final String newName = namePrefix + t.getName();
-                    t.setName( newName );
-                }
-                return t;
-            }
-        };
-    }
-
     public static Collection<Method> getAllMethodsForClass( final Class clazz )
     {
         final LinkedHashSet<Method> methods = new LinkedHashSet<>();
@@ -456,19 +373,6 @@ public class JavaHelper
     {
         return new CSVPrinter( new OutputStreamWriter( outputStream, PwmConstants.DEFAULT_CHARSET ), PwmConstants.DEFAULT_CSV_FORMAT );
     }
-
-    public static ScheduledExecutorService makeSingleThreadExecutorService(
-            final PwmApplication pwmApplication,
-            final Class clazz
-    )
-    {
-        return Executors.newSingleThreadScheduledExecutor(
-                makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, clazz ) + "-",
-                        true
-                ) );
-    }
-
 
     /**
      * Copy of {@link ThreadInfo#toString()} but with the MAX_FRAMES changed from 8 to 256.
@@ -648,8 +552,97 @@ public class JavaHelper
         }
         catch ( IOException e )
         {
-            LOGGER.debug( "exception while estimating session size: " + e.getMessage() );
+            LOGGER.debug( () -> "exception while estimating session size: " + e.getMessage() );
             return 0;
         }
+    }
+
+    public static Map<String, String> propertiesToStringMap( final Properties properties )
+    {
+        Objects.requireNonNull( properties );
+        final Map<String, String> returnMap = new LinkedHashMap<>( properties.size() );
+        properties.forEach( ( key, value ) -> returnMap.put( ( String ) key, (String) value ) );
+        return returnMap;
+    }
+
+    public static Optional<String> deriveLocalServerHostname( final Configuration configuration )
+    {
+        if ( configuration != null )
+        {
+            final String siteUrl = configuration.readSettingAsString( PwmSetting.PWM_SITE_URL );
+            if ( !StringUtil.isEmpty( siteUrl ) )
+            {
+                try
+                {
+                    final URI parsedUri = URI.create( siteUrl );
+                    {
+                        final String uriHost = parsedUri.getHost();
+                        return Optional.ofNullable( uriHost );
+                    }
+                }
+                catch ( IllegalArgumentException e )
+                {
+                    LOGGER.trace( () -> " error parsing siteURL hostname: " + e.getMessage() );
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    public static class SortedProperties extends Properties
+    {
+        @Override
+        public synchronized Enumeration<Object> keys()
+        {
+            return Collections.enumeration( super.keySet().stream()
+                    .sorted( Comparator.comparing( Object::toString ) )
+                    .collect( Collectors.toList() ) );
+        }
+
+        @Override
+        public synchronized Set<Map.Entry<Object, Object>> entrySet()
+        {
+            return super.entrySet().stream()
+                    .sorted( Comparator.comparing( o -> o.getKey().toString() ) )
+                    .collect( Collectors.toCollection( LinkedHashSet::new ) );
+        }
+    }
+
+    public static int silentParseInt( final String input, final int defaultValue )
+    {
+        try
+        {
+            return Integer.parseInt( input );
+        }
+        catch ( NumberFormatException e )
+        {
+            return defaultValue;
+        }
+    }
+
+    public static long silentParseLong( final String input, final long defaultValue )
+    {
+        try
+        {
+            return Long.parseLong( input );
+        }
+        catch ( NumberFormatException e )
+        {
+            return defaultValue;
+        }
+    }
+
+    public static boolean doubleContainsLongValue( final Double input )
+    {
+        return input.equals( Math.floor( input ) )
+                && !Double.isInfinite( input )
+                && !Double.isNaN( input )
+                && input <= Long.MAX_VALUE
+                && input >= Long.MIN_VALUE;
+    }
+
+    public static byte[] longToBytes( final long input )
+    {
+        return ByteBuffer.allocate( 8 ).putLong( input ).array();
     }
 }

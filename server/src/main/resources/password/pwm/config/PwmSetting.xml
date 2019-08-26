@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2018 The PWM Project
+  ~ Copyright (c) 2009-2019 The PWM Project
   ~
-  ~ This program is free software; you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation; either version 2 of the License, or
-  ~ (at your option) any later version.
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
   ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
+  ~     http://www.apache.org/licenses/LICENSE-2.0
   ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
   -->
 
 <!--
@@ -94,11 +94,11 @@
         <flag>Select_AllowUserInput</flag>
         <regex>^/.+</regex>
         <default>
-            <value>/private</value>
+            <value>/private/</value>
         </default>
         <options>
-            <option value="/private">/private</option>
-            <option value="/public">/public</option>
+            <option value="/private/">/private</option>
+            <option value="/public/">/public</option>
         </options>
     </setting>
     <setting hidden="false" key="idleTimeoutSeconds" level="1" required="true">
@@ -414,14 +414,10 @@
     </setting>
     <setting hidden="false" key="display.password.completeMessage" level="1">
         <flag>MacroSupport</flag>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="display.password.guideText" level="1">
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="passwordSync.enableReplicaCheck" level="2">
         <default>
@@ -715,11 +711,21 @@
             <property key="Maximum">65535</property>
         </properties>
     </setting>
-    <setting hidden="false" key="email.default.fromAddresses" level="1">
-        <flag>emailSyntax</flag>
+    <setting hidden="false" key="email.smtp.type" level="1">
         <default>
-            <value>noreply@example.org</value>
+            <value>SMTP</value>
         </default>
+        <options>
+            <option value="SMTP">SMTP (Plaintext)</option>
+            <option value="START_TLS">StartTLS</option>
+            <option value="SMTPS">SMTPS (SSL/TLS)</option>
+        </options>
+    </setting>
+    <setting hidden="false" key="email.smtp.serverCerts" level="0" required="true">
+        <default/>
+        <properties>
+            <property key="Cert_ImportHandler">password.pwm.config.function.SmtpCertImportFunction</property>
+        </properties>
     </setting>
     <setting hidden="false" key="email.smtp.username" level="1">
         <default>
@@ -728,34 +734,11 @@
     </setting>
     <setting hidden="false" key="email.smtp.userpassword" level="1">
     </setting>
-
-    <setting hidden="false" key="email.smtp.address" level="1">
-        <regex>^[a-zA-Z0-9.-]*$</regex>
-        <default>
-            <value />
-        </default>
-    </setting>
-    <setting hidden="false" key="email.smtp.port" level="1">
-        <default>
-            <value>25</value>
-        </default>
-        <properties>
-            <property key="Minimum">1</property>
-            <property key="Maximum">65535</property>
-        </properties>
-    </setting>
     <setting hidden="false" key="email.default.fromAddress" level="1">
         <flag>emailSyntax</flag>
         <default>
             <value>noreply@example.org</value>
         </default>
-    </setting>
-    <setting hidden="false" key="email.smtp.username" level="2">
-        <default>
-            <value />
-        </default>
-    </setting>
-    <setting hidden="false" key="email.smtp.userpassword" level="2">
     </setting>
     <setting hidden="false" key="email.userMailAttribute" level="2" required="true">
         <ldapPermission actor="proxy" access="read"/>
@@ -1193,6 +1176,11 @@
             <value>0</value>
         </default>
     </setting>
+    <setting hidden="false" key="password.policy.allowNonAlpha" level="1" required="true">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="password.policy.maximumNonAlpha" level="1" required="true">
         <default>
             <value>0</value>
@@ -1320,9 +1308,7 @@
         <default/>
     </setting>
     <setting hidden="false" key="password.policy.ruleText" level="2">
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="password.policy.disallowCurrent" level="2" required="true">
         <default>
@@ -1412,11 +1398,6 @@
     <setting hidden="false" key="intruder.address.maxAttempts" level="1" required="true">
         <default>
             <value>30</value>
-        </default>
-    </setting>
-    <setting hidden="false" key="intruder.address.checkTime" level="1" required="true">
-        <default>
-            <value>300</value>
         </default>
     </setting>
     <setting hidden="false" key="intruder.address.checkTime" level="1" required="true">
@@ -1574,7 +1555,21 @@
             <value>28800</value>
         </default>
     </setting>
-    <setting hidden="false" key="cluster.storageMode" level="2">
+    <setting hidden="false" key="security.certificate.validationMode" level="2">
+        <default>
+            <value>CA_ONLY</value>
+        </default>
+        <options>
+            <option value="CA_ONLY">Root Certificate Only</option>
+            <option value="CERTIFICATE_CHAIN">Entire Certificate Chain</option>
+        </options>
+    </setting>
+    <setting hidden="false" key="nodeService.enable" level="2">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="nodeService.storageMode" level="2">
         <default>
             <value>LDAP</value>
         </default>
@@ -1620,9 +1615,7 @@
     </setting>
     <setting hidden="false" key="security.cspHeader" level="2">
         <default>
-            <!--<value><![CDATA[]]></value>-->
-            <value><![CDATA[default-src 'self'; form-action 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'unsafe-inline' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/cspReport]]></value>
-            <!-- 'unsafe-inline' on script-src is included for backward compatibility of CSP Level1 browsers.  CSP2 and future ignore it when the nonce is specified -->
+            <value><![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'nonce-%NONCE%'; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/cspReport]]></value>
         </default>
     </setting>
     <setting hidden="false" key="email.adminAlert.toAddress" level="1">
@@ -2568,11 +2561,6 @@
         <ldapPermission actor="proxy" access="read"/>
         <default />
     </setting>
-    <setting hidden="false" key="challenge.token.enable" level="1" required="true">
-        <default>
-            <value>false</value>
-        </default>
-    </setting>
     <setting hidden="false" key="challenge.token.sendMethod" level="1" required="true">
         <default>
             <value><![CDATA[EMAILONLY]]></value>
@@ -2748,6 +2736,11 @@
             <value>true</value>
         </default>
     </setting>
+    <setting hidden="false" key="newUser.logoutAfterCreation" level="2">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting hidden="false" key="newUser.username.definition" level="1">
         <default>
             <value><![CDATA[@RandomChar:16:ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@]]></value>
@@ -2878,13 +2871,6 @@
             <option value="checkbox">checkbox</option>
         </options>
     </setting>
-    <setting hidden="false" key="guest.creationUniqueAttributes" level="1">
-        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
-        <default>
-            <value><![CDATA[cn]]></value>
-            <value><![CDATA[mail]]></value>
-        </default>
-    </setting>
     <setting hidden="false" key="guest.writeAttributes" level="1">
         <ldapPermission actor="guestManager" access="write"/>
         <default />
@@ -2918,14 +2904,18 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="true" key="activateUser.profile.list" level="1">
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <properties>
+            <property key="Minimum">1</property>
+        </properties>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
     <setting hidden="false" key="activateUser.allowUnlock" level="1" required="true">
         <default>
             <value>true</value>
-        </default>
-    </setting>
-    <setting hidden="false" key="activateUser.token.verification" level="1" required="true">
-        <default>
-            <value>false</value>
         </default>
     </setting>
     <setting hidden="false" key="display.activateUser.agreement" level="1">
@@ -3078,9 +3068,7 @@
         </default>
     </setting>
     <setting hidden="false" key="updateAttributes.customLinks" level="1">
-        <default>
-            <value></value>
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="updateAttributes.token.lifetime" level="1" required="true">
         <default>
@@ -3090,11 +3078,6 @@
     <setting hidden="false" key="updateAttributes.token.lifetime.sms" level="1" required="true">
         <default>
             <value>0</value>
-        </default>
-    </setting>
-    <setting hidden="false" key="updateAttributes.enable" level="1">
-        <default>
-            <value>false</value>
         </default>
     </setting>
     <setting hidden="false" key="shortcut.enable" level="1">
@@ -3114,11 +3097,6 @@
             <value><![CDATA[X-Shortcuts]]></value>
         </default>
     </setting>
-    <setting hidden="false" key="shortcut.httpHeaders" level="1">
-        <default>
-            <value><![CDATA[X-Shortcuts]]></value>
-        </default>
-    </setting>
     <setting hidden="false" key="shortcut.newWindow" level="1">
         <default>
             <value>false</value>
@@ -3129,9 +3107,25 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="true" key="peopleSearch.profile.list" level="1">
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
     <setting hidden="false" key="peopleSearch.enablePublic" level="1">
         <default>
             <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.public.profile" level="1">
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.enablePhoto" level="1">
+        <default>
+            <value>true</value>
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.enableOrgChart" level="1">
@@ -3140,6 +3134,16 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.enableExport" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.enableTeamMailto" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.enablePrinting" level="1">
         <default>
             <value>false</value>
         </default>
@@ -3248,7 +3252,7 @@
             <property key="Maximum">7</property>
         </properties>
     </setting>
-    <setting hidden="false" key="peopleSearch.displayName.user" level="1" required="true">
+    <setting hidden="true" key="peopleSearch.displayName.user" level="1" required="true">
         <flag>MacroSupport</flag>
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @LDAP:title@</value>
@@ -3309,6 +3313,27 @@
         <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>workforceID</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="ldap.user.language.attribute" level="1">
+        <ldapPermission actor="proxy" access="write"/>
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="ldap.user.appData.attribute" level="1">
+        <ldapPermission actor="proxy" access="write"/>
+        <default>
+            <value>pwmData</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="ldap.user.language.autoSet" level="1">
+        <options>
+            <option value="disabled">Disabled</option>
+            <option value="enabled">Enabled - Write to LDAP attribute during authentication.</option>
+        </options>
+        <default>
+            <value>disabled</value>
         </default>
     </setting>
     <setting hidden="false" key="ldap.edirectory.storeNmasResponses" level="1" required="true">
@@ -3618,7 +3643,7 @@
             <value>false</value>
         </default>
     </setting>
-    <setting hidden="false" key="helpdesk.displayName" level="2">
+    <setting hidden="true" key="helpdesk.displayName" level="2">
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @User:ID@ - @User:Email@</value>
         </default>
@@ -3634,11 +3659,6 @@
         <properties>
             <property key="Maximum">4</property>
         </properties>
-    </setting>
-    <setting hidden="false" key="helpdesk.enable" level="1" required="true">
-        <default>
-            <value>false</value>
-        </default>
     </setting>
     <setting hidden="true" key="helpdesk.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
@@ -3780,6 +3800,18 @@
             <value/>
         </default>
     </setting>
+    <setting hidden="false" key="pwNotify.storageMode" level="2">
+        <default>
+            <value>LDAP</value>
+        </default>
+        <default template="DB">
+            <value>DB</value>
+        </default>
+        <options>
+            <option value="LDAP">LDAP Directory</option>
+            <option value="DB">Remote Database</option>
+        </options>
+    </setting>
     <setting hidden="false" key="pwNotify.queryString" level="1">
         <default>
             <value/>
@@ -3807,14 +3839,14 @@
             <value/>
         </default>
     </setting>
-    <setting hidden="false" key="reporting.ldap.searchFilter" level="1">
+    <setting hidden="true" key="reporting.ldap.searchFilter" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting hidden="false" key="reporting.maxCacheAge" level="1">
-        <default>
-            <value>2592000</value>
+    <setting hidden="false" key="reporting.ldap.userMatch" level="1">
+        <default syntaxVersion="2">
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting hidden="false" key="reporting.ldap.maxQuerySize" level="2">
@@ -3900,11 +3932,6 @@
             <value>false</value>
         </default>
     </setting>
-    <setting hidden="false" key="webservices.healthStats.makePublic" level="2">
-        <default>
-            <value>false</value>
-        </default>
-    </setting>
     <setting hidden="false" key="webservices.external.secrets" level="2">
         <default/>
         <options>
@@ -3936,6 +3963,14 @@
             <value/>
         </default>
     </setting>
+    <setting hidden="false" key="webservices.public.enable" level="2">
+        <default/>
+        <options>
+            <option value="Health">Health - /health</option>
+            <option value="ForgottenPassword">Forgotten Password - /forgottenpassword</option>
+            <option value="Statistics">Statistics - /statistics</option>
+        </options>
+    </setting>
     <setting hidden="false" key="external.macros.urls" level="2">
         <default />
     </setting>
@@ -3962,6 +3997,10 @@
     </setting>
     <setting hidden="false" key="oauth.idserver.loginUrl" level="2">
         <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/grant</example>
+        <default/>
+    </setting>
+    <setting hidden="false" key="oauth.idserver.scope" level="2">
+        <example>email</example>
         <default/>
     </setting>
     <setting hidden="false" key="oauth.idserver.codeResolveUrl" level="2">
@@ -3993,18 +4032,19 @@
     <setting hidden="false" key="https.server.tls.protocols" level="1">
         <default>
             <value>TLS_1_2</value>
+            <value>TLS_1_3</value>
         </default>
         <options>
-            <option value="SSL_2_0">SSL v2.0</option>
             <option value="SSL_3_0">SSL v3.0</option>
             <option value="TLS_1_0">TLS v1.0</option>
             <option value="TLS_1_1">TLS v1.1</option>
             <option value="TLS_1_2">TLS v1.2</option>
+            <option value="TLS_1_3">TLS v1.3</option>
         </options>
     </setting>
     <setting hidden="false" key="https.server.tls.ciphers" level="1">
         <default>
-            <value>TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_SHA,TLS_DHE_RSA_WITH_AES_128_SHA256,TLS_DHE_RSA_WITH_AES_128_SHA,TLS_DHE_DSS_WITH_AES_128_SHA256</value>
+            <value>TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_AES_128_CCM_SHA256,TLS_AES_128_CCM_8_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_SHA,TLS_DHE_RSA_WITH_AES_128_SHA256,TLS_DHE_RSA_WITH_AES_128_SHA,TLS_DHE_DSS_WITH_AES_128_SHA256</value>
         </default>
     </setting>
     <setting hidden="false" key="pwm.wordlist.location" level="1">
@@ -4033,6 +4073,11 @@
         </default>
     </setting>
     <setting hidden="true" key="helpdesk.otp.verify" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="true" key="webservices.healthStats.makePublic" level="2">
         <default>
             <value>false</value>
         </default>
@@ -4099,8 +4144,6 @@
     </category>
     <category hidden="false" key="EMAIL_SERVERS">
         <profile setting="email.profile.list"/>
-    </category>
-    <category hidden="false" key="EMAIL_PROFILE_SETTING">
     </category>
     <category hidden="false" key="EMAIL">
     </category>
@@ -4217,6 +4260,11 @@
     </category>
     <category hidden="false" key="ACTIVATION">
     </category>
+    <category hidden="false" key="ACTIVATION_SETTINGS">
+    </category>
+    <category hidden="false" key="ACTIVATION_PROFILE">
+        <profile setting="activateUser.profile.list"/>
+    </category>
     <category hidden="false" key="UPDATE">
     </category>
     <category hidden="false" key="UPDATE_SETTINGS">
@@ -4227,6 +4275,11 @@
     <category hidden="false" key="SHORTCUT">
     </category>
     <category hidden="false" key="PEOPLE_SEARCH">
+    </category>
+    <category hidden="false" key="PEOPLE_SEARCH_SETTINGS">
+    </category>
+    <category hidden="false" key="PEOPLE_SEARCH_PROFILE">
+        <profile setting="peopleSearch.profile.list"/>
     </category>
     <category hidden="false" key="HELPDESK">
     </category>

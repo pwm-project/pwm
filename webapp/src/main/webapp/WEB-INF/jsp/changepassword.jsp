@@ -3,29 +3,28 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2018 The PWM Project
+ ~ Copyright (c) 2009-2019 The PWM Project
  ~
- ~ This program is free software; you can redistribute it and/or modify
- ~ it under the terms of the GNU General Public License as published by
- ~ the Free Software Foundation; either version 2 of the License, or
- ~ (at your option) any later version.
+ ~ Licensed under the Apache License, Version 2.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
  ~
- ~ This program is distributed in the hope that it will be useful,
- ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
- ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- ~ GNU General Public License for more details.
+ ~     http://www.apache.org/licenses/LICENSE-2.0
  ~
- ~ You should have received a copy of the GNU General Public License
- ~ along with this program; if not, write to the Free Software
- ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
 --%>
 
+
 <!DOCTYPE html>
-<%@ page import="password.pwm.bean.PasswordStatus" %>
-<%@ page import="password.pwm.util.macro.MacroMachine" %>
+<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="password.pwm.http.servlet.changepw.ChangePasswordServlet" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -108,12 +107,12 @@
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 
             <div class="buttonbar" style="width:100%">
-                <button type="submit" name="change" class="btn" id="password_button">
+                <button type="submit" name="password_button" class="btn" id="password_button">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_ChangePassword"/>
                 </button>
                 <pwm:if test="<%=PwmIfTest.passwordExpired%>" negate="true">
-                    <button id="button-reset" type="submit" name="change" class="btn" form="form-reset">
+                    <button id="button-reset" type="button" name="button-reset" class="btn" form="form-reset">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
                         <pwm:display key="Button_Cancel"/>
                     </button>
@@ -121,7 +120,7 @@
             </div>
         </form>
         <form id="form-reset" name="form-reset" action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" >
-            <input type="hidden" name="processAction" value="reset"/>
+            <input type="hidden" name="processAction" value="<%=ChangePasswordServlet.ChangePasswordAction.reset%>"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
     </div>

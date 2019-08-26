@@ -12,18 +12,18 @@
         "clean": "rimraf dist/",
         "test": "karma start test/karma.conf.js",
         "test-single-run": "karma start test/karma.conf.js --singleRun --no-auto-watch",
-        "start": "webpack-dev-server --mode=development --port 4000 --history-api-fallback --colors",
-        "sync": "webpack --env.disableMinimize=true --mode=production --output-path=../webapp/target/pwm-1.8.0-SNAPSHOT/public/resources/webjars/pwm-client --watch --progress --colors"
+        "start": "webpack-dev-server --mode=development --port 4000 --history-api-fallback --colors"
     },
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@microfocus/ias-icons": "1.0.0",
+        "@microfocus/ias-icons": "1.0.1",
         "@microfocus/ng-ias": "1.0.0-alpha.2",
         "@microfocus/ux-ias": "1.0.0-rc",
         "@uirouter/angularjs": "1.0.15",
         "angular": "1.6.9",
         "angular-aria": "1.6.9",
+        "angular-sanitize": "1.6.9",
         "angular-translate": "2.17.0",
         "textangular": "1.5.16"
     },
@@ -45,7 +45,7 @@
         "imports-loader": "0.8.0",
         "jasmine": "3.2.0",
         "jasmine-core": "3.2.1",
-        "jshint": "2.9.5",
+        "jshint": "^2.10.2",
         "jshint-loader": "0.8.4",
         "json-loader": "0.5.7",
         "karma": "3.1.1",
@@ -58,7 +58,7 @@
         "karma-webpack": "3.0.5",
         "moment": "2.21.0",
         "ngtemplate-loader": "2.0.1",
-        "node-sass": "4.7.2",
+        "node-sass": "^4.12.0",
         "phantomjs": "2.1.7",
         "phantomjs-prebuilt": "2.1.16",
         "postcss-loader": "2.1.1",
@@ -76,7 +76,7 @@
         "url-loader": "1.0.1",
         "webpack": "4.1.1",
         "webpack-cli": "2.0.12",
-        "webpack-dev-server": "3.1.1",
+        "webpack-dev-server": "3.1.14",
         "webpack-merge": "4.1.2",
         "write-file-webpack-plugin": "4.2.0"
     }

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.macro;
@@ -40,6 +38,8 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -53,7 +53,7 @@ public abstract class StandardMacros
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( StandardMacros.class );
 
-    public static final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> STANDARD_MACROS;
+    static final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> STANDARD_MACROS;
 
     static
     {
@@ -61,6 +61,7 @@ public abstract class StandardMacros
 
         // system macros
         defaultMacros.put( CurrentTimeMacro.class, MacroImplementation.Scope.System );
+        defaultMacros.put( Iso8601DateTimeMacro.class, MacroImplementation.Scope.System );
         defaultMacros.put( InstanceIDMacro.class, MacroImplementation.Scope.System );
         defaultMacros.put( DefaultEmailFromAddressMacro.class, MacroImplementation.Scope.System );
         defaultMacros.put( SiteURLMacro.class, MacroImplementation.Scope.System );
@@ -175,13 +176,13 @@ public abstract class StandardMacros
                 }
                 catch ( PwmUnrecoverableException e )
                 {
-                    LOGGER.trace( "could not replace value for '" + matchValue + "', ldap error: " + e.getMessage() );
+                    LOGGER.trace( () -> "could not replace value for '" + matchValue + "', ldap error: " + e.getMessage() );
                     return "";
                 }
 
                 if ( ldapValue == null || ldapValue.length() < 1 )
                 {
-                    LOGGER.trace( "could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'" );
+                    LOGGER.trace( () -> "could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'" );
                     return "";
                 }
             }
@@ -291,6 +292,47 @@ public abstract class StandardMacros
 
             dateFormat.setTimeZone( tz );
             return dateFormat.format( new Date() );
+        }
+    }
+
+    public static class Iso8601DateTimeMacro extends AbstractMacro
+    {
+        private static final Pattern PATTERN = Pattern.compile( "@Iso8601" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
+
+        public Pattern getRegExPattern( )
+        {
+            return PATTERN;
+        }
+
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
+
+        ) throws MacroParseException
+        {
+            final List<String> parameters = splitMacroParameters( matchValue, "Iso8601" );
+
+            if ( JavaHelper.isEmpty(  parameters ) || parameters.size() != 1 )
+            {
+                throw new MacroParseException( "exactly one parameter is required" );
+            }
+
+            final String param = parameters.get( 0 );
+
+            if ( "DateTime".equalsIgnoreCase( param ) )
+            {
+                return JavaHelper.toIsoDate( Instant.now() );
+            }
+            else if ( "Date".equalsIgnoreCase( param ) )
+            {
+                return Instant.now().atOffset( ZoneOffset.UTC ).format( DateTimeFormatter.ofPattern( "uuuu-MM-dd" ) );
+            }
+            else if ( "Time".equalsIgnoreCase( param ) )
+            {
+                return Instant.now().atOffset( ZoneOffset.UTC ).format( DateTimeFormatter.ofPattern( "HH:mm:ss" ) );
+            }
+
+            throw new MacroParseException( "unknown parameter" );
         }
     }
 

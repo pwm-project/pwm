@@ -3,34 +3,37 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.bean;
 
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Value;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.Display;
+import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.token.TokenDestinationDisplayMasker;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.SecureService;
 
@@ -41,6 +44,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -72,21 +76,21 @@ public class TokenDestinationItem implements Serializable
     private String value;
     private Type type;
 
+    @Getter
     public enum Type
     {
-        sms( MessageSendMethod.SMSONLY ),
-        email( MessageSendMethod.EMAILONLY ),;
+        sms( MessageSendMethod.SMSONLY, Display.Button_SMS, Display.Display_RecoverTokenSendChoiceEmail ),
+        email( MessageSendMethod.EMAILONLY, Display.Button_Email, Display.Display_RecoverTokenSendChoiceSMS ),;
 
         private MessageSendMethod messageSendMethod;
+        private PwmDisplayBundle buttonLocalization;
+        private PwmDisplayBundle displayLocalization;
 
-        Type( final MessageSendMethod messageSendMethod )
+        Type( final MessageSendMethod messageSendMethod, final PwmDisplayBundle buttonLocalization, final PwmDisplayBundle displayLocalization )
         {
+            this.buttonLocalization = buttonLocalization;
             this.messageSendMethod = messageSendMethod;
-        }
-
-        public MessageSendMethod getMessageSendMethod( )
-        {
-            return messageSendMethod;
+            this.displayLocalization = displayLocalization;
         }
     }
 
@@ -109,7 +113,7 @@ public class TokenDestinationItem implements Serializable
                         userInfo.getUserEmailAddress2(),
                         userInfo.getUserEmailAddress3(),
                 }
-                )
+        )
         {
             if ( !StringUtil.isEmpty( emailValue ) )
             {
@@ -130,7 +134,7 @@ public class TokenDestinationItem implements Serializable
                         userInfo.getUserSmsNumber2(),
                         userInfo.getUserSmsNumber3(),
                 }
-                )
+        )
         {
             if ( !StringUtil.isEmpty( smsValue ) )
             {
@@ -185,5 +189,21 @@ public class TokenDestinationItem implements Serializable
             }
         }
         return returnList;
+    }
+
+    public String longDisplay( final Locale locale, final Configuration configuration )
+    {
+        final Map<String, String> tokens = new HashMap<>();
+        tokens.put( "%LABEL%", LocaleHelper.getLocalizedMessage( locale, getType().getButtonLocalization(), configuration ) );
+        tokens.put( "%MESSAGE%", LocaleHelper.getLocalizedMessage( locale, getType().getDisplayLocalization(), configuration ) );
+        tokens.put( "%VALUE%", this.getDisplay() );
+
+        String output = configuration.readAppProperty( AppProperty.REST_SERVER_FORGOTTEN_PW_TOKEN_DISPLAY );
+        for ( final Map.Entry<String, String> entry : tokens.entrySet() )
+        {
+            output = output.replace( entry.getKey(), entry.getValue() );
+        }
+
+        return output;
     }
 }

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.operations.cr;
@@ -79,12 +77,12 @@ public class DbCrOperator implements CrOperator
             if ( responseStringBlob != null && responseStringBlob.length() > 0 )
             {
                 final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML( responseStringBlob, theUser );
-                LOGGER.debug( "found responses for " + theUser.getEntryDN() + " in remote database: " + userResponseSet.toString() );
+                LOGGER.debug( () -> "found responses for " + theUser.getEntryDN() + " in remote database: " + userResponseSet.toString() );
                 return userResponseSet;
             }
             else
             {
-                LOGGER.trace( "user guid for " + theUser.getEntryDN() + " not found in remote database (key=" + userGUID + ")" );
+                LOGGER.trace( () -> "user guid for " + theUser.getEntryDN() + " not found in remote database (key=" + userGUID + ")" );
             }
         }
         catch ( ChaiValidationException e )
@@ -134,7 +132,7 @@ public class DbCrOperator implements CrOperator
         {
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
             databaseAccessor.remove( DatabaseTable.PWM_RESPONSES, userGUID );
-            LOGGER.info( "cleared responses for user " + theUser.getEntryDN() + " in remote database" );
+            LOGGER.info( () -> "cleared responses for user " + theUser.getEntryDN() + " in remote database" );
         }
         catch ( DatabaseException e )
         {
@@ -165,7 +163,7 @@ public class DbCrOperator implements CrOperator
             );
         }
 
-        LOGGER.trace( "attempting to save responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
+        LOGGER.trace( () -> "attempting to save responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
 
         try
         {
@@ -180,7 +178,7 @@ public class DbCrOperator implements CrOperator
 
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
             databaseAccessor.put( DatabaseTable.PWM_RESPONSES, userGUID, responseSet.stringValue() );
-            LOGGER.info( "saved responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
+            LOGGER.info( () -> "saved responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
         }
         catch ( ChaiException e )
         {

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.admin;
@@ -56,13 +54,13 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.pwnotify.PwNotifyService;
-import password.pwm.svc.pwnotify.StoredJobState;
+import password.pwm.svc.pwnotify.PwNotifyStoredJobState;
 import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.report.UserCacheRecord;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.LocaleHelper;
 import password.pwm.util.db.DatabaseException;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -75,7 +73,6 @@ import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
-import password.pwm.ws.server.rest.RestStatisticsServer;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -132,7 +129,6 @@ public class AdminServlet extends ControlledPwmServlet
         auditData( HttpMethod.GET ),
         sessionData( HttpMethod.GET ),
         intruderData( HttpMethod.GET ),
-        statistics( HttpMethod.GET ),
         startPwNotifyJob( HttpMethod.POST ),
         readPwNotifyStatus( HttpMethod.POST ),
         readPwNotifyLog( HttpMethod.POST ),
@@ -350,7 +346,7 @@ public class AdminServlet extends ControlledPwmServlet
     {
         if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
         {
-            LOGGER.info( pwmRequest, "unable to execute clear intruder records" );
+            LOGGER.info( pwmRequest, () -> "unable to execute clear intruder records" );
             return ProcessStatus.Halt;
         }
 
@@ -370,7 +366,7 @@ public class AdminServlet extends ControlledPwmServlet
                 pwmRequest.readParameterAsString( "command" )
         );
 
-        LOGGER.trace( pwmRequest, "issuing command '" + reportCommand + "' to report engine" );
+        LOGGER.trace( pwmRequest, () -> "issuing command '" + reportCommand + "' to report engine" );
         pwmRequest.getPwmApplication().getReportService().executeCommand( reportCommand );
 
         final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
@@ -495,7 +491,7 @@ public class AdminServlet extends ControlledPwmServlet
         final HashMap<String, Object> resultData = new HashMap<>( Collections.singletonMap( "records", records ) );
 
         final RestResultBean restResultBean = RestResultBean.withData( resultData );
-        LOGGER.debug( pwmRequest.getPwmSession(), "output " + records.size() + " audit records." );
+        LOGGER.debug( pwmRequest, () -> "output " + records.size() + " audit records." );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -541,32 +537,6 @@ public class AdminServlet extends ControlledPwmServlet
         }
 
         final RestResultBean restResultBean = RestResultBean.withData( returnData );
-        pwmRequest.outputJsonResult( restResultBean );
-        return ProcessStatus.Halt;
-    }
-
-    @ActionHandler( action = "statistics" )
-    private ProcessStatus restStatisticsHandler( final PwmRequest pwmRequest )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException
-    {
-        final String statKey = pwmRequest.readParameterAsString( "statKey" );
-        final String statName = pwmRequest.readParameterAsString( "statName" );
-        final String days = pwmRequest.readParameterAsString( "days" );
-
-        final StatisticsManager statisticsManager = pwmRequest.getPwmApplication().getStatisticsManager();
-        final RestStatisticsServer.OutputVersion1.JsonOutput jsonOutput = new RestStatisticsServer.OutputVersion1.JsonOutput();
-        jsonOutput.EPS = RestStatisticsServer.OutputVersion1.addEpsStats( statisticsManager );
-
-        if ( statName != null && statName.length() > 0 )
-        {
-            jsonOutput.nameData = RestStatisticsServer.OutputVersion1.doNameStat( statisticsManager, statName, days );
-        }
-        else
-        {
-            jsonOutput.keyData = RestStatisticsServer.OutputVersion1.doKeyStat( statisticsManager, statKey );
-        }
-
-        final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -710,7 +680,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "readPwNotifyStatus" )
-    public ProcessStatus restreadPwNotifyStatus( final PwmRequest pwmRequest ) throws IOException, DatabaseException, PwmUnrecoverableException
+    public ProcessStatus restreadPwNotifyStatus( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException
     {
         int key = 0;
         if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
@@ -722,36 +692,11 @@ public class AdminServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-
-        {
-            ErrorInformation errorInformation = null;
-            try
-            {
-                if ( !pwmRequest.getPwmApplication().getDatabaseService().getAccessor().isConnected() )
-                {
-                    errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, "database is not connected" );
-                }
-            }
-            catch ( PwmUnrecoverableException e )
-            {
-                errorInformation = e.getErrorInformation();
-            }
-
-            if ( errorInformation != null )
-            {
-                final DisplayElement displayElement = new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string, "Status",
-                        "Database must be functioning to view Password Notify status.  Current database error: "
-                                + errorInformation.toDebugStr() );
-                pwmRequest.outputJsonResult( RestResultBean.withData( new PwNotifyStatusBean( Collections.singletonList( displayElement ), false ) ) );
-                return ProcessStatus.Halt;
-            }
-        }
-
         final List<DisplayElement> statusData = new ArrayList<>( );
         final Configuration config = pwmRequest.getConfig();
         final Locale locale = pwmRequest.getLocale();
         final PwNotifyService pwNotifyService = pwmRequest.getPwmApplication().getPwNotifyService();
-        final StoredJobState storedJobState = pwNotifyService.getJobState();
+        final PwNotifyStoredJobState pwNotifyStoredJobState = pwNotifyService.getJobState();
         final boolean canRunOnthisServer = pwNotifyService.canRunOnThisServer();
 
         statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
@@ -766,27 +711,30 @@ public class AdminServlet extends ControlledPwmServlet
                     "Next Job Scheduled Time", LocaleHelper.instantString( pwNotifyService.getNextExecutionTime(), locale, config ) ) );
         }
 
-        if ( storedJobState != null )
+        if ( pwNotifyStoredJobState != null )
         {
             statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
-                    "Last Job Start Time", LocaleHelper.instantString( storedJobState.getLastStart(), locale, config ) ) );
+                    "Last Job Start Time", LocaleHelper.instantString( pwNotifyStoredJobState.getLastStart(), locale, config ) ) );
 
             statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
-                    "Last Job Completion Time", LocaleHelper.instantString( storedJobState.getLastCompletion(), locale, config ) ) );
+                    "Last Job Completion Time", LocaleHelper.instantString( pwNotifyStoredJobState.getLastCompletion(), locale, config ) ) );
 
-            if ( storedJobState.getLastStart() != null && storedJobState.getLastCompletion() != null )
+            if ( pwNotifyStoredJobState.getLastStart() != null && pwNotifyStoredJobState.getLastCompletion() != null )
             {
                 statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
-                        "Last Job Duration", TimeDuration.between( storedJobState.getLastStart(), storedJobState.getLastCompletion() ).asLongString( locale ) ) );
+                        "Last Job Duration", TimeDuration.between( pwNotifyStoredJobState.getLastStart(), pwNotifyStoredJobState.getLastCompletion() ).asLongString( locale ) ) );
             }
 
-            statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
-                    "Last Job Server Instance",  storedJobState.getServerInstance() ) );
-
-            if ( storedJobState.getLastError() != null )
+            if ( !StringUtil.isEmpty( pwNotifyStoredJobState.getServerInstance() ) )
             {
                 statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
-                        "Last Job Error",  storedJobState.getLastError().toDebugStr() ) );
+                        "Last Job Server Instance", pwNotifyStoredJobState.getServerInstance() ) );
+            }
+
+            if ( pwNotifyStoredJobState.getLastError() != null )
+            {
+                statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
+                        "Last Job Error",  pwNotifyStoredJobState.getLastError().toDebugStr() ) );
             }
         }
 

@@ -3,35 +3,37 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2018 The PWM Project
+ ~ Copyright (c) 2009-2019 The PWM Project
  ~
- ~ This program is free software; you can redistribute it and/or modify
- ~ it under the terms of the GNU General Public License as published by
- ~ the Free Software Foundation; either version 2 of the License, or
- ~ (at your option) any later version.
+ ~ Licensed under the Apache License, Version 2.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
  ~
- ~ This program is distributed in the hope that it will be useful,
- ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
- ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- ~ GNU General Public License for more details.
+ ~     http://www.apache.org/licenses/LICENSE-2.0
  ~
- ~ You should have received a copy of the GNU General Public License
- ~ along with this program; if not, write to the Free Software
- ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
 --%>
+
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.Permission" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
 <%@ page import="password.pwm.bean.pub.PublicUserInfoBean" %>
 <%@ page import="password.pwm.config.profile.ChallengeProfile" %>
-<%@ page import="password.pwm.config.profile.ProfileType" %>
+<%@ page import="password.pwm.config.profile.ProfileDefinition" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordPolicy" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordRule" %>
 <%@ page import="password.pwm.http.servlet.admin.UserDebugDataBean" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.util.java.TimeDuration" %>
+<%@ page import="password.pwm.util.i18n.LocaleHelper" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.svc.PwmService" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -241,8 +243,47 @@
                     <%= JspUtility.friendlyWrite(pageContext, userDebugDataBean.isPasswordWithinMinimumLifetime()) %>
                 </td>
             </tr>
+            <tr>
+                <td class="key">Stored Language</td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getLanguage() )%></td>
+            </tr>
         </table>
         <br/>
+
+        <% if (JspUtility.getPwmRequest( pageContext ).getConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) ) { %>
+        <table>
+            <tr>
+                <td colspan="10" class="title">Password Notification Status</td>
+            </tr>
+            <% if ( userDebugDataBean.getPwNotifyUserStatus() == null ) { %>
+            <tr>
+                <td class="key">Last Notification Sent</td>
+                <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
+            </tr>
+            <% } else { %>
+            <tr>
+                <td class="key">Last Notification Sent</td>
+                <td>
+                    <%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getPwNotifyUserStatus().getLastNotice())%>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">Last Notification Password Expiration Time</td>
+                <td>
+                    <%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getPwNotifyUserStatus().getExpireTime())%>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">Last Notification Interval</td>
+                <td>
+                    <%=userDebugDataBean.getPwNotifyUserStatus().getInterval()%>
+                </td>
+            </tr>
+            <% } %>
+        </table>
+        <br/>
+        <% } %>
+
         <table>
             <tr>
                 <td colspan="10" class="title">Applied Configuration</td>
@@ -255,10 +296,10 @@
                             <td class="key">Service</td>
                             <td class="key">ProfileID</td>
                         </tr>
-                        <% for (final ProfileType profileType : userDebugDataBean.getProfiles().keySet()) { %>
+                        <% for (final ProfileDefinition profileDefinition : userDebugDataBean.getProfiles().keySet()) { %>
                         <tr>
-                            <td><%=profileType%></td>
-                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getProfiles().get(profileType))%></td>
+                            <td><%=profileDefinition%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getProfiles().get(profileDefinition))%></td>
                         </tr>
                         <% } %>
                     </table>
@@ -315,7 +356,7 @@
                             <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getDisplayName(JspUtility.locale(request)))%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, userPolicy.getDisplayName(JspUtility.locale(request)))%></td>
                         </tr>
-                        <% for (final PwmPasswordRule rule : PwmPasswordRule.values()) { %>
+                        <% for (final PwmPasswordRule rule : PwmPasswordRule.sortedByLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getConfig())) { %>
                         <tr>
                             <td><span title="<%=rule.getKey()%>"><%=rule.getLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getConfig())%></span></td>
                             <td><%=rule.getRuleType()%></td>

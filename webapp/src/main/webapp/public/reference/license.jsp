@@ -3,32 +3,26 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2018 The PWM Project
+ ~ Copyright (c) 2009-2019 The PWM Project
  ~
- ~ This program is free software; you can redistribute it and/or modify
- ~ it under the terms of the GNU General Public License as published by
- ~ the Free Software Foundation; either version 2 of the License, or
- ~ (at your option) any later version.
+ ~ Licensed under the Apache License, Version 2.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
  ~
- ~ This program is distributed in the hope that it will be useful,
- ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
- ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- ~ GNU General Public License for more details.
+ ~     http://www.apache.org/licenses/LICENSE-2.0
  ~
- ~ You should have received a copy of the GNU General Public License
- ~ along with this program; if not, write to the Free Software
- ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
 --%>
 
-<%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.util.java.XmlUtil" %>
-<%@ page import="org.jdom2.Document" %>
-<%@ page import="org.jdom2.Element" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.io.InputStream" %>
-<%@ page import="org.apache.commons.lang3.StringUtils" %>
-<%@ page import="password.pwm.util.java.StringUtil" %>
+
 <%@ page import="password.pwm.Permission" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="java.util.List" %>
+<%@ page import="password.pwm.util.java.LicenseInfoReader" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -43,7 +37,7 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <link href="<pwm:url url='/public/resources/referenceStyle.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
-<% List<XmlUtil.DependencyInfo> dependencyInfos = XmlUtil.getLicenseInfos(); %>
+<% List<LicenseInfoReader.DependencyInfo> dependencyInfos = LicenseInfoReader.getLicenseInfos(); %>
 <div id="wrapper">
     <jsp:include page="../../WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Software License Reference"/>
@@ -61,7 +55,7 @@
         </pwm:if>
 
         <% if (dependencyInfos != null) { %>
-        <% for (final XmlUtil.DependencyInfo dependencyInfo : dependencyInfos) { %>
+        <% for (final LicenseInfoReader.DependencyInfo dependencyInfo : dependencyInfos) { %>
         <div class="licenseBlock">
             <div class="dependency-name"><%=StringUtil.escapeHtml(dependencyInfo.getName())%></div>
 
@@ -80,7 +74,7 @@
                 </div>
             </pwm:if>
             <%
-                for (final XmlUtil.LicenseInfo licenseInfo : dependencyInfo.getLicenses()) { %>
+                for (final LicenseInfoReader.LicenseInfo licenseInfo : dependencyInfo.getLicenses()) { %>
             <div class="dependency-license">
                 License:
                 <a href="<%=licenseInfo.getLicenseUrl()%>" target="_blank" class="license-link">

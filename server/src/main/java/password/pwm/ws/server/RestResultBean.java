@@ -3,29 +3,25 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.ws.server;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
@@ -37,9 +33,8 @@ import password.pwm.util.java.JsonUtil;
 import java.io.Serializable;
 import java.util.Locale;
 
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-@Getter
-@Setter( AccessLevel.PRIVATE )
+@Value
+@Builder( toBuilder =  true )
 public class RestResultBean implements Serializable
 {
     private boolean error;
@@ -51,9 +46,9 @@ public class RestResultBean implements Serializable
 
     public static RestResultBean withData( final Serializable data )
     {
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData( data );
-        return restResultBean;
+        return RestResultBean.builder()
+                .data( data )
+                .build();
     }
 
     public static RestResultBean fromError(
@@ -64,17 +59,19 @@ public class RestResultBean implements Serializable
             final boolean forceDetail
     )
     {
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setError( true );
-        restResultBean.setErrorMessage( errorInformation.toUserStr( locale, config ) );
-        if ( forceDetail || ( pwmApplication != null && pwmApplication.determineIfDetailErrorMsgShown() ) )
-        {
-            restResultBean.setErrorDetail( errorInformation.toDebugStr() );
-        }
-        restResultBean.setErrorCode( errorInformation.getError().getErrorCode() );
-        return restResultBean;
-    }
+        final String errorDetail =
+                errorInformation != null
+                        && ( forceDetail || pwmApplication != null && pwmApplication.determineIfDetailErrorMsgShown() )
+                ? errorInformation.toDebugStr()
+                : null;
 
+        return RestResultBean.builder()
+                .error( errorInformation != null )
+                .errorMessage( errorInformation == null ? null : errorInformation.toUserStr( locale, config ) )
+                .errorDetail( errorDetail )
+                .errorCode( errorInformation == null ? 0 : errorInformation.getError().getErrorCode() )
+                .build();
+    }
 
     public static RestResultBean fromError(
             final RestRequest restRequestBean,
@@ -86,6 +83,19 @@ public class RestResultBean implements Serializable
         final Locale locale = restRequestBean.getLocale();
         return fromError( errorInformation, pwmApplication, locale, config, false );
     }
+
+    public static RestResultBean fromErrorWithData(
+            final RestRequest restRequestBean,
+            final ErrorInformation errorInformation,
+            final Serializable serializable
+    )
+    {
+        final PwmApplication pwmApplication = restRequestBean.getPwmApplication();
+        final Configuration config = restRequestBean.getPwmApplication().getConfig();
+        final Locale locale = restRequestBean.getLocale();
+        return fromError( errorInformation, pwmApplication, locale, config, false ).toBuilder().data( serializable ).build();
+    }
+
 
     public static RestResultBean fromError(
             final ErrorInformation errorInformation
@@ -129,11 +139,11 @@ public class RestResultBean implements Serializable
 
     )
     {
-        final RestResultBean restResultBean = new RestResultBean();
         final String msgText = Message.getLocalizedMessage( locale, message, config, fieldValues );
-        restResultBean.setSuccessMessage( msgText );
-        restResultBean.setData( data );
-        return restResultBean;
+        return RestResultBean.builder()
+                .successMessage( msgText )
+                .data( data )
+                .build();
     }
 
     public static RestResultBean forSuccessMessage(
@@ -144,10 +154,10 @@ public class RestResultBean implements Serializable
 
     )
     {
-        final RestResultBean restResultBean = new RestResultBean();
         final String msgText = Message.getLocalizedMessage( locale, message, config, fieldValues );
-        restResultBean.setSuccessMessage( msgText );
-        return restResultBean;
+        return RestResultBean.builder()
+                .successMessage( msgText )
+                .build();
     }
 
     public static RestResultBean forSuccessMessage(
@@ -194,10 +204,10 @@ public class RestResultBean implements Serializable
             final Config message
     )
     {
-        final RestResultBean restResultBean = new RestResultBean();
         final String msgText = Config.getLocalizedMessage( locale, message, config );
-        restResultBean.setSuccessMessage( msgText );
-        return restResultBean;
+        return RestResultBean.builder()
+            .successMessage( msgText )
+            .build();
     }
 
     public static RestResultBean forConfirmMessage(
@@ -211,6 +221,6 @@ public class RestResultBean implements Serializable
 
     public String toJson( )
     {
-        return JsonUtil.serialize( this ) + "\n";
+        return JsonUtil.serialize( this, JsonUtil.Flag.PrettyPrint ) + "\n";
     }
 }

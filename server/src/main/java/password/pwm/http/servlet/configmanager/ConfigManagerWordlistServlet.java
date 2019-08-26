@@ -3,26 +3,23 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.configmanager;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -36,12 +33,16 @@ import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.DisplayElement;
 import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
-import password.pwm.svc.wordlist.StoredWordlistDataBean;
 import password.pwm.svc.wordlist.Wordlist;
 import password.pwm.svc.wordlist.WordlistConfiguration;
+import password.pwm.svc.wordlist.WordlistSourceType;
+import password.pwm.svc.wordlist.WordlistStatus;
 import password.pwm.svc.wordlist.WordlistType;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -100,8 +101,9 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
     }
 
     protected void processAction( final PwmRequest pwmRequest )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+            throws ServletException, IOException, PwmUnrecoverableException
     {
+        ConfigManagerServlet.verifyConfigAccess( pwmRequest );
 
         final ConfigManagerAction processAction = readProcessAction( pwmRequest );
         if ( processAction != null )
@@ -164,7 +166,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmRequest, errorInfo.toDebugStr() );
+            LOGGER.debug( pwmRequest, errorInfo );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }
@@ -206,7 +208,8 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         for ( final WordlistType wordlistType : WordlistType.values() )
         {
             final Wordlist wordlist = wordlistType.forType( pwmRequest.getPwmApplication() );
-            final StoredWordlistDataBean storedWordlistDataBean = wordlist.readMetadata();
+            final WordlistStatus wordlistStatus = wordlist.readWordlistStatus();
+            final Wordlist.Activity activity = wordlist.getActivity();
             final WordlistConfiguration wordlistConfiguration = wordlistType.forType( pwmRequest.getPwmApplication() ).getConfiguration();
 
             final WordlistDataBean.WordlistDataBeanBuilder builder = WordlistDataBean.builder();
@@ -215,20 +218,20 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                 presentableValues.add( new DisplayElement(
                         wordlistType.name() + "_populationStatus",
                         DisplayElement.Type.string,
-                        "Population Status",
-                        storedWordlistDataBean.isCompleted() ? "Completed" : "In-Progress" ) );
+                        "Import Status",
+                        activity.getLabel() ) );
                 presentableValues.add( new DisplayElement(
                         wordlistType.name() + "_listSource",
                         DisplayElement.Type.string, "List Source",
-                        storedWordlistDataBean.getSource() == null
-                                ? StoredWordlistDataBean.Source.BuiltIn.getLabel()
-                                : storedWordlistDataBean.getSource().getLabel() ) );
+                        wordlistStatus.getSourceType() == null
+                                ? LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest )
+                                : wordlistStatus.getSourceType().getLabel() ) );
                 if ( wordlistConfiguration.getAutoImportUrl() != null )
                 {
                     presentableValues.add( new DisplayElement(
                             wordlistType.name() + "_sourceURL",
                             DisplayElement.Type.string,
-                            "Configured Source URL",
+                            "Configured SourceType URL",
                             wordlistConfiguration.getAutoImportUrl() ) );
                 }
 
@@ -236,24 +239,27 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                         wordlistType.name() + "_wordCount",
                         DisplayElement.Type.number,
                         "Word Count",
-                        Integer.toString( storedWordlistDataBean.getSize() ) ) );
+                        Long.toString( wordlist.size() ) ) );
 
-                if ( storedWordlistDataBean.isCompleted() )
+                if ( wordlistStatus.isCompleted() )
                 {
 
-                    if ( StoredWordlistDataBean.Source.BuiltIn != storedWordlistDataBean.getSource() )
+                    if ( WordlistSourceType.BuiltIn != wordlistStatus.getSourceType() )
                     {
                         presentableValues.add( new DisplayElement(
                                 wordlistType.name() + "_populationTimestamp",
-                                DisplayElement.Type.string,
+                                DisplayElement.Type.timestamp,
                                 "Population Timestamp",
-                                JavaHelper.toIsoDate( storedWordlistDataBean.getStoreDate() ) ) );
+                                JavaHelper.toIsoDate( wordlistStatus.getStoreDate() ) ) );
                     }
-                    presentableValues.add( new DisplayElement(
-                            wordlistType.name() + "_sha1Hash",
-                            DisplayElement.Type.string,
-                            "SHA1 Checksum Hash",
-                            storedWordlistDataBean.getRemoteInfo().getChecksum() ) );
+                    if ( wordlistStatus.getRemoteInfo() != null && !StringUtil.isEmpty( wordlistStatus.getRemoteInfo().getChecksum() ) )
+                    {
+                        presentableValues.add( new DisplayElement(
+                                wordlistType.name() + "_sha256Hash",
+                                DisplayElement.Type.string,
+                                "CRC Checksum",
+                                wordlistStatus.getRemoteInfo().getChecksum() ) );
+                    }
                 }
                 if ( wordlist.getAutoImportError() != null )
                 {
@@ -264,20 +270,20 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                             wordlist.getAutoImportError().getDetailedErrorMsg() ) );
                     presentableValues.add( new DisplayElement(
                             wordlistType.name() + "_lastImportAttempt",
-                            DisplayElement.Type.string,
+                            DisplayElement.Type.timestamp,
                             "Last Import Attempt",
                             JavaHelper.toIsoDate( wordlist.getAutoImportError().getDate() ) ) );
                 }
                 builder.presentableData( Collections.unmodifiableList( presentableValues ) );
             }
 
-            if ( storedWordlistDataBean.isCompleted() )
+            if ( wordlistStatus.isCompleted() )
             {
                 if ( wordlistConfiguration.getAutoImportUrl() == null )
                 {
                     builder.allowUpload( true );
                 }
-                if ( wordlistConfiguration.getAutoImportUrl() != null || storedWordlistDataBean.getSource() != StoredWordlistDataBean.Source.BuiltIn )
+                if ( wordlistConfiguration.getAutoImportUrl() != null || wordlistStatus.getSourceType() != WordlistSourceType.BuiltIn )
                 {
                     builder.allowClear( true );
                 }

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.localdb;
@@ -29,7 +27,8 @@ import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.EventRateMeter;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -59,7 +58,6 @@ import java.util.concurrent.locks.LockSupport;
  */
 public final class WorkQueueProcessor<W extends Serializable>
 {
-
     private static final TimeDuration SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
     private static final TimeDuration CLOSE_RETRY_CYCLE_INTERVAL = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
 
@@ -71,12 +69,12 @@ public final class WorkQueueProcessor<W extends Serializable>
 
     private volatile WorkerThread workerThread;
 
-    private final AtomicLoopIntIncrementer idGenerator = new AtomicLoopIntIncrementer( 0 );
+    private final AtomicLoopIntIncrementer idGenerator = new AtomicLoopIntIncrementer();
     private Instant eldestItem = null;
 
     private ThreadPoolExecutor executorService;
 
-    private final EventRateMeter.MovingAverage avgLagTime = new EventRateMeter.MovingAverage( 60 * 60 * 1000 );
+    private final EventRateMeter.MovingAverage avgLagTime = new EventRateMeter.MovingAverage( TimeDuration.HOUR );
     private final EventRateMeter sendRate = new EventRateMeter( TimeDuration.HOUR );
 
     private final AtomicInteger preQueueSubmit = new AtomicInteger( 0 );
@@ -107,18 +105,18 @@ public final class WorkQueueProcessor<W extends Serializable>
 
         if ( !queue.isEmpty() )
         {
-            logger.debug( "opening with " + queue.size() + " items in work queue" );
+            logger.debug( () -> "opening with " + queue.size() + " items in work queue" );
         }
-        logger.trace( "initializing worker thread with settings " + JsonUtil.serialize( settings ) );
+        logger.trace( () -> "initializing worker thread with settings " + JsonUtil.serialize( settings ) );
 
         this.workerThread = new WorkerThread();
         workerThread.setDaemon( true );
-        workerThread.setName( JavaHelper.makeThreadName( pwmApplication, sourceClass ) + "-worker-" );
+        workerThread.setName( PwmScheduler.makeThreadName( pwmApplication, sourceClass ) + "-worker-" );
         workerThread.start();
 
         if ( settings.getPreThreads() > 0 )
         {
-            final ThreadFactory threadFactory = JavaHelper.makePwmThreadFactory( JavaHelper.makeThreadName( pwmApplication, sourceClass ), true );
+            final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, sourceClass ), true );
             executorService = new ThreadPoolExecutor(
                     1,
                     settings.getPreThreads(),
@@ -127,6 +125,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                     new ArrayBlockingQueue<>( settings.getPreThreads() ),
                     threadFactory
             );
+            executorService.allowCoreThreadTimeOut( true );
         }
     }
 
@@ -146,16 +145,13 @@ public final class WorkQueueProcessor<W extends Serializable>
         workerThread = null;
 
         final Instant startTime = Instant.now();
-        logger.debug( "attempting to flush queue prior to shutdown, items in queue=" + queueSize() );
+        logger.debug( () -> "attempting to flush queue prior to shutdown, items in queue=" + queueSize() );
 
         localWorkerThread.flushQueueAndClose();
 
         if ( localWorkerThread.isRunning() )
         {
-            JavaHelper.pause(
-                    settings.getMaxShutdownWaitTime().asMillis(),
-                    CLOSE_RETRY_CYCLE_INTERVAL.asMillis(),
-                    o -> !localWorkerThread.isRunning() );
+            settings.getMaxShutdownWaitTime().pause( CLOSE_RETRY_CYCLE_INTERVAL, () -> !localWorkerThread.isRunning() );
         }
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
@@ -166,7 +162,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         }
         else
         {
-            logger.debug( msg );
+            logger.debug( () -> msg );
         }
     }
 
@@ -255,13 +251,13 @@ public final class WorkQueueProcessor<W extends Serializable>
                             + ", item=" + itemProcessor.convertToDebugString( itemWrapper.getWorkItem() );
                     throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
                 }
-                JavaHelper.pause( SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.asMillis() );
+                SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.pause();
             }
 
             eldestItem = itemWrapper.getDate();
             workerThread.notifyWorkPending();
 
-            logger.trace( "item submitted: " + makeDebugText( itemWrapper ) );
+            logger.trace( () -> "item submitted: " + makeDebugText( itemWrapper ) );
         }
     }
 
@@ -275,10 +271,21 @@ public final class WorkQueueProcessor<W extends Serializable>
         return eldestItem;
     }
 
-    private String makeDebugText( final ItemWrapper<W> itemWrapper ) throws PwmOperationalException
+    private String makeDebugText( final ItemWrapper<W> itemWrapper )
     {
         final int itemsInQueue = WorkQueueProcessor.this.queueSize();
-        String traceMsg = "[" + itemWrapper.toDebugString( itemProcessor ) + "]";
+
+        String itemMsg;
+        try
+        {
+            itemMsg = itemWrapper.toDebugString( itemProcessor );
+        }
+        catch ( PwmOperationalException e )
+        {
+            itemMsg = "error";
+        }
+
+        String traceMsg = "[" + itemMsg + "]";
         if ( itemsInQueue > 0 )
         {
             traceMsg += ", " + itemsInQueue + " items in queue";
@@ -312,11 +319,11 @@ public final class WorkQueueProcessor<W extends Serializable>
                 logger.error( "unexpected error processing work item queue: " + JavaHelper.readHostileExceptionMessage( t ), t );
             }
 
-            logger.trace( "worker thread beginning shutdown..." );
+            logger.trace( () -> "worker thread beginning shutdown..." );
 
             if ( !queue.isEmpty() )
             {
-                logger.trace( "processing remaining " + queue.size() + " items" );
+                logger.trace( () -> "processing remaining " + queue.size() + " items" );
 
                 try
                 {
@@ -332,20 +339,20 @@ public final class WorkQueueProcessor<W extends Serializable>
                 }
             }
 
-            logger.trace( "thread exiting..." );
+            logger.trace( () -> "thread exiting..." );
             running.set( false );
         }
 
         void flushQueueAndClose( )
         {
             shutdownFlag.set( true );
-            logger.trace( "shutdown flag set" );
+            logger.trace( () -> "shutdown flag set" );
             notifyWorkPending();
 
             // rest until not running for up to 3 seconds....
             if ( running.get() )
             {
-                JavaHelper.pause( 3000, 10, o -> !running.get() );
+                TimeDuration.of( 3, TimeDuration.Unit.SECONDS ).pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> !running.get() );
             }
         }
 
@@ -435,7 +442,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                         case RETRY:
                         {
                             retryWakeupTime = Instant.ofEpochMilli( System.currentTimeMillis() + settings.getRetryInterval().asMillis() );
-                            logger.debug( "will retry item after failure, item=" + makeDebugText( itemWrapper ) );
+                            logger.debug( () -> "will retry item after failure, item=" + makeDebugText( itemWrapper ) );
                         }
                         break;
 
@@ -568,7 +575,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         final TimeDuration lagTime = TimeDuration.fromCurrent( itemWrapper.getDate() );
         avgLagTime.update( lagTime.asMillis() );
         sendRate.markEvents( 1 );
-        logger.trace( "successfully processed item=" + makeDebugText( itemWrapper ) + "; lagTime=" + lagTime.asCompactString()
+        logger.trace( () -> "successfully processed item=" + makeDebugText( itemWrapper ) + "; lagTime=" + lagTime.asCompactString()
                 + "; " + StringUtil.mapToString( debugInfo() ) );
     }
 

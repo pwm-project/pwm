@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.configmanager;
@@ -41,11 +39,13 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
+import password.pwm.http.filter.ConfigAccessFilter;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.configguide.ConfigGuideUtils;
@@ -57,7 +57,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.util.LDAPPermissionCalculator;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -123,9 +123,23 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         }
     }
 
+    public static void verifyConfigAccess( final PwmRequest pwmRequest )
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
+        final ProcessStatus processStatus = ConfigAccessFilter.checkAuthentication( pwmRequest, configManagerBean );
+        if ( processStatus != ProcessStatus.Continue )
+        {
+            final String msg = "config access authentication not yet completed";
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, msg );
+        }
+    }
+
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
+        verifyConfigAccess( pwmRequest );
+
         final ConfigManagerAction processAction = readProcessAction( pwmRequest );
         if ( processAction != null )
         {
@@ -222,22 +236,11 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             return;
         }
 
-        if ( !pwmSession.isAuthenticated() )
+        if ( !pwmSession.isAuthenticated()
+                || !pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN ) )
         {
             final ErrorInformation errorInfo = new ErrorInformation(
                     PwmError.ERROR_AUTHENTICATION_REQUIRED,
-                    "You must be authenticated before restricting the configuration"
-            );
-            final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmSession, errorInfo );
-            pwmRequest.outputJsonResult( restResultBean );
-            return;
-        }
-
-        if ( !pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN ) )
-        {
-            final ErrorInformation errorInfo = new ErrorInformation(
-                    PwmError.ERROR_UNAUTHORIZED,
                     "You must be authenticated with admin privileges before restricting the configuration"
             );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
@@ -271,7 +274,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInfo = e.getErrorInformation();
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmSession, errorInfo.toDebugStr() );
+            LOGGER.debug( pwmSession, errorInfo );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }
@@ -279,12 +282,12 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmSession, errorInfo.toDebugStr() );
+            LOGGER.debug( pwmSession, errorInfo );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }
         final HashMap<String, String> resultData = new HashMap<>();
-        LOGGER.info( pwmSession, "Configuration Locked" );
+        LOGGER.info( pwmSession, () -> "Configuration Locked" );
         pwmRequest.outputJsonResult( RestResultBean.withData( resultData ) );
     }
 
@@ -372,39 +375,20 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     }
 
     private void doGenerateSupportZip( final PwmRequest pwmRequest )
-            throws IOException, ServletException
+            throws IOException, PwmUnrecoverableException
     {
+        final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel() );
         final PwmResponse resp = pwmRequest.getPwmResponse();
         resp.setHeader( HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip" );
         resp.setContentType( HttpContentType.zip );
-
-        final String pathPrefix = PwmConstants.PWM_APP_NAME + "-Support" + "/";
-
-        ZipOutputStream zipOutput = null;
-        try
+        try ( ZipOutputStream zipOutput = new ZipOutputStream( resp.getOutputStream(), PwmConstants.DEFAULT_CHARSET ) )
         {
-            zipOutput = new ZipOutputStream( resp.getOutputStream(), PwmConstants.DEFAULT_CHARSET );
-            DebugItemGenerator.outputZipDebugFile( pwmRequest, zipOutput, pathPrefix );
+            debugItemGenerator.outputZipDebugFile( zipOutput );
         }
         catch ( Exception e )
         {
             LOGGER.error( pwmRequest, "error during zip debug building: " + e.getMessage() );
         }
-        finally
-        {
-            if ( zipOutput != null )
-            {
-                try
-                {
-                    zipOutput.close();
-                }
-                catch ( Exception e )
-                {
-                    LOGGER.error( pwmRequest, "error during zip debug closing: " + e.getMessage() );
-                }
-            }
-        }
-
     }
 
 

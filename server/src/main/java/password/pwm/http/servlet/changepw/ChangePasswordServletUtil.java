@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.changepw;
@@ -73,7 +71,7 @@ public class ChangePasswordServletUtil
 
         if ( pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE )
         {
-            LOGGER.debug( pwmSession, "skipping user current password requirement, authentication type is " + AuthenticationType.AUTH_FROM_PUBLIC_MODULE );
+            LOGGER.debug( pwmSession, () -> "skipping user current password requirement, authentication type is " + AuthenticationType.AUTH_FROM_PUBLIC_MODULE );
             return false;
         }
 
@@ -81,7 +79,7 @@ public class ChangePasswordServletUtil
             final PasswordData currentPassword = pwmSession.getLoginInfoBean().getUserCurrentPassword();
             if ( currentPassword == null )
             {
-                LOGGER.debug( pwmSession, "skipping user current password requirement, current password is not known to application" );
+                LOGGER.debug( pwmSession, () -> "skipping user current password requirement, current password is not known to application" );
                 return false;
             }
         }
@@ -122,10 +120,10 @@ public class ChangePasswordServletUtil
                                     attrName,
                             }
                     );
-                    LOGGER.debug( pwmSession, errorInfo.toDebugStr() );
+                    LOGGER.debug( pwmSession, errorInfo );
                     throw new PwmDataValidationException( errorInfo );
                 }
-                LOGGER.trace( pwmSession, "successful validation of ldap value for '" + attrName + "'" );
+                LOGGER.trace( pwmSession, () -> "successful validation of ldap value for '" + attrName + "'" );
             }
             catch ( ChaiOperationException e )
             {
@@ -154,7 +152,7 @@ public class ChangePasswordServletUtil
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmSession, "skipping change password email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured" );
+            LOGGER.debug( pwmSession, () -> "skipping change password email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured" );
             return;
         }
 
@@ -193,7 +191,7 @@ public class ChangePasswordServletUtil
 
             if ( allowChange )
             {
-                LOGGER.debug( pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check due to setting "
+                LOGGER.debug( pwmSession, () -> "current password is too young, but skipping enforcement of minimum lifetime check due to setting "
                         + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( null, pwmSession.getSessionStateBean().getLocale() ) );
             }
             else
@@ -217,7 +215,7 @@ public class ChangePasswordServletUtil
         final ChangePasswordBean cpb = pwmApplication.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
 
         // change password
-        PasswordUtility.setActorPassword( pwmSession, pwmApplication, newPassword );
+        PasswordUtility.setActorPassword( pwmRequest, pwmApplication, newPassword );
 
         //init values for progress screen
         {

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet;
@@ -47,7 +45,8 @@ import password.pwm.http.PwmURL;
 import password.pwm.i18n.Display;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.LocaleHelper;
+import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -55,6 +54,7 @@ import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestHealthServer;
+import password.pwm.ws.server.rest.RestStatisticsServer;
 import password.pwm.ws.server.rest.bean.HealthData;
 
 import javax.servlet.ServletException;
@@ -106,7 +106,9 @@ public class ClientApiServlet extends ControlledPwmServlet
         clientData( HttpMethod.GET ),
         strings( HttpMethod.GET ),
         health( HttpMethod.GET ),
-        ping( HttpMethod.GET ),;
+        ping( HttpMethod.GET ),
+        statistics( HttpMethod.GET ),;
+
 
         private final HttpMethod method;
 
@@ -211,32 +213,13 @@ public class ClientApiServlet extends ControlledPwmServlet
     public ProcessStatus restHealthProcessor( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        if ( pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.RUNNING )
-        {
-
-            if ( !pwmRequest.isAuthenticated() )
-            {
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_AUTHENTICATION_REQUIRED );
-                LOGGER.debug( pwmRequest, errorInformation );
-                pwmRequest.respondWithError( errorInformation );
-                return ProcessStatus.Halt;
-            }
-
-            if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
-            {
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, "admin privileges required" );
-                LOGGER.debug( pwmRequest, errorInformation );
-                pwmRequest.respondWithError( errorInformation );
-                return ProcessStatus.Halt;
-            }
-        }
+        precheckPublicHealthAndStats( pwmRequest );
 
         try
         {
             final HealthData jsonOutput = RestHealthServer.processGetHealthCheckData(
                     pwmRequest.getPwmApplication(),
-                    pwmRequest.getLocale(),
-                    false );
+                    pwmRequest.getLocale() );
             final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
             pwmRequest.outputJsonResult( restResultBean );
         }
@@ -468,4 +451,62 @@ public class ClientApiServlet extends ControlledPwmServlet
         return displayStrings;
     }
 
+
+    @ActionHandler( action = "statistics" )
+    private ProcessStatus restStatisticsHandler( final PwmRequest pwmRequest )
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException
+    {
+        precheckPublicHealthAndStats( pwmRequest );
+
+        final String statKey = pwmRequest.readParameterAsString( "statKey" );
+        final String statName = pwmRequest.readParameterAsString( "statName" );
+        final String days = pwmRequest.readParameterAsString( "days" );
+
+        final StatisticsManager statisticsManager = pwmRequest.getPwmApplication().getStatisticsManager();
+        final RestStatisticsServer.OutputVersion1.JsonOutput jsonOutput = new RestStatisticsServer.OutputVersion1.JsonOutput();
+        jsonOutput.EPS = RestStatisticsServer.OutputVersion1.addEpsStats( statisticsManager );
+
+        if ( statName != null && statName.length() > 0 )
+        {
+            jsonOutput.nameData = RestStatisticsServer.OutputVersion1.doNameStat( statisticsManager, statName, days );
+        }
+        else
+        {
+            jsonOutput.keyData = RestStatisticsServer.OutputVersion1.doKeyStat( statisticsManager, statKey );
+        }
+
+        final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
+        pwmRequest.outputJsonResult( restResultBean );
+        return ProcessStatus.Halt;
+
+    }
+
+    private void precheckPublicHealthAndStats( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        if (
+                pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING
+                        && pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.CONFIGURATION
+        )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE );
+            throw new PwmUnrecoverableException( errorInformation );
+        }
+
+        if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES ) )
+        {
+            if ( !pwmRequest.isAuthenticated() )
+            {
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_AUTHENTICATION_REQUIRED );
+                throw new PwmUnrecoverableException( errorInformation );
+            }
+
+            if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
+            {
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, "admin privileges required" );
+                throw new PwmUnrecoverableException( errorInformation );
+            }
+        }
+    }
 }
+

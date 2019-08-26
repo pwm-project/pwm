@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.tag.value;
@@ -25,6 +23,7 @@ package password.pwm.http.tag.value;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
+import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
@@ -33,13 +32,12 @@ import password.pwm.http.IdleTimeoutCalculator;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.ClientApiServlet;
 import password.pwm.i18n.Admin;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.jsp.JspPage;
 import javax.servlet.jsp.PageContext;
-import java.awt.ComponentOrientation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -62,7 +60,8 @@ public enum PwmValue
     localeDir( new LocaleDirOutput() ),
     localeFlagFile( new LocaleFlagFileOutput() ),
     localeName( new LocaleNameOutput() ),
-    inactiveTimeRemaining( new InactiveTimeRemainingOutput() ),;
+    inactiveTimeRemaining( new InactiveTimeRemainingOutput() ),
+    sessionID( new SessionIDValue() ),;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmValueTag.class );
 
@@ -238,7 +237,8 @@ public enum PwmValue
     static class ClientETag implements ValueOutput
     {
         @Override
-        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
+        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
+                throws PwmUnrecoverableException
         {
             return ClientApiServlet.makeClientEtag( pwmRequest );
         }
@@ -247,7 +247,7 @@ public enum PwmValue
     static class LocaleCodeOutput implements ValueOutput
     {
         @Override
-        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
+        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
         {
             return pwmRequest.getLocale().toLanguageTag();
         }
@@ -256,18 +256,19 @@ public enum PwmValue
     static class LocaleDirOutput implements ValueOutput
     {
         @Override
-        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
+        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
         {
             final Locale locale = pwmRequest.getLocale();
-            final ComponentOrientation orient = ComponentOrientation.getOrientation( locale );
-            return orient != null && !orient.isLeftToRight() ? "rtl" : "ltr";
+            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+            final LocaleHelper.TextDirection textDirection = LocaleHelper.textDirectionForLocale( pwmApplication, locale );
+            return textDirection.name();
         }
     }
 
     static class LocaleNameOutput implements ValueOutput
     {
         @Override
-        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
+        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
         {
             final Locale locale = pwmRequest.getLocale();
             return locale.getDisplayName( locale );
@@ -277,7 +278,7 @@ public enum PwmValue
     static class LocaleFlagFileOutput implements ValueOutput
     {
         @Override
-        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
+        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
         {
             final String flagFileName = pwmRequest.getConfig().getKnownLocaleFlagMap().get( pwmRequest.getLocale() );
             return flagFileName == null ? "" : flagFileName;
@@ -287,9 +288,20 @@ public enum PwmValue
     static class InactiveTimeRemainingOutput implements ValueOutput
     {
         @Override
-        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
+        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
+                throws PwmUnrecoverableException
         {
             return IdleTimeoutCalculator.idleTimeoutForRequest( pwmRequest ).asLongString();
+        }
+    }
+
+    static class SessionIDValue implements ValueOutput
+    {
+        @Override
+        public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
+                throws PwmUnrecoverableException
+        {
+            return pwmRequest.getPwmSession().getSessionStateBean().getSessionID();
         }
     }
 }

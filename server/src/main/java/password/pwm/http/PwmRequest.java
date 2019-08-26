@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http;
@@ -42,11 +40,13 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.http.servlet.PwmRequestID;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.command.CommandServlet;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.Validator;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.ws.server.RestResultBean;
@@ -72,11 +72,12 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmRequest.class );
 
-
     private final PwmResponse pwmResponse;
+    private final PwmURL pwmURL;
+    private final PwmRequestID pwmRequestID;
+
     private transient PwmApplication pwmApplication;
     private transient PwmSession pwmSession;
-    private PwmURL pwmURL;
 
     private final Set<PwmRequestFlag> flags = new HashSet<>();
 
@@ -106,9 +107,11 @@ public class PwmRequest extends PwmHttpRequestWrapper
             throws PwmUnrecoverableException
     {
         super( httpServletRequest, pwmApplication.getConfig() );
+        this.pwmRequestID = PwmRequestID.next();
         this.pwmResponse = new PwmResponse( httpServletResponse, this, pwmApplication.getConfig() );
         this.pwmSession = pwmSession;
         this.pwmApplication = pwmApplication;
+        this.pwmURL = new PwmURL( this.getHttpServletRequest() );
     }
 
     public PwmApplication getPwmApplication( )
@@ -268,7 +271,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
                     final FileUploadItem fileUploadItem = new FileUploadItem(
                             item.getName(),
                             item.getContentType(),
-                            new ImmutableByteArray( outputFile )
+                            ImmutableByteArray.of( outputFile )
                     );
                     returnObj.put( item.getFieldName(), fileUploadItem );
                 }
@@ -353,7 +356,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         redirectURL.append( "&" );
         redirectURL.append( PwmConstants.PARAM_TOKEN ).append( "=" ).append( tokenValue );
 
-        LOGGER.debug( pwmSession, "detected long servlet url, redirecting user to " + redirectURL );
+        LOGGER.debug( pwmSession, () -> "detected long servlet url, redirecting user to " + redirectURL );
         sendRedirect( redirectURL.toString() );
         return true;
     }
@@ -370,17 +373,17 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public PwmURL getURL( )
     {
-        if ( pwmURL == null )
-        {
-            pwmURL = new PwmURL( this.getHttpServletRequest() );
-        }
         return pwmURL;
     }
 
     public void debugHttpRequestToLog( final String extraText )
             throws PwmUnrecoverableException
     {
-        LOGGER.trace( this.getSessionLabel(), debugHttpRequestToString( extraText, false ) );
+        if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        {
+            final String debugTxt = debugHttpRequestToString( extraText, false );
+            LOGGER.trace( this.getSessionLabel(), () -> debugTxt );
+        }
     }
 
     public boolean isAuthenticated( )
@@ -564,6 +567,11 @@ public class PwmRequest extends PwmHttpRequestWrapper
             return true;
         }
         return false;
+    }
+
+    public CommonValues commonValues()
+    {
+        return new CommonValues( pwmApplication, this.getSessionLabel(), this.getLocale(), pwmRequestID );
     }
 
 }

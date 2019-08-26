@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.telemetry;
@@ -45,6 +43,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsBundle;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -66,14 +65,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 public class TelemetryService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( TelemetryService.class );
 
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
     private PwmApplication pwmApplication;
     private Settings settings;
 
@@ -98,28 +96,28 @@ public class TelemetryService implements PwmService
 
         if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING )
         {
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "will remain closed, app is not running" );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "will remain closed, app is not running" );
             status = STATUS.CLOSED;
             return;
         }
 
         if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PUBLISH_STATS_ENABLE ) )
         {
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "will remain closed, publish stats not enabled" );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "will remain closed, publish stats not enabled" );
             status = STATUS.CLOSED;
             return;
         }
 
         if ( pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "will remain closed, localdb not enabled" );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "will remain closed, localdb not enabled" );
             status = STATUS.CLOSED;
             return;
         }
 
         if ( pwmApplication.getStatisticsManager().status() != STATUS.OPEN )
         {
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "will remain closed, statistics manager is not enabled" );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "will remain closed, statistics manager is not enabled" );
             status = STATUS.CLOSED;
             return;
         }
@@ -131,7 +129,7 @@ public class TelemetryService implements PwmService
         }
         catch ( PwmUnrecoverableException e )
         {
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "will remain closed, unable to init sender: " + e.getMessage() );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "will remain closed, unable to init sender: " + e.getMessage() );
             status = STATUS.CLOSED;
             return;
         }
@@ -141,10 +139,10 @@ public class TelemetryService implements PwmService
             lastPublishTime = storedLastPublishTimestamp != null
                     ? storedLastPublishTimestamp
                     : pwmApplication.getInstallTime();
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "last publish time was " + JavaHelper.toIsoDate( lastPublishTime ) );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "last publish time was " + JavaHelper.toIsoDate( lastPublishTime ) );
         }
 
-        executorService = JavaHelper.makeSingleThreadExecutorService( pwmApplication, TelemetryService.class );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, TelemetryService.class );
 
         scheduleNextJob();
 
@@ -190,7 +188,7 @@ public class TelemetryService implements PwmService
         final String authValue = pwmApplication.getStatisticsManager().getStatBundleForKey( StatisticsManager.KEY_CUMULATIVE ).getStatistic( Statistic.AUTHENTICATIONS );
         if ( StringUtil.isEmpty( authValue ) || Integer.parseInt( authValue ) < settings.getMinimumAuthentications() )
         {
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "skipping telemetry send, authentication count is too low" );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "skipping telemetry send, authentication count is too low" );
         }
         else
         {
@@ -198,7 +196,7 @@ public class TelemetryService implements PwmService
             {
                 final TelemetryPublishBean telemetryPublishBean = generatePublishableBean();
                 sender.publish( telemetryPublishBean );
-                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "sent telemetry data: " + JsonUtil.serialize( telemetryPublishBean ) );
+                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "sent telemetry data: " + JsonUtil.serialize( telemetryPublishBean ) );
             }
             catch ( PwmException e )
             {
@@ -215,11 +213,8 @@ public class TelemetryService implements PwmService
     private void scheduleNextJob( )
     {
         final TimeDuration durationUntilNextPublish = durationUntilNextPublish();
-        executorService.schedule(
-                new PublishJob(),
-                durationUntilNextPublish.asMillis(),
-                TimeUnit.MILLISECONDS );
-        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "next publish time: " + durationUntilNextPublish().asCompactString() );
+        pwmApplication.getPwmScheduler().scheduleJob( new PublishJob(), executorService, durationUntilNextPublish );
+        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "next publish time: " + durationUntilNextPublish().asCompactString() );
     }
 
     private class PublishJob implements Runnable
@@ -305,7 +300,7 @@ public class TelemetryService implements PwmService
                 }
                 catch ( Exception e )
                 {
-                    LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "unable to read ldap vendor type for stats publication: " + e.getMessage() );
+                    LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "unable to read ldap vendor type for stats publication: " + e.getMessage() );
                 }
             }
         }

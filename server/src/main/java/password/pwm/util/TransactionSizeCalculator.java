@@ -3,38 +3,38 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util;
 
-import password.pwm.util.java.JavaHelper;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.util.java.TimeDuration;
+
+import java.util.Objects;
 
 public class TransactionSizeCalculator
 {
-
     private final Settings settings;
-
     private volatile int transactionSize;
     private volatile long lastDuration = 1;
 
     public TransactionSizeCalculator( final Settings settings )
     {
+        settings.validateSettings();
         this.settings = settings;
         reset();
     }
@@ -50,13 +50,17 @@ public class TransactionSizeCalculator
         recordLastTransactionDuration( TimeDuration.of( duration, TimeDuration.Unit.MILLISECONDS ) );
     }
 
+    @SuppressWarnings( "ResultOfMethodCallIgnored" )
     public void pause( )
     {
-        JavaHelper.pause( Math.min( lastDuration, settings.getDurationGoal().asMillis() * 2 ) );
+        final long pauseTimeMs = Math.min( lastDuration, settings.getDurationGoal().asMillis() * 2 );
+        TimeDuration.of( pauseTimeMs, TimeDuration.Unit.MILLISECONDS ).pause();
     }
 
     public void recordLastTransactionDuration( final TimeDuration duration )
     {
+        Objects.requireNonNull( duration );
+
         lastDuration = duration.asMillis();
         final long durationGoalMs = settings.getDurationGoal().asMillis();
         final long difference = Math.abs( duration.asMillis() - durationGoalMs );
@@ -108,18 +112,21 @@ public class TransactionSizeCalculator
         return transactionSize;
     }
 
+    @Value
+    @Builder
     public static class Settings
     {
-        private final TimeDuration durationGoal;
-        private final int maxTransactions;
-        private final int minTransactions;
+        @Builder.Default
+        private TimeDuration durationGoal = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
 
-        private Settings( final TimeDuration durationGoal, final int maxTransactions, final int minTransactions )
+        @Builder.Default
+        private int maxTransactions = 5003;
+
+        @Builder.Default
+        private int minTransactions = 3;
+
+        private void validateSettings( )
         {
-            this.durationGoal = durationGoal;
-            this.maxTransactions = maxTransactions;
-            this.minTransactions = minTransactions;
-
             if ( minTransactions < 1 )
             {
                 throw new IllegalArgumentException( "minTransactions must be a positive integer" );
@@ -144,52 +151,6 @@ public class TransactionSizeCalculator
             {
                 throw new IllegalArgumentException( "durationGoal must be greater than 0ms" );
             }
-        }
-
-
-        public TimeDuration getDurationGoal( )
-        {
-            return durationGoal;
-        }
-
-        public int getMaxTransactions( )
-        {
-            return maxTransactions;
-        }
-
-        public int getMinTransactions( )
-        {
-            return minTransactions;
-        }
-    }
-
-    public static class SettingsBuilder
-    {
-        private TimeDuration durationGoal = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
-        private int maxTransactions = 5003;
-        private int minTransactions = 3;
-
-        public SettingsBuilder setDurationGoal( final TimeDuration durationGoal )
-        {
-            this.durationGoal = durationGoal;
-            return this;
-        }
-
-        public SettingsBuilder setMaxTransactions( final int maxTransactions )
-        {
-            this.maxTransactions = maxTransactions;
-            return this;
-        }
-
-        public SettingsBuilder setMinTransactions( final int minTransactions )
-        {
-            this.minTransactions = minTransactions;
-            return this;
-        }
-
-        public Settings createSettings( )
-        {
-            return new Settings( durationGoal, maxTransactions, minTransactions );
         }
     }
 }

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.localdb;
@@ -75,10 +73,10 @@ public class LocalDBFactory
         }
 
         final Map<LocalDBProvider.Parameter, String> parameters = pwmApplication == null
-                ? Collections.<LocalDBProvider.Parameter, String>emptyMap()
+                ? Collections.emptyMap()
                 : makeParameterMap( pwmApplication.getConfig(), readonly );
         final LocalDBProvider dbProvider = createInstance( className );
-        LOGGER.debug( "initializing " + className + " localDBProvider instance" );
+        LOGGER.debug( () -> "initializing " + className + " localDBProvider instance" );
 
         final LocalDB localDB = new LocalDBAdaptor( dbProvider, pwmApplication );
 
@@ -87,15 +85,14 @@ public class LocalDBFactory
 
         if ( !readonly )
         {
-            LOGGER.trace( "clearing TEMP db" );
+            LOGGER.trace( () -> "clearing TEMP db" );
             localDB.truncate( LocalDB.DB.TEMP );
 
             final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
             if ( localDBUtility.readImportInprogressFlag() )
             {
                 LOGGER.error( "previous database import process did not complete successfully, clearing all data" );
-                localDBUtility.prepareForImport();
-                localDBUtility.markImportComplete();
+                localDBUtility.cancelImportProcess();
             }
         }
 
@@ -111,7 +108,7 @@ public class LocalDBFactory
                 debugText.append( ", " ).append( StringUtil.formatDiskSize( freeSpace ) ).append( " free" );
             }
         }
-        LOGGER.info( debugText );
+        LOGGER.info( () -> debugText );
 
         return localDB;
     }
@@ -153,7 +150,7 @@ public class LocalDBFactory
         {
             if ( dbFileLocation.mkdir() )
             {
-                LOGGER.trace( "created directory at " + dbFileLocation.getAbsolutePath() );
+                LOGGER.trace( () -> "created directory at " + dbFileLocation.getAbsolutePath() );
             }
 
 
@@ -166,7 +163,7 @@ public class LocalDBFactory
             throw new LocalDBException( new ErrorInformation( PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg ) );
         }
 
-        LOGGER.trace( "db init completed for " + theClass );
+        LOGGER.trace( () -> "db init completed for " + theClass );
     }
 
     private static Map<LocalDBProvider.Parameter, String> makeParameterMap( final Configuration configuration, final boolean readOnly )

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.newuser;
@@ -64,7 +62,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -139,7 +137,7 @@ class NewUserUtils
             passwordCheckInfoToException( passwordCheckInfo );
         }
 
-        NewUserUtils.LOGGER.debug( pwmSession, "beginning createUser process for " + newUserDN );
+        NewUserUtils.LOGGER.debug( pwmSession, () -> "beginning createUser process for " + newUserDN );
 
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
         final boolean promptForPassword = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD );
@@ -174,7 +172,7 @@ class NewUserUtils
             // create the ldap entry
             chaiProvider.createEntry( newUserDN, createObjectClasses, createAttributes );
 
-            NewUserUtils.LOGGER.info( pwmSession, "created user entry: " + newUserDN );
+            NewUserUtils.LOGGER.info( pwmSession, () -> "created user entry: " + newUserDN );
         }
         catch ( ChaiOperationException e )
         {
@@ -201,7 +199,7 @@ class NewUserUtils
 
         if ( useTempPw )
         {
-            NewUserUtils.LOGGER.trace( pwmSession, "will use temporary password process for new user entry: " + newUserDN );
+            NewUserUtils.LOGGER.trace( pwmSession, () -> "will use temporary password process for new user entry: " + newUserDN );
             final PasswordData temporaryPassword;
             {
                 final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = RandomPasswordGenerator.RandomGeneratorConfig.builder()
@@ -214,7 +212,7 @@ class NewUserUtils
             {
                 //set password as admin
                 proxiedUser.setPassword( temporaryPassword.getStringValue() );
-                NewUserUtils.LOGGER.debug( pwmSession, "set temporary password for new user entry: " + newUserDN );
+                NewUserUtils.LOGGER.debug( pwmSession, () -> "set temporary password for new user entry: " + newUserDN );
             }
             catch ( ChaiOperationException e )
             {
@@ -229,7 +227,7 @@ class NewUserUtils
             {
                 try
                 {
-                    NewUserUtils.LOGGER.debug( pwmSession,
+                    NewUserUtils.LOGGER.debug( pwmSession, () ->
                             "setting userAccountControl attribute to enable account " + theUser.getEntryDN() );
                     theUser.writeStringAttribute( "userAccountControl", "512" );
                 }
@@ -245,7 +243,7 @@ class NewUserUtils
             try
             {
                 // bind as user
-                NewUserUtils.LOGGER.debug( pwmSession,
+                NewUserUtils.LOGGER.debug( pwmSession, () ->
                         "attempting bind as user to then allow changing to requested password for new user entry: " + newUserDN );
                 final ChaiConfiguration chaiConfiguration = ChaiConfiguration.builder( chaiProvider.getChaiConfiguration() )
                         .setSetting( ChaiSetting.BIND_DN, newUserDN )
@@ -254,7 +252,7 @@ class NewUserUtils
                 final ChaiProvider bindAsProvider = pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfiguration );
                 final ChaiUser bindAsUser = bindAsProvider.getEntryFactory().newChaiUser( newUserDN );
                 bindAsUser.changePassword( temporaryPassword.getStringValue(), userPassword.getStringValue() );
-                NewUserUtils.LOGGER.debug( pwmSession, "changed to user requested password for new user entry: " + newUserDN );
+                NewUserUtils.LOGGER.debug( pwmSession, () -> "changed to user requested password for new user entry: " + newUserDN );
                 bindAsProvider.close();
             }
             catch ( ChaiOperationException e )
@@ -271,7 +269,7 @@ class NewUserUtils
             {
                 //set password
                 theUser.setPassword( userPassword.getStringValue() );
-                NewUserUtils.LOGGER.debug( pwmSession, "set user requested password for new user entry: " + newUserDN );
+                NewUserUtils.LOGGER.debug( pwmSession, () -> "set user requested password for new user entry: " + newUserDN );
             }
             catch ( ChaiOperationException e )
             {
@@ -298,7 +296,7 @@ class NewUserUtils
             }
         }
 
-        NewUserUtils.LOGGER.trace( pwmSession, "new user ldap creation process complete, now authenticating user" );
+        NewUserUtils.LOGGER.trace( pwmSession, () -> "new user ldap creation process complete, now authenticating user" );
 
         // write data to remote web service
         remoteWriteFormData( pwmRequest, newUserForm );
@@ -314,7 +312,7 @@ class NewUserUtils
                     PwmSetting.NEWUSER_WRITE_ATTRIBUTES );
             if ( actions != null && !actions.isEmpty() )
             {
-                NewUserUtils.LOGGER.debug( pwmSession, "executing configured actions to user " + theUser.getEntryDN() );
+                NewUserUtils.LOGGER.debug( pwmSession, () -> "executing configured actions to user " + theUser.getEntryDN() );
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
                         .setExpandPwmMacros( true )
@@ -335,7 +333,7 @@ class NewUserUtils
         // increment the new user creation statistics
         pwmApplication.getStatisticsManager().incrementValue( Statistic.NEW_USERS );
 
-        NewUserUtils.LOGGER.debug( pwmSession, "completed createUser process for " + newUserDN + " (" + TimeDuration.fromCurrent(
+        NewUserUtils.LOGGER.debug( pwmSession, () -> "completed createUser process for " + newUserDN + " (" + TimeDuration.fromCurrent(
                 startTime ).asCompactString() + ")" );
     }
 
@@ -392,7 +390,7 @@ class NewUserUtils
             }
             final String escapedName = StringUtil.escapeLdapDN( namingValue );
             final String generatedDN = namingAttribute + "=" + escapedName + "," + expandedContext;
-            NewUserUtils.LOGGER.debug( pwmRequest, "generated dn for new user: " + generatedDN );
+            NewUserUtils.LOGGER.debug( pwmRequest, () -> "generated dn for new user: " + generatedDN );
             return generatedDN;
         }
 
@@ -409,11 +407,11 @@ class NewUserUtils
 
                 if ( !testIfEntryNameExists( pwmRequest, expandedName ) )
                 {
-                    NewUserUtils.LOGGER.trace( pwmRequest, "generated entry name for new user is unique: " + expandedName );
+                    NewUserUtils.LOGGER.trace( pwmRequest, () -> "generated entry name for new user is unique: " + expandedName );
                     final String namingAttribute = pwmRequest.getConfig().getDefaultLdapProfile().readSettingAsString( PwmSetting.LDAP_NAMING_ATTRIBUTE );
                     final String escapedName = StringUtil.escapeLdapDN( expandedName );
                     generatedDN = namingAttribute + "=" + escapedName + "," + expandedContext;
-                    NewUserUtils.LOGGER.debug( pwmRequest, "generated dn for new user: " + generatedDN );
+                    NewUserUtils.LOGGER.debug( pwmRequest, () -> "generated dn for new user: " + generatedDN );
                     return generatedDN;
                 }
                 else
@@ -422,7 +420,7 @@ class NewUserUtils
                 }
             }
 
-            NewUserUtils.LOGGER.debug( pwmRequest, "generated entry name for new user is not unique, will try again" );
+            NewUserUtils.LOGGER.debug( pwmRequest, () -> "generated entry name for new user is not unique, will try again" );
             attemptCount++;
         }
         NewUserUtils.LOGGER.error( pwmRequest,
@@ -470,7 +468,7 @@ class NewUserUtils
 
         if ( configuredEmailSetting == null )
         {
-            NewUserUtils.LOGGER.debug( pwmSession,
+            NewUserUtils.LOGGER.debug( pwmSession, () ->
                     "skipping send of new user email for '" + userInfo.getUserIdentity().getUserDN() + "' no email configured" );
             return;
         }
@@ -697,7 +695,7 @@ class NewUserUtils
 
 
                     TokenUtil.initializeAndSendToken(
-                            pwmRequest,
+                            pwmRequest.commonValues(),
                             TokenUtil.TokenInitAndSendRequest.builder()
                                     .userInfo(  null )
                                     .tokenDestinationItem( tokenDestinationItem )

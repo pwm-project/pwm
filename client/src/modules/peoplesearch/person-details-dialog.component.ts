@@ -3,29 +3,31 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 
 import { Component } from '../../component';
-import { IPeopleSearchConfigService } from '../../services/peoplesearch-config.service';
+import {IPeopleSearchConfigService, IPersonDetailsConfig} from '../../services/peoplesearch-config.service';
 import { IPeopleService } from '../../services/people.service';
-import { IAugmentedJQuery, ITimeoutService } from 'angular';
+import {IAugmentedJQuery, ITimeoutService, noop} from 'angular';
 import { IPerson } from '../../models/person.model';
+import {IChangePasswordSuccess} from '../../components/changepassword/success-change-password.controller';
+
+let orgchartExportTemplateUrl = require('./orgchart-export.component.html');
+let orgchartEmailTemplateUrl = require('./orgchart-email.component.html');
 
 @Component({
     stylesheetUrl: require('./person-details-dialog.component.scss'),
@@ -35,15 +37,28 @@ export default class PersonDetailsDialogComponent {
     person: IPerson;
     photosEnabled: boolean;
     orgChartEnabled: boolean;
+    exportEnabled: boolean;
+    emailTeamEnabled: boolean;
+    maxExportDepth: number;
+    maxEmailDepth: number;
 
-    static $inject = [ '$element', '$state', '$stateParams', '$timeout', 'ConfigService', 'PeopleService' ];
+    static $inject = [
+        '$element',
+        '$state',
+        '$stateParams',
+        '$timeout',
+        'ConfigService',
+        'PeopleService',
+        'IasDialogService'
+    ];
 
     constructor(private $element: IAugmentedJQuery,
                 private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
                 private $timeout: ITimeoutService,
                 private configService: IPeopleSearchConfigService,
-                private peopleService: IPeopleService) {
+                private peopleService: IPeopleService,
+                private IasDialogService: any) {
     }
 
     $onInit(): void {
@@ -55,6 +70,15 @@ export default class PersonDetailsDialogComponent {
 
         this.configService.photosEnabled().then((photosEnabled: boolean) => {
             this.photosEnabled = photosEnabled;
+        });
+
+        this.configService.personDetailsConfig().then((personDetailsConfig: IPersonDetailsConfig) => {
+            this.photosEnabled = personDetailsConfig.photosEnabled;
+            this.orgChartEnabled = personDetailsConfig.orgChartEnabled;
+            this.exportEnabled = personDetailsConfig.exportEnabled;
+            this.emailTeamEnabled = personDetailsConfig.emailTeamEnabled;
+            this.maxExportDepth = personDetailsConfig.maxExportDepth;
+            this.maxEmailDepth = personDetailsConfig.maxEmailDepth;
         });
 
         this.peopleService
@@ -97,5 +121,33 @@ export default class PersonDetailsDialogComponent {
 
     searchText(text: string): void {
         this.$state.go('search.table', { query: text });
+    }
+
+    beginExport() {
+        this.IasDialogService
+            .open({
+                controller: 'OrgchartExportController as $ctrl',
+                templateUrl: orgchartExportTemplateUrl,
+                locals: {
+                    peopleService: this.peopleService,
+                    maxDepth: this.maxExportDepth,
+                    personName: this.person.displayNames[0],
+                    userKey: this.person.userKey
+                }
+            });
+    }
+
+    beginEmail() {
+        this.IasDialogService
+            .open({
+                controller: 'OrgchartEmailController as $ctrl',
+                templateUrl: orgchartEmailTemplateUrl,
+                locals: {
+                    peopleService: this.peopleService,
+                    maxDepth: this.maxEmailDepth,
+                    personName: this.person.displayNames[0],
+                    userKey: this.person.userKey
+                }
+            });
     }
 }

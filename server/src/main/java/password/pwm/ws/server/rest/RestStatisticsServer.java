@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.ws.server.rest;
@@ -34,8 +32,11 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
+import password.pwm.svc.stats.AvgStatistic;
+import password.pwm.svc.stats.DailyKey;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticType;
 import password.pwm.svc.stats.StatisticsBundle;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JavaHelper;
@@ -54,9 +55,7 @@ import java.math.RoundingMode;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -68,7 +67,7 @@ import java.util.TreeMap;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/statistics"
         }
 )
-@RestWebServer( webService = WebServiceUsage.Statistics, requireAuthentication = true )
+@RestWebServer( webService = WebServiceUsage.Statistics )
 public class RestStatisticsServer extends RestServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestStatisticsServer.class );
@@ -119,10 +118,6 @@ public class RestStatisticsServer extends RestServlet
     @Override
     public void preCheckRequest( final RestRequest restRequest ) throws PwmUnrecoverableException
     {
-        if ( !restRequest.getRestAuthentication().getUsages().contains( WebServiceUsage.Health ) )
-        {
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "public statistics service is not enabled" );
-        }
     }
 
     @RestMethodHandler( method = HttpMethod.GET, consumes = HttpContentType.form, produces = HttpContentType.json )
@@ -194,7 +189,7 @@ public class RestStatisticsServer extends RestServlet
         {
             final List<HistoryData> outerOutput = new ArrayList<>();
 
-            StatisticsManager.DailyKey dailyKey = new StatisticsManager.DailyKey( new Date() );
+            DailyKey dailyKey = DailyKey.forToday();
 
             for ( int daysAgo = 0; daysAgo < days; daysAgo++ )
             {
@@ -210,10 +205,10 @@ public class RestStatisticsServer extends RestServlet
                 final HistoryData historyData = HistoryData.builder()
                         .name( dailyKey.toString() )
                         .date( DateTimeFormatter.ofPattern( "yyyy-MM-dd" ).withZone( ZoneOffset.UTC )
-                                .format( dailyKey.calendar().toInstant() ) )
-                        .year( dailyKey.calendar().get( Calendar.YEAR ) )
-                        .month( dailyKey.calendar().get( Calendar.MONTH ) )
-                        .day( dailyKey.calendar().get( Calendar.DAY_OF_MONTH ) )
+                                .format( dailyKey.localDate() ) )
+                        .year( dailyKey.localDate().getYear() )
+                        .month( dailyKey.localDate().getMonthValue() )
+                        .day( dailyKey.localDate().getDayOfMonth() )
                         .daysAgo( daysAgo )
                         .data( statValues )
                         .build();
@@ -250,7 +245,16 @@ public class RestStatisticsServer extends RestServlet
                 final StatLabelData statLabelData = new StatLabelData(
                         statistic.name(),
                         statistic.getLabel( locale ),
-                        statistic.getType().name(),
+                        StatisticType.INCREMENTER.name(),
+                        statistic.getDescription( locale ) );
+                output.put( statistic.name(), statLabelData );
+            }
+            for ( final AvgStatistic statistic : AvgStatistic.values() )
+            {
+                final StatLabelData statLabelData = new StatLabelData(
+                        statistic.name(),
+                        statistic.getLabel( locale ),
+                        StatisticType.AVERAGE.name(),
                         statistic.getDescription( locale ) );
                 output.put( statistic.name(), statLabelData );
             }
@@ -262,7 +266,7 @@ public class RestStatisticsServer extends RestServlet
                     final StatLabelData statLabelData = new StatLabelData(
                             name,
                             loopEps.getLabel( locale ),
-                            "EPS",
+                            StatisticType.EPS.name(),
                             null );
                     output.put( name, statLabelData );
                 }

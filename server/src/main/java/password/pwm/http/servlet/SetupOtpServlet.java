@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet;
@@ -302,7 +300,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             );
             final RestResultBean restResultBean = RestResultBean.withData( passed );
 
-            LOGGER.trace( pwmSession, "returning result for restValidateCode: " + JsonUtil.serialize( restResultBean ) );
+            LOGGER.trace( pwmSession, () -> "returning result for restValidateCode: " + JsonUtil.serialize( restResultBean ) );
             pwmRequest.outputJsonResult( restResultBean );
         }
         catch ( PwmOperationalException e )
@@ -363,7 +361,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             {
                 if ( pwmRequest.getConfig().isDevDebugMode() )
                 {
-                    LOGGER.trace( pwmRequest, "testing against otp record: " + JsonUtil.serialize( otpBean.getOtpUserRecord() ) );
+                    LOGGER.trace( pwmRequest, () -> "testing against otp record: " + JsonUtil.serialize( otpBean.getOtpUserRecord() ) );
                 }
 
                 if ( otpService.validateToken(
@@ -374,13 +372,13 @@ public class SetupOtpServlet extends ControlledPwmServlet
                         false
                 ) )
                 {
-                    LOGGER.debug( pwmRequest, "test OTP token returned true, valid OTP secret provided" );
+                    LOGGER.debug( pwmRequest, () -> "test OTP token returned true, valid OTP secret provided" );
                     otpBean.setConfirmed( true );
                     otpBean.setChallenge( null );
                 }
                 else
                 {
-                    LOGGER.debug( pwmRequest, "test OTP token returned false, incorrect OTP secret provided" );
+                    LOGGER.debug( pwmRequest, () -> "test OTP token returned false, incorrect OTP secret provided" );
                     setLastError( pwmRequest, new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT ) );
                 }
             }
@@ -429,7 +427,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             if ( existingUserRecord != null )
             {
                 otpBean.setHasPreExistingOtp( true );
-                LOGGER.trace( pwmSession, "user has existing otp record" );
+                LOGGER.trace( pwmSession, () -> "user has existing otp record" );
                 return;
             }
         }
@@ -452,10 +450,10 @@ public class SetupOtpServlet extends ControlledPwmServlet
                 );
                 otpBean.setOtpUserRecord( otpUserRecord );
                 otpBean.setRecoveryCodes( rawRecoveryCodes );
-                LOGGER.trace( pwmSession, "generated new otp record" );
+                LOGGER.trace( pwmSession, () -> "generated new otp record" );
                 if ( config.isDevDebugMode() )
                 {
-                    LOGGER.trace( pwmRequest, "newly generated otp record: " + JsonUtil.serialize( otpUserRecord ) );
+                    LOGGER.trace( pwmRequest, () -> "newly generated otp record: " + JsonUtil.serialize( otpUserRecord ) );
                 }
             }
             catch ( Exception e )
@@ -527,7 +525,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
 
             if ( policy == ForceSetupPolicy.FORCE_ALLOW_SKIP )
             {
-                LOGGER.trace( pwmRequest, "allowing setup skipping due to setting "
+                LOGGER.trace( pwmRequest, () -> "allowing setup skipping due to setting "
                         + PwmSetting.OTP_FORCE_SETUP.toMenuLocationDebug( setupOtpProfile.getIdentifier(), pwmRequest.getLocale() ) );
                 return true;
             }
@@ -537,7 +535,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             {
                 if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )
                 {
-                    LOGGER.trace( pwmRequest, "allowing OTP setup skipping due to user being admin and setting "
+                    LOGGER.trace( pwmRequest, () -> "allowing OTP setup skipping due to user being admin and setting "
                             + PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES.toMenuLocationDebug( null, pwmRequest.getLocale() ) );
                     return true;
                 }

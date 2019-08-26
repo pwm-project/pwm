@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.localdb;
@@ -82,7 +80,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         try
         {
             checkIfTableExists( connection, db );
-            LOGGER.trace( "table " + db + " appears to exist" );
+            LOGGER.trace( () -> "table " + db + " appears to exist" );
         }
         catch ( final LocalDBException e )
         {
@@ -101,7 +99,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                     statement = connection.createStatement();
                     statement.execute( sqlString );
                     connection.commit();
-                    LOGGER.debug( "created table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+                    LOGGER.debug( () -> "created table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
                 }
                 catch ( final SQLException ex )
                 {
@@ -127,7 +125,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                     statement = connection.createStatement();
                     statement.execute( sqlString.toString() );
                     connection.commit();
-                    LOGGER.debug( "created index " + indexName + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+                    LOGGER.debug( () -> "created index " + indexName + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
                 }
                 catch ( final SQLException ex )
                 {
@@ -214,7 +212,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.debug( "error while closing DB: " + e.getMessage() );
+                    LOGGER.debug( () -> "error while closing DB: " + e.getMessage() );
                 }
             }
         }
@@ -223,7 +221,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             lock.writeLock().unlock();
         }
 
-        LOGGER.debug( "closed" );
+        LOGGER.debug( () -> "closed" );
     }
 
     abstract void closeConnection( Connection connection )
@@ -303,7 +301,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
 
             final LocalDB.LocalDBIterator iterator = new DbIterator( db );
             dbIterators.add( iterator );
-            LOGGER.trace( this.getClass().getSimpleName() + " issued iterator for " + db.toString() + ", outstanding iterators: " + dbIterators.size() );
+            LOGGER.trace( () -> this.getClass().getSimpleName() + " issued iterator for " + db.toString() + ", outstanding iterators: " + dbIterators.size() );
             return iterator;
         }
         catch ( final Exception e )
@@ -470,7 +468,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         return true;
     }
 
-    public int size( final LocalDB.DB db )
+    public long size( final LocalDB.DB db )
             throws LocalDBException
     {
         preCheck( false );
@@ -534,7 +532,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                 statement = dbConnection.prepareStatement( sqlText.toString() );
                 statement.executeUpdate();
                 dbConnection.commit();
-                LOGGER.debug( "truncated table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+                LOGGER.debug( () -> "truncated table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
 
                 initTable( dbConnection, db );
             }

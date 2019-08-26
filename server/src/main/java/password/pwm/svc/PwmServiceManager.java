@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc;
@@ -87,7 +85,10 @@ public class PwmServiceManager
         initialized = true;
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.trace( "started " + serviceCounter + " services in " + timeDuration.asCompactString() );
+        {
+            final int finalServiceCounter = serviceCounter;
+            LOGGER.trace( () -> "started " + finalServiceCounter + " services in " + timeDuration.asCompactString() );
+        }
     }
 
     private PwmService initService( final Class<? extends PwmService> serviceClass )
@@ -110,10 +111,10 @@ public class PwmServiceManager
 
         try
         {
-            LOGGER.debug( "initializing service " + serviceName );
+            LOGGER.debug( () -> "initializing service " + serviceName );
             newServiceInstance.init( pwmApplication );
             final TimeDuration startupDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.debug( "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString() + ", status=" + newServiceInstance.status() );
+            LOGGER.debug( () -> "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString() + ", status=" + newServiceInstance.status() );
         }
         catch ( PwmException e )
         {
@@ -139,7 +140,7 @@ public class PwmServiceManager
             return;
         }
 
-        LOGGER.trace( "beginning to close all services" );
+        LOGGER.trace( () -> "beginning to close all services" );
         final Instant startTime = Instant.now();
 
 
@@ -154,22 +155,20 @@ public class PwmServiceManager
         }
         initialized = false;
 
-        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.trace( "closed all services in " + timeDuration.asCompactString() );
-
+        LOGGER.trace( () -> "closed all services in " + TimeDuration.compactFromCurrent( startTime ) );
     }
 
     private void shutDownService( final Class<? extends PwmService> serviceClass )
     {
 
-        LOGGER.trace( "closing service " + serviceClass.getName() );
+        LOGGER.trace( () -> "closing service " + serviceClass.getName() );
         final PwmService loopService = runningServices.get( serviceClass );
         try
         {
             final Instant startTime = Instant.now();
             loopService.close();
             final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.trace( "successfully closed service " + serviceClass.getName() + " (" + timeDuration.asCompactString() + ")" );
+            LOGGER.trace( () -> "successfully closed service " + serviceClass.getName() + " (" + timeDuration.asCompactString() + ")" );
         }
         catch ( Exception e )
         {

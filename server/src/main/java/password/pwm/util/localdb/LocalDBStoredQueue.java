@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.localdb;
@@ -44,6 +42,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 
 /**
  * A LIFO {@link Queue} implementation backed by a localDB instance.  {@code this} instances are internally
@@ -87,7 +86,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
         catch ( Exception e )
         {
-            LOGGER.debug( "can't read app property for developerDebug mode: " + e.getMessage() );
+            LOGGER.debug( () -> "can't read app property for developerDebug mode: " + e.getMessage() );
         }
 
         return new LocalDBStoredQueue( pwmDB, db, developerDebug );
@@ -699,7 +698,10 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             headPosition = headPositionStr != null && headPositionStr.length() > 0 ? new Position( headPositionStr ) : new Position( "0" );
             tailPosition = tailPositionStr != null && tailPositionStr.length() > 0 ? new Position( tailPositionStr ) : new Position( "0" );
 
-            LOGGER.trace( "loaded for db " + db + "; headPosition=" + headPosition + ", tailPosition=" + tailPosition + ", size=" + this.size() );
+            {
+                final int finalSize = this.size();
+                LOGGER.trace( () -> "loaded for db " + db + "; headPosition=" + headPosition + ", tailPosition=" + tailPosition + ", size=" + finalSize );
+            }
 
             repair();
 
@@ -1026,45 +1028,39 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                 return;
             }
 
-            final StringBuilder sb = new StringBuilder();
-            try
+            final Supplier<CharSequence> debugOutput = () ->
             {
-                sb.append( input );
-                sb.append( "  tailPosition=" ).append( tailPosition ).append( ", headPosition=" ).append( headPosition ).append( ", db=" ).append( db );
-                sb.append( ", size=" ).append( internalSize() ).append( "\n" );
-
-                LocalDB.LocalDBIterator<String> keyIter = null;
+                final StringBuilder sb = new StringBuilder();
                 try
                 {
-                    keyIter = localDB.iterator( db );
-                    int rowCount = 0;
-                    while ( keyIter.hasNext() && rowCount < DEBUG_MAX_ROWS )
+                    sb.append( input );
+                    sb.append( "  tailPosition=" ).append( tailPosition ).append( ", headPosition=" ).append( headPosition ).append( ", db=" ).append( db );
+                    sb.append( ", size=" ).append( internalSize() ).append( "\n" );
+
+                    try ( LocalDB.LocalDBIterator<String> keyIter = localDB.iterator( db ) )
                     {
-                        final String key = keyIter.next();
-                        String value = localDB.get( db, key );
-                        value = value == null ? "" : value;
-                        value = value.length() < DEBUG_MAX_WIDTH ? value : value.substring( 0, DEBUG_MAX_WIDTH ) + "...";
-                        final String row = key + " " + value;
-                        sb.append( row ).append( "\n" );
-                        rowCount++;
+                        int rowCount = 0;
+                        while ( keyIter.hasNext() && rowCount < DEBUG_MAX_ROWS )
+                        {
+                            final String key = keyIter.next();
+                            String value = localDB.get( db, key );
+                            value = value == null ? "" : value;
+                            value = value.length() < DEBUG_MAX_WIDTH ? value : value.substring( 0, DEBUG_MAX_WIDTH ) + "...";
+                            final String row = key + " " + value;
+                            sb.append( row ).append( "\n" );
+                            rowCount++;
+                        }
                     }
                 }
-                finally
+                catch ( LocalDBException e )
                 {
-                    if ( keyIter != null )
-                    {
-                        keyIter.close();
-                    }
+                    LOGGER.error( "error generating logMsg: " + e.getMessage() );
                 }
 
+                return sb.toString();
+            };
 
-            }
-            catch ( LocalDBException e )
-            {
-                e.printStackTrace();
-            }
-
-            LOGGER.trace( sb.toString() );
+            LOGGER.trace( debugOutput );
         }
 
         private void repair( ) throws LocalDBException
@@ -1087,7 +1083,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                                 localDB.put( db, KEY_HEAD_POSITION, headPosition.toString() );
                                 localDB.put( db, KEY_TAIL_POSITION, tailPosition.toString() );
                                 final int dbSize = size();
-                                LOGGER.debug( "repairing db " + db + ", " + examinedRecords.get() + " records examined"
+                                LOGGER.debug( () -> "repairing db " + db + ", " + examinedRecords.get() + " records examined"
                                         + ", size=" + dbSize
                                         + ", head=" + headPosition.toString() + ", tail=" + tailPosition.toString() );
                             }
@@ -1122,7 +1118,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
 
             if ( tailTrim == 0 && headTrim == 0 )
             {
-                LOGGER.trace( "repair unnecessary for " + db );
+                LOGGER.trace( () -> "repair unnecessary for " + db );
             }
             else
             {

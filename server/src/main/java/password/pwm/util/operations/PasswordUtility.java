@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.operations;
@@ -50,10 +48,11 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.StrengthMeterType;
+import password.pwm.config.profile.AbstractProfile;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
@@ -65,28 +64,30 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
+import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.PasswordCharCounter;
 import password.pwm.util.PasswordData;
-import password.pwm.util.PostChangePasswordAction;
-import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.password.PasswordCharCounter;
+import password.pwm.util.password.PwmPasswordRuleValidator;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -172,7 +173,7 @@ public class PasswordUtility
         message = message.replace( "%TOKEN%", newPassword.getStringValue() );
 
         pwmApplication.sendSmsUsingQueue( toNumber, message, null, macroMachine );
-        LOGGER.debug( String.format( "password SMS added to send queue for %s", toNumber ) );
+        LOGGER.debug( () -> String.format( "password SMS added to send queue for %s", toNumber ) );
         return null;
     }
 
@@ -184,7 +185,7 @@ public class PasswordUtility
             final String toAddress,
             final Locale userLocale
     )
-            throws PwmOperationalException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_SENDPASSWORD, userLocale );
@@ -195,21 +196,17 @@ public class PasswordUtility
             return new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
         }
 
-        final EmailItemBean emailItemBean = new EmailItemBean(
-                configuredEmailSetting.getTo(),
-                configuredEmailSetting.getFrom(),
-                configuredEmailSetting.getSubject(),
-                configuredEmailSetting.getBodyPlain().replace( "%TOKEN%", newPassword.getStringValue() ),
-                configuredEmailSetting.getBodyHtml().replace( "%TOKEN%", newPassword.getStringValue() )
-        );
+        final EmailItemBean emailItemBean = configuredEmailSetting.applyBodyReplacement(
+                "%TOKEN%",
+                newPassword.getStringValue() );
+
         pwmApplication.getEmailQueue().submitEmail(
                 emailItemBean,
                 userInfo,
-                macroMachine
-        );
+                macroMachine );
 
 
-        LOGGER.debug( "new password email to " + userInfo.getUserIdentity() + " added to send queue for " + toAddress );
+        LOGGER.debug( () -> "new password email to " + userInfo.getUserIdentity() + " added to send queue for " + toAddress );
         return null;
     }
 
@@ -247,19 +244,20 @@ public class PasswordUtility
      * </ul>
      *
      * @param newPassword the new password that is being set.
-     * @param pwmSession  beanmanager for config and user info lookup
+     * @param pwmRequest Request used to issue change
      * @param pwmApplication the application reference
      * @throws ChaiUnavailableException if the ldap directory is not unavailable
      * @throws PwmUnrecoverableException  if user is not authenticated
      * @throws PwmOperationalException if operation fails
      */
     public static void setActorPassword(
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final PwmApplication pwmApplication,
             final PasswordData newPassword
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final UserInfo userInfo = pwmSession.getUserInfo();
 
         if ( !pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.CHANGE_PASSWORD ) )
@@ -337,12 +335,9 @@ public class PasswordUtility
             pwmApplication.getStatisticsManager().incrementValue( Statistic.PASSWORD_CHANGES );
         }
 
-        // invoke post password change actions
-        invokePostChangePasswordActions( pwmSession, newPassword.getStringValue() );
-
         {
             // execute configured actions
-            LOGGER.debug( pwmSession, "executing configured actions to user " + proxiedUser.getEntryDN() );
+            LOGGER.debug( pwmSession, () -> "executing configured actions to user " + proxiedUser.getEntryDN() );
             final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES );
             if ( configValues != null && !configValues.isEmpty() )
             {
@@ -363,6 +358,9 @@ public class PasswordUtility
                 actionExecutor.executeActions( configValues, pwmSession.getLabel() );
             }
         }
+
+        // invoke post password change actions
+        invokePostChangePasswordActions( pwmRequest );
 
         //update the current last password update field in ldap
         LdapOperationsHelper.updateLastPasswordUpdateAttribute( pwmApplication, pwmSession.getLabel(), userInfo.getUserIdentity() );
@@ -399,7 +397,8 @@ public class PasswordUtility
 
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(
                     pwmApplication,
-                    passwordPolicy
+                    passwordPolicy,
+                    PwmPasswordRuleValidator.Flag.BypassLdapRuleCheck
             );
 
             pwmPasswordRuleValidator.testPassword( newPassword, null, userInfo, theUser );
@@ -420,7 +419,7 @@ public class PasswordUtility
             bindDN = chaiProvider.getChaiConfiguration().getSetting( ChaiSetting.BIND_DN );
             bindIsSelf = userIdentity.canonicalEquals( new UserIdentity( bindDN, userIdentity.getLdapProfileID() ), pwmApplication );
 
-            LOGGER.trace( sessionLabel, "preparing to setActorPassword for '" + theUser.getEntryDN() + "', using bind DN: " + bindDN );
+            LOGGER.trace( sessionLabel, () -> "preparing to setActorPassword for '" + theUser.getEntryDN() + "', using bind DN: " + bindDN );
 
             final boolean settingEnableChange = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE ) );
             if ( settingEnableChange )
@@ -436,7 +435,7 @@ public class PasswordUtility
             }
             else
             {
-                LOGGER.debug( sessionLabel, "skipping actual ldap password change operation due to app property "
+                LOGGER.debug( sessionLabel, () -> "skipping actual ldap password change operation due to app property "
                         + AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE.getKey() + "=false" );
             }
         }
@@ -469,7 +468,7 @@ public class PasswordUtility
         pwmApplication.getStatisticsManager().updateEps( EpsStatistic.PASSWORD_CHANGES, 1 );
 
         final int passwordStrength = PasswordUtility.judgePasswordStrength( pwmApplication.getConfig(), newPassword.getStringValue() );
-        pwmApplication.getStatisticsManager().updateAverageValue( Statistic.AVG_PASSWORD_STRENGTH, passwordStrength );
+        pwmApplication.getStatisticsManager().updateAverageValue( AvgStatistic.AVG_PASSWORD_STRENGTH, passwordStrength );
 
         // at this point the password has been changed, so log it.
         final String msg = ( bindIsSelf
@@ -477,7 +476,7 @@ public class PasswordUtility
                 : "password for user '" + userIdentity.toDisplayString() + "' has been changed by " + bindDN )
                 + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")";
 
-        LOGGER.info( sessionLabel, msg );
+        LOGGER.info( sessionLabel, () -> msg );
     }
 
     public static void helpdeskSetUserPassword(
@@ -530,7 +529,7 @@ public class PasswordUtility
 
         {
             // execute configured actions
-            LOGGER.debug( sessionLabel, "executing changepassword and helpdesk post password change writeAttributes to user " + userIdentity );
+            LOGGER.debug( sessionLabel, () -> "executing changepassword and helpdesk post password change writeAttributes to user " + userIdentity );
             final List<ActionConfiguration> actions = new ArrayList<>();
             actions.addAll( pwmApplication.getConfig().readSettingAsAction( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES ) );
             actions.addAll( helpdeskProfile.readSettingAsAction( PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES ) );
@@ -583,7 +582,7 @@ public class PasswordUtility
         // expire if so configured
         if ( helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_FORCE_PW_EXPIRATION ) )
         {
-            LOGGER.trace( pwmSession, "preparing to expire password for user " + userIdentity.toDisplayString() );
+            LOGGER.trace( pwmSession, () -> "preparing to expire password for user " + userIdentity.toDisplayString() );
             try
             {
                 proxiedUser.expirePassword();
@@ -600,7 +599,7 @@ public class PasswordUtility
         {
             final MessageSendMethod messageSendMethod;
             {
-                final String profileID = ProfileUtility.discoverProfileIDforUser( pwmApplication, sessionLabel, userIdentity, ProfileType.ForgottenPassword );
+                final String profileID = ProfileUtility.discoverProfileIDforUser( pwmApplication, sessionLabel, userIdentity, ProfileDefinition.ForgottenPassword );
                 final ForgottenPasswordProfile forgottenPasswordProfile = pwmApplication.getConfig().getForgottenPasswordProfiles().get( profileID );
                 messageSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_SENDNEWPW_METHOD, MessageSendMethod.class );
 
@@ -662,36 +661,66 @@ public class PasswordUtility
         return returnValue;
     }
 
-
-    private static void invokePostChangePasswordActions( final PwmSession pwmSession, final String newPassword )
+    private static void invokePostChangePasswordActions( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final List<PostChangePasswordAction> postChangePasswordActions = pwmSession.getUserSessionDataCacheBean().removePostChangePasswordActions();
-        if ( postChangePasswordActions == null || postChangePasswordActions.isEmpty() )
-        {
-            LOGGER.trace( pwmSession, "no post change password actions pending from previous operations" );
-            return;
-        }
+        final PwmAuthenticationSource authenticationSource = pwmRequest.getPwmSession().getLoginInfoBean().getAuthSource();
 
-        for ( final PostChangePasswordAction postChangePasswordAction : postChangePasswordActions )
+        if ( authenticationSource == PwmAuthenticationSource.USER_ACTIVATION )
         {
-            try
-            {
-                postChangePasswordAction.doAction( pwmSession, newPassword );
-            }
-            catch ( PwmUnrecoverableException e )
-            {
-                LOGGER.error( pwmSession, "error during post change password action '" + postChangePasswordAction.getLabel() + "' " + e.getMessage() );
-                throw e;
-            }
-            catch ( Exception e )
-            {
-                LOGGER.error( pwmSession, "unexpected error during post change password action '" + postChangePasswordAction.getLabel() + "' " + e.getMessage(), e );
-                final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
-                throw new PwmUnrecoverableException( errorInfo );
-            }
+            LOGGER.debug( pwmRequest, () -> "executing post-activate configured actions " );
+            executePostActionMethods(  pwmRequest, ProfileDefinition.ActivateUser, PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES );
+        }
+        else if ( authenticationSource == PwmAuthenticationSource.FORGOTTEN_PASSWORD )
+        {
+            LOGGER.debug( pwmRequest, () -> "executing post-forgotten password configured actions" );
+            executePostActionMethods(  pwmRequest, ProfileDefinition.ForgottenPassword, PwmSetting.RECOVERY_POST_ACTIONS );
+        }
+        else
+        {
+            LOGGER.trace( pwmRequest, () -> "no post change password actions required for authentication source: " + authenticationSource );
         }
     }
+
+    private static void executePostActionMethods(
+            final PwmRequest pwmRequest,
+            final ProfileDefinition profileDefinition,
+            final PwmSetting pwmSetting
+    )
+            throws PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final UserIdentity userIdentity = pwmRequest.getUserInfoIfLoggedIn();
+        final AbstractProfile activateUserProfile = ProfileUtility.profileForUser(
+                pwmRequest.commonValues(),
+                userIdentity,
+                profileDefinition,
+                AbstractProfile.class );
+
+        try
+        {
+            {
+                final List<ActionConfiguration> configValues = activateUserProfile.readSettingAsAction( pwmSetting );
+
+                final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
+                        .setExpandPwmMacros( true )
+                        .setMacroMachine( pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication ) )
+                        .createActionExecutor();
+                actionExecutor.executeActions( configValues, pwmRequest.getSessionLabel() );
+            }
+        }
+        catch ( PwmException e )
+        {
+            final ErrorInformation info = new ErrorInformation(
+                    PwmError.ERROR_SERVICE_UNREACHABLE,
+                    e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues()
+            );
+            final PwmUnrecoverableException newException = new PwmUnrecoverableException( info );
+            newException.initCause( e );
+            throw newException;
+        }
+    }
+
 
     /*
     static Map<String, ReplicationStatus> checkIfPasswordIsReplicated(final ChaiUser user, final PwmSession pwmSession)
@@ -882,14 +911,14 @@ public class PasswordUtility
             case MERGE:
                 final PwmPasswordPolicy pwmPolicy = determineConfiguredPolicyProfileForUser( pwmApplication, pwmSession, userIdentity, locale );
                 final PwmPasswordPolicy userPolicy = readLdapPasswordPolicy( pwmApplication, theUser );
-                LOGGER.trace( pwmSession, "read user policy for '" + theUser.getEntryDN() + "', policy: " + userPolicy.toString() );
+                LOGGER.trace( pwmSession, () -> "read user policy for '" + theUser.getEntryDN() + "', policy: " + userPolicy.toString() );
                 returnPolicy = pwmPolicy.merge( userPolicy );
-                LOGGER.debug( pwmSession, "merged user password policy of '" + theUser.getEntryDN() + "' with PWM configured policy: " + returnPolicy.toString() );
+                LOGGER.debug( pwmSession, () -> "merged user password policy of '" + theUser.getEntryDN() + "' with PWM configured policy: " + returnPolicy.toString() );
                 break;
 
             case LDAP:
                 returnPolicy = readLdapPasswordPolicy( pwmApplication, theUser );
-                LOGGER.debug( pwmSession, "discovered assigned password policy for " + theUser.getEntryDN() + " " + returnPolicy.toString() );
+                LOGGER.debug( pwmSession, () -> "discovered assigned password policy for " + theUser.getEntryDN() + " " + returnPolicy.toString() );
                 break;
 
             case PWM:
@@ -900,7 +929,7 @@ public class PasswordUtility
                 throw new IllegalStateException( "unknown policy source defined: " + ppSource.name() );
         }
 
-        LOGGER.trace( pwmSession, "readPasswordPolicyForUser completed in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.trace( pwmSession, () -> "readPasswordPolicyForUser completed in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return returnPolicy;
     }
 
@@ -922,7 +951,7 @@ public class PasswordUtility
         {
             final PwmPasswordPolicy loopPolicy = pwmApplication.getConfig().getPasswordPolicy( profile, locale );
             final List<UserPermission> userPermissions = loopPolicy.getUserPermissions();
-            LOGGER.debug( pwmSession, "testing password policy profile '" + profile + "'" );
+            LOGGER.debug( pwmSession, () -> "testing password policy profile '" + profile + "'" );
             try
             {
                 final boolean match = LdapPermissionTester.testUserPermissions( pwmApplication, pwmSession, userIdentity, userPermissions );
@@ -1027,7 +1056,7 @@ public class PasswordUtility
                     : null;
             if ( pwmApplication.getConfig().isDevDebugMode() )
             {
-                LOGGER.trace( "generated cacheKey for password check request: " + cacheKey );
+                LOGGER.trace( () -> "generated cacheKey for password check request: " + cacheKey );
             }
             try
             {
@@ -1042,7 +1071,7 @@ public class PasswordUtility
                         }
                         else
                         {
-                            LOGGER.trace( "cache hit!" );
+                            LOGGER.trace( () -> "cache hit!" );
                             final ErrorInformation errorInformation = JsonUtil.deserialize( cachedValue, ErrorInformation.class );
                             throw new PwmDataValidationException( errorInformation );
                         }
@@ -1189,7 +1218,7 @@ public class PasswordUtility
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmSession, "skipping send change password email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured" );
+            LOGGER.debug( pwmSession, () -> "skipping send change password email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured" );
             return;
         }
 
@@ -1230,7 +1259,7 @@ public class PasswordUtility
             final Instant chaiReadDate = theUser.readPasswordModificationDate();
             if ( chaiReadDate != null )
             {
-                LOGGER.trace( sessionLabel, "read last user password change timestamp (via chai) as: " + JavaHelper.toIsoDate( chaiReadDate ) );
+                LOGGER.trace( sessionLabel, () -> "read last user password change timestamp (via chai) as: " + JavaHelper.toIsoDate( chaiReadDate ) );
                 return chaiReadDate;
             }
         }
@@ -1246,7 +1275,7 @@ public class PasswordUtility
             try
             {
                 final Instant pwmPwdLastModified = theUser.readDateAttribute( pwmLastSetAttr );
-                LOGGER.trace( sessionLabel, "read pwmPasswordChangeTime as: " + ( pwmPwdLastModified == null ? "n/a" : JavaHelper.toIsoDate( pwmPwdLastModified ) ) );
+                LOGGER.trace( sessionLabel, () -> "read pwmPasswordChangeTime as: " + ( pwmPwdLastModified == null ? "n/a" : JavaHelper.toIsoDate( pwmPwdLastModified ) ) );
                 return pwmPwdLastModified;
             }
             catch ( ChaiOperationException e )
@@ -1255,7 +1284,7 @@ public class PasswordUtility
             }
         }
 
-        LOGGER.debug( sessionLabel, "unable to determine time of user's last password modification" );
+        LOGGER.debug( sessionLabel, () -> "unable to determine time of user's last password modification" );
         return null;
     }
 
@@ -1281,7 +1310,7 @@ public class PasswordUtility
 
             if ( userInfo.getPasswordPolicy() == null )
             {
-                LOGGER.debug( sessionLabel, "skipping minimum lifetime check, password last set time is unknown" );
+                LOGGER.debug( sessionLabel, () -> "skipping minimum lifetime check, password last set time is unknown" );
                 return;
             }
 
@@ -1321,7 +1350,7 @@ public class PasswordUtility
                     final Instant date = OracleDSEntries.convertZuluToDate( oracleDSPrePasswordAllowChangeTime );
                     if ( Instant.now().isBefore( date ) )
                     {
-                        LOGGER.debug( "discovered oracleds allowed change time is set to: " + JavaHelper.toIsoDate( date ) + ", won't permit password change" );
+                        LOGGER.debug( () -> "discovered oracleds allowed change time is set to: " + JavaHelper.toIsoDate( date ) + ", won't permit password change" );
                         final String errorMsg = "change not permitted until " + JavaHelper.toIsoDate( date );
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.PASSWORD_TOO_SOON, errorMsg );
                         throw new PwmUnrecoverableException( errorInformation );
@@ -1332,7 +1361,7 @@ public class PasswordUtility
         }
         catch ( ChaiException e )
         {
-            LOGGER.debug( sessionLabel, "unexpected error reading OracleDS password allow modification time: " + e.getMessage() );
+            LOGGER.debug( sessionLabel, () -> "unexpected error reading OracleDS password allow modification time: " + e.getMessage() );
         }
 
         final TimeDuration minimumLifetime;
@@ -1345,7 +1374,7 @@ public class PasswordUtility
 
             if ( lastModified == null )
             {
-                LOGGER.debug( sessionLabel, "skipping minimum lifetime check, password last set time is unknown" );
+                LOGGER.debug( sessionLabel, () -> "skipping minimum lifetime check, password last set time is unknown" );
                 return false;
             }
 
@@ -1353,7 +1382,7 @@ public class PasswordUtility
         }
 
         final TimeDuration passwordAge = TimeDuration.fromCurrent( lastModified );
-        LOGGER.trace( sessionLabel, "beginning check for minimum lifetime, lastModified="
+        LOGGER.trace( sessionLabel, () -> "beginning check for minimum lifetime, lastModified="
                 + JavaHelper.toIsoDate( lastModified )
                 + ", minimumLifetimeSeconds=" + minimumLifetime.asCompactString()
                 + ", passwordAge=" + passwordAge.asCompactString() );
@@ -1361,20 +1390,20 @@ public class PasswordUtility
 
         if ( lastModified.isAfter( Instant.now() ) )
         {
-            LOGGER.debug( sessionLabel, "skipping minimum lifetime check, password lastModified time is in the future" );
+            LOGGER.debug( sessionLabel, () -> "skipping minimum lifetime check, password lastModified time is in the future" );
             return false;
         }
 
         final boolean passwordTooSoon = passwordAge.isShorterThan( minimumLifetime );
         if ( !passwordTooSoon )
         {
-            LOGGER.trace( sessionLabel, "minimum lifetime check passed, password age " );
+            LOGGER.trace( sessionLabel, () -> "minimum lifetime check passed, password age " );
             return false;
         }
 
         if ( passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isWarnPeriod() )
         {
-            LOGGER.debug( sessionLabel, "current password is too young, but skipping enforcement of minimum lifetime check because current password is expired" );
+            LOGGER.debug( sessionLabel, () -> "current password is too young, but skipping enforcement of minimum lifetime check because current password is expired" );
             return false;
         }
 

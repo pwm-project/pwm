@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config.profile;
@@ -29,26 +27,58 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.value.data.UserPermission;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.CommonValues;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class ProfileUtility
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ProfileUtility.class );
 
+    public static Optional<String> discoverProfileIDforUser(
+            final CommonValues commonValues,
+            final UserIdentity userIdentity,
+            final ProfileDefinition profileDefinition
+    )
+            throws PwmUnrecoverableException
+    {
+        final String profileID = discoverProfileIDforUser( commonValues.getPwmApplication(), commonValues.getSessionLabel(), userIdentity, profileDefinition );
+        return Optional.ofNullable( profileID );
+    }
+
+    public static <T extends Profile> T profileForUser(
+            final CommonValues commonValues,
+            final UserIdentity userIdentity,
+            final ProfileDefinition profileDefinition,
+            final Class<T> classOfT
+    )
+            throws PwmUnrecoverableException
+    {
+        final Optional<String> profileID = discoverProfileIDforUser( commonValues, userIdentity, profileDefinition );
+        if ( !profileID.isPresent() )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "profile of type " + profileDefinition + " is required but not assigned" );
+        }
+        final Profile profileImpl = commonValues.getConfig().profileMap( profileDefinition ).get( profileID.get() );
+        return ( T ) profileImpl;
+    }
+
+
     public static String discoverProfileIDforUser(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
-            final ProfileType profileType
+            final ProfileDefinition profileDefinition
     )
             throws PwmUnrecoverableException
     {
-        final Map<String, Profile> profileMap = pwmApplication.getConfig().profileMap( profileType );
+        final Map<String, Profile> profileMap = pwmApplication.getConfig().profileMap( profileDefinition );
         for ( final Profile profile : profileMap.values() )
         {
             final List<UserPermission> queryMatches = profile.getPermissionMatches();

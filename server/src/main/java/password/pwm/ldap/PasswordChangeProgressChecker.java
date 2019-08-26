@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.ldap;
@@ -31,7 +29,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.PasswordSyncCheckMode;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.ProgressInfo;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.Percent;
@@ -268,7 +266,7 @@ public class PasswordChangeProgressChecker
         final Instant estimatedCompletion;
         {
             final BigDecimal pctComplete = figureAverageProgress( progressRecords );
-            LOGGER.trace( pwmSession, "percent complete: " + pctComplete );
+            LOGGER.trace( pwmSession, () -> "percent complete: " + pctComplete );
             final ProgressInfo progressInfo = new ProgressInfo( tracker.beginTime, 100, pctComplete.longValue() );
             final Instant actualEstimate = progressInfo.estimatedCompletion();
 
@@ -325,7 +323,7 @@ public class PasswordChangeProgressChecker
 
         if ( passwordSyncCheckMode == PasswordSyncCheckMode.DISABLED )
         {
-            LOGGER.trace( pwmSession, "skipping replica sync check, disabled" );
+            LOGGER.trace( pwmSession, () -> "skipping replica sync check, disabled" );
             return tracker.itemCompletions.get( PROGRESS_KEY_REPLICATION );
         }
 
@@ -333,7 +331,7 @@ public class PasswordChangeProgressChecker
         {
             if ( tracker.itemCompletions.get( PROGRESS_KEY_REPLICATION ).complete )
             {
-                LOGGER.trace( pwmSession, "skipping replica sync check, replica sync completed previously" );
+                LOGGER.trace( pwmSession, () -> "skipping replica sync check, replica sync completed previously" );
                 return tracker.itemCompletions.get( PROGRESS_KEY_REPLICATION );
             }
         }
@@ -342,18 +340,18 @@ public class PasswordChangeProgressChecker
         {
             if ( TimeDuration.fromCurrent( tracker.beginTime ).isShorterThan( initialReplicaDelay ) )
             {
-                LOGGER.trace( pwmSession, "skipping replica sync check, initDelay has not yet passed" );
+                LOGGER.trace( pwmSession, () -> "skipping replica sync check, initDelay has not yet passed" );
                 return null;
             }
         }
         else if ( TimeDuration.fromCurrent( tracker.lastReplicaCheckTime ).isShorterThan( cycleReplicaDelay ) )
         {
-            LOGGER.trace( pwmSession, "skipping replica sync check, cycleDelay has not yet passed" );
+            LOGGER.trace( pwmSession, () -> "skipping replica sync check, cycleDelay has not yet passed" );
             return null;
         }
 
         tracker.lastReplicaCheckTime = Instant.now();
-        LOGGER.trace( pwmSession, "beginning password replication time check for " + userIdentity.toDelimitedKey() );
+        LOGGER.trace( pwmSession, () -> "beginning password replication time check for " + userIdentity.toDelimitedKey() );
 
         try
         {
@@ -361,7 +359,7 @@ public class PasswordChangeProgressChecker
                     pwmSession, userIdentity );
             if ( checkResults.size() <= 1 )
             {
-                LOGGER.trace( "only one replica returned data, marking as complete" );
+                LOGGER.trace( () -> "only one replica returned data, marking as complete" );
                 return completedReplicationRecord;
             }
             else
@@ -381,7 +379,7 @@ public class PasswordChangeProgressChecker
                 }
                 final Percent pctComplete = new Percent( duplicateValues + 1, checkResults.size() );
                 final ProgressRecord progressRecord = makeReplicaProgressRecord( pctComplete );
-                LOGGER.trace( "read password replication sync status as: " + JsonUtil.serialize( progressRecord ) );
+                LOGGER.trace( () -> "read password replication sync status as: " + JsonUtil.serialize( progressRecord ) );
                 return progressRecord;
             }
         }

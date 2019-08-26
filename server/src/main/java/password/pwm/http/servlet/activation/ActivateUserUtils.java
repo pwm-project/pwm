@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.activation;
@@ -27,7 +25,6 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.PwmApplication;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LoginInfoBean;
@@ -35,7 +32,10 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.profile.ActivateUserProfile;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.profile.ProfileDefinition;
+import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -47,14 +47,15 @@ import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
+import password.pwm.http.bean.ActivateUserBean;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.form.FormUtility;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
@@ -64,6 +65,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 class ActivateUserUtils
 {
@@ -73,8 +75,6 @@ class ActivateUserUtils
     {
     }
 
-
-    @SuppressFBWarnings( "SE_BAD_FIELD" )
     static void activateUser(
             final PwmRequest pwmRequest,
             final UserIdentity userIdentity
@@ -83,9 +83,11 @@ class ActivateUserUtils
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final Configuration config = pwmApplication.getConfig();
         final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
-        if ( config.readSettingAsBoolean( PwmSetting.ACTIVATE_USER_UNLOCK ) )
+
+        final ActivateUserProfile activateUserProfile = ActivateUserServlet.activateUserProfile( pwmRequest );
+
+        if ( activateUserProfile.readSettingAsBoolean( PwmSetting.ACTIVATE_USER_UNLOCK ) )
         {
             try
             {
@@ -103,9 +105,9 @@ class ActivateUserUtils
         {
             {
                 // execute configured actions
-                LOGGER.debug( pwmSession.getLabel(), "executing configured pre-actions to user " + theUser.getEntryDN() );
-                final List<ActionConfiguration> configValues = config.readSettingAsAction( PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES );
-                if ( configValues != null && !configValues.isEmpty() )
+                LOGGER.debug( pwmSession.getLabel(), () -> "executing configured pre-actions to user " + theUser.getEntryDN() );
+                final List<ActionConfiguration> configValues = activateUserProfile.readSettingAsAction( PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES );
+                if ( !JavaHelper.isEmpty( configValues ) )
                 {
                     final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userIdentity );
 
@@ -136,58 +138,6 @@ class ActivateUserUtils
 
             // send email or sms
             sendPostActivationNotice( pwmRequest );
-
-            // setup post-change attributes
-            final PostChangePasswordAction postAction = new PostChangePasswordAction()
-            {
-
-                public String getLabel( )
-                {
-                    return "ActivateUser write attributes";
-                }
-
-                public boolean doAction( final PwmSession pwmSession, final String newPassword )
-                        throws PwmUnrecoverableException
-                {
-                    try
-                    {
-                        {
-                            // execute configured actions
-                            LOGGER.debug( pwmSession.getLabel(), "executing post-activate configured actions to user " + userIdentity.toDisplayString() );
-
-                            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( pwmApplication );
-                            final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction( PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES );
-
-                            final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
-                                    .setExpandPwmMacros( true )
-                                    .setMacroMachine( macroMachine )
-                                    .createActionExecutor();
-                            actionExecutor.executeActions( configValues, pwmRequest.getSessionLabel() );
-                        }
-                    }
-                    catch ( PwmOperationalException e )
-                    {
-                        final ErrorInformation info = new ErrorInformation(
-                                PwmError.ERROR_ACTIVATION_FAILURE,
-                                e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues()
-                        );
-                        final PwmUnrecoverableException newException = new PwmUnrecoverableException( info );
-                        newException.initCause( e );
-                        throw newException;
-                    }
-                    catch ( ChaiUnavailableException e )
-                    {
-                        final String errorMsg = "unable to reach ldap server while writing post-activate attributes: " + e.getMessage();
-                        final ErrorInformation info = new ErrorInformation( PwmError.ERROR_ACTIVATION_FAILURE, errorMsg );
-                        final PwmUnrecoverableException newException = new PwmUnrecoverableException( info );
-                        newException.initCause( e );
-                        throw newException;
-                    }
-                    return true;
-                }
-            };
-
-            pwmSession.getUserSessionDataCacheBean().addPostChangePasswordActions( "activateUserWriteAttributes", postAction );
         }
         catch ( ImpossiblePasswordPolicyException e )
         {
@@ -217,7 +167,7 @@ class ActivateUserUtils
             final String tokenizedAttrName = "%" + attrName + "%";
             if ( searchFilter.contains( tokenizedAttrName ) )
             {
-                LOGGER.trace( pwmSession, "skipping validation of ldap value for '" + attrName + "' because it is in search filter" );
+                LOGGER.trace( pwmSession, () -> "skipping validation of ldap value for '" + attrName + "' because it is in search filter" );
             }
             else
             {
@@ -232,10 +182,10 @@ class ActivateUserUtils
                                         attrName,
                                 }
                         );
-                        LOGGER.debug( pwmSession.getLabel(), errorInfo.toDebugStr() );
+                        LOGGER.debug( pwmSession, errorInfo );
                         throw new PwmDataValidationException( errorInfo );
                     }
-                    LOGGER.trace( pwmSession.getLabel(), "successful validation of ldap value for '" + attrName + "'" );
+                    LOGGER.trace( pwmSession, () -> "successful validation of ldap value for '" + attrName + "'" );
                 }
                 catch ( ChaiOperationException e )
                 {
@@ -257,11 +207,10 @@ class ActivateUserUtils
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final Configuration config = pwmApplication.getConfig();
+        final ActivateUserProfile activateUserProfile = ActivateUserServlet.activateUserProfile( pwmRequest );
         final UserInfo userInfo = pwmSession.getUserInfo();
-        final MessageSendMethod pref = MessageSendMethod.valueOf( config.readSettingAsString( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD ) );
+        final MessageSendMethod pref = activateUserProfile.readSettingAsEnum( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class );
 
         final boolean success;
         switch ( pref )
@@ -296,7 +245,7 @@ class ActivateUserUtils
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmSession, "skipping send activation email for '" + userInfo.getUserIdentity() + "' no email configured" );
+            LOGGER.debug( pwmSession, () -> "skipping send activation email for '" + userInfo.getUserIdentity() + "' no email configured" );
             return false;
         }
 
@@ -327,13 +276,13 @@ class ActivateUserUtils
         }
         catch ( Exception e )
         {
-            LOGGER.debug( pwmSession.getLabel(), "error reading SMS attribute from user '" + pwmSession.getUserInfo().getUserIdentity() + "': " + e.getMessage() );
+            LOGGER.debug( pwmSession, () -> "error reading SMS attribute from user '" + pwmSession.getUserInfo().getUserIdentity() + "': " + e.getMessage() );
             return false;
         }
 
         if ( toSmsNumber == null || toSmsNumber.length() < 1 )
         {
-            LOGGER.debug( pwmSession.getLabel(), "skipping send activation SMS for '" + pwmSession.getUserInfo().getUserIdentity() + "' no SMS number configured" );
+            LOGGER.debug( pwmSession, () -> "skipping send activation SMS for '" + pwmSession.getUserInfo().getUserIdentity() + "' no SMS number configured" );
             return false;
         }
 
@@ -358,7 +307,7 @@ class ActivateUserUtils
         if ( configuredSearchFilter == null || configuredSearchFilter.isEmpty() )
         {
             searchFilter = FormUtility.ldapSearchFilterForForm( pwmApplication, configuredActivationForm );
-            LOGGER.trace( pwmRequest, "auto generated search filter based on activation form: " + searchFilter );
+            LOGGER.trace( pwmRequest, () -> "auto generated search filter based on activation form: " + searchFilter );
         }
         else
         {
@@ -370,7 +319,8 @@ class ActivateUserUtils
     static void forwardToAgreementPage( final PwmRequest pwmRequest )
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        final String agreementText = pwmRequest.getConfig().readSettingAsLocalizedString(
+        final ActivateUserProfile activateUserProfile = ActivateUserServlet.activateUserProfile( pwmRequest );
+        final String agreementText = activateUserProfile.readSettingAsLocalizedString(
                 PwmSetting.ACTIVATE_AGREEMENT_MESSAGE,
                 pwmRequest.getLocale()
         );
@@ -381,10 +331,28 @@ class ActivateUserUtils
         pwmRequest.forwardToJsp( JspUrl.ACTIVATE_USER_AGREEMENT );
     }
 
-    static void forwardToActivateUserForm( final PwmRequest pwmRequest )
+    static void forwardToSearchUserForm( final PwmRequest pwmRequest )
             throws ServletException, PwmUnrecoverableException, IOException
     {
         pwmRequest.addFormInfoToRequestAttr( PwmSetting.ACTIVATE_USER_FORM, false, false );
-        pwmRequest.forwardToJsp( JspUrl.ACTIVATE_USER );
+        pwmRequest.forwardToJsp( JspUrl.ACTIVATE_USER_SEARCH );
+    }
+
+    static void initUserActivationBean( final PwmRequest pwmRequest, final UserIdentity userIdentity )
+            throws PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final ActivateUserBean activateUserBean = pwmApplication.getSessionStateService().getBean( pwmRequest, ActivateUserBean.class );
+
+        final Optional<String> profileID = ProfileUtility.discoverProfileIDforUser( pwmRequest.commonValues(), userIdentity, ProfileDefinition.ActivateUser );
+
+        if ( !profileID.isPresent() || !pwmApplication.getConfig().getUserActivationProfiles().containsKey( profileID.get() ) )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_ACTIVATE_NO_PERMISSION, "no matching user activation profile for user" );
+        }
+
+        activateUserBean.setUserIdentity( userIdentity );
+        activateUserBean.setFormValidated( true );
+        activateUserBean.setProfileID( profileID.get() );
     }
 }

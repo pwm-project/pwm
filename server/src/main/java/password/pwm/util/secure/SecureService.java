@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.secure;
@@ -62,12 +60,12 @@ public class SecureService implements PwmService
         {
             final String defaultBlockAlgString = config.readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG );
             defaultBlockAlgorithm = JavaHelper.readEnumFromString( PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, defaultBlockAlgString );
-            LOGGER.debug( "using default ephemeral block algorithm: " + defaultBlockAlgorithm.getLabel() );
+            LOGGER.debug( () -> "using default ephemeral block algorithm: " + defaultBlockAlgorithm.getLabel() );
         }
         {
             final String defaultHashAlgString = config.readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_HASH_ALG );
             defaultHashAlgorithm = JavaHelper.readEnumFromString( PwmHashAlgorithm.class, PwmHashAlgorithm.SHA512, defaultHashAlgString );
-            LOGGER.debug( "using default ephemeral hash algorithm: " + defaultHashAlgString.toString() );
+            LOGGER.debug( () -> "using default ephemeral hash algorithm: " + defaultHashAlgString );
         }
     }
 
@@ -183,5 +181,11 @@ public class SecureService implements PwmService
             pwmRandom = PwmRandom.getInstance();
         }
         return pwmRandom;
+    }
+
+    public PwmSecurityKey appendedSecurityKey( final String appendage ) throws PwmUnrecoverableException
+    {
+        final String hash = this.pwmSecurityKey.keyHash( this  );
+        return new PwmSecurityKey( hash + appendage );
     }
 }

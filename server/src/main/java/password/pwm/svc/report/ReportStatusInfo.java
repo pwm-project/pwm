@@ -3,39 +3,46 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.report;
 
+import lombok.Builder;
+import lombok.Data;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.time.Instant;
 
+@Data
+@Builder( toBuilder = true )
 public class ReportStatusInfo implements Serializable
 {
+    @Builder.Default
     private TimeDuration jobDuration = TimeDuration.ZERO;
+
+    private Instant startDate;
     private Instant finishDate;
     private int count;
     private int errors;
     private ErrorInformation lastError;
     private String settingsHash;
+
+    @Builder.Default
     private ReportEngineProcess currentProcess = ReportEngineProcess.None;
 
     public enum ReportEngineProcess
@@ -57,77 +64,5 @@ public class ReportStatusInfo implements Serializable
         {
             return label;
         }
-    }
-
-
-    public ReportStatusInfo( final String settingsHash )
-    {
-        this.settingsHash = settingsHash;
-    }
-
-    public String getSettingsHash( )
-    {
-        return settingsHash;
-    }
-
-    public TimeDuration getJobDuration( )
-    {
-        return jobDuration;
-    }
-
-    public void setJobDuration( final TimeDuration jobDuration )
-    {
-        this.jobDuration = jobDuration;
-    }
-
-    public Instant getFinishDate( )
-    {
-        return finishDate;
-    }
-
-    public void setFinishDate( final Instant finishDate )
-    {
-        this.finishDate = finishDate;
-    }
-
-    public int getCount( )
-    {
-        return count;
-    }
-
-    public void setCount( final int count )
-    {
-        this.count = count;
-    }
-
-
-    public int getErrors( )
-    {
-        return errors;
-    }
-
-    public void setErrors( final int errors )
-    {
-        this.errors = errors;
-    }
-
-    public ErrorInformation getLastError( )
-    {
-        return lastError;
-    }
-
-    public void setLastError( final ErrorInformation lastError )
-    {
-        this.lastError = lastError;
-    }
-
-    public ReportEngineProcess getCurrentProcess( )
-    {
-        return currentProcess;
-    }
-
-    public void setCurrentProcess( final ReportEngineProcess currentProcess )
-    {
-        this.currentProcess = currentProcess;
     }
 }

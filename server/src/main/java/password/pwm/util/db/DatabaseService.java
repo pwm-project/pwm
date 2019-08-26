@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.db;
@@ -39,6 +37,7 @@ import password.pwm.health.HealthTopic;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -58,9 +57,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
+
 
 public class DatabaseService implements PwmService
 {
@@ -84,7 +82,7 @@ public class DatabaseService implements PwmService
     private AtomicLoopIntIncrementer slotIncrementer;
     private final Map<Integer, DatabaseAccessorImpl> accessors = new ConcurrentHashMap<>();
 
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
 
     private final Map<DatabaseAboutProperty, String> debugInfo = new LinkedHashMap<>();
 
@@ -111,14 +109,12 @@ public class DatabaseService implements PwmService
         this.pwmApplication = pwmApplication;
         init();
 
-        executorService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
-                        true
-                ) );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
-        final int watchdogFrequencySeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) );
-        executorService.scheduleWithFixedDelay( new ConnectionMonitor(), watchdogFrequencySeconds, watchdogFrequencySeconds, TimeUnit.SECONDS );
+        final TimeDuration watchdogFrequency = TimeDuration.of(
+                Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) ),
+                TimeDuration.Unit.SECONDS );
+        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ConnectionMonitor(), executorService, watchdogFrequency, watchdogFrequency );
     }
 
     private synchronized void init( )
@@ -139,12 +135,12 @@ public class DatabaseService implements PwmService
             if ( !dbConfiguration.isEnabled() )
             {
                 status = PwmService.STATUS.CLOSED;
-                LOGGER.debug( "skipping database connection open, no connection parameters configured" );
+                LOGGER.debug( () -> "skipping database connection open, no connection parameters configured" );
                 initialized = true;
                 return;
             }
 
-            LOGGER.debug( "opening connection to database " + this.dbConfiguration.getConnectionString() );
+            LOGGER.debug( () -> "opening connection to database " + this.dbConfiguration.getConnectionString() );
             slotIncrementer = new AtomicLoopIntIncrementer( dbConfiguration.getMaxConnections() );
 
             {
@@ -153,7 +149,7 @@ public class DatabaseService implements PwmService
 
                 final Connection connection = openConnection( dbConfiguration );
                 updateDebugProperties( connection );
-                LOGGER.debug( "established initial connection to " + dbConfiguration.getConnectionString() + ", properties: " + JsonUtil.serializeMap( this.debugInfo ) );
+                LOGGER.debug( () -> "established initial connection to " + dbConfiguration.getConnectionString() + ", properties: " + JsonUtil.serializeMap( this.debugInfo ) );
 
                 for ( final DatabaseTable table : DatabaseTable.values() )
                 {
@@ -175,7 +171,7 @@ public class DatabaseService implements PwmService
                 }
             }
 
-            LOGGER.debug( "successfully connected to remote database (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+            LOGGER.debug( () -> "successfully connected to remote database (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
 
             status = STATUS.OPEN;
             initialized = true;
@@ -208,7 +204,7 @@ public class DatabaseService implements PwmService
         }
         catch ( Exception e )
         {
-            LOGGER.debug( "error while de-registering driver: " + e.getMessage() );
+            LOGGER.debug( () -> "error while de-registering driver: " + e.getMessage() );
         }
 
         if ( jdbcDriverLoader != null )
@@ -345,7 +341,7 @@ public class DatabaseService implements PwmService
 
         try
         {
-            LOGGER.debug( "initiating connecting to database " + connectionURL );
+            LOGGER.debug( () -> "initiating connecting to database " + connectionURL );
             final Properties connectionProperties = new Properties();
             if ( dbConfiguration.getUsername() != null && !dbConfiguration.getUsername().isEmpty() )
             {
@@ -357,7 +353,7 @@ public class DatabaseService implements PwmService
             }
 
             final Connection connection = driver.connect( connectionURL, connectionProperties );
-            LOGGER.debug( "connected to database " + connectionURL );
+            LOGGER.debug( () -> "connected to database " + connectionURL );
 
             connection.setAutoCommit( false );
             return connection;

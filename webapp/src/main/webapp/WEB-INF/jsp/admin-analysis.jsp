@@ -3,33 +3,35 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2018 The PWM Project
+ ~ Copyright (c) 2009-2019 The PWM Project
  ~
- ~ This program is free software; you can redistribute it and/or modify
- ~ it under the terms of the GNU General Public License as published by
- ~ the Free Software Foundation; either version 2 of the License, or
- ~ (at your option) any later version.
+ ~ Licensed under the Apache License, Version 2.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
  ~
- ~ This program is distributed in the hope that it will be useful,
- ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
- ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- ~ GNU General Public License for more details.
+ ~     http://www.apache.org/licenses/LICENSE-2.0
  ~
- ~ You should have received a copy of the GNU General Public License
- ~ along with this program; if not, write to the Free Software
- ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
 --%>
 
-<%@ page import="password.pwm.error.PwmError" %>
+
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.i18n.Admin" %>
+<%@ page import="password.pwm.svc.stats.AvgStatistic" %>
+<%@ page import="password.pwm.svc.stats.DailyKey" %>
 <%@ page import="password.pwm.svc.stats.Statistic" %>
+<%@ page import="password.pwm.svc.stats.StatisticType" %>
 <%@ page import="password.pwm.svc.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.svc.stats.StatisticsManager" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
-<%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="java.time.format.DateTimeFormatter" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -182,16 +184,16 @@
                                             <select name="statsPeriodSelect"
                                                     style="width: 350px;">
                                                 <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                    since installation - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %>
+                                                    since installation - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %></span>
                                                 </option>
                                                 <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                    since startup - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %>
+                                                    since startup - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %></span>
                                                 </option>
-                                                <% final Map<StatisticsManager.DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
-                                                <% for (final Map.Entry<StatisticsManager.DailyKey, String> entry : availableKeys.entrySet()) { %>
-                                                <% final StatisticsManager.DailyKey key = entry.getKey(); %>
+                                                <% final Map<DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
+                                                <% for (final Map.Entry<DailyKey, String> entry : availableKeys.entrySet()) { %>
+                                                <% final DailyKey key = entry.getKey(); %>
                                                 <option value="<%=key%>" <%= key.toString().equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                    <%= entry.getValue() %>
+                                                    <%=key.localDate().format(DateTimeFormatter.ISO_LOCAL_DATE)%>
                                                 </option>
                                                 <% } %>
                                             </select>
@@ -208,7 +210,17 @@
                                         <span id="Statistic_Key_<%=loopStat.getKey()%>"><%= loopStat.getLabel(locale) %><span/>
                                     </td>
                                     <td>
-                                        <%= stats.getStatistic(loopStat) %><%= loopStat.getType() == Statistic.Type.AVERAGE && loopStat != Statistic.AVG_PASSWORD_STRENGTH ? " ms" : "" %>
+                                        <%= stats.getStatistic(loopStat) %>
+                                    </td>
+                                </tr>
+                                <% } %>
+                                <% for (final AvgStatistic loopStat : AvgStatistic.values()) { %>
+                                <tr>
+                                    <td >
+                                        <span id="Statistic_Key_<%=loopStat.getKey()%>"><%= loopStat.getLabel(locale) %><span/>
+                                    </td>
+                                    <td>
+                                        <%= stats.getAvgStatistic(loopStat) %><%= loopStat.getUnit() %>
                                     </td>
                                 </tr>
                                 <% } %>

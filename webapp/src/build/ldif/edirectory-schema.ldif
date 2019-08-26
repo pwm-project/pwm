@@ -100,6 +100,20 @@ attributeTypes: (
  )
 
 #------------------------------------------------------
+#-- Attribute:  	pwmData
+#-- Syntax:      	OCTET STRING
+#-- Description:    Stores application data
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.7
+  NAME 'pwmData'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+
+#------------------------------------------------------
 #-- Class:        pwmUser
 #-- Description:  Aux class
 #-- Req:          none
@@ -114,5 +128,5 @@ objectClasses: (
   1.3.6.1.4.1.35015.1.1.1
   NAME 'pwmUser'
   AUXILIARY
-  MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID $ pwmToken $ pwmOtpSecret )
+  MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID $ pwmToken $ pwmOtpSecret $ pwmData )
  )

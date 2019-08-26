@@ -3,32 +3,30 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2018 The PWM Project
+ ~ Copyright (c) 2009-2019 The PWM Project
  ~
- ~ This program is free software; you can redistribute it and/or modify
- ~ it under the terms of the GNU General Public License as published by
- ~ the Free Software Foundation; either version 2 of the License, or
- ~ (at your option) any later version.
+ ~ Licensed under the Apache License, Version 2.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
  ~
- ~ This program is distributed in the hope that it will be useful,
- ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
- ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- ~ GNU General Public License for more details.
+ ~     http://www.apache.org/licenses/LICENSE-2.0
  ~
- ~ You should have received a copy of the GNU General Public License
- ~ along with this program; if not, write to the Free Software
- ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
 --%>
 
-<%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="password.pwm.http.JspUtility" %>
+
 <%@ page import="password.pwm.i18n.PwmLocaleBundle" %>
-<%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="password.pwm.util.i18n.ConfigLocaleStats" %>
+<%@ page import="password.pwm.util.i18n.LocaleHelper" %>
+<%@ page import="password.pwm.util.i18n.LocaleStats" %>
 <%@ page import="java.text.NumberFormat" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.Arrays" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
+<%@ page import="java.util.Map" %>
 
 <!DOCTYPE html>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_WARNINGS); %>
@@ -40,42 +38,13 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final List<Locale> HIGHLIGHTED_LOCALES = Arrays.asList(new Locale[] {
-            LocaleHelper.parseLocaleString("en"),
-            LocaleHelper.parseLocaleString("ca"),
-            LocaleHelper.parseLocaleString("da"),
-            LocaleHelper.parseLocaleString("de"),
-            LocaleHelper.parseLocaleString("es"),
-            LocaleHelper.parseLocaleString("fr"),
-            LocaleHelper.parseLocaleString("it"),
-            LocaleHelper.parseLocaleString("ja"),
-            LocaleHelper.parseLocaleString("nl"),
-            LocaleHelper.parseLocaleString("pl"),
-            LocaleHelper.parseLocaleString("pt_BR"),
-            LocaleHelper.parseLocaleString("ru"),
-            LocaleHelper.parseLocaleString("sv"),
-            LocaleHelper.parseLocaleString("zh_CN"),
-            LocaleHelper.parseLocaleString("zh_TW")
-    });
-
-    PwmRequest pwmRequest = null;
-    LocaleHelper.LocaleStats allStats = null;
-    LocaleHelper.LocaleStats userFacingStats = null;
-    LocaleHelper.LocaleStats adminFacingStats = null;
-    LocaleHelper.ConfigLocaleStats configLocaleStats = null;
-    try {
-        pwmRequest = PwmRequest.forRequest(request, response);
-        allStats = LocaleHelper.getStatsForBundles(PwmLocaleBundle.allValues());
-        userFacingStats = LocaleHelper.getStatsForBundles(PwmLocaleBundle.userFacingValues());
-        {
-            final List<PwmLocaleBundle> adminBundles = new ArrayList<PwmLocaleBundle>(PwmLocaleBundle.allValues());
-            adminBundles.removeAll(PwmLocaleBundle.userFacingValues());
-            adminFacingStats = LocaleHelper.getStatsForBundles(adminBundles);
-        }
-        configLocaleStats = LocaleHelper.getConfigLocaleStats();
-    } catch (PwmException e) {
-        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
-    }
+    final List<Locale> highlightedLocales = LocaleHelper.highLightedLocales();
+    final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext );
+    final Map<PwmLocaleBundle, LocaleStats> localeStats = LocaleStats.getAllLocaleStats();
+    final LocaleStats allStats = LocaleStats.getAllStats();
+    final LocaleStats userFacingStats = LocaleStats.getUserFacingStats();
+    final LocaleStats adminFacingStats = LocaleStats.getAdminFacingStats();
+    final ConfigLocaleStats configLocaleStats = ConfigLocaleStats.getConfigLocaleStats();
 %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
@@ -108,6 +77,7 @@
                 </td>
             </tr>
             <% for (final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.values()) { %>
+            <% LocaleStats bundleStats = localeStats.get( pwmLocaleBundle ); %>
             <tr>
                 <td>
                     <%=pwmLocaleBundle.getTheClass().getSimpleName()%>
@@ -116,10 +86,10 @@
                     <%=LocaleHelper.booleanString(!pwmLocaleBundle.isAdminOnly(), pwmRequest.getLocale(), pwmRequest.getConfig())%>
                 </td>
                 <td>
-                    <%=numberFormat.format(pwmLocaleBundle.getKeys().size())%>
+                    <%=numberFormat.format(bundleStats.getTotalKeys())%>
                 </td>
                 <td>
-                    <%=numberFormat.format(pwmLocaleBundle.getKeys().size() * allStats.getMissingKeys().values().iterator().next().size())%>
+                    <%=numberFormat.format(bundleStats.getTotalSlots())%>
                 </td>
             </tr>
             <% } %>
@@ -159,7 +129,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%=loopLocale.getDisplayName()%>
@@ -216,7 +186,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%=loopLocale.getDisplayName()%>
@@ -274,7 +244,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%=loopLocale.getDisplayName()%>
@@ -331,7 +301,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%= loopLocale.getDisplayName() %>
@@ -363,7 +333,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%= loopLocale.getDisplayName() %>
@@ -388,11 +358,11 @@
                 Key
             </td>
         </tr>
-        <% for (final PwmLocaleBundle pwmLocaleBundle : allStats.getMissingKeys().keySet()) { %>
+        <% for (final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.allValues()) { %>
         <% if (!pwmLocaleBundle.isAdminOnly()) { %>
-        <% for (final Locale locale : allStats.getMissingKeys().get(pwmLocaleBundle).keySet()) { %>
-        <% if (HIGHLIGHTED_LOCALES.contains(locale)) { %>
-        <% for (final String key : allStats.getMissingKeys().get(pwmLocaleBundle).get(locale)) { %>
+        <% for (final Locale locale : pwmRequest.getConfig().getKnownLocales()) { %>
+        <% if ( highlightedLocales.contains(locale)) { %>
+        <% for (final String key : LocaleStats.missingKeysForBundleAndLocale( pwmLocaleBundle, locale )) { %>
         <tr>
             <td>
                 <%=pwmLocaleBundle.getTheClass().getSimpleName()%>

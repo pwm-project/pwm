@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 "use strict";
@@ -31,7 +29,7 @@ PWM_API.formatDate = function(dateObj) {
     return PWM_MAIN.TimestampHandler.formatDate(dateObj);
 };
 
-PWM_MAIN.ajaxTimeout = 120 * 1000;
+PWM_MAIN.ajaxTimeout = 60 * 1000;
 
 PWM_MAIN.pageLoadHandler = function() {
     PWM_GLOBAL['localeBundle']=PWM_GLOBAL['localeBundle'] || [];
@@ -216,8 +214,8 @@ PWM_MAIN.initPage = function() {
     PWM_MAIN.TimestampHandler.initAllElements();
 
     ShowHidePasswordHandler.initAllForms();
-
-    PWM_MAIN.log('initPage completed');
+    var loadTime = window.performance.timing.domContentLoadedEventEnd-window.performance.timing.navigationStart;
+    PWM_MAIN.log('initPage completed [load time=' + loadTime + ']');
 };
 
 PWM_MAIN.initDisplayTabPreferences = function() {
@@ -271,6 +269,7 @@ PWM_MAIN.applyFormAttributes = function() {
         var hrefValue = linkElement.getAttribute('href');
         if (hrefValue && hrefValue.charAt(0) !== '#') {
             PWM_MAIN.addEventHandler(linkElement, "click", function (event) {
+                console.log('intercepted anchor click event');
                 event.preventDefault();
                 PWM_MAIN.showWaitDialog({loadFunction: function () {
                         PWM_MAIN.gotoUrl(hrefValue);
@@ -284,10 +283,10 @@ PWM_MAIN.applyFormAttributes = function() {
     require(["dojo"], function (dojo) {
         if(dojo.isIE){
             PWM_MAIN.doQuery("button[type=submit][form]",function(element){
-                PWM_MAIN.log('added event handler for submit button with form attribute ' + element.id);
+                PWM_MAIN.log('added IE event handler for submit button with form attribute ' + element.id);
                 PWM_MAIN.addEventHandler(element,'click',function(e){
-                    PWM_MAIN.stopEvent(e);
-                    PWM_VAR['dirtyPageLeaveFlag'] = false;
+                    e.preventDefault();
+                    PWM_MAIN.log('IE event handler intercepted submit for referenced form attribute ' + element.id);
                     var formID = element.getAttribute('form');
                     PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject(formID));
                 });
@@ -337,7 +336,6 @@ PWM_MAIN.addEventHandler = function(nodeId,eventType,functionToAdd) {
 
 
 PWM_MAIN.gotoUrl = function(url, options) {
-    PWM_VAR['dirtyPageLeaveFlag'] = false;
     options = options === undefined ? {} : options;
     if (!('noContext' in options) && url.indexOf(PWM_GLOBAL['url-context']) !== 0) {
         if (url.substring(0,1) === '/') {
@@ -425,11 +423,13 @@ PWM_MAIN.handleFormSubmit = function(form, event) {
     PWM_MAIN.cancelEvent(event);
 
     PWM_GLOBAL['idle_suspendTimeout'] = true;
-    var formElements = form.elements;
-    for (var i = 0; i < formElements.length; i++) {
-        formElements[i].readOnly = true;
-        if (formElements[i].type === 'button' || formElements[i].type === 'submit') {
-            formElements[i].disabled = true;
+    if ( form.elements ) {
+        var formElements = form.elements;
+        for (var i = 0; i < formElements.length; i++) {
+            formElements[i].readOnly = true;
+            if (formElements[i].type === 'button' || formElements[i].type === 'submit') {
+                formElements[i].disabled = true;
+            }
         }
     }
 
@@ -472,19 +472,19 @@ PWM_MAIN.checkForCapsLock = function(e) {
 
         if(dojo.isIE){
             if (capsLockKeyDetected) {
-                capsLockWarningElement.style.display = 'block';
+                PWM_MAIN.removeCssClass('capslockwarning','display-none');
                 PWM_GLOBAL['lastCapsLockErrorTime'] = (new Date().getTime());
                 setTimeout(function(){
                     if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
-                        capsLockWarningElement.style.display = 'none';
+                        PWM_MAIN.addCssClass('capslockwarning','display-none');
                     }
                 },displayDuration + 500);
             } else {
-                capsLockWarningElement.style.display = 'none';
+                PWM_MAIN.addCssClass('capslockwarning','display-none');
             }
         } else {
             if (capsLockKeyDetected) {
-                capsLockWarningElement.style.display = null;
+                PWM_MAIN.removeCssClass('capslockwarning','display-none');
                 fx.fadeIn(fadeInArgs).play();
                 PWM_GLOBAL['lastCapsLockErrorTime'] = (new Date().getTime());
                 setTimeout(function(){
@@ -492,7 +492,7 @@ PWM_MAIN.checkForCapsLock = function(e) {
                         dojo.fadeOut(fadeOutArgs).play();
                         setTimeout(function(){
                             if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
-                                capsLockWarningElement.style.display = 'none';
+                                PWM_MAIN.addCssClass('capslockwarning','display-none');
                             }
                         },5 * 1000);
                     }
@@ -655,20 +655,28 @@ PWM_MAIN.showLocaleSelectionMenu = function(nextFunction, options) {
 
 
 PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
-
     PWM_MAIN.addEventHandler(attachNode,'click',function(){
         PWM_MAIN.showLocaleSelectionMenu(function(localeKey){
-            require(["dojo"], function (dojo) {
-                var nextUrl = window.location.toString();
-                if (window.location.toString().indexOf('?') > 0) {
-                    var params = dojo.queryToObject(window.location.search.substring(1, window.location.search.length));
-                    params['locale'] = localeKey;
-                    nextUrl = window.location.toString().substring(0, window.location.toString().indexOf('?') + 1)
-                        + dojo.objectToQuery(params);
-                } else {
-                    nextUrl = PWM_MAIN.addParamToUrl(nextUrl, 'locale', localeKey)
+
+            PWM_MAIN.showWaitDialog({loadFunction:function(){
+                    var url = PWM_GLOBAL['url-context'] + '/public/api?locale=' + localeKey;
+                    PWM_MAIN.ajaxRequest(url, function(){
+                        try {
+                            var newLocation = window.location;
+                            var searchParams = new URLSearchParams(newLocation.search);
+                            if ( searchParams.has('locale')) {
+                                searchParams.set('locale', localeKey);
+                                newLocation.search = searchParams.toString();
+                                window.location = newLocation;
+                                return;
+                            }
+                        } catch (e) {
+                            PWM_MAIN.log('error replacing locale parameter on existing url: ' + e);
+                        }
+
+                        window.location.reload(true);
+                    });
                 }
-                PWM_MAIN.gotoUrl(nextUrl);
             });
         });
     });
@@ -1382,10 +1390,10 @@ PWM_MAIN.updateLoginContexts = function() {
         var selectedProfile = ldapProfileElement.options[ldapProfileElement.selectedIndex].value;
         var contextList = PWM_GLOBAL['ldapProfiles'][selectedProfile];
         if (PWM_MAIN.JSLibrary.isEmpty(contextList)) {
-            PWM_MAIN.getObject('contextSelectorWrapper').style.display = 'none';
+            PWM_MAIN.addCssClass( 'contentSelectorWrapper', 'display-none' );
         } else {
             contextElement.innerHTML = '';
-            PWM_MAIN.getObject('contextSelectorWrapper').style.display = 'inherit';
+            PWM_MAIN.removeCssClass( 'contentSelectorWrapper', 'display-none' );
             for (var iter in contextList) {
                 (function (key) {
                     var display = contextList[key];
@@ -1607,7 +1615,6 @@ PWM_MAIN.IdleTimeoutHandler.pollActivity = function() {
 
     if (secondsRemaining < 0) {
         if (!PWM_GLOBAL['idle_suspendTimeout']) {
-            PWM_VAR['dirtyPageLeaveFlag'] = false;
             PWM_GLOBAL['idle_suspendTimeout'] = true;
             var url = PWM_GLOBAL['url-logout'] + '?idle=true&url=' + encodeURIComponent(window.location.pathname);
             PWM_MAIN.gotoUrl(url);

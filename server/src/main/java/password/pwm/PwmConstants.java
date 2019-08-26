@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm;
@@ -62,10 +60,9 @@ public abstract class PwmConstants
 
     static
     {
-        final String servletVersion =
-                ( BUILD_VERSION.length() > 0 ? "v" + BUILD_VERSION : "" )
-                        + ( BUILD_VERSION.length() > 0 ? " b" + BUILD_NUMBER : "" )
-                        + ( BUILD_NUMBER.length() > 0 ? " r" + BUILD_REVISION : "" ).trim();
+        final String servletVersion = "v" + BUILD_VERSION
+                        + " b" + BUILD_NUMBER
+                        + " r" + BUILD_REVISION;
 
         SERVLET_VERSION = servletVersion.isEmpty()
                 ? MISSING_VERSION_STRING
@@ -75,10 +72,11 @@ public abstract class PwmConstants
     public static final String CHAI_API_VERSION = com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION;
 
     public static final String DEFAULT_CONFIG_FILE_FILENAME = readPwmConstantsBundle( "defaultConfigFilename" );
+    public static final String DEFAULT_PROPERTIES_CONFIG_FILE_FILENAME = readPwmConstantsBundle( "defaultPropertiesConfigFilename" );
 
     public static final String PWM_APP_NAME = readPwmConstantsBundle( "pwm.appName" );
+    public static final String PWM_VENDOR_NAME = readPwmConstantsBundle( "pwm.vendorName" );
     public static final String PWM_URL_HOME = readPwmConstantsBundle( "url.pwm-home" );
-    public static final String PWM_URL_CLOUD = readPwmConstantsBundle( "url.pwm-cloud" );
 
     public static final String PWM_APP_NAME_VERSION = PWM_APP_NAME + " " + SERVLET_VERSION;
 
@@ -86,6 +84,7 @@ public abstract class PwmConstants
 
     public static final Locale DEFAULT_LOCALE = new Locale( readPwmConstantsBundle( "locale.defaultLocale" ) );
     public static final Charset DEFAULT_CHARSET = Charset.forName( "UTF8" );
+    public static final List<String> HIGHLIGHT_LOCALES = StringUtil.splitAndTrim( readPwmConstantsBundle( "locale.highlightList" ), "," );
 
     public static final CSVFormat DEFAULT_CSV_FORMAT = CSVFormat.DEFAULT;
 
@@ -165,9 +164,10 @@ public abstract class PwmConstants
     public static final String PARAM_RECOVERY_OAUTH_RESULT = "roauthResults";
     public static final String PARAM_SIGNED_FORM = "signedForm";
     public static final String PARAM_USERKEY = "userKey";
+    public static final String PARAM_METHOD_CHOICE = "methodChoice";
 
 
-    public static final String COOKIE_PERSISTENT_CONFIG_LOGIN = "persistentConfigLogin";
+    public static final String COOKIE_PERSISTENT_CONFIG_LOGIN = "CONFIG-AUTH";
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
 
@@ -217,6 +217,7 @@ public abstract class PwmConstants
             "Your password must be scanned by the TSA to ensure the safety of your fellow travelers.  Please take off your password's shoes to continue.",
             "That password really tied the room together dude.",
             "Bite my shiny metal password!",
+            "ben makes password software go woooo",
 
             //nick helm
             "I needed a password eight characters long so I picked Snow White and the Seven Dwarves.",

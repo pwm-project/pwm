@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 
@@ -54,15 +52,13 @@ export const PASSWORD_UI_MODES = {
 
 export const VERIFICATION_METHOD_NAMES = {
     ATTRIBUTES: 'ATTRIBUTES',
-    EMAIL: 'EMAIL',
-    SMS: 'SMS',
+    TOKEN: 'TOKEN',
     OTP: 'OTP'
 };
 
 export const VERIFICATION_METHOD_LABELS = {
     ATTRIBUTES: 'Button_Attributes',
-    EMAIL: 'Button_Email',
-    SMS: 'Button_SMS',
+    TOKEN: 'Button_TokenVerification',
     OTP: 'Button_OTP'
 };
 
@@ -84,7 +80,6 @@ export interface IHelpDeskConfigService extends IConfigService {
     getPasswordUiMode(): IPromise<string>;
     getTokenSendMethod(): IPromise<string>;
     getVerificationAttributes(): IPromise<IVerificationMap>;
-    getVerificationMethods(options?: {includeOptional: boolean}): IPromise<IVerificationMap>;
     maskPasswordsEnabled(): IPromise<boolean>;
     verificationsEnabled(): IPromise<boolean>;
     advancedSearchConfig(): IPromise<IAdvancedSearchConfig>;
@@ -115,50 +110,6 @@ export default class HelpDeskConfigService extends ConfigBaseService implements 
 
     getVerificationAttributes(): IPromise<IVerificationMap> {
         return this.getValue(VERIFICATION_FORM_CONFIG);
-    }
-
-    private getVerificationMethod(methodName): {name: string, label: string} {
-        return {
-            name: methodName,
-            label: VERIFICATION_METHOD_LABELS[methodName]
-        };
-    }
-
-    getVerificationMethods(options?: {includeOptional: boolean}): IPromise<IVerificationMap> {
-        let promise = this.$q.all([
-            this.getValue(VERIFICATION_METHODS_CONFIG),
-            this.getTokenSendMethod()
-        ]);
-
-        return promise.then((result) => {
-            let availableMethods: string[];
-            if (options && options.includeOptional) {
-                availableMethods = result[0].optional;
-            }
-            else {
-                availableMethods = result[0].required;
-            }
-
-            let tokenSendMethod: string = result[1];
-
-            let verificationMethods: IVerificationMap = [];
-            availableMethods.forEach((method) => {
-                if (method === TOKEN_VERIFICATION_METHOD) {
-                    if (tokenSendMethod === TOKEN_EMAIL_ONLY || tokenSendMethod === TOKEN_CHOICE) {
-                        verificationMethods.push(this.getVerificationMethod(VERIFICATION_METHOD_NAMES.EMAIL));
-                    }
-
-                    if (tokenSendMethod === TOKEN_SMS_ONLY || tokenSendMethod === TOKEN_CHOICE) {
-                        verificationMethods.push(this.getVerificationMethod(VERIFICATION_METHOD_NAMES.SMS));
-                    }
-                }
-                else {
-                    verificationMethods.push(this.getVerificationMethod(method));
-                }
-            });
-
-            return verificationMethods;
-        });
     }
 
     maskPasswordsEnabled(): IPromise<boolean> {

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.ldap;
@@ -51,14 +49,14 @@ public class LdapConnectionService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapConnectionService.class );
 
-    private final Map<LdapProfile, Map<Integer, ChaiProvider>> proxyChaiProviders = new ConcurrentHashMap<>();
-    private final Map<LdapProfile, ErrorInformation> lastLdapErrors = new ConcurrentHashMap<>();
+    private final Map<String, Map<Integer, ChaiProvider>> proxyChaiProviders = new ConcurrentHashMap<>();
+    private final Map<String, ErrorInformation> lastLdapErrors = new ConcurrentHashMap<>();
 
     private boolean useThreadLocal;
     private PwmApplication pwmApplication;
     private STATUS status = STATUS.NEW;
     private AtomicLoopIntIncrementer slotIncrementer;
-    private final ThreadLocal<Map<LdapProfile, ChaiProvider>> threadLocalProvider = new ThreadLocal<>();
+    private final ThreadLocal<Map<String, ChaiProvider>> threadLocalProvider = new ThreadLocal<>();
     private ChaiProviderFactory chaiProviderFactory;
 
     public STATUS status( )
@@ -79,12 +77,12 @@ public class LdapConnectionService implements PwmService
         this.lastLdapErrors.putAll( readLastLdapFailure( pwmApplication ) );
 
         final int connectionsPerProfile = maxSlotsPerProfile( pwmApplication );
-        LOGGER.trace( "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
+        LOGGER.trace( () -> "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
         slotIncrementer = new AtomicLoopIntIncrementer( connectionsPerProfile );
 
         for ( final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values() )
         {
-            proxyChaiProviders.put( ldapProfile, new ConcurrentHashMap<>() );
+            proxyChaiProviders.put( ldapProfile.getIdentifier(), new ConcurrentHashMap<>() );
         }
 
         status = STATUS.OPEN;
@@ -93,7 +91,7 @@ public class LdapConnectionService implements PwmService
     public void close( )
     {
         status = STATUS.CLOSED;
-        LOGGER.trace( "closing ldap proxy connections" );
+        LOGGER.trace( () -> "closing ldap proxy connections" );
         if ( chaiProviderFactory != null )
         {
             try
@@ -141,9 +139,9 @@ public class LdapConnectionService implements PwmService
 
         if ( useThreadLocal )
         {
-            if ( threadLocalProvider.get() != null && threadLocalProvider.get().containsKey( effectiveProfile ) )
+            if ( threadLocalProvider.get() != null && threadLocalProvider.get().containsKey( effectiveProfile.getIdentifier() ) )
             {
-                return threadLocalProvider.get().get( effectiveProfile );
+                return threadLocalProvider.get().get( effectiveProfile.getIdentifier() );
             }
         }
 
@@ -155,7 +153,7 @@ public class LdapConnectionService implements PwmService
             {
                 threadLocalProvider.set( new ConcurrentHashMap<>() );
             }
-            threadLocalProvider.get().put( effectiveProfile, chaiProvider );
+            threadLocalProvider.get().put( effectiveProfile.getIdentifier(), chaiProvider );
         }
 
         return chaiProvider;
@@ -171,7 +169,7 @@ public class LdapConnectionService implements PwmService
 
         final int slot = slotIncrementer.next();
 
-        final ChaiProvider proxyChaiProvider = proxyChaiProviders.get( ldapProfile ).get( slot );
+        final ChaiProvider proxyChaiProvider = proxyChaiProviders.get( ldapProfile.getIdentifier() ).get( slot );
 
         if ( proxyChaiProvider != null )
         {
@@ -187,7 +185,7 @@ public class LdapConnectionService implements PwmService
                     pwmApplication.getConfig(),
                     pwmApplication.getStatisticsManager()
             );
-            proxyChaiProviders.get( ldapProfile ).put( slot, newProvider );
+            proxyChaiProviders.get( ldapProfile.getIdentifier() ).put( slot, newProvider );
 
             return newProvider;
         }
@@ -207,25 +205,19 @@ public class LdapConnectionService implements PwmService
 
     public void setLastLdapFailure( final LdapProfile ldapProfile, final ErrorInformation errorInformation )
     {
-        lastLdapErrors.put( ldapProfile, errorInformation );
-        final HashMap<String, ErrorInformation> outputMap = new HashMap<>();
-        for ( final Map.Entry<LdapProfile, ErrorInformation> entry : lastLdapErrors.entrySet() )
-        {
-            final LdapProfile loopProfile = entry.getKey();
-            outputMap.put( loopProfile.getIdentifier(), entry.getValue() );
-        }
-        final String jsonString = JsonUtil.serialize( outputMap );
+        lastLdapErrors.put( ldapProfile.getIdentifier(), errorInformation );
+        final String jsonString = JsonUtil.serializeMap( lastLdapErrors );
         pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.LAST_LDAP_ERROR, jsonString );
     }
 
-    public Map<LdapProfile, ErrorInformation> getLastLdapFailure( )
+    public Map<String, ErrorInformation> getLastLdapFailure( )
     {
         return Collections.unmodifiableMap( lastLdapErrors );
     }
 
     public Instant getLastLdapFailureTime( final LdapProfile ldapProfile )
     {
-        final ErrorInformation errorInformation = lastLdapErrors.get( ldapProfile );
+        final ErrorInformation errorInformation = lastLdapErrors.get( ldapProfile.getIdentifier() );
         if ( errorInformation != null )
         {
             return errorInformation.getDate();
@@ -233,7 +225,7 @@ public class LdapConnectionService implements PwmService
         return null;
     }
 
-    private static Map<LdapProfile, ErrorInformation> readLastLdapFailure( final PwmApplication pwmApplication )
+    private static Map<String, ErrorInformation> readLastLdapFailure( final PwmApplication pwmApplication )
     {
         String lastLdapFailureStr = null;
         try
@@ -244,16 +236,8 @@ public class LdapConnectionService implements PwmService
                 final Map<String, ErrorInformation> fromJson = JsonUtil.deserialize( lastLdapFailureStr, new TypeToken<Map<String, ErrorInformation>>()
                 {
                 } );
-                final Map<LdapProfile, ErrorInformation> returnMap = new HashMap<>();
-                for ( final Map.Entry<String, ErrorInformation> entry : fromJson.entrySet() )
-                {
-                    final String id = entry.getKey();
-                    final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get( id );
-                    if ( ldapProfile != null )
-                    {
-                        returnMap.put( ldapProfile, entry.getValue() );
-                    }
-                }
+                final Map<String, ErrorInformation> returnMap = new HashMap<>( fromJson );
+                returnMap.keySet().retainAll( pwmApplication.getConfig().getLdapProfiles().keySet() );
                 return returnMap;
             }
         }

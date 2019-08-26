@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config.stored;
@@ -46,7 +44,6 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -63,8 +60,6 @@ public class ConfigurationReader
     private Configuration configuration;
     private StoredConfigurationImpl storedConfiguration;
     private ErrorInformation configFileError;
-
-    private Date configurationReadTime;
 
     private PwmApplicationMode configMode = PwmApplicationMode.NEW;
 
@@ -91,7 +86,7 @@ public class ConfigurationReader
             this.storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
         }
 
-        LOGGER.debug( "configuration mode: " + configMode );
+        LOGGER.debug( () -> "configuration mode: " + configMode );
     }
 
     public PwmApplicationMode getConfigMode( )
@@ -122,9 +117,7 @@ public class ConfigurationReader
 
     private StoredConfigurationImpl readStoredConfig( ) throws PwmUnrecoverableException
     {
-        LOGGER.debug( "loading configuration file: " + configFile );
-
-        configurationReadTime = new Date();
+        LOGGER.debug( () -> "loading configuration file: " + configFile );
 
         if ( !configFile.exists() )
         {
@@ -165,6 +158,7 @@ public class ConfigurationReader
                     }
             );
             this.configMode = PwmApplicationMode.ERROR;
+            e.printStackTrace(  );
             throw new PwmUnrecoverableException( errorInformation );
         }
 
@@ -176,7 +170,7 @@ public class ConfigurationReader
                     {
                             errorMsg,
                     }
-                    );
+            );
             this.configMode = PwmApplicationMode.ERROR;
             throw new PwmUnrecoverableException( errorInformation );
         }
@@ -193,7 +187,7 @@ public class ConfigurationReader
 
         final String fileSize = StringUtil.formatDiskSize( configFile.length() );
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.debug( "configuration reading/parsing of " + fileSize + " complete in " + timeDuration.asLongString() );
+        LOGGER.debug( () -> "configuration reading/parsing of " + fileSize + " complete in " + timeDuration.asLongString() );
 
         return storedConfiguration;
     }
@@ -248,7 +242,7 @@ public class ConfigurationReader
         try
         {
             final File tempWriteFile = new File( configFile.getAbsoluteFile() + ".new" );
-            LOGGER.info( sessionLabel, "beginning write to configuration file " + tempWriteFile );
+            LOGGER.info( sessionLabel, () -> "beginning write to configuration file " + tempWriteFile );
             saveInProgress = true;
 
             try ( FileOutputStream fileOutputStream = new FileOutputStream( tempWriteFile, false ) )
@@ -256,14 +250,14 @@ public class ConfigurationReader
                 storedConfiguration.toXml( fileOutputStream );
             }
 
-            LOGGER.info( "saved configuration " + JsonUtil.serialize( storedConfiguration.toJsonDebugObject() ) );
+            LOGGER.info( () -> "saved configuration " + JsonUtil.serialize( storedConfiguration.toJsonDebugObject() ) );
             if ( pwmApplication != null )
             {
                 final String actualChecksum = storedConfiguration.settingChecksum();
                 pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.CONFIG_HASH, actualChecksum );
             }
 
-            LOGGER.trace( "renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath() );
+            LOGGER.trace( () -> "renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath() );
             try
             {
                 Files.move( tempWriteFile.toPath(), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE );

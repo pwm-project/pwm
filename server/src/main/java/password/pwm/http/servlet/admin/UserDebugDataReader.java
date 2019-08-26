@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.admin;
@@ -29,7 +27,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.value.data.UserPermission;
@@ -38,6 +36,9 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.svc.PwmService;
+import password.pwm.svc.pwnotify.PwNotifyUserStatus;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
 
@@ -45,10 +46,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 public class UserDebugDataReader
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( UserDebugDataReader.class );
+
     public static UserDebugDataBean readUserDebugData(
             final PwmApplication pwmApplication,
             final Locale locale,
@@ -57,11 +61,13 @@ public class UserDebugDataReader
     )
             throws PwmUnrecoverableException
     {
-        final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, sessionLabel, userIdentity, locale );
+
+
+        final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxyForOfflineUser( pwmApplication, sessionLabel, userIdentity );
 
         final Map<Permission, String> permissions = UserDebugDataReader.permissionMap( pwmApplication, sessionLabel, userIdentity );
 
-        final Map<ProfileType, String> profiles = UserDebugDataReader.profileMap( pwmApplication, sessionLabel, userIdentity );
+        final Map<ProfileDefinition, String> profiles = UserDebugDataReader.profileMap( pwmApplication, sessionLabel, userIdentity );
 
         final PwmPasswordPolicy ldapPasswordPolicy = PasswordUtility.readLdapPasswordPolicy( pwmApplication, pwmApplication.getProxiedChaiUser( userIdentity ) );
 
@@ -84,7 +90,9 @@ public class UserDebugDataReader
 
         final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, locale, sessionLabel, userIdentity );
 
-        final UserDebugDataBean userDebugData = UserDebugDataBean.builder()
+        final PwNotifyUserStatus pwNotifyUserStatus = readPwNotifyUserStatus( pwmApplication, userIdentity, sessionLabel );
+
+        return UserDebugDataBean.builder()
                 .userInfo( userInfo )
                 .publicUserInfoBean( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), locale, macroMachine ) )
                 .permissions( permissions )
@@ -93,9 +101,8 @@ public class UserDebugDataReader
                 .configuredPasswordPolicy( configPasswordPolicy )
                 .passwordReadable( readablePassword )
                 .passwordWithinMinimumLifetime( userInfo.isWithinPasswordMinimumLifetime() )
+                .pwNotifyUserStatus( pwNotifyUserStatus )
                 .build();
-
-        return userDebugData;
     }
 
 
@@ -127,23 +134,52 @@ public class UserDebugDataReader
         return Collections.unmodifiableMap( results );
     }
 
-    private static Map<ProfileType, String> profileMap(
+    private static Map<ProfileDefinition, String> profileMap(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
     ) throws PwmUnrecoverableException
     {
-        final Map<ProfileType, String> results = new TreeMap<>();
-        for ( final ProfileType profileType : ProfileType.values() )
+        final Map<ProfileDefinition, String> results = new TreeMap<>();
+        for ( final ProfileDefinition profileDefinition : ProfileDefinition.values() )
         {
-            final String id = ProfileUtility.discoverProfileIDforUser(
-                    pwmApplication,
-                    sessionLabel,
-                    userIdentity,
-                    profileType
-            );
-            results.put( profileType, id );
+            if ( profileDefinition.isAuthenticated() )
+            {
+                final String id = ProfileUtility.discoverProfileIDforUser(
+                        pwmApplication,
+                        sessionLabel,
+                        userIdentity,
+                        profileDefinition
+                );
+
+                results.put( profileDefinition, id );
+            }
         }
         return Collections.unmodifiableMap( results );
+    }
+
+    private static PwNotifyUserStatus readPwNotifyUserStatus(
+            final PwmApplication pwmApplication,
+            final UserIdentity userIdentity,
+            final SessionLabel sessionLabel
+    )
+    {
+        if ( pwmApplication.getPwNotifyService().status() == PwmService.STATUS.OPEN )
+        {
+            try
+            {
+                final Optional<PwNotifyUserStatus> value = pwmApplication.getPwNotifyService().readUserNotificationState( userIdentity, sessionLabel );
+                if ( value.isPresent() )
+                {
+                    return value.get();
+                }
+            }
+            catch ( PwmUnrecoverableException e )
+            {
+                LOGGER.debug( () -> "error reading user pwNotify status: " + e.getMessage() );
+            }
+        }
+
+        return null;
     }
 }

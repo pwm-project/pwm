@@ -94,6 +94,21 @@ attributeTypes: (
   X-ORIGIN 'iPlanet Directory Server'
  )
 
+#------------------------------------------------------
+#-- Attribute:  	pwmData
+#-- Syntax:      	OCTET STRING
+#-- Description:    Application Status Data
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.7
+  NAME 'pwmData'
+  DESC 'SSPR defined attribute type'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+  X-ORIGIN 'iPlanet Directory Server'
+ )
 
 #------------------------------------------------------
 #-- Class:        pwmUser
@@ -111,6 +126,6 @@ objectClasses: (
   NAME 'pwmUser'
   DESC 'SSPR defined aux class'
   AUXILIARY
-  MAY ( pwmEventLog $ pwmResponseSet $ pwmLastPwdUpdate $ pwmGUID $ pwmToken $ pwmOtpSecret)
+  MAY ( pwmEventLog $ pwmResponseSet $ pwmLastPwdUpdate $ pwmGUID $ pwmToken $ pwmOtpSecret $ pwmData )
   X-ORIGIN 'SSPR Administrator'
  )

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.intruder;
@@ -98,7 +96,10 @@ class DataStoreRecordStore implements RecordStore
             dataStore.remove( key );
         }
         catch ( PwmDataStoreException e )
-        { /*noop*/ }
+        {
+            /*noop*/
+        }
+
         return null;
     }
 
@@ -180,7 +181,7 @@ class DataStoreRecordStore implements RecordStore
         }
         eldestRecord = Instant.now();
 
-        final long startTime = System.currentTimeMillis();
+        final Instant startTime = Instant.now();
         final int recordsExamined = 0;
         int recordsRemoved = 0;
 
@@ -208,17 +209,19 @@ class DataStoreRecordStore implements RecordStore
             recordsRemoved += recordsToRemove.size();
             recordsToRemove.clear();
         }
-        final TimeDuration totalDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.trace( "completed cleanup of intruder table in " + totalDuration.asCompactString() + ", recordsExamined=" + recordsExamined + ", recordsRemoved=" + recordsRemoved );
+        {
+            final int finalRemoved = recordsRemoved;
+            LOGGER.trace( () -> "completed cleanup of intruder table in "
+                    + TimeDuration.compactFromCurrent( startTime ) + ", recordsExamined="
+                    + recordsExamined + ", recordsRemoved=" + finalRemoved );
+        }
     }
 
     private List<String> discoverPurgableKeys( final TimeDuration maxRecordAge )
     {
         final List<String> recordsToRemove = new ArrayList<>();
-        ClosableIterator<String> dbIterator = null;
-        try
+        try ( ClosableIterator<String> dbIterator = dataStore.iterator() )
         {
-            dbIterator = dataStore.iterator();
             while ( intruderManager.status() == PwmService.STATUS.OPEN && dbIterator.hasNext() && recordsToRemove.size() < MAX_REMOVALS_PER_CYCLE )
             {
                 final String key = dbIterator.next();
@@ -236,20 +239,9 @@ class DataStoreRecordStore implements RecordStore
                 }
             }
         }
-        catch ( PwmDataStoreException e )
+        catch ( PwmDataStoreException | PwmUnrecoverableException e )
         {
             LOGGER.error( "unable to perform intruder table cleanup: " + e.getMessage() );
-        }
-        catch ( PwmUnrecoverableException e )
-        {
-            LOGGER.error( "unable to perform intruder table cleanup: " + e.getMessage() );
-        }
-        finally
-        {
-            if ( dbIterator != null )
-            {
-                dbIterator.close();
-            }
         }
         return recordsToRemove;
     }

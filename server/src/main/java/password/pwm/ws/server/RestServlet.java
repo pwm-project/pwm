@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.ws.server;
@@ -33,6 +31,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -42,12 +41,13 @@ import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.filter.RequestInitializationFilter;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -66,7 +66,7 @@ import java.util.Locale;
 
 public abstract class RestServlet extends HttpServlet
 {
-    private static final AtomicLoopIntIncrementer REQUEST_COUNTER = new AtomicLoopIntIncrementer( Integer.MAX_VALUE );
+    private static final AtomicLoopIntIncrementer REQUEST_COUNTER = new AtomicLoopIntIncrementer();
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestServlet.class );
 
@@ -92,6 +92,7 @@ public abstract class RestServlet extends HttpServlet
         {
             final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
             locale = LocaleHelper.localeResolver( req.getLocale(), knownLocales );
+            resp.setHeader( HttpHeader.ContentLanguage.getHttpName(), LocaleHelper.getBrowserLocaleString( locale ) );
         }
 
         final SessionLabel sessionLabel;
@@ -120,8 +121,12 @@ public abstract class RestServlet extends HttpServlet
 
         try
         {
-            final PwmHttpRequestWrapper httpRequestWrapper = new PwmHttpRequestWrapper( req, pwmApplication.getConfig() );
-            LOGGER.trace( sessionLabel, "incoming HTTP REST request: " +  httpRequestWrapper.debugHttpRequestToString( null, true ) );
+            if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+            {
+                final PwmHttpRequestWrapper httpRequestWrapper = new PwmHttpRequestWrapper( req, pwmApplication.getConfig() );
+                final String debutTxt = httpRequestWrapper.debugHttpRequestToString( null, true );
+                LOGGER.trace( sessionLabel, () -> "incoming HTTP REST request: " + debutTxt );
+            }
         }
         catch ( PwmUnrecoverableException e )
         {
@@ -145,7 +150,7 @@ public abstract class RestServlet extends HttpServlet
         try
         {
             final RestAuthentication restAuthentication = new RestAuthenticationProcessor( pwmApplication, sessionLabel, req ).readRestAuthentication();
-            LOGGER.debug( sessionLabel, "rest request authentication status: " + JsonUtil.serialize( restAuthentication ) );
+            LOGGER.debug( sessionLabel, () -> "rest request authentication status: " + JsonUtil.serialize( restAuthentication ) );
 
             final RestRequest restRequest = RestRequest.forRequest( pwmApplication, restAuthentication, sessionLabel, req );
 
@@ -176,7 +181,8 @@ public abstract class RestServlet extends HttpServlet
         }
 
         outputRestResultBean( restResultBean, req, resp );
-        LOGGER.trace( sessionLabel, "completed rest invocation in " + TimeDuration.compactFromCurrent( startTime ) + " success=" + !restResultBean.isError() );
+        final boolean success = restResultBean != null && !restResultBean.isError();
+        LOGGER.trace( sessionLabel, () -> "completed rest invocation in " + TimeDuration.compactFromCurrent( startTime ) + " success=" + success );
     }
 
     private RestResultBean invokeWebService( final RestRequest restRequest ) throws IOException, PwmUnrecoverableException
@@ -197,10 +203,12 @@ public abstract class RestServlet extends HttpServlet
                 {
                     throw ( PwmUnrecoverableException ) rootException;
                 }
+                LOGGER.error( restRequest.getSessionLabel(), "internal error executing rest request: " + e.getMessage(), e );
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, e.getMessage() );
             }
             catch ( IllegalAccessException e )
             {
+                LOGGER.error( restRequest.getSessionLabel(), "internal error executing rest request: " + e.getMessage(), e );
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, e.getMessage() );
             }
         }
@@ -216,7 +224,7 @@ public abstract class RestServlet extends HttpServlet
     }
 
     private Method discoverMethodForAction( final Class clazz, final RestRequest restRequest )
-            throws PwmUnrecoverableException
+            throws PwmUnrecoverableException, IOException
     {
         final HttpMethod reqMethod = restRequest.getMethod();
         final HttpContentType reqContent = restRequest.readContentType();
@@ -262,23 +270,23 @@ public abstract class RestServlet extends HttpServlet
         final String errorMsg;
         if ( !anyMatch.isMethodMatch() )
         {
-            errorMsg = "HTTP method invalid";
+            errorMsg = "HTTP method unavailable";
         }
         else if ( reqAccept == null && !anyMatch.isAcceptMatch() )
         {
             errorMsg = HttpHeader.Accept.getHttpName() + " header is required";
         }
-        else if ( !anyMatch.isAcceptMatch() )
-        {
-            errorMsg = HttpHeader.Accept.getHttpName() + " header value does not match an available processor";
-        }
         else if ( reqContent == null && !anyMatch.isContentMatch() )
         {
             errorMsg = HttpHeader.ContentType.getHttpName() + " header is required";
         }
+        else if ( !anyMatch.isAcceptMatch() )
+        {
+            errorMsg = HttpHeader.Accept.getHttpName() + " value is not accepted for this service";
+        }
         else if ( !anyMatch.isContentMatch() )
         {
-            errorMsg = HttpHeader.ContentType.getHttpName() + " header value does not match an available processor";
+            errorMsg = HttpHeader.ContentType.getHttpName() + " value is not accepted for this service";
         }
         else
         {
@@ -297,20 +305,34 @@ public abstract class RestServlet extends HttpServlet
             throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "class is missing " + RestWebServer.class.getSimpleName() + " annotation" );
         }
 
-
-        if ( classAnnotation.requireAuthentication() )
         {
-            if ( restRequest.getRestAuthentication().getType() == RestAuthenticationType.PUBLIC )
+            final RestAuthenticationType requestAuthType = restRequest.getRestAuthentication().getType();
+            final Collection<RestAuthenticationType> supportedTypes = classAnnotation.webService().getTypes();
+            if ( !supportedTypes.contains( requestAuthType ) )
             {
-                throw PwmUnrecoverableException.newException( PwmError.ERROR_UNAUTHORIZED, "this service requires authentication" );
-            }
 
-            if ( !restRequest.getRestAuthentication().getUsages().contains( classAnnotation.webService() ) )
+                final String msg;
+                if ( requestAuthType == RestAuthenticationType.PUBLIC )
+                {
+                    msg = "this service requires authentication";
+                }
+                else
+                {
+                    msg = "authentication type " + requestAuthType + " is not supported for this service";
+                }
+                LOGGER.trace( restRequest.getSessionLabel(), () -> msg );
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_UNAUTHORIZED, msg );
+            }
+        }
+
+        {
+            final WebServiceUsage thisWebService = classAnnotation.webService();
+            if ( !restRequest.getRestAuthentication().getUsages().contains( thisWebService ) )
             {
-                throw PwmUnrecoverableException.newException(
-                        PwmError.ERROR_UNAUTHORIZED,
-                        "access to " + classAnnotation.webService() + " service is not permitted for this login"
-                );
+                LOGGER.trace( restRequest.getSessionLabel(), () -> "permission denied for request to " + thisWebService
+                        + ", not a permitted usage for authentication type " + restRequest.getRestAuthentication().getType() );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, null );
+                throw new PwmUnrecoverableException( errorInformation );
             }
         }
 
@@ -342,7 +364,7 @@ public abstract class RestServlet extends HttpServlet
             {
                 case json:
                 {
-                    resp.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
+                    resp.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
                     final String formatParameter = request.getParameter( "format" );
                     try ( PrintWriter pw = resp.getWriter() )
                     {
@@ -360,7 +382,7 @@ public abstract class RestServlet extends HttpServlet
 
                 case plain:
                 {
-                    resp.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.plain.getHeaderValue() );
+                    resp.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.plain.getHeaderValueWithEncoding() );
                     if ( restResultBean.isError() )
                     {
                         resp.sendError( HttpServletResponse.SC_INTERNAL_SERVER_ERROR, restResultBean.getErrorMessage() );
@@ -404,7 +426,7 @@ public abstract class RestServlet extends HttpServlet
     private static void outputLastHopeError( final String msg, final HttpServletResponse response ) throws IOException
     {
         response.setStatus( HttpServletResponse.SC_INTERNAL_SERVER_ERROR );
-        response.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
+        response.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
         try ( PrintWriter pw = response.getWriter() )
         {
             pw.write( "Error: " );

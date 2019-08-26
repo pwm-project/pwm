@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http;
@@ -109,7 +107,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         final String url = jspURL.getPath();
         try
         {
-            LOGGER.trace( pwmRequest.getSessionLabel(), "forwarding to " + url );
+            LOGGER.trace( pwmRequest, () -> "forwarding to " + url );
         }
         catch ( Exception e )
         {
@@ -139,7 +137,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
 
         if ( showMessage )
         {
-            LOGGER.trace( pwmSession, "skipping success page due to configuration setting." );
+            LOGGER.trace( pwmSession, () -> "skipping success page due to configuration setting" );
             final String redirectUrl = pwmRequest.getContextPath()
                     + PwmServletDefinition.PublicCommand.servletUrl()
                     + "?processAction=next";
@@ -169,13 +167,13 @@ public class PwmResponse extends PwmHttpResponseWrapper
 
         if ( JavaHelper.enumArrayContainsValue( flags, Flag.ForceLogout ) )
         {
-            LOGGER.debug( pwmRequest, "forcing logout due to error " + errorInformation.toDebugStr() );
+            LOGGER.debug( pwmRequest, () -> "forcing logout due to error " + errorInformation.toDebugStr() );
             pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
         }
 
         if ( getResponseFlags().contains( PwmResponseFlag.ERROR_RESPONSE_SENT ) )
         {
-            LOGGER.debug( pwmRequest, "response error has been previously set, disregarding new error: " + errorInformation.toDebugStr() );
+            LOGGER.debug( pwmRequest, () -> "response error has been previously set, disregarding new error: " + errorInformation.toDebugStr() );
             return;
         }
 
@@ -222,7 +220,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         preCommitActions();
         final HttpServletResponse resp = this.getHttpServletResponse();
         final String outputString = restResultBean.toJson();
-        resp.setContentType( HttpContentType.json.getHeaderValue() );
+        resp.setContentType( HttpContentType.json.getHeaderValueWithEncoding() );
         resp.getWriter().print( outputString );
         resp.getWriter().close();
     }
@@ -265,7 +263,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
 
         // http "other" redirect
         resp.setHeader( HttpHeader.Location.getHttpName(), url );
-        LOGGER.trace( pwmRequest, "sending " + redirectType.getCode() + " redirect to " + url );
+        LOGGER.trace( pwmRequest, () -> "sending " + redirectType.getCode() + " redirect to " + url );
     }
 
     private void preCommitActions( )

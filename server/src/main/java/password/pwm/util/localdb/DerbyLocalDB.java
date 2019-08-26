@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.localdb;
@@ -83,7 +81,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         {
             if ( "XJ015".equals( e.getSQLState() ) )
             {
-                LOGGER.trace( "Derby shutdown succeeded. SQLState=" + e.getSQLState() + ", message=" + e.getMessage() );
+                LOGGER.trace( () -> "Derby shutdown succeeded. SQLState=" + e.getSQLState() + ", message=" + e.getMessage() );
             }
             else
             {
@@ -176,14 +174,14 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
     {
         final Instant startTime = Instant.now();
         final long startSize = FileSystemUtility.getFileDirectorySize( dbDirectory );
-        LOGGER.debug( "beginning reclaim space in all tables startSize=" + StringUtil.formatDiskSize( startSize ) );
+        LOGGER.debug( () -> "beginning reclaim space in all tables startSize=" + StringUtil.formatDiskSize( startSize ) );
         for ( final LocalDB.DB db : LocalDB.DB.values() )
         {
             reclaimSpace( dbConnection, db );
         }
         final long completeSize = FileSystemUtility.getFileDirectorySize( dbDirectory );
         final long sizeDifference = startSize - completeSize;
-        LOGGER.debug( "completed reclaim space in all tables; duration=" + TimeDuration.compactFromCurrent( startTime )
+        LOGGER.debug( () -> "completed reclaim space in all tables; duration=" + TimeDuration.compactFromCurrent( startTime )
                 + ", startSize=" + StringUtil.formatDiskSize( startSize )
                 + ", completeSize=" + StringUtil.formatDiskSize( completeSize )
                 + ", sizeDifference=" + StringUtil.formatDiskSize( sizeDifference )
@@ -209,7 +207,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         try
         {
             lock.writeLock().lock();
-            LOGGER.debug( "beginning reclaim space in table " + db.toString() );
+            LOGGER.debug( () -> "beginning reclaim space in table " + db.toString() );
             statement = dbConnection.prepareCall( "CALL SYSCS_UTIL.SYSCS_INPLACE_COMPRESS_TABLE(?, ?, ?, ?, ?)" );
             statement.setString( 1, DERBY_DEFAULT_SCHEMA );
             statement.setString( 2, db.toString() );
@@ -227,7 +225,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
             close( statement );
             lock.writeLock().unlock();
         }
-        LOGGER.debug( "completed reclaimed space in table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+        LOGGER.debug( () -> "completed reclaimed space in table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
     }
 }
 

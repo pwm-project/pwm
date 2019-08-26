@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 // -------------------------- common elements handler ------------------------------------
@@ -454,12 +452,12 @@ UILibrary.uploadFileDialog = function(options) {
     body += '<div id="fileList"></div>';
     body += '<input style="width:80%" class="btn" name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
     body += '<div class="buttonbar">';
-    body += '<button class="btn" type="button" id="uploadButton" name="Upload" disabled><span class="pwm-icon pwm-icon-upload"></span> Upload</button>';
-    body += '</div></div>';
+    body += '<button class="btn" type="button" id="uploadButton" name="Upload" disabled><span class="pwm-icon pwm-icon-upload"></span>';
+    body +=  PWM_MAIN.showString('Button_Upload') + '</button></div></div>';
 
     var currentUrl = window.location.pathname;
     var uploadUrl = 'url' in options ? options['url'] : currentUrl;
-    var title = 'title' in options ? options['title'] : 'Upload File';
+    var title = 'title' in options ? options['title'] : PWM_MAIN.showString('Title_Upload');
 
     uploadUrl = PWM_MAIN.addPwmFormIDtoURL(uploadUrl);
 
@@ -473,7 +471,7 @@ UILibrary.uploadFileDialog = function(options) {
     var completeFunction = function(data){
         console.log('upload dialog completeFunction() starting');
         if (data['error'] === true) {
-            var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
+            var errorText = PWM_MAIN.showString('Notice_UploadFailure');
             PWM_MAIN.showErrorDialog(data,{text:errorText,okAction:function(){
                     location.reload();
                 }});
@@ -484,7 +482,7 @@ UILibrary.uploadFileDialog = function(options) {
 
     var errorFunction = function(status,statusText) {
         PWM_MAIN.closeWaitDialog();
-        var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
+        var errorText = PWM_MAIN.showString('Notice_UploadFailure');
         errorText += '<br/><br/>Status: ' + status;
         errorText += '<br/><br/>' + statusText;
         PWM_MAIN.showErrorDialog('',{text:errorText});
@@ -556,7 +554,7 @@ UILibrary.uploadFileDialog = function(options) {
         xhr.send(fd);
         PWM_GLOBAL['inhibitHealthUpdate'] = true;
         PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
-        PWM_MAIN.showWaitDialog({title:'Uploading...'});
+        PWM_MAIN.showWaitDialog({title:PWM_MAIN.showString('Display_Uploading')});
     };
 
     completeFunction = 'completeFunction' in options ? options['completeFunction'] : completeFunction;
@@ -795,7 +793,8 @@ UILibrary.displayElementsToTableContents = function(fields) {
     var htmlTable = '';
     for (var field in fields) {(function(field){
         var fieldData = fields[field];
-        htmlTable += '<tr><td>' + fieldData['label'] + '</td><td><span id="report_status_' + fieldData['key']  + '"</tr>';
+        var classValue = fieldData['type'] === 'timestamp' ? 'timestamp' : '';
+        htmlTable += '<tr><td>' + fieldData['label'] + '</td><td><span class="' + classValue + '" id="report_status_' + fieldData['key']  + '"</tr>';
     }(field)); }
     return htmlTable;
 };

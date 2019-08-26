@@ -4,15 +4,15 @@
 
     <groupId>org.pwm-project</groupId>
     <artifactId>pwm-parent</artifactId>
-    <version>1.8.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>PWM Password Self Service</name>
 
     <licenses>
         <license>
-            <name>The GNU General Public License (GPL) Version 2</name>
-            <url>http://www.gnu.org/licenses/gpl-2.0.html</url>
+            <name>Apache License Version 2.0, January 2004</name>
+            <url>http://www.apache.org/licenses/</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -41,9 +41,9 @@
     </properties>
 
     <modules>
-        <module>client</module>
         <module>pwm-cr</module>
         <module>server</module>
+        <module>client</module>
         <module>webapp</module>
         <module>onejar</module>
         <module>data-service</module>
@@ -65,12 +65,6 @@
             </properties>
         </profile>
         <profile>
-            <id>skip-tests</id>
-            <properties>
-                <skipTests>true</skipTests>
-            </properties>
-        </profile>
-        <profile>
             <id>skip-javadoc</id>
             <properties>
                 <maven.javadoc.skip>true</maven.javadoc.skip>
@@ -82,19 +76,8 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.0</version>
-                <configuration>
-                    <skipTests>${skipTests}</skipTests>
-                    <excludes>
-                        <exclude>**/password.pwm.manual.*</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.0.1</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -116,6 +99,7 @@
                                     <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
                                 </manifestEntries>
                             </archive>
+                            <source>8</source>
                         </configuration>
                     </execution>
                 </executions>
@@ -183,29 +167,33 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.1.0</version>
                 <dependencies>
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.14</version>
+                        <version>8.22</version>
                     </dependency>
                 </dependencies>
                 <executions>
                     <execution>
-                        <id>checkstyle</id>
+                        <id>checkstyle-base</id>
                         <phase>validate</phase>
                         <configuration>
                             <propertyExpansion>basedir=${project.root.basedir}</propertyExpansion>
-                            <configLocation>${project.root.basedir}/build/checkstyle.xml</configLocation>
+                            <configLocation>build/checkstyle.xml</configLocation>
                             <encoding>UTF-8</encoding>
                             <consoleOutput>true</consoleOutput>
-                            <includeTestResources>false</includeTestResources>
+                            <includeTestResources>true</includeTestResources>
                             <failsOnError>true</failsOnError>
                             <includes>**/*.java,**/*.jsp,**/*.properties,**/*.xml,**/*.css,**/*.svg</includes>
                             <sourceDirectories>
                                 <directory>src/main</directory>
+                                <directory>src/test</directory>
                             </sourceDirectories>
+                            <cacheFile>${project.build.directory}/checkstyle/base/checkstyle-cachefile</cacheFile>
+                            <outputFile>${project.build.directory}/checkstyle/base/checkstyle-result.xml</outputFile>
+                            <rulesFiles>${project.build.directory}/checkstyle/base/checkstyle-rules.xml</rulesFiles>
                         </configuration>
                         <goals>
                             <goal>check</goal>
@@ -219,12 +207,40 @@
                             <configLocation>${project.root.basedir}/build/checkstyle-header.xml</configLocation>
                             <encoding>UTF-8</encoding>
                             <consoleOutput>true</consoleOutput>
-                            <includeTestResources>false</includeTestResources>
+                            <includeTestResources>true</includeTestResources>
                             <failsOnError>true</failsOnError>
                             <includes>**/**</includes>
                             <sourceDirectories>
                                 <directory>src</directory>
+                                <directory>src/test</directory>
                             </sourceDirectories>
+                            <cacheFile>${project.build.directory}/checkstyle/header/checkstyle-cachefile</cacheFile>
+                            <outputFile>${project.build.directory}/checkstyle/header/checkstyle-result.xml</outputFile>
+                            <rulesFiles>${project.build.directory}/checkstyle/header/checkstyle-rules.xml</rulesFiles>
+                        </configuration>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>checkstyle-jsp</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <propertyExpansion>basedir=${project.root.basedir}</propertyExpansion>
+                            <configLocation>${project.root.basedir}/build/checkstyle-jsp.xml</configLocation>
+                            <encoding>UTF-8</encoding>
+                            <consoleOutput>true</consoleOutput>
+                            <includeTestResources>true</includeTestResources>
+                            <failsOnError>true</failsOnError>
+                            <includes>**/*.jsp</includes>
+                            <sourceDirectories>
+                                <directory>src</directory>
+                                <directory>src/test</directory>
+                                <directory>src/main/webapp</directory>
+                            </sourceDirectories>
+                            <cacheFile>${project.build.directory}/checkstyle/jsp/checkstyle-cachefile</cacheFile>
+                            <outputFile>${project.build.directory}/checkstyle/jsp/checkstyle-result.xml</outputFile>
+                            <rulesFiles>${project.build.directory}/checkstyle/jsp/checkstyle-rules.xml</rulesFiles>
                         </configuration>
                         <goals>
                             <goal>check</goal>
@@ -235,12 +251,12 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>3.1.7</version>
+                <version>3.1.12</version>
                 <dependencies>
                     <dependency>
                         <groupId>com.github.spotbugs</groupId>
                         <artifactId>spotbugs</artifactId>
-                        <version>3.1.8</version>
+                        <version>4.0.0-beta3</version>
                     </dependency>
                 </dependencies>
                 <configuration>
@@ -248,6 +264,7 @@
                     <excludeFilterFile>${project.root.basedir}/build/spotbugs-exclude.xml</excludeFilterFile>
                     <includeTests>false</includeTests>
                     <skip>${skipSpotbugs}</skip>
+                    <effort>max</effort>
                 </configuration>
                 <executions>
                     <execution>
@@ -258,40 +275,79 @@
                     </execution>
                 </executions>
             </plugin>
-        </plugins>
-    </build>
-
-    <reporting>
-        <plugins>
             <plugin> <!-- checks owsp vulnerability database -->
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>3.3.2</version>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>aggregate</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
+                <version>5.1.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
-    </reporting>
+    </build>
 
     <!-- common dependencies -->
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.4</version>
+            <version>1.18.8</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>3.1.8</version>
+            <version>4.0.0-beta3</version>
             <scope>provided</scope>
         </dependency>
-    </dependencies>
 
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.0.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.12.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>2.24.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.21</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>1.21</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
 </project>

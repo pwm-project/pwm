@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config.profile;
@@ -44,10 +42,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public class NewUserProfile extends AbstractProfile
+public class NewUserProfile extends AbstractProfile implements Profile
 {
 
-    private static final ProfileType PROFILE_TYPE = ProfileType.NewUser;
+    private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.NewUser;
+    public static final String TEST_USER_CONFIG_VALUE = "TESTUSER";
 
     private Instant newUserPasswordPolicyCacheTime;
     private final Map<Locale, PwmPasswordPolicy> newUserPasswordPolicyCache = new HashMap<>();
@@ -57,15 +56,8 @@ public class NewUserProfile extends AbstractProfile
         super( identifier, storedValueMap );
     }
 
-    public static NewUserProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
-    {
-        final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
-        return new NewUserProfile( identifier, valueMap );
-
-    }
-
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         return PROFILE_TYPE;
     }
@@ -107,7 +99,7 @@ public class NewUserProfile extends AbstractProfile
         {
 
             final String lookupDN;
-            if ( "TESTUSER".equalsIgnoreCase( configuredNewUserPasswordDN ) )
+            if ( TEST_USER_CONFIG_VALUE.equalsIgnoreCase( configuredNewUserPasswordDN ) )
             {
                 lookupDN = defaultLdapProfile.readSettingAsString( PwmSetting.LDAP_TEST_USER_DN );
                 if ( lookupDN == null || lookupDN.isEmpty() )
@@ -116,7 +108,7 @@ public class NewUserProfile extends AbstractProfile
                             + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( defaultLdapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
                             + " must be configured since setting "
                             + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( this.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
-                            + " is set to TESTUSER";
+                            + " is set to " + TEST_USER_CONFIG_VALUE;
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg ) );
                 }
             }
@@ -173,5 +165,14 @@ public class NewUserProfile extends AbstractProfile
             return TimeDuration.of( defaultDuration, TimeDuration.Unit.SECONDS );
         }
         return TimeDuration.of( newUserDuration, TimeDuration.Unit.SECONDS );
+    }
+
+    public static class NewUserProfileFactory implements ProfileFactory
+    {
+        @Override
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        {
+            return new NewUserProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+        }
     }
 }

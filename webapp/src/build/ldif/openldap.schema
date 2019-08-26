@@ -31,8 +31,13 @@ attributetype ( 1.3.6.1.4.1.35015.1.2.6
         EQUALITY octetStringMatch
         SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )
 
+attributetype ( 1.3.6.1.4.1.35015.1.2.7
+        NAME 'pwmData'
+        EQUALITY octetStringMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )
+
 objectclass ( 1.3.6.1.4.1.35015.1.1.1
         NAME 'pwmUser'
         AUXILIARY
         MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $
-                pwmOtpSecret $ pwmGUID ) )
+                pwmOtpSecret $ pwmGUID $ pwmData ) )

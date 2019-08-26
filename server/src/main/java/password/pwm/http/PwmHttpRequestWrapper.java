@@ -3,33 +3,31 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http;
 
-import org.apache.commons.io.IOUtils;
+import com.google.gson.JsonParseException;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
+import password.pwm.util.ServletUtility;
 import password.pwm.util.Validator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -39,9 +37,6 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -117,41 +112,7 @@ public class PwmHttpRequestWrapper
     public String readRequestBodyAsString( final int maxChars )
             throws IOException, PwmUnrecoverableException
     {
-        return readRequestBodyAsString( this.getHttpServletRequest(), maxChars );
-    }
-
-    public static String readRequestBodyAsString( final HttpServletRequest httpServletRequest, final int maxChars )
-            throws IOException, PwmUnrecoverableException
-    {
-        final StringWriter stringWriter = new StringWriter();
-        final Reader readerStream = new InputStreamReader(
-                httpServletRequest.getInputStream(),
-                PwmConstants.DEFAULT_CHARSET
-        );
-
-        try
-        {
-            IOUtils.copy( readerStream, stringWriter );
-        }
-        catch ( Exception e )
-        {
-            final String errorMsg = "error reading request body stream: " + e.getMessage();
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( readerStream );
-        }
-
-        final String stringValue = stringWriter.toString();
-        if ( stringValue.length() > maxChars )
-        {
-            throw new PwmUnrecoverableException( new ErrorInformation(
-                    PwmError.ERROR_INTERNAL,
-                    "input request body is to big, size=" + stringValue.length() + ", max=" + maxChars )
-            );
-        }
-        return stringValue;
+        return ServletUtility.readRequestBodyAsString( this.getHttpServletRequest(), maxChars );
     }
 
     public Map<String, String> readBodyAsJsonStringMap( final Flag... flags )
@@ -582,6 +543,25 @@ public class PwmHttpRequestWrapper
         }
 
         return sb.toString();
+    }
+
+
+    public <T> T readBodyAsJsonObject( final Class<T> classOfT )
+            throws IOException, PwmUnrecoverableException
+    {
+        final String json = readRequestBodyAsString();
+        try
+        {
+            return JsonUtil.deserialize( json, classOfT );
+        }
+        catch ( Exception e )
+        {
+            if ( e instanceof JsonParseException )
+            {
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_REST_INVOCATION_ERROR, "unable to parse json body: " + e.getCause().getMessage() );
+            }
+            throw e;
+        }
     }
 }
 

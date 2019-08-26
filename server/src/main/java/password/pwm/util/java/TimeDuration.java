@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.java;
@@ -26,7 +24,9 @@ import com.novell.ldapchai.util.StringHelper;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Display;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.SecureService;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.meta.When;
@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 
 /**
  * <p>An immutable class representing a time period.  The internal value of the time period is
@@ -145,6 +146,11 @@ public class TimeDuration implements Comparable, Serializable
     public long asMillis()
     {
         return ms;
+    }
+
+    public String asIso()
+    {
+        return this.asDuration().toString();
     }
 
     /**
@@ -324,8 +330,8 @@ public class TimeDuration implements Comparable, Serializable
             segments.add( fractionalTimeDetail.days
                     + " "
                     + ( fractionalTimeDetail.days == 1
-                            ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Day, null )
-                            : LocaleHelper.getLocalizedMessage( locale, Display.Display_Days, null ) )
+                    ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Day, null )
+                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Days, null ) )
             );
         }
 
@@ -335,8 +341,8 @@ public class TimeDuration implements Comparable, Serializable
             segments.add( fractionalTimeDetail.hours
                     + " "
                     + ( fractionalTimeDetail.hours == 1
-                            ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Hour, null )
-                            : LocaleHelper.getLocalizedMessage( locale, Display.Display_Hours, null ) )
+                    ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Hour, null )
+                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Hours, null ) )
             );
         }
 
@@ -346,8 +352,8 @@ public class TimeDuration implements Comparable, Serializable
             segments.add( fractionalTimeDetail.minutes
                     + " "
                     + ( fractionalTimeDetail.minutes == 1
-                            ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Minute, null )
-                            : LocaleHelper.getLocalizedMessage( locale, Display.Display_Minutes, null ) )
+                    ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Minute, null )
+                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Minutes, null ) )
             );
         }
 
@@ -425,36 +431,6 @@ public class TimeDuration implements Comparable, Serializable
         return "TimeDuration[" + this.asCompactString() + "]";
     }
 
-    /**
-     * Pause the calling thread the specified amount of time.
-     *
-     * @param sleepTimeMS - a time duration in milliseconds
-     * @return time actually spent sleeping
-     */
-    public static TimeDuration pause( final long sleepTimeMS )
-    {
-        if ( sleepTimeMS < 1 )
-        {
-            return TimeDuration.ZERO;
-        }
-
-        final long startTime = System.currentTimeMillis();
-        do
-        {
-            try
-            {
-                final long sleepTime = sleepTimeMS - ( System.currentTimeMillis() - startTime );
-                Thread.sleep( sleepTime > 0 ? sleepTime : 5 );
-            }
-            catch ( InterruptedException e )
-            {
-                //who cares
-            }
-        }
-        while ( ( System.currentTimeMillis() - startTime ) < sleepTimeMS );
-
-        return TimeDuration.fromCurrent( startTime );
-    }
 
     /**
      * Pause the calling thread the specified amount of time.
@@ -464,7 +440,54 @@ public class TimeDuration implements Comparable, Serializable
     @CheckReturnValue( when = When.NEVER )
     public TimeDuration pause( )
     {
-        return pause( this.as( Unit.MILLISECONDS ) );
+        return pause( this, () -> false );
+    }
+
+    /**
+     * Pause the calling thread the specified amount of time.
+     *
+     * @return time actually spent sleeping
+     */
+    @CheckReturnValue( when = When.NEVER )
+    public TimeDuration jitterPause( final SecureService secureService, final float factor )
+    {
+        final PwmRandom pwmRandom = secureService.pwmRandom();
+        final long jitterMs = (long) ( this.ms * factor );
+        final long deviation = pwmRandom.nextBoolean() ? jitterMs + this.ms : jitterMs - this.ms;
+        return pause( TimeDuration.of( deviation, Unit.MILLISECONDS ), () -> false );
+    }
+
+    @CheckReturnValue( when = When.NEVER )
+    public TimeDuration pause(
+            final BooleanSupplier interruptBoolean
+    )
+    {
+        final long interruptMs = JavaHelper.rangeCheck( 5, 1000, this.asMillis() / 100 );
+        return pause( TimeDuration.of( interruptMs, Unit.MILLISECONDS ), interruptBoolean );
+    }
+
+    @CheckReturnValue( when = When.NEVER )
+    public TimeDuration pause(
+            final TimeDuration interruptCheckInterval,
+            final BooleanSupplier interruptBoolean
+    )
+    {
+        final long startTime = System.currentTimeMillis();
+        final long pauseTime = JavaHelper.rangeCheck( this.asMillis(), this.asMillis(), interruptCheckInterval.asMillis()  );
+
+        while ( ( System.currentTimeMillis() - startTime ) < this.asMillis() && !interruptBoolean.getAsBoolean() )
+        {
+            try
+            {
+                Thread.sleep( pauseTime );
+            }
+            catch ( InterruptedException e )
+            {
+                // ignore
+            }
+        }
+
+        return TimeDuration.fromCurrent( startTime );
     }
 
     public Duration asDuration()
@@ -500,6 +523,11 @@ public class TimeDuration implements Comparable, Serializable
             hours = ( ( totalSeconds / 60 ) / 60 ) % 24;
             days = ( ( ( totalSeconds / 60 ) / 60 ) / 24 );
         }
+    }
+
+    public boolean isZero()
+    {
+        return ms <= 0;
     }
 }
 

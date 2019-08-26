@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.sessiontrack;
@@ -31,38 +29,40 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmRequest;
+import password.pwm.util.java.LazySoftReference;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
+import java.time.Instant;
 
 public class UserAgentUtils
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserAgentUtils.class );
 
-    private static UserAgentParser cachedParser;
+    private static final LazySoftReference<UserAgentParser> CACHED_PARSER = new LazySoftReference<>( UserAgentUtils::loadUserAgentParser );
 
-    private static UserAgentParser getUserAgentParser( ) throws PwmUnrecoverableException
+    private static UserAgentParser loadUserAgentParser( )
     {
-        if ( cachedParser == null )
+        try
         {
-            try
-            {
-                cachedParser = new UserAgentService().loadParser();
-            }
-            catch ( IOException | ParseException e )
-            {
-                final String msg = "error loading user-agent parser: " + e.getMessage();
-                LOGGER.error( msg, e );
-                throw new PwmUnrecoverableException( PwmError.ERROR_INTERNAL, msg );
-            }
+            return new UserAgentService().loadParser();
         }
-        return cachedParser;
+        catch ( IOException | ParseException e )
+        {
+            final String msg = "error loading user-agent parser: " + e.getMessage();
+            LOGGER.error( msg, e );
+        }
+
+        return null;
     }
 
     public static void initializeCache() throws PwmUnrecoverableException
     {
-        getUserAgentParser();
+        final Instant startTime = Instant.now();
+        CACHED_PARSER.get();
+        LOGGER.trace( () -> "loaded useragent parser in " + TimeDuration.compactFromCurrent( startTime ) );
     }
 
     public static void checkIfPreIE11( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
@@ -75,7 +75,7 @@ public class UserAgentUtils
 
         boolean badBrowser = false;
 
-        final UserAgentParser userAgentParser = getUserAgentParser();
+        final UserAgentParser userAgentParser = CACHED_PARSER.get();
         final Capabilities capabilities = userAgentParser.parse( userAgentString );
         final String browser = capabilities.getBrowser();
         final String browserMajorVersion = capabilities.getBrowserMajorVersion();

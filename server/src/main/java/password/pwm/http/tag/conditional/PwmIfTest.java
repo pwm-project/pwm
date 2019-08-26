@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.tag.conditional;
@@ -30,18 +28,20 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.PeopleSearchProfile;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
-import password.pwm.http.servlet.peoplesearch.PeopleSearchConfiguration;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.StringUtil;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public enum PwmIfTest
 {
@@ -61,9 +61,10 @@ public enum PwmIfTest
     permission( new BooleanPermissionTest() ),
     otpSetupEnabled( new SetupOTPEnabled() ),
     hasStoredOtpTimestamp( new HasStoredOtpTimestamp() ),
+    hasCustomJavascript( new HasCustomJavascript() ),
     setupChallengeEnabled( new BooleanPwmSettingTest( PwmSetting.CHALLENGE_ENABLE ) ),
     shortcutsEnabled( new BooleanPwmSettingTest( PwmSetting.SHORTCUT_ENABLE ) ),
-    peopleSearchEnabled( new BooleanPwmSettingTest( PwmSetting.PEOPLE_SEARCH_ENABLE ) ),
+    peopleSearchAvailable(  new BooleanPwmSettingTest( PwmSetting.PEOPLE_SEARCH_ENABLE ), new ActorHasProfileTest( ProfileDefinition.PeopleSearch )  ),
     orgChartEnabled( new OrgChartEnabled() ),
     passwordExpired( new PasswordExpired() ),
     showMaskedTokenSelection( new BooleanAppPropertyTest( AppProperty.TOKEN_MASK_SHOW_SELECTION ) ),
@@ -76,9 +77,9 @@ public enum PwmIfTest
     activateUserEnabled( new BooleanPwmSettingTest( PwmSetting.ACTIVATE_USER_ENABLE ) ),
     newUserRegistrationEnabled( new BooleanPwmSettingTest( PwmSetting.NEWUSER_ENABLE ) ),
 
-    updateProfileAvailable( new BooleanPwmSettingTest( PwmSetting.UPDATE_PROFILE_ENABLE ), new ActorHasProfileTest( ProfileType.UpdateAttributes ) ),
-    helpdeskAvailable( new BooleanPwmSettingTest( PwmSetting.HELPDESK_ENABLE ), new ActorHasProfileTest( ProfileType.Helpdesk ) ),
-    DeleteAccountAvailable( new BooleanPwmSettingTest( PwmSetting.DELETE_ACCOUNT_ENABLE ), new ActorHasProfileTest( ProfileType.DeleteAccount ) ),
+    updateProfileAvailable( new BooleanPwmSettingTest( PwmSetting.UPDATE_PROFILE_ENABLE ), new ActorHasProfileTest( ProfileDefinition.UpdateAttributes ) ),
+    helpdeskAvailable( new BooleanPwmSettingTest( PwmSetting.HELPDESK_ENABLE ), new ActorHasProfileTest( ProfileDefinition.Helpdesk ) ),
+    DeleteAccountAvailable( new BooleanPwmSettingTest( PwmSetting.DELETE_ACCOUNT_ENABLE ), new ActorHasProfileTest( ProfileDefinition.DeleteAccount ) ),
     guestRegistrationAvailable( new BooleanPwmSettingTest( PwmSetting.GUEST_ENABLE ), new BooleanPermissionTest( Permission.GUEST_REGISTRATION ) ),
 
     booleanSetting( new BooleanPwmSettingTest( null ) ),
@@ -239,8 +240,8 @@ public enum PwmIfTest
 
             return pwmRequest != null
                     && pwmRequest.getPwmSession().getSessionManager().checkPermission(
-                            pwmRequest.getPwmApplication(),
-                            permission );
+                    pwmRequest.getPwmApplication(),
+                    permission );
         }
     }
 
@@ -362,7 +363,7 @@ public enum PwmIfTest
                 final HealthMonitor healthMonitor = pwmRequest.getPwmApplication().getHealthMonitor();
                 if ( healthMonitor != null && healthMonitor.status() == PwmService.STATUS.OPEN )
                 {
-                    if ( healthMonitor.getMostSevereHealthStatus( HealthMonitor.CheckTimeliness.NeverBlock ) == HealthStatus.WARN )
+                    if ( healthMonitor.getMostSevereHealthStatus() == HealthStatus.WARN )
                     {
                         return true;
                     }
@@ -413,17 +414,17 @@ public enum PwmIfTest
     private static class ActorHasProfileTest implements Test
     {
 
-        private final ProfileType profileType;
+        private final ProfileDefinition profileDefinition;
 
-        ActorHasProfileTest( final ProfileType profileType )
+        ActorHasProfileTest( final ProfileDefinition profileDefinition )
         {
-            this.profileType = profileType;
+            this.profileDefinition = profileDefinition;
         }
 
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmSession().getSessionManager().getProfile( pwmRequest.getPwmApplication(), profileType ) != null;
+            return pwmRequest.getPwmSession().getSessionManager().getProfile( pwmRequest.getPwmApplication(), profileDefinition ) != null;
         }
     }
 
@@ -472,12 +473,19 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
+            if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
             {
-                return false;
+                final Optional<PeopleSearchProfile> peopleSearchProfile = pwmRequest.isAuthenticated()
+                        ? Optional.ofNullable( pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile( pwmRequest.getPwmApplication() ) )
+                        : pwmRequest.getConfig().getPublicPeopleSearchProfile();
+
+                if ( peopleSearchProfile.isPresent() )
+                {
+                    return peopleSearchProfile.get().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_ORGCHART );
+                }
             }
 
-            return PeopleSearchConfiguration.forRequest( pwmRequest ).isOrgChartEnabled();
+            return false;
         }
     }
 
@@ -511,4 +519,15 @@ public enum PwmIfTest
             return setupOtpProfile != null && setupOtpProfile.readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP );
         }
     }
+
+    private static class HasCustomJavascript implements Test
+    {
+        @Override
+        public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options )
+        {
+            final String customJs = pwmRequest.getConfig().readSettingAsString( PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT );
+            return !StringUtil.isEmpty( customJs );
+        }
+    }
+
 }

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet;
@@ -50,6 +48,7 @@ import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.http.servlet.configguide.ConfigGuideServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerCertificatesServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerLocalDBServlet;
+import password.pwm.http.servlet.configmanager.ConfigManagerLoginServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerWordlistServlet;
 import password.pwm.http.servlet.newuser.NewUserServlet;
@@ -61,6 +60,9 @@ import password.pwm.http.servlet.updateprofile.UpdateProfileServlet;
 import javax.servlet.annotation.WebServlet;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
 
 public enum PwmServletDefinition
 {
@@ -70,18 +72,18 @@ public enum PwmServletDefinition
     PublicCommand( PublicCommandServlet.class, null ),
     PublicPeopleSearch( PublicPeopleSearchServlet.class, null ),
     PublicChangePassword( PublicChangePasswordServlet.class, ChangePasswordBean.class ),
-    //Resource(password.pwm.http.servlet.ResourceFileServlet.class),
+    Resource( password.pwm.http.servlet.resource.ResourceFileServlet.class, null ),
 
     AccountInformation( AccountInformationServlet.class, null ),
-    PrivateChangePassword( PrivateChangePasswordServlet.class, ChangePasswordBean.class ),
-    SetupResponses( password.pwm.http.servlet.SetupResponsesServlet.class, SetupResponsesBean.class ),
-    UpdateProfile( UpdateProfileServlet.class, UpdateProfileBean.class ),
-    SetupOtp( password.pwm.http.servlet.SetupOtpServlet.class, SetupOtpBean.class ),
+    PrivateChangePassword( PrivateChangePasswordServlet.class, ChangePasswordBean.class, Flag.RequiresUserPasswordAndBind ),
+    SetupResponses( password.pwm.http.servlet.SetupResponsesServlet.class, SetupResponsesBean.class, Flag.RequiresUserPasswordAndBind ),
+    UpdateProfile( UpdateProfileServlet.class, UpdateProfileBean.class, Flag.RequiresUserPasswordAndBind ),
+    SetupOtp( password.pwm.http.servlet.SetupOtpServlet.class, SetupOtpBean.class, Flag.RequiresUserPasswordAndBind ),
     Helpdesk( password.pwm.http.servlet.helpdesk.HelpdeskServlet.class, null ),
     Shortcuts( password.pwm.http.servlet.ShortcutServlet.class, ShortcutsBean.class ),
     PrivateCommand( PrivateCommandServlet.class, null ),
     PrivatePeopleSearch( PrivatePeopleSearchServlet.class, null ),
-    GuestRegistration( password.pwm.http.servlet.GuestRegistrationServlet.class, null ),
+    GuestRegistration( password.pwm.http.servlet.GuestRegistrationServlet.class, null, Flag.RequiresUserPasswordAndBind ),
     SelfDelete( DeleteAccountServlet.class, DeleteAccountBean.class ),
 
     ClientApi( ClientApiServlet.class, null ),
@@ -89,9 +91,11 @@ public enum PwmServletDefinition
     ConfigGuide( ConfigGuideServlet.class, ConfigGuideBean.class ),
     ConfigEditor( ConfigEditorServlet.class, null ),
     ConfigManager( ConfigManagerServlet.class, ConfigManagerBean.class ),
+    ConfigManager_Login( ConfigManagerLoginServlet.class, ConfigManagerBean.class ),
     ConfigManager_Wordlists( ConfigManagerWordlistServlet.class, ConfigManagerBean.class ),
     ConfigManager_LocalDB( ConfigManagerLocalDBServlet.class, ConfigManagerBean.class ),
     ConfigManager_Certificates( ConfigManagerCertificatesServlet.class, ConfigManagerBean.class ),
+    FullPageHealth( FullPageHealthServlet.class, null ),
 
     NewUser( NewUserServlet.class, NewUserBean.class ),
     ActivateUser( ActivateUserServlet.class, ActivateUserBean.class ),
@@ -102,11 +106,24 @@ public enum PwmServletDefinition
     private final String servletUrl;
     private final Class<? extends PwmServlet> pwmServletClass;
     private final Class<? extends PwmSessionBean> pwmSessionBeanClass;
+    private final Collection<Flag> flags;
 
-    PwmServletDefinition( final Class<? extends PwmServlet> pwmServletClass, final Class<? extends PwmSessionBean> pwmSessionBeanClass )
+    public enum Flag
+    {
+        RequiresUserPasswordAndBind,
+    }
+
+    PwmServletDefinition(
+            final Class<? extends PwmServlet> pwmServletClass,
+            final Class<? extends PwmSessionBean> pwmSessionBeanClass,
+            final Flag... flags
+    )
     {
         this.pwmServletClass = pwmServletClass;
         this.pwmSessionBeanClass = pwmSessionBeanClass;
+        final EnumSet flagSet = EnumSet.noneOf( Flag.class );
+        Collections.addAll( flagSet, flags );
+        this.flags = Collections.unmodifiableSet( flagSet );
 
         try
         {
@@ -119,7 +136,7 @@ public enum PwmServletDefinition
 
         final String firstPattern = patterns[ 0 ];
         final int lastSlash = firstPattern.lastIndexOf( "/" );
-        servletUrl = firstPattern.substring( lastSlash + 1, firstPattern.length() );
+        servletUrl = firstPattern.substring( lastSlash + 1 );
     }
 
     public String[] urlPatterns( )
@@ -160,5 +177,8 @@ public enum PwmServletDefinition
         throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "missing WebServlet annotation for class " + this.getClass().getName() ) );
     }
 
-
+    public Collection<Flag> getFlags()
+    {
+        return flags;
+    }
 }

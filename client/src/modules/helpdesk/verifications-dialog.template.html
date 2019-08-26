@@ -1,118 +1,133 @@
+
 <!--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2018 The PWM Project
+  ~ Copyright (c) 2009-2019 The PWM Project
   ~
-  ~ This program is free software; you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation; either version 2 of the License, or
-  ~ (at your option) any later version.
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
   ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
+  ~     http://www.apache.org/licenses/LICENSE-2.0
   ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
   -->
 
-<div class="ias-dialog" ng-switch="$ctrl.status">
-        <div class="ias-dialog-container" ng-switch-when="select">
-            <div class="ias-dialog-label">
-                <div class="ias-title" ng-bind="'Title_VerificationSend' | translate"></div>
-            </div>
-            <div class="ias-dialog-content">
-                <p ng-bind="'Long_Title_VerificationSend' | translate"></p>
+<div class="ias-styles-root">
+    <div class="ias-dialog" ng-switch="$ctrl.status">
+            <div class="ias-dialog-container" ng-switch-when="select">
+                <div class="ias-dialog-label">
+                    <div class="ias-title" ng-bind="'Title_VerificationSend' | translate"></div>
+                </div>
+                <div class="ias-dialog-content">
+                    <p ng-bind="'Long_Title_VerificationSend' | translate"></p>
 
-                <ias-button ng-click="$ctrl.selectVerificationMethod(method.name)"
-                            ng-repeat="method in $ctrl.availableVerificationMethods"
-                            style="margin-right: 3px;">
-                    {{ method.label | translate }}
+                    <ias-button ng-click="$ctrl.selectVerificationMethod(method.name)"
+                                ng-repeat="method in $ctrl.availableVerificationMethods"
+                                style="margin-right: 3px;">
+                        {{ method.label | translate }}
+                    </ias-button>
+
+                </div>
+                <div class="ias-actions">
+                    <ias-button ng-click="close()">{{ 'Button_Cancel' | translate }}</ias-button>
+                </div>
+
+                <ias-button class="ias-icon-button ias-dialog-cancel-button"
+                            id="close-icon"
+                            ng-attr-title="{{ 'Button_CloseWindow' | translate }}"
+                            ng-click="close()">
+                    <ias-icon icon="close_thick"></ias-icon>
                 </ias-button>
-
-            </div>
-            <div class="ias-actions">
-                <ias-button ng-click="close()">{{ 'Button_Cancel' | translate }}</ias-button>
             </div>
 
-            <ias-button class="ias-icon-button ias-dialog-cancel-button"
-                        id="close-icon"
-                        ng-attr-title="{{ 'Button_CloseWindow' | translate }}"
-                        ng-click="close()">
-                <ias-icon icon="close_thick"></ias-icon>
-            </ias-button>
-        </div>
+            <div class="ias-dialog-container grow-with-content" ng-switch-when="verify">
+                <div class="ias-dialog-label">
+                    <div class="ias-title" ng-bind="'Title_ValidateCode' | translate"></div>
+                </div>
 
-        <div class="ias-dialog-container" ng-switch-when="verify">
-            <div class="ias-dialog-label">
-                <div class="ias-title" ng-bind="'Title_ValidateCode' | translate"></div>
-            </div>
-
-            <div class="ias-dialog-content" ng-switch="$ctrl.verificationMethod">
-                <form>
-                    <div ng-switch-when="ATTRIBUTES">
-                        <div class="ias-input-container" ng-repeat="input in $ctrl.inputs">
-                            <label ng-attr-for="{{input.name}}" ng-bind="input.label"></label>
-                            <input autofocus
-                                   autocomplete="off"
-                                   ng-attr-id="{{input.name}}"
-                                   type="text"
-                                   ng-model="$ctrl.formData[input.name]">
+                <div class="ias-dialog-content" ng-switch="$ctrl.verificationMethod">
+                    <form>
+                        <div ng-switch-when="ATTRIBUTES">
+                            <div class="ias-input-container" ng-repeat="input in $ctrl.inputs">
+                                <label ng-attr-for="{{input.name}}" ng-bind="input.label"></label>
+                                <input autofocus
+                                       autocomplete="off"
+                                       ng-attr-id="{{input.name}}"
+                                       type="text"
+                                       ng-model="$ctrl.formData[input.name]">
+                            </div>
                         </div>
-                    </div>
-                    <div ng-switch-when="EMAIL|SMS" ng-switch-when-separator="|">
-                        <div class="ias-input-container">
+                        <div ng-switch-when="TOKEN" ng-switch-when-separator="|">
                             <label ng-bind="'Display_TokenDestination' | translate"></label>
-                            <input type="text" ng-value="$ctrl.tokenData.destination" readonly>
+                            <div class="ias-input-container token-destination-submitter">
+                                <select id="verification-token-destination" ng-model="$ctrl.tokenDestinationID"
+                                        ng-change="$ctrl.onTokenDestinationChanged()">
+                                    <option ng-repeat="tokenDestination in $ctrl.verificationOptions.tokenDestinations"
+                                            ng-attr-value="{{tokenDestination.id}}">
+                                        {{ tokenDestination.type == 'sms'?'Display_SmsPrefix':'Display_EmailPrefix' | translate}}
+                                        {{tokenDestination.display}}
+                                    </option>
+                                </select>
+                                <ias-button ng-click="$ctrl.sendVerificationTokenToDestination()"
+                                            ng-disabled="$ctrl.sendingVerificationToken"
+                                            title="{{ 'Button_SendToken' | translate }}">
+                                    {{ 'Button_SendToken' | translate }}
+                                </ias-button>
+                                <div class="loading-gif-25" ng-if="$ctrl.sendingVerificationToken"></div>
+                                <ias-icon icon="status_ok_thick" style="color:#37c26a;" class="ias-success" ng-if="$ctrl.verificationTokenSent"></ias-icon>
+                            </div>
+                            <div class="ias-input-container">
+                                <label>Token</label>
+                                <input autofocus autocomplete="off" id="token" type="text" ng-model="$ctrl.formData.code">
+                            </div>
+
                         </div>
-                        <div class="ias-input-container">
-                            <label>Token</label>
-                            <input autofocus autocomplete="off" id="token" type="text" ng-model="$ctrl.formData.code">
+                        <div ng-switch-when="OTP">
+                            <p ng-bind="'Display_HelpdeskOtpValidation' | translate"></p>
+                            <div class="ias-input-container">
+                                <label>Code</label>
+                                <input autofocus autocomplete="off" id="code" type="text" ng-model="$ctrl.formData.code">
+                            </div>
                         </div>
 
-                    </div>
-                    <div ng-switch-when="OTP">
-                        <p ng-bind="'Display_HelpdeskOtpValidation' | translate"></p>
-                        <div class="ias-input-container">
-                            <label>Code</label>
-                            <input autofocus autocomplete="off" id="code" type="text" ng-model="$ctrl.formData.code">
+                        <div class="aligned-input">
+                            <ias-button ng-click="$ctrl.sendVerificationData()" ng-disabled="$ctrl.verificationStatus==='passed'">
+                                {{ 'Button_Verify' | translate }}
+                            </ias-button>
+                            <div class="loading-gif-25" ng-if="$ctrl.verificationStatus==='wait'"></div>
+                            <ias-icon icon="status_ok_thick" style="color:#37c26a;" class="ias-success" ng-if="$ctrl.verificationStatus==='passed'"></ias-icon>
+                            <ias-icon icon="status_error_thick" style="color:#e50000;" class="ias-error" ng-if="$ctrl.verificationStatus==='failed'"></ias-icon>
                         </div>
-                    </div>
+                        <p ng-bind="'Display_InvalidVerification' | translate" ng-if="$ctrl.verificationStatus==='failed'"></p>
+                    </form>
+                </div>
 
-                    <div class="aligned-input">
-                        <ias-button ng-click="$ctrl.sendVerificationData()" ng-disabled="$ctrl.verificationStatus==='passed'">
-                            {{ 'Button_Verify' | translate }}
-                        </ias-button>
-                        <div class="loading-gif-25" ng-if="$ctrl.verificationStatus==='wait'"></div>
-                        <ias-icon icon="status_ok_thick" style="color:#37c26a;" class="ias-success" ng-if="$ctrl.verificationStatus==='passed'"></ias-icon>
-                        <ias-icon icon="status_error_thick" style="color:#e50000;" class="ias-error" ng-if="$ctrl.verificationStatus==='failed'"></ias-icon>
-                    </div>
-                    <p ng-bind="'Display_InvalidVerification' | translate" ng-if="$ctrl.verificationStatus==='failed'"></p>
-                </form>
-            </div>
+                <div class="ias-actions">
+                    <ias-button ng-bind="'Display_ViewDetails' | translate"
+                                ng-disabled="$ctrl.verificationStatus!=='passed'"
+                                ng-click="$ctrl.viewDetails()"
+                                ng-if="!$ctrl.isDetailsView"></ias-button>
+                    <ias-button ng-disabled="$ctrl.verificationStatus!=='passed'"
+                               ng-click="$ctrl.clickOkButton()"
+                               ng-if="$ctrl.isDetailsView">
+                        {{ 'Button_OK' | translate }}
+                    </ias-button>
+                    <ias-button ng-click="close()">{{ 'Button_Cancel' | translate }}</ias-button>
+                </div>
 
-            <div class="ias-actions">
-                <ias-button ng-bind="'Display_ViewDetails' | translate"
-                            ng-disabled="$ctrl.verificationStatus!=='passed'"
-                            ng-click="$ctrl.viewDetails()"
-                            ng-if="!$ctrl.isDetailsView"></ias-button>
-                <ias-button ng-disabled="$ctrl.verificationStatus!=='passed'"
-                           ng-click="$ctrl.clickOkButton()"
-                           ng-if="$ctrl.isDetailsView">
-                    {{ 'Button_OK' | translate }}
+                <ias-button class="ias-icon-button ias-dialog-cancel-button"
+                            id="close-icon"
+                            ng-attr-title="{{ 'Button_CloseWindow' | translate }}"
+                            ng-click="close()">
+                    <ias-icon icon="close_thick"></ias-icon>
                 </ias-button>
-                <ias-button ng-click="close()">{{ 'Button_Cancel' | translate }}</ias-button>
             </div>
-
-            <ias-button class="ias-icon-button ias-dialog-cancel-button"
-                        id="close-icon"
-                        ng-attr-title="{{ 'Button_CloseWindow' | translate }}"
-                        ng-click="close()">
-                <ias-icon icon="close_thick"></ias-icon>
-            </ias-button>
-        </div>
+    </div>
 </div>

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http;
@@ -38,8 +36,7 @@ import password.pwm.ldap.UserInfoBean;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -48,7 +45,6 @@ import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -61,7 +57,6 @@ import java.util.Map;
  */
 public class PwmSession implements Serializable
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSession.class );
 
     private final LocalSessionStateBean sessionStateBean;
@@ -92,25 +87,8 @@ public class PwmSession implements Serializable
             throw new IllegalStateException( "PwmApplication must be available during session creation" );
         }
 
-        final int sessionValidationKeyLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_SESSION_VALIDATION_KEY_LENGTH ) );
-        sessionStateBean = new LocalSessionStateBean( sessionValidationKeyLength );
-        sessionStateBean.regenerateSessionVerificationKey( pwmApplication );
-        this.sessionStateBean.setSessionID( null );
-
-        final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
-        if ( statisticsManager != null )
-        {
-            String nextID = pwmApplication.getStatisticsManager().getStatBundleForKey( StatisticsManager.KEY_CUMULATIVE ).getStatistic( Statistic.HTTP_SESSIONS );
-            try
-            {
-                nextID = new BigInteger( nextID ).toString();
-            }
-            catch ( NumberFormatException e )
-            {
-                LOGGER.debug( this, "error generating sessionID: " + e.getMessage(), e );
-            }
-            this.getSessionStateBean().setSessionID( nextID );
-        }
+        sessionStateBean = new LocalSessionStateBean();
+        this.sessionStateBean.setSessionID( pwmApplication.getSessionTrackService().generateNewSessionID() );
 
         this.sessionStateBean.setSessionLastAccessedTime( Instant.now() );
 
@@ -121,7 +99,7 @@ public class PwmSession implements Serializable
 
         pwmApplication.getSessionTrackService().addSessionData( this );
 
-        LOGGER.trace( this, "created new session" );
+        LOGGER.trace( this, () -> "created new session" );
     }
 
 
@@ -159,7 +137,7 @@ public class PwmSession implements Serializable
 
     public void reloadUserInfoBean( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
-        LOGGER.trace( this, "performing reloadUserInfoBean" );
+        LOGGER.trace( this, () -> "performing reloadUserInfoBean" );
         final UserInfo oldUserInfoBean = getUserInfo();
 
         final UserInfo userInfo;
@@ -262,7 +240,7 @@ public class PwmSession implements Serializable
             // close out any outstanding connections
             getSessionManager().closeConnections();
 
-            LOGGER.debug( this, sb.toString() );
+            LOGGER.debug( this, () -> sb.toString() );
         }
 
         if ( pwmRequest != null )
@@ -338,7 +316,7 @@ public class PwmSession implements Serializable
         final Locale requestedLocale = LocaleHelper.parseLocaleString( localeString );
         if ( knownLocales.contains( requestedLocale ) || "default".equalsIgnoreCase( localeString ) )
         {
-            LOGGER.debug( this, "setting session locale to '" + localeString + "'" );
+            LOGGER.debug( this, () -> "setting session locale to '" + localeString + "'" );
             ssBean.setLocale( "default".equalsIgnoreCase( localeString )
                     ? PwmConstants.DEFAULT_LOCALE
                     : requestedLocale );

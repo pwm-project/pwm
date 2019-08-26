@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.ws.server;
@@ -44,7 +42,6 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -77,7 +74,7 @@ public class RestAuthenticationProcessor
             final String namedSecretName = readNamedSecretName();
             if ( namedSecretName != null )
             {
-                LOGGER.trace( sessionLabel, "authenticating with named secret '" + namedSecretName + "'" );
+                LOGGER.trace( sessionLabel, () -> "authenticating with named secret '" + namedSecretName + "'" );
                 final Set<WebServiceUsage> usages = new HashSet<>( JavaHelper.readEnumListFromStringCollection(
                         WebServiceUsage.class,
                         pwmApplication.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET ).get( namedSecretName ).getUsage()
@@ -123,32 +120,23 @@ public class RestAuthenticationProcessor
                         RestAuthenticationType.LDAP,
                         null,
                         userIdentity,
-                        Collections.unmodifiableSet( new HashSet<>( Arrays.asList( WebServiceUsage.values() ) ) ),
+                        Collections.unmodifiableSet( new HashSet<>( WebServiceUsage.forType( RestAuthenticationType.LDAP ) ) ),
                         thirdParty,
                         chaiProvider
                 );
             }
         }
 
-        final Set<WebServiceUsage> publicUsages;
-        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES ) )
-        {
-            final WebServiceUsage[] usages = {
-                    WebServiceUsage.Health,
-                    WebServiceUsage.Statistics,
-            };
-            publicUsages = Collections.unmodifiableSet( new HashSet<>( Arrays.asList( usages ) ) );
-        }
-        else
-        {
-            publicUsages = Collections.emptySet();
-        }
+        final Set<WebServiceUsage> publicUsages = WebServiceUsage.forType( RestAuthenticationType.PUBLIC );
+        final Set<WebServiceUsage> enabledUsages = new HashSet<>(
+                pwmApplication.getConfig().readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class ) );
+        enabledUsages.retainAll( publicUsages );
 
         return new RestAuthentication(
                 RestAuthenticationType.PUBLIC,
                 null,
                 null,
-                publicUsages,
+                Collections.unmodifiableSet( enabledUsages ),
                 false,
                 null
         );

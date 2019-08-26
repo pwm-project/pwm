@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.event;
@@ -26,8 +24,8 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.TransactionSizeCalculator;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
@@ -39,9 +37,7 @@ import password.pwm.util.logging.PwmLogger;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 public class LocalDbAuditVault implements AuditVault
 {
@@ -53,7 +49,7 @@ public class LocalDbAuditVault implements AuditVault
 
     private int maxBulkRemovals = 105;
 
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
     private volatile PwmService.STATUS status = PwmService.STATUS.NEW;
 
 
@@ -76,14 +72,11 @@ public class LocalDbAuditVault implements AuditVault
 
         readOldestRecord();
 
-        executorService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-",
-                        true
-                ) );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         status = PwmService.STATUS.OPEN;
-        executorService.scheduleWithFixedDelay( new TrimmerThread(), 0, 10, TimeUnit.MINUTES );
+        final TimeDuration jobFrequency = TimeDuration.of( 10, TimeDuration.Unit.MINUTES );
+        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new TrimmerThread(), executorService, TimeDuration.SECONDS_10, jobFrequency );
     }
 
     public void close( )
@@ -185,7 +178,8 @@ public class LocalDbAuditVault implements AuditVault
         {
             errorMsg = e.getMessage();
         }
-        LOGGER.debug( "unable to deserialize stored record '" + input + "', error: " + errorMsg );
+        final String finalErrorMsg = errorMsg;
+        LOGGER.debug( () -> "unable to deserialize stored record '" + input + "', error: " + finalErrorMsg );
         return null;
     }
 
@@ -226,11 +220,11 @@ public class LocalDbAuditVault implements AuditVault
 
         // keep transaction duration around 100ms if possible.
         final TransactionSizeCalculator transactionSizeCalculator = new TransactionSizeCalculator(
-                new TransactionSizeCalculator.SettingsBuilder()
-                        .setDurationGoal( TimeDuration.of( 101, TimeDuration.Unit.MILLISECONDS ) )
-                        .setMaxTransactions( 5003 )
-                        .setMinTransactions( 3 )
-                        .createSettings()
+                TransactionSizeCalculator.Settings.builder()
+                        .durationGoal( TimeDuration.of( 101, TimeDuration.Unit.MILLISECONDS ) )
+                        .maxTransactions( 5003 )
+                        .minTransactions( 3 )
+                        .build()
         );
 
         @Override

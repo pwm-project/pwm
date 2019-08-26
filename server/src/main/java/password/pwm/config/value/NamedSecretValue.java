@@ -3,27 +3,24 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
-import org.jdom2.Element;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
@@ -35,6 +32,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
@@ -88,30 +87,30 @@ public class NamedSecretValue implements StoredValue
 
             public NamedSecretValue fromXmlElement(
                     final PwmSetting pwmSetting,
-                    final Element settingElement,
+                    final XmlElement settingElement,
                     final PwmSecurityKey key
             )
                     throws PwmOperationalException, PwmUnrecoverableException
             {
                 final Map<String, NamedSecretData> values = new LinkedHashMap<>();
-                final List<Element> valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
 
                 try
                 {
                     if ( valueElements != null )
                     {
-                        for ( final Element value : valueElements )
+                        for ( final XmlElement value : valueElements )
                         {
                             if ( value.getChild( ELEMENT_NAME ) != null && value.getChild( ELEMENT_PASSWORD ) != null )
                             {
                                 final String name = value.getChild( ELEMENT_NAME ).getText();
                                 final String encodedValue = value.getChild( ELEMENT_PASSWORD ).getText();
                                 final PasswordData passwordData = new PasswordData( SecureEngine.decryptStringValue( encodedValue, key, PwmBlockAlgorithm.CONFIG ) );
-                                final List<Element> usages = value.getChildren( ELEMENT_USAGE );
+                                final List<XmlElement> usages = value.getChildren( ELEMENT_USAGE );
                                 final List<String> strUsages = new ArrayList<>();
                                 if ( usages != null )
                                 {
-                                    for ( final Element usageElement : usages )
+                                    for ( final XmlElement usageElement : usages )
                                     {
                                         strUsages.add( usageElement.getText() );
                                     }
@@ -132,7 +131,7 @@ public class NamedSecretValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName )
+    public List<XmlElement> toXmlValues( final String valueElementName )
     {
         throw new IllegalStateException( "password xml output requires hash key" );
     }
@@ -155,14 +154,14 @@ public class NamedSecretValue implements StoredValue
         return 0;
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey key )
+    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey key )
     {
         if ( values == null )
         {
-            final Element valueElement = new Element( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
             return Collections.singletonList( valueElement );
         }
-        final List<Element> valuesElement = new ArrayList<>();
+        final List<XmlElement> valuesElement = new ArrayList<>();
         try
         {
             for ( final Map.Entry<String, NamedSecretData> entry : values.entrySet() )
@@ -170,19 +169,19 @@ public class NamedSecretValue implements StoredValue
                 final String name = entry.getKey();
                 final PasswordData passwordData = entry.getValue().getPassword();
                 final String encodedValue = SecureEngine.encryptToString( passwordData.getStringValue(), key, PwmBlockAlgorithm.CONFIG );
-                final Element newValueElement = new Element( "value" );
-                final Element nameElement = new Element( ELEMENT_NAME );
-                nameElement.setText( name );
-                final Element encodedValueElement = new Element( ELEMENT_PASSWORD );
-                encodedValueElement.setText( encodedValue );
+                final XmlElement newValueElement = XmlFactory.getFactory().newElement( "value" );
+                final XmlElement nameElement = XmlFactory.getFactory().newElement( ELEMENT_NAME );
+                nameElement.addText( name );
+                final XmlElement encodedValueElement = XmlFactory.getFactory().newElement( ELEMENT_PASSWORD );
+                encodedValueElement.addText( encodedValue );
 
                 newValueElement.addContent( nameElement );
                 newValueElement.addContent( encodedValueElement );
 
                 for ( final String usages : values.get( name ).getUsage() )
                 {
-                    final Element usageElement = new Element( ELEMENT_USAGE );
-                    usageElement.setText( usages );
+                    final XmlElement usageElement = XmlFactory.getFactory().newElement( ELEMENT_USAGE );
+                    usageElement.addText( usages );
                     newValueElement.addContent( usageElement );
                 }
 

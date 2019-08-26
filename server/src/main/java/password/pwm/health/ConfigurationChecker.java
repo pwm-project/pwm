@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.health;
@@ -38,12 +36,13 @@ import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.profile.ActivateUserProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
-import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -152,7 +151,7 @@ public class ConfigurationChecker implements HealthChecker
 
         for ( final LdapProfile ldapProfile : config.getLdapProfiles().values() )
         {
-            final List<String> ldapServerURLs = ldapProfile.readSettingAsStringArray( PwmSetting.LDAP_SERVER_URLS );
+            final List<String> ldapServerURLs = ldapProfile.getLdapUrls();
             if ( ldapServerURLs != null && !ldapServerURLs.isEmpty() )
             {
                 for ( final String urlStringValue : ldapServerURLs )
@@ -339,9 +338,9 @@ public class ConfigurationChecker implements HealthChecker
                     }
                 }
 
-                if ( config.readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
+                if ( config.readSettingAsEnum( PwmSetting.PW_EXPY_NOTIFY_STORAGE_MODE, DataStorageMethod.class ) == DataStorageMethod.DB )
                 {
-                    causalSettings.add( PwmSetting.PW_EXPY_NOTIFY_ENABLE );
+                    causalSettings.add( PwmSetting.PW_EXPY_NOTIFY_STORAGE_MODE );
                 }
 
                 for ( final PwmSetting setting : causalSettings )
@@ -461,8 +460,9 @@ public class ConfigurationChecker implements HealthChecker
 
             final List<HealthRecord> records = new ArrayList<>();
 
+            for ( final ActivateUserProfile activationProfile : config.getUserActivationProfiles().values() )
             {
-                final MessageSendMethod method = config.readSettingAsEnum( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class );
+                final MessageSendMethod method = activationProfile.readSettingAsEnum( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class );
                 if ( deprecatedMethods.contains( method ) )
                 {
                     records.add( HealthRecord.forMessage( HealthMessage.Config_InvalidSendMethod,

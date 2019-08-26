@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.queue;
@@ -38,15 +36,16 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -226,13 +225,13 @@ public class SmsQueueManager implements PwmService
         final PasswordData gatewayPass = config.readSettingAsPassword( PwmSetting.SMS_GATEWAY_PASSWORD );
         if ( gatewayUrl == null || gatewayUrl.length() < 1 )
         {
-            LOGGER.debug( "SMS gateway url is not configured" );
+            LOGGER.debug( () -> "SMS gateway url is not configured" );
             return false;
         }
 
         if ( gatewayUser != null && gatewayUser.length() > 0 && ( gatewayPass == null ) )
         {
-            LOGGER.debug( "SMS gateway user configured, but no password provided" );
+            LOGGER.debug( () -> "SMS gateway user configured, but no password provided" );
             return false;
         }
 
@@ -249,13 +248,13 @@ public class SmsQueueManager implements PwmService
 
         if ( smsItem.getTo() == null || smsItem.getTo().length() < 1 )
         {
-            LOGGER.debug( "discarding sms send event (no to address) " + smsItem.toString() );
+            LOGGER.debug( () -> "discarding sms send event (no to address) " + smsItem.toString() );
             return false;
         }
 
         if ( smsItem.getMessage() == null || smsItem.getMessage().length() < 1 )
         {
-            LOGGER.debug( "discarding sms send event (no message) " + smsItem.toString() );
+            LOGGER.debug( () -> "discarding sms send event (no message) " + smsItem.toString() );
             return false;
         }
 
@@ -396,7 +395,7 @@ public class SmsQueueManager implements PwmService
             final Matcher m = p.matcher( resultBody );
             if ( m.matches() )
             {
-                LOGGER.trace( "result body matched configured regex match setting: " + regex );
+                LOGGER.trace( () -> "result body matched configured regex match setting: " + regex );
                 return;
             }
         }
@@ -494,26 +493,37 @@ public class SmsQueueManager implements PwmService
 
             final String requestData = makeRequestData( to, message );
 
-            LOGGER.trace( "preparing to send SMS data: " + requestData );
+            LOGGER.trace( () -> "preparing to send SMS data: " + requestData );
 
             final PwmHttpClientRequest pwmHttpClientRequest = makeRequest( requestData );
 
-            final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                    .certificates( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) )
-                    .build();
+            final PwmHttpClient pwmHttpClient;
+            {
+                if ( JavaHelper.isEmpty( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) ) )
+                {
+                    pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( );
+                }
+                else
+                {
+                    final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
+                            .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
+                            .certificates( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) )
+                            .build();
 
-            final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel, pwmHttpClientConfiguration );
+                    pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( clientConfiguration );
+                }
+            }
 
             try
             {
-                final PwmHttpClientResponse pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
+                final PwmHttpClientResponse pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, sessionLabel );
                 final int resultCode = pwmHttpClientResponse.getStatusCode();
 
                 final String responseBody = pwmHttpClientResponse.getBody();
                 lastResponseBody = responseBody;
 
                 determineIfResultSuccessful( config, resultCode, responseBody );
-                LOGGER.debug( "SMS send successful, HTTP status: " + resultCode );
+                LOGGER.debug( () -> "SMS send successful, HTTP status: " + resultCode );
             }
             catch ( PwmUnrecoverableException e )
             {
@@ -626,7 +636,12 @@ public class SmsQueueManager implements PwmService
                     ? requestData
                     : null;
 
-            return new PwmHttpClientRequest( httpMethod, fullUrl, body, headers );
+            return PwmHttpClientRequest.builder()
+                    .method( httpMethod )
+                    .url( fullUrl )
+                    .body( body )
+                    .headers( headers )
+                    .build();
         }
 
         public String getLastResponseBody( )

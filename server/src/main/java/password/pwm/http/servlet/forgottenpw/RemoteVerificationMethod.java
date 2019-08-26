@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.forgottenpw;
@@ -37,9 +35,9 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -116,9 +114,10 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final UserInfo userInfo, final SessionLabel sessionLabel, final Locale locale ) throws PwmUnrecoverableException
+    public void init( final PwmApplication pwmApplication, final UserInfo userInfo, final SessionLabel sessionLabel, final Locale locale )
+            throws PwmUnrecoverableException
     {
-        pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel );
+        pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( );
         this.remoteSessionID = pwmApplication.getSecureService().pwmRandom().randomUUID().toString();
         this.userInfo = userInfo;
         this.sessionLabel = sessionLabel;
@@ -143,7 +142,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
         lastResponse = null;
 
         final Map<String, String> headers = new LinkedHashMap<>();
-        headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
+        headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
         headers.put( HttpHeader.AcceptLanguage.getHttpName(), locale.toLanguageTag() );
 
         final RemoteVerificationRequestBean remoteVerificationRequestBean = new RemoteVerificationRequestBean();
@@ -152,16 +151,16 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
         remoteVerificationRequestBean.setUserInfo( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), locale, macroMachine ) );
         remoteVerificationRequestBean.setUserResponses( userResponses );
 
-        final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
-                HttpMethod.POST,
-                url,
-                JsonUtil.serialize( remoteVerificationRequestBean ),
-                headers
-        );
+        final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder()
+                .method( HttpMethod.POST )
+                .url( url )
+                .body( JsonUtil.serialize( remoteVerificationRequestBean ) )
+                .headers( headers )
+                .build();
 
         try
         {
-            final PwmHttpClientResponse response = pwmHttpClient.makeRequest( pwmHttpClientRequest );
+            final PwmHttpClientResponse response = pwmHttpClient.makeRequest( pwmHttpClientRequest, this.sessionLabel );
             final String responseBodyStr = response.getBody();
             this.lastResponse = JsonUtil.deserialize( responseBodyStr, RemoteVerificationResponseBean.class );
         }
