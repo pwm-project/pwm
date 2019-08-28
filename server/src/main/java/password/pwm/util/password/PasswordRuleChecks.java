@@ -723,9 +723,9 @@ public class PasswordRuleChecks
             {
                 if ( pwmApplication != null )
                 {
-                    if ( pwmApplication.getWordlistManager() != null && pwmApplication.getWordlistManager().status() == PwmService.STATUS.OPEN )
+                    if ( pwmApplication.getWordlistService() != null && pwmApplication.getWordlistService().status() == PwmService.STATUS.OPEN )
                     {
-                        final boolean found = pwmApplication.getWordlistManager().containsWord( password );
+                        final boolean found = pwmApplication.getWordlistService().containsWord( password );
 
                         if ( found )
                         {

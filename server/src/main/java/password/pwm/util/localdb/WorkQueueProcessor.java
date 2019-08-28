@@ -37,7 +37,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Deque;
@@ -583,7 +583,7 @@ public final class WorkQueueProcessor<W extends Serializable>
     {
         final Map<String, String> output = new HashMap<>();
         output.put( "avgLagTime", TimeDuration.of( ( long ) avgLagTime.getAverage(), TimeDuration.Unit.MILLISECONDS ).asCompactString() );
-        output.put( "sendRate", sendRate.readEventRate().setScale( 2, BigDecimal.ROUND_DOWN ) + "/s" );
+        output.put( "sendRate", sendRate.readEventRate().setScale( 2, RoundingMode.DOWN ) + "/s" );
         output.put( "preQueueSubmit", String.valueOf( preQueueSubmit.get() ) );
         output.put( "preQueueBypass", String.valueOf( preQueueBypass.get() ) );
         output.put( "preQueueFallback", String.valueOf( preQueueFallback.get() ) );

@@ -25,12 +25,14 @@ import lombok.Value;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 @Value
 @Builder( toBuilder = true )
 public class WordlistStatus implements Serializable
 {
-    public static final int CURRENT_VERSION = 5;
+    public static final int CURRENT_VERSION = 7;
 
     @Builder.Default
     private int version = CURRENT_VERSION;
@@ -41,4 +43,8 @@ public class WordlistStatus implements Serializable
     private WordlistSourceInfo remoteInfo;
     private long bytes;
     private long valueCount;
+    private String configHash;
+
+    @Builder.Default
+    private Map<WordType, Long> wordTypes = new HashMap<>();
 }

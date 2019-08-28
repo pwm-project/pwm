@@ -18,31 +18,29 @@
  * limitations under the License.
  */
 
-package password.pwm.util.secure;
+package password.pwm.util.java;
 
-public enum PwmHashAlgorithm
+import java.util.function.Supplier;
+
+public class LazySupplier<T> implements Supplier<T>
 {
-    MD5( "MD5", 32 ),
-    SHA1( "SHA1", 40 ),
-    SHA256( "SHA-256", 64 ),
-    SHA512( "SHA-512", 128 ),;
+    private boolean supplied = false;
+    private T value;
+    private final Supplier<T> realSupplier;
 
-    private final String algName;
-    private final int hexValueLength;
-
-    PwmHashAlgorithm( final String algName, final int hexValueLength )
+    public LazySupplier( final Supplier<T> realSupplier )
     {
-        this.algName = algName;
-        this.hexValueLength = hexValueLength;
+        this.realSupplier = realSupplier;
     }
 
-    public String getAlgName( )
+    @Override
+    public T get()
     {
-        return algName;
-    }
-
-    public int getHexValueLength()
-    {
-        return hexValueLength;
+        if ( !supplied )
+        {
+            value = realSupplier.get();
+            supplied = true;
+        }
+        return value;
     }
 }

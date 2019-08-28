@@ -27,7 +27,7 @@ import java.io.Serializable;
 @Value
 public class WordlistSourceInfo implements Serializable
 {
-    private String checksum;
+    private String hash;
     private long bytes;
     private String importUrl;
 }

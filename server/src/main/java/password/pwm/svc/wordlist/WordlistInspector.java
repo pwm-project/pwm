@@ -24,11 +24,11 @@ import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
 class WordlistInspector implements Runnable
@@ -136,7 +136,7 @@ class WordlistInspector implements Runnable
             }
             else
             {
-                final WordlistSourceInfo builtInInfo = source.readRemoteWordlistInfo( cancelFlag );
+                final WordlistSourceInfo builtInInfo = source.readRemoteWordlistInfo( pwmApplication, cancelFlag, getLogger() );
                 if ( !builtInInfo.equals( existingStatus.getRemoteInfo() ) )
                 {
                     getLogger().debug( () -> "existing built-in store does not match imported wordlist, will re-import" );
@@ -170,6 +170,14 @@ class WordlistInspector implements Runnable
         {
             getLogger().debug( () -> "stored version '" + wordlistStatus.getVersion() + "' is not current version '"
                     + WordlistStatus.CURRENT_VERSION + "', will clear" );
+            return true;
+        }
+
+        if ( !Objects.equals( wordlistStatus.getConfigHash(), rootWordlist.getConfiguration().configHash() ) )
+        {
+            getLogger().debug( () -> "stored configuration hash '" + wordlistStatus.getConfigHash()
+                    + "' does not match current configuration hash '"
+                    + rootWordlist.getConfiguration().configHash() + "', will clear" );
             return true;
         }
 
@@ -231,7 +239,7 @@ class WordlistInspector implements Runnable
             final WordlistStatus wordlistStatus,
             final boolean autoImportUrlConfigured
     )
-            throws LocalDBException
+            throws PwmUnrecoverableException
     {
         if ( wordlistStatus.getSourceType() == null )
         {
@@ -264,7 +272,7 @@ class WordlistInspector implements Runnable
                 final WordlistSource testWordlistSource = WordlistSource.forAutoImport( pwmApplication, rootWordlist.getConfiguration() );
                 try
                 {
-                    testWordlistSource.readRemoteWordlistInfo( cancelFlag );
+                    testWordlistSource.readRemoteWordlistInfo( pwmApplication, cancelFlag, getLogger() );
                 }
                 catch ( PwmUnrecoverableException e )
                 {
@@ -308,7 +316,7 @@ class WordlistInspector implements Runnable
             throws IOException, PwmUnrecoverableException
     {
         final WordlistSource source = WordlistSource.forAutoImport( pwmApplication, rootWordlist.getConfiguration() );
-        final WordlistSourceInfo remoteInfo = source.readRemoteWordlistInfo( cancelFlag );
+        final WordlistSourceInfo remoteInfo = source.readRemoteWordlistInfo( pwmApplication, cancelFlag, getLogger() );
 
         boolean needsAutoImport = false;
         if ( remoteInfo == null )
@@ -339,7 +347,7 @@ class WordlistInspector implements Runnable
             throws IOException, PwmUnrecoverableException
     {
         final WordlistSource wordlistSource = WordlistSource.forBuiltIn( pwmApplication, rootWordlist.getConfiguration() );
-        final WordlistSourceInfo wordlistSourceInfo = wordlistSource.readRemoteWordlistInfo( cancelFlag );
+        final WordlistSourceInfo wordlistSourceInfo = wordlistSource.readRemoteWordlistInfo( pwmApplication, cancelFlag, getLogger() );
         final WordlistImporter wordlistImporter = new WordlistImporter(
                 wordlistSourceInfo,
                 wordlistSource.getZipWordlistReader(),
@@ -368,18 +376,5 @@ class WordlistInspector implements Runnable
     private PwmLogger getLogger()
     {
         return this.rootWordlist.getLogger();
-    }
-
-
-    boolean needsRunningAgain()
-    {
-        final WordlistStatus wordlistStatus = rootWordlist.readWordlistStatus();
-
-        if ( wordlistStatus.isCompleted() )
-        {
-            return false;
-        }
-
-        return true;
     }
 }

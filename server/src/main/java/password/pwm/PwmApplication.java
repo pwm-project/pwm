@@ -570,7 +570,7 @@ public class PwmApplication
         return Collections.unmodifiableList( pwmServices );
     }
 
-    public WordlistService getWordlistManager( )
+    public WordlistService getWordlistService( )
     {
         return ( WordlistService ) pwmServiceManager.getService( WordlistService.class );
     }
