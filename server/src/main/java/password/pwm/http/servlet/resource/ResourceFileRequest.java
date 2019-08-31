@@ -51,7 +51,9 @@ class ResourceFileRequest
     private static final PwmLogger LOGGER = PwmLogger.forClass( ResourceFileRequest.class );
 
     private static final Map<String, String> WEB_JAR_VERSION_MAP = Collections.unmodifiableMap( new HashMap<>( new WebJarAssetLocator().getWebJars() ) );
-    private static final Collection<String> WEB_JAR_ASSET_LIST = Collections.unmodifiableCollection( new ArrayList<>( new WebJarAssetLocator().getFullPathIndex().values() ) );
+
+    /** Contains a list of all resources (files) found inside the resources folder of all JARs in the WAR's classpath. **/
+    private static final Collection<String> WEB_JAR_ASSET_LIST = Collections.unmodifiableCollection( new ArrayList<>( new WebJarAssetLocator().listAssets() ) );
 
     private final HttpServletRequest httpServletRequest;
     private final Configuration configuration;
