@@ -169,7 +169,7 @@ class WordlistSource
 
             hash = JavaHelper.byteArrayToHexString( checksumInputStream.getMessageDigest().digest() );
         }
-        catch ( Exception e )
+        catch ( IOException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation(
                     PwmError.ERROR_WORDLIST_IMPORT_ERROR,
