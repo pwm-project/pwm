@@ -452,10 +452,12 @@ class WordlistImporter implements Runnable
 
     private void writeCurrentWordlistStatus()
     {
+        final Instant now = Instant.now();
         rootWordlist.writeWordlistStatus( rootWordlist.readWordlistStatus().toBuilder()
                 .remoteInfo( wordlistSourceInfo )
                 .configHash( rootWordlist.getConfiguration().configHash() )
-                .storeDate( Instant.now() )
+                .storeDate( now )
+                .checkDate( now )
                 .sourceType( sourceType )
                 .completed( completed )
                 .wordTypes( new HashMap<>( seenWordTypes ) )

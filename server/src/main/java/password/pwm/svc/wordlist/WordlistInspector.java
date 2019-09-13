@@ -92,15 +92,15 @@ class WordlistInspector implements Runnable
 
         if ( autoImportUrlConfigured )
         {
-        try
-        {
-            checkAutoPopulation( existingStatus );
-        }
-        catch ( PwmUnrecoverableException e )
-        {
-            getLogger().error( "error importing auto-import wordlist: " + e.getMessage() );
-            rootWordlist.setAutoImportError( e.getErrorInformation() );
-        }
+            try
+            {
+                checkAutoPopulation( existingStatus );
+            }
+            catch ( PwmUnrecoverableException e )
+            {
+                getLogger().error( "error importing auto-import wordlist: " + e.getMessage() );
+                rootWordlist.setAutoImportError( e.getErrorInformation() );
+            }
         }
 
         existingStatus = rootWordlist.readWordlistStatus();
@@ -288,10 +288,10 @@ class WordlistInspector implements Runnable
 
             case AutoImport:
             {
-                final Instant storageTime = wordlistStatus.getStoreDate();
-                final TimeDuration timeSinceCompletion = TimeDuration.fromCurrent( storageTime );
+                final Instant checkTime = wordlistStatus.getCheckDate() == null ? Instant.EPOCH : wordlistStatus.getCheckDate();
+                final TimeDuration timeSinceCheck = TimeDuration.fromCurrent( checkTime );
                 final TimeDuration recheckDuration = rootWordlist.getConfiguration().getAutoImportRecheckDuration();
-                if ( wordlistStatus.isCompleted() && timeSinceCompletion.isShorterThan( recheckDuration ) && autoImportUrlConfigured )
+                if ( wordlistStatus.isCompleted() && timeSinceCheck.isShorterThan( recheckDuration ) && autoImportUrlConfigured )
                 {
                     /*
                     getLogger().debug( "existing completed wordlist is "
@@ -341,6 +341,10 @@ class WordlistInspector implements Runnable
                 populateAutoImport( remoteInfo );
             }
         }
+
+        rootWordlist.writeWordlistStatus(
+                rootWordlist.readWordlistStatus().toBuilder()
+                        .checkDate( Instant.now() ).build() );
     }
 
     private void populateBuiltIn( final WordlistSourceType wordlistSourceType )

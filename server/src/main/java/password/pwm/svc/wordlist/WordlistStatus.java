@@ -40,6 +40,7 @@ public class WordlistStatus implements Serializable
     private boolean completed;
     private WordlistSourceType sourceType;
     private Instant storeDate;
+    private Instant checkDate;
     private WordlistSourceInfo remoteInfo;
     private long bytes;
     private long valueCount;
