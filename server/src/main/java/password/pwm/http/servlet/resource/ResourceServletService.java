@@ -31,9 +31,9 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
-import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -59,7 +59,7 @@ public class ResourceServletService implements PwmService
 
     private ResourceServletConfiguration resourceServletConfiguration;
     private Cache<CacheKey, CacheEntry> cache;
-    private EventRateMeter.MovingAverage cacheHitRatio = new EventRateMeter.MovingAverage( 60 * 60 * 1000 );
+    private MovingAverage cacheHitRatio = new MovingAverage( 60 * 60 * 1000 );
     private String resourceNonce;
     private STATUS status = STATUS.NEW;
 
@@ -75,7 +75,7 @@ public class ResourceServletService implements PwmService
         return cache;
     }
 
-    public EventRateMeter.MovingAverage getCacheHitRatio( )
+    public MovingAverage getCacheHitRatio( )
     {
         return cacheHitRatio;
     }

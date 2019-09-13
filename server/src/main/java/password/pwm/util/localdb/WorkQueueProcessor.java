@@ -32,6 +32,7 @@ import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -74,7 +75,7 @@ public final class WorkQueueProcessor<W extends Serializable>
 
     private ThreadPoolExecutor executorService;
 
-    private final EventRateMeter.MovingAverage avgLagTime = new EventRateMeter.MovingAverage( TimeDuration.HOUR );
+    private final MovingAverage avgLagTime = new MovingAverage( TimeDuration.HOUR );
     private final EventRateMeter sendRate = new EventRateMeter( TimeDuration.HOUR );
 
     private final AtomicInteger preQueueSubmit = new AtomicInteger( 0 );

@@ -25,10 +25,10 @@ import org.apache.commons.io.IOUtils;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.EventRateMeter;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.StringUtil;
@@ -466,9 +466,9 @@ class WordlistImporter implements Runnable
     @Value
     private static class ImportStatistics
     {
-        private final EventRateMeter.MovingAverage charsPerTransaction = new EventRateMeter.MovingAverage( TimeDuration.MINUTE );
-        private final EventRateMeter.MovingAverage wordsPerTransaction = new EventRateMeter.MovingAverage( TimeDuration.MINUTE );
-        private final EventRateMeter.MovingAverage chunksPerWord = new EventRateMeter.MovingAverage( TimeDuration.MINUTE );
-        private final EventRateMeter.MovingAverage averageWordLength = new EventRateMeter.MovingAverage( TimeDuration.MINUTE );
+        private final MovingAverage charsPerTransaction = new MovingAverage( TimeDuration.MINUTE );
+        private final MovingAverage wordsPerTransaction = new MovingAverage( TimeDuration.MINUTE );
+        private final MovingAverage chunksPerWord = new MovingAverage( TimeDuration.MINUTE );
+        private final MovingAverage averageWordLength = new MovingAverage( TimeDuration.MINUTE );
     }
 }

@@ -37,7 +37,6 @@ import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.InputStream;
@@ -55,6 +54,7 @@ import java.util.function.BooleanSupplier;
 abstract class AbstractWordlist implements Wordlist, PwmService
 {
     static final TimeDuration DEBUG_OUTPUT_FREQUENCY = TimeDuration.MINUTE;
+    private static final TimeDuration BUCKECT_CHECK_LOG_WARNING_TIMEOUT = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
 
     private WordlistConfiguration wordlistConfiguration;
     private WordlistBucket wordlistBucket;
@@ -69,6 +69,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     private PwmApplication pwmApplication;
     private final AtomicBoolean inhibitBackgroundImportFlag = new AtomicBoolean( false );
     private final AtomicBoolean backgroundImportRunning = new AtomicBoolean( false );
+    private final WordlistStatistics statistics = new WordlistStatistics();
 
     private volatile Activity activity = Wordlist.Activity.Idle;
 
@@ -134,7 +135,6 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
     boolean containsWord( final Set<WordType> wordTypes, final String word ) throws PwmUnrecoverableException
     {
-        final Instant startTime = Instant.now();
         final Optional<String> testWord = WordlistUtil.normalizeWordLength( word, wordlistConfiguration );
 
         if ( !testWord.isPresent() )
@@ -143,42 +143,29 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         }
 
         boolean result = false;
-        try
+        for ( final WordType wordType : wordTypes )
         {
-            for ( final WordType wordType : wordTypes )
+            if ( !result )
             {
-                if ( !result )
+                if ( wordType == WordType.RAW )
                 {
-                    if ( wordType == WordType.RAW )
-                    {
-                        result = checkRawWords( testWord.get() );
-                    }
-                    else
-                    {
-                        result = checkHashWords( wordType, testWord.get() );
-                    }
+                    result = checkRawWords( testWord.get() );
+                }
+                else
+                {
+                    result = checkHashWords( wordType, testWord.get() );
                 }
             }
-        }
-        catch ( LocalDBException e )
-        {
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_LOCALDB_UNAVAILABLE, e.getMessage() );
-        }
-
-        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        if ( timeDuration.isLongerThan( 100 ) )
-        {
-            getLogger().debug( () -> "wordlist search time for wordlist permutations was greater then 100ms: " + timeDuration.asCompactString() );
         }
 
         return result;
     }
 
     private boolean checkHashWords( final WordType wordType, final String word )
-            throws PwmUnrecoverableException, LocalDBException
+            throws PwmUnrecoverableException
     {
         final String hashWord = wordType.convertInputFromUser( pwmApplication, wordlistConfiguration, word );
-        return wordlistBucket.containsWord( hashWord );
+        return realBucketCheck( hashWord, wordType );
     }
 
     private boolean checkRawWords( final String word )
@@ -187,16 +174,46 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         final String normalizedWord = WordType.RAW.convertInputFromUser( pwmApplication, wordlistConfiguration, word );
         final Set<String> testWords = WordlistUtil.chunkWord( normalizedWord, this.wordlistConfiguration.getCheckSize() );
 
+        getStatistics().getChunksPerWordCheck().update( testWords.size() );
         for ( final String t : testWords )
         {
+
             // stop checking once found
-            if ( wordlistBucket.containsWord( t ) )
+            if ( realBucketCheck( t, WordType.RAW ) )
             {
                 return true;
             }
         }
 
         return false;
+    }
+
+    private boolean realBucketCheck( final String word, final WordType wordType )
+            throws PwmUnrecoverableException
+    {
+        getStatistics().getWordChecks().incrementAndGet();
+
+        final Instant startTime = Instant.now();
+        final boolean isContainsWord = wordlistBucket.containsWord( word );
+
+        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+        getStatistics().getWordCheckTimeMS().update( timeDuration.asMillis() );
+
+        if ( timeDuration.isLongerThan( BUCKECT_CHECK_LOG_WARNING_TIMEOUT ) )
+        {
+            getLogger().debug( () -> "wordlist search time for wordlist permutations was greater then 100ms: " + timeDuration.asCompactString() );
+        }
+
+        if ( isContainsWord )
+        {
+            getStatistics().getWordTypeHits().get( wordType ).incrementAndGet();
+        }
+        else
+        {
+            getStatistics().getMisses().incrementAndGet();
+        }
+
+        return isContainsWord;
     }
 
     String randomSeed() throws PwmUnrecoverableException
@@ -278,18 +295,6 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             returnList.add( healthRecord );
         }
         return Collections.unmodifiableList( returnList );
-    }
-
-    public ServiceInfoBean serviceInfo( )
-    {
-        if ( status() == STATUS.OPEN )
-        {
-            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ) );
-        }
-        else
-        {
-            return new ServiceInfoBean( Collections.emptyList() );
-        }
     }
 
     public WordlistStatus readWordlistStatus( )
@@ -450,4 +455,23 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         this.activity = activity;
         wordTypesCache = null;
     }
+
+
+    public ServiceInfoBean serviceInfo( )
+    {
+        if ( status() == STATUS.OPEN )
+        {
+            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ), getStatistics().asDebugMap() );
+        }
+        else
+        {
+            return new ServiceInfoBean( Collections.emptyList() );
+        }
+    }
+
+    WordlistStatistics getStatistics()
+    {
+        return statistics;
+    }
+
 }
