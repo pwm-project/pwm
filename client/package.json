@@ -25,6 +25,7 @@
         "angular-aria": "1.7.8",
         "angular-sanitize": "1.7.8",
         "angular-translate": "2.18.1",
+        "core-js": "3.2.1",
         "textangular": "1.5.16"
     },
     "devDependencies": {
