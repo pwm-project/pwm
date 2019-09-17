@@ -283,21 +283,21 @@ public enum PwmPasswordRule
             false ),
 
     AllowNonAlpha(
-            ChaiPasswordRule.AllowNonAlpha,
+            null,
             PwmSetting.PASSWORD_POLICY_ALLOW_NON_ALPHA,
             ChaiPasswordRule.AllowNonAlpha.getRuleType(),
             ChaiPasswordRule.AllowNonAlpha.getDefaultValue(),
             false ),
 
     MinimumNonAlpha(
-            ChaiPasswordRule.MinimumNonAlpha,
+            null,
             PwmSetting.PASSWORD_POLICY_MINIMUM_NON_ALPHA,
             ChaiPasswordRule.RuleType.MIN,
             "0",
             false ),
 
     MaximumNonAlpha(
-            ChaiPasswordRule.MaximumNonAlpha,
+            null,
             PwmSetting.PASSWORD_POLICY_MAXIMUM_NON_ALPHA,
             ChaiPasswordRule.RuleType.MAX,
             "0",
