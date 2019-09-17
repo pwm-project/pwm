@@ -144,6 +144,11 @@ class WordlistSource
     {
         final Instant startTime = Instant.now();
 
+        if ( cancelFlag.getAsBoolean() )
+        {
+            return null;
+        }
+
         pwmLogger.debug( () -> "begin reading file info for " + this.getWordlistSourceType() + " wordlist" );
 
         final long bytes;

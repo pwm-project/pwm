@@ -22,7 +22,7 @@ package password.pwm.ldap.search;
 
 import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.UserPermission;
@@ -35,11 +35,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-@Builder
-@Getter
+@Value
+@Builder( toBuilder = true )
 public class SearchConfiguration implements Serializable
 {
-
     private String filter;
     private String ldapProfile;
     private String username;

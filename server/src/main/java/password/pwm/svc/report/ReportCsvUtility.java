@@ -187,7 +187,7 @@ public class ReportCsvUtility
         csvPrinter.printRecord( csvRow );
     }
 
-    public ReportService.RecordIterator<UserCacheRecord> iterator( )
+    public ClosableIterator<UserCacheRecord> iterator( )
     {
         return reportService.iterator();
     }

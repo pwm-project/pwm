@@ -21,7 +21,6 @@
 package password.pwm.util.cli.commands;
 
 import com.novell.ldapchai.cr.Challenge;
-import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -159,7 +158,7 @@ public class ResponseStatsCommand extends AbstractCliCommand
     private static List<UserIdentity> readAllUsersFromLdap(
             final PwmApplication pwmApplication
     )
-            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         final List<UserIdentity> returnList = new ArrayList<>();
 
