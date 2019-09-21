@@ -29,18 +29,11 @@ import java.util.Map;
 
 public class DeleteAccountProfile extends AbstractProfile implements Profile
 {
-    private static final ProfileType PROFILE_TYPE = ProfileType.DeleteAccount;
+    private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.DeleteAccount;
 
     protected DeleteAccountProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
     {
         super( identifier, storedValueMap );
-    }
-
-    public static DeleteAccountProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
-    {
-        final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
-        return new DeleteAccountProfile( identifier, valueMap );
-
     }
 
     @Override
@@ -50,8 +43,17 @@ public class DeleteAccountProfile extends AbstractProfile implements Profile
     }
 
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         return PROFILE_TYPE;
+    }
+
+    public static class DeleteAccountProfileFactory implements ProfileFactory
+    {
+        @Override
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        {
+            return new DeleteAccountProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+        }
     }
 }

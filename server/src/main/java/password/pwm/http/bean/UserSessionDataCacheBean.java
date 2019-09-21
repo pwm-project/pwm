@@ -21,18 +21,14 @@
 package password.pwm.http.bean;
 
 import password.pwm.Permission;
-import password.pwm.util.PostChangePasswordAction;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class UserSessionDataCacheBean implements Serializable
 {
     private Map<Permission, Permission.PermissionStatus> permissions = new HashMap<>();
-    private Map<String, PostChangePasswordAction> postChangePasswordActions = new HashMap<>();
 
     public void clearPermissions( )
     {
@@ -62,28 +58,4 @@ public class UserSessionDataCacheBean implements Serializable
     {
         this.permissions = permissions;
     }
-
-    public void addPostChangePasswordActions(
-            final String key,
-            final PostChangePasswordAction postChangePasswordAction
-    )
-    {
-        if ( postChangePasswordAction == null )
-        {
-            postChangePasswordActions.remove( key );
-        }
-        else
-        {
-            postChangePasswordActions.put( key, postChangePasswordAction );
-        }
-    }
-
-    public List<PostChangePasswordAction> removePostChangePasswordActions( )
-    {
-        final List<PostChangePasswordAction> copiedList = new ArrayList<>();
-        copiedList.addAll( postChangePasswordActions.values() );
-        postChangePasswordActions.clear();
-        return copiedList;
-    }
-
 }

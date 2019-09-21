@@ -18,20 +18,29 @@
  * limitations under the License.
  */
 
-package password.pwm.http.client;
+package password.pwm.util.java;
 
-import lombok.Builder;
-import lombok.Value;
+import java.util.function.Supplier;
 
-import javax.net.ssl.X509TrustManager;
-import java.security.cert.X509Certificate;
-import java.util.List;
-
-@Value
-@Builder
-public class PwmHttpClientConfiguration
+public class LazySupplier<T> implements Supplier<T>
 {
-    private List<X509Certificate> certificates;
-    private X509TrustManager trustManager;
-    private boolean maskBodyDebugOutput;
+    private boolean supplied = false;
+    private T value;
+    private final Supplier<T> realSupplier;
+
+    public LazySupplier( final Supplier<T> realSupplier )
+    {
+        this.realSupplier = realSupplier;
+    }
+
+    @Override
+    public T get()
+    {
+        if ( !supplied )
+        {
+            value = realSupplier.get();
+            supplied = true;
+        }
+        return value;
+    }
 }

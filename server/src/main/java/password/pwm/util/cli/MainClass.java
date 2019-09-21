@@ -50,6 +50,7 @@ import password.pwm.util.cli.commands.ExportLocalDBCommand;
 import password.pwm.util.cli.commands.ExportLogsCommand;
 import password.pwm.util.cli.commands.ExportResponsesCommand;
 import password.pwm.util.cli.commands.ExportStatsCommand;
+import password.pwm.util.cli.commands.ExportWordlistCommand;
 import password.pwm.util.cli.commands.HelpCommand;
 import password.pwm.util.cli.commands.ImportHttpsKeyStoreCommand;
 import password.pwm.util.cli.commands.ImportLocalDBCommand;
@@ -128,6 +129,7 @@ public class MainClass
         commandList.add( new HelpCommand() );
         commandList.add( new ImportPropertyConfigCommand() );
         commandList.add( new ResetInstanceIDCommand() );
+        commandList.add( new ExportWordlistCommand() );
 
         final Map<String, CliCommand> sortedMap = new TreeMap<>();
         for ( final CliCommand command : commandList )

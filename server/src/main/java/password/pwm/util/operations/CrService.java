@@ -301,7 +301,7 @@ public class CrService implements PwmService
 
         {
             // check responses against wordlist
-            final WordlistService wordlistManager = pwmApplication.getWordlistManager();
+            final WordlistService wordlistManager = pwmApplication.getWordlistService();
             if ( wordlistManager.status() == PwmService.STATUS.OPEN )
             {
                 for ( final Map.Entry<Challenge, String> entry : responseMap.entrySet() )

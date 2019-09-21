@@ -35,18 +35,11 @@ import java.util.Set;
 
 public class HelpdeskProfile extends AbstractProfile implements Profile
 {
-
-    private static final ProfileType PROFILE_TYPE = ProfileType.Helpdesk;
+    private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.Helpdesk;
 
     protected HelpdeskProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
     {
         super( identifier, storedValueMap );
-    }
-
-    public static HelpdeskProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
-    {
-        final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
-        return new HelpdeskProfile( identifier, valueMap );
     }
 
     @Override
@@ -56,7 +49,7 @@ public class HelpdeskProfile extends AbstractProfile implements Profile
     }
 
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         return PROFILE_TYPE;
     }
@@ -72,5 +65,14 @@ public class HelpdeskProfile extends AbstractProfile implements Profile
     public Collection<IdentityVerificationMethod> readRequiredVerificationMethods( )
     {
         return readVerificationMethods( PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.required );
+    }
+
+    public static class HelpdeskProfileFactory implements ProfileFactory
+    {
+        @Override
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        {
+            return new HelpdeskProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+        }
     }
 }

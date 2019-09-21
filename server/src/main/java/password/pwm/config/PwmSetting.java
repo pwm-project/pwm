@@ -514,6 +514,10 @@ public enum PwmSetting
             "password.policy.maximumOldPasswordChars", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_MINIMUM_LIFETIME(
             "password.policy.minimumLifetime", PwmSettingSyntax.DURATION, PwmSettingCategory.PASSWORD_POLICY ),
+    PASSWORD_POLICY_MAXIMUM_CONSECUTIVE(
+            "password.policy.maximumConsecutive", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY ),
+    PASSWORD_POLICY_MINIMUM_STRENGTH(
+            "password.policy.minimumStrength", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_ENABLE_WORDLIST(
             "password.policy.checkWordlist", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_AD_COMPLEXITY_LEVEL(
@@ -528,10 +532,6 @@ public enum PwmSetting
             "password.policy.disallowedValues", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_DISALLOWED_ATTRIBUTES(
             "password.policy.disallowedAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PASSWORD_POLICY ),
-    PASSWORD_POLICY_MINIMUM_STRENGTH(
-            "password.policy.minimumStrength", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY ),
-    PASSWORD_POLICY_MAXIMUM_CONSECUTIVE(
-            "password.policy.maximumConsecutive", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_CHANGE_MESSAGE(
             "password.policy.changeMessage", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_RULE_TEXT(
@@ -763,8 +763,6 @@ public enum PwmSetting
             "recovery.response.writePreference", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS ),
     CHALLENGE_STORAGE_HASHED(
             "response.hashMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS ),
-    FORGOTTEN_USER_POST_ACTIONS(
-            "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY_SETTINGS ),
     RECOVERY_BOGUS_USER_ENABLE(
             "recovery.bogus.user.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS ),
 
@@ -793,6 +791,8 @@ public enum PwmSetting
             "recovery.token.resend.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_OPTIONS ),
     RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS(
             "recovery.minimumPasswordLifetimeOptions", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_OPTIONS ),
+    RECOVERY_POST_ACTIONS(
+            "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY_OPTIONS ),
 
 
     // recovery oauth
@@ -892,23 +892,27 @@ public enum PwmSetting
 
     // activation settings
     ACTIVATE_USER_ENABLE(
-            "activateUser.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVATION ),
-    ACTIVATE_USER_UNLOCK(
-            "activateUser.allowUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVATION ),
-    ACTIVATE_TOKEN_SEND_METHOD(
-            "activateUser.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.ACTIVATION ),
-    ACTIVATE_AGREEMENT_MESSAGE(
-            "display.activateUser.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.ACTIVATION ),
+            "activateUser.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVATION_SETTINGS ),
     ACTIVATE_USER_FORM(
-            "activateUser.form", PwmSettingSyntax.FORM, PwmSettingCategory.ACTIVATION ),
+            "activateUser.form", PwmSettingSyntax.FORM, PwmSettingCategory.ACTIVATION_SETTINGS ),
     ACTIVATE_USER_SEARCH_FILTER(
-            "activateUser.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.ACTIVATION ),
+            "activateUser.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.ACTIVATION_SETTINGS ),
+
+    ACTIVATE_USER_PROFILE_LIST(
+            "activateUser.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+
     ACTIVATE_USER_QUERY_MATCH(
-            "activateUser.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.ACTIVATION ),
+            "activateUser.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.ACTIVATION_PROFILE ),
+    ACTIVATE_USER_UNLOCK(
+            "activateUser.allowUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVATION_PROFILE ),
+    ACTIVATE_TOKEN_SEND_METHOD(
+            "activateUser.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.ACTIVATION_PROFILE ),
+    ACTIVATE_AGREEMENT_MESSAGE(
+            "display.activateUser.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.ACTIVATION_PROFILE ),
     ACTIVATE_USER_PRE_WRITE_ATTRIBUTES(
-            "activateUser.writePreAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.ACTIVATION ),
+            "activateUser.writePreAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.ACTIVATION_PROFILE ),
     ACTIVATE_USER_POST_WRITE_ATTRIBUTES(
-            "activateUser.writePostAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.ACTIVATION ),
+            "activateUser.writePostAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.ACTIVATION_PROFILE ),
 
     // update profile
     UPDATE_PROFILE_ENABLE(
@@ -952,45 +956,49 @@ public enum PwmSetting
 
     // peoplesearch settings
     PEOPLE_SEARCH_ENABLE(
-            "peopleSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_QUERY_MATCH(
-            "peopleSearch.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_SEARCH_FORM(
-            "peopleSearch.search.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_RESULT_FORM(
-            "peopleSearch.result.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_DETAIL_FORM(
-            "peopleSearch.detail.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_RESULT_LIMIT(
-            "peopleSearch.result.limit", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_USE_PROXY(
-            "peopleSearch.useProxy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_DISPLAY_NAMES_CARD_LABELS(
-            "peopleSearch.displayName.cardLabels", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_MAX_CACHE_SECONDS(
-            "peopleSearch.maxCacheSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_ENABLE_PHOTO(
-            "peopleSearch.enablePhoto", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_PHOTO_QUERY_FILTER(
-            "peopleSearch.photo.queryFilter", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_SEARCH_FILTER(
-            "peopleSearch.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH ),
-    PEOPLE_SEARCH_SEARCH_BASE(
-            "peopleSearch.searchBase", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_SETTINGS ),
     PEOPLE_SEARCH_ENABLE_PUBLIC(
-            "peopleSearch.enablePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.enablePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_SETTINGS ),
+    PEOPLE_SEARCH_PUBLIC_PROFILE(
+            "peopleSearch.public.profile", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH_SETTINGS ),
+    PEOPLESEARCH_PROFILE_LIST(
+            "peopleSearch.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+    PEOPLE_SEARCH_QUERY_MATCH(
+            "peopleSearch.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_SEARCH_FORM(
+            "peopleSearch.search.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_RESULT_FORM(
+            "peopleSearch.result.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_DETAIL_FORM(
+            "peopleSearch.detail.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_RESULT_LIMIT(
+            "peopleSearch.result.limit", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_USE_PROXY(
+            "peopleSearch.useProxy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_DISPLAY_NAMES_CARD_LABELS(
+            "peopleSearch.displayName.cardLabels", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_MAX_CACHE_SECONDS(
+            "peopleSearch.maxCacheSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_ENABLE_PHOTO(
+            "peopleSearch.enablePhoto", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_PHOTO_QUERY_FILTER(
+            "peopleSearch.photo.queryFilter", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_SEARCH_FILTER(
+            "peopleSearch.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
+    PEOPLE_SEARCH_SEARCH_BASE(
+            "peopleSearch.searchBase", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
     PEOPLE_SEARCH_ENABLE_ORGCHART(
-            "peopleSearch.enableOrgChart", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.enableOrgChart", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
     PEOPLE_SEARCH_ENABLE_EXPORT(
-            "peopleSearch.enableExport", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.enableExport", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
     PEOPLE_SEARCH_ENABLE_TEAM_MAILTO(
-            "peopleSearch.enableTeamMailto", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.enableTeamMailto", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
     PEOPLE_SEARCH_ENABLE_PRINTING(
-            "peopleSearch.enablePrinting", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.enablePrinting", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
     PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS(
-            "peopleSearch.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
     PEOPLE_SEARCH_ENABLE_ADVANCED_SEARCH(
-            "peopleSearch.advancedSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.advancedSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
 
 
 
@@ -1231,12 +1239,11 @@ public enum PwmSetting
 
     // deprecated 2019-01-20
     PEOPLE_SEARCH_DISPLAY_NAME(
-            "peopleSearch.displayName.user", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH ),
+            "peopleSearch.displayName.user", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
 
     // deprecated 2019-01-20
     HELPDESK_DETAIL_DISPLAY_NAME(
             "helpdesk.displayName", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK_BASE ),
-
 
     // deprecated 2018-12-05
     REPORTING_SEARCH_FILTER(

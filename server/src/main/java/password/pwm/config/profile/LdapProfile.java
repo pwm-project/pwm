@@ -28,9 +28,8 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.cache.CacheKey;
@@ -50,15 +49,11 @@ public class LdapProfile extends AbstractProfile implements Profile
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapProfile.class );
 
+    private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.LdapProfile;
+
     protected LdapProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
     {
         super( identifier, storedValueMap );
-    }
-
-    public static LdapProfile makeFromStoredConfiguration( final StoredConfigurationImpl storedConfiguration, final String profileID )
-    {
-        final Map<PwmSetting, StoredValue> valueMap = AbstractProfile.makeValueMap( storedConfiguration, profileID, PwmSettingCategory.LDAP_PROFILE );
-        return new LdapProfile( profileID, valueMap );
     }
 
     public Map<String, String> getSelectableContexts(
@@ -120,7 +115,7 @@ public class LdapProfile extends AbstractProfile implements Profile
     }
 
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         throw new UnsupportedOperationException();
     }
@@ -209,5 +204,20 @@ public class LdapProfile extends AbstractProfile implements Profile
         }
 
         return null;
+    }
+
+    public static class LdapProfileFactory implements ProfileFactory
+    {
+        @Override
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        {
+            return new LdapProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+        }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "LDAPProfile:" + this.getIdentifier();
     }
 }

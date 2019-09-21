@@ -29,8 +29,9 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.DeleteAccountProfile;
 import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.profile.Profile;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.value.data.UserPermission;
@@ -254,37 +255,42 @@ public class SessionManager
         return MacroMachine.forUser( pwmApplication, pwmSession.getLabel(), userInfoBean, pwmSession.getLoginInfoBean() );
     }
 
-    public Profile getProfile( final PwmApplication pwmApplication, final ProfileType profileType ) throws PwmUnrecoverableException
+    public Profile getProfile( final PwmApplication pwmApplication, final ProfileDefinition profileDefinition ) throws PwmUnrecoverableException
     {
-        if ( profileType.isAuthenticated() && !pwmSession.isAuthenticated() )
+        if ( profileDefinition.isAuthenticated() && !pwmSession.isAuthenticated() )
         {
             return null;
         }
-        final String profileID = pwmSession.getUserInfo().getProfileIDs().get( profileType );
+        final String profileID = pwmSession.getUserInfo().getProfileIDs().get( profileDefinition );
         if ( profileID != null )
         {
-            return pwmApplication.getConfig().profileMap( profileType ).get( profileID );
+            return pwmApplication.getConfig().profileMap( profileDefinition ).get( profileID );
         }
         return null;
     }
 
     public HelpdeskProfile getHelpdeskProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
-        return ( HelpdeskProfile ) getProfile( pwmApplication, ProfileType.Helpdesk );
+        return ( HelpdeskProfile ) getProfile( pwmApplication, ProfileDefinition.Helpdesk );
     }
 
     public SetupOtpProfile getSetupOTPProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
-        return ( SetupOtpProfile ) getProfile( pwmApplication, ProfileType.SetupOTPProfile );
+        return ( SetupOtpProfile ) getProfile( pwmApplication, ProfileDefinition.SetupOTPProfile );
     }
 
     public UpdateProfileProfile getUpdateAttributeProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
-        return ( UpdateProfileProfile ) getProfile( pwmApplication, ProfileType.UpdateAttributes );
+        return ( UpdateProfileProfile ) getProfile( pwmApplication, ProfileDefinition.UpdateAttributes );
+    }
+
+    public PeopleSearchProfile getPeopleSearchProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    {
+        return ( PeopleSearchProfile ) getProfile( pwmApplication, ProfileDefinition.PeopleSearch );
     }
 
     public DeleteAccountProfile getSelfDeleteProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
-        return ( DeleteAccountProfile ) getProfile( pwmApplication, ProfileType.DeleteAccount );
+        return ( DeleteAccountProfile ) getProfile( pwmApplication, ProfileDefinition.DeleteAccount );
     }
 }

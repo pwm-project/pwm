@@ -36,10 +36,10 @@ import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.java.JavaHelper;
@@ -281,20 +281,26 @@ public class OAuthMachine
                 headers.put( HttpHeader.Authorization.getHttpName(),
                         "Bearer " + accessToken );
             }
-            headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValue() );
+            headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValueWithEncoding() );
 
-            pwmHttpClientRequest = new PwmHttpClientRequest( HttpMethod.POST, requestUrl, requestBody, headers );
+            pwmHttpClientRequest = PwmHttpClientRequest.builder()
+                    .method( HttpMethod.POST )
+                    .url( requestUrl )
+                    .body( requestBody )
+                    .headers( headers )
+                    .build();
         }
 
         final PwmHttpClientResponse pwmHttpClientResponse;
         try
         {
             final PwmHttpClientConfiguration config = PwmHttpClientConfiguration.builder()
+                    .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
                     .certificates( JavaHelper.isEmpty( certs ) ? null : certs )
                     .maskBodyDebugOutput( true )
                     .build();
-            final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), config );
-            pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
+            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient( config );
+            pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, pwmRequest.getSessionLabel() );
         }
         catch ( PwmException e )
         {

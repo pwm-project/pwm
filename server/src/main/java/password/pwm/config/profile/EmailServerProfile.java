@@ -30,21 +30,15 @@ import java.util.Map;
 public class EmailServerProfile extends AbstractProfile
 {
 
-    private static final ProfileType PROFILE_TYPE = ProfileType.EmailServers;
+    private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.EmailServers;
 
     protected EmailServerProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
     {
         super( identifier, storedValueMap );
     }
 
-    public static EmailServerProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
-    {
-        final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
-        return new EmailServerProfile( identifier, valueMap );
-    }
-
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         return PROFILE_TYPE;
     }
@@ -54,5 +48,14 @@ public class EmailServerProfile extends AbstractProfile
     {
         final String value = this.readSettingAsLocalizedString( PwmSetting.EMAIL_SERVERS, locale );
         return value != null && !value.isEmpty() ? value : this.getIdentifier();
+    }
+
+    public static class EmailServerProfileFactory implements ProfileFactory
+    {
+        @Override
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        {
+            return new EmailServerProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+        }
     }
 }

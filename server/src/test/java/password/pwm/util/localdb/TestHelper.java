@@ -58,10 +58,16 @@ public class TestHelper
     public static PwmApplication makeTestPwmApplication( final File tempFolder )
             throws PwmUnrecoverableException
     {
-        Logger.getRootLogger().setLevel( Level.OFF );
         final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
         storedConfiguration.writeSetting( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL, new StringValue( PwmLogLevel.FATAL.toString() ), null );
         final Configuration configuration = new Configuration( storedConfiguration );
+        return makeTestPwmApplication( tempFolder, configuration );
+    }
+
+    public static PwmApplication makeTestPwmApplication( final File tempFolder, final Configuration configuration )
+            throws PwmUnrecoverableException
+    {
+        Logger.getRootLogger().setLevel( Level.OFF );
         final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder( configuration, tempFolder )
                 .setApplicationMode( PwmApplicationMode.READ_ONLY )
                 .setInternalRuntimeInstance( true )

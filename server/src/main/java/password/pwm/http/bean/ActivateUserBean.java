@@ -52,6 +52,9 @@ public class ActivateUserBean extends PwmSessionBean
     @SerializedName( "td" )
     private TokenDestinationItem tokenDestination;
 
+    @SerializedName( "p" )
+    private String profileID;
+
 
     public Type getType( )
     {

@@ -33,7 +33,7 @@ import java.util.Set;
 public class ForgottenPasswordProfile extends AbstractProfile
 {
 
-    private static final ProfileType PROFILE_TYPE = ProfileType.ForgottenPassword;
+    private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.ForgottenPassword;
 
     private Set<IdentityVerificationMethod> requiredRecoveryVerificationMethods;
     private Set<IdentityVerificationMethod> optionalRecoveryVerificationMethods;
@@ -43,23 +43,14 @@ public class ForgottenPasswordProfile extends AbstractProfile
         super( identifier, storedValueMap );
     }
 
-
     @Override
     public String getDisplayName( final Locale locale )
     {
         return null;
     }
 
-    public static ForgottenPasswordProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
-    {
-        final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
-        return new
-                ForgottenPasswordProfile( identifier, valueMap );
-
-    }
-
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         return PROFILE_TYPE;
     }
@@ -92,5 +83,14 @@ public class ForgottenPasswordProfile extends AbstractProfile
         final StoredValue configValue = storedValueMap.get( PwmSetting.RECOVERY_VERIFICATION_METHODS );
         final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = ( VerificationMethodValue.VerificationMethodSettings ) configValue.toNativeObject();
         return verificationMethodSettings.getMinOptionalRequired();
+    }
+
+    public static class ForgottenPasswordProfileFactory implements ProfileFactory
+    {
+        @Override
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        {
+            return new ForgottenPasswordProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+        }
     }
 }

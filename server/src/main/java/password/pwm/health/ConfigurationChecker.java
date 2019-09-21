@@ -36,6 +36,7 @@ import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.profile.ActivateUserProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -459,8 +460,9 @@ public class ConfigurationChecker implements HealthChecker
 
             final List<HealthRecord> records = new ArrayList<>();
 
+            for ( final ActivateUserProfile activationProfile : config.getUserActivationProfiles().values() )
             {
-                final MessageSendMethod method = config.readSettingAsEnum( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class );
+                final MessageSendMethod method = activationProfile.readSettingAsEnum( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class );
                 if ( deprecatedMethods.contains( method ) )
                 {
                     records.add( HealthRecord.forMessage( HealthMessage.Config_InvalidSendMethod,

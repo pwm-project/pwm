@@ -23,9 +23,17 @@ package password.pwm.ldap;
 import lombok.Value;
 import password.pwm.http.bean.ImmutableByteArray;
 
+import java.io.Serializable;
+
 @Value
-public class PhotoDataBean
+public class PhotoDataBean implements Serializable
 {
     private String mimeType;
     private ImmutableByteArray contents;
+
+    @Override
+    public String toString()
+    {
+        return "[image " + contents.size() + " bytes, mime=" + mimeType +  "]";
+    }
 }

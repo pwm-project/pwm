@@ -23,6 +23,7 @@ package password.pwm.util.secure;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
@@ -33,7 +34,11 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 public class SecureService implements PwmService
@@ -156,6 +161,40 @@ public class SecureService implements PwmService
             throws PwmUnrecoverableException
     {
         return SecureEngine.hash( input, defaultHashAlgorithm );
+    }
+
+    public String hash(
+            final PwmHashAlgorithm pwmHashAlgorithm,
+            final String input
+    )
+            throws PwmUnrecoverableException
+    {
+        return SecureEngine.hash( input, pwmHashAlgorithm );
+    }
+
+    public DigestInputStream digestInputStream(
+            final InputStream inputStream
+    )
+            throws PwmUnrecoverableException
+    {
+        return digestInputStream( this.getDefaultHashAlgorithm(), inputStream );
+    }
+
+    public DigestInputStream digestInputStream(
+            final PwmHashAlgorithm pwmHashAlgorithm,
+            final InputStream inputStream
+    )
+            throws PwmUnrecoverableException
+    {
+        try
+        {
+            final MessageDigest messageDigest = MessageDigest.getInstance( pwmHashAlgorithm.getAlgName() );
+            return new DigestInputStream( inputStream, messageDigest );
+        }
+        catch ( NoSuchAlgorithmException e )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_CRYPT_ERROR, "can't create digest inputstream: " + e.getMessage() );
+        }
     }
 
     public String hash(

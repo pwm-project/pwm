@@ -34,10 +34,10 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
@@ -67,7 +67,7 @@ public class ActionExecutor
             final List<ActionConfiguration> configValues,
             final SessionLabel sessionLabel
     )
-            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         for ( final ActionConfiguration loopAction : configValues )
         {
@@ -79,7 +79,7 @@ public class ActionExecutor
             final ActionConfiguration actionConfiguration,
             final SessionLabel sessionLabel
     )
-            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         LOGGER.trace( sessionLabel, () -> "preparing to execute action(s) for " + actionConfiguration.getName() );
 
@@ -100,8 +100,8 @@ public class ActionExecutor
             final SessionLabel sessionLabel,
             final ActionConfiguration actionConfiguration,
             final ActionConfiguration.LdapAction ldapAction
-            )
-            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
+    )
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         String attributeName = ldapAction.getAttributeName();
         String attributeValue = ldapAction.getAttributeValue();
@@ -134,14 +134,21 @@ public class ActionExecutor
             attributeValue = macroMachine.expandMacros( attributeValue );
         }
 
-        writeLdapAttribute(
-                sessionLabel,
-                theUser,
-                attributeName,
-                attributeValue,
-                ldapAction.getLdapMethod(),
-                settings.getMacroMachine()
-        );
+        try
+        {
+            writeLdapAttribute(
+                    sessionLabel,
+                    theUser,
+                    attributeName,
+                    attributeValue,
+                    ldapAction.getLdapMethod(),
+                    settings.getMacroMachine()
+            );
+        }
+        catch ( ChaiUnavailableException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
     }
 
     private void executeWebserviceAction(
@@ -193,23 +200,30 @@ public class ActionExecutor
 
             final HttpMethod method = HttpMethod.fromString( webAction.getMethod().toString() );
 
-            final PwmHttpClientRequest clientRequest = new PwmHttpClientRequest( method, url, body, headers );
+            final PwmHttpClientRequest clientRequest = PwmHttpClientRequest.builder()
+                    .method( method )
+                    .url( url )
+                    .body( body )
+                    .headers( headers )
+                    .build();
+
             final PwmHttpClient client;
             {
                 if ( webAction.getCertificates() != null )
                 {
                     final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
+                            .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
                             .certificates( webAction.getCertificates() )
                             .build();
 
-                    client = new PwmHttpClient( pwmApplication, sessionLabel, clientConfiguration );
+                    client = pwmApplication.getHttpClientService().getPwmHttpClient( clientConfiguration );
                 }
                 else
                 {
-                    client = new PwmHttpClient( pwmApplication, sessionLabel );
+                    client = pwmApplication.getHttpClientService().getPwmHttpClient( );
                 }
             }
-            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest );
+            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, sessionLabel );
 
             final List<Integer> successStatus = webAction.getSuccessStatus() == null
                     ? Collections.emptyList()

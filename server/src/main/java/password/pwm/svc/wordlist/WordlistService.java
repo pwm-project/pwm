@@ -48,9 +48,8 @@ public class WordlistService extends AbstractWordlist implements Wordlist
         return LOGGER;
     }
 
-    @Override
     public boolean containsWord( final String word ) throws PwmUnrecoverableException
     {
-        return super.containsWord( word );
+        return super.containsWord( this.getWordTypesCache(), word );
     }
 }

@@ -52,6 +52,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+/**
+ * Contains validation logic for the most of the "internal" {@link PwmPasswordRule} rules.
+ */
 public class PasswordRuleChecks
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PasswordRuleChecks.class );
@@ -101,7 +104,7 @@ public class PasswordRuleChecks
     ) );
 
 
-        public static List<ErrorInformation> extendedPolicyRuleChecker(
+    public static List<ErrorInformation> extendedPolicyRuleChecker(
             final PwmApplication pwmApplication,
             final PwmPasswordPolicy policy,
             final String password,
@@ -318,7 +321,7 @@ public class PasswordRuleChecks
                 final int maxLower = ruleHelper.readIntValue( PwmPasswordRule.MaximumLowerCase );
                 if ( maxLower > 0 && numberOfLowerChars > maxLower )
                 {
-                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_UPPER ) );
+                    errorList.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_LOWER ) );
                 }
             }
             return Collections.unmodifiableList( errorList );
@@ -723,9 +726,9 @@ public class PasswordRuleChecks
             {
                 if ( pwmApplication != null )
                 {
-                    if ( pwmApplication.getWordlistManager() != null && pwmApplication.getWordlistManager().status() == PwmService.STATUS.OPEN )
+                    if ( pwmApplication.getWordlistService() != null && pwmApplication.getWordlistService().status() == PwmService.STATUS.OPEN )
                     {
-                        final boolean found = pwmApplication.getWordlistManager().containsWord( password );
+                        final boolean found = pwmApplication.getWordlistService().containsWord( password );
 
                         if ( found )
                         {

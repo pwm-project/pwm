@@ -48,10 +48,11 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.StrengthMeterType;
+import password.pwm.config.profile.AbstractProfile;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
@@ -63,11 +64,13 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
@@ -77,15 +80,14 @@ import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.password.PasswordCharCounter;
 import password.pwm.util.PasswordData;
-import password.pwm.util.PostChangePasswordAction;
-import password.pwm.util.password.PwmPasswordRuleValidator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.password.PasswordCharCounter;
+import password.pwm.util.password.PwmPasswordRuleValidator;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -242,19 +244,20 @@ public class PasswordUtility
      * </ul>
      *
      * @param newPassword the new password that is being set.
-     * @param pwmSession  beanmanager for config and user info lookup
+     * @param pwmRequest Request used to issue change
      * @param pwmApplication the application reference
      * @throws ChaiUnavailableException if the ldap directory is not unavailable
      * @throws PwmUnrecoverableException  if user is not authenticated
      * @throws PwmOperationalException if operation fails
      */
     public static void setActorPassword(
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final PwmApplication pwmApplication,
             final PasswordData newPassword
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final UserInfo userInfo = pwmSession.getUserInfo();
 
         if ( !pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.CHANGE_PASSWORD ) )
@@ -332,9 +335,6 @@ public class PasswordUtility
             pwmApplication.getStatisticsManager().incrementValue( Statistic.PASSWORD_CHANGES );
         }
 
-        // invoke post password change actions
-        invokePostChangePasswordActions( pwmSession, newPassword.getStringValue() );
-
         {
             // execute configured actions
             LOGGER.debug( pwmSession, () -> "executing configured actions to user " + proxiedUser.getEntryDN() );
@@ -358,6 +358,9 @@ public class PasswordUtility
                 actionExecutor.executeActions( configValues, pwmSession.getLabel() );
             }
         }
+
+        // invoke post password change actions
+        invokePostChangePasswordActions( pwmRequest );
 
         //update the current last password update field in ldap
         LdapOperationsHelper.updateLastPasswordUpdateAttribute( pwmApplication, pwmSession.getLabel(), userInfo.getUserIdentity() );
@@ -596,7 +599,7 @@ public class PasswordUtility
         {
             final MessageSendMethod messageSendMethod;
             {
-                final String profileID = ProfileUtility.discoverProfileIDforUser( pwmApplication, sessionLabel, userIdentity, ProfileType.ForgottenPassword );
+                final String profileID = ProfileUtility.discoverProfileIDforUser( pwmApplication, sessionLabel, userIdentity, ProfileDefinition.ForgottenPassword );
                 final ForgottenPasswordProfile forgottenPasswordProfile = pwmApplication.getConfig().getForgottenPasswordProfiles().get( profileID );
                 messageSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_SENDNEWPW_METHOD, MessageSendMethod.class );
 
@@ -658,36 +661,66 @@ public class PasswordUtility
         return returnValue;
     }
 
-
-    private static void invokePostChangePasswordActions( final PwmSession pwmSession, final String newPassword )
+    private static void invokePostChangePasswordActions( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final List<PostChangePasswordAction> postChangePasswordActions = pwmSession.getUserSessionDataCacheBean().removePostChangePasswordActions();
-        if ( postChangePasswordActions == null || postChangePasswordActions.isEmpty() )
-        {
-            LOGGER.trace( pwmSession, () -> "no post change password actions pending from previous operations" );
-            return;
-        }
+        final PwmAuthenticationSource authenticationSource = pwmRequest.getPwmSession().getLoginInfoBean().getAuthSource();
 
-        for ( final PostChangePasswordAction postChangePasswordAction : postChangePasswordActions )
+        if ( authenticationSource == PwmAuthenticationSource.USER_ACTIVATION )
         {
-            try
-            {
-                postChangePasswordAction.doAction( pwmSession, newPassword );
-            }
-            catch ( PwmUnrecoverableException e )
-            {
-                LOGGER.error( pwmSession, "error during post change password action '" + postChangePasswordAction.getLabel() + "' " + e.getMessage() );
-                throw e;
-            }
-            catch ( Exception e )
-            {
-                LOGGER.error( pwmSession, "unexpected error during post change password action '" + postChangePasswordAction.getLabel() + "' " + e.getMessage(), e );
-                final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
-                throw new PwmUnrecoverableException( errorInfo );
-            }
+            LOGGER.debug( pwmRequest, () -> "executing post-activate configured actions " );
+            executePostActionMethods(  pwmRequest, ProfileDefinition.ActivateUser, PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES );
+        }
+        else if ( authenticationSource == PwmAuthenticationSource.FORGOTTEN_PASSWORD )
+        {
+            LOGGER.debug( pwmRequest, () -> "executing post-forgotten password configured actions" );
+            executePostActionMethods(  pwmRequest, ProfileDefinition.ForgottenPassword, PwmSetting.RECOVERY_POST_ACTIONS );
+        }
+        else
+        {
+            LOGGER.trace( pwmRequest, () -> "no post change password actions required for authentication source: " + authenticationSource );
         }
     }
+
+    private static void executePostActionMethods(
+            final PwmRequest pwmRequest,
+            final ProfileDefinition profileDefinition,
+            final PwmSetting pwmSetting
+    )
+            throws PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final UserIdentity userIdentity = pwmRequest.getUserInfoIfLoggedIn();
+        final AbstractProfile activateUserProfile = ProfileUtility.profileForUser(
+                pwmRequest.commonValues(),
+                userIdentity,
+                profileDefinition,
+                AbstractProfile.class );
+
+        try
+        {
+            {
+                final List<ActionConfiguration> configValues = activateUserProfile.readSettingAsAction( pwmSetting );
+
+                final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
+                        .setExpandPwmMacros( true )
+                        .setMacroMachine( pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication ) )
+                        .createActionExecutor();
+                actionExecutor.executeActions( configValues, pwmRequest.getSessionLabel() );
+            }
+        }
+        catch ( PwmException e )
+        {
+            final ErrorInformation info = new ErrorInformation(
+                    PwmError.ERROR_SERVICE_UNREACHABLE,
+                    e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues()
+            );
+            final PwmUnrecoverableException newException = new PwmUnrecoverableException( info );
+            newException.initCause( e );
+            throw newException;
+        }
+    }
+
 
     /*
     static Map<String, ReplicationStatus> checkIfPasswordIsReplicated(final ChaiUser user, final PwmSession pwmSession)

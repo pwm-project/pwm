@@ -22,6 +22,7 @@ package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiEntry;
+import com.novell.ldapchai.ChaiEntryFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Answer;
 import com.novell.ldapchai.exception.ChaiException;
@@ -56,9 +57,9 @@ import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -79,6 +80,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 
@@ -862,12 +864,18 @@ public class LdapOperationsHelper
     {
         final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
         final Queue<UserIdentity> resultSet = new LinkedList<>();
+        final long searchTimeoutMs = JavaHelper.silentParseLong(
+                pwmApplication.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT ),
+                30_000 );
 
         for ( final UserPermission userPermission : permissionList )
         {
             if ( resultSet.size() < maxResults )
             {
-                final SearchConfiguration searchConfiguration = SearchConfiguration.fromPermission( userPermission );
+                final SearchConfiguration searchConfiguration = SearchConfiguration.fromPermission( userPermission )
+                        .toBuilder()
+                        .searchTimeout( searchTimeoutMs )
+                        .build();
                 final Map<UserIdentity, Map<String, String>> searchResults = userSearchEngine.performMultiUserSearch(
                         searchConfiguration,
                         maxResults - resultSet.size(),
@@ -891,65 +899,6 @@ public class LdapOperationsHelper
             public UserIdentity next( )
             {
                 return resultSet.poll();
-            }
-        };
-    }
-
-
-    public static Iterator<UserIdentity> readAllUsersFromLdap(
-            final PwmApplication pwmApplication,
-            final SessionLabel sessionLabel,
-            final String searchFilter,
-            final int maxResults
-    )
-            throws PwmUnrecoverableException, PwmOperationalException
-    {
-        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
-
-        final SearchConfiguration searchConfiguration;
-        {
-            final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
-
-            builder.enableValueEscaping( false );
-            builder.searchTimeout( Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT ) ) );
-
-            if ( searchFilter == null )
-            {
-                builder.username( "*" );
-            }
-            else
-            {
-                builder.filter( searchFilter );
-            }
-
-            searchConfiguration = builder.build();
-        }
-
-        LOGGER.debug( sessionLabel, () -> "beginning user search using parameters: " + ( JsonUtil.serialize( searchConfiguration ) ) );
-
-        final Map<UserIdentity, Map<String, String>> searchResults = userSearchEngine.performMultiUserSearch(
-                searchConfiguration,
-                maxResults,
-                Collections.emptyList(),
-                sessionLabel
-
-        );
-        LOGGER.debug( sessionLabel, () -> "user search found " + searchResults.size() + " users" );
-
-        final Queue<UserIdentity> tempQueue = new LinkedList<>( searchResults.keySet() );
-
-        return new Iterator<UserIdentity>()
-        {
-            @Override
-            public boolean hasNext( )
-            {
-                return tempQueue.peek() != null;
-            }
-
-            @Override
-            public UserIdentity next( )
-            {
-                return tempQueue.poll();
             }
         };
     }
@@ -1020,12 +969,12 @@ public class LdapOperationsHelper
         return null;
     }
 
-    public static PhotoDataBean readPhotoDataFromLdap(
+    public static Optional<PhotoDataBean> readPhotoDataFromLdap(
             final Configuration configuration,
-            final ChaiUser chaiUser,
+            final ChaiProvider chaiProvider,
             final UserIdentity userIdentity
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
         final String attribute = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO );
@@ -1038,6 +987,7 @@ public class LdapOperationsHelper
         final String mimeType;
         try
         {
+            final ChaiUser chaiUser = ChaiEntryFactory.newChaiFactory( chaiProvider ).newChaiUser( userIdentity.getUserDN() );
             final byte[][] photoAttributeData = chaiUser.readMultiByteAttribute( attribute );
             if ( photoAttributeData == null || photoAttributeData.length == 0 || photoAttributeData[ 0 ].length == 0 )
             {
@@ -1050,7 +1000,11 @@ public class LdapOperationsHelper
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, "error reading user photo ldap attribute: " + e.getMessage() ) );
         }
-        return new PhotoDataBean( mimeType, ImmutableByteArray.of( photoData ) );
+        catch ( ChaiUnavailableException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
+        return Optional.of( new PhotoDataBean( mimeType, ImmutableByteArray.of( photoData ) ) );
     }
 
 

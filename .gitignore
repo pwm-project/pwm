@@ -26,3 +26,22 @@
 /webapp/src/main/webapp/public/resources/themes/idm
 /webapp/src/main/webapp/public/resources/themes/mdefault
 /webapp/src/main/webapp/public/resources/themes/mdefault44
+
+# VS Code Project Files
+.vscode/*
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+**/.settings/
+*/.settings/
+**/*.classpath
+*/*.classpath
+**/*.factorypath
+*/*.factorypath
+**/*.project
+*/*.project
+
+

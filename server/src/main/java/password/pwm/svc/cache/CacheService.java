@@ -110,6 +110,11 @@ public class CacheService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
+        if ( status == STATUS.CLOSED )
+        {
+            return new ServiceInfoBean( Collections.emptyList(), Collections.emptyMap() );
+        }
+
         final Map<String, String> debugInfo = new TreeMap<>( );
         debugInfo.put( "itemCount", String.valueOf( memoryCacheStore.itemCount() ) );
         debugInfo.put( "byteCount", String.valueOf( memoryCacheStore.byteCount() ) );

@@ -21,14 +21,14 @@
 package password.pwm.svc.report;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.time.Instant;
 
-@Data
+@Value
 @Builder( toBuilder = true )
 public class ReportStatusInfo implements Serializable
 {
@@ -37,6 +37,7 @@ public class ReportStatusInfo implements Serializable
 
     private Instant startDate;
     private Instant finishDate;
+    private boolean reportComplete;
     private int count;
     private int errors;
     private ErrorInformation lastError;

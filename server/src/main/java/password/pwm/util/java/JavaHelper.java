@@ -30,7 +30,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.annotation.CheckReturnValue;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -278,7 +277,7 @@ public class JavaHelper
             final OutputStream output,
             final int bufferSize,
             final Predicate<Long> predicate,
-            final ConditionalTaskExecutor condtionalTaskExecutor
+            final ConditionalTaskExecutor conditionalTaskExecutor
     )
             throws IOException
     {
@@ -292,9 +291,9 @@ public class JavaHelper
             {
                 totalCopied += bytesCopied;
             }
-            if ( condtionalTaskExecutor != null )
+            if ( conditionalTaskExecutor != null )
             {
-                condtionalTaskExecutor.conditionallyExecuteTask();
+                conditionalTaskExecutor.conditionallyExecuteTask();
             }
             if ( !predicate.test( bytesCopied ) )
             {
@@ -332,32 +331,27 @@ public class JavaHelper
         return Instant.parse( input );
     }
 
-    @CheckReturnValue( when = javax.annotation.meta.When.NEVER )
-    public static boolean closeAndWaitExecutor( final ExecutorService executor, final TimeDuration timeDuration )
+    public static void closeAndWaitExecutor( final ExecutorService executor, final TimeDuration timeDuration )
     {
         if ( executor == null )
         {
-            return true;
+            return;
         }
 
         executor.shutdown();
         try
         {
-            return executor.awaitTermination( timeDuration.asMillis(), TimeUnit.MILLISECONDS );
+            executor.awaitTermination( timeDuration.asMillis(), TimeUnit.MILLISECONDS );
         }
         catch ( InterruptedException e )
         {
             LOGGER.warn( "unexpected error shutting down executor service " + executor.getClass().toString() + " error: " + e.getMessage() );
         }
-        return false;
     }
 
     public static Collection<Method> getAllMethodsForClass( final Class clazz )
     {
-        final LinkedHashSet<Method> methods = new LinkedHashSet<>();
-
-        // add local methods;
-        methods.addAll( Arrays.asList( clazz.getDeclaredMethods() ) );
+        final LinkedHashSet<Method> methods = new LinkedHashSet<>( Arrays.asList( clazz.getDeclaredMethods() ) );
 
         final Class superClass = clazz.getSuperclass();
         if ( superClass != null )

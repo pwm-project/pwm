@@ -284,7 +284,7 @@ public class ChallengeProfile implements Profile, Serializable
     }
 
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         throw new UnsupportedOperationException();
     }

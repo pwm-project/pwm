@@ -40,7 +40,6 @@ import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.RecoveryAction;
 import password.pwm.config.option.RecoveryMinLifetimeOption;
 import password.pwm.config.profile.ForgottenPasswordProfile;
-import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
@@ -78,13 +77,11 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.CaptchaUtility;
-import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.operations.otp.OTPUserRecord;
@@ -93,8 +90,6 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1221,9 +1216,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             pwmApplication.getAuditManager().submit( AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfo(),
                     pwmSession );
 
-            // add the post-forgotten password actions
-            addPostChangeAction( pwmRequest, userIdentity );
-
             // mark user as requiring a new password.
             pwmSession.getLoginInfoBean().getLoginFlags().add( LoginInfoBean.LoginFlag.forcePwChange );
 
@@ -1241,81 +1233,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             clearForgottenPasswordBean( pwmRequest );
         }
     }
-
-
-    static void addPostChangeAction(
-            final PwmRequest pwmRequest,
-            final UserIdentity userIdentity
-    )
-    {
-        final PostChangePasswordAction postAction = new PostChangeAction( pwmRequest.getPwmApplication(), userIdentity );
-        pwmRequest.getPwmSession().getUserSessionDataCacheBean().addPostChangePasswordActions( "forgottenPasswordPostActions", postAction );
-    }
-
-    private static class PostChangeAction implements PostChangePasswordAction, Serializable
-    {
-
-        private final transient PwmApplication pwmApplication;
-        private final transient UserIdentity userIdentity;
-
-        PostChangeAction( final PwmApplication pwmApplication, final UserIdentity userIdentity )
-        {
-            this.pwmApplication = pwmApplication;
-            this.userIdentity = userIdentity;
-        }
-
-        private void readObject( final ObjectInputStream in ) throws IOException, ClassNotFoundException
-        {
-            throw new IllegalStateException( "this class does not support deserialization" );
-        }
-
-        @Override
-        public String getLabel( )
-        {
-            return "Forgotten Password Post Actions";
-        }
-
-        @Override
-        public boolean doAction( final PwmSession pwmSession, final String newPassword )
-                throws PwmUnrecoverableException
-        {
-            try
-            {
-                {
-                    // execute configured actions
-                    final ChaiUser proxiedUser = pwmApplication.getProxiedChaiUser( userIdentity );
-                    LOGGER.debug( pwmSession, () -> "executing post-forgotten password configured actions to user " + proxiedUser.getEntryDN() );
-                    final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction( PwmSetting.FORGOTTEN_USER_POST_ACTIONS );
-                    final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
-                            .setMacroMachine( pwmSession.getSessionManager().getMacroMachine( pwmApplication ) )
-                            .setExpandPwmMacros( true )
-                            .createActionExecutor();
-
-                    actionExecutor.executeActions( configValues, pwmSession.getLabel() );
-                }
-            }
-            catch ( PwmOperationalException e )
-            {
-                final ErrorInformation info = new ErrorInformation(
-                        PwmError.ERROR_INTERNAL,
-                        e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues()
-                );
-                final PwmUnrecoverableException newException = new PwmUnrecoverableException( info );
-                newException.initCause( e );
-                throw newException;
-            }
-            catch ( ChaiUnavailableException e )
-            {
-                final String errorMsg = "unable to reach ldap server while writing post-forgotten password attributes: " + e.getMessage();
-                final ErrorInformation info = new ErrorInformation( PwmError.ERROR_ACTIVATION_FAILURE, errorMsg );
-                final PwmUnrecoverableException newException = new PwmUnrecoverableException( info );
-                newException.initCause( e );
-                throw newException;
-            }
-            return true;
-        }
-    }
-
 
     private void handleUserVerificationBadAttempt(
             final PwmRequest pwmRequest,

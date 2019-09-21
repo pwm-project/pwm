@@ -39,11 +39,13 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
+import password.pwm.http.filter.ConfigAccessFilter;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.configguide.ConfigGuideUtils;
@@ -121,9 +123,23 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         }
     }
 
+    public static void verifyConfigAccess( final PwmRequest pwmRequest )
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
+        final ProcessStatus processStatus = ConfigAccessFilter.checkAuthentication( pwmRequest, configManagerBean );
+        if ( processStatus != ProcessStatus.Continue )
+        {
+            final String msg = "config access authentication not yet completed";
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, msg );
+        }
+    }
+
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
+        verifyConfigAccess( pwmRequest );
+
         final ConfigManagerAction processAction = readProcessAction( pwmRequest );
         if ( processAction != null )
         {
@@ -220,22 +236,11 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             return;
         }
 
-        if ( !pwmSession.isAuthenticated() )
+        if ( !pwmSession.isAuthenticated()
+                || !pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN ) )
         {
             final ErrorInformation errorInfo = new ErrorInformation(
                     PwmError.ERROR_AUTHENTICATION_REQUIRED,
-                    "You must be authenticated before restricting the configuration"
-            );
-            final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmSession, errorInfo );
-            pwmRequest.outputJsonResult( restResultBean );
-            return;
-        }
-
-        if ( !pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN ) )
-        {
-            final ErrorInformation errorInfo = new ErrorInformation(
-                    PwmError.ERROR_UNAUTHORIZED,
                     "You must be authenticated with admin privileges before restricting the configuration"
             );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );

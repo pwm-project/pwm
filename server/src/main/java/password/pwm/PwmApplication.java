@@ -46,6 +46,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditService;
 import password.pwm.svc.event.SystemAuditRecord;
+import password.pwm.svc.httpclient.HttpClientService;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.node.NodeService;
@@ -483,11 +484,15 @@ public class PwmApplication
             }
 
             final ByteArrayOutputStream outputContents = new ByteArrayOutputStream();
-            ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
-                    pwmApplication.getConfig(),
-                    new FileInputStream( tomcatSourceFile ),
-                    outputContents
-            );
+            try ( FileInputStream fileInputStream = new FileInputStream( tomcatOutputFile ) )
+            {
+                ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
+                        pwmApplication.getConfig(),
+                        fileInputStream,
+                        outputContents
+                );
+            }
+
             if ( tomcatOutputFile.exists() )
             {
                 LOGGER.trace( () -> "deleting existing tomcat configuration file " + tomcatOutputFile.getAbsolutePath() );
@@ -551,6 +556,11 @@ public class PwmApplication
         return ( HealthMonitor ) pwmServiceManager.getService( HealthMonitor.class );
     }
 
+    public HttpClientService getHttpClientService()
+    {
+        return ( HttpClientService ) pwmServiceManager.getService( HttpClientService.class );
+    }
+
     public List<PwmService> getPwmServices( )
     {
         final List<PwmService> pwmServices = new ArrayList<>();
@@ -560,7 +570,7 @@ public class PwmApplication
         return Collections.unmodifiableList( pwmServices );
     }
 
-    public WordlistService getWordlistManager( )
+    public WordlistService getWordlistService( )
     {
         return ( WordlistService ) pwmServiceManager.getService( WordlistService.class );
     }

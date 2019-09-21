@@ -24,7 +24,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.Permission;
 import password.pwm.bean.pub.PublicUserInfoBean;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
@@ -45,7 +45,7 @@ public class UserDebugDataBean implements Serializable
 
     private final PwmPasswordPolicy ldapPasswordPolicy;
     private final PwmPasswordPolicy configuredPasswordPolicy;
-    private final Map<ProfileType, String> profiles;
+    private final Map<ProfileDefinition, String> profiles;
 
     private final PwNotifyUserStatus pwNotifyUserStatus;
 }

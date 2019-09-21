@@ -29,17 +29,11 @@ import java.util.Map;
 
 public class SetupOtpProfile extends AbstractProfile
 {
-    private static final ProfileType PROFILE_TYPE = ProfileType.SetupOTPProfile;
+    private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.SetupOTPProfile;
 
     protected SetupOtpProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
     {
         super( identifier, storedValueMap );
-    }
-
-    public static SetupOtpProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
-    {
-        final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
-        return new SetupOtpProfile( identifier, valueMap );
     }
 
     @Override
@@ -49,9 +43,17 @@ public class SetupOtpProfile extends AbstractProfile
     }
 
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         return PROFILE_TYPE;
     }
 
+    public static class SetupOtpProfileFactory implements ProfileFactory
+    {
+        @Override
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        {
+            return new SetupOtpProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+        }
+    }
 }

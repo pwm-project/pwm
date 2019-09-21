@@ -112,9 +112,10 @@ public class LDAPHealthChecker implements HealthChecker
             returnRecords.addAll( profileRecords );
         }
 
-        for ( final LdapProfile ldapProfile : pwmApplication.getLdapConnectionService().getLastLdapFailure().keySet() )
+        for ( final Map.Entry<String, ErrorInformation> entry : pwmApplication.getLdapConnectionService().getLastLdapFailure().entrySet() )
         {
-            final ErrorInformation errorInfo = pwmApplication.getLdapConnectionService().getLastLdapFailure().get( ldapProfile );
+            final ErrorInformation errorInfo = entry.getValue();
+            final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get( entry.getKey() );
             if ( errorInfo != null )
             {
                 final TimeDuration errorAge = TimeDuration.fromCurrent( errorInfo.getDate() );

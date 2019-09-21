@@ -183,13 +183,16 @@ public class StoredConfigurationImpl implements StoredConfiguration
     }
 
     public void resetAllPasswordValues( final String comment )
+            throws PwmUnrecoverableException
     {
         for ( final Iterator<SettingValueRecord> settingValueRecordIterator = new StoredValueIterator( false ); settingValueRecordIterator.hasNext(); )
         {
             final SettingValueRecord settingValueRecord = settingValueRecordIterator.next();
             if ( settingValueRecord.getSetting().getSyntax() == PwmSettingSyntax.PASSWORD )
             {
-                this.resetSetting( settingValueRecord.getSetting(), settingValueRecord.getProfile(), null );
+                final ValueMetaData valueMetaData = this.readSettingMetadata( settingValueRecord.getSetting(), settingValueRecord.getProfile() );
+                final PasswordValue passwordValue = new PasswordValue( new PasswordData( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT ) );
+                this.writeSetting( settingValueRecord.getSetting(), settingValueRecord.getProfile(), passwordValue, valueMetaData.getUserIdentity() );
                 if ( comment != null && !comment.isEmpty() )
                 {
                     final XmlElement settingElement = xmlHelper.xpathForSetting( settingValueRecord.getSetting(), settingValueRecord.getProfile() );

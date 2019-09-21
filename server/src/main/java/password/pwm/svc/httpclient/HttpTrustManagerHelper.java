@@ -18,12 +18,11 @@
  * limitations under the License.
  */
 
-package password.pwm.http.client;
+package password.pwm.svc.httpclient;
 
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import password.pwm.AppProperty;
-import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -39,68 +38,29 @@ import java.util.Iterator;
 class HttpTrustManagerHelper
 {
     private final Configuration configuration;
-    private final SessionLabel sessionLabel;
     private final PwmHttpClientConfiguration pwmHttpClientConfiguration;
-    private final TrustManagerType trustManagerType;
-
-    enum TrustManagerType
-    {
-        promiscuous,
-        supplied,
-        configuredCertificates,
-        defaultJava,
-    }
+    private final PwmHttpClientConfiguration.TrustManagerType trustManagerType;
 
     HttpTrustManagerHelper(
             final Configuration configuration,
-            final SessionLabel sessionLabel,
             final PwmHttpClientConfiguration pwmHttpClientConfiguration
     )
     {
         this.configuration = configuration;
-        this.sessionLabel = sessionLabel;
         this.pwmHttpClientConfiguration = pwmHttpClientConfiguration;
-        this.trustManagerType = figureType();
+        this.trustManagerType = pwmHttpClientConfiguration.getTrustManagerType();
     }
 
-    TrustManagerType getTrustManagerType()
+    PwmHttpClientConfiguration.TrustManagerType getTrustManagerType()
     {
         return trustManagerType;
     }
 
-    private TrustManagerType figureType()
-    {
-
-        final boolean configPromiscuousEnabled = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE ) );
-        final boolean promiscuousTrustMgrSet = pwmHttpClientConfiguration != null
-                && pwmHttpClientConfiguration.getTrustManager() != null
-                && X509Utils.PromiscuousTrustManager.class.equals( pwmHttpClientConfiguration.getTrustManager().getClass() );
-
-        if ( configPromiscuousEnabled || promiscuousTrustMgrSet )
-        {
-            return TrustManagerType.promiscuous;
-        }
-
-        // use the client supplied TrustManager
-        if ( pwmHttpClientConfiguration.getTrustManager() != null )
-        {
-            return TrustManagerType.supplied;
-        }
-
-        // using configured certificates
-        if ( !JavaHelper.isEmpty( pwmHttpClientConfiguration.getCertificates() ) )
-        {
-            return TrustManagerType.configuredCertificates;
-        }
-
-        // use default trust manager
-        return TrustManagerType.defaultJava;
-    }
 
     HostnameVerifier hostnameVerifier()
     {
-        final TrustManagerType trustManagerType = getTrustManagerType();
-        if ( trustManagerType == TrustManagerType.promiscuous )
+        final PwmHttpClientConfiguration.TrustManagerType trustManagerType = getTrustManagerType();
+        if ( trustManagerType == PwmHttpClientConfiguration.TrustManagerType.promiscuous )
         {
             return NoopHostnameVerifier.INSTANCE;
         }
@@ -117,23 +77,21 @@ class HttpTrustManagerHelper
     )
             throws PwmUnrecoverableException
     {
-        final TrustManagerType trustManagerType = getTrustManagerType();
+        final PwmHttpClientConfiguration.TrustManagerType trustManagerType = getTrustManagerType();
 
         switch ( trustManagerType )
         {
             case promiscuous:
                 return new TrustManager[]
                         {
-                                new X509Utils.PromiscuousTrustManager( sessionLabel ),
+                                new X509Utils.PromiscuousTrustManager( ),
                         };
 
-            case supplied:
-            {
+            case promiscuousCertReader:
                 return new TrustManager[]
                         {
-                                pwmHttpClientConfiguration.getTrustManager(),
+                                new X509Utils.CertReaderTrustManager( new X509Utils.PromiscuousTrustManager( ) ),
                         };
-            }
 
             case configuredCertificates:
             {
@@ -158,14 +116,10 @@ class HttpTrustManagerHelper
 
     String debugText() throws PwmUnrecoverableException
     {
-        final TrustManagerType type = getTrustManagerType();
+        final PwmHttpClientConfiguration.TrustManagerType type = getTrustManagerType();
         final StringBuilder value = new StringBuilder( "trust manager [" + type );
-        if ( TrustManagerType.supplied == type )
-        {
-            value.append( "=" );
-            value.append( pwmHttpClientConfiguration.getTrustManager().getClass().getSimpleName() );
-        }
-        else if ( TrustManagerType.configuredCertificates == type )
+
+        if ( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates == type )
         {
             value.append( "=" );
             for ( final Iterator<X509Certificate> iterator = pwmHttpClientConfiguration.getCertificates().iterator(); iterator.hasNext(); )

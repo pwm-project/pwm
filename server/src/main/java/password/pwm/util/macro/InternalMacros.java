@@ -41,7 +41,7 @@ public abstract class InternalMacros
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( InternalMacros.class );
 
-    public static final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> INTERNAL_MACROS;
+    static final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> INTERNAL_MACROS;
 
     static
     {

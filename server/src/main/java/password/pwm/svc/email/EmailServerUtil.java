@@ -331,19 +331,19 @@ public class EmailServerUtil
                     final MimeMultipart content = new MimeMultipart( "alternative" );
                     final MimeBodyPart text = new MimeBodyPart();
                     final MimeBodyPart html = new MimeBodyPart();
-                    text.setContent( emailItemBean.getBodyPlain(), HttpContentType.plain.getHeaderValue() );
-                    html.setContent( emailItemBean.getBodyHtml(), HttpContentType.html.getHeaderValue() );
+                    text.setContent( emailItemBean.getBodyPlain(), HttpContentType.plain.getHeaderValueWithEncoding() );
+                    html.setContent( emailItemBean.getBodyHtml(), HttpContentType.html.getHeaderValueWithEncoding() );
                     content.addBodyPart( text );
                     content.addBodyPart( html );
                     message.setContent( content );
                 }
                 else if ( hasPlainText )
                 {
-                    message.setContent( emailItemBean.getBodyPlain(), HttpContentType.plain.getHeaderValue() );
+                    message.setContent( emailItemBean.getBodyPlain(), HttpContentType.plain.getHeaderValueWithEncoding() );
                 }
                 else if ( hasHtml )
                 {
-                    message.setContent( emailItemBean.getBodyHtml(), HttpContentType.html.getHeaderValue() );
+                    message.setContent( emailItemBean.getBodyHtml(), HttpContentType.html.getHeaderValueWithEncoding() );
                 }
 
                 messages.add( message );
@@ -386,7 +386,9 @@ public class EmailServerUtil
             throws PwmUnrecoverableException
     {
         final EmailServerProfile emailServerProfile = configuration.getEmailServerProfiles().get( profile );
-        final X509Utils.CertReaderTrustManager certReaderTm = new X509Utils.CertReaderTrustManager( X509Utils.ReadCertificateFlag.ReadOnlyRootCA );
+        final X509Utils.CertReaderTrustManager certReaderTm = new X509Utils.CertReaderTrustManager(
+                new X509Utils.PromiscuousTrustManager(),
+                X509Utils.ReadCertificateFlag.ReadOnlyRootCA );
         final TrustManager[] trustManagers =  new TrustManager[]
                 {
                         certReaderTm,

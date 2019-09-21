@@ -217,6 +217,7 @@ public abstract class PwmConstants
             "Your password must be scanned by the TSA to ensure the safety of your fellow travelers.  Please take off your password's shoes to continue.",
             "That password really tied the room together dude.",
             "Bite my shiny metal password!",
+            "ben makes password software go woooo",
 
             //nick helm
             "I needed a password eight characters long so I picked Snow White and the Seven Dwarves.",

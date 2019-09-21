@@ -23,11 +23,10 @@ package password.pwm.http.servlet.peoplesearch;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
@@ -48,21 +47,21 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Callable;
 
 public abstract class PeopleSearchServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( PeopleSearchServlet.class );
 
     private static final String PARAM_USERKEY = "userKey";
@@ -109,15 +108,8 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     }
 
     @Override
-    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
-    {
-        if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
-        {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE ) );
-        }
-
-        return ProcessStatus.Continue;
-    }
+    public abstract ProcessStatus preProcessCheck( PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException, ServletException;
 
     @ActionHandler( action = "clientData" )
     private ProcessStatus restLoadClientData(
@@ -126,7 +118,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     )
             throws PwmUnrecoverableException, IOException
     {
-        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.forRequest( pwmRequest );
+        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getConfig(), peopleSearchProfile( pwmRequest ) );
 
         final PeopleSearchClientConfigBean peopleSearchClientConfigBean = PeopleSearchClientConfigBean.fromConfig(
                 pwmRequest,
@@ -148,7 +140,8 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     {
         final SearchRequestBean searchRequest = JsonUtil.deserialize( pwmRequest.readRequestBodyAsString(), SearchRequestBean.class );
 
-        final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest );
+        final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
+        final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest, peopleSearchProfile );
 
         final SearchResultBean searchResultBean = peopleSearchDataReader.makeSearchResultBean( searchRequest );
         final RestResultBean restResultBean = RestResultBean.withData( searchResultBean );
@@ -166,12 +159,13 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     )
             throws IOException, PwmUnrecoverableException, ServletException
     {
-        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.forRequest( pwmRequest );
+        final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
+        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getConfig(), peopleSearchProfile );
 
         final UserIdentity userIdentity;
         {
             final String userKey = pwmRequest.readParameterAsString( PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation );
-            if ( userKey == null || userKey.isEmpty() )
+            if ( StringUtil.isEmpty( userKey ) )
             {
                 userIdentity = pwmRequest.getUserInfoIfLoggedIn();
                 if ( userIdentity == null )
@@ -194,7 +188,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
         try
         {
-            final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest );
+            final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest, peopleSearchProfile );
             final OrgChartDataBean orgChartData = peopleSearchDataReader.makeOrgChartData( userIdentity, noChildren );
 
             addExpiresHeadersToResponse( pwmRequest );
@@ -219,7 +213,8 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         final String userKey = pwmRequest.readParameterAsString( PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation );
         final UserIdentity userIdentity = readUserIdentityFromKey( pwmRequest, userKey );
 
-        final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest );
+        final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
+        final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest, peopleSearchProfile );
         final UserDetailBean detailData = peopleSearchDataReader.makeUserDetailRequest( userIdentity );
 
         addExpiresHeadersToResponse( pwmRequest );
@@ -242,45 +237,25 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-
-        final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest );
+        final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
+        final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest, peopleSearchProfile );
         final UserIdentity userIdentity = readUserIdentityFromKey( pwmRequest, userKey );
 
         LOGGER.debug( pwmRequest, () -> "received user photo request to view user " + userIdentity.toString() );
 
-        final PhotoDataBean photoData;
-        try
-        {
-            photoData = peopleSearchDataReader.readPhotoDataFromLdap( userIdentity );
-        }
-        catch ( PwmOperationalException e )
-        {
-            final ErrorInformation errorInformation = e.getErrorInformation();
-            LOGGER.error( pwmRequest, errorInformation );
-            pwmRequest.respondWithError( errorInformation, false );
-            return ProcessStatus.Halt;
-        }
+        final Callable<Optional<PhotoDataBean>> callablePhotoReader = () -> peopleSearchDataReader.readPhotoData( userIdentity );
 
-        addExpiresHeadersToResponse( pwmRequest );
-
-        try ( OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream() )
-        {
-            final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
-            resp.setContentType( photoData.getMimeType() );
-
-            if ( photoData.getContents() != null )
-            {
-                outputStream.write( photoData.getContents().copyOf() );
-            }
-        }
+        PhotoDataReader.servletRespondWithPhoto( pwmRequest, callablePhotoReader );
         return ProcessStatus.Halt;
     }
 
     private void addExpiresHeadersToResponse( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
     {
-        final long maxCacheSeconds = pwmRequest.getConfig().readSettingAsLong( PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS );
-        pwmRequest.getPwmResponse().getHttpServletResponse().setDateHeader( HttpHeader.Expires.getHttpName(), System.currentTimeMillis() + ( maxCacheSeconds * 1000L ) );
-        pwmRequest.getPwmResponse().setHeader( HttpHeader.CacheControl,  "private, max-age=" + maxCacheSeconds );
+        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getConfig(), peopleSearchProfile( pwmRequest ) );
+        final TimeDuration maxCacheTime = peopleSearchConfiguration.getMaxCacheTime();
+        pwmRequest.getPwmResponse().getHttpServletResponse().setDateHeader( HttpHeader.Expires.getHttpName(), System.currentTimeMillis() + ( maxCacheTime.asMillis() ) );
+        pwmRequest.getPwmResponse().setHeader( HttpHeader.CacheControl,  "private, max-age=" + maxCacheTime.as( TimeDuration.Unit.SECONDS ) );
     }
 
     @ActionHandler( action = "exportOrgChart" )
@@ -290,9 +265,10 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         final String userKey = pwmRequest.readParameterAsString( PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation );
         final int requestedDepth = pwmRequest.readParameterAsInt( PARAM_DEPTH, 1 );
         final UserIdentity userIdentity = readUserIdentityFromKey( pwmRequest, userKey );
-        final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest );
+        final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
+        final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest, peopleSearchProfile );
 
-        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.forRequest( pwmRequest );
+        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getConfig(), peopleSearchProfile( pwmRequest ) );
         final PeopleSearchClientConfigBean peopleSearchClientConfigBean = PeopleSearchClientConfigBean.fromConfig( pwmRequest, peopleSearchConfiguration, userIdentity );
 
         if ( !peopleSearchClientConfigBean.isEnableExport() )
@@ -321,9 +297,10 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         final String userKey = pwmRequest.readParameterAsString( PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation );
         final int requestedDepth = pwmRequest.readParameterAsInt( PARAM_DEPTH, 1 );
         final UserIdentity userIdentity = readUserIdentityFromKey( pwmRequest, userKey );
-        final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest );
 
-        final PeopleSearchConfiguration peopleSearchConfiguration = PeopleSearchConfiguration.forRequest( pwmRequest );
+        final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
+        final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest, peopleSearchProfile );
+        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getConfig(), peopleSearchProfile );
 
         if ( !peopleSearchConfiguration.isEnableMailtoLinks() )
         {
@@ -339,6 +316,27 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    static PeopleSearchProfile peopleSearchProfile( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        if ( pwmRequest.getURL().isPublicUrl() )
+        {
+            final Optional<PeopleSearchProfile> profile = pwmRequest.getConfig().getPublicPeopleSearchProfile();
+            if ( !profile.isPresent() )
+            {
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "public peoplesearch profile not assigned" );
+            }
+            return profile.get();
+        }
+
+        if ( pwmRequest.isAuthenticated() )
+        {
+            return pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile( pwmRequest.getPwmApplication() );
+        }
+
+        throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "unable to load peoplesearch profile for authenticated user" );
+    }
+
 
     static UserIdentity readUserIdentityFromKey( final PwmRequest pwmRequest, final String userKey )
             throws PwmUnrecoverableException
@@ -350,7 +348,8 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
             throw new PwmUnrecoverableException( errorInformation );
         }
 
-        final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest );
+        final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
+        final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest, peopleSearchProfile );
         final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
         peopleSearchDataReader.checkIfUserIdentityViewable( userIdentity );
         return userIdentity;

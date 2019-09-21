@@ -57,6 +57,7 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
+import password.pwm.http.servlet.peoplesearch.PhotoDataReader;
 import password.pwm.http.servlet.peoplesearch.SearchRequestBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
@@ -75,7 +76,6 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -87,6 +87,7 @@ import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.secure.SecureService;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
@@ -95,9 +96,7 @@ import password.pwm.ws.server.rest.RestSetPasswordServer;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
@@ -107,6 +106,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 /**
  * Admin interaction servlet for reset user passwords.
@@ -1371,30 +1371,12 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final UserIdentity userIdentity = readUserKeyRequestParameter( pwmRequest );
         final HelpdeskProfile helpdeskProfile = getHelpdeskProfile( pwmRequest );
         HelpdeskServletUtil.checkIfUserIdentityViewable( pwmRequest, helpdeskProfile, userIdentity  );
-        final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
+        final PhotoDataReader photoDataReader = photoDataReader( pwmRequest, helpdeskProfile, userIdentity );
 
         LOGGER.debug( pwmRequest, () -> "received user photo request to view user " + userIdentity.toString() );
 
-        final PhotoDataBean photoData;
-        try
-        {
-            photoData = LdapOperationsHelper.readPhotoDataFromLdap( pwmRequest.getConfig(), chaiUser, userIdentity );
-        }
-        catch ( PwmOperationalException e )
-        {
-            final ErrorInformation errorInformation = e.getErrorInformation();
-            LOGGER.error( pwmRequest, errorInformation );
-            pwmRequest.respondWithError( errorInformation, false );
-            return ProcessStatus.Halt;
-        }
-
-        try ( OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream() )
-        {
-            final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
-            resp.setContentType( photoData.getMimeType() );
-
-            outputStream.write( photoData.getContents().copyOf() );
-        }
+        final Callable<Optional<PhotoDataBean>> callablePhotoReader = photoDataReader::readPhotoData;
+        PhotoDataReader.servletRespondWithPhoto( pwmRequest, callablePhotoReader );
         return ProcessStatus.Halt;
     }
 
@@ -1409,5 +1391,19 @@ public class HelpdeskServlet extends ControlledPwmServlet
             throw new PwmUnrecoverableException( errorInformation );
         }
         return UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
+    }
+
+    static PhotoDataReader photoDataReader( final PwmRequest pwmRequest, final HelpdeskProfile helpdeskProfile, final UserIdentity userIdentity )
+            throws PwmUnrecoverableException
+    {
+
+        final boolean enabled = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE_PHOTOS );
+        final PhotoDataReader.Settings settings = PhotoDataReader.Settings.builder()
+                .enabled( enabled )
+                .photoPermissions( null )
+                .chaiProvider( getChaiUser( pwmRequest, helpdeskProfile, userIdentity ).getChaiProvider() )
+                .build();
+
+        return new PhotoDataReader( pwmRequest, settings, userIdentity );
     }
 }

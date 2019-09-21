@@ -30,8 +30,8 @@ import java.io.InputStream;
 
 public interface Wordlist extends PwmService
 {
-
-    long size( );
+    long size( )
+            throws PwmUnrecoverableException;
 
     WordlistStatus readWordlistStatus( );
 

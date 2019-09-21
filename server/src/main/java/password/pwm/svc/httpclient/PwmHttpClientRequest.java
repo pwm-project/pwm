@@ -18,23 +18,42 @@
  * limitations under the License.
  */
 
-package password.pwm.http.client;
+package password.pwm.svc.httpclient;
 
+import lombok.Builder;
 import lombok.Value;
+import password.pwm.http.HttpEntityDataType;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.net.URI;
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Value
-public class PwmHttpClientRequest implements Serializable
+@Builder( toBuilder = true )
+public class PwmHttpClientRequest implements Serializable, PwmHttpClientMessage
 {
-    private final HttpMethod method;
+    private static final AtomicInteger REQUEST_COUNTER = new AtomicInteger( 0 );
+
+    private final int requestID = REQUEST_COUNTER.incrementAndGet();
+
+    @Builder.Default
+    private final HttpMethod method = HttpMethod.GET;
+
     private final String url;
+
     private final String body;
-    private final Map<String, String> headers;
+
+    private final HttpEntityDataType dataType = HttpEntityDataType.String;
+
+    private final ImmutableByteArray binaryBody = null;
+
+    @Builder.Default
+    private final Map<String, String> headers = Collections.emptyMap();
 
     public String toDebugString( final PwmHttpClient pwmHttpClient, final String additionalText )
     {
@@ -42,7 +61,7 @@ public class PwmHttpClientRequest implements Serializable
                 + ( StringUtil.isEmpty( additionalText )
                 ? ""
                 : " " + additionalText );
-        return pwmHttpClient.entityToDebugString( topLine, headers, body );
+        return pwmHttpClient.entityToDebugString( topLine, this );
     }
 
     public boolean isHttps()

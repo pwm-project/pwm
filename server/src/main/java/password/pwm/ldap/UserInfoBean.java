@@ -27,7 +27,7 @@ import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.ChallengeProfile;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.operations.otp.OTPUserRecord;
@@ -66,7 +66,7 @@ public class UserInfoBean implements UserInfo
     private final Map<String, String> cachedAttributeValues = Collections.emptyMap();
 
     @Builder.Default
-    private final Map<ProfileType, String> profileIDs = new HashMap<>();
+    private final Map<ProfileDefinition, String> profileIDs = new HashMap<>();
 
     @Builder.Default
     private final PasswordStatus passwordStatus = PasswordStatus.builder().build();

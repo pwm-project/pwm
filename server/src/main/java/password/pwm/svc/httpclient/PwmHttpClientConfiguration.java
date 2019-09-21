@@ -18,24 +18,30 @@
  * limitations under the License.
  */
 
-package password.pwm.http.client;
+package password.pwm.svc.httpclient;
 
+import lombok.Builder;
 import lombok.Value;
 
-import java.io.Serializable;
-import java.util.Map;
+import java.security.cert.X509Certificate;
+import java.util.List;
 
 @Value
-public class PwmHttpClientResponse implements Serializable
+@Builder
+public class PwmHttpClientConfiguration
 {
-    private final int statusCode;
-    private final String statusPhrase;
-    private final Map<String, String> headers;
-    private final String body;
+    private List<X509Certificate> certificates;
 
-    public String toDebugString( final PwmHttpClient pwmHttpClient )
+    @Builder.Default
+    private TrustManagerType trustManagerType = TrustManagerType.defaultJava;
+
+    private boolean maskBodyDebugOutput;
+
+    public enum TrustManagerType
     {
-        return pwmHttpClient.entityToDebugString( "HTTP response status " + statusCode + " " + statusPhrase, headers, body );
+        promiscuousCertReader,
+        promiscuous,
+        configuredCertificates,
+        defaultJava,
     }
-
 }

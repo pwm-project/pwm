@@ -20,7 +20,6 @@
 
 package password.pwm.http.servlet.configmanager;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -102,8 +101,9 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
     }
 
     protected void processAction( final PwmRequest pwmRequest )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+            throws ServletException, IOException, PwmUnrecoverableException
     {
+        ConfigManagerServlet.verifyConfigAccess( pwmRequest );
 
         final ConfigManagerAction processAction = readProcessAction( pwmRequest );
         if ( processAction != null )
@@ -201,7 +201,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
     }
 
     void restReadWordlistData( final PwmRequest pwmRequest )
-            throws IOException
+            throws IOException, PwmUnrecoverableException
     {
         final LinkedHashMap<WordlistType, WordlistDataBean> outputData = new LinkedHashMap<>();
 
@@ -252,13 +252,13 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                                 "Population Timestamp",
                                 JavaHelper.toIsoDate( wordlistStatus.getStoreDate() ) ) );
                     }
-                    if ( wordlistStatus.getRemoteInfo() != null && !StringUtil.isEmpty( wordlistStatus.getRemoteInfo().getChecksum() ) )
+                    if ( wordlistStatus.getRemoteInfo() != null && !StringUtil.isEmpty( wordlistStatus.getRemoteInfo().getHash() ) )
                     {
                         presentableValues.add( new DisplayElement(
                                 wordlistType.name() + "_sha256Hash",
                                 DisplayElement.Type.string,
-                                "CRC Checksum",
-                                wordlistStatus.getRemoteInfo().getChecksum() ) );
+                                "SHA1 Checksum",
+                                wordlistStatus.getRemoteInfo().getHash() ) );
                     }
                 }
                 if ( wordlist.getAutoImportError() != null )

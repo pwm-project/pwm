@@ -22,20 +22,27 @@ package password.pwm.util.secure;
 
 public enum PwmHashAlgorithm
 {
-    MD5( "MD5" ),
-    SHA1( "SHA1" ),
-    SHA256( "SHA-256" ),
-    SHA512( "SHA-512" ),;
+    MD5( "MD5", 32 ),
+    SHA1( "SHA1", 40 ),
+    SHA256( "SHA-256", 64 ),
+    SHA512( "SHA-512", 128 ),;
 
     private final String algName;
+    private final int hexValueLength;
 
-    PwmHashAlgorithm( final String algName )
+    PwmHashAlgorithm( final String algName, final int hexValueLength )
     {
         this.algName = algName;
+        this.hexValueLength = hexValueLength;
     }
 
     public String getAlgName( )
     {
         return algName;
+    }
+
+    public int getHexValueLength()
+    {
+        return hexValueLength;
     }
 }

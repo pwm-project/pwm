@@ -25,10 +25,16 @@ import org.junit.Test;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.XmlDocument;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class PwmSettingTest
@@ -56,18 +62,47 @@ public class PwmSettingTest
     }
 
     @Test
-    public void testDescriptions() throws PwmUnrecoverableException, PwmOperationalException
+    public void testSettingXmlPresence() throws PwmUnrecoverableException, PwmOperationalException
     {
+        final InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( PwmSettingXml.SETTING_XML_FILENAME );
+        final XmlDocument xmlDoc = XmlFactory.getFactory().parseXml( inputStream );
+
         for ( final PwmSetting pwmSetting : PwmSetting.values() )
         {
-            try
-            {
-                pwmSetting.getDescription( PwmConstants.DEFAULT_LOCALE );
-            }
-            catch ( final Throwable t )
-            {
-                throw new IllegalStateException( "unable to read description for setting '" + pwmSetting.toString() + "', error: " + t.getMessage(), t );
-            }
+            final String expression = "/settings/setting[@key=\"" + pwmSetting.getKey() + "\"]";
+            final XmlElement xmlElement = xmlDoc.evaluateXpathToElement( expression );
+            Assert.assertNotNull( "missing PwmSetting.xml setting reference for key " + pwmSetting.getKey(), xmlElement );
+        }
+    }
+
+    @Test
+    public void testSettingXmlDuplication() throws PwmUnrecoverableException, PwmOperationalException
+    {
+        final InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( PwmSettingXml.SETTING_XML_FILENAME );
+        final XmlDocument xmlDoc = XmlFactory.getFactory().parseXml( inputStream );
+
+        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        {
+            final String expression = "/settings/setting[@key=\"" + pwmSetting.getKey() + "\"]";
+            final List<XmlElement> results = xmlDoc.evaluateXpathToElements( expression );
+            Assert.assertFalse( "multiple PwmSetting.xml setting reference for key " + pwmSetting.getKey(), results.size() > 1 );
+        }
+    }
+
+    @Test
+    public void testUnknownSettingXml() throws PwmUnrecoverableException, PwmOperationalException
+    {
+        final InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( PwmSettingXml.SETTING_XML_FILENAME );
+        final XmlDocument xmlDoc = XmlFactory.getFactory().parseXml( inputStream );
+
+        final String expression = "/settings/setting";
+        final List<XmlElement> results = xmlDoc.evaluateXpathToElements( expression );
+        for ( final XmlElement result : results )
+        {
+            final String key = result.getAttributeValue( "key" );
+            Assert.assertFalse( StringUtil.isEmpty( key ) );
+            final PwmSetting pwmSetting = PwmSetting.forKey( key );
+            Assert.assertNotNull( "unknown PwmSetting.xml setting reference for key " + key );
         }
     }
 
