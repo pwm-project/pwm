@@ -214,4 +214,10 @@ public class LdapProfile extends AbstractProfile implements Profile
             return new LdapProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
         }
     }
+
+    @Override
+    public String toString()
+    {
+        return "LDAPProfile:" + this.getIdentifier();
+    }
 }

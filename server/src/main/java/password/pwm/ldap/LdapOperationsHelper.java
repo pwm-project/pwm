@@ -59,7 +59,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -864,12 +864,18 @@ public class LdapOperationsHelper
     {
         final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
         final Queue<UserIdentity> resultSet = new LinkedList<>();
+        final long searchTimeoutMs = JavaHelper.silentParseLong(
+                pwmApplication.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT ),
+                30_000 );
 
         for ( final UserPermission userPermission : permissionList )
         {
             if ( resultSet.size() < maxResults )
             {
-                final SearchConfiguration searchConfiguration = SearchConfiguration.fromPermission( userPermission );
+                final SearchConfiguration searchConfiguration = SearchConfiguration.fromPermission( userPermission )
+                        .toBuilder()
+                        .searchTimeout( searchTimeoutMs )
+                        .build();
                 final Map<UserIdentity, Map<String, String>> searchResults = userSearchEngine.performMultiUserSearch(
                         searchConfiguration,
                         maxResults - resultSet.size(),
@@ -893,65 +899,6 @@ public class LdapOperationsHelper
             public UserIdentity next( )
             {
                 return resultSet.poll();
-            }
-        };
-    }
-
-
-    public static Iterator<UserIdentity> readAllUsersFromLdap(
-            final PwmApplication pwmApplication,
-            final SessionLabel sessionLabel,
-            final String searchFilter,
-            final int maxResults
-    )
-            throws PwmUnrecoverableException, PwmOperationalException
-    {
-        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
-
-        final SearchConfiguration searchConfiguration;
-        {
-            final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
-
-            builder.enableValueEscaping( false );
-            builder.searchTimeout( Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT ) ) );
-
-            if ( searchFilter == null )
-            {
-                builder.username( "*" );
-            }
-            else
-            {
-                builder.filter( searchFilter );
-            }
-
-            searchConfiguration = builder.build();
-        }
-
-        LOGGER.debug( sessionLabel, () -> "beginning user search using parameters: " + ( JsonUtil.serialize( searchConfiguration ) ) );
-
-        final Map<UserIdentity, Map<String, String>> searchResults = userSearchEngine.performMultiUserSearch(
-                searchConfiguration,
-                maxResults,
-                Collections.emptyList(),
-                sessionLabel
-
-        );
-        LOGGER.debug( sessionLabel, () -> "user search found " + searchResults.size() + " users" );
-
-        final Queue<UserIdentity> tempQueue = new LinkedList<>( searchResults.keySet() );
-
-        return new Iterator<UserIdentity>()
-        {
-            @Override
-            public boolean hasNext( )
-            {
-                return tempQueue.peek() != null;
-            }
-
-            @Override
-            public UserIdentity next( )
-            {
-                return tempQueue.poll();
             }
         };
     }

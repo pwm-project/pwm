@@ -32,12 +32,13 @@ import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Deque;
@@ -74,7 +75,7 @@ public final class WorkQueueProcessor<W extends Serializable>
 
     private ThreadPoolExecutor executorService;
 
-    private final EventRateMeter.MovingAverage avgLagTime = new EventRateMeter.MovingAverage( TimeDuration.HOUR );
+    private final MovingAverage avgLagTime = new MovingAverage( TimeDuration.HOUR );
     private final EventRateMeter sendRate = new EventRateMeter( TimeDuration.HOUR );
 
     private final AtomicInteger preQueueSubmit = new AtomicInteger( 0 );
@@ -583,7 +584,7 @@ public final class WorkQueueProcessor<W extends Serializable>
     {
         final Map<String, String> output = new HashMap<>();
         output.put( "avgLagTime", TimeDuration.of( ( long ) avgLagTime.getAverage(), TimeDuration.Unit.MILLISECONDS ).asCompactString() );
-        output.put( "sendRate", sendRate.readEventRate().setScale( 2, BigDecimal.ROUND_DOWN ) + "/s" );
+        output.put( "sendRate", sendRate.readEventRate().setScale( 2, RoundingMode.DOWN ) + "/s" );
         output.put( "preQueueSubmit", String.valueOf( preQueueSubmit.get() ) );
         output.put( "preQueueBypass", String.valueOf( preQueueBypass.get() ) );
         output.put( "preQueueFallback", String.valueOf( preQueueFallback.get() ) );

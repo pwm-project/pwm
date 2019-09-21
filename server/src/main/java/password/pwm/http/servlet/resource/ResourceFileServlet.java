@@ -30,10 +30,10 @@ import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.PwmServlet;
-import password.pwm.util.EventRateMeter;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MovingAverage;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -211,7 +211,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
 
             pwmRequest.debugHttpRequestToLog( debugText );
 
-            final EventRateMeter.MovingAverage cacheHitRatio = resourceService.getCacheHitRatio();
+            final MovingAverage cacheHitRatio = resourceService.getCacheHitRatio();
             StatisticsManager.incrementStat( pwmApplication, Statistic.HTTP_RESOURCE_REQUESTS );
             cacheHitRatio.update( fromCache ? 1 : 0 );
         }

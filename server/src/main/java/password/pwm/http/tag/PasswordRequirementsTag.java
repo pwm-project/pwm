@@ -20,13 +20,13 @@
 
 package password.pwm.http.tag;
 
+import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
-import password.pwm.util.password.PasswordRuleReaderHelper;
 import password.pwm.error.PwmException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -37,6 +37,7 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.password.PasswordRuleReaderHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,6 +45,8 @@ import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -58,31 +61,84 @@ public class PasswordRequirementsTag extends TagSupport
     private String prepend;
     private String form;
 
-    @SuppressWarnings( "checkstyle:MethodLength" )
     public static List<String> getPasswordRequirementsStrings(
-            final PwmPasswordPolicy pwordPolicy,
+            final PwmPasswordPolicy passwordPolicy,
             final Configuration config,
             final Locale locale,
             final MacroMachine macroMachine
     )
     {
-        final List<String> returnValues = new ArrayList<>();
-        final ADPolicyComplexity adPolicyLevel = pwordPolicy.getRuleHelper().getADComplexityLevel();
-
-
-        final PasswordRuleReaderHelper ruleHelper = pwordPolicy.getRuleHelper();
-
-        if ( ruleHelper.readBooleanValue( PwmPasswordRule.CaseSensitive ) )
+        final List<String> ruleTexts = new ArrayList<>(  );
+        final PolicyValues policyValues = new PolicyValues( passwordPolicy, passwordPolicy.getRuleHelper(), locale, config, macroMachine );
+        for ( final RuleTextGenerator ruleTextGenerator : RULE_TEXT_GENERATORS )
         {
-            returnValues.add( getLocalString( Message.Requirement_CaseSensitive, null, locale, config ) );
-        }
-        else
-        {
-            returnValues.add( getLocalString( Message.Requirement_NotCaseSensitive, null, locale, config ) );
+            ruleTexts.addAll( ruleTextGenerator.generate( policyValues ) );
         }
 
+        return Collections.unmodifiableList( ruleTexts );
+    }
+
+    private static final List<RuleTextGenerator> RULE_TEXT_GENERATORS = Collections.unmodifiableList( Arrays.asList(
+            new CaseSensitiveRuleTextGenerator(),
+            new MinLengthRuleTextGenerator(),
+            new MaxLengthRuleTextGenerator(),
+            new MinAlphaRuleTextGenerator(),
+            new MaxAlphaRuleTextGenerator(),
+            new NumericCharsRuleTextGenerator(),
+            new SpecialCharsRuleTextGenerator(),
+            new MaximumRepeatRuleTextGenerator(),
+            new MaximumSequentialRepeatRuleTextGenerator(),
+            new MinimumLowerRuleTextGenerator(),
+            new MaximumLowerRuleTextGenerator(),
+            new MinimumUpperRuleTextGenerator(),
+            new MaximumUpperRuleTextGenerator(),
+            new MinimumUniqueRuleTextGenerator(),
+            new DisallowedValuesRuleTextGenerator(),
+            new WordlistRuleTextGenerator(),
+            new DisallowedAttributesRuleTextGenerator(),
+            new MaximumOldCharsRuleTextGenerator(),
+            new MinimumLifetimeRuleTextGenerator(),
+            new ADRuleTextGenerator(),
+            new UniqueRequiredRuleTextGenerator()
+    ) );
+
+    private interface RuleTextGenerator
+    {
+        List<String> generate( PolicyValues policyValues );
+    }
+
+    @Value
+    private static class PolicyValues
+    {
+        private PwmPasswordPolicy passwordPolicy;
+        private PasswordRuleReaderHelper ruleHelper;
+        private Locale locale;
+        private Configuration config;
+        private MacroMachine macroMachine;
+    }
+
+    private static class CaseSensitiveRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            int value = ruleHelper.readIntValue( PwmPasswordRule.MinimumLength );
+            if ( policyValues.getRuleHelper().readBooleanValue( PwmPasswordRule.CaseSensitive ) )
+            {
+                return Collections.singletonList( getLocalString( Message.Requirement_CaseSensitive, null, policyValues ) );
+            }
+            else
+            {
+                return Collections.singletonList( getLocalString( Message.Requirement_NotCaseSensitive, null, policyValues ) );
+            }
+        }
+    }
+
+    private static class MinLengthRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
+        {
+            int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MinimumLength );
+            final ADPolicyComplexity adPolicyLevel = policyValues.getRuleHelper().getADComplexityLevel();
+
             if ( adPolicyLevel == ADPolicyComplexity.AD2003 || adPolicyLevel == ADPolicyComplexity.AD2008 )
             {
                 if ( value < 6 )
@@ -92,154 +148,223 @@ public class PasswordRequirementsTag extends TagSupport
             }
             if ( value > 0 )
             {
-                returnValues.add( getLocalString( Message.Requirement_MinLength, value, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_MinLength, value, policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
+    private static class MaxLengthRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            final int value = ruleHelper.readIntValue( PwmPasswordRule.MaximumLength );
+            final int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MaximumLength );
             if ( value > 0 && value < 64 )
             {
-                returnValues.add( getLocalString( Message.Requirement_MaxLength, value, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_MaxLength, value, policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
+    private static class MinAlphaRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            final int value = ruleHelper.readIntValue( PwmPasswordRule.MinimumAlpha );
+            final int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MinimumAlpha );
             if ( value > 0 )
             {
-                returnValues.add( getLocalString( Message.Requirement_MinAlpha, value, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_MinAlpha, value, policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
+    private static class MaxAlphaRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            final int value = ruleHelper.readIntValue( PwmPasswordRule.MaximumAlpha );
+            final int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MaximumAlpha );
             if ( value > 0 )
             {
-                returnValues.add( getLocalString( Message.Requirement_MaxAlpha, value, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_MaxAlpha, value, policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
+    private static class NumericCharsRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
+            final PasswordRuleReaderHelper ruleHelper = policyValues.getRuleHelper();
             if ( !ruleHelper.readBooleanValue( PwmPasswordRule.AllowNumeric ) )
             {
-                returnValues.add( getLocalString( Message.Requirement_AllowNumeric, null, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_AllowNumeric, null, policyValues ) );
             }
             else
             {
+                final List<String> returnValues = new ArrayList<>(  );
                 final int minValue = ruleHelper.readIntValue( PwmPasswordRule.MinimumNumeric );
                 if ( minValue > 0 )
                 {
-                    returnValues.add( getLocalString( Message.Requirement_MinNumeric, minValue, locale, config ) );
+                    returnValues.add( getLocalString( Message.Requirement_MinNumeric, minValue, policyValues ) );
                 }
 
                 final int maxValue = ruleHelper.readIntValue( PwmPasswordRule.MaximumNumeric );
                 if ( maxValue > 0 )
                 {
-                    returnValues.add( getLocalString( Message.Requirement_MaxNumeric, maxValue, locale, config ) );
+                    returnValues.add( getLocalString( Message.Requirement_MaxNumeric, maxValue, policyValues ) );
                 }
 
                 if ( !ruleHelper.readBooleanValue( PwmPasswordRule.AllowFirstCharNumeric ) )
                 {
-                    returnValues.add( getLocalString( Message.Requirement_FirstNumeric, maxValue, locale, config ) );
+                    returnValues.add( getLocalString( Message.Requirement_FirstNumeric, maxValue, policyValues ) );
                 }
 
                 if ( !ruleHelper.readBooleanValue( PwmPasswordRule.AllowLastCharNumeric ) )
                 {
-                    returnValues.add( getLocalString( Message.Requirement_LastNumeric, maxValue, locale, config ) );
+                    returnValues.add( getLocalString( Message.Requirement_LastNumeric, maxValue, policyValues ) );
                 }
+                return returnValues;
             }
         }
+    }
 
+    private static class SpecialCharsRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
+            final PasswordRuleReaderHelper ruleHelper = policyValues.getRuleHelper();
             if ( !ruleHelper.readBooleanValue( PwmPasswordRule.AllowSpecial ) )
             {
-                returnValues.add( getLocalString( Message.Requirement_AllowSpecial, null, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_AllowSpecial, null, policyValues ) );
             }
             else
             {
+                final List<String> returnValues = new ArrayList<>(  );
                 final int minValue = ruleHelper.readIntValue( PwmPasswordRule.MinimumSpecial );
                 if ( minValue > 0 )
                 {
-                    returnValues.add( getLocalString( Message.Requirement_MinSpecial, minValue, locale, config ) );
+                    returnValues.add( getLocalString( Message.Requirement_MinSpecial, minValue, policyValues ) );
                 }
 
                 final int maxValue = ruleHelper.readIntValue( PwmPasswordRule.MaximumSpecial );
                 if ( maxValue > 0 )
                 {
-                    returnValues.add( getLocalString( Message.Requirement_MaxSpecial, maxValue, locale, config ) );
+                    returnValues.add( getLocalString( Message.Requirement_MaxSpecial, maxValue, policyValues ) );
                 }
 
                 if ( !ruleHelper.readBooleanValue( PwmPasswordRule.AllowFirstCharSpecial ) )
                 {
-                    returnValues.add( getLocalString( Message.Requirement_FirstSpecial, maxValue, locale, config ) );
+                    returnValues.add( getLocalString( Message.Requirement_FirstSpecial, maxValue, policyValues ) );
                 }
 
                 if ( !ruleHelper.readBooleanValue( PwmPasswordRule.AllowLastCharSpecial ) )
                 {
-                    returnValues.add( getLocalString( Message.Requirement_LastSpecial, maxValue, locale, config ) );
+                    returnValues.add( getLocalString( Message.Requirement_LastSpecial, maxValue, policyValues ) );
                 }
+                return returnValues;
             }
         }
+    }
 
+    private static class MaximumRepeatRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            final int value = pwordPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MaximumRepeat );
+            final int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MaximumRepeat );
             if ( value > 0 )
             {
-                returnValues.add( getLocalString( Message.Requirement_MaxRepeat, value, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_MaxRepeat, value, policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
+    private static class MaximumSequentialRepeatRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            final int value = pwordPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MaximumSequentialRepeat );
+            final int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MaximumSequentialRepeat );
             if ( value > 0 )
             {
-                returnValues.add( getLocalString( Message.Requirement_MaxSeqRepeat, value, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_MaxSeqRepeat, value, policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
+    private static class MinimumLowerRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            final int value = ruleHelper.readIntValue( PwmPasswordRule.MinimumLowerCase );
+            final int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MinimumLowerCase );
             if ( value > 0 )
             {
-                returnValues.add( getLocalString( Message.Requirement_MinLower, value, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_MinLower, value, policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
+    private static class MaximumLowerRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            final int value = ruleHelper.readIntValue( PwmPasswordRule.MaximumLowerCase );
+            final int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MaximumLowerCase );
             if ( value > 0 )
             {
-                returnValues.add( getLocalString( Message.Requirement_MaxLower, value, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_MaxLower, value, policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
+    private static class MinimumUpperRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            final int value = ruleHelper.readIntValue( PwmPasswordRule.MinimumUpperCase );
+            final int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MinimumUpperCase );
             if ( value > 0 )
             {
-                returnValues.add( getLocalString( Message.Requirement_MinUpper, value, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_MinUpper, value, policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
+    private static class MaximumUpperRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            final int value = ruleHelper.readIntValue( PwmPasswordRule.MaximumUpperCase );
+            final int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MaximumUpperCase );
             if ( value > 0 )
             {
-                returnValues.add( getLocalString( Message.Requirement_MaxUpper, value, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_MaxUpper, value, policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
+    private static class MinimumUniqueRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            final int value = ruleHelper.readIntValue( PwmPasswordRule.MinimumUnique );
+            final int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MinimumUnique );
             if ( value > 0 )
             {
-                returnValues.add( getLocalString( Message.Requirement_MinUnique, value, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_MinUnique, value, policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
+    private static class DisallowedValuesRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            final List<String> setValue = ruleHelper.getDisallowedValues();
+            final List<String> setValue = policyValues.getRuleHelper().getDisallowedValues();
             if ( !setValue.isEmpty() )
             {
                 final StringBuilder fieldValue = new StringBuilder();
@@ -247,37 +372,59 @@ public class PasswordRequirementsTag extends TagSupport
                 {
                     fieldValue.append( " " );
 
-                    final String expandedValue = macroMachine.expandMacros( loopValue );
+                    final String expandedValue = policyValues.getMacroMachine().expandMacros( loopValue );
                     fieldValue.append( StringUtil.escapeHtml( expandedValue ) );
                 }
-                returnValues.add(
-                        getLocalString( Message.Requirement_DisAllowedValues, fieldValue.toString(), locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_DisAllowedValues, fieldValue.toString(), policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
+    private static class WordlistRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            final List<String> setValue = ruleHelper.getDisallowedAttributes();
+            if ( policyValues.getRuleHelper().readBooleanValue( PwmPasswordRule.EnableWordlist ) )
+            {
+                return Collections.singletonList( getLocalString( Message.Requirement_WordList, "", policyValues ) );
+            }
+            return Collections.emptyList();
+        }
+    }
+
+    private static class DisallowedAttributesRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
+        {
+            final List<String> setValue = policyValues.getRuleHelper().getDisallowedAttributes();
+            final ADPolicyComplexity adPolicyLevel = policyValues.getRuleHelper().getADComplexityLevel();
             if ( !setValue.isEmpty() || adPolicyLevel == ADPolicyComplexity.AD2003 )
             {
-                returnValues.add( getLocalString( Message.Requirement_DisAllowedAttributes, "", locale, config ) );
+                return Collections.singletonList(  getLocalString( Message.Requirement_DisAllowedAttributes, "", policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
-        if ( ruleHelper.readBooleanValue( PwmPasswordRule.EnableWordlist ) )
+    private static class MaximumOldCharsRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            returnValues.add( getLocalString( Message.Requirement_WordList, "", locale, config ) );
-        }
-
-        {
-            final int value = ruleHelper.readIntValue( PwmPasswordRule.MaximumOldChars );
+            final int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MaximumOldChars );
             if ( value > 0 )
             {
-                returnValues.add( getLocalString( Message.Requirement_OldChar, value, locale, config ) );
+                return Collections.singletonList( getLocalString( Message.Requirement_OldChar, value, policyValues ) );
             }
+            return Collections.emptyList();
         }
+    }
 
+    private static class MinimumLifetimeRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
         {
-            final int value = ruleHelper.readIntValue( PwmPasswordRule.MinimumLifetime );
+            final int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MinimumLifetime );
             if ( value > 0 )
             {
                 final int secondsPerDay = 60 * 60 * 24;
@@ -287,41 +434,54 @@ public class PasswordRequirementsTag extends TagSupport
                 {
                     final int valueAsDays = value / ( 60 * 60 * 24 );
                     final Display key = valueAsDays <= 1 ? Display.Display_Day : Display.Display_Days;
-                    durationStr = valueAsDays + " " + LocaleHelper.getLocalizedMessage( locale, key, config );
+                    durationStr = valueAsDays + " " + LocaleHelper.getLocalizedMessage( policyValues.getLocale(), key, policyValues.getConfig() );
                 }
                 else
                 {
                     final int valueAsHours = value / ( 60 * 60 );
                     final Display key = valueAsHours <= 1 ? Display.Display_Hour : Display.Display_Hours;
-                    durationStr = valueAsHours + " " + LocaleHelper.getLocalizedMessage( locale, key, config );
+                    durationStr = valueAsHours + " " + LocaleHelper.getLocalizedMessage( policyValues.getLocale(), key, policyValues.getConfig() );
                 }
 
-                final String userMsg = Message.getLocalizedMessage( locale, Message.Requirement_MinimumFrequency, config,
-                        durationStr );
-                returnValues.add( userMsg );
+                final String userMsg = Message.getLocalizedMessage( policyValues.getLocale(), Message.Requirement_MinimumFrequency, policyValues.getConfig(), durationStr );
+                return Collections.singletonList( userMsg );
             }
+            return Collections.emptyList();
         }
-
-        if ( adPolicyLevel == ADPolicyComplexity.AD2003 )
-        {
-            returnValues.add( getLocalString( Message.Requirement_ADComplexity, "", locale, config ) );
-        }
-        else if ( adPolicyLevel == ADPolicyComplexity.AD2008 )
-        {
-            final int maxViolations = ruleHelper.readIntValue( PwmPasswordRule.ADComplexityMaxViolations );
-            final int minGroups = 5 - maxViolations;
-            returnValues.add( getLocalString( Message.Requirement_ADComplexity2008, String.valueOf( minGroups ), locale, config ) );
-        }
-
-        if ( ruleHelper.readBooleanValue( PwmPasswordRule.UniqueRequired ) )
-        {
-            returnValues.add( getLocalString( Message.Requirement_UniqueRequired, "", locale, config ) );
-        }
-
-        return returnValues;
     }
 
-    private static String getLocalString( final Message message, final int size, final Locale locale, final Configuration config )
+    private static class ADRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
+        {
+            final ADPolicyComplexity adPolicyLevel = policyValues.getRuleHelper().getADComplexityLevel();
+            if ( adPolicyLevel == ADPolicyComplexity.AD2003 )
+            {
+                return Collections.singletonList( getLocalString( Message.Requirement_ADComplexity, "", policyValues ) );
+            }
+            else if ( adPolicyLevel == ADPolicyComplexity.AD2008 )
+            {
+                final int maxViolations = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.ADComplexityMaxViolations );
+                final int minGroups = 5 - maxViolations;
+                return Collections.singletonList( getLocalString( Message.Requirement_ADComplexity2008, String.valueOf( minGroups ), policyValues ) );
+            }
+            return Collections.emptyList();
+        }
+    }
+
+    private static class UniqueRequiredRuleTextGenerator implements RuleTextGenerator
+    {
+        public List<String> generate( final PolicyValues policyValues )
+        {
+            if ( policyValues.getRuleHelper().readBooleanValue( PwmPasswordRule.UniqueRequired ) )
+            {
+                return Collections.singletonList( getLocalString( Message.Requirement_UniqueRequired, "", policyValues ) );
+            }
+            return Collections.emptyList();
+        }
+    }
+
+    private static String getLocalString( final Message message, final int size, final PolicyValues policyValues )
     {
         final Message effectiveMessage = size > 1 && message.getPluralMessage() != null
                 ? message.getPluralMessage()
@@ -329,7 +489,7 @@ public class PasswordRequirementsTag extends TagSupport
 
         try
         {
-            return Message.getLocalizedMessage( locale, effectiveMessage, config, String.valueOf( size ) );
+            return Message.getLocalizedMessage( policyValues.getLocale(), effectiveMessage, policyValues.getConfig(), String.valueOf( size ) );
         }
         catch ( MissingResourceException e )
         {
@@ -338,11 +498,11 @@ public class PasswordRequirementsTag extends TagSupport
         return "UNKNOWN MESSAGE STRING";
     }
 
-    private static String getLocalString( final Message message, final String field, final Locale locale, final Configuration config )
+    private static String getLocalString( final Message message, final String field, final PolicyValues policyValues )
     {
         try
         {
-            return Message.getLocalizedMessage( locale, message, config, field );
+            return Message.getLocalizedMessage( policyValues.getLocale(), message, policyValues.getConfig(), field );
         }
         catch ( MissingResourceException e )
         {

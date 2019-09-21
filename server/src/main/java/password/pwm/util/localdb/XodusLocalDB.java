@@ -232,7 +232,7 @@ public class XodusLocalDB implements LocalDBProvider
     }
 
     @Override
-    public LocalDB.LocalDBIterator<String> iterator( final LocalDB.DB db ) throws LocalDBException
+    public LocalDB.LocalDBIterator<String> iterator( final LocalDB.DB db )  throws LocalDBException
     {
         return new InnerIterator( db );
     }
@@ -406,7 +406,6 @@ public class XodusLocalDB implements LocalDBProvider
             }
         } );
     }
-
 
     @Override
     public void truncate( final LocalDB.DB db ) throws LocalDBException

@@ -514,6 +514,10 @@ public enum PwmSetting
             "password.policy.maximumOldPasswordChars", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_MINIMUM_LIFETIME(
             "password.policy.minimumLifetime", PwmSettingSyntax.DURATION, PwmSettingCategory.PASSWORD_POLICY ),
+    PASSWORD_POLICY_MAXIMUM_CONSECUTIVE(
+            "password.policy.maximumConsecutive", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY ),
+    PASSWORD_POLICY_MINIMUM_STRENGTH(
+            "password.policy.minimumStrength", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_ENABLE_WORDLIST(
             "password.policy.checkWordlist", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_AD_COMPLEXITY_LEVEL(
@@ -528,10 +532,6 @@ public enum PwmSetting
             "password.policy.disallowedValues", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_DISALLOWED_ATTRIBUTES(
             "password.policy.disallowedAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PASSWORD_POLICY ),
-    PASSWORD_POLICY_MINIMUM_STRENGTH(
-            "password.policy.minimumStrength", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY ),
-    PASSWORD_POLICY_MAXIMUM_CONSECUTIVE(
-            "password.policy.maximumConsecutive", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_CHANGE_MESSAGE(
             "password.policy.changeMessage", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.PASSWORD_POLICY ),
     PASSWORD_POLICY_RULE_TEXT(

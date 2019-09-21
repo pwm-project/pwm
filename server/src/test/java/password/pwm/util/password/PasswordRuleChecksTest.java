@@ -28,10 +28,11 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PasswordRuleChecksTest
 {
@@ -41,20 +42,16 @@ public class PasswordRuleChecksTest
     {
         final Map<String, String> policyMap = new HashMap<>();
         policyMap.put( PwmPasswordRule.MinimumLength.getKey(), "7" );
-        policyMap.put( PwmPasswordRule.AllowNumeric.getKey(), "true" );
 
-        {
-            final List<ErrorInformation> expectedErrors = new ArrayList<>();
-            expectedErrors.add( new ErrorInformation( PwmError.PASSWORD_TOO_SHORT, null ) );
+        // violations
+        Assert.assertThat( doCheck( policyMap, "123" ), hasItems( PwmError.PASSWORD_TOO_SHORT ) );
+        Assert.assertThat( doCheck( policyMap, "1234" ), hasItems( PwmError.PASSWORD_TOO_SHORT ) );
+        Assert.assertThat( doCheck( policyMap, "12345" ), hasItems( PwmError.PASSWORD_TOO_SHORT ) );
+        Assert.assertThat( doCheck( policyMap, "123456" ),  hasItems( PwmError.PASSWORD_TOO_SHORT ) );
 
-            Assert.assertTrue( doCompareTest( policyMap, "123", expectedErrors ) );
-            Assert.assertTrue( doCompareTest( policyMap, "1234", expectedErrors ) );
-            Assert.assertTrue( doCompareTest( policyMap, "12345", expectedErrors ) );
-            Assert.assertTrue( doCompareTest( policyMap, "123456", expectedErrors ) );
-
-            Assert.assertFalse( doCompareTest( policyMap, "1234567", expectedErrors ) );
-            Assert.assertFalse( doCompareTest( policyMap, "12345678", expectedErrors ) );
-        }
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "1234567" ), not( hasItems( PwmError.PASSWORD_TOO_SHORT ) ) );
+        Assert.assertThat( doCheck( policyMap, "12345678" ), not( hasItems( PwmError.PASSWORD_TOO_SHORT ) ) );
     }
 
     @Test
@@ -63,21 +60,227 @@ public class PasswordRuleChecksTest
     {
         final Map<String, String> policyMap = new HashMap<>();
         policyMap.put( PwmPasswordRule.MaximumLength.getKey(), "7" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "12345678" ), hasItems( PwmError.PASSWORD_TOO_LONG ) );
+        Assert.assertThat( doCheck( policyMap, "123456789" ), hasItems( PwmError.PASSWORD_TOO_LONG ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "123" ), not( hasItems( PwmError.PASSWORD_TOO_LONG ) ) );
+        Assert.assertThat( doCheck( policyMap, "1234" ), not( hasItems( PwmError.PASSWORD_TOO_LONG ) ) );
+        Assert.assertThat( doCheck( policyMap, "12345" ), not( hasItems( PwmError.PASSWORD_TOO_LONG ) ) );
+        Assert.assertThat( doCheck( policyMap, "123456" ),  not( hasItems( PwmError.PASSWORD_TOO_LONG ) ) );
+        Assert.assertThat( doCheck( policyMap, "1234567" ),  not( hasItems( PwmError.PASSWORD_TOO_LONG ) ) );
+    }
+
+    @Test
+    public void minimumUpperCaseTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
+        policyMap.put( PwmPasswordRule.MinimumUpperCase.getKey(), "3" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "A" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_UPPER ) );
+        Assert.assertThat( doCheck( policyMap, "AB" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_UPPER ) );
+        Assert.assertThat( doCheck( policyMap, "ABc" ),  hasItems( PwmError.PASSWORD_NOT_ENOUGH_UPPER ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "ABC" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_UPPER ) ) );
+        Assert.assertThat( doCheck( policyMap, "ABCD" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_UPPER ) ) );
+        Assert.assertThat( doCheck( policyMap, "ABCDe" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_UPPER ) ) );
+        Assert.assertThat( doCheck( policyMap, "123456ABC" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_UPPER ) ) );
+    }
+
+    @Test
+    public void maximumUpperCaseTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
+        policyMap.put( PwmPasswordRule.MaximumUpperCase.getKey(), "3" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "ABCD" ), hasItems( PwmError.PASSWORD_TOO_MANY_UPPER ) );
+        Assert.assertThat( doCheck( policyMap, "ABCDE" ), hasItems( PwmError.PASSWORD_TOO_MANY_UPPER ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "A" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_UPPER ) ) );
+        Assert.assertThat( doCheck( policyMap, "AB" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_UPPER ) ) );
+        Assert.assertThat( doCheck( policyMap, "ABC" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_UPPER ) ) );
+        Assert.assertThat( doCheck( policyMap, "ABCd" ),  not( hasItems( PwmError.PASSWORD_TOO_MANY_UPPER ) ) );
+    }
+
+    @Test
+    public void minimumLowerCaseTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
+        policyMap.put( PwmPasswordRule.MinimumLowerCase.getKey(), "3" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "a" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_LOWER ) );
+        Assert.assertThat( doCheck( policyMap, "ab" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_LOWER ) );
+        Assert.assertThat( doCheck( policyMap, "abC" ),  hasItems( PwmError.PASSWORD_NOT_ENOUGH_LOWER ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "abc" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_LOWER ) ) );
+        Assert.assertThat( doCheck( policyMap, "abcd" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_LOWER ) ) );
+        Assert.assertThat( doCheck( policyMap, "abcdE" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_LOWER ) ) );
+        Assert.assertThat( doCheck( policyMap, "123456abc" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_LOWER ) ) );
+    }
+
+    @Test
+    public void maximumLowerCaseTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
+        policyMap.put( PwmPasswordRule.MaximumLowerCase.getKey(), "3" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "abcd" ), hasItems( PwmError.PASSWORD_TOO_MANY_LOWER ) );
+        Assert.assertThat( doCheck( policyMap, "abcde" ), hasItems( PwmError.PASSWORD_TOO_MANY_LOWER ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "a" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_LOWER ) ) );
+        Assert.assertThat( doCheck( policyMap, "ab" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_LOWER ) ) );
+        Assert.assertThat( doCheck( policyMap, "abc" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_LOWER ) ) );
+        Assert.assertThat( doCheck( policyMap, "abcD" ),  not( hasItems( PwmError.PASSWORD_TOO_MANY_LOWER ) ) );
+    }
+
+    @Test
+    public void minimumSpecialTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
+        policyMap.put( PwmPasswordRule.AllowSpecial.getKey(), "true" );
+        policyMap.put( PwmPasswordRule.MinimumSpecial.getKey(), "3" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "!" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_SPECIAL ) );
+        Assert.assertThat( doCheck( policyMap, "!!" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_SPECIAL ) );
+        Assert.assertThat( doCheck( policyMap, "!!A" ),  hasItems( PwmError.PASSWORD_NOT_ENOUGH_SPECIAL ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "!!!" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_SPECIAL ) ) );
+        Assert.assertThat( doCheck( policyMap, "!!!A" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_SPECIAL ) ) );
+    }
+
+    @Test
+    public void maximumSpecialTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
+        policyMap.put( PwmPasswordRule.AllowSpecial.getKey(), "true" );
+        policyMap.put( PwmPasswordRule.MaximumSpecial.getKey(), "3" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "!!!!" ), hasItems( PwmError.PASSWORD_TOO_MANY_SPECIAL ) );
+        Assert.assertThat( doCheck( policyMap, "!!!!!" ), hasItems( PwmError.PASSWORD_TOO_MANY_SPECIAL ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "!!!" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_SPECIAL ) ) );
+        Assert.assertThat( doCheck( policyMap, "!!!A" ),  not( hasItems( PwmError.PASSWORD_TOO_MANY_SPECIAL ) ) );
+    }
+
+    @Test
+    public void minimumAlphaTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
+        policyMap.put( PwmPasswordRule.MinimumAlpha.getKey(), "3" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "a" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_ALPHA ) );
+        Assert.assertThat( doCheck( policyMap, "ab" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_ALPHA ) );
+        Assert.assertThat( doCheck( policyMap, "ab1" ),  hasItems( PwmError.PASSWORD_NOT_ENOUGH_ALPHA ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "abc" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_ALPHA ) ) );
+        Assert.assertThat( doCheck( policyMap, "abcd" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_ALPHA ) ) );
+    }
+
+    @Test
+    public void maximumAlphaTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
+        policyMap.put( PwmPasswordRule.MaximumAlpha.getKey(), "3" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "abcd" ), hasItems( PwmError.PASSWORD_TOO_MANY_ALPHA ) );
+        Assert.assertThat( doCheck( policyMap, "abcd1" ), hasItems( PwmError.PASSWORD_TOO_MANY_ALPHA ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "abc" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_ALPHA ) ) );
+        Assert.assertThat( doCheck( policyMap, "abc1" ),  not( hasItems( PwmError.PASSWORD_TOO_MANY_ALPHA ) ) );
+    }
+
+    @Test
+    public void minimumNonAlphaTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
+        policyMap.put( PwmPasswordRule.MinimumNonAlpha.getKey(), "3" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "!!" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_NONALPHA ) );
+        Assert.assertThat( doCheck( policyMap, "44" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_NONALPHA ) );
+        Assert.assertThat( doCheck( policyMap, "5" ),  hasItems( PwmError.PASSWORD_NOT_ENOUGH_NONALPHA ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "!!!" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_NONALPHA ) ) );
+        Assert.assertThat( doCheck( policyMap, ",,," ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_NONALPHA ) ) );
+    }
+
+    @Test
+    public void maximumNonAlphaTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
+        policyMap.put( PwmPasswordRule.MaximumNonAlpha.getKey(), "3" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "1234" ), hasItems( PwmError.PASSWORD_TOO_MANY_NONALPHA ) );
+        Assert.assertThat( doCheck( policyMap, "----" ), hasItems( PwmError.PASSWORD_TOO_MANY_NONALPHA ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "123" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_NONALPHA ) ) );
+        Assert.assertThat( doCheck( policyMap, "---" ),  not( hasItems( PwmError.PASSWORD_TOO_MANY_NONALPHA ) ) );
+    }
+
+    @Test
+    public void minimumNumericTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
         policyMap.put( PwmPasswordRule.AllowNumeric.getKey(), "true" );
+        policyMap.put( PwmPasswordRule.MinimumNumeric.getKey(), "3" );
 
-        {
-            final List<ErrorInformation> expectedErrors = new ArrayList<>();
-            expectedErrors.add( new ErrorInformation( PwmError.PASSWORD_TOO_LONG, null ) );
+        // violations
+        Assert.assertThat( doCheck( policyMap, "1" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_NUM ) );
+        Assert.assertThat( doCheck( policyMap, "12" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_NUM ) );
+        Assert.assertThat( doCheck( policyMap, "12a" ),  hasItems( PwmError.PASSWORD_NOT_ENOUGH_NUM ) );
 
-            Assert.assertFalse( doCompareTest( policyMap, "123", expectedErrors ) );
-            Assert.assertFalse( doCompareTest( policyMap, "1234", expectedErrors ) );
-            Assert.assertFalse( doCompareTest( policyMap, "12345", expectedErrors ) );
-            Assert.assertFalse( doCompareTest( policyMap, "123456", expectedErrors ) );
-            Assert.assertFalse( doCompareTest( policyMap, "1234567", expectedErrors ) );
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "123" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_NUM ) ) );
+        Assert.assertThat( doCheck( policyMap, "1234" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_NUM ) ) );
+    }
 
-            Assert.assertTrue( doCompareTest( policyMap, "12345678", expectedErrors ) );
-            Assert.assertTrue( doCompareTest( policyMap, "123456789", expectedErrors ) );
-        }
+    @Test
+    public void maximumNumericTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
+        policyMap.put( PwmPasswordRule.AllowNumeric.getKey(), "true" );
+        policyMap.put( PwmPasswordRule.MaximumNumeric.getKey(), "3" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "1234" ), hasItems( PwmError.PASSWORD_TOO_MANY_NUMERIC ) );
+        Assert.assertThat( doCheck( policyMap, "12345" ), hasItems( PwmError.PASSWORD_TOO_MANY_NUMERIC ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "12" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_NUMERIC ) ) );
+        Assert.assertThat( doCheck( policyMap, "123" ),  not( hasItems( PwmError.PASSWORD_TOO_MANY_NUMERIC ) ) );
     }
 
     @Test
@@ -86,19 +289,49 @@ public class PasswordRuleChecksTest
     {
         final Map<String, String> policyMap = new HashMap<>();
         policyMap.put( PwmPasswordRule.MinimumUnique.getKey(), "4" );
-        policyMap.put( PwmPasswordRule.AllowNumeric.getKey(), "true" );
 
-        {
-            final List<ErrorInformation> expectedErrors = new ArrayList<>();
-            expectedErrors.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_UNIQUE, null ) );
+        // violations
+        Assert.assertThat( doCheck( policyMap, "aaa" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_UNIQUE ) );
+        Assert.assertThat( doCheck( policyMap, "aaa2" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_UNIQUE ) );
+        Assert.assertThat( doCheck( policyMap, "aaa23" ), hasItems( PwmError.PASSWORD_NOT_ENOUGH_UNIQUE ) );
 
-            Assert.assertTrue( doCompareTest( policyMap, "aaa", expectedErrors ) );
-            Assert.assertTrue( doCompareTest( policyMap, "aaa2", expectedErrors ) );
-            Assert.assertTrue( doCompareTest( policyMap, "aaa23", expectedErrors ) );
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "aaa234" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_UNIQUE ) ) );
+        Assert.assertThat( doCheck( policyMap, "aaa2345" ), not( hasItems( PwmError.PASSWORD_NOT_ENOUGH_UNIQUE ) ) );
+    }
 
-            Assert.assertFalse( doCompareTest( policyMap, "aaa234", expectedErrors ) );
-            Assert.assertFalse( doCompareTest( policyMap, "aaa2345", expectedErrors ) );
-        }
+    @Test
+    public void maximumSequentialRepeatTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
+        policyMap.put( PwmPasswordRule.MaximumSequentialRepeat.getKey(), "4" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "aaaaa" ), hasItems( PwmError.PASSWORD_TOO_MANY_REPEAT ) );
+        Assert.assertThat( doCheck( policyMap, "aaaaaa" ), hasItems( PwmError.PASSWORD_TOO_MANY_REPEAT ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "aaa" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_REPEAT ) ) );
+        Assert.assertThat( doCheck( policyMap, "aaaa" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_REPEAT ) ) );
+        Assert.assertThat( doCheck( policyMap, "aaa23" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_REPEAT ) ) );
+    }
+
+    @Test
+    public void maximumRepeatTest()
+            throws Exception
+    {
+        final Map<String, String> policyMap = new HashMap<>();
+        policyMap.put( PwmPasswordRule.MaximumRepeat.getKey(), "4" );
+
+        // violations
+        Assert.assertThat( doCheck( policyMap, "aa2aaa" ), hasItems( PwmError.PASSWORD_TOO_MANY_REPEAT ) );
+        Assert.assertThat( doCheck( policyMap, "aa2aaaa" ), hasItems( PwmError.PASSWORD_TOO_MANY_REPEAT ) );
+
+        // not violations
+        Assert.assertThat( doCheck( policyMap, "aa2a" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_REPEAT ) ) );
+        Assert.assertThat( doCheck( policyMap, "aa2aa" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_REPEAT ) ) );
+        Assert.assertThat( doCheck( policyMap, "aa2a23" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_REPEAT ) ) );
     }
 
     @Test
@@ -109,25 +342,19 @@ public class PasswordRuleChecksTest
             final Map<String, String> policyMap = new HashMap<>();
             policyMap.put( PwmPasswordRule.AllowNumeric.getKey(), "true" );
 
-            {
-                final List<ErrorInformation> expectedErrors = new ArrayList<>();
-                expectedErrors.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_NUMERIC, null ) );
-
-                Assert.assertFalse( doCompareTest( policyMap, "aaa", expectedErrors ) );
-                Assert.assertFalse( doCompareTest( policyMap, "aaa2", expectedErrors ) );
-            }
+            // not violations
+            Assert.assertThat( doCheck( policyMap, "aaa" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_NUMERIC ) ) );
+            Assert.assertThat( doCheck( policyMap, "aaa2" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_NUMERIC ) ) );
         }
         {
             final Map<String, String> policyMap = new HashMap<>();
             policyMap.put( PwmPasswordRule.AllowNumeric.getKey(), "false" );
 
-            {
-                final List<ErrorInformation> expectedErrors = new ArrayList<>();
-                expectedErrors.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_NUMERIC, null ) );
+            // violations
+            Assert.assertThat( doCheck( policyMap, "aaa2" ), hasItems( PwmError.PASSWORD_TOO_MANY_NUMERIC ) );
 
-                Assert.assertFalse( doCompareTest( policyMap, "aaa", expectedErrors ) );
-                Assert.assertTrue( doCompareTest( policyMap, "aaa2", expectedErrors ) );
-            }
+            // not violations
+            Assert.assertThat( doCheck( policyMap, "aaa" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_NUMERIC ) ) );
         }
     }
 
@@ -139,47 +366,75 @@ public class PasswordRuleChecksTest
             final Map<String, String> policyMap = new HashMap<>();
             policyMap.put( PwmPasswordRule.AllowSpecial.getKey(), "true" );
 
-            {
-                final List<ErrorInformation> expectedErrors = new ArrayList<>();
-                expectedErrors.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_SPECIAL, null ) );
-
-                Assert.assertFalse( doCompareTest( policyMap, "aaa", expectedErrors ) );
-                Assert.assertFalse( doCompareTest( policyMap, "aaa^", expectedErrors ) );
-            }
+            // not violations
+            Assert.assertThat( doCheck( policyMap, "aaa" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_SPECIAL ) ) );
+            Assert.assertThat( doCheck( policyMap, "aaa^" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_SPECIAL ) ) );
+            Assert.assertThat( doCheck( policyMap, "123" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_SPECIAL ) ) );
         }
         {
             final Map<String, String> policyMap = new HashMap<>();
-            policyMap.put( PwmPasswordRule.AllowNumeric.getKey(), "false" );
+            policyMap.put( PwmPasswordRule.AllowSpecial.getKey(), "false" );
 
-            {
-                final List<ErrorInformation> expectedErrors = new ArrayList<>();
-                expectedErrors.add( new ErrorInformation( PwmError.PASSWORD_TOO_MANY_SPECIAL, null ) );
+            // violations
+            Assert.assertThat( doCheck( policyMap, "aaa^" ), hasItems( PwmError.PASSWORD_TOO_MANY_SPECIAL ) );
+            Assert.assertThat( doCheck( policyMap, "^" ), hasItems( PwmError.PASSWORD_TOO_MANY_SPECIAL ) );
 
-                Assert.assertFalse( doCompareTest( policyMap, "aaa", expectedErrors ) );
-                Assert.assertTrue( doCompareTest( policyMap, "aaa^", expectedErrors ) );
-            }
+            // not violations
+            Assert.assertThat( doCheck( policyMap, "aaa" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_SPECIAL ) ) );
+            Assert.assertThat( doCheck( policyMap, "123" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_SPECIAL ) ) );
         }
     }
 
-    private static List<ErrorInformation> doTest( final Map<String, String> policy, final String password )
+    @Test
+    public void allowNonAlpha()
+            throws Exception
+    {
+        {
+            final Map<String, String> policyMap = new HashMap<>();
+            policyMap.put( PwmPasswordRule.AllowNonAlpha.getKey(), "true" );
+
+            // violations
+            Assert.assertThat( doCheck( policyMap, "aaa" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_NONALPHA ) ) );
+
+            // not violations
+            Assert.assertThat( doCheck( policyMap, "^" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_NONALPHA ) ) );
+            Assert.assertThat( doCheck( policyMap, "aaa^" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_NONALPHA ) ) );
+            Assert.assertThat( doCheck( policyMap, "123" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_NONALPHA ) ) );
+        }
+        {
+            final Map<String, String> policyMap = new HashMap<>();
+            policyMap.put( PwmPasswordRule.AllowNonAlpha.getKey(), "false" );
+
+            // violations
+            Assert.assertThat( doCheck( policyMap, "^" ), hasItems( PwmError.PASSWORD_TOO_MANY_NONALPHA ) );
+            Assert.assertThat( doCheck( policyMap, "aaa^" ), hasItems( PwmError.PASSWORD_TOO_MANY_NONALPHA ) );
+            Assert.assertThat( doCheck( policyMap, "123" ), hasItems( PwmError.PASSWORD_TOO_MANY_NONALPHA ) );
+
+            // not violations
+            Assert.assertThat( doCheck( policyMap, "aaa" ), not( hasItems( PwmError.PASSWORD_TOO_MANY_NONALPHA ) ) );
+        }
+    }
+
+    private Set<PwmError> doCheck(
+            final Map<String, String> policy,
+            final String password
+    )
             throws PwmUnrecoverableException
     {
         final Map<String, String> policyMap = new HashMap<>( PwmPasswordPolicy.defaultPolicy().getPolicyMap() );
         policyMap.putAll( policy );
         final PwmPasswordPolicy pwmPasswordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy( policyMap );
-        return PasswordRuleChecks.extendedPolicyRuleChecker( null, pwmPasswordPolicy, password, null, null );
+        final List<ErrorInformation> errorResults = PasswordRuleChecks.extendedPolicyRuleChecker( null, pwmPasswordPolicy, password, null, null );
+        return errorResults.stream().map( ErrorInformation::getError ).collect( Collectors.toSet() );
     }
 
-    private static boolean doCompareTest(
-            final Map<String, String> policyMap,
-            final String password,
-            final List<ErrorInformation> expectedErrors
-    )
-            throws PwmUnrecoverableException
+    private static <T> org.hamcrest.Matcher<T> not( final org.hamcrest.Matcher<T> matcher )
     {
-        return ErrorInformation.listsContainSameErrors(
-                doTest( policyMap, password ),
-                expectedErrors );
+        return org.hamcrest.CoreMatchers.not( matcher );
     }
 
+    private static <T> org.hamcrest.Matcher<java.lang.Iterable<T>> hasItems( final T... items )
+    {
+        return org.hamcrest.core.IsCollectionContaining.<T>hasItems( items );
+    }
 }

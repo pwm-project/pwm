@@ -484,11 +484,15 @@ public class PwmApplication
             }
 
             final ByteArrayOutputStream outputContents = new ByteArrayOutputStream();
-            ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
-                    pwmApplication.getConfig(),
-                    new FileInputStream( tomcatSourceFile ),
-                    outputContents
-            );
+            try ( FileInputStream fileInputStream = new FileInputStream( tomcatOutputFile ) )
+            {
+                ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
+                        pwmApplication.getConfig(),
+                        fileInputStream,
+                        outputContents
+                );
+            }
+
             if ( tomcatOutputFile.exists() )
             {
                 LOGGER.trace( () -> "deleting existing tomcat configuration file " + tomcatOutputFile.getAbsolutePath() );
@@ -566,7 +570,7 @@ public class PwmApplication
         return Collections.unmodifiableList( pwmServices );
     }
 
-    public WordlistService getWordlistManager( )
+    public WordlistService getWordlistService( )
     {
         return ( WordlistService ) pwmServiceManager.getService( WordlistService.class );
     }

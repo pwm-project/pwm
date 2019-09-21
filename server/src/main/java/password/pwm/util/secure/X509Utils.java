@@ -260,7 +260,7 @@ public abstract class X509Utils
         {
             final List<X509Certificate> asList = Arrays.asList( chain );
             certificates.addAll( JavaHelper.enumArrayContainsValue( readCertificateFlags, ReadCertificateFlag.ReadOnlyRootCA )
-                    ? identifyRootCACertificate( certificates )
+                    ? identifyRootCACertificate( asList )
                     : asList );
             wrappedTrustManager.checkServerTrusted( chain, authType );
         }

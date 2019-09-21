@@ -17,6 +17,10 @@
  ~ See the License for the specific language governing permissions and
  ~ limitations under the License.
 --%>
+<%--
+       THIS FILE IS NOT INTENDED FOR END USER MODIFICATION.
+       See the README.TXT file in WEB-INF/jsp before making changes.
+--%>
 
 
 <%@ page import="password.pwm.error.ErrorInformation" %>

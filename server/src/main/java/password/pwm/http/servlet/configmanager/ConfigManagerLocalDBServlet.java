@@ -143,7 +143,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
         {
             final int bufferSize = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_DOWNLOAD_BUFFER_SIZE ) );
             final OutputStream bos = new BufferedOutputStream( resp.getOutputStream(), bufferSize );
-            localDBUtility.exportLocalDB( bos, LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getSessionLabel() ), true );
+            localDBUtility.exportLocalDB( bos, LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getSessionLabel() ) );
             LOGGER.debug( pwmRequest, () -> "completed localDBExport process in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         }
         catch ( Exception e )
