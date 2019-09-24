@@ -46,7 +46,7 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import java.util.Locale;
 import java.util.Map;

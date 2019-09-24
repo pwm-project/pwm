@@ -41,7 +41,6 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.operations.PasswordUtility;
 
 import java.util.ArrayList;
 import java.util.Arrays;

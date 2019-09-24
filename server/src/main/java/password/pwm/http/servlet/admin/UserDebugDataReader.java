@@ -40,7 +40,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import java.util.Collections;
 import java.util.List;

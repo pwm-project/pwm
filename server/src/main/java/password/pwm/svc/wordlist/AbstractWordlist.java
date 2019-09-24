@@ -36,6 +36,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -289,6 +290,16 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             returnList.add( healthRecord );
         }
 
+        if ( backgroundImportRunning.get() )
+        {
+            final Activity activity = getActivity();
+            final String suffix = "("
+                    + ( ( activity == Activity.Importing ) ? getImportPercentComplete() : activity.getLabel() )
+                    + ")";
+            final HealthRecord healthRecord = HealthRecord.forMessage( HealthMessage.Wordlist_ImportInProgress, suffix );
+            returnList.add( healthRecord );
+        }
+
         if ( lastError != null )
         {
             final HealthRecord healthRecord = new HealthRecord( HealthStatus.WARN, HealthTopic.Application, this.getClass().getName() + " error: " + lastError.toDebugStr() );
@@ -474,4 +485,29 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         return statistics;
     }
 
+    @Override
+    public String getImportPercentComplete()
+    {
+        if ( backgroundImportRunning.get() )
+        {
+            final WordlistStatus wordlistStatus = readWordlistStatus();
+            if ( wordlistStatus != null )
+            {
+                final WordlistSourceInfo wordlistSourceInfo = wordlistStatus.getRemoteInfo();
+                if ( wordlistSourceInfo != null )
+                {
+                    final long totalBytes = wordlistSourceInfo.getBytes();
+                    final long importBytes = wordlistStatus.getBytes();
+                    if ( importBytes > 0 && totalBytes > 0 )
+                    {
+                        final Percent percent = new Percent( importBytes, totalBytes );
+                        return percent.pretty( 3 );
+                    }
+                }
+
+            }
+        }
+
+        return "";
+    }
 }

@@ -40,7 +40,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import java.util.ArrayList;
 import java.util.Collections;

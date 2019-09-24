@@ -82,4 +82,10 @@ public class MemoryWordlistBucket extends AbstractWordlistBucket
     {
         this.wordlistStatus = wordlistStatus;
     }
+
+    @Override
+    public long spaceRemaining()
+    {
+        return Long.MAX_VALUE;
+    }
 }

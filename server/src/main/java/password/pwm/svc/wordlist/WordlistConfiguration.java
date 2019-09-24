@@ -47,7 +47,7 @@ import java.util.function.Supplier;
 @Builder( toBuilder = true )
 public class WordlistConfiguration implements Serializable
 {
-    static final int STREAM_BUFFER_SIZE = 1024_1024;
+    static final int STREAM_BUFFER_SIZE = 1_1024_1024;
     static final PwmHashAlgorithm HASH_ALGORITHM = PwmHashAlgorithm.SHA1;
 
     private final boolean caseSensitive;
@@ -69,6 +69,7 @@ public class WordlistConfiguration implements Serializable
     private final int importMinTransactions;
     private final int importMaxTransactions;
     private final long importMaxChars;
+    private final long importMinFreeSpace;
 
     private final TimeDuration inspectorFrequency;
 
@@ -132,6 +133,7 @@ public class WordlistConfiguration implements Serializable
                 .inspectorFrequency( TimeDuration.of(
                         Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_INSPECTOR_FREQUENCY_SECONDS ) ),
                         TimeDuration.Unit.SECONDS ) )
+                .importMinFreeSpace( JavaHelper.silentParseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_FREE_SPACE ), 100_000_000 ) )
                 .build();
     }
 
@@ -160,7 +162,7 @@ public class WordlistConfiguration implements Serializable
     {
         try
         {
-            return SecureEngine.hash( JsonUtil.serialize( WordlistConfiguration.this ), PwmHashAlgorithm.SHA1 );
+            return SecureEngine.hash( JsonUtil.serialize( WordlistConfiguration.this ), HASH_ALGORITHM );
         }
         catch ( PwmUnrecoverableException e )
         {

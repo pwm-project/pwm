@@ -47,6 +47,8 @@ public interface Wordlist extends PwmService
 
     AbstractWordlist.Activity getActivity();
 
+    String getImportPercentComplete();
+
     enum Activity
     {
         Idle( "Idle" ),

@@ -30,7 +30,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -139,39 +138,19 @@ public class FileSystemUtility
 
     public static long getFileDirectorySize( final File dir )
     {
-        long size = 0;
         try
         {
-            if ( dir.isFile() )
-            {
-                size = dir.length();
-            }
-            else
-            {
-                final File[] subFiles = dir.listFiles();
-                if ( subFiles != null )
-                {
-                    for ( final File file : subFiles )
-                    {
-                        if ( file.isFile() )
-                        {
-                            size += file.length();
-                        }
-                        else
-                        {
-                            size += getFileDirectorySize( file );
-                        }
-
-                    }
-                }
-            }
+            return Files.walk( dir.toPath() )
+                    .filter( path -> path.toFile().isFile() )
+                    .mapToLong( path -> path.toFile().length() )
+                    .sum();
         }
-        catch ( NullPointerException e )
+        catch ( IOException e )
         {
-            // file was deleted before file size could be read
+            LOGGER.error( "error calculating disk size of '" + dir.getAbsolutePath() + "', error: " + e.getMessage(), e );
         }
 
-        return size;
+        return -1;
     }
 
     public static File figureFilepath( final String filename, final File suggestedPath )
@@ -191,21 +170,7 @@ public class FileSystemUtility
 
     public static long diskSpaceRemaining( final File file )
     {
-        try
-        {
-            final Method getFreeSpaceMethod = File.class.getMethod( "getFreeSpace" );
-            final Object rawResult = getFreeSpaceMethod.invoke( file );
-            return ( Long ) rawResult;
-        }
-        catch ( NoSuchMethodException e )
-        {
-            /* no error, pre java 1.6 doesn't have this method */
-        }
-        catch ( Exception e )
-        {
-            LOGGER.debug( () -> "error reading file space remaining for " + file.toString() + ",: " + e.getMessage() );
-        }
-        return -1;
+        return file.getFreeSpace();
     }
 
     public static void rotateBackups( final File inputFile, final int maxRotate )

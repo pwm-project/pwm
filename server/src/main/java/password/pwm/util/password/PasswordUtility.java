@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.util.operations;
+package password.pwm.util.password;
 
 import com.novell.ldapchai.ChaiPasswordPolicy;
 import com.novell.ldapchai.ChaiUser;
@@ -83,11 +83,11 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.password.PasswordCharCounter;
-import password.pwm.util.password.PwmPasswordRuleValidator;
+import password.pwm.util.operations.ActionExecutor;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -812,6 +812,11 @@ public class PasswordUtility
             final String password
     )
     {
+        if ( StringUtil.isEmpty( password ) )
+        {
+            return Integer.parseInt( configuration.readAppProperty( AppProperty.PASSWORD_STRENGTH_THRESHOLD_VERY_WEAK ) );
+        }
+
         final Zxcvbn zxcvbn = new Zxcvbn();
         final Strength strength = zxcvbn.measure( password );
 
@@ -836,9 +841,8 @@ public class PasswordUtility
     public static int judgePasswordStrengthUsingTraditionalAlgorithm(
             final String password
     )
-            throws PwmUnrecoverableException
     {
-        if ( password == null || password.length() < 1 )
+        if ( StringUtil.isEmpty( password ) )
         {
             return 0;
         }

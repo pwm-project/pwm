@@ -41,4 +41,6 @@ public interface WordlistBucket
     WordlistStatus readWordlistStatus();
 
     void writeWordlistStatus( WordlistStatus wordlistStatus );
+
+    long spaceRemaining();
 }

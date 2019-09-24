@@ -71,7 +71,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.client.rest.form.FormDataRequestBean;
 import password.pwm.ws.client.rest.form.FormDataResponseBean;
 import password.pwm.ws.client.rest.form.RestFormDataClient;

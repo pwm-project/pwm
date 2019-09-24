@@ -47,7 +47,7 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.operations.CrService;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;

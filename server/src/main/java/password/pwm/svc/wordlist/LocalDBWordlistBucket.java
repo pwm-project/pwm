@@ -23,6 +23,7 @@ package password.pwm.svc.wordlist;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 
@@ -130,5 +131,11 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
     {
         final PwmApplication.AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
         pwmApplication.writeAppAttribute( appAttribute, wordlistStatus );
+    }
+
+    @Override
+    public long spaceRemaining()
+    {
+        return FileSystemUtility.diskSpaceRemaining( localDB.getFileLocation() );
     }
 }

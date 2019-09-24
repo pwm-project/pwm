@@ -83,6 +83,7 @@ public enum HealthMessage
     LocalDB_BAD( HealthStatus.WARN, HealthTopic.LocalDB ),
     LocalDB_NEW( HealthStatus.WARN, HealthTopic.LocalDB ),
     LocalDB_CLOSED( HealthStatus.WARN, HealthTopic.LocalDB ),
+    LocalDB_LowDiskSpace( HealthStatus.WARN, HealthTopic.LocalDB ),
     LocalDBLogger_NOTOPEN( HealthStatus.CAUTION, HealthTopic.LocalDB ),
     LocalDBLogger_HighRecordCount( HealthStatus.CAUTION, HealthTopic.LocalDB ),
     LocalDBLogger_OldRecordPresent( HealthStatus.CAUTION, HealthTopic.LocalDB ),
@@ -91,7 +92,8 @@ public enum HealthMessage
     ServiceClosed_LocalDBUnavail( HealthStatus.CAUTION, HealthTopic.Application ),
     ServiceClosed_AppReadOnly( HealthStatus.CAUTION, HealthTopic.Application ),
     SMS_SendFailure( HealthStatus.WARN, HealthTopic.SMS ),
-    Wordlist_AutoImportFailure( HealthStatus.WARN, HealthTopic.Configuration ),;
+    Wordlist_AutoImportFailure( HealthStatus.WARN, HealthTopic.Configuration ),
+    Wordlist_ImportInProgress( HealthStatus.CAUTION, HealthTopic.Application ),;
 
     private final HealthStatus status;
     private final HealthTopic topic;

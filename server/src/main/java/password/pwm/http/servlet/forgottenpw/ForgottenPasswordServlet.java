@@ -82,7 +82,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.ws.server.RestResultBean;

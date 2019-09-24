@@ -42,7 +42,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;

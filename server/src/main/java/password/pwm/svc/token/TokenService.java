@@ -66,7 +66,7 @@ import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.secure.PwmRandom;
 
 import java.time.Instant;

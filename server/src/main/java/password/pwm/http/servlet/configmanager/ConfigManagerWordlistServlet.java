@@ -274,8 +274,26 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                             "Last Import Attempt",
                             JavaHelper.toIsoDate( wordlist.getAutoImportError().getDate() ) ) );
                 }
+
+                if ( activity == Wordlist.Activity.Importing )
+                {
+                    final String percentComplete = wordlist.getImportPercentComplete();
+                    if ( !StringUtil.isEmpty( percentComplete ) )
+                    {
+                        presentableValues.add( new DisplayElement(
+                                "percentComplete",
+                                DisplayElement.Type.string,
+                                "Percent Complete",
+                                percentComplete ) );
+
+                    }
+                }
+
                 builder.presentableData( Collections.unmodifiableList( presentableValues ) );
             }
+
+
+
 
             if ( wordlistStatus.isCompleted() )
             {

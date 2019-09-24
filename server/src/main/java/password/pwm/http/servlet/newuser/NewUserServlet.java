@@ -61,7 +61,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
 import password.pwm.ws.server.rest.RestFormSigningServer;

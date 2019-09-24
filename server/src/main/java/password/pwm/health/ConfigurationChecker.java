@@ -45,7 +45,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -194,29 +194,30 @@ public class ConfigurationChecker implements HealthChecker
 
         for ( final PwmSetting setting : PwmSetting.values() )
         {
-            if ( setting.getSyntax() == PwmSettingSyntax.PASSWORD )
+            if (
+                    setting.getSyntax() == PwmSettingSyntax.PASSWORD
+                            && !setting.getCategory().hasProfiles()
+                            && !config.isDefaultValue( setting )
+            )
             {
-                if ( !setting.getCategory().hasProfiles() )
+                try
                 {
-                    if ( !config.isDefaultValue( setting ) )
+                    final PasswordData passwordValue = config.readSettingAsPassword( setting );
+                    final String stringValue = passwordValue.getStringValue();
+                    if ( !StringUtil.isEmpty( stringValue ) )
                     {
-                        try
+                        final int strength = PasswordUtility.judgePasswordStrength( config, stringValue );
+                        if ( strength < 50 )
                         {
-                            final PasswordData passwordValue = config.readSettingAsPassword( setting );
-                            final int strength = PasswordUtility.judgePasswordStrength( config,
-                                    passwordValue.getStringValue() );
-                            if ( strength < 50 )
-                            {
-                                records.add( HealthRecord.forMessage( HealthMessage.Config_WeakPassword,
-                                        setting.toMenuLocationDebug( null, locale ), String.valueOf( strength ) ) );
-                            }
-                        }
-                        catch ( Exception e )
-                        {
-                            LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, "error while inspecting setting "
-                                    + setting.toMenuLocationDebug( null, locale ) + ", error: " + e.getMessage() );
+                            records.add( HealthRecord.forMessage( HealthMessage.Config_WeakPassword,
+                                    setting.toMenuLocationDebug( null, locale ), String.valueOf( strength ) ) );
                         }
                     }
+                }
+                catch ( Exception e )
+                {
+                    LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, "error while inspecting setting "
+                            + setting.toMenuLocationDebug( null, locale ) + ", error: " + e.getMessage() );
                 }
             }
         }

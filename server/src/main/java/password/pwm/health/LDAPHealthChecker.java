@@ -54,13 +54,13 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.PasswordData;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
+import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.rest.bean.HealthData;
 
 import java.io.Serializable;
@@ -78,6 +78,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class LDAPHealthChecker implements HealthChecker
@@ -857,14 +858,11 @@ public class LDAPHealthChecker implements HealthChecker
                             final String value = config.getLdapProfiles().get( profile ).readSettingAsString( pwmSetting );
                             if ( value != null && !value.isEmpty() )
                             {
-                                final String errorMsg = validateDN( pwmApplication, value, profile );
-                                if ( errorMsg != null )
-                                {
-                                    returnList.add( HealthRecord.forMessage(
-                                            HealthMessage.Config_DNValueValidity,
-                                            pwmSetting.toMenuLocationDebug( profile, PwmConstants.DEFAULT_LOCALE ), errorMsg )
-                                    );
-                                }
+                                final Optional<String> errorMsg = validateDN( pwmApplication, value, profile );
+                                errorMsg.ifPresent( s -> returnList.add( HealthRecord.forMessage(
+                                        HealthMessage.Config_DNValueValidity,
+                                        pwmSetting.toMenuLocationDebug( profile, PwmConstants.DEFAULT_LOCALE ), s )
+                                ) );
                             }
                         }
                         else if ( pwmSetting.getSyntax() == PwmSettingSyntax.STRING_ARRAY )
@@ -874,14 +872,11 @@ public class LDAPHealthChecker implements HealthChecker
                             {
                                 for ( final String value : values )
                                 {
-                                    final String errorMsg = validateDN( pwmApplication, value, profile );
-                                    if ( errorMsg != null )
-                                    {
-                                        returnList.add( HealthRecord.forMessage(
-                                                HealthMessage.Config_DNValueValidity,
-                                                pwmSetting.toMenuLocationDebug( profile, PwmConstants.DEFAULT_LOCALE ), errorMsg )
-                                        );
-                                    }
+                                    final Optional<String> errorMsg = validateDN( pwmApplication, value, profile );
+                                    errorMsg.ifPresent( s -> returnList.add( HealthRecord.forMessage(
+                                            HealthMessage.Config_DNValueValidity,
+                                            pwmSetting.toMenuLocationDebug( profile, PwmConstants.DEFAULT_LOCALE ), s )
+                                    ) );
                                 }
                             }
                         }
@@ -985,7 +980,7 @@ public class LDAPHealthChecker implements HealthChecker
             }
             else
             {
-                if ( config.getLdapProfiles().keySet().contains( configuredLdapProfileID ) )
+                if ( config.getLdapProfiles().containsKey( configuredLdapProfileID ) )
                 {
                     ldapProfilesToCheck.add( configuredLdapProfileID );
                 }
@@ -1009,11 +1004,10 @@ public class LDAPHealthChecker implements HealthChecker
                     final String groupDN = userPermission.getLdapBase();
                     if ( groupDN != null && !isExampleDN( groupDN ) )
                     {
-                        final String errorMsg = validateDN( pwmApplication, groupDN, ldapProfileID );
-                        if ( errorMsg != null )
-                        {
-                            returnList.add( HealthRecord.forMessage( HealthMessage.Config_UserPermissionValidity, settingDebugName, "groupDN: " + errorMsg ) );
-                        }
+                        final Optional<String> errorMsg = validateDN( pwmApplication, groupDN, ldapProfileID );
+                        errorMsg.ifPresent( s -> returnList.add( HealthRecord.forMessage(
+                                HealthMessage.Config_UserPermissionValidity,
+                                settingDebugName, "groupDN: " + s ) ) );
                     }
                 }
                 break;
@@ -1023,11 +1017,10 @@ public class LDAPHealthChecker implements HealthChecker
                     final String baseDN = userPermission.getLdapBase();
                     if ( baseDN != null && !isExampleDN( baseDN ) )
                     {
-                        final String errorMsg = validateDN( pwmApplication, baseDN, ldapProfileID );
-                        if ( errorMsg != null )
-                        {
-                            returnList.add( HealthRecord.forMessage( HealthMessage.Config_UserPermissionValidity, settingDebugName, "baseDN: " + errorMsg ) );
-                        }
+                        final Optional<String> errorMsg = validateDN( pwmApplication, baseDN, ldapProfileID );
+                        errorMsg.ifPresent( s -> returnList.add( HealthRecord.forMessage(
+                                HealthMessage.Config_UserPermissionValidity,
+                                settingDebugName, "baseDN: " + s ) ) );
                     }
                 }
                 break;
@@ -1039,9 +1032,18 @@ public class LDAPHealthChecker implements HealthChecker
         return returnList;
     }
 
-    private static String validateDN( final PwmApplication pwmApplication, final String dnValue, final String ldapProfileID )
+    private static Optional<String> validateDN(
+            final PwmApplication pwmApplication,
+            final String dnValue,
+            final String ldapProfileID
+    )
             throws PwmUnrecoverableException
     {
+        if ( StringUtil.isEmpty( dnValue ) )
+        {
+            return Optional.empty();
+        }
+
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( ldapProfileID );
         try
         {
@@ -1050,15 +1052,15 @@ public class LDAPHealthChecker implements HealthChecker
                 final ChaiEntry baseDNEntry = chaiProvider.getEntryFactory().newChaiEntry( dnValue );
                 if ( !baseDNEntry.exists() )
                 {
-                    return "DN '" + dnValue + "' is invalid";
+                    return Optional.of( "DN '" + dnValue + "' is invalid" );
                 }
                 else
                 {
                     final String canonicalDN = baseDNEntry.readCanonicalDN();
                     if ( !dnValue.equals( canonicalDN ) )
                     {
-                        return "DN '" + dnValue + "' is not the correct canonical value, the server reports the canonical value as '"
-                                + canonicalDN + "'";
+                        return Optional.of( "DN '" + dnValue + "' is not the correct canonical value, the server reports the canonical value as '"
+                                + canonicalDN + "'" );
                     }
                 }
             }
@@ -1071,19 +1073,21 @@ public class LDAPHealthChecker implements HealthChecker
         {
             LOGGER.error( "error while evaluating ldap DN '" + dnValue + "', error: " + e.getMessage() );
         }
-        return null;
+        return Optional.empty();
     }
 
     private static boolean isExampleDN( final String dnValue )
     {
-        if ( dnValue == null )
+        if ( StringUtil.isEmpty( dnValue ) )
         {
             return false;
         }
+
         final String[] exampleSuffixes = new String[] {
                 "DC=site,DC=example,DC=net",
                 "ou=groups,o=example",
         };
+
         for ( final String suffix : exampleSuffixes )
         {
             if ( dnValue.endsWith( suffix ) )

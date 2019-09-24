@@ -60,7 +60,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

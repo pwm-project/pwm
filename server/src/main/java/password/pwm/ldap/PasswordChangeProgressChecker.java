@@ -35,7 +35,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

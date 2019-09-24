@@ -20,10 +20,16 @@
 
 package password.pwm.health;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.config.Configuration;
+import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.localdb.LocalDB;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class LocalDBHealthChecker implements HealthChecker
@@ -58,11 +64,28 @@ public class LocalDBHealthChecker implements HealthChecker
             return healthRecords;
         }
 
+        healthRecords.addAll( checkSpaceRemaining( pwmApplication ) );
+
         if ( healthRecords.isEmpty() )
         {
             healthRecords.add( HealthRecord.forMessage( HealthMessage.LocalDB_OK ) );
         }
 
         return healthRecords;
+    }
+
+    private List<HealthRecord> checkSpaceRemaining( final PwmApplication pwmApplication )
+    {
+        final Configuration configuration = pwmApplication.getConfig();
+        final long minFreeSpace = JavaHelper.silentParseLong( configuration.readAppProperty( AppProperty.HEALTH_DISK_MIN_FREE_WARNING ), 500_000_000 );
+        final long freeSpace = FileSystemUtility.diskSpaceRemaining( pwmApplication.getLocalDB().getFileLocation() );
+
+        if ( freeSpace < minFreeSpace )
+        {
+            final String spaceValue = StringUtil.formatDiskSizeforDebug( freeSpace );
+            return Collections.singletonList( HealthRecord.forMessage( HealthMessage.LocalDB_LowDiskSpace, spaceValue ) );
+        }
+
+        return Collections.emptyList();
     }
 }

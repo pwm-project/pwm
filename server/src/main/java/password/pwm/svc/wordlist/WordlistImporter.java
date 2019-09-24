@@ -158,6 +158,8 @@ class WordlistImporter implements Runnable
                     .build() );
         }
 
+        checkWordlistSpaceRemaining();
+
         final long previousBytesRead = rootWordlist.readWordlistStatus().getBytes();
         seenWordTypes.putAll( rootWordlist.readWordlistStatus().getWordTypes() );
 
@@ -213,6 +215,7 @@ class WordlistImporter implements Runnable
                     {
                         flushBuffer();
                         metaUpdater.conditionallyExecuteTask();
+                        checkWordlistSpaceRemaining();
                     }
                 }
             }
@@ -280,10 +283,6 @@ class WordlistImporter implements Runnable
         {
             charsInBuffer += word.length();
         }
-    }
-
-    private void updateStatistics( final String word )
-    {
     }
 
     private void flushBuffer( )
@@ -472,5 +471,22 @@ class WordlistImporter implements Runnable
         private final MovingAverage wordsPerTransaction = new MovingAverage( TimeDuration.MINUTE );
         private final MovingAverage chunksPerWord = new MovingAverage( TimeDuration.MINUTE );
         private final MovingAverage averageWordLength = new MovingAverage( TimeDuration.MINUTE );
+    }
+
+    private void checkWordlistSpaceRemaining()
+            throws PwmUnrecoverableException
+    {
+        final long freeSpace = wordlistBucket.spaceRemaining();
+        final long minFreeSpace = rootWordlist.getConfiguration().getImportMinFreeSpace();
+        if ( freeSpace < minFreeSpace )
+        {
+            final String msg = "free space remaining for wordlist storage is " + StringUtil.formatDiskSizeforDebug( freeSpace )
+                    + " which is less than the minimum of "
+                    + StringUtil.formatDiskSizeforDebug( minFreeSpace )
+                    + ", aborting import";
+
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_WORDLIST_IMPORT_ERROR, msg );
+            throw new PwmUnrecoverableException( errorInformation );
+        }
     }
 }
