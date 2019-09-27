@@ -20,9 +20,9 @@
 
     <profiles>
         <profile>
-            <id>skip-javadoc</id>
+            <id>enable-javadoc</id>
             <properties>
-                <maven.javadoc.skip>true</maven.javadoc.skip>
+                <maven.javadoc.skip>false</maven.javadoc.skip>
             </properties>
         </profile>
     </profiles>
