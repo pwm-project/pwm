@@ -24,6 +24,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingCategory;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.util.java.StringUtil;
@@ -47,6 +48,7 @@ public abstract class InternalMacros
     {
         final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> defaultMacros = new HashMap<>();
         defaultMacros.put( PwmSettingReference.class, MacroImplementation.Scope.Static );
+        defaultMacros.put( PwmSettingCategoryReference.class, MacroImplementation.Scope.Static );
         defaultMacros.put( PwmAppName.class, MacroImplementation.Scope.Static );
         defaultMacros.put( PwmVendorName.class, MacroImplementation.Scope.Static );
         defaultMacros.put( PwmContextPath.class, MacroImplementation.Scope.System );
@@ -92,6 +94,32 @@ public abstract class InternalMacros
                 throw new MacroParseException( "PwmSettingReference macro has unknown key value '" + settingKeyStr + "'" );
             }
             return setting.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
+        }
+    }
+
+    public static class PwmSettingCategoryReference extends InternalAbstractMacro
+    {
+        private static final Pattern PATTERN = Pattern.compile( "@PwmSettingCategoryReference" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
+
+        public Pattern getRegExPattern( )
+        {
+            return PATTERN;
+        }
+
+        public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
+                throws MacroParseException
+        {
+            final String settingKeyStr = matchValue.substring( 29, matchValue.length() - 1 );
+            if ( settingKeyStr.isEmpty() )
+            {
+                throw new MacroParseException( "PwmSettingCategoryReference macro requires a setting key value" );
+            }
+            final PwmSettingCategory category = PwmSettingCategory.forKey( settingKeyStr );
+            if ( category == null )
+            {
+                throw new MacroParseException( "PwmSettingCategoryReference macro has unknown key value '" + settingKeyStr + "'" );
+            }
+            return category.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
         }
     }
 

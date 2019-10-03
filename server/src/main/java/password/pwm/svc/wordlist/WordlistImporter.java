@@ -81,6 +81,7 @@ class WordlistImporter implements Runnable
         ImportTime,
         EstimatedRemainingTime,
         WordsImported,
+        DiskFreeSpace,
         ZipFile,
         WordTypes,
         WordsPerTxn,
@@ -315,7 +316,6 @@ class WordlistImporter implements Runnable
     {
         flushBuffer();
         getLogger().info( this::makeStatString );
-        getLogger().trace( () -> "beginning wordlist size query" );
         final long wordlistSize = wordlistBucket.size();
 
         getLogger().info( () -> "population complete, added " + wordlistSize
@@ -415,6 +415,8 @@ class WordlistImporter implements Runnable
 
         stats.put( DebugKey.WordsPerTxn, PwmNumberFormat.forDefaultLocale().format( (long) importStatistics.getWordsPerTransaction().getAverage() ) );
         stats.put( DebugKey.CharsPerTxn, PwmNumberFormat.forDefaultLocale().format( (long) importStatistics.getCharsPerTransaction().getAverage() ) );
+
+        stats.put( DebugKey.DiskFreeSpace, StringUtil.formatDiskSize( wordlistBucket.spaceRemaining() ) );
 
         if ( bytesSkipped > 0 )
         {

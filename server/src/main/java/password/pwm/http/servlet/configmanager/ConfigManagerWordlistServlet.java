@@ -257,7 +257,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                         presentableValues.add( new DisplayElement(
                                 wordlistType.name() + "_sha256Hash",
                                 DisplayElement.Type.string,
-                                "SHA1 Checksum",
+                                "SHA256 Checksum",
                                 wordlistStatus.getRemoteInfo().getHash() ) );
                     }
                 }
