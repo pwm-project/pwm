@@ -35,6 +35,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
+import password.pwm.config.profile.ActivateUserProfile;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.error.ErrorInformation;
@@ -476,16 +477,17 @@ public class TokenService implements PwmService
                     return true;
                 }
             }
-            return true;
         }
-
 
         if ( configuration.readSettingAsBoolean( PwmSetting.ACTIVATE_USER_ENABLE ) )
         {
-            final MessageSendMethod activateMethod = configuration.readSettingAsEnum( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class );
-            if ( MessageSendMethod.NONE != activateMethod )
+            for ( final ActivateUserProfile activateUserProfile : configuration.getUserActivationProfiles().values() )
             {
-                return true;
+                final MessageSendMethod activateMethod = activateUserProfile.readSettingAsEnum( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class );
+                if ( MessageSendMethod.NONE != activateMethod )
+                {
+                    return true;
+                }
             }
         }
 
