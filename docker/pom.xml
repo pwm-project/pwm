@@ -55,7 +55,9 @@
                                     <arg>/app/startup.sh</arg>
                                 </entrypoint>
                                 <format>docker</format>
-                                <ports>8443</ports>
+                                <ports>
+                                    <port>8443</port>
+                                </ports>
                                 <volumes>
                                     <volume>/config</volume>
                                 </volumes>
