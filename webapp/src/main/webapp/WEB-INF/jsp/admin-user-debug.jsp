@@ -69,12 +69,6 @@
                 <button type="submit" class="btn"><pwm:display key="Button_Continue"/></button>
             </form>
         </div>
-        <div class="buttonbar">
-            <form method="get">
-                <input type="hidden" name="processAction" value="<%=AdminServlet.AdminAction.downloadUserDebug.toString()%>"/>
-                <button type="submit" class="btn">Download</button>
-            </form>
-        </div>
         <% final PublicUserInfoBean userInfo = userDebugDataBean.getPublicUserInfoBean(); %>
         <% if (userInfo != null) { %>
         <table>
@@ -535,6 +529,10 @@
         <div class="buttonbar">
             <form method="get" class="pwm-form">
                 <button type="submit" class="btn"><pwm:display key="Button_Continue"/></button>
+            </form>
+            <form method="get">
+                <input type="hidden" name="processAction" value="<%=AdminServlet.AdminAction.downloadUserDebug.toString()%>"/>
+                <button type="submit" class="btn">Download</button>
             </form>
         </div>
         <% } %>
