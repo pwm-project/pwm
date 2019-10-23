@@ -1898,8 +1898,7 @@ FileValueHandler.draw = function(keyName) {
                 htmlBody += '<tr><td colspan="2" class="key" style="text-align: center">File' + '</td></tr>';
                 htmlBody += '<tr><td>Name</td><td class="setting_table_value">' + fileInfo['name'] + '</td></tr>';
                 htmlBody += '<tr><td>Size</td><td class="setting_table_value">' + fileInfo['size'] + '</td></tr>';
-                htmlBody += '<tr><td>MD5 checksum</td><td class="setting_table_value">' + fileInfo['md5sum'] + '</td></tr>';
-                htmlBody += '<tr><td>SHA1 checksum</td><td class="setting_table_value">' + fileInfo['sha1sum'] + '</td></tr>';
+                htmlBody += '<tr><td>SHA512 checksum</td><td class="setting_table_value">' + fileInfo['sha512sum'] + '</td></tr>';
                 htmlBody += '</table>'
             })(fileCounter);
         }
