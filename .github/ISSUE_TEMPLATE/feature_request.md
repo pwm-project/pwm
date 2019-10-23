@@ -1,3 +1,8 @@
+***DO NOT FILE AN ISSUE FOR HELP OR TO ASK QUESTIONS.***  This issue system is not for help requests and such issues will be deleted.
+
+Instead, please ask for help on the [PWM-General Google Group](https://groups.google.com/group/pwm-general).  If your
+not sure, it's better to ask on the pwm-general group before opening an issue here.
+
 ---
 name: Feature request
 about: Suggest an idea for this project
