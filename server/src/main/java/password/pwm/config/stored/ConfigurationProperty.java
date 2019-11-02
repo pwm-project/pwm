@@ -27,7 +27,7 @@ public enum ConfigurationProperty
     LDAP_TEMPLATE( "configTemplate" ),
     NOTES( "notes" ),
     PASSWORD_HASH( "configPasswordHash" ),
-    CONFIG_ON_START( "saveConfigOnStart" ),
+    SAVE_CONFIG_ON_START( "saveConfigOnStart" ),
     MODIFIFICATION_TIMESTAMP( "modificationTimestamp" ),
     IMPORT_LDAP_CERTIFICATES( "importLdapCertificates" ),;
 

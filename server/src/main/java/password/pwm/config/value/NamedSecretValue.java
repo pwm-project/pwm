@@ -24,6 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -45,6 +46,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public class NamedSecretValue implements StoredValue
 {
@@ -93,30 +95,29 @@ public class NamedSecretValue implements StoredValue
                     throws PwmOperationalException, PwmUnrecoverableException
             {
                 final Map<String, NamedSecretData> values = new LinkedHashMap<>();
-                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
 
                 try
                 {
-                    if ( valueElements != null )
+                    for ( final XmlElement value : valueElements )
                     {
-                        for ( final XmlElement value : valueElements )
+                        final Optional<XmlElement> nameElement = value.getChild( ELEMENT_NAME );
+                        final Optional<XmlElement> passwordElement = value.getChild( ELEMENT_PASSWORD );
+                        if ( nameElement.isPresent() && passwordElement.isPresent() )
                         {
-                            if ( value.getChild( ELEMENT_NAME ) != null && value.getChild( ELEMENT_PASSWORD ) != null )
+                            final String name = nameElement.get().getText();
+                            final String encodedValue = passwordElement.get().getText();
+                            final PasswordData passwordData = new PasswordData( SecureEngine.decryptStringValue( encodedValue, key, PwmBlockAlgorithm.CONFIG ) );
+                            final List<XmlElement> usages = value.getChildren( ELEMENT_USAGE );
+                            final List<String> strUsages = new ArrayList<>();
+                            if ( usages != null )
                             {
-                                final String name = value.getChild( ELEMENT_NAME ).getText();
-                                final String encodedValue = value.getChild( ELEMENT_PASSWORD ).getText();
-                                final PasswordData passwordData = new PasswordData( SecureEngine.decryptStringValue( encodedValue, key, PwmBlockAlgorithm.CONFIG ) );
-                                final List<XmlElement> usages = value.getChildren( ELEMENT_USAGE );
-                                final List<String> strUsages = new ArrayList<>();
-                                if ( usages != null )
+                                for ( final XmlElement usageElement : usages )
                                 {
-                                    for ( final XmlElement usageElement : usages )
-                                    {
-                                        strUsages.add( usageElement.getText() );
-                                    }
+                                    strUsages.add( usageElement.getText() );
                                 }
-                                values.put( name, new NamedSecretData( passwordData, Collections.unmodifiableList( strUsages ) ) );
                             }
+                            values.put( name, new NamedSecretData( passwordData, Collections.unmodifiableList( strUsages ) ) );
                         }
                     }
                 }
@@ -251,9 +252,15 @@ public class NamedSecretValue implements StoredValue
     }
 
     @Override
-    public String valueHash( ) throws PwmUnrecoverableException
+    public String valueHash( )
     {
-        return values == null ? "" : SecureEngine.hash( JsonUtil.serializeMap( values ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
+        try
+        {
+            return values == null ? "" : SecureEngine.hash( JsonUtil.serializeMap( values ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            throw new IllegalStateException( e );
+        }
     }
-
 }

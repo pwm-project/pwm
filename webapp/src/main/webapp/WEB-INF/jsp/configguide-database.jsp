@@ -67,10 +67,7 @@
                                     <td class="key">Size</td><td><%=fileInfo.getSize()%></td>
                                 </tr>
                                 <tr>
-                                    <td class="key">md5</td><td><%=fileInfo.getMd5sum()%></td>
-                                </tr>
-                                <tr>
-                                    <td class="key">sha1</td><td><%=fileInfo.getSha1sum()%></td>
+                                    <td class="key">sha512</td><td><%=fileInfo.getSha512sum()%></td>
                                 </tr>
                             </table>
                             <% }  %>

@@ -24,7 +24,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.util.cli.CliParameters;
 
 import java.io.File;
@@ -48,7 +48,7 @@ public class ConfigResetHttpsCommand
         }
 
         final ConfigurationReader configurationReader = new ConfigurationReader( cliEnvironment.getConfigurationFile() );
-        final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
+        final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
 
         for ( final PwmSetting setting : PwmSettingCategory.HTTPS_SERVER.getSettings() )
         {

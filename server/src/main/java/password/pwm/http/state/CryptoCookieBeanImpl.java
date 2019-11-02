@@ -27,7 +27,6 @@ import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.PwmSessionBean;
-import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -196,8 +195,9 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
     private PwmSecurityKey keyForSession( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final PasswordData configKey = pwmRequest.getConfig().readSettingAsPassword( PwmSetting.PWM_SECURITY_KEY );
+        final PwmSecurityKey pwmSecurityKey = pwmRequest.getConfig().getSecurityKey();
+        final String keyHash = pwmSecurityKey.keyHash( pwmRequest.getPwmApplication().getSecureService() );
         final String userGuid = pwmRequest.getPwmSession().getLoginInfoBean().getGuid();
-        return new PwmSecurityKey( configKey.getStringValue() + userGuid );
+        return new PwmSecurityKey( keyHash + userGuid );
     }
 }

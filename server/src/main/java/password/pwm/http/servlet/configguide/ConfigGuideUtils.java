@@ -30,7 +30,9 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -72,11 +74,11 @@ public class ConfigGuideUtils
             final ConfigGuideBean configGuideBean
     ) throws PwmOperationalException, PwmUnrecoverableException
     {
-        final StoredConfigurationImpl storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
+        final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
         final String configPassword = configGuideBean.getFormData().get( ConfigGuideFormField.PARAM_CONFIG_PASSWORD );
         if ( configPassword != null && configPassword.length() > 0 )
         {
-            storedConfiguration.setPassword( configPassword );
+            StoredConfigurationUtil.setPassword( storedConfiguration, configPassword );
         }
         else
         {
@@ -89,8 +91,9 @@ public class ConfigGuideUtils
 
     static void writeConfig(
             final ContextManager contextManager,
-            final StoredConfigurationImpl storedConfiguration
-    ) throws PwmOperationalException, PwmUnrecoverableException
+            final StoredConfiguration storedConfiguration
+    )
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         final ConfigurationReader configReader = contextManager.getConfigReader();
         final PwmApplication pwmApplication = contextManager.getPwmApplication();
@@ -98,7 +101,7 @@ public class ConfigGuideUtils
         try
         {
             // add a random security key
-            storedConfiguration.initNewRandomSecurityKey();
+            StoredConfigurationUtil.initNewRandomSecurityKey( storedConfiguration );
 
             configReader.saveConfiguration( storedConfiguration, pwmApplication, null );
 
@@ -232,8 +235,8 @@ public class ConfigGuideUtils
             {
                 try
                 {
-                    final StoredConfigurationImpl storedConfig = StoredConfigurationImpl.fromXml( uploadedFile );
-                    final List<String> configErrors = storedConfig.validateValues();
+                    final StoredConfiguration storedConfig = StoredConfigurationFactory.fromXml( uploadedFile );
+                    final List<String> configErrors = StoredConfigurationUtil.validateValues( storedConfig );
                     if ( configErrors != null && !configErrors.isEmpty() )
                     {
                         throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, configErrors.get( 0 ) ) );

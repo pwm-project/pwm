@@ -22,7 +22,7 @@ package password.pwm.config.function;
 
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.RemoteWebServiceValue;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -40,7 +40,7 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
 {
 
     @Override
-    String getUri( final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
+    String getUri( final StoredConfiguration storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
     {
         final RemoteWebServiceValue actionValue = ( RemoteWebServiceValue ) storedConfiguration.readSetting( pwmSetting, profile );
         final String serviceName = actionNameFromExtraData( extraData );
@@ -73,7 +73,7 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
 
     void store(
             final List<X509Certificate> certs,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfiguration storedConfiguration,
             final PwmSetting pwmSetting,
             final String profile,
             final String extraData,

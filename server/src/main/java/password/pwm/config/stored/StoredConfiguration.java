@@ -23,52 +23,45 @@ package password.pwm.config.stored;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
+import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public interface StoredConfiguration
 {
-    String XML_ELEMENT_ROOT = "PwmConfiguration";
-    String XML_ELEMENT_PROPERTIES = "properties";
-    String XML_ELEMENT_PROPERTY = "property";
-    String XML_ELEMENT_SETTINGS = "settings";
-    String XML_ELEMENT_SETTING = "setting";
-    String XML_ELEMENT_DEFAULT = "default";
-    String XML_ELEMENT_LOCALEBUNDLE = "localeBundle";
-
-    String XML_ATTRIBUTE_TYPE = "type";
-    String XML_ATTRIBUTE_KEY = "key";
-    String XML_ATTRIBUTE_SYNTAX = "syntax";
-    String XML_ATTRIBUTE_PROFILE = "profile";
-    String XML_ATTRIBUTE_VALUE_APP = "app";
-    String XML_ATTRIBUTE_VALUE_CONFIG = "config";
-    String XML_ATTRIBUTE_CREATE_TIME = "createTime";
-    String XML_ATTRIBUTE_MODIFY_TIME = "modifyTime";
-    String XML_ATTRIBUTE_MODIFY_USER = "modifyUser";
-    String XML_ATTRIBUTE_MODIFY_USER_PROFILE = "modifyUserProfile";
-    String XML_ATTRIBUTE_SYNTAX_VERSION = "syntaxVersion";
-    String XML_ATTRIBUTE_BUNDLE = "bundle";
-
-
     PwmSecurityKey getKey( ) throws PwmUnrecoverableException;
+
+    String createTime();
 
     Instant modifyTime( );
 
     boolean isLocked( );
 
-    String readConfigProperty( ConfigurationProperty propertyName );
+    StoredConfiguration copy() throws PwmUnrecoverableException;
 
-    void writeConfigProperty(
-            ConfigurationProperty propertyName,
-            String value
-    );
+    Optional<String> readConfigProperty( ConfigurationProperty propertyName );
+
+    void writeConfigProperty( ConfigurationProperty propertyName, String value );
 
     void lock( );
 
+    PwmSettingTemplateSet getTemplateSet();
+
+    List<String> profilesForSetting( PwmSetting pwmSetting );
+
     ValueMetaData readSettingMetadata( PwmSetting setting, String profileID );
+
+    Map<String, String> readLocaleBundleMap( PwmLocaleBundle bundleName, String keyName );
+
+    void resetLocaleBundleMap( PwmLocaleBundle bundleName, String keyName );
 
     void resetSetting( PwmSetting setting, String profileID, UserIdentity userIdentity );
 
@@ -79,6 +72,8 @@ public interface StoredConfiguration
     StoredValue readSetting( PwmSetting setting );
 
     StoredValue readSetting( PwmSetting setting, String profileID );
+
+    void writeLocaleBundleMap( PwmLocaleBundle bundleName, String keyName, Map<String, String> localeMap );
 
     void copyProfileID( PwmSettingCategory category, String sourceID, String destinationID, UserIdentity userIdentity )
             throws PwmUnrecoverableException;
@@ -97,4 +92,7 @@ public interface StoredConfiguration
     ) throws PwmUnrecoverableException;
 
 
+    String settingChecksum() throws PwmUnrecoverableException;
+
+    Set<StoredConfigItemKey> modifiedSettings();
 }

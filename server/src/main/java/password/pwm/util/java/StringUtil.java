@@ -532,4 +532,21 @@ public abstract class StringUtil
             return defaultValue;
         }
     }
+
+
+    public static String insertLineBreaks( final String input, final int length )
+    {
+        final int inputLength = input.length();
+        final StringBuilder sb = new StringBuilder( inputLength );
+        int beginCounter = 0;
+        int endCounter = length;
+        while ( endCounter < inputLength )
+        {
+            sb.append( input, beginCounter, endCounter );
+            sb.append( '\n' );
+            beginCounter += length;
+            endCounter += length;
+        }
+        return sb.toString();
+    }
 }

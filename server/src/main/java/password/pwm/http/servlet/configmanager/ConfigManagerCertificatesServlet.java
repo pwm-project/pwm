@@ -28,8 +28,8 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigReference;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
@@ -115,14 +115,14 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
 
     List<CertificateDebugDataItem> makeCertificateDebugData( final Configuration configuration ) throws PwmUnrecoverableException
     {
-        final StoredConfigurationImpl storedConfiguration = configuration.getStoredConfiguration();
-        final List<StoredConfigReference> modifiedSettings = StoredConfigurationUtil.modifiedSettings( storedConfiguration );
+        final StoredConfiguration storedConfiguration = configuration.getStoredConfiguration();
+        final List<StoredConfigItemKey> modifiedSettings = StoredConfigurationUtil.modifiedItems( storedConfiguration );
 
         final List<CertificateDebugDataItem> certificateDebugDataItems = new ArrayList<>();
 
-        for ( final StoredConfigReference ref : modifiedSettings )
+        for ( final StoredConfigItemKey ref : modifiedSettings )
         {
-            if ( ref.getRecordType() == StoredConfigReference.RecordType.SETTING )
+            if ( ref.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
             {
                 final PwmSetting pwmSetting = PwmSetting.forKey( ref.getRecordID() );
                 if ( pwmSetting.getSyntax() == PwmSettingSyntax.X509CERT )

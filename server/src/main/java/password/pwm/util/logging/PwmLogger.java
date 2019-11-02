@@ -20,7 +20,9 @@
 
 package password.pwm.util.logging;
 
+import org.apache.log4j.Logger;
 import org.apache.log4j.RollingFileAppender;
+import org.apache.log4j.varia.NullAppender;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
@@ -600,6 +602,13 @@ public class PwmLogger
                                 && minimumDbLogLevel != null
                                 && minimumDbLogLevel.compareTo( pwmLogLevel ) <= 0
                 );
+    }
+
+    public static void disableAllLogging()
+    {
+        Logger.getRootLogger().removeAllAppenders();
+        Logger.getRootLogger().addAppender( new NullAppender() );
+        PwmLogger.markInitialized();
     }
 }
 

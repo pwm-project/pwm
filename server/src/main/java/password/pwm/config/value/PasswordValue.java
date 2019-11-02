@@ -24,6 +24,7 @@ package password.pwm.config.value;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -40,6 +41,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 public class PasswordValue implements StoredValue
 {
@@ -85,41 +87,45 @@ public class PasswordValue implements StoredValue
             )
                     throws PwmOperationalException, PwmUnrecoverableException
             {
-                final XmlElement valueElement = settingElement.getChild( "value" );
-                final String rawValue = valueElement.getText();
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                if ( valueElement.isPresent() )
+                {
+                    final String rawValue = valueElement.get().getText();
 
-                final PasswordValue newPasswordValue = new PasswordValue();
-                if ( rawValue == null || rawValue.isEmpty() )
-                {
-                    return newPasswordValue;
-                }
-
-                final boolean plainTextSetting;
-                {
-                    final String plainTextAttributeStr = valueElement.getAttributeValue( "plaintext" );
-                    plainTextSetting = plainTextAttributeStr != null && Boolean.parseBoolean( plainTextAttributeStr );
-                }
-
-                if ( plainTextSetting )
-                {
-                    newPasswordValue.value = new PasswordData( rawValue );
-                    newPasswordValue.requiresStoredUpdate = true;
-                }
-                else
-                {
-                    try
+                    final PasswordValue newPasswordValue = new PasswordValue();
+                    if ( rawValue == null || rawValue.isEmpty() )
                     {
-                        newPasswordValue.value = new PasswordData( SecureEngine.decryptStringValue( rawValue, key, PwmBlockAlgorithm.CONFIG ) );
                         return newPasswordValue;
                     }
-                    catch ( Exception e )
+
+                    final boolean plainTextSetting;
                     {
-                        final String errorMsg = "unable to decode encrypted password value for setting: " + e.getMessage();
-                        final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
-                        throw new PwmOperationalException( errorInfo );
+                        final String plainTextAttributeStr = valueElement.get().getAttributeValue( "plaintext" );
+                        plainTextSetting = plainTextAttributeStr != null && Boolean.parseBoolean( plainTextAttributeStr );
                     }
+
+                    if ( plainTextSetting )
+                    {
+                        newPasswordValue.value = new PasswordData( rawValue );
+                        newPasswordValue.requiresStoredUpdate = true;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            newPasswordValue.value = new PasswordData( SecureEngine.decryptStringValue( rawValue, key, PwmBlockAlgorithm.CONFIG ) );
+                            return newPasswordValue;
+                        }
+                        catch ( Exception e )
+                        {
+                            final String errorMsg = "unable to decode encrypted password value for setting: " + e.getMessage();
+                            final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
+                            throw new PwmOperationalException( errorInfo );
+                        }
+                    }
+                    return newPasswordValue;
                 }
-                return newPasswordValue;
+                return new PasswordValue();
             }
         };
     }
@@ -190,8 +196,15 @@ public class PasswordValue implements StoredValue
     }
 
     @Override
-    public String valueHash( ) throws PwmUnrecoverableException
+    public String valueHash( )
     {
-        return value == null ? "" : SecureEngine.hash( JsonUtil.serialize( value.getStringValue() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
+        try
+        {
+            return value == null ? "" : SecureEngine.hash( JsonUtil.serialize( value.getStringValue() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            throw new IllegalStateException( e );
+        }
     }
 }

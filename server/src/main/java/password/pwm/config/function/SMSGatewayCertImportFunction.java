@@ -22,7 +22,7 @@ package password.pwm.config.function;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -31,13 +31,9 @@ import java.net.URI;
 
 public class SMSGatewayCertImportFunction extends AbstractUriCertImportFunction
 {
-
-
     @Override
-    String getUri( final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
+    String getUri( final StoredConfiguration storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
     {
-
-
         final String uriString;
         final String menuDebugLocation;
 

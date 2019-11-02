@@ -284,7 +284,6 @@ public class PwmScheduler
                 else
                 {
                     hasFailed = true;
-                    LOGGER.trace( () -> "skipping scheduled job " + runnable + " on shutdown executor + " + executor );
                 }
             }
             catch ( Throwable t )

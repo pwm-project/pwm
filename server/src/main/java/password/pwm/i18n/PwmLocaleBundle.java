@@ -21,6 +21,7 @@
 package password.pwm.i18n;
 
 import password.pwm.PwmConstants;
+import password.pwm.util.java.JavaHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,27 +30,36 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 
 public enum PwmLocaleBundle
 {
-    DISPLAY( Display.class, false ),
-    ERRORS( Error.class, false ),
-    MESSAGE( Message.class, false ),
+    DISPLAY( Display.class ),
+    ERRORS( Error.class ),
+    MESSAGE( Message.class ),
 
-    CONFIG( Config.class, true ),
-    ADMIN( Admin.class, true ),
-    HEALTH( Health.class, true ),;
+    CONFIG( Config.class, Flag.AdminOnly ),
+    ADMIN( Admin.class, Flag.AdminOnly ),
+    HEALTH( Health.class, Flag.AdminOnly ),
+    CONFIG_GUIDE( ConfigGuide.class, Flag.AdminOnly ),;
 
     private final Class<? extends PwmDisplayBundle> theClass;
-    private final boolean adminOnly;
+
+    enum Flag
+    {
+        AdminOnly,
+    }
+
+    private final Flag[] flags;
     private Set<String> keys;
 
-    PwmLocaleBundle( final Class<? extends PwmDisplayBundle> theClass, final boolean adminOnly )
+    PwmLocaleBundle( final Class<? extends PwmDisplayBundle> theClass, final Flag... flags )
     {
         this.theClass = theClass;
-        this.adminOnly = adminOnly;
+        this.flags = flags;
     }
 
     public Class<? extends PwmDisplayBundle> getTheClass( )
@@ -59,7 +69,27 @@ public enum PwmLocaleBundle
 
     public boolean isAdminOnly( )
     {
-        return adminOnly;
+        return JavaHelper.enumArrayContainsValue( flags, Flag.AdminOnly );
+    }
+
+    public static Optional<PwmLocaleBundle> forKey( final String key )
+    {
+        for ( final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.values() )
+        {
+            if ( Objects.equals( key, pwmLocaleBundle.name() )
+                    || Objects.equals( key, pwmLocaleBundle.getKey() )
+            )
+            {
+                return Optional.of( pwmLocaleBundle );
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public String getKey()
+    {
+        return getTheClass().getName();
     }
 
     public Set<String> getKeys( )

@@ -83,7 +83,7 @@ public enum PwmSettingSyntax
         this.storedValueImpl = storedValueImpl;
     }
 
-    public StoredValue.StoredValueFactory getStoredValueImpl( )
+    public StoredValue.StoredValueFactory getFactory( )
     {
         return storedValueImpl;
     }

@@ -39,7 +39,7 @@ public class ValueFactory
     {
         try
         {
-            final StoredValue.StoredValueFactory factory = setting.getSyntax().getStoredValueImpl();
+            final StoredValue.StoredValueFactory factory = setting.getSyntax().getFactory();
             return factory.fromJson( input );
         }
         catch ( Exception e )
@@ -59,7 +59,7 @@ public class ValueFactory
     {
         try
         {
-            final StoredValue.StoredValueFactory factory = setting.getSyntax().getStoredValueImpl();
+            final StoredValue.StoredValueFactory factory = setting.getSyntax().getFactory();
             return factory.fromXmlElement( setting, settingElement, key );
         }
         catch ( Exception e )

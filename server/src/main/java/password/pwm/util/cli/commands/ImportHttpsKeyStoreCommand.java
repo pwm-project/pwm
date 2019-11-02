@@ -22,7 +22,7 @@ package password.pwm.util.cli.commands;
 
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.util.PasswordData;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.StringUtil;
@@ -64,7 +64,7 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand
         final String inputAliasName = ( String ) cliEnvironment.getOptions().get( ALIAS_OPTIONNAME );
 
         final ConfigurationReader configurationReader = new ConfigurationReader( cliEnvironment.getConfigurationFile() );
-        final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
+        final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
 
         try ( FileInputStream fileInputStream = new FileInputStream( inputFile ) )
         {

@@ -20,6 +20,7 @@
 
 package password.pwm.config;
 
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.i18n.Config;
@@ -39,6 +40,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -1376,20 +1378,17 @@ public enum PwmSetting
         {
             final Map<String, String> returnList = new LinkedHashMap<>();
             final XmlElement settingElement = PwmSettingXml.readSettingXml( this );
-            final XmlElement optionsElement = settingElement.getChild( "options" );
-            if ( optionsElement != null )
+            final Optional<XmlElement> optionsElement = settingElement.getChild( PwmSettingXml.XML_ELEMENT_OPTIONS );
+            if ( optionsElement.isPresent() )
             {
-                final List<XmlElement> optionElements = optionsElement.getChildren( "option" );
-                if ( optionElements != null )
+                final List<XmlElement> optionElements = optionsElement.get().getChildren( PwmSettingXml.XML_ELEMENT_OPTION );
+                for ( final XmlElement optionElement : optionElements )
                 {
-                    for ( final XmlElement optionElement : optionElements )
+                    if ( optionElement.getAttributeValue( StoredConfigXmlConstants.XML_ELEMENT_VALUE ) == null )
                     {
-                        if ( optionElement.getAttributeValue( "value" ) == null )
-                        {
-                            throw new IllegalStateException( "option element is missing 'value' attribute for key " + this.getKey() );
-                        }
-                        returnList.put( optionElement.getAttributeValue( "value" ), optionElement.getText() );
+                        throw new IllegalStateException( "option element is missing 'value' attribute for key " + this.getKey() );
                     }
+                    returnList.put( optionElement.getAttributeValue(  StoredConfigXmlConstants.XML_ELEMENT_VALUE ), optionElement.getText() );
                 }
             }
             final Map<String, String> finalList = Collections.unmodifiableMap( returnList );
@@ -1405,10 +1404,10 @@ public enum PwmSetting
         {
             final Map<PwmSettingProperty, String> newProps = new LinkedHashMap<>();
             final XmlElement settingElement = PwmSettingXml.readSettingXml( this );
-            final XmlElement propertiesElement = settingElement.getChild( "properties" );
-            if ( propertiesElement != null )
+            final Optional<XmlElement> propertiesElement = settingElement.getChild( "properties" );
+            if ( propertiesElement.isPresent() )
             {
-                final List<XmlElement> propertyElements = propertiesElement.getChildren( "property" );
+                final List<XmlElement> propertyElements = propertiesElement.get().getChildren( "property" );
                 if ( propertyElements != null )
                 {
                     for ( final XmlElement propertyElement : propertyElements )
@@ -1576,12 +1575,12 @@ public enum PwmSetting
         if ( pattern == null )
         {
             final XmlElement settingNode = PwmSettingXml.readSettingXml( this );
-            final XmlElement regexNode = settingNode.getChild( "regex" );
-            if ( regexNode != null )
+            final Optional<XmlElement> regexNode = settingNode.getChild( "regex" );
+            if ( regexNode.isPresent() )
             {
                 try
                 {
-                    final Pattern output = Pattern.compile( regexNode.getText() );
+                    final Pattern output = Pattern.compile( regexNode.get().getText() );
                     pattern = ( ) -> output;
                 }
                 catch ( PatternSyntaxException e )

@@ -31,7 +31,11 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.StoredValue;
+import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.ContextManager;
@@ -128,8 +132,8 @@ public class DebugItemGenerator
         this.pwmApplication = pwmApplication;
         this.sessionLabel = sessionLabel;
 
-        final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.copy( pwmApplication.getConfig().getStoredConfiguration() );
-        storedConfiguration.resetAllPasswordValues( "value removed from " + getFilenameBase() + " configuration export" );
+        final StoredConfiguration storedConfiguration = pwmApplication.getConfig().getStoredConfiguration().copy();
+        StoredConfigurationUtil.resetAllPasswordValuesWithComment( storedConfiguration );
         this.obfuscatedConfiguration = new Configuration( storedConfiguration );
     }
 
@@ -211,8 +215,20 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final StoredConfigurationImpl storedConfiguration = debugItemInput.getObfuscatedConfiguration().getStoredConfiguration();
-            final String jsonOutput = JsonUtil.serialize( storedConfiguration.toJsonDebugObject(), JsonUtil.Flag.PrettyPrint );
+            final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedConfiguration().getStoredConfiguration();
+            final TreeMap<String, Object> outputObject = new TreeMap<>();
+
+            for ( final StoredConfigItemKey storedConfigItemKey : storedConfiguration.modifiedSettings() )
+            {
+                if ( storedConfigItemKey.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
+                {
+                    final String key = storedConfigItemKey.toString( PwmConstants.DEFAULT_LOCALE );
+                    final StoredValue value = storedConfiguration.readSetting( storedConfigItemKey.toPwmSetting(), storedConfigItemKey.getProfileID() );
+                    outputObject.put( key, value );
+                }
+            }
+
+            final String jsonOutput = JsonUtil.serializeMap( outputObject, JsonUtil.Flag.PrettyPrint );
             outputStream.write( jsonOutput.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
     }
@@ -228,7 +244,8 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final StoredConfigurationImpl storedConfiguration = debugItemInput.getObfuscatedConfiguration().getStoredConfiguration();
+            final Locale locale = PwmConstants.DEFAULT_LOCALE;
+            final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedConfiguration().getStoredConfiguration();
 
             final StringWriter writer = new StringWriter();
             writer.write( "Configuration Debug Output for "
@@ -238,19 +255,21 @@ public class DebugItemGenerator
             writer.write( "This file is " + PwmConstants.DEFAULT_CHARSET.displayName() + " encoded\n" );
 
             writer.write( "\n" );
-            final Map<String, String> modifiedSettings = new TreeMap<>(
-                    storedConfiguration.getModifiedSettingDebugValues( LOCALE, true )
-            );
+            final Set<StoredConfigItemKey> modifiedSettings = storedConfiguration.modifiedSettings();
 
-            for ( final Map.Entry<String, String> entry : modifiedSettings.entrySet() )
+            for ( final StoredConfigItemKey storedConfigItemKey : modifiedSettings )
             {
-                final String key = entry.getKey();
-                final String value = entry.getValue();
-                writer.write( ">> Setting > " + key );
-                writer.write( "\n" );
-                writer.write( value );
-                writer.write( "\n" );
-                writer.write( "\n" );
+                if ( storedConfigItemKey.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
+                {
+                    final String key = storedConfigItemKey.toPwmSetting().toMenuLocationDebug( storedConfigItemKey.getProfileID(), locale );
+                    final String value = storedConfiguration.readSetting( storedConfigItemKey.toPwmSetting(), storedConfigItemKey.getProfileID() ).toDebugString( locale );
+                    writer.write( ">> Setting > " + key );
+                    writer.write( "\n" );
+                    writer.write( value );
+                    writer.write( "\n" );
+                    writer.write( "\n" );
+
+                }
             }
 
             outputStream.write( writer.toString().getBytes( PwmConstants.DEFAULT_CHARSET ) );
@@ -268,11 +287,11 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final StoredConfigurationImpl storedConfiguration = debugItemInput.getObfuscatedConfiguration().getStoredConfiguration();
+            final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedConfiguration().getStoredConfiguration();
 
             // temporary output stream required because .toXml closes stream.
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            storedConfiguration.toXml( byteArrayOutputStream );
+            StoredConfigurationFactory.toXml( storedConfiguration, byteArrayOutputStream );
             outputStream.write( byteArrayOutputStream.toByteArray() );        }
     }
 
@@ -571,7 +590,7 @@ public class DebugItemGenerator
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
 
-            final StoredConfigurationImpl storedConfiguration = debugItemInput.getObfuscatedConfiguration().getStoredConfiguration();
+            final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedConfiguration().getStoredConfiguration();
             final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( storedConfiguration );
 
             final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );

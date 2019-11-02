@@ -24,7 +24,6 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.EnhancedPatternLayout;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Logger;
-import org.apache.log4j.varia.NullAppender;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -423,9 +422,7 @@ public class MainClass
     {
         if ( logLevel == null )
         {
-            Logger.getRootLogger().removeAllAppenders();
-            Logger.getRootLogger().addAppender( new NullAppender() );
-            PwmLogger.markInitialized();
+            PwmLogger.disableAllLogging();
             return;
         }
 

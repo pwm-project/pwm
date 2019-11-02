@@ -23,7 +23,7 @@ package password.pwm.config.function;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.ActionValue;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -42,8 +42,8 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
     private static final String KEY_ITERATION = "iteration";
     private static final String KEY_WEB_ACTION_ITERATION = "webActionIter";
 
-            @Override
-    String getUri( final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
+    @Override
+    String getUri( final StoredConfiguration storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
     {
         final Map<String, Integer> extraDataMap = JsonUtil.deserialize( extraData, new TypeToken<Map<String, Integer>>()
         {
@@ -79,7 +79,7 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
 
     void store(
             final List<X509Certificate> certs,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfiguration storedConfiguration,
             final PwmSetting pwmSetting,
             final String profile,
             final String extraData,

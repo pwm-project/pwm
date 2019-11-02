@@ -52,6 +52,7 @@
                         </goals>
                         <phase>test</phase>
                         <configuration>
+                            <trimStackTrace>false</trimStackTrace>
                             <skipTests>${skipTests}</skipTests>
                             <excludes>
                                 <exclude>**/ExtendedTest*.java</exclude>

@@ -21,14 +21,14 @@
 package password.pwm.http.bean;
 
 import password.pwm.config.option.SessionBeanMode;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class ConfigManagerBean extends PwmSessionBean
 {
-    private transient StoredConfigurationImpl storedConfiguration;
+    private transient StoredConfiguration storedConfiguration;
     private boolean passwordVerified;
     private boolean configUnlockedWarningShown;
 
@@ -44,12 +44,12 @@ public class ConfigManagerBean extends PwmSessionBean
     }
 
 
-    public StoredConfigurationImpl getStoredConfiguration( )
+    public StoredConfiguration getStoredConfiguration( )
     {
         return storedConfiguration;
     }
 
-    public void setConfiguration( final StoredConfigurationImpl storedConfiguration )
+    public void setConfiguration( final StoredConfiguration storedConfiguration )
     {
         this.storedConfiguration = storedConfiguration;
     }

@@ -123,7 +123,9 @@ public class LocaleHelper
         String returnValue = null;
         if ( config != null )
         {
-            final Map<Locale, String> configuredBundle = config.readLocalizedBundle( bundleClass.getName(), key );
+            final PwmLocaleBundle pwmLocaleBundle = PwmLocaleBundle.forKey( bundleClass.getName() )
+                    .orElseThrow( () -> new IllegalStateException( "unknown locale bundle name '" + bundleClass.getName() + "'" ) );
+            final Map<Locale, String> configuredBundle = config.readLocalizedBundle( pwmLocaleBundle, key );
             if ( configuredBundle != null )
             {
                 final Locale resolvedLocale = localeResolver( locale, configuredBundle.keySet() );
@@ -395,11 +397,11 @@ public class LocaleHelper
                     {
                         if ( !returnObj.containsKey( pwmLocaleBundle ) )
                         {
-                            returnObj.put( pwmLocaleBundle, new LinkedHashMap<String, List<Locale>>() );
+                            returnObj.put( pwmLocaleBundle, new LinkedHashMap<>() );
                         }
                         if ( !returnObj.get( pwmLocaleBundle ).containsKey( key ) )
                         {
-                            returnObj.get( pwmLocaleBundle ).put( key, new ArrayList<Locale>() );
+                            returnObj.get( pwmLocaleBundle ).put( key, new ArrayList<>() );
                         }
 
                         returnObj.get( pwmLocaleBundle ).get( key ).add( locale );

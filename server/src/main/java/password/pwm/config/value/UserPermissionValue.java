@@ -24,7 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
@@ -77,7 +77,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                     throws PwmOperationalException
             {
                 final boolean newType = "2".equals(
-                        settingElement.getAttributeValue( StoredConfigurationImpl.XML_ATTRIBUTE_SYNTAX_VERSION ) );
+                        settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION ) );
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final List<UserPermission> values = new ArrayList<>();
                 for ( final XmlElement loopValueElement : valueElements )

@@ -20,22 +20,7 @@
 
 package password.pwm.config.stored;
 
-import password.pwm.bean.UserIdentity;
-import password.pwm.config.StoredValue;
-
-public interface StorageEngine
+public enum ConfigRestartRequirement
 {
-    StoredValue read( StoredConfigReference storedConfigReference );
-
-    void write( StoredConfigReference storedConfigReference, StoredValue value, UserIdentity userIdentity );
-
-    void reset( StoredConfigReference storedConfigReference, UserIdentity userIdentity );
-
-    boolean isWriteLocked( );
-
-    void writeLock( );
-
-    ValueMetaData readMetaData( StoredConfigReference storedConfigReference );
-
-    ConfigChangeLog changeLog( );
+    Application
 }

@@ -25,7 +25,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.ActionConfigurationOldVersion1;
 import password.pwm.error.PwmOperationalException;
@@ -98,8 +98,8 @@ public class ActionValue extends AbstractValue implements StoredValue
                 final List<ActionConfiguration> values = new ArrayList<>();
 
                 final boolean oldType = PwmSettingSyntax.STRING_ARRAY.toString().equals(
-                        settingElement.getAttributeValue( "syntax" ) );
-                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                        settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX ) );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 for ( final XmlElement loopValueElement : valueElements )
                 {
                     final String stringValue = loopValueElement.getText();
@@ -109,7 +109,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                         {
                             if ( oldType )
                             {
-                                if ( loopValueElement.getAttributeValue( "locale" ) == null )
+                                if ( loopValueElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ) == null )
                                 {
                                     final ActionConfigurationOldVersion1 oldVersion1 = ActionConfigurationOldVersion1.parseOldConfigString( stringValue );
                                     values.add( convertOldVersion1Values( oldVersion1 ) );
@@ -143,7 +143,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                                 }
                                 catch ( PwmOperationalException e )
                                 {
-                                    LOGGER.warn( "error decoding stored pw value: " + e.getMessage() );
+                                    LOGGER.warn( "error decoding stored pw value on setting '" + pwmSetting.getKey() + "': " + e.getMessage() );
                                 }
                             }
 
@@ -367,7 +367,7 @@ public class ActionValue extends AbstractValue implements StoredValue
 
     private static int figureCurrentStoredSyntax( final XmlElement settingElement )
     {
-        final String storedSyntaxVersionString = settingElement.getAttributeValue( StoredConfiguration.XML_ATTRIBUTE_SYNTAX_VERSION );
+        final String storedSyntaxVersionString = settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION );
         if ( !StringUtil.isEmpty( storedSyntaxVersionString ) )
         {
             try

@@ -28,6 +28,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -40,7 +41,9 @@ public abstract class AbstractValue implements StoredValue
 {
     static final String ENC_PW_PREFIX = "ENC-PW:";
 
-    public String toString( )
+    private transient LazySupplier<String> valueHash = new LazySupplier<>( this::valueHashImpl );
+
+    public String toString()
     {
         return toDebugString( null );
     }
@@ -57,21 +60,33 @@ public abstract class AbstractValue implements StoredValue
         return ( Serializable ) this.toNativeObject();
     }
 
-    public boolean requiresStoredUpdate( )
+    public boolean requiresStoredUpdate()
     {
         return false;
     }
 
     @Override
-    public int currentSyntaxVersion( )
+    public int currentSyntaxVersion()
     {
         return 0;
     }
 
     @Override
-    public String valueHash( ) throws PwmUnrecoverableException
+    public String valueHash()
     {
-        return SecureEngine.hash( JsonUtil.serialize( ( Serializable ) this.toNativeObject() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
+        return valueHash.get();
+    }
+
+    protected String valueHashImpl()
+    {
+        try
+        {
+            return SecureEngine.hash( JsonUtil.serialize( ( Serializable ) this.toNativeObject() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            throw new IllegalStateException( e );
+        }
     }
 
     static String decryptPwValue( final String input, final PwmSecurityKey pwmSecurityKey ) throws PwmOperationalException

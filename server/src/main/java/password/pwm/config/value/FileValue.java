@@ -20,6 +20,7 @@
 
 package password.pwm.config.value;
 
+import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
@@ -45,37 +46,22 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public class FileValue extends AbstractValue implements StoredValue
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( FileValue.class );
 
-    private Map<FileInformation, FileContent> values = new LinkedHashMap<>();
+    private static final int ENCODING_LINE_LENGTH = 120;
 
+    private final Map<FileInformation, FileContent> values;
+
+    @Value
     public static class FileInformation implements Serializable
     {
         private String filename;
         private String filetype;
-
-        public FileInformation(
-                final String filename,
-                final String filetype
-        )
-        {
-            this.filename = filename;
-            this.filetype = filetype;
-        }
-
-        public String getFilename( )
-        {
-            return filename;
-        }
-
-        public String getFiletype( )
-        {
-            return filetype;
-        }
-    }
+   }
 
     @Value
     public static class FileContent implements Serializable
@@ -96,16 +82,10 @@ public class FileValue extends AbstractValue implements StoredValue
             return StringUtil.base64Encode( contents.copyOf(), StringUtil.Base64Options.GZIP );
         }
 
-        public String md5sum( )
+        public String sha512sum( )
                 throws PwmUnrecoverableException
         {
-            return SecureEngine.hash( new ByteArrayInputStream( contents.copyOf() ), PwmHashAlgorithm.MD5 );
-        }
-
-        public String sha1sum( )
-                throws PwmUnrecoverableException
-        {
-            return SecureEngine.hash( new ByteArrayInputStream( contents.copyOf() ), PwmHashAlgorithm.SHA1 );
+            return SecureEngine.hash( new ByteArrayInputStream( contents.copyOf() ), PwmHashAlgorithm.SHA512 );
         }
 
         public int size( )
@@ -116,7 +96,7 @@ public class FileValue extends AbstractValue implements StoredValue
 
     public FileValue( final Map<FileInformation, FileContent> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyMap() : values;
     }
 
     public static StoredValueFactory factory( )
@@ -131,17 +111,17 @@ public class FileValue extends AbstractValue implements StoredValue
                 final Map<FileInformation, FileContent> values = new LinkedHashMap<>();
                 for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final XmlElement loopFileInformation = loopValueElement.getChild( "FileInformation" );
-                    if ( loopFileInformation != null )
+                    final Optional<XmlElement> loopFileInformation = loopValueElement.getChild( "FileInformation" );
+                    if ( loopFileInformation.isPresent() )
                     {
-                        final String loopFileInformationJson = loopFileInformation.getText();
+                        final String loopFileInformationJson = loopFileInformation.get().getText();
                         final FileInformation fileInformation = JsonUtil.deserialize( loopFileInformationJson,
                                 FileInformation.class );
 
-                        final XmlElement loopFileContentElement = loopValueElement.getChild( "FileContent" );
-                        if ( loopFileContentElement != null )
+                        final Optional<XmlElement> loopFileContentElement = loopValueElement.getChild( "FileContent" );
+                        if ( loopFileContentElement.isPresent() )
                         {
-                            final String fileContentString = loopFileContentElement.getText();
+                            final String fileContentString = loopFileContentElement.get().getText();
                             final FileContent fileContent;
                             try
                             {
@@ -179,6 +159,7 @@ public class FileValue extends AbstractValue implements StoredValue
             valueElement.addContent( fileInformationElement );
 
             final XmlElement fileContentElement = XmlFactory.getFactory().newElement( "FileContent" );
+            //final String encodedLineBreaks = StringUtil.insertineBreaks( fileContent.toEncodedString(), ENCODING_LINE_LENGTH );
             try
             {
                 fileContentElement.addText( fileContent.toEncodedString() );
@@ -234,7 +215,7 @@ public class FileValue extends AbstractValue implements StoredValue
             details.put( "size", fileContent.size() );
             try
             {
-                details.put( "md5sum", fileContent.md5sum() );
+                details.put( "sha512sum", fileContent.sha512sum() );
             }
             catch ( PwmUnrecoverableException e )
             {
@@ -256,65 +237,42 @@ public class FileValue extends AbstractValue implements StoredValue
         {
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileContent fileContent = entry.getValue();
-            final FileInfo loopInfo = new FileInfo();
-            loopInfo.name = fileInformation.getFilename();
-            loopInfo.type = fileInformation.getFiletype();
-            loopInfo.size = fileContent.size();
             try
             {
-                loopInfo.md5sum = fileContent.md5sum();
-                loopInfo.sha1sum = fileContent.sha1sum();
+                returnObj.add( FileInfo.builder()
+                        .name( fileInformation.getFilename() )
+                        .type( fileInformation.getFiletype() )
+                        .size( fileContent.size() )
+                        .sha512sum( fileContent.sha512sum() )
+                        .build() );
             }
             catch ( PwmUnrecoverableException e )
             {
-                LOGGER.warn( "error generating hash for certificate: " + e.getMessage() );
+                throw new IllegalStateException( e );
             }
-            returnObj.add( loopInfo );
         }
         return Collections.unmodifiableList( returnObj );
     }
 
-    @Override
-    public String valueHash( ) throws PwmUnrecoverableException
+    protected String valueHashImpl()
     {
-        return SecureEngine.hash( JsonUtil.serializeCollection( toInfoMap() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
+        try
+        {
+            return SecureEngine.hash( JsonUtil.serializeCollection( toInfoMap() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
+        }
+        catch ( PwmUnrecoverableException e )
+        {
+            throw new IllegalStateException( e );
+        }
     }
 
+    @Value
+    @Builder
     public static class FileInfo implements Serializable
     {
-        public String name;
-        public String type;
-        public int size;
-        public String md5sum;
-        public String sha1sum;
-
-        private FileInfo( )
-        {
-        }
-
-        public String getName( )
-        {
-            return name;
-        }
-
-        public String getType( )
-        {
-            return type;
-        }
-
-        public int getSize( )
-        {
-            return size;
-        }
-
-        public String getMd5sum( )
-        {
-            return md5sum;
-        }
-
-        public String getSha1sum( )
-        {
-            return sha1sum;
-        }
+        private String name;
+        private String type;
+        private long size;
+        private String sha512sum;
     }
 }

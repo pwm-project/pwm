@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class PwmSettingTest
@@ -62,7 +63,7 @@ public class PwmSettingTest
     }
 
     @Test
-    public void testSettingXmlPresence() throws PwmUnrecoverableException, PwmOperationalException
+    public void testSettingXmlPresence() throws PwmUnrecoverableException
     {
         final InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( PwmSettingXml.SETTING_XML_FILENAME );
         final XmlDocument xmlDoc = XmlFactory.getFactory().parseXml( inputStream );
@@ -70,13 +71,13 @@ public class PwmSettingTest
         for ( final PwmSetting pwmSetting : PwmSetting.values() )
         {
             final String expression = "/settings/setting[@key=\"" + pwmSetting.getKey() + "\"]";
-            final XmlElement xmlElement = xmlDoc.evaluateXpathToElement( expression );
-            Assert.assertNotNull( "missing PwmSetting.xml setting reference for key " + pwmSetting.getKey(), xmlElement );
+            final Optional<XmlElement> xmlElement = xmlDoc.evaluateXpathToElement( expression );
+            Assert.assertTrue( "missing PwmSetting.xml setting reference for key " + pwmSetting.getKey(), xmlElement.isPresent() );
         }
     }
 
     @Test
-    public void testSettingXmlDuplication() throws PwmUnrecoverableException, PwmOperationalException
+    public void testSettingXmlDuplication() throws PwmUnrecoverableException
     {
         final InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( PwmSettingXml.SETTING_XML_FILENAME );
         final XmlDocument xmlDoc = XmlFactory.getFactory().parseXml( inputStream );
@@ -90,7 +91,7 @@ public class PwmSettingTest
     }
 
     @Test
-    public void testUnknownSettingXml() throws PwmUnrecoverableException, PwmOperationalException
+    public void testUnknownSettingXml() throws PwmUnrecoverableException
     {
         final InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( PwmSettingXml.SETTING_XML_FILENAME );
         final XmlDocument xmlDoc = XmlFactory.getFactory().parseXml( inputStream );

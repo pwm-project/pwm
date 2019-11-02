@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
 
@@ -49,7 +49,7 @@ public class CEFAuditFormatterTest
 
         final CEFAuditFormatter cefAuditFormatter = new CEFAuditFormatter();
         final PwmApplication pwmApplication = Mockito.mock( PwmApplication.class );
-        Mockito.when( pwmApplication.getConfig() ).thenReturn( new Configuration( StoredConfigurationImpl.newStoredConfiguration() ) );
+        Mockito.when( pwmApplication.getConfig() ).thenReturn( new Configuration( StoredConfigurationFactory.newStoredConfiguration() ) );
         final String output = cefAuditFormatter.convertAuditRecordToMessage( pwmApplication, auditRecord );
         Assert.assertEquals( expectedOutput, output );
     }

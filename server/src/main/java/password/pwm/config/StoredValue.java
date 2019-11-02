@@ -21,7 +21,6 @@
 package password.pwm.config;
 
 import password.pwm.error.PwmException;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -53,5 +52,5 @@ public interface StoredValue extends Serializable
                 throws PwmException;
     }
 
-    String valueHash( ) throws PwmUnrecoverableException;
+    String valueHash( );
 }

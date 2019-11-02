@@ -32,7 +32,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
@@ -222,12 +221,6 @@ public class ClientApiServlet extends ControlledPwmServlet
                     pwmRequest.getLocale() );
             final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
             pwmRequest.outputJsonResult( restResultBean );
-        }
-        catch ( PwmException e )
-        {
-            final ErrorInformation errorInformation = e.getErrorInformation();
-            LOGGER.debug( pwmRequest, errorInformation );
-            pwmRequest.respondWithError( errorInformation );
         }
         catch ( Exception e )
         {

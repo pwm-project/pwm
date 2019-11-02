@@ -48,6 +48,7 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public interface XmlFactory
 {
@@ -103,6 +104,8 @@ public interface XmlFactory
         public XmlDocument parseXml( final InputStream inputStream )
                 throws PwmUnrecoverableException
         {
+            Objects.requireNonNull( inputStream );
+
             final SAXBuilder builder = getBuilder();
             final Document inputDocument;
             try

@@ -32,7 +32,7 @@ import password.pwm.config.StoredValue;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -63,6 +63,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -74,6 +75,8 @@ public class ContextManager implements Serializable
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ContextManager.class );
     private static final SessionLabel SESSION_LABEL = SessionLabel.CONTEXT_SESSION_LABEL;
+
+    private static final TimeDuration RESTART_DELAY = TimeDuration.of( 5, TimeDuration.Unit.SECONDS );
 
     private transient ServletContext servletContext;
     private transient ScheduledExecutorService taskMaster;
@@ -316,25 +319,28 @@ public class ContextManager implements Serializable
             return;
         }
 
-        if ( !Boolean.parseBoolean( configReader.getStoredConfiguration().readConfigProperty( ConfigurationProperty.CONFIG_ON_START ) ) )
         {
-            return;
+            final Optional<String> configOnStart = configReader.getStoredConfiguration().readConfigProperty( ConfigurationProperty.SAVE_CONFIG_ON_START );
+            if ( !configOnStart.isPresent() || !Boolean.parseBoolean( configOnStart.get() ) )
+            {
+                return;
+            }
         }
 
         LOGGER.warn( SESSION_LABEL, "configuration file contains property \""
-                + ConfigurationProperty.CONFIG_ON_START.getKey() + "\"=true, will save configuration and set property to false." );
+                + ConfigurationProperty.SAVE_CONFIG_ON_START.getKey() + "\"=true, will save configuration and set property to false." );
 
         try
         {
-            final StoredConfigurationImpl newConfig = StoredConfigurationImpl.copy( configReader.getStoredConfiguration() );
-            newConfig.writeConfigProperty( ConfigurationProperty.CONFIG_ON_START, "false" );
+            final StoredConfiguration newConfig = configReader.getStoredConfiguration().copy();
+            newConfig.writeConfigProperty( ConfigurationProperty.SAVE_CONFIG_ON_START, "false" );
             configReader.saveConfiguration( newConfig, pwmApplication, SESSION_LABEL );
             requestPwmApplicationRestart();
         }
         catch ( Exception e )
         {
             LOGGER.error( SESSION_LABEL, "error while saving configuration file commanded by property \""
-                    + ConfigurationProperty.CONFIG_ON_START + "\"=true, error: " + e.getMessage() );
+                    + ConfigurationProperty.SAVE_CONFIG_ON_START + "\"=true, error: " + e.getMessage() );
         }
     }
 
@@ -347,15 +353,17 @@ public class ContextManager implements Serializable
             return;
         }
 
-        if ( !Boolean.parseBoolean( configReader.getStoredConfiguration().readConfigProperty( ConfigurationProperty.IMPORT_LDAP_CERTIFICATES ) ) )
         {
-            return;
+            final Optional<String> importLdapCerts = configReader.getStoredConfiguration().readConfigProperty( ConfigurationProperty.IMPORT_LDAP_CERTIFICATES );
+            if ( !importLdapCerts.isPresent() || !Boolean.parseBoolean( importLdapCerts.get() ) )
+            {
+                return;
+            }
         }
 
         LOGGER.info( SESSION_LABEL, () -> "configuration file contains property \"" + ConfigurationProperty.IMPORT_LDAP_CERTIFICATES.getKey()
-                + "\"=true, will import attempt ldap certificate import every 5 seconds until successful" );
-        final long secondsDelay = 5;
-        taskMaster.scheduleWithFixedDelay( new AutoImportLdapCertJob(), secondsDelay, secondsDelay, TimeUnit.SECONDS );
+                + "\"=true, will import attempt ldap certificate import every " + RESTART_DELAY.asLongString() + " until successful" );
+        taskMaster.scheduleWithFixedDelay( new AutoImportLdapCertJob(), RESTART_DELAY.asMillis(), RESTART_DELAY.asMillis(), TimeUnit.MILLISECONDS );
     }
 
     private void handleStartupError( final String msgPrefix, final Throwable throwable )
@@ -459,7 +467,7 @@ public class ContextManager implements Serializable
                     try
                     {
                         final PropertyConfigurationImporter importer = new PropertyConfigurationImporter();
-                        final StoredConfigurationImpl storedConfiguration = importer.readConfiguration( new FileInputStream( silentPropertiesFile ) );
+                        final StoredConfiguration storedConfiguration = importer.readConfiguration( new FileInputStream( silentPropertiesFile ) );
                         configReader.saveConfiguration( storedConfiguration, pwmApplication, SESSION_LABEL );
                         LOGGER.info( SESSION_LABEL, () -> "file " + silentPropertiesFile.getAbsolutePath() + " has been successfully imported and saved as configuration file" );
                         requestPwmApplicationRestart();
@@ -736,7 +744,7 @@ public class ContextManager implements Serializable
             LOGGER.trace( SESSION_LABEL, () -> "beginning auto-import ldap cert due to config property '"
                     + ConfigurationProperty.IMPORT_LDAP_CERTIFICATES.getKey() + "'" );
             final Configuration configuration = new Configuration( configReader.getStoredConfiguration() );
-            final StoredConfigurationImpl newStoredConfig = StoredConfigurationImpl.copy( configReader.getStoredConfiguration() );
+            final StoredConfiguration newStoredConfig = configReader.getStoredConfiguration() .copy();
 
             int importedCerts = 0;
             for ( final LdapProfile ldapProfile : configuration.getLdapProfiles().values() )

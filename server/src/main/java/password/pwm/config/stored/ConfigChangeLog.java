@@ -20,20 +20,13 @@
 
 package password.pwm.config.stored;
 
-import password.pwm.config.StoredValue;
+import password.pwm.error.PwmUnrecoverableException;
 
 import java.util.Collection;
-import java.util.Locale;
 
 public interface ConfigChangeLog
 {
-    boolean isModified( );
+    boolean isModified( ) throws PwmUnrecoverableException;
 
-    String changeLogAsDebugString( Locale locale, boolean asHtml );
-
-    void updateChangeLog( StoredConfigReference reference, StoredValue newValue );
-
-    void updateChangeLog( StoredConfigReference reference, StoredValue currentValue, StoredValue newValue );
-
-    Collection<StoredConfigReference> changedValues( );
+    Collection<StoredConfigItemKey> changedValues( ) throws PwmUnrecoverableException;
 }

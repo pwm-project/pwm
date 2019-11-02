@@ -23,7 +23,8 @@ package password.pwm.http.servlet.configguide;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.value.BooleanValue;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.config.value.FileValue;
@@ -69,7 +70,7 @@ public class ConfigGuideForm
 
     private static void updateStoredConfigTemplateValue(
             final Map<ConfigGuideFormField, String> formData,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfiguration storedConfiguration,
             final PwmSetting pwmSetting,
             final ConfigGuideFormField formField,
             final PwmSettingTemplate.Type type
@@ -86,14 +87,14 @@ public class ConfigGuideForm
 
     private static final String LDAP_PROFILE_NAME = "default";
 
-    public static StoredConfigurationImpl generateStoredConfig(
+    public static StoredConfiguration generateStoredConfig(
             final ConfigGuideBean configGuideBean
     )
             throws PwmUnrecoverableException
     {
 
         final Map<ConfigGuideFormField, String> formData = configGuideBean.getFormData();
-        final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
+        final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newStoredConfiguration();
 
         // templates
         updateStoredConfigTemplateValue(
@@ -236,7 +237,7 @@ public class ConfigGuideForm
     {
         try
         {
-            final StoredConfigurationImpl storedConfiguration = generateStoredConfig( configGuideBean );
+            final StoredConfiguration storedConfiguration = generateStoredConfig( configGuideBean );
             final String uriString = PwmSetting.LDAP_SERVER_URLS.getExample( storedConfiguration.getTemplateSet() );
             final URI uri = new URI( uriString );
             return uri.getHost();

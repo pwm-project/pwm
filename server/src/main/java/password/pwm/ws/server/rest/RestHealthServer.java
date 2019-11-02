@@ -91,16 +91,16 @@ public class RestHealthServer extends RestServlet
             final PwmApplication pwmApplication,
             final Locale locale
     )
-            throws IOException, PwmUnrecoverableException
     {
         final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
         final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>( healthMonitor.getHealthRecords() );
         final List<HealthRecord> healthRecordBeans = HealthRecord.fromHealthRecords( healthRecords, locale,
                 pwmApplication.getConfig() );
-        final HealthData healthData = new HealthData();
-        healthData.timestamp = healthMonitor.getLastHealthCheckTime();
-        healthData.overall = healthMonitor.getMostSevereHealthStatus().toString();
-        healthData.records = healthRecordBeans;
-        return healthData;
+        return HealthData.builder()
+                .timestamp( healthMonitor.getLastHealthCheckTime() )
+                .overall( healthMonitor.getMostSevereHealthStatus().toString() )
+                .records( healthRecordBeans )
+                .build();
+
     }
 }

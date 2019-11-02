@@ -24,7 +24,8 @@ import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplicationMode;
 import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -97,7 +98,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
             throws IOException, PwmUnrecoverableException, ServletException
     {
         final ConfigurationReader runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
-        final StoredConfigurationImpl storedConfig = runningConfigReader.getStoredConfiguration();
+        final StoredConfiguration storedConfig = runningConfigReader.getStoredConfiguration();
 
         checkPreconditions( pwmRequest, storedConfig );
 
@@ -117,12 +118,12 @@ public class ConfigAccessFilter extends AbstractPwmFilter
 
     private static void checkPreconditions(
             final PwmRequest pwmRequest,
-            final StoredConfigurationImpl storedConfig
+            final StoredConfiguration storedConfig
     )
             throws PwmUnrecoverableException
     {
 
-        if ( !storedConfig.hasPassword() )
+        if ( !StoredConfigurationUtil.hasPassword( storedConfig ) )
         {
             final String errorMsg = "config file does not have a configuration password";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg, new String[]

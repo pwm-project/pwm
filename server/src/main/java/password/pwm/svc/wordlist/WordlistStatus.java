@@ -32,7 +32,7 @@ import java.util.Map;
 @Builder( toBuilder = true )
 public class WordlistStatus implements Serializable
 {
-    public static final int CURRENT_VERSION = 7;
+    public static final int CURRENT_VERSION = 8;
 
     @Builder.Default
     private int version = CURRENT_VERSION;

@@ -305,7 +305,16 @@ public class PwmApplication
     {
         final Instant startTime = Instant.now();
 
-        pwmEnvironment.getConfig().outputToLog();
+        try
+        {
+            pwmEnvironment.getConfig().outputToLog();
+        }
+        catch ( PwmException e )
+        {
+            LOGGER.error( "error outputting log to debug: " + e.getMessage() );
+        }
+
+
 
         // detect if config has been modified since previous startup
         try

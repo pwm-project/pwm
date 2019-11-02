@@ -40,12 +40,12 @@
 
 <%
   final List<Map<String,String>> settingData = new ArrayList<Map<String,String>>();
-  final Map<String,Object> outputData = new HashMap<String,Object>();
+  final Map<String,String> outputData = new HashMap<String,String>();
   try {
     final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
     outputData.putAll((Map)pwmRequest.getAttribute(PwmRequestAttribute.ConfigurationSummaryOutput));
 
-    settingData.addAll((List<Map<String,String>>)outputData.get("settings"));
+    //settingData.addAll((List<Map<String,String>>)outputData.get("settings"));
   } catch (PwmException e) {
           /* noop */
   }

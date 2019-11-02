@@ -30,7 +30,7 @@ import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
@@ -59,11 +59,11 @@ public class LDAPPermissionCalculator implements Serializable
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPPermissionCalculator.class );
 
-    private final transient StoredConfigurationImpl storedConfiguration;
+    private final transient StoredConfiguration storedConfiguration;
     private final transient Configuration configuration;
     private final Collection<PermissionRecord> permissionRecords;
 
-    public LDAPPermissionCalculator( final StoredConfigurationImpl storedConfiguration ) throws PwmUnrecoverableException
+    public LDAPPermissionCalculator( final StoredConfiguration storedConfiguration ) throws PwmUnrecoverableException
     {
         this.storedConfiguration = storedConfiguration;
         this.configuration = new Configuration( storedConfiguration );
@@ -96,7 +96,7 @@ public class LDAPPermissionCalculator implements Serializable
         return Collections.unmodifiableMap( returnObj );
     }
 
-    private Collection<PermissionRecord> figureRecords( final StoredConfigurationImpl storedConfiguration ) throws PwmUnrecoverableException
+    private Collection<PermissionRecord> figureRecords( final StoredConfiguration storedConfiguration ) throws PwmUnrecoverableException
     {
         final List<PermissionRecord> permissionRecords = new ArrayList<>();
 

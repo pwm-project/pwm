@@ -20,43 +20,20 @@
 
 package password.pwm.ws.server.rest.bean;
 
+import lombok.Builder;
+import lombok.Value;
+
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 
+@Value
+@Builder
 public class HealthData implements Serializable
 {
-    public Instant timestamp;
+    @Builder.Default
+    public Instant timestamp = Instant.now();
+
     public String overall;
     public List<HealthRecord> records;
-
-    public Instant getTimestamp( )
-    {
-        return timestamp;
-    }
-
-    public void setTimestamp( final Instant timestamp )
-    {
-        this.timestamp = timestamp;
-    }
-
-    public String getOverall( )
-    {
-        return overall;
-    }
-
-    public void setOverall( final String overall )
-    {
-        this.overall = overall;
-    }
-
-    public List<HealthRecord> getRecords( )
-    {
-        return records;
-    }
-
-    public void setRecords( final List<HealthRecord> records )
-    {
-        this.records = records;
-    }
 }

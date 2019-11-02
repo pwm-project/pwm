@@ -24,7 +24,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -45,7 +45,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
     @Override
     public String provideFunction(
             final PwmRequest pwmRequest,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfiguration storedConfiguration,
             final PwmSetting setting,
             final String profile,
             final String extraData )
@@ -91,12 +91,12 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
         return returnStr.toString();
     }
 
-    abstract String getUri( StoredConfigurationImpl storedConfiguration, PwmSetting pwmSetting, String profile, String extraData ) throws PwmOperationalException;
+    abstract String getUri( StoredConfiguration storedConfiguration, PwmSetting pwmSetting, String profile, String extraData ) throws PwmOperationalException;
 
 
     void store(
             final List<X509Certificate> certs,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfiguration storedConfiguration,
             final PwmSetting pwmSetting,
             final String profile,
             final String extraData,

@@ -21,7 +21,9 @@
 package password.pwm.util.cli.commands;
 
 import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.util.cli.CliParameters;
 
 import java.io.File;
@@ -33,8 +35,8 @@ public class ConfigNewCommand extends AbstractCliCommand
     public void doCommand( )
             throws Exception
     {
-        final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
-        storedConfiguration.initNewRandomSecurityKey();
+        final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newStoredConfiguration();
+        StoredConfigurationUtil.initNewRandomSecurityKey( storedConfiguration );
         storedConfiguration.writeConfigProperty(
                 ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( true ) );
         storedConfiguration.writeConfigProperty(
@@ -44,7 +46,7 @@ public class ConfigNewCommand extends AbstractCliCommand
 
         try ( FileOutputStream fileOutputStream = new FileOutputStream( outputFile, false ) )
         {
-            storedConfiguration.toXml( fileOutputStream );
+            StoredConfigurationFactory.toXml( storedConfiguration, fileOutputStream );
         }
         out( "success: created new configuration" );
     }

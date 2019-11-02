@@ -332,7 +332,5 @@ public enum Display implements PwmDisplayBundle
         return this.toString();
 
     }
-
-
 }
 

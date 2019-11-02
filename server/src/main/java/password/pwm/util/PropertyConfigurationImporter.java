@@ -23,7 +23,9 @@ package password.pwm.util;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.BooleanValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.StringArrayValue;
@@ -109,13 +111,13 @@ public class PropertyConfigurationImporter
         this.inputMap = inputMap;
     }
 
-    public StoredConfigurationImpl readConfiguration( final InputStream propertiesInput )
+    public StoredConfiguration readConfiguration( final InputStream propertiesInput )
             throws PwmException, IOException
     {
         readInputFile( propertiesInput );
 
-        final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.newStoredConfiguration( );
-        storedConfiguration.initNewRandomSecurityKey( );
+        final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newStoredConfiguration( );
+        StoredConfigurationUtil.initNewRandomSecurityKey( storedConfiguration );
         storedConfiguration.writeConfigProperty(
                 ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( false ) );
         storedConfiguration.writeConfigProperty(
@@ -171,7 +173,7 @@ public class PropertyConfigurationImporter
 
         // admin settings
         storedConfiguration.writeSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, makeAdminPermissions( ), null );
-        storedConfiguration.setPassword( inputMap.get( PropertyKey.CONFIGURATION_PWD.name( ) ) );
+        StoredConfigurationUtil.setPassword( storedConfiguration, inputMap.get( PropertyKey.CONFIGURATION_PWD.name( ) ) );
 
         // certificates
         {

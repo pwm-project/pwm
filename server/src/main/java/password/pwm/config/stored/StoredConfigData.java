@@ -20,20 +20,35 @@
 
 package password.pwm.config.stored;
 
-import java.io.Serializable;
+import lombok.Builder;
+import lombok.Singular;
+import lombok.Value;
+import password.pwm.config.StoredValue;
 
-public interface StoredConfigReference extends Serializable, Comparable
+import java.time.Instant;
+import java.util.Map;
+
+@Value
+@Builder( toBuilder = true )
+class StoredConfigData
 {
-    RecordType getRecordType( );
+    @Builder.Default
+    private String createTime = "";
 
-    String getRecordID( );
+    @Builder.Default
+    private Instant modifyTime = Instant.now();
 
-    String getProfileID( );
+    @Singular
+    private Map<StoredConfigItemKey, StoredValue> storedValues;
 
-    enum RecordType
+    @Singular
+    private Map<StoredConfigItemKey, ValueMetaData> metaDatas;
+
+    @Value
+    static class ValueAndMetaTuple
     {
-        SETTING,
-        LOCALE_BUNDLE,
-        PROPERTY,
+        private final StoredConfigItemKey key;
+        private final StoredValue value;
+        private final ValueMetaData metaData;
     }
 }

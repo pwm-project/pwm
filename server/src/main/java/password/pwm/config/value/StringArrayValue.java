@@ -22,6 +22,7 @@ package password.pwm.config.value;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -68,7 +69,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue
 
             public StringArrayValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
-                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final List<String> values = new ArrayList<>();
                 for ( final XmlElement loopValueElement : valueElements )
                 {
