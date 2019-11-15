@@ -103,7 +103,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final UserPermission value : values )
@@ -129,7 +129,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
             {
                 validateLdapSearchFilter( userPermission.getLdapQuery() );
             }
-            catch ( IllegalArgumentException e )
+            catch ( final IllegalArgumentException e )
             {
                 returnObj.add( e.getMessage() + " for filter " + userPermission.getLdapQuery() );
             }

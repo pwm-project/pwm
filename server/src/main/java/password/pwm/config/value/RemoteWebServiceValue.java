@@ -24,6 +24,8 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.config.StoredValueEncoder;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JsonUtil;
@@ -43,6 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 public class RemoteWebServiceValue extends AbstractValue implements StoredValue
@@ -74,7 +77,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
                             }
                     );
 
-                    srcList = srcList == null ? Collections.emptyList() : srcList;
+                    srcList = srcList == null ? new ArrayList<>() : srcList;
                     srcList.removeIf( Objects::isNull );
                     return new RemoteWebServiceValue( Collections.unmodifiableList( srcList ) );
                 }
@@ -87,7 +90,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
             )
                     throws PwmOperationalException
             {
-                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final List<RemoteWebServiceConfiguration> values = new ArrayList<>();
                 for ( final XmlElement loopValueElement : valueElements )
                 {
@@ -95,8 +98,16 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
                     if ( value != null && value.length() > 0 )
                     {
                         final RemoteWebServiceConfiguration parsedValue = JsonUtil.deserialize( value, RemoteWebServiceConfiguration.class );
-                        parsedValue.setPassword( decryptPwValue( parsedValue.getPassword(), pwmSecurityKey ) );
-                        values.add( parsedValue );
+                        final Optional<String> decodedValue = StoredValueEncoder.decode(
+                                parsedValue.getPassword(),
+                                StoredValueEncoder.SecureOutputMode.Encoded,
+                                pwmSecurityKey
+                        );
+                        decodedValue.ifPresent( ( s ) ->
+                        {
+                            parsedValue.setPassword( s );
+                            values.add( parsedValue );
+                        } );
                     }
                 }
                 return new RemoteWebServiceValue( values );
@@ -104,7 +115,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final RemoteWebServiceConfiguration value : values )
@@ -113,9 +124,13 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
             final RemoteWebServiceConfiguration clonedValue = JsonUtil.cloneUsingJson( value, RemoteWebServiceConfiguration.class );
             try
             {
-                clonedValue.setPassword( encryptPwValue( clonedValue.getPassword(), pwmSecurityKey ) );
+                final String encodedValue = StoredValueEncoder.encode(
+                        clonedValue.getPassword(),
+                        outputConfiguration.getSecureOutputMode(),
+                        outputConfiguration.getPwmSecurityKey() );
+                clonedValue.setPassword( encodedValue );
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 LOGGER.warn( "error decoding stored pw value: " + e.getMessage() );
             }

@@ -71,7 +71,7 @@ public class ValueFactory
                 errorMsg.append( ", cause: " ).append( e.getCause().getMessage() );
             }
             LOGGER.error( errorMsg, e );
-            throw new IllegalStateException( "unable to read xml element '" + settingElement.getName() + "' from setting '" + setting.getKey() + "' error: " + e.getMessage() );
+            throw new IllegalStateException( "unable to read xml element '" + settingElement.getName() + "' from setting '" + setting.getKey() + "' error: " + e.getMessage(), e );
         }
     }
 }

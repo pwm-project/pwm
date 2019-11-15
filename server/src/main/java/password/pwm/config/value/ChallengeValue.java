@@ -111,7 +111,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<String, List<ChallengeItemConfiguration>> entry : values.entrySet() )
@@ -207,7 +207,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             {
                 minLength = Integer.parseInt( s1[ 1 ] );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.debug( () -> "unexpected error parsing config input '" + inputString + "' " + e.getMessage() );
             }
@@ -218,7 +218,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             {
                 maxLength = Integer.parseInt( s1[ 2 ] );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.debug( () -> "unexpected error parsing config input '" + inputString + "' " + e.getMessage() );
             }

@@ -77,7 +77,7 @@ public class PrivateKeyValue extends AbstractValue
                                 final X509Certificate cert = X509Utils.certificateFromBase64( b64Text );
                                 certificates.add( cert );
                             }
-                            catch ( Exception e )
+                            catch ( final Exception e )
                             {
                                 LOGGER.error( "error reading certificate: " + e.getMessage(), e );
                             }
@@ -101,7 +101,7 @@ public class PrivateKeyValue extends AbstractValue
                                 LOGGER.error( "error reading privateKey for setting: '" + pwmSetting.getKey() + "': misging 'value' element" );
                             }
                         }
-                        catch ( Exception e )
+                        catch ( final Exception e )
                         {
                             LOGGER.error( "error reading privateKey for setting: '" + pwmSetting.getKey() + "': " + e.getMessage(), e );
                         }
@@ -152,7 +152,7 @@ public class PrivateKeyValue extends AbstractValue
         return 0;
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey key )
+    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
     {
         final XmlElement valueElement = XmlFactory.getFactory().newElement( "value" );
         if ( privateKeyCertificate != null )
@@ -170,12 +170,12 @@ public class PrivateKeyValue extends AbstractValue
                 {
                     final XmlElement keyElement = XmlFactory.getFactory().newElement( ELEMENT_NAME_KEY );
                     final String b64EncodedKey = StringUtil.base64Encode( privateKeyCertificate.getKey().getEncoded() );
-                    final String encryptedKey = SecureEngine.encryptToString( b64EncodedKey, key, PwmBlockAlgorithm.CONFIG );
+                    final String encryptedKey = SecureEngine.encryptToString( b64EncodedKey, outputConfiguration.getPwmSecurityKey(), PwmBlockAlgorithm.CONFIG );
                     keyElement.addText( encryptedKey );
                     valueElement.addContent( keyElement );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 throw new RuntimeException( "missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage() );
             }

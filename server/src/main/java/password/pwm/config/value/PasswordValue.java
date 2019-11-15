@@ -51,8 +51,6 @@ public class PasswordValue implements StoredValue
     {
     }
 
-    boolean requiresStoredUpdate;
-
     public PasswordValue( final PasswordData passwordData )
     {
         value = passwordData;
@@ -71,7 +69,7 @@ public class PasswordValue implements StoredValue
                     {
                         return new PasswordValue( new PasswordData( strValue ) );
                     }
-                    catch ( PwmUnrecoverableException e )
+                    catch ( final PwmUnrecoverableException e )
                     {
                         throw new IllegalStateException(
                                 "PasswordValue can not be json de-serialized: " + e.getMessage() );
@@ -107,7 +105,6 @@ public class PasswordValue implements StoredValue
                     if ( plainTextSetting )
                     {
                         newPasswordValue.value = new PasswordData( rawValue );
-                        newPasswordValue.requiresStoredUpdate = true;
                     }
                     else
                     {
@@ -116,7 +113,7 @@ public class PasswordValue implements StoredValue
                             newPasswordValue.value = new PasswordData( SecureEngine.decryptStringValue( rawValue, key, PwmBlockAlgorithm.CONFIG ) );
                             return newPasswordValue;
                         }
-                        catch ( Exception e )
+                        catch ( final Exception e )
                         {
                             final String errorMsg = "unable to decode encrypted password value for setting: " + e.getMessage();
                             final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
@@ -153,7 +150,7 @@ public class PasswordValue implements StoredValue
         return 0;
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey key )
+    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
     {
         if ( value == null )
         {
@@ -163,10 +160,10 @@ public class PasswordValue implements StoredValue
         final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
         try
         {
-            final String encodedValue = SecureEngine.encryptToString( value.getStringValue(), key, PwmBlockAlgorithm.CONFIG );
+            final String encodedValue = SecureEngine.encryptToString( value.getStringValue(), outputConfiguration.getPwmSecurityKey(), PwmBlockAlgorithm.CONFIG );
             valueElement.addText( encodedValue );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new RuntimeException( "missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage() );
         }
@@ -190,11 +187,6 @@ public class PasswordValue implements StoredValue
         return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
 
-    public boolean requiresStoredUpdate( )
-    {
-        return requiresStoredUpdate;
-    }
-
     @Override
     public String valueHash( )
     {
@@ -202,7 +194,7 @@ public class PasswordValue implements StoredValue
         {
             return value == null ? "" : SecureEngine.hash( JsonUtil.serialize( value.getStringValue() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             throw new IllegalStateException( e );
         }

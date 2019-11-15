@@ -28,6 +28,7 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.StoredValue;
+import password.pwm.config.StoredValueEncoder;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
@@ -213,7 +214,7 @@ public class StoredConfigurationFactory
                 return Optional.of( new StoredConfigData.ValueAndMetaTuple( key, storedValue, metaData ) );
 
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 final String errorMsg = "unexpected error reading setting '" + setting.getKey() + "' profile '" + profileID + "', error: " + e.getMessage();
                 throw new IllegalStateException( errorMsg );
@@ -287,7 +288,7 @@ public class StoredConfigurationFactory
                 {
                     return JavaHelper.parseIsoToInstant( modifyTimeString );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( "error parsing root last modified timestamp: " + e.getMessage() );
                 }
@@ -315,7 +316,7 @@ public class StoredConfigurationFactory
                     final String strValue = ( String ) ValueFactory.fromXmlValues( pwmSetting, settingElement.get(), null ).toNativeObject();
                     return JavaHelper.readEnumFromString( PwmSettingTemplate.class, null, strValue );
                 }
-                catch ( IllegalStateException e )
+                catch ( final IllegalStateException e )
                 {
                     LOGGER.error( "error reading template", e );
                 }
@@ -365,7 +366,7 @@ public class StoredConfigurationFactory
                     {
                         instant = JavaHelper.parseIsoToInstant( modifyTimeValue );
                     }
-                    catch ( DateTimeParseException e )
+                    catch ( final DateTimeParseException e )
                     {
                         e.printStackTrace();
                     }
@@ -381,7 +382,7 @@ public class StoredConfigurationFactory
                     {
                         userIdentity = UserIdentity.fromDelimitedKey( modifyUserValue );
                     }
-                    catch ( DateTimeParseException | PwmUnrecoverableException e )
+                    catch ( final DateTimeParseException | PwmUnrecoverableException e )
                     {
                         LOGGER.trace( () -> "unable to parse userIdentity metadata for key " + key.toString() );
                     }
@@ -481,14 +482,17 @@ public class StoredConfigurationFactory
                         for ( final String profileID : storedConfiguration.profilesForSetting( pwmSetting ) )
                         {
                             final StoredValue storedValue = storedConfiguration.readSetting( pwmSetting, profileID );
-                            settingsElement.addContent( makeSettingXmlElement( pwmSetting, profileID, storedValue, pwmSecurityKey ) );
+                            final XmlElement settingElement = makeSettingXmlElement( pwmSetting, profileID, storedValue, pwmSecurityKey );
+                            decorateElementWithMetaData( storedConfiguration, StoredConfigItemKey.fromSetting( pwmSetting, profileID ), settingElement );
+                            settingsElement.addContent( settingsElement );
                         }
                     }
                     else
                     {
                         final StoredValue storedValue = storedConfiguration.readSetting( pwmSetting, null );
-                        settingsElement.addContent( makeSettingXmlElement( pwmSetting, null, storedValue, pwmSecurityKey ) );
-
+                        final XmlElement settingElement = makeSettingXmlElement( pwmSetting, null, storedValue, pwmSecurityKey );
+                        decorateElementWithMetaData( storedConfiguration, StoredConfigItemKey.fromSetting( pwmSetting, null ), settingElement );
+                        settingsElement.addContent( settingsElement );
                     }
                 }
             }
@@ -532,7 +536,12 @@ public class StoredConfigurationFactory
                 settingElement.setComment( commentLines );
             }
 
-            final List<XmlElement> valueElements = storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, pwmSecurityKey );
+            final StoredValue.OutputConfiguration outputConfiguration = StoredValue.OutputConfiguration.builder()
+                    .pwmSecurityKey( pwmSecurityKey )
+                    .secureOutputMode( StoredValueEncoder.SecureOutputMode.Encoded )
+                    .build();
+
+            final List<XmlElement> valueElements = storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, outputConfiguration );
             settingElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION, String.valueOf( storedValue.currentSyntaxVersion() ) );
             settingElement.addContent( valueElements );
             return settingElement;
@@ -573,6 +582,7 @@ public class StoredConfigurationFactory
                             final XmlElement propertyElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_PROPERTY );
                             propertyElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY, configurationProperty.getKey() );
                             propertyElement.addText( s );
+                            decorateElementWithMetaData( storedConfiguration, StoredConfigItemKey.fromConfigurationProperty( configurationProperty ), propertyElement );
                             propertiesElement.addContent( propertyElement );
                         }
                 );
@@ -599,14 +609,16 @@ public class StoredConfigurationFactory
                         final Map<String, String> localeBundleMap = storedConfiguration.readLocaleBundleMap( pwmLocaleBundle, key );
                         for ( final Map.Entry<String, String> entry : localeBundleMap.entrySet() )
                         {
-                            final XmlElement valueElement = xmlFactory.newElement( "value" );
+                            final XmlElement valueElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                             if ( !StringUtil.isEmpty( entry.getKey() ) )
                             {
-                                valueElement.setAttribute( "locale", entry.getKey() );
+                                valueElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE, entry.getKey() );
                             }
                             valueElement.addText( entry.getValue() );
                             localeBundleElement.addContent( valueElement );
                         }
+
+                        decorateElementWithMetaData( storedConfiguration, StoredConfigItemKey.fromLocaleBundle( pwmLocaleBundle, key ), localeBundleElement );
                         returnList.add( localeBundleElement );
                     }
                 }

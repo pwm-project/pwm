@@ -80,7 +80,7 @@ public class NamedSecretValue implements StoredValue
                     final Map<String, NamedSecretData> linkedValues = new LinkedHashMap<>( values );
                     return new NamedSecretValue( linkedValues );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     throw new IllegalStateException(
                             "NamedPasswordValue can not be json de-serialized: " + e.getMessage() );
@@ -121,7 +121,7 @@ public class NamedSecretValue implements StoredValue
                         }
                     }
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     final String errorMsg = "unable to decode encrypted password value for setting: " + e.getMessage();
                     final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
@@ -155,7 +155,7 @@ public class NamedSecretValue implements StoredValue
         return 0;
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey key )
+    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
     {
         if ( values == null )
         {
@@ -169,7 +169,7 @@ public class NamedSecretValue implements StoredValue
             {
                 final String name = entry.getKey();
                 final PasswordData passwordData = entry.getValue().getPassword();
-                final String encodedValue = SecureEngine.encryptToString( passwordData.getStringValue(), key, PwmBlockAlgorithm.CONFIG );
+                final String encodedValue = SecureEngine.encryptToString( passwordData.getStringValue(), outputConfiguration.getPwmSecurityKey(), PwmBlockAlgorithm.CONFIG );
                 final XmlElement newValueElement = XmlFactory.getFactory().newElement( "value" );
                 final XmlElement nameElement = XmlFactory.getFactory().newElement( ELEMENT_NAME );
                 nameElement.addText( name );
@@ -190,7 +190,7 @@ public class NamedSecretValue implements StoredValue
                 valuesElement.add( newValueElement );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new RuntimeException( "missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage() );
         }
@@ -240,15 +240,10 @@ public class NamedSecretValue implements StoredValue
             }
             return copiedValues;
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             throw new IllegalStateException( e.getErrorInformation().toDebugStr() );
         }
-    }
-
-    public boolean requiresStoredUpdate( )
-    {
-        return false;
     }
 
     @Override
@@ -258,7 +253,7 @@ public class NamedSecretValue implements StoredValue
         {
             return values == null ? "" : SecureEngine.hash( JsonUtil.serializeMap( values ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             throw new IllegalStateException( e );
         }

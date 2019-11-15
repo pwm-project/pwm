@@ -88,7 +88,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final CustomLinkConfiguration value : values )

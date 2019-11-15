@@ -23,6 +23,7 @@ package password.pwm.config;
 import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.PwmConstants;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.StringUtil;
@@ -45,6 +46,10 @@ public class PwmSettingTest
     public void testDefaultValues() throws PwmUnrecoverableException, PwmOperationalException
     {
         final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( "abcdefghijklmnopqrstuvwxyz" );
+        final StoredValue.OutputConfiguration outputConfiguration = StoredValue.OutputConfiguration.builder()
+                .pwmSecurityKey( pwmSecurityKey )
+                .secureOutputMode( StoredValueEncoder.SecureOutputMode.Encoded )
+                .build();
         for ( final PwmSetting pwmSetting : PwmSetting.values() )
         {
             for ( final PwmSettingTemplate template : PwmSettingTemplate.values() )
@@ -54,9 +59,8 @@ public class PwmSettingTest
                 storedValue.toNativeObject();
                 storedValue.toDebugString( PwmConstants.DEFAULT_LOCALE );
                 storedValue.toDebugJsonObject( PwmConstants.DEFAULT_LOCALE );
-                storedValue.toXmlValues( "value", pwmSecurityKey );
+                storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, outputConfiguration );
                 storedValue.validateValue( pwmSetting );
-                storedValue.requiresStoredUpdate();
                 Assert.assertNotNull( storedValue.valueHash() );
             }
         }

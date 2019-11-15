@@ -89,7 +89,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<String, List<String>> entry : values.entrySet() )

@@ -75,7 +75,7 @@ public class BooleanValue implements StoredValue
     }
 
     @Override
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
     {
         final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
         valueElement.addText( String.valueOf( value ) );
@@ -102,12 +102,6 @@ public class BooleanValue implements StoredValue
     public Serializable toDebugJsonObject( final Locale locale )
     {
         return value;
-    }
-
-    @Override
-    public boolean requiresStoredUpdate( )
-    {
-        return false;
     }
 
     @Override

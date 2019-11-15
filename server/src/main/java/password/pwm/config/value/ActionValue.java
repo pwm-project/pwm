@@ -25,6 +25,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
+import password.pwm.config.StoredValueEncoder;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.ActionConfigurationOldVersion1;
@@ -46,6 +47,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class ActionValue extends AbstractValue implements StoredValue
@@ -118,8 +120,18 @@ public class ActionValue extends AbstractValue implements StoredValue
                             else
                             {
                                 final ActionConfigurationOldVersion1 parsedAc = JsonUtil.deserialize( stringValue, ActionConfigurationOldVersion1.class );
-                                parsedAc.setPassword( decryptPwValue( parsedAc.getPassword(), pwmSecurityKey ) );
-                                values.add( convertOldVersion1Values( parsedAc ) );
+                                if ( parsedAc != null )
+                                {
+                                    final Optional<String> decodedValue = StoredValueEncoder.decode(
+                                            parsedAc.getPassword(),
+                                            StoredValueEncoder.SecureOutputMode.Encoded,
+                                            pwmSecurityKey );
+                                    decodedValue.ifPresent( s ->
+                                    {
+                                        parsedAc.setPassword( s );
+                                        values.add( convertOldVersion1Values( parsedAc ) );
+                                    } );
+                                }
                             }
                         }
                         else if ( syntaxVersion == 2 )
@@ -136,12 +148,21 @@ public class ActionValue extends AbstractValue implements StoredValue
                                 // decrypt pw
                                 try
                                 {
-                                    clonedWebActions.add( webAction.toBuilder()
-                                            .password( decryptPwValue( webAction.getPassword(), pwmSecurityKey ) )
-                                            .successStatus( successStatus )
-                                            .build() );
+
+
+                                    final Optional<String> decodedValue = StoredValueEncoder.decode(
+                                            webAction.getPassword(),
+                                            StoredValueEncoder.SecureOutputMode.Encoded,
+                                            pwmSecurityKey );
+                                    decodedValue.ifPresent( s ->
+                                    {
+                                        clonedWebActions.add( webAction.toBuilder()
+                                                .password( s )
+                                                .successStatus( successStatus )
+                                                .build() );
+                                    } );
                                 }
-                                catch ( PwmOperationalException e )
+                                catch ( final PwmOperationalException e )
                                 {
                                     LOGGER.warn( "error decoding stored pw value on setting '" + pwmSetting.getKey() + "': " + e.getMessage() );
                                 }
@@ -162,7 +183,7 @@ public class ActionValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final ActionConfiguration value : values )
@@ -172,11 +193,15 @@ public class ActionValue extends AbstractValue implements StoredValue
             {
                 try
                 {
+                    final String encodedValue = StoredValueEncoder.encode(
+                            webAction.getPassword(),
+                            outputConfiguration.getSecureOutputMode(),
+                            outputConfiguration.getPwmSecurityKey() );
                     clonedWebActions.add( webAction.toBuilder()
-                            .password( encryptPwValue( webAction.getPassword(), pwmSecurityKey ) )
+                            .password( encodedValue )
                             .build() );
                 }
-                catch ( PwmOperationalException e )
+                catch ( final PwmOperationalException e )
                 {
                     LOGGER.warn( "error encoding stored pw value: " + e.getMessage() );
                 }
@@ -225,7 +250,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             {
                 loopConfig.validate();
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 return Collections.singletonList( "format error: " + e.getErrorInformation().toDebugStr() );
             }
@@ -374,7 +399,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             {
                 return Integer.parseInt( storedSyntaxVersionString );
             }
-            catch ( NumberFormatException e )
+            catch ( final NumberFormatException e )
             {
                 LOGGER.debug( () -> "unable to parse syntax version for setting " + e.getMessage() );
             }

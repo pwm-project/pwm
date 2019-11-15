@@ -128,7 +128,7 @@ public class FileValue extends AbstractValue implements StoredValue
                                 fileContent = FileContent.fromEncodedString( fileContentString );
                                 values.put( fileInformation, fileContent );
                             }
-                            catch ( IOException e )
+                            catch ( final IOException e )
                             {
                                 LOGGER.error( "error reading file contents item: " + e.getMessage(), e );
                             }
@@ -145,7 +145,7 @@ public class FileValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey )
+    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<FileInformation, FileContent> entry : this.values.entrySet() )
@@ -164,7 +164,7 @@ public class FileValue extends AbstractValue implements StoredValue
             {
                 fileContentElement.addText( fileContent.toEncodedString() );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 LOGGER.error( "unexpected error writing setting to xml, IO error during base64 encoding: " + e.getMessage() );
             }
@@ -217,7 +217,7 @@ public class FileValue extends AbstractValue implements StoredValue
             {
                 details.put( "sha512sum", fileContent.sha512sum() );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.trace( () -> "error generating file hash" );
             }
@@ -246,7 +246,7 @@ public class FileValue extends AbstractValue implements StoredValue
                         .sha512sum( fileContent.sha512sum() )
                         .build() );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 throw new IllegalStateException( e );
             }
@@ -260,7 +260,7 @@ public class FileValue extends AbstractValue implements StoredValue
         {
             return SecureEngine.hash( JsonUtil.serializeCollection( toInfoMap() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             throw new IllegalStateException( e );
         }

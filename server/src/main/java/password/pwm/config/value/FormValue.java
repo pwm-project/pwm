@@ -104,7 +104,7 @@ public class FormValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final FormConfiguration value : values )
@@ -147,7 +147,7 @@ public class FormValue extends AbstractValue implements StoredValue
             {
                 loopConfig.validate();
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 return Collections.singletonList( "format error: " + e.getErrorInformation().toDebugStr() );
             }
