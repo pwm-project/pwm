@@ -18,9 +18,9 @@
  * limitations under the License.
  */
 
-package password.pwm.config;
+package password.pwm.config.value.data;
 
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
 
@@ -32,7 +32,7 @@ import java.util.Map;
 /**
  * @author Richard A. Keil
  */
-@Getter
+@Value
 public class CustomLinkConfiguration implements Serializable
 {
 

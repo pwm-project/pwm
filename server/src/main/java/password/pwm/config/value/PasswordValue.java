@@ -45,10 +45,11 @@ import java.util.Optional;
 
 public class PasswordValue implements StoredValue
 {
-    private PasswordData value;
+    private final PasswordData value;
 
     PasswordValue( )
     {
+        value = null;
     }
 
     public PasswordValue( final PasswordData passwordData )
@@ -104,14 +105,13 @@ public class PasswordValue implements StoredValue
 
                     if ( plainTextSetting )
                     {
-                        newPasswordValue.value = new PasswordData( rawValue );
+                        return new PasswordValue( new PasswordData( rawValue ) );
                     }
                     else
                     {
                         try
                         {
-                            newPasswordValue.value = new PasswordData( SecureEngine.decryptStringValue( rawValue, key, PwmBlockAlgorithm.CONFIG ) );
-                            return newPasswordValue;
+                            return new PasswordValue( new PasswordData( SecureEngine.decryptStringValue( rawValue, key, PwmBlockAlgorithm.CONFIG ) ) );
                         }
                         catch ( final Exception e )
                         {
@@ -120,7 +120,6 @@ public class PasswordValue implements StoredValue
                             throw new PwmOperationalException( errorInfo );
                         }
                     }
-                    return newPasswordValue;
                 }
                 return new PasswordValue();
             }

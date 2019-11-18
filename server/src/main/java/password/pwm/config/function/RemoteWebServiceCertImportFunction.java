@@ -29,7 +29,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
@@ -88,13 +87,14 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
         {
             if ( actionName.equals( loopConfiguration.getName() ) )
             {
-                final RemoteWebServiceConfiguration newConfig = JsonUtil.cloneUsingJson( loopConfiguration, RemoteWebServiceConfiguration.class );
-                newConfig.setCertificates( certs );
+                final RemoteWebServiceConfiguration newConfig = loopConfiguration.toBuilder()
+                        .certificates( certs )
+                        .build();
                 newList.add( newConfig );
             }
             else
             {
-                newList.add( JsonUtil.cloneUsingJson( loopConfiguration, RemoteWebServiceConfiguration.class ) );
+                newList.add( loopConfiguration );
             }
         }
         final RemoteWebServiceValue newActionValue = new RemoteWebServiceValue( newList );

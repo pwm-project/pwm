@@ -261,7 +261,12 @@ public class PropertyConfigurationImporter
             final String value = inputMap.get( propertyKey.name() );
             if ( !StringUtil.isEmpty( value ) )
             {
-                permissions.add( new UserPermission( UserPermission.Type.ldapQuery, LDAP_PROFILE, filter, value ) );
+                permissions.add( UserPermission.builder()
+                        .type( UserPermission.Type.ldapQuery )
+                        .ldapProfileID( LDAP_PROFILE )
+                        .ldapQuery( filter )
+                        .ldapBase( value )
+                        .build() );
             }
         }
 

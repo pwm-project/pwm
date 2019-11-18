@@ -38,11 +38,11 @@ import java.util.stream.Collectors;
 
 public class NumericArrayValue extends AbstractValue implements StoredValue
 {
-    List<Long> values;
+    private final List<Long> values;
 
     public NumericArrayValue( final List<Long> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyList() : Collections.unmodifiableList( values );
     }
 
     public static StoredValueFactory factory( )

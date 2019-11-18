@@ -105,8 +105,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
                         );
                         decodedValue.ifPresent( ( s ) ->
                         {
-                            parsedValue.setPassword( s );
-                            values.add( parsedValue );
+                            values.add( parsedValue.toBuilder().password( s ).build() );
                         } );
                     }
                 }
@@ -121,20 +120,21 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         for ( final RemoteWebServiceConfiguration value : values )
         {
             final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-            final RemoteWebServiceConfiguration clonedValue = JsonUtil.cloneUsingJson( value, RemoteWebServiceConfiguration.class );
+
+            String encodedValue = value.getPassword();
             try
             {
-                final String encodedValue = StoredValueEncoder.encode(
-                        clonedValue.getPassword(),
+                encodedValue = StoredValueEncoder.encode(
+                        value.getPassword(),
                         outputConfiguration.getSecureOutputMode(),
                         outputConfiguration.getPwmSecurityKey() );
-                clonedValue.setPassword( encodedValue );
             }
             catch ( final PwmOperationalException e )
             {
                 LOGGER.warn( "error decoding stored pw value: " + e.getMessage() );
             }
 
+            final RemoteWebServiceConfiguration clonedValue = value.toBuilder().password( encodedValue ).build();
             valueElement.addText( JsonUtil.serialize( clonedValue ) );
             returnList.add( valueElement );
         }
@@ -215,12 +215,14 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         final ArrayList<RemoteWebServiceConfiguration> output = new ArrayList<>();
         for ( final RemoteWebServiceConfiguration remoteWebServiceConfiguration : values )
         {
-            final RemoteWebServiceConfiguration clone = JsonUtil.cloneUsingJson( remoteWebServiceConfiguration, RemoteWebServiceConfiguration.class );
-            if ( !StringUtil.isEmpty( clone.getPassword() ) )
+            if ( !StringUtil.isEmpty( remoteWebServiceConfiguration.getPassword() ) )
             {
-                clone.setPassword( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
+                output.add( remoteWebServiceConfiguration.toBuilder().password( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT ).build() );
             }
-            output.add( clone );
+            else
+            {
+                output.add( remoteWebServiceConfiguration );
+            }
         }
         return output;
     }

@@ -42,11 +42,11 @@ import java.util.TreeMap;
 public class EmailValue extends AbstractValue implements StoredValue
 {
     //key is locale identifier
-    final Map<String, EmailItemBean> values;
+    private final Map<String, EmailItemBean> values;
 
     EmailValue( final Map<String, EmailItemBean> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
     }
 
     public static StoredValueFactory factory( )

@@ -38,11 +38,11 @@ import java.util.regex.Pattern;
 
 public class StringArrayValue extends AbstractValue implements StoredValue
 {
-    final List<String> values;
+    private final List<String> values;
 
     public StringArrayValue( final List<String> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyList() : Collections.unmodifiableList( values );
     }
 
     public static StoredValueFactory factory( )

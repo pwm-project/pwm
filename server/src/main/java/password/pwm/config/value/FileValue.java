@@ -25,7 +25,7 @@ import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.error.PwmOperationalException;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.JsonUtil;
@@ -53,6 +53,8 @@ public class FileValue extends AbstractValue implements StoredValue
     private static final PwmLogger LOGGER = PwmLogger.forClass( FileValue.class );
 
     private static final int ENCODING_LINE_LENGTH = 120;
+    private static final String XML_ELEMENT_FILE_INFORMATION = "FileInformation";
+    private static final String XML_ELEMENT_FILE_CONTENT = "FileContent";
 
     private final Map<FileInformation, FileContent> values;
 
@@ -61,28 +63,28 @@ public class FileValue extends AbstractValue implements StoredValue
     {
         private String filename;
         private String filetype;
-   }
+    }
 
     @Value
     public static class FileContent implements Serializable
     {
         private ImmutableByteArray contents;
 
-
-        public static FileContent fromEncodedString( final String input )
+        static FileContent fromEncodedString( final String input )
                 throws IOException
         {
-            final byte[] convertedBytes = StringUtil.base64Decode( input );
+            final String whitespaceStrippedInput = StringUtil.stripAllWhitespace( input );
+            final byte[] convertedBytes = StringUtil.base64Decode( whitespaceStrippedInput );
             return new FileContent( ImmutableByteArray.of( convertedBytes ) );
         }
 
-        public String toEncodedString( )
+        String toEncodedString( )
                 throws IOException
         {
             return StringUtil.base64Encode( contents.copyOf(), StringUtil.Base64Options.GZIP );
         }
 
-        public String sha512sum( )
+        String sha512sum( )
                 throws PwmUnrecoverableException
         {
             return SecureEngine.hash( new ByteArrayInputStream( contents.copyOf() ), PwmHashAlgorithm.SHA512 );
@@ -96,7 +98,7 @@ public class FileValue extends AbstractValue implements StoredValue
 
     public FileValue( final Map<FileInformation, FileContent> values )
     {
-        this.values = values == null ? Collections.emptyMap() : values;
+        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
     }
 
     public static StoredValueFactory factory( )
@@ -105,20 +107,19 @@ public class FileValue extends AbstractValue implements StoredValue
         {
 
             public FileValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
-                    throws PwmOperationalException
             {
-                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final Map<FileInformation, FileContent> values = new LinkedHashMap<>();
                 for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final Optional<XmlElement> loopFileInformation = loopValueElement.getChild( "FileInformation" );
+                    final Optional<XmlElement> loopFileInformation = loopValueElement.getChild( XML_ELEMENT_FILE_INFORMATION );
                     if ( loopFileInformation.isPresent() )
                     {
                         final String loopFileInformationJson = loopFileInformation.get().getText();
                         final FileInformation fileInformation = JsonUtil.deserialize( loopFileInformationJson,
                                 FileInformation.class );
 
-                        final Optional<XmlElement> loopFileContentElement = loopValueElement.getChild( "FileContent" );
+                        final Optional<XmlElement> loopFileContentElement = loopValueElement.getChild( XML_ELEMENT_FILE_CONTENT );
                         if ( loopFileContentElement.isPresent() )
                         {
                             final String fileContentString = loopFileContentElement.get().getText();
@@ -154,15 +155,17 @@ public class FileValue extends AbstractValue implements StoredValue
             final FileContent fileContent = entry.getValue();
             final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
 
-            final XmlElement fileInformationElement = XmlFactory.getFactory().newElement( "FileInformation" );
+            final XmlElement fileInformationElement = XmlFactory.getFactory().newElement( XML_ELEMENT_FILE_INFORMATION );
             fileInformationElement.addText( JsonUtil.serialize( fileInformation ) );
             valueElement.addContent( fileInformationElement );
 
-            final XmlElement fileContentElement = XmlFactory.getFactory().newElement( "FileContent" );
-            //final String encodedLineBreaks = StringUtil.insertineBreaks( fileContent.toEncodedString(), ENCODING_LINE_LENGTH );
+            final XmlElement fileContentElement = XmlFactory.getFactory().newElement( XML_ELEMENT_FILE_CONTENT );
+
             try
             {
-                fileContentElement.addText( fileContent.toEncodedString() );
+                final String encodedLineBreaks = StringUtil.insertRepeatedLineBreaks(
+                        fileContent.toEncodedString(), ENCODING_LINE_LENGTH );
+                fileContentElement.addText( encodedLineBreaks );
             }
             catch ( final IOException e )
             {
@@ -202,7 +205,7 @@ public class FileValue extends AbstractValue implements StoredValue
         return ( Serializable ) asMetaData();
     }
 
-    public List<Map<String, Object>> asMetaData( )
+    List<Map<String, Object>> asMetaData( )
     {
         final List<Map<String, Object>> output = new ArrayList<>();
         for ( final Map.Entry<FileInformation, FileContent> entry : this.values.entrySet() )

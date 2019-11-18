@@ -40,11 +40,11 @@ import java.util.regex.Pattern;
 
 public class LocalizedStringArrayValue extends AbstractValue implements StoredValue
 {
-    final Map<String, List<String>> values;
+    private final Map<String, List<String>> values;
 
     LocalizedStringArrayValue( final Map<String, List<String>> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
     }
 
     public static StoredValueFactory factory( )

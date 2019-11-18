@@ -40,13 +40,13 @@ import java.util.Locale;
 
 public class UserPermissionValue extends AbstractValue implements StoredValue
 {
-    final List<UserPermission> values;
+    private final List<UserPermission> values;
 
     private boolean needsXmlUpdate;
 
     public UserPermissionValue( final List<UserPermission> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyList() : Collections.unmodifiableList( values );
     }
 
     public static StoredValueFactory factory( )
@@ -57,14 +57,14 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
             {
                 if ( input == null )
                 {
-                    return new UserPermissionValue( Collections.<UserPermission>emptyList() );
+                    return new UserPermissionValue( Collections.emptyList() );
                 }
                 else
                 {
                     List<UserPermission> srcList = JsonUtil.deserialize( input, new TypeToken<List<UserPermission>>()
                     {
                     } );
-                    srcList = srcList == null ? Collections.<UserPermission>emptyList() : srcList;
+                    srcList = srcList == null ? Collections.emptyList() : srcList;
                     while ( srcList.contains( null ) )
                     {
                         srcList.remove( null );
@@ -92,7 +92,10 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                         }
                         else
                         {
-                            values.add( new UserPermission( UserPermission.Type.ldapQuery, null, value, null ) );
+                            values.add( UserPermission.builder()
+                                    .type( UserPermission.Type.ldapQuery )
+                                    .ldapQuery( value )
+                                    .build() );
                         }
                     }
                 }

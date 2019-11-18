@@ -484,7 +484,7 @@ public class StoredConfigurationFactory
                             final StoredValue storedValue = storedConfiguration.readSetting( pwmSetting, profileID );
                             final XmlElement settingElement = makeSettingXmlElement( pwmSetting, profileID, storedValue, pwmSecurityKey );
                             decorateElementWithMetaData( storedConfiguration, StoredConfigItemKey.fromSetting( pwmSetting, profileID ), settingElement );
-                            settingsElement.addContent( settingsElement );
+                            settingsElement.addContent( settingElement );
                         }
                     }
                     else
@@ -492,7 +492,7 @@ public class StoredConfigurationFactory
                         final StoredValue storedValue = storedConfiguration.readSetting( pwmSetting, null );
                         final XmlElement settingElement = makeSettingXmlElement( pwmSetting, null, storedValue, pwmSecurityKey );
                         decorateElementWithMetaData( storedConfiguration, StoredConfigItemKey.fromSetting( pwmSetting, null ), settingElement );
-                        settingsElement.addContent( settingsElement );
+                        settingsElement.addContent( settingElement );
                     }
                 }
             }

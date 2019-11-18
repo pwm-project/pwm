@@ -346,12 +346,12 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         catch ( Exception e )
         {
             final String errorString = "error saving file: " + e.getMessage();
-            LOGGER.error( pwmRequest, errorString );
+            LOGGER.error( pwmRequest, errorString, e );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                     {
                             errorString,
                     }
-            ) );
+            ), e );
         }
 
     }

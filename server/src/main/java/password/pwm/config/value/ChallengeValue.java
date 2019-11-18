@@ -43,11 +43,11 @@ public class ChallengeValue extends AbstractValue implements StoredValue
     private static final PwmLogger LOGGER = PwmLogger.forClass( ChallengeValue.class );
 
     //locale str as key.
-    final Map<String, List<ChallengeItemConfiguration>> values;
+    private final Map<String, List<ChallengeItemConfiguration>> values;
 
     ChallengeValue( final Map<String, List<ChallengeItemConfiguration>> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
     }
 
     public static StoredValueFactory factory( )
@@ -231,7 +231,12 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             adminDefined = false;
         }
 
-        return new ChallengeItemConfiguration( challengeText, minLength, maxLength, adminDefined );
+        return ChallengeItemConfiguration.builder()
+                .text( challengeText )
+                .minLength( minLength )
+                .maxLength( maxLength )
+                .adminDefined( adminDefined )
+                .build();
     }
 
     public String toDebugString( final Locale locale )

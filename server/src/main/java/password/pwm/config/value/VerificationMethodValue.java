@@ -37,7 +37,6 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -48,7 +47,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( VerificationMethodValue.class );
 
-    private VerificationMethodSettings value = new VerificationMethodSettings();
+    private final VerificationMethodSettings value;
 
 
     public enum EnabledState
@@ -60,16 +59,18 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
     public static class VerificationMethodSettings implements Serializable
     {
-        private Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings = new HashMap<>();
-        private int minOptionalRequired;
+        private final Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings;
+        private final int minOptionalRequired;
 
         public VerificationMethodSettings( )
         {
+            methodSettings = Collections.emptyMap();
+            minOptionalRequired = 0;
         }
 
         public VerificationMethodSettings( final Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings, final int minOptionalRequired )
         {
-            this.methodSettings = methodSettings;
+            this.methodSettings = methodSettings == null ? Collections.emptyMap() : Collections.unmodifiableMap( methodSettings );
             this.minOptionalRequired = minOptionalRequired;
         }
 
@@ -89,7 +90,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     @Value
     public static class VerificationMethodSetting implements Serializable
     {
-        private final EnabledState enabledState;
+        private EnabledState enabledState;
     }
 
     public VerificationMethodValue( )

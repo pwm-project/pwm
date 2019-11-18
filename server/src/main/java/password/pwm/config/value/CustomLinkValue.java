@@ -21,7 +21,7 @@
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
-import password.pwm.config.CustomLinkConfiguration;
+import password.pwm.config.value.data.CustomLinkConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
@@ -39,11 +39,11 @@ import java.util.Set;
 
 public class CustomLinkValue extends AbstractValue implements StoredValue
 {
-    final List<CustomLinkConfiguration> values;
+    private final List<CustomLinkConfiguration> values;
 
     public CustomLinkValue( final List<CustomLinkConfiguration> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyList() : Collections.unmodifiableList( values );
     }
 
     public static StoredValueFactory factory( )

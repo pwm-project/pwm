@@ -38,7 +38,7 @@ import java.util.Optional;
 
 public class BooleanValue implements StoredValue
 {
-    private boolean value;
+    private final boolean value;
 
     public BooleanValue( final boolean value )
     {

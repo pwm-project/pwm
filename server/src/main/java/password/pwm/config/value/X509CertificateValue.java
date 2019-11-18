@@ -22,6 +22,7 @@ package password.pwm.config.value;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.XmlElement;
@@ -47,7 +48,7 @@ import java.util.Map;
 public class X509CertificateValue extends AbstractValue implements StoredValue
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( X509CertificateValue.class );
-    private X509Certificate[] certificates;
+    private final X509Certificate[] certificates;
 
     public static StoredValueFactory factory( )
     {
@@ -56,7 +57,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
             public X509CertificateValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
                 final List<X509Certificate> certificates = new ArrayList<>();
-                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 for ( final XmlElement loopValueElement : valueElements )
                 {
                     final String b64encodedStr = loopValueElement.getText();
@@ -99,7 +100,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
         {
             throw new NullPointerException( "certificates cannot be null" );
         }
-        this.certificates = certificates.toArray( new X509Certificate[ certificates.size() ] );
+        this.certificates = certificates.toArray( new X509Certificate[0] );
     }
 
 

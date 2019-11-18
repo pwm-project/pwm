@@ -54,7 +54,7 @@ public class PrivateKeyValue extends AbstractValue
     private static final String ELEMENT_NAME_CERTIFICATE = "certificate";
     private static final String ELEMENT_NAME_KEY = "key";
 
-    private PrivateKeyCertificate privateKeyCertificate;
+    private final PrivateKeyCertificate privateKeyCertificate;
 
     public static StoredValue.StoredValueFactory factory( )
     {

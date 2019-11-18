@@ -119,6 +119,29 @@ public class XodusLocalDB implements LocalDBProvider
 
         final EnvironmentConfig environmentConfig = makeEnvironmentConfig( initParameters );
 
+        if ( Files.exists( getDirtyFile().toPath() ) )
+        {
+            environmentConfig.setGcUtilizationFromScratch( true );
+            LOGGER.warn( "environment not closed cleanly, will re-calculate GC" );
+        }
+        else
+        {
+            LOGGER.debug( () -> "environment was closed cleanly" );
+        }
+
+        try
+        {
+            if ( !getDirtyFile().exists() )
+            {
+                Files.createFile( getDirtyFile().toPath() );
+                LOGGER.trace( () -> "created openLock file" );
+            }
+        }
+        catch ( IOException e )
+        {
+            LOGGER.error( "error creating openLock file: " + e.getMessage() );
+        }
+
         {
             final boolean compressionEnabled = initParameters.containsKey( Property.Compression_Enabled.getKeyName() )
                     ? Boolean.parseBoolean( initParameters.get( Property.Compression_Enabled.getKeyName() ) )
@@ -166,6 +189,17 @@ public class XodusLocalDB implements LocalDBProvider
         {
             environment.close();
         }
+
+        try
+        {
+            Files.deleteIfExists( getDirtyFile().toPath() );
+            LOGGER.trace( () -> "deleted openLock file" );
+        }
+        catch ( final IOException e )
+        {
+            LOGGER.error( "error creating openLock file: " + e.getMessage() );
+        }
+
         status = LocalDB.Status.CLOSED;
         LOGGER.debug( () -> "closed (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
     }
@@ -176,7 +210,6 @@ public class XodusLocalDB implements LocalDBProvider
         environmentConfig.setEnvCloseForcedly( true );
         environmentConfig.setMemoryUsage( 50 * 1024 * 1024 );
         environmentConfig.setEnvGatherStatistics( true );
-        environmentConfig.setGcUtilizationFromScratch( true );
 
         for ( final Map.Entry<String, String> entry : initParameters.entrySet() )
         {
@@ -626,5 +659,10 @@ public class XodusLocalDB implements LocalDBProvider
         {
             LOGGER.error( "error writing LocalDB readme file: " + e.getMessage() );
         }
+    }
+
+    private File getDirtyFile()
+    {
+        return new File( this.getFileLocation().getAbsolutePath() + File.separator + FILE_SUB_PATH + File.separator + "xodus.open" );
     }
 }

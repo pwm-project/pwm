@@ -123,4 +123,148 @@ public class ActionConfiguration implements Serializable
             }
         }
     }
+
+    @Value
+    @Builder( toBuilder = true )
+    public static class ActionConfigurationOldVersion1 implements Serializable
+    {
+        public enum Type
+        {
+            webservice,
+            ldap,;
+        }
+
+        public enum WebMethod
+        {
+            delete( ActionConfiguration.WebMethod.delete ),
+            get( ActionConfiguration.WebMethod.get ),
+            post( ActionConfiguration.WebMethod.post ),
+            put( ActionConfiguration.WebMethod.put ),
+            patch( ActionConfiguration.WebMethod.patch ),;
+
+            private final ActionConfiguration.WebMethod newMethod;
+
+            WebMethod( final ActionConfiguration.WebMethod newMethod )
+            {
+                this.newMethod = newMethod;
+            }
+
+            public ActionConfiguration.WebMethod getNewMethod( )
+            {
+                return newMethod;
+            }
+        }
+
+        public enum LdapMethod
+        {
+            replace( ActionConfiguration.LdapMethod.replace ),
+            add( ActionConfiguration.LdapMethod.add ),
+            remove( ActionConfiguration.LdapMethod.remove ),;
+
+            private final ActionConfiguration.LdapMethod newMethod;
+
+            LdapMethod( final ActionConfiguration.LdapMethod newType )
+            {
+                this.newMethod = newType;
+            }
+
+            public ActionConfiguration.LdapMethod getNewMethod( )
+            {
+                return newMethod;
+            }
+        }
+
+        private String name;
+        private String description;
+
+        @Builder.Default
+        private Type type = Type.webservice;
+
+        @Builder.Default
+        private WebMethod method = WebMethod.get;
+
+        private Map<String, String> headers;
+        private String url;
+        private String body;
+        private String username;
+        private String password;
+        private List<X509Certificate> certificates;
+
+        private LdapMethod ldapMethod = LdapMethod.replace;
+        private String attributeName;
+        private String attributeValue;
+
+        public static ActionConfigurationOldVersion1 parseOldConfigString( final String value )
+        {
+            final String[] splitString = value.split( "=" );
+            final String attributeName = splitString[ 0 ];
+            final String attributeValue = splitString[ 1 ];
+            return ActionConfigurationOldVersion1.builder()
+                    .name( attributeName )
+                    .description( attributeName )
+                    .type( Type.ldap )
+                    .attributeName( attributeName )
+                    .attributeValue( attributeValue )
+                    .build();
+        }
+
+        public void validate( ) throws PwmOperationalException
+        {
+            if ( this.getName() == null || this.getName().length() < 1 )
+            {
+                throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
+                        {
+                                " form field name is required",
+                        }
+                ) );
+            }
+
+            if ( this.getType() == null )
+            {
+                throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
+                        {
+                                " type is required for field " + this.getName(),
+                        }
+                ) );
+            }
+
+            if ( this.getType() == Type.webservice )
+            {
+                if ( this.getMethod() == null )
+                {
+                    throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
+                            {
+                                    " method for webservice action " + this.getName() + " is required",
+                            }
+                    ) );
+                }
+                if ( this.getUrl() == null || this.getUrl().length() < 1 )
+                {
+                    throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
+                            {
+                                    " url for webservice action " + this.getName() + " is required",
+                            } ) );
+                }
+            }
+            else if ( this.getType() == Type.ldap )
+            {
+                if ( this.getAttributeName() == null || this.getAttributeName().length() < 1 )
+                {
+                    throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
+                            {
+                                    " attribute name for ldap action " + this.getName() + " is required",
+                            }
+                    ) );
+                }
+                if ( this.getAttributeValue() == null || this.getAttributeValue().length() < 1 )
+                {
+                    throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
+                            {
+                                    " attribute value for ldap action " + this.getName() + " is required",
+                            }
+                    ) );
+                }
+            }
+        }
+    }
 }

@@ -54,16 +54,16 @@ public class NamedSecretValue implements StoredValue
     private static final String ELEMENT_PASSWORD = "password";
     private static final String ELEMENT_USAGE = "usage";
 
-    private Map<String, NamedSecretData> values;
+    private final Map<String, NamedSecretData> values;
 
     NamedSecretValue( )
     {
+        values = Collections.emptyMap();
     }
-
 
     public NamedSecretValue( final Map<String, NamedSecretData> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
     }
 
     public static StoredValue.StoredValueFactory factory( )

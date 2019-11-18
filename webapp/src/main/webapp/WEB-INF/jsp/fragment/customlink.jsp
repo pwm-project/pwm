@@ -28,7 +28,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
-<%@ page import="password.pwm.config.CustomLinkConfiguration" %>
+<%@ page import="password.pwm.config.value.data.CustomLinkConfiguration" %>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 

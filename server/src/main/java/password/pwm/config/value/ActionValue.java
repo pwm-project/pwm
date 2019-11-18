@@ -28,7 +28,6 @@ import password.pwm.config.StoredValue;
 import password.pwm.config.StoredValueEncoder;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.value.data.ActionConfiguration;
-import password.pwm.config.value.data.ActionConfigurationOldVersion1;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -113,13 +112,15 @@ public class ActionValue extends AbstractValue implements StoredValue
                             {
                                 if ( loopValueElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ) == null )
                                 {
-                                    final ActionConfigurationOldVersion1 oldVersion1 = ActionConfigurationOldVersion1.parseOldConfigString( stringValue );
+                                    final ActionConfiguration.ActionConfigurationOldVersion1 oldVersion1 = ActionConfiguration.ActionConfigurationOldVersion1
+                                            .parseOldConfigString( stringValue );
                                     values.add( convertOldVersion1Values( oldVersion1 ) );
                                 }
                             }
                             else
                             {
-                                final ActionConfigurationOldVersion1 parsedAc = JsonUtil.deserialize( stringValue, ActionConfigurationOldVersion1.class );
+                                final ActionConfiguration.ActionConfigurationOldVersion1 parsedAc = JsonUtil
+                                        .deserialize( stringValue, ActionConfiguration.ActionConfigurationOldVersion1.class );
                                 if ( parsedAc != null )
                                 {
                                     final Optional<String> decodedValue = StoredValueEncoder.decode(
@@ -128,8 +129,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                                             pwmSecurityKey );
                                     decodedValue.ifPresent( s ->
                                     {
-                                        parsedAc.setPassword( s );
-                                        values.add( convertOldVersion1Values( parsedAc ) );
+                                        values.add( convertOldVersion1Values( parsedAc.toBuilder().password( s ).build() ) );
                                     } );
                                 }
                             }
@@ -407,7 +407,7 @@ public class ActionValue extends AbstractValue implements StoredValue
         return 0;
     }
 
-    private static ActionConfiguration convertOldVersion1Values( final ActionConfigurationOldVersion1 oldAction )
+    private static ActionConfiguration convertOldVersion1Values( final ActionConfiguration.ActionConfigurationOldVersion1 oldAction )
     {
         final ActionConfiguration.ActionConfigurationBuilder builder = ActionConfiguration.builder();
         builder.name( oldAction.getName() );

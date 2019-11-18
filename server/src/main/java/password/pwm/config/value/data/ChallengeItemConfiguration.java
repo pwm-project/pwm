@@ -20,11 +20,13 @@
 
 package password.pwm.config.value.data;
 
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Value;
 
 import java.io.Serializable;
 
-@Getter
+@Value
+@Builder
 public class ChallengeItemConfiguration implements Serializable
 {
     private String text;
@@ -37,17 +39,4 @@ public class ChallengeItemConfiguration implements Serializable
     private int points;
     private String setupGuide;
     private String regex;
-
-    public ChallengeItemConfiguration(
-            final String challengeText,
-            final int minimumLength,
-            final int maximumLength,
-            final boolean adminDefined
-    )
-    {
-        this.text = challengeText;
-        this.minLength = minimumLength;
-        this.maxLength = maximumLength;
-        this.adminDefined = adminDefined;
-    }
 }

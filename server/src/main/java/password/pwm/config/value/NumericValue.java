@@ -35,7 +35,7 @@ import java.util.Optional;
 
 public class NumericValue extends AbstractValue implements StoredValue
 {
-    private long value;
+    private final long value;
 
     public NumericValue( final long value )
     {

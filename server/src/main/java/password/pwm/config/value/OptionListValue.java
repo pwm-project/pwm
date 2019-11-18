@@ -39,11 +39,11 @@ import java.util.TreeSet;
 
 public class OptionListValue extends AbstractValue implements StoredValue
 {
-    final Set<String> values;
+    private final Set<String> values;
 
     public OptionListValue( final Set<String> values )
     {
-        this.values = new TreeSet( values );
+        this.values = values == null ? Collections.emptySet() : Collections.unmodifiableSet( new TreeSet<>( values ) );
     }
 
     public static StoredValueFactory factory( )
