@@ -21,7 +21,7 @@
         "@microfocus/ng-ias": "1.0.1",
         "@microfocus/ux-ias": "1.1.2",
         "@uirouter/angularjs": "1.0.15",
-        "angular": "1.7.8",
+        "angular": "1.7.9",
         "angular-aria": "1.7.8",
         "angular-sanitize": "1.7.8",
         "angular-translate": "2.18.1",
