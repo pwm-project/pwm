@@ -24,8 +24,8 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.config.StoredValueEncoder;
 import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JsonUtil;
@@ -100,7 +100,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
                         final RemoteWebServiceConfiguration parsedValue = JsonUtil.deserialize( value, RemoteWebServiceConfiguration.class );
                         final Optional<String> decodedValue = StoredValueEncoder.decode(
                                 parsedValue.getPassword(),
-                                StoredValueEncoder.SecureOutputMode.Encoded,
+                                StoredValueEncoder.Mode.ENCODED,
                                 pwmSecurityKey
                         );
                         decodedValue.ifPresent( ( s ) ->
@@ -114,7 +114,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final RemoteWebServiceConfiguration value : values )
@@ -126,8 +126,8 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
             {
                 encodedValue = StoredValueEncoder.encode(
                         value.getPassword(),
-                        outputConfiguration.getSecureOutputMode(),
-                        outputConfiguration.getPwmSecurityKey() );
+                        xmlOutputProcessData.getStoredValueEncoderMode(),
+                        xmlOutputProcessData.getPwmSecurityKey() );
             }
             catch ( final PwmOperationalException e )
             {

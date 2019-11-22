@@ -60,6 +60,7 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -301,11 +302,9 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
         if ( persistentSeconds > 0 )
         {
-            final TimeDuration persistenceDuration = TimeDuration.of( persistentSeconds, TimeDuration.Unit.SECONDS );
-            final Instant expirationDate = persistenceDuration.incrementFromInstant( Instant.now() );
             final StoredConfiguration storedConfig = pwmRequest.getConfig().getStoredConfiguration();
             final String persistentLoginValue = makePersistentLoginPassword( pwmRequest, storedConfig );
-            final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo( expirationDate, persistentLoginValue );
+            final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo( Instant.now(), persistentLoginValue );
             final String cookieValue = pwmRequest.getPwmApplication().getSecureService().encryptObjectToString( persistentLoginInfo );
             pwmRequest.getPwmResponse().writeCookie(
                     COOKIE_NAME,
@@ -313,10 +312,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
                     persistentSeconds,
                     COOKIE_PATH
             );
-            LOGGER.debug( pwmRequest, () -> "set persistent config login cookie (expires "
-                    + JavaHelper.toIsoDate( expirationDate )
-                    + ")"
-            );
+            LOGGER.debug( pwmRequest, () -> "issued persistent config login cookie" );
         }
     }
 
@@ -339,25 +335,41 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             if ( !StringUtil.isEmpty( cookieValue ) )
             {
                 final PersistentLoginInfo persistentLoginInfo = pwmRequest.getPwmApplication().getSecureService().decryptObject( cookieValue, PersistentLoginInfo.class );
-                if ( persistentLoginInfo != null )
+                if ( persistentLoginInfo != null && persistentLoginInfo.getIssueTimestamp() != null )
                 {
-                    if ( persistentLoginInfo.getExpireDate().isAfter( Instant.now() ) )
+                    final int maxLoginSeconds = figureMaxLoginSeconds( pwmRequest );
+                    final TimeDuration cookieAge = TimeDuration.fromCurrent( persistentLoginInfo.getIssueTimestamp() );
+
+                    if ( cookieAge.isShorterThan( TimeDuration.of( maxLoginSeconds, TimeDuration.Unit.SECONDS ) ) )
                     {
                         final String persistentLoginPassword = makePersistentLoginPassword( pwmRequest, storedConfig );
                         if ( StringUtil.nullSafeEquals( persistentLoginPassword, persistentLoginInfo.getPassword() ) )
                         {
-                            LOGGER.debug( pwmRequest, () -> "accepting persistent config login from cookie (expires "
-                                    + JavaHelper.toIsoDate( persistentLoginInfo.getExpireDate() )
+                            final Instant expireTime = Instant.now().plus( maxLoginSeconds, ChronoUnit.SECONDS );
+                            LOGGER.debug( pwmRequest, () -> "accepting persistent config login from cookie (expires at "
+                                    + expireTime.toString()
                                     + ")"
                             );
 
                             final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
                             configManagerBean.setPasswordVerified( true );
                         }
+                        else
+                        {
+                            LOGGER.debug( pwmRequest, () -> "discarding persistent login cookie with incorrect password value" );
+                            pwmRequest.getPwmResponse().removeCookie( COOKIE_NAME, COOKIE_PATH );
+                        }
                     }
-
+                    else
+                    {
+                        LOGGER.debug( pwmRequest, () -> "removing expired (" + cookieAge.asCompactString() + ") persistent config login cookie" );
+                        pwmRequest.getPwmResponse().removeCookie( COOKIE_NAME, COOKIE_PATH );
+                    }
+                }
+                else
+                {
+                    LOGGER.debug( pwmRequest, () -> "discarding invalid persistent login cookie " );
                     pwmRequest.getPwmResponse().removeCookie( COOKIE_NAME, COOKIE_PATH );
-                    LOGGER.debug( pwmRequest, () -> "removing non-working persistent config login cookie" );
                 }
             }
         }
@@ -371,8 +383,8 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     @Value
     private static class PersistentLoginInfo implements Serializable
     {
-        @SerializedName( "e" )
-        private Instant expireDate;
+        @SerializedName( "i" )
+        private Instant issueTimestamp;
 
         @SerializedName( "p" )
         private String password;

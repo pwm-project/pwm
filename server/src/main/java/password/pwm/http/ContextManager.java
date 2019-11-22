@@ -228,7 +228,6 @@ public class ContextManager implements Serializable
             configurationFile = locateConfigurationFile( applicationPath, PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
 
             configReader = new ConfigurationReader( configurationFile );
-            configReader.getStoredConfiguration().lock();
             configuration = configReader.getConfiguration();
 
             mode = startupErrorInformation == null ? configReader.getConfigMode() : PwmApplicationMode.ERROR;

@@ -20,6 +20,8 @@
 
 package password.pwm.config.stored;
 
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -28,8 +30,8 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.StoredValue;
-import password.pwm.config.StoredValueEncoder;
 import password.pwm.config.value.LocalizedStringValue;
+import password.pwm.config.value.StoredValueEncoder;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.PwmException;
@@ -51,10 +53,8 @@ import java.io.OutputStream;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -71,10 +71,18 @@ public class StoredConfigurationFactory
     private static final String XML_FORMAT_VERSION = "5";
 
 
-    public static StoredConfiguration newStoredConfiguration()
+    public static StoredConfiguration newStoredConfiguration() throws PwmUnrecoverableException
     {
+        final StoredConfiguration storedConfiguration = new StoredConfigurationImpl(  );
+
+        StoredConfigurationUtil.initNewRandomSecurityKey( storedConfiguration );
+        storedConfiguration.writeConfigProperty(
+                ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( true ) );
+        storedConfiguration.writeConfigProperty(
+                ConfigurationProperty.CONFIG_EPOCH, String.valueOf( 0 ) );
+
+
         return new StoredConfigurationImpl(  );
-        //return StoredConfigurationImpl.newStoredConfiguration();
     }
 
     public static StoredConfiguration fromXml( final InputStream inputStream )
@@ -92,13 +100,26 @@ public class StoredConfigurationFactory
         return storedConfiguration;
     }
 
-    public static void toXml( final StoredConfiguration storedConfiguration, final OutputStream outputStream )
+    public static void toXml(
+            final StoredConfiguration storedConfiguration,
+            final OutputStream outputStream
+    )
+            throws PwmUnrecoverableException, IOException
+    {
+        toXml( storedConfiguration, outputStream, OutputSettings.builder().build() );
+    }
+
+    public static void toXml(
+            final StoredConfiguration storedConfiguration,
+            final OutputStream outputStream,
+            final OutputSettings outputSettings
+    )
             throws PwmUnrecoverableException, IOException
     {
         final XmlFactory xmlFactory = XmlFactory.getFactory();
         final XmlDocument xmlDocument = xmlFactory.newDocument( StoredConfigXmlConstants.XML_ELEMENT_ROOT );
 
-        XmlOutputHandler.makeXmlOutput( storedConfiguration, xmlDocument.getRootElement() );
+        XmlOutputHandler.makeXmlOutput( storedConfiguration, xmlDocument.getRootElement(), outputSettings );
 
         xmlFactory.outputDocument( xmlDocument, outputStream );
     }
@@ -117,42 +138,21 @@ public class StoredConfigurationFactory
             final String createTime = readCreateTime();
             final Instant modifyTime = readModifyTime();
 
-            final Map<StoredConfigItemKey, StoredValue> storedValues = new HashMap<>();
-            final Map<StoredConfigItemKey, ValueMetaData> metaDatas = new HashMap<>();
-            {
-                final Collection<StoredConfigData.ValueAndMetaTuple> properties = readProperties();
-                properties.forEach( ( t ) -> storedValues.put( t.getKey(), t.getValue() ) );
-                properties.stream()
-                        .filter( ( t ) -> t.getMetaData() != null )
-                        .forEach( ( t ) -> metaDatas.put( t.getKey(), t.getMetaData() ) );
-            }
-            {
-                final Collection<StoredConfigData.ValueAndMetaTuple> settings = readSettings();
-                settings.forEach( ( t ) -> storedValues.put( t.getKey(), t.getValue() ) );
-                settings.stream()
-                        .filter( ( t ) -> t.getMetaData() != null )
-                        .forEach( ( t ) -> metaDatas.put( t.getKey(), t.getMetaData() ) );
-            }
-
-            {
-                final Collection<StoredConfigData.ValueAndMetaTuple> localeBundles = readLocaleBundles();
-                localeBundles.forEach( ( t ) -> storedValues.put( t.getKey(), t.getValue() ) );
-                localeBundles.stream()
-                        .filter( ( t ) -> t.getMetaData() != null )
-                        .forEach( ( t ) -> metaDatas.put( t.getKey(), t.getMetaData() ) );
-            }
-
+            final List<StoredConfigData.ValueAndMetaCarrier> values = new ArrayList<>();
+            values.addAll( readProperties() );
+            values.addAll( readSettings() );
+            values.addAll( readLocaleBundles() );
             return StoredConfigData.builder()
                     .createTime( createTime )
                     .modifyTime( modifyTime )
-                    .metaDatas( metaDatas )
-                    .storedValues( storedValues )
+                    .metaDatas( StoredConfigData.carrierAsMetaDataMap( values ) )
+                    .storedValues( StoredConfigData.carrierAsStoredValueMap( values ) )
                     .build();
         }
 
-        private Collection<StoredConfigData.ValueAndMetaTuple> readProperties()
+        private Collection<StoredConfigData.ValueAndMetaCarrier> readProperties()
         {
-            final List<StoredConfigData.ValueAndMetaTuple> valueAndMetaWrapper = new ArrayList<>();
+            final List<StoredConfigData.ValueAndMetaCarrier> valueAndMetaWrapper = new ArrayList<>();
             for ( final ConfigurationProperty configurationProperty : ConfigurationProperty.values() )
             {
                 final Optional<XmlElement> propertyElement = xpathForConfigProperty( configurationProperty );
@@ -161,15 +161,15 @@ public class StoredConfigurationFactory
                     final StoredConfigItemKey key = StoredConfigItemKey.fromConfigurationProperty( configurationProperty );
                     final StoredValue storedValue = new StringValue( propertyElement.get().getText() );
                     final ValueMetaData metaData = readMetaDataFromXmlElement( key, propertyElement.get() ).orElse( null );
-                    valueAndMetaWrapper.add( new StoredConfigData.ValueAndMetaTuple( key, storedValue, metaData ) );
+                    valueAndMetaWrapper.add( new StoredConfigData.ValueAndMetaCarrier( key, storedValue, metaData ) );
                 }
             }
             return valueAndMetaWrapper;
         }
 
-        private Collection<StoredConfigData.ValueAndMetaTuple> readSettings()
+        private Collection<StoredConfigData.ValueAndMetaCarrier> readSettings()
         {
-            final List<StoredConfigData.ValueAndMetaTuple> returnList = new ArrayList<>();
+            final List<StoredConfigData.ValueAndMetaCarrier> returnList = new ArrayList<>();
             for ( final PwmSetting pwmSetting : PwmSetting.values() )
             {
                 if ( !pwmSetting.getCategory().hasProfiles() )
@@ -192,7 +192,7 @@ public class StoredConfigurationFactory
             return returnList;
         }
 
-        Optional<StoredConfigData.ValueAndMetaTuple> readSetting( final PwmSetting setting, final String profileID )
+        Optional<StoredConfigData.ValueAndMetaCarrier> readSetting( final PwmSetting setting, final String profileID )
         {
             final Optional<XmlElement> settingElement = xpathForSetting( setting, profileID );
 
@@ -211,7 +211,7 @@ public class StoredConfigurationFactory
                 final StoredValue storedValue = ValueFactory.fromXmlValues( setting, settingElement.get(), getKey() );
                 final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID );
                 final ValueMetaData metaData = readMetaDataFromXmlElement( key, settingElement.get() ).orElse( null );
-                return Optional.of( new StoredConfigData.ValueAndMetaTuple( key, storedValue, metaData ) );
+                return Optional.of( new StoredConfigData.ValueAndMetaCarrier( key, storedValue, metaData ) );
 
             }
             catch ( final PwmException e )
@@ -240,7 +240,7 @@ public class StoredConfigurationFactory
 
             final StoredValue effectiveValue;
             {
-                final Optional<StoredConfigData.ValueAndMetaTuple> configuredValue = readSetting( profileSetting, null );
+                final Optional<StoredConfigData.ValueAndMetaCarrier> configuredValue = readSetting( profileSetting, null );
                 if ( configuredValue.isPresent() )
                 {
                     effectiveValue = configuredValue.get().getValue();
@@ -253,9 +253,10 @@ public class StoredConfigurationFactory
 
             final List<String> settingValues = ( List<String> ) effectiveValue.toNativeObject();
             final LinkedList<String> profiles = new LinkedList<>( settingValues );
-            profiles.removeIf( profile -> StringUtil.isEmpty( profile ) );
+            profiles.removeIf( StringUtil::isEmpty );
             return Collections.unmodifiableList( profiles );
         }
+
 
         public PwmSecurityKey getKey() throws PwmUnrecoverableException
         {
@@ -324,12 +325,12 @@ public class StoredConfigurationFactory
             return null;
         }
 
-        private Collection<StoredConfigData.ValueAndMetaTuple> readLocaleBundles()
+        private Collection<StoredConfigData.ValueAndMetaCarrier> readLocaleBundles()
         {
-            final List<StoredConfigData.ValueAndMetaTuple> returnWrapper = new ArrayList<>();
+            final List<StoredConfigData.ValueAndMetaCarrier> returnWrapper = new ArrayList<>();
             for ( final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.values() )
             {
-                for ( final String key : pwmLocaleBundle.getKeys() )
+                for ( final String key : pwmLocaleBundle.getDisplayKeys() )
                 {
                     final String bundleName = pwmLocaleBundle.getKey();
                     final Optional<XmlElement> localeBundleElement = xpathForLocaleBundleSetting( bundleName, key );
@@ -347,7 +348,7 @@ public class StoredConfigurationFactory
                             final StoredConfigItemKey storedConfigItemKey = StoredConfigItemKey.fromLocaleBundle( pwmLocaleBundle, key );
                             final StoredValue storedValue = new LocalizedStringValue( bundleMap );
                             final ValueMetaData metaData = readMetaDataFromXmlElement( storedConfigItemKey, localeBundleElement.get() ).orElse( null );
-                            returnWrapper.add( new StoredConfigData.ValueAndMetaTuple( storedConfigItemKey, storedValue, metaData ) );
+                            returnWrapper.add( new StoredConfigData.ValueAndMetaCarrier( storedConfigItemKey, storedValue, metaData ) );
                         }
                     }
                 }
@@ -448,8 +449,19 @@ public class StoredConfigurationFactory
 
     static class XmlOutputHandler
     {
-        static void makeXmlOutput( final StoredConfiguration storedConfiguration, final XmlElement rootElement )
+        static void makeXmlOutput( final StoredConfiguration storedConfiguration, final XmlElement rootElement, final OutputSettings outputSettings )
                 throws PwmUnrecoverableException
+        {
+            decorateRootElement( rootElement, storedConfiguration );
+
+            rootElement.addContent( makePropertiesElement( storedConfiguration ) );
+
+            rootElement.addContent( makeSettingsXmlElement( storedConfiguration, outputSettings ) );
+
+            rootElement.addContent( XmlOutputHandler.makeLocaleBundleXmlElements( storedConfiguration ) );
+        }
+
+        static void decorateRootElement( final XmlElement rootElement, final StoredConfiguration storedConfiguration )
         {
             rootElement.setComment( Collections.singletonList( generateCommentText() ) );
             rootElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_PWM_VERSION, PwmConstants.BUILD_VERSION );
@@ -458,22 +470,25 @@ public class StoredConfigurationFactory
 
             rootElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_CREATE_TIME, storedConfiguration.createTime() );
             rootElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate( storedConfiguration.modifyTime() ) );
-
-            final PwmSecurityKey pwmSecurityKey = storedConfiguration.getKey();
-
-            rootElement.addContent( makePropertiesElement( storedConfiguration ) );
-
-            rootElement.addContent( makeSettingsXmlElement( storedConfiguration, pwmSecurityKey ) );
-
-            rootElement.addContent( XmlOutputHandler.makeLocaleBundleXmlElements( storedConfiguration ) );
         }
 
-        static XmlElement makeSettingsXmlElement( final StoredConfiguration storedConfiguration, final PwmSecurityKey pwmSecurityKey )
+        static XmlElement makeSettingsXmlElement(
+                final StoredConfiguration storedConfiguration,
+                final OutputSettings outputSettings
+        )
+                throws PwmUnrecoverableException
         {
+            final PwmSecurityKey pwmSecurityKey = storedConfiguration.getKey();
+
             final XmlFactory xmlFactory = XmlFactory.getFactory();
             final XmlElement settingsElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_SETTINGS );
 
-            for ( final PwmSetting pwmSetting : PwmSetting.values() )
+            final XmlOutputProcessData xmlOutputProcessData = XmlOutputProcessData.builder()
+                    .pwmSecurityKey( pwmSecurityKey )
+                    .storedValueEncoderMode( figureEncoderMode( storedConfiguration, outputSettings ) )
+                    .build();
+
+            for ( final PwmSetting pwmSetting : PwmSetting.sortedByMenuLocation( PwmConstants.DEFAULT_LOCALE ) )
             {
                 if ( !pwmSetting.getFlags().contains( PwmSettingFlag.Deprecated ) )
                 {
@@ -482,7 +497,7 @@ public class StoredConfigurationFactory
                         for ( final String profileID : storedConfiguration.profilesForSetting( pwmSetting ) )
                         {
                             final StoredValue storedValue = storedConfiguration.readSetting( pwmSetting, profileID );
-                            final XmlElement settingElement = makeSettingXmlElement( pwmSetting, profileID, storedValue, pwmSecurityKey );
+                            final XmlElement settingElement = makeSettingXmlElement( storedConfiguration, pwmSetting, profileID, storedValue, xmlOutputProcessData );
                             decorateElementWithMetaData( storedConfiguration, StoredConfigItemKey.fromSetting( pwmSetting, profileID ), settingElement );
                             settingsElement.addContent( settingElement );
                         }
@@ -490,7 +505,7 @@ public class StoredConfigurationFactory
                     else
                     {
                         final StoredValue storedValue = storedConfiguration.readSetting( pwmSetting, null );
-                        final XmlElement settingElement = makeSettingXmlElement( pwmSetting, null, storedValue, pwmSecurityKey );
+                        final XmlElement settingElement = makeSettingXmlElement( storedConfiguration, pwmSetting, null, storedValue, xmlOutputProcessData );
                         decorateElementWithMetaData( storedConfiguration, StoredConfigItemKey.fromSetting( pwmSetting, null ), settingElement );
                         settingsElement.addContent( settingElement );
                     }
@@ -500,12 +515,37 @@ public class StoredConfigurationFactory
             return settingsElement;
         }
 
+        static StoredValueEncoder.Mode figureEncoderMode(
+                final StoredConfiguration storedConfiguration,
+                final OutputSettings outputSettings
+        )
+        {
+            if ( outputSettings == null || outputSettings.getMode() == null )
+            {
+                return StoredValueEncoder.Mode.ENCODED;
+            }
+
+            if ( outputSettings.getMode() == OutputSettings.SecureOutputMode.STRIPPED )
+            {
+                return StoredValueEncoder.Mode.STRIPPED;
+            }
+
+            final Optional<String> strValue = storedConfiguration.readConfigProperty( ConfigurationProperty.STORE_PLAINTEXT_VALUES );
+            if ( strValue.isPresent() && Boolean.parseBoolean( strValue.get() ) )
+            {
+                return StoredValueEncoder.Mode.PLAIN;
+            }
+
+            return StoredValueEncoder.Mode.ENCODED;
+        }
+
 
         static XmlElement makeSettingXmlElement(
+                final StoredConfiguration storedConfiguration,
                 final PwmSetting pwmSetting,
                 final String profileID,
                 final StoredValue storedValue,
-                final PwmSecurityKey pwmSecurityKey
+                final XmlOutputProcessData xmlOutputProcessData
         )
         {
             final XmlFactory xmlFactory = XmlFactory.getFactory();
@@ -520,28 +560,23 @@ public class StoredConfigurationFactory
 
             settingElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX, pwmSetting.getSyntax().name() );
 
-
             {
                 final XmlElement labelElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_LABEL );
                 labelElement.addText( pwmSetting.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) );
                 settingElement.addContent( labelElement );
             }
 
-            if ( pwmSetting.getSyntax() == PwmSettingSyntax.PASSWORD )
+            final List<XmlElement> valueElements = new ArrayList<>(  );
+            if ( storedConfiguration != null && storedConfiguration.isDefaultValue( pwmSetting, profileID ) )
             {
-                final List<String> commentLines = Arrays.asList(
-                        "Note: This value is encrypted and can not be edited directly.",
-                        "Please use the Configuration Manager GUI to modify this value."
-                );
-                settingElement.setComment( commentLines );
+                final XmlElement defaultValue = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_DEFAULT );
+                valueElements.add( defaultValue );
+            }
+            else
+            {
+                valueElements.addAll( storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, xmlOutputProcessData ) );
             }
 
-            final StoredValue.OutputConfiguration outputConfiguration = StoredValue.OutputConfiguration.builder()
-                    .pwmSecurityKey( pwmSecurityKey )
-                    .secureOutputMode( StoredValueEncoder.SecureOutputMode.Encoded )
-                    .build();
-
-            final List<XmlElement> valueElements = storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, outputConfiguration );
             settingElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION, String.valueOf( storedValue.currentSyntaxVersion() ) );
             settingElement.addContent( valueElements );
             return settingElement;
@@ -597,7 +632,7 @@ public class StoredConfigurationFactory
             final List<XmlElement> returnList = new ArrayList<>();
             for ( final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.values() )
             {
-                for ( final String key : pwmLocaleBundle.getKeys() )
+                for ( final String key : pwmLocaleBundle.getDisplayKeys() )
                 {
                     final Map<String, String> localeBundle = storedConfiguration.readLocaleBundleMap( pwmLocaleBundle, key );
                     if ( !JavaHelper.isEmpty( localeBundle ) )
@@ -630,6 +665,20 @@ public class StoredConfigurationFactory
         {
             final String resourceText = ResourceBundle.getBundle( StoredConfigurationFactory.class.getName() ).getString( "configCommentText" );
             return MacroMachine.forStatic().expandMacros( resourceText );
+        }
+    }
+
+    @Value
+    @Builder
+    public static class OutputSettings
+    {
+        @Builder.Default
+        private SecureOutputMode mode = SecureOutputMode.NORMAL;
+
+        public enum SecureOutputMode
+        {
+            NORMAL,
+            STRIPPED,
         }
     }
 }

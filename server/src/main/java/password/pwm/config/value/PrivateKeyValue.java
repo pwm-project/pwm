@@ -24,14 +24,13 @@ import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureEngine;
 import password.pwm.util.secure.X509Utils;
 
 import java.io.Serializable;
@@ -92,13 +91,16 @@ public class PrivateKeyValue extends AbstractValue
                             if ( keyElement.isPresent() )
                             {
                                 final String encryptedText = keyElement.get().getText();
-                                final String decryptedText = SecureEngine.decryptStringValue( encryptedText, key, PwmBlockAlgorithm.CONFIG );
-                                final byte[] privateKeyBytes = StringUtil.base64Decode( decryptedText );
-                                privateKey = KeyFactory.getInstance( "RSA" ).generatePrivate( new PKCS8EncodedKeySpec( privateKeyBytes ) );
+                                final Optional<String> decryptedText = StoredValueEncoder.decode( encryptedText, StoredValueEncoder.Mode.CONFIG_PW, key );
+                                if ( decryptedText.isPresent() )
+                                {
+                                    final byte[] privateKeyBytes = StringUtil.base64Decode( decryptedText.get() );
+                                    privateKey = KeyFactory.getInstance( "RSA" ).generatePrivate( new PKCS8EncodedKeySpec( privateKeyBytes ) );
+                                }
                             }
                             else
                             {
-                                LOGGER.error( "error reading privateKey for setting: '" + pwmSetting.getKey() + "': misging 'value' element" );
+                                LOGGER.error( "error reading privateKey for setting: '" + pwmSetting.getKey() + "': missing 'value' element" );
                             }
                         }
                         catch ( final Exception e )
@@ -152,9 +154,9 @@ public class PrivateKeyValue extends AbstractValue
         return 0;
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final XmlElement valueElement = XmlFactory.getFactory().newElement( "value" );
+        final XmlElement valueElement = XmlFactory.getFactory().newElement( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
         if ( privateKeyCertificate != null )
         {
             try
@@ -170,7 +172,11 @@ public class PrivateKeyValue extends AbstractValue
                 {
                     final XmlElement keyElement = XmlFactory.getFactory().newElement( ELEMENT_NAME_KEY );
                     final String b64EncodedKey = StringUtil.base64Encode( privateKeyCertificate.getKey().getEncoded() );
-                    final String encryptedKey = SecureEngine.encryptToString( b64EncodedKey, outputConfiguration.getPwmSecurityKey(), PwmBlockAlgorithm.CONFIG );
+                    final String encryptedKey = StoredValueEncoder.encode(
+                            b64EncodedKey,
+                            xmlOutputProcessData.getStoredValueEncoderMode(),
+                            xmlOutputProcessData.getPwmSecurityKey() );
+
                     keyElement.addText( encryptedKey );
                     valueElement.addContent( keyElement );
                 }

@@ -20,10 +20,8 @@
 
 package password.pwm.util.cli.commands;
 
-import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
-import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.util.cli.CliParameters;
 
 import java.io.File;
@@ -36,11 +34,6 @@ public class ConfigNewCommand extends AbstractCliCommand
             throws Exception
     {
         final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newStoredConfiguration();
-        StoredConfigurationUtil.initNewRandomSecurityKey( storedConfiguration );
-        storedConfiguration.writeConfigProperty(
-                ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( true ) );
-        storedConfiguration.writeConfigProperty(
-                ConfigurationProperty.CONFIG_EPOCH, String.valueOf( 0 ) );
 
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
 

@@ -23,7 +23,9 @@ package password.pwm.config.stored;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
+import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 
@@ -36,10 +38,23 @@ public class StoredConfigItemKey implements Serializable, Comparable
 {
     public enum RecordType
     {
-        SETTING,
-        LOCALE_BUNDLE,
-        PROPERTY,
+        SETTING( "Setting" ),
+        LOCALE_BUNDLE ( "Localization" ),
+        PROPERTY ( "Property" ),;
+
+        private final String label;
+
+        RecordType( final String label )
+        {
+            this.label = label;
+        }
+
+        public String getLabel()
+        {
+            return label;
+        }
     }
+
 
     private final RecordType recordType;
     private final String recordID;
@@ -70,6 +85,20 @@ public class StoredConfigItemKey implements Serializable, Comparable
         return new StoredConfigItemKey( RecordType.PROPERTY, configurationProperty.getKey(), null );
     }
 
+    public boolean isValid()
+    {
+        try
+        {
+            validate();
+            return true;
+        }
+        catch ( final IllegalStateException e )
+        {
+            /* ignore */
+        }
+        return false;
+    }
+
     public void validate()
     {
         switch ( recordType )
@@ -93,7 +122,7 @@ public class StoredConfigItemKey implements Serializable, Comparable
             {
                 Objects.requireNonNull( profileID, "profileID is required when recordType is LOCALE_BUNDLE" );
                 final PwmLocaleBundle pwmLocaleBundle = toLocaleBundle();
-                if ( !pwmLocaleBundle.getKeys().contains( profileID ) )
+                if ( !pwmLocaleBundle.getDisplayKeys().contains( profileID ) )
                 {
                     throw new IllegalStateException( "key '" + profileID + "' is unrecognized for locale bundle " + pwmLocaleBundle.name() );
                 }
@@ -117,19 +146,22 @@ public class StoredConfigItemKey implements Serializable, Comparable
 
     public String toString( final Locale locale )
     {
+        final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
+
         switch ( recordType )
         {
             case SETTING:
-                return "Setting-" + toPwmSetting().toMenuLocationDebug( profileID, locale );
+                return recordType.getLabel() + separator + toPwmSetting().toMenuLocationDebug( profileID, locale );
 
             case PROPERTY:
-                return "Property-"
-                        + this.getRecordID();
+                return recordType.getLabel() + separator + this.getRecordID();
 
             case LOCALE_BUNDLE:
-                return "LocaleBundle-"
+                toLocaleBundle().getKey();
+                return recordType.getLabel()
+                        + separator
                         + this.getRecordID()
-                        + "-"
+                        + separator
                         + this.getProfileID();
 
             default:

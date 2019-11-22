@@ -21,6 +21,7 @@
 package password.pwm.config.stored;
 
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
@@ -35,7 +36,6 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -62,8 +62,9 @@ public abstract class StoredConfigurationUtil
     private static final PwmLogger LOGGER = PwmLogger.forClass( StoredConfigurationUtil.class );
 
     public static List<String> profilesForSetting
-            ( final PwmSetting pwmSetting,
-              final StoredConfiguration storedConfiguration
+            (
+                    final PwmSetting pwmSetting,
+                    final StoredConfiguration storedConfiguration
             )
     {
         if ( !pwmSetting.getCategory().hasProfiles() && pwmSetting.getSyntax() != PwmSettingSyntax.PROFILE )
@@ -160,42 +161,6 @@ public abstract class StoredConfigurationUtil
         return returnObj;
     }
 
-    static StoredValue valueForReference(
-            final StoredConfiguration storedConfiguration,
-            final StoredConfigItemKey reference
-    )
-    {
-        switch ( reference.getRecordType() )
-        {
-            case SETTING:
-            {
-                final PwmSetting pwmSetting = PwmSetting.forKey( reference.getRecordID() );
-                return storedConfiguration.readSetting( pwmSetting, reference.getProfileID() );
-            }
-
-            case LOCALE_BUNDLE:
-            {
-                final String key = reference.getRecordID();
-                final PwmLocaleBundle bundleName = reference.toLocaleBundle();
-                return displayKeyAsValue( storedConfiguration, bundleName, key );
-            }
-
-            case PROPERTY:
-            {
-                final String key = reference.getRecordID();
-                final ConfigurationProperty configurationProperty = ConfigurationProperty.valueOf( key );
-                return configPropertyAsValue( storedConfiguration, configurationProperty );
-            }
-
-            default:
-                JavaHelper.unhandledSwitchStatement( reference.getRecordType() );
-                //continue
-                break;
-        }
-
-        throw new IllegalArgumentException(  );
-    }
-
     private static StoredValue configPropertyAsValue( final StoredConfiguration storedConfiguration, final ConfigurationProperty configurationProperty )
     {
         final Optional<String> value = storedConfiguration.readConfigProperty( configurationProperty );
@@ -246,8 +211,9 @@ public abstract class StoredConfigurationUtil
                 if ( pwmSetting.getSyntax() == PwmSettingSyntax.PASSWORD )
                 {
                     final ValueMetaData valueMetaData = storedConfiguration.readSettingMetadata( pwmSetting, storedConfigItemKey.getProfileID() );
+                    final UserIdentity userIdentity = valueMetaData == null ? null : valueMetaData.getUserIdentity();
                     final PasswordValue passwordValue = new PasswordValue( new PasswordData( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT ) );
-                    storedConfiguration.writeSetting( pwmSetting, storedConfigItemKey.getProfileID(), passwordValue, valueMetaData.getUserIdentity() );
+                    storedConfiguration.writeSetting( pwmSetting, storedConfigItemKey.getProfileID(), passwordValue, userIdentity );
                 }
             }
         }
@@ -525,11 +491,13 @@ public abstract class StoredConfigurationUtil
             final Locale locale
     )
     {
-        final Map<String, String> outputMap = interestedItems.parallelStream()
+        final StoredConfigurationSpi storedConfigurationSpi = ( StoredConfigurationSpi ) storedConfiguration;
+        final Map<String, String> outputMap = interestedItems.stream()
+                .filter( ( key ) -> key.getRecordType() != StoredConfigItemKey.RecordType.PROPERTY )
+                .filter( ( key ) -> storedConfigurationSpi.readStoredValue( key ).isPresent() )
                 .collect( Collectors.toMap(
-                        storedConfigItemKey -> storedConfigItemKey.toString( locale ),
-                        storedConfigItemKey -> StoredConfigurationUtil.valueForReference( storedConfiguration, storedConfigItemKey ).toDebugString( locale )
-                ) );
+                        key -> key.toString( locale ),
+                        key -> storedConfigurationSpi.readStoredValue( key ).get().toDebugString( locale ) ) );
 
         return Collections.unmodifiableMap( new TreeMap<>( outputMap ) );
     }

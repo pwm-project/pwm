@@ -18,29 +18,12 @@
  * limitations under the License.
  */
 
-package password.pwm.config.stored;
+package password.pwm.error;
 
-public enum ConfigurationProperty
+public class PwmInternalException extends RuntimeException
 {
-    CONFIG_IS_EDITABLE( "configIsEditable" ),
-    CONFIG_EPOCH( "configEpoch" ),
-    LDAP_TEMPLATE( "configTemplate" ),
-    NOTES( "notes" ),
-    PASSWORD_HASH( "configPasswordHash" ),
-    STORE_PLAINTEXT_VALUES( "storePlaintextValues" ),
-    SAVE_CONFIG_ON_START( "saveConfigOnStart" ),
-    MODIFICATION_TIMESTAMP( "modificationTimestamp" ),
-    IMPORT_LDAP_CERTIFICATES( "importLdapCertificates" ),;
-
-    private final String key;
-
-    ConfigurationProperty( final String key )
+    public PwmInternalException( final String message, final Throwable cause )
     {
-        this.key = key;
-    }
-
-    public String getKey( )
-    {
-        return key;
+        super( message, cause );
     }
 }

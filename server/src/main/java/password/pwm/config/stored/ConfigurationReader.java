@@ -109,10 +109,6 @@ public class ConfigurationReader
                     ? StoredConfigurationFactory.newStoredConfiguration()
                     : this.storedConfiguration;
             configuration = new Configuration( newStoredConfig );
-            if ( storedConfiguration != null )
-            {
-                storedConfiguration.lock();
-            }
         }
         return configuration;
     }

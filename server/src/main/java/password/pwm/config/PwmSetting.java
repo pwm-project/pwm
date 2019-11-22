@@ -37,11 +37,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -1709,6 +1711,16 @@ public enum PwmSetting
         }
 
         return associationSets.iterator().next();
+    }
+
+    public static Set<PwmSetting> sortedByMenuLocation( final Locale locale )
+    {
+        final TreeMap<String, PwmSetting> treeMap = new TreeMap<>();
+        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        {
+            treeMap.put( pwmSetting.toMenuLocationDebug( null, locale ), pwmSetting );
+        }
+        return Collections.unmodifiableSet( new LinkedHashSet<>( treeMap.values() ) );
     }
 }
 

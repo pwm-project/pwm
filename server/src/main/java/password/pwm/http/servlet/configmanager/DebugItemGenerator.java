@@ -291,7 +291,10 @@ public class DebugItemGenerator
 
             // temporary output stream required because .toXml closes stream.
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            StoredConfigurationFactory.toXml( storedConfiguration, byteArrayOutputStream );
+            final StoredConfigurationFactory.OutputSettings outputSettings = StoredConfigurationFactory.OutputSettings.builder()
+                    .mode( StoredConfigurationFactory.OutputSettings.SecureOutputMode.STRIPPED )
+                    .build();
+            StoredConfigurationFactory.toXml( storedConfiguration, byteArrayOutputStream, outputSettings );
             outputStream.write( byteArrayOutputStream.toByteArray() );        }
     }
 

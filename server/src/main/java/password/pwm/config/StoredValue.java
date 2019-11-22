@@ -20,8 +20,7 @@
 
 package password.pwm.config;
 
-import lombok.Builder;
-import lombok.Value;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmException;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -32,15 +31,8 @@ import java.util.Locale;
 
 public interface StoredValue extends Serializable
 {
-    @Value
-    @Builder
-    class OutputConfiguration
-    {
-        private StoredValueEncoder.SecureOutputMode secureOutputMode;
-        private PwmSecurityKey pwmSecurityKey;
-    }
 
-    List<XmlElement> toXmlValues( String valueElementName, OutputConfiguration outputConfiguration );
+    List<XmlElement> toXmlValues( String valueElementName, XmlOutputProcessData xmlOutputProcessData );
 
     Object toNativeObject( );
 

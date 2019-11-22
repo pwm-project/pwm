@@ -861,7 +861,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                         categoryInfo.setName( localeBundle.getTheClass().getSimpleName() );
                         categoryInfo.setParent( "DISPLAY_TEXT" );
                         categoryInfo.setType( NavTreeHelper.NavItemType.displayText );
-                        categoryInfo.setKeys( new TreeSet<>( modifiedSettingsOnly ? modifiedKeys : localeBundle.getKeys() ) );
+                        categoryInfo.setKeys( new TreeSet<>( modifiedSettingsOnly ? modifiedKeys : localeBundle.getDisplayKeys() ) );
                         navigationData.add( categoryInfo );
                         includeDisplayText = true;
                     }

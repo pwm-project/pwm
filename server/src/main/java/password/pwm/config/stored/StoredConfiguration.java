@@ -43,15 +43,11 @@ public interface StoredConfiguration
 
     Instant modifyTime( );
 
-    boolean isLocked( );
-
     StoredConfiguration copy() throws PwmUnrecoverableException;
 
     Optional<String> readConfigProperty( ConfigurationProperty propertyName );
 
     void writeConfigProperty( ConfigurationProperty propertyName, String value );
-
-    void lock( );
 
     PwmSettingTemplateSet getTemplateSet();
 

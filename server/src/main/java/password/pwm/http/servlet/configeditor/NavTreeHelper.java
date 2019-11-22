@@ -51,7 +51,7 @@ class NavTreeHelper
     )
     {
         final Set<String> modifiedKeys = new TreeSet<>();
-        for ( final String key : bundle.getKeys() )
+        for ( final String key : bundle.getDisplayKeys() )
         {
             final Map<String, String> storedBundle = storedConfiguration.readLocaleBundleMap( bundle, key );
             if ( !storedBundle.isEmpty() )

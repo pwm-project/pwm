@@ -29,6 +29,7 @@ import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.RecoveryMinLifetimeOption;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.config.value.OptionListValue;
+import password.pwm.config.value.StoredValueEncoder;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.error.PwmUnrecoverableException;
@@ -227,7 +228,11 @@ class ConfigurationCleaner
             }
         }
 
-        private static void attachStringSettingElement( final XmlDocument xmlDocument, final PwmSetting pwmSetting, final String stringValue )
+        private static void attachStringSettingElement(
+                final XmlDocument xmlDocument,
+                final PwmSetting pwmSetting,
+                final String stringValue
+        )
                 throws PwmUnrecoverableException
         {
             final StoredConfigurationFactory.XmlInputDocumentReader inputDocumentReader = new StoredConfigurationFactory.XmlInputDocumentReader( xmlDocument );
@@ -235,9 +240,11 @@ class ConfigurationCleaner
             final PwmSecurityKey pwmSecurityKey = inputDocumentReader.getKey();
 
             final XmlElement settingElement = StoredConfigurationFactory.XmlOutputHandler.makeSettingXmlElement(
+                    null,
                     pwmSetting,
                     null,
-                    new StringValue( stringValue ), pwmSecurityKey  );
+                    new StringValue( stringValue ),
+                    XmlOutputProcessData.builder().storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN ).pwmSecurityKey( pwmSecurityKey ).build() );
             final Optional<XmlElement> settingsElement = xmlDocument.getRootElement().getChild( StoredConfigXmlConstants.XML_ELEMENT_SETTING );
             settingsElement.ifPresent( xmlElement -> xmlElement.addContent( settingElement ) );
         }
@@ -278,7 +285,7 @@ class ConfigurationCleaner
 
                         final List<String> existingValues = new ArrayList<>();
                         {
-                            final Optional<StoredConfigData.ValueAndMetaTuple> valueAndMetaTuple =  documentReader.readSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null );
+                            final Optional<StoredConfigData.ValueAndMetaCarrier> valueAndMetaTuple =  documentReader.readSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null );
                             valueAndMetaTuple.ifPresent( ( t ) -> existingValues.addAll( ( List<String> ) t.getValue().toNativeObject() ) );
                         }
                         existingValues.add( newValue );
@@ -302,9 +309,11 @@ class ConfigurationCleaner
             final PwmSecurityKey pwmSecurityKey = inputDocumentReader.getKey();
 
             final XmlElement settingElement = StoredConfigurationFactory.XmlOutputHandler.makeSettingXmlElement(
+                    null,
                     PwmSetting.APP_PROPERTY_OVERRIDES,
                     null,
-                    new StringArrayValue( newValues ), pwmSecurityKey  );
+                    new StringArrayValue( newValues ),
+                    XmlOutputProcessData.builder().storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN ).pwmSecurityKey( pwmSecurityKey ).build() );
             final Optional<XmlElement> settingsElement = xmlDocument.getRootElement().getChild( StoredConfigXmlConstants.XML_ELEMENT_SETTING );
             settingsElement.ifPresent( ( s ) -> s.addContent( settingElement ) );
         }

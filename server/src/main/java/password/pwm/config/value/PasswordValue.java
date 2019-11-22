@@ -25,6 +25,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -33,7 +34,6 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
-import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
@@ -111,7 +111,15 @@ public class PasswordValue implements StoredValue
                     {
                         try
                         {
-                            return new PasswordValue( new PasswordData( SecureEngine.decryptStringValue( rawValue, key, PwmBlockAlgorithm.CONFIG ) ) );
+                            final Optional<String> encodedValue = StoredValueEncoder.decode( rawValue, StoredValueEncoder.Mode.CONFIG_PW, key );
+                            if ( encodedValue.isPresent() )
+                            {
+                                return new PasswordValue( new PasswordData( encodedValue.get() ) );
+                            }
+                            else
+                            {
+                                return new PasswordValue( new PasswordData( "" ) );
+                            }
                         }
                         catch ( final Exception e )
                         {
@@ -124,11 +132,6 @@ public class PasswordValue implements StoredValue
                 return new PasswordValue();
             }
         };
-    }
-
-    public List<XmlElement> toXmlValues( final String valueElementName )
-    {
-        throw new IllegalStateException( "password xml output requires hash key" );
     }
 
     @Override
@@ -149,7 +152,7 @@ public class PasswordValue implements StoredValue
         return 0;
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         if ( value == null )
         {
@@ -159,7 +162,11 @@ public class PasswordValue implements StoredValue
         final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
         try
         {
-            final String encodedValue = SecureEngine.encryptToString( value.getStringValue(), outputConfiguration.getPwmSecurityKey(), PwmBlockAlgorithm.CONFIG );
+            final String encodedValue = StoredValueEncoder.encode(
+                    value.getStringValue(),
+                    xmlOutputProcessData.getStoredValueEncoderMode(),
+                    xmlOutputProcessData.getPwmSecurityKey() );
+
             valueElement.addText( encodedValue );
         }
         catch ( final Exception e )

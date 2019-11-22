@@ -25,8 +25,8 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
-import password.pwm.config.StoredValueEncoder;
 import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JavaHelper;
@@ -125,7 +125,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                                 {
                                     final Optional<String> decodedValue = StoredValueEncoder.decode(
                                             parsedAc.getPassword(),
-                                            StoredValueEncoder.SecureOutputMode.Encoded,
+                                            StoredValueEncoder.Mode.ENCODED,
                                             pwmSecurityKey );
                                     decodedValue.ifPresent( s ->
                                     {
@@ -152,7 +152,7 @@ public class ActionValue extends AbstractValue implements StoredValue
 
                                     final Optional<String> decodedValue = StoredValueEncoder.decode(
                                             webAction.getPassword(),
-                                            StoredValueEncoder.SecureOutputMode.Encoded,
+                                            StoredValueEncoder.Mode.ENCODED,
                                             pwmSecurityKey );
                                     decodedValue.ifPresent( s ->
                                     {
@@ -183,7 +183,7 @@ public class ActionValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final ActionConfiguration value : values )
@@ -191,19 +191,22 @@ public class ActionValue extends AbstractValue implements StoredValue
             final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
             for ( final ActionConfiguration.WebAction webAction : value.getWebActions() )
             {
-                try
+                if ( !StringUtil.isEmpty( webAction.getPassword() ) )
                 {
-                    final String encodedValue = StoredValueEncoder.encode(
-                            webAction.getPassword(),
-                            outputConfiguration.getSecureOutputMode(),
-                            outputConfiguration.getPwmSecurityKey() );
-                    clonedWebActions.add( webAction.toBuilder()
-                            .password( encodedValue )
-                            .build() );
-                }
-                catch ( final PwmOperationalException e )
-                {
-                    LOGGER.warn( "error encoding stored pw value: " + e.getMessage() );
+                    try
+                    {
+                        final String encodedValue = StoredValueEncoder.encode(
+                                webAction.getPassword(),
+                                xmlOutputProcessData.getStoredValueEncoderMode(),
+                                xmlOutputProcessData.getPwmSecurityKey() );
+                        clonedWebActions.add( webAction.toBuilder()
+                                .password( encodedValue )
+                                .build() );
+                    }
+                    catch ( final PwmOperationalException e )
+                    {
+                        LOGGER.warn( "error encoding stored pw value: " + e.getMessage() );
+                    }
                 }
             }
 

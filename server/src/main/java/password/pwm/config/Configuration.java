@@ -135,7 +135,7 @@ public class Configuration implements SettingReader
             return;
         }
 
-        final ComparingChangeLog changeLog = new ComparingChangeLog( StoredConfigurationFactory.newStoredConfiguration(), storedConfiguration );
+        final ComparingChangeLog changeLog = ComparingChangeLog.create( StoredConfigurationFactory.newStoredConfiguration(), storedConfiguration );
         final Map<String, String> debugStrings = StoredConfigurationUtil.asDebugMap( storedConfiguration, changeLog.changedValues(), PwmConstants.DEFAULT_LOCALE );
         final List<Supplier<CharSequence>> outputStrings = new ArrayList<>();
 
@@ -1129,9 +1129,7 @@ public class Configuration implements SettingReader
 
     public StoredConfiguration getStoredConfiguration( ) throws PwmUnrecoverableException
     {
-        final StoredConfiguration copiedStoredConfiguration = this.storedConfiguration.copy();
-        copiedStoredConfiguration.lock();
-        return copiedStoredConfiguration;
+        return this.storedConfiguration.copy();
     }
 
     public boolean isDevDebugMode( )

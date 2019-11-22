@@ -24,7 +24,6 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
-import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.StoredValue;
@@ -37,7 +36,6 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -45,12 +43,13 @@ import password.pwm.util.secure.BCrypt;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -58,6 +57,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 /**
  * @author Jason D. Rivard
@@ -73,14 +73,20 @@ public class StoredConfigurationImpl implements StoredConfigurationSpi
     private static final PwmLogger LOGGER = PwmLogger.forClass( StoredConfigurationImpl.class );
 
     private final ReentrantReadWriteLock modifyLock = new ReentrantReadWriteLock();
-    private boolean locked;
 
     StoredConfigurationImpl( final StoredConfigData storedConfigData )
     {
         this.createTime = storedConfigData.getCreateTime();
         this.modifyTime = storedConfigData.getModifyTime();
-        this.storedValues.putAll( storedConfigData.getStoredValues() );
-        this.metaValues.putAll( storedConfigData.getMetaDatas() );
+
+        final Map<StoredConfigItemKey, StoredValue> filteredStoredValues = new HashMap<>( storedConfigData.getStoredValues() );
+        filteredStoredValues.keySet().retainAll( storedConfigData.getStoredValues().keySet().stream().filter( StoredConfigItemKey::isValid ).collect( Collectors.toList() ) );
+
+        final Map<StoredConfigItemKey, ValueMetaData> filteredMetaDatas = new HashMap<>( storedConfigData.getMetaDatas() );
+        filteredMetaDatas .keySet().retainAll( storedConfigData.getMetaDatas().keySet().stream().filter( StoredConfigItemKey::isValid ).collect( Collectors.toList() ) );
+
+        this.storedValues.putAll( filteredStoredValues );
+        this.metaValues.putAll( filteredMetaDatas );
     }
 
     StoredConfigurationImpl( )
@@ -134,10 +140,6 @@ public class StoredConfigurationImpl implements StoredConfigurationSpi
         }
     }
 
-    public void lock( )
-    {
-        locked = true;
-    }
 
     @Override
     public Map<String, String> readLocaleBundleMap( final PwmLocaleBundle pwmLocaleBundle, final String keyName )
@@ -203,14 +205,10 @@ public class StoredConfigurationImpl implements StoredConfigurationSpi
         try
         {
             final StoredValue currentValue = readSetting( setting, profileID );
-            if ( setting.getSyntax() == PwmSettingSyntax.PASSWORD )
-            {
-                return currentValue == null || currentValue.toNativeObject() == null;
-            }
             final StoredValue defaultValue = defaultValue( setting, this.getTemplateSet() );
-            final String currentJsonValue = JsonUtil.serialize( ( Serializable ) currentValue.toNativeObject() );
-            final String defaultJsonValue = JsonUtil.serialize( ( Serializable ) defaultValue.toNativeObject() );
-            return defaultJsonValue.equalsIgnoreCase( currentJsonValue );
+            final String currentHashValue = currentValue.valueHash();
+            final String defaultHashValue = defaultValue.valueHash();
+            return Objects.equals( currentHashValue, defaultHashValue );
         }
         finally
         {
@@ -270,7 +268,19 @@ public class StoredConfigurationImpl implements StoredConfigurationSpi
         modifyLock.readLock().lock();
         try
         {
-            return Collections.unmodifiableSet( storedValues.keySet() );
+            final Set<StoredConfigItemKey> modifiedKeys = new HashSet<>( storedValues.keySet() );
+            for ( final Iterator<StoredConfigItemKey> iterator = modifiedKeys.iterator(); iterator.hasNext(); )
+            {
+                final StoredConfigItemKey key = iterator.next();
+                if ( key.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
+                {
+                    if ( isDefaultValue( key.toPwmSetting(), key.getProfileID() ) )
+                    {
+                        iterator.remove();
+                    }
+                }
+            }
+            return Collections.unmodifiableSet( modifiedKeys );
         }
         finally
         {
@@ -465,10 +475,6 @@ public class StoredConfigurationImpl implements StoredConfigurationSpi
 
     private void preModifyActions( )
     {
-        if ( locked )
-        {
-            throw new UnsupportedOperationException( "StoredConfiguration is locked and cannot be modified" );
-        }
         modifyTime = Instant.now();
     }
 
@@ -512,12 +518,6 @@ public class StoredConfigurationImpl implements StoredConfigurationSpi
     public boolean isModified( )
     {
         return true;
-    }
-
-    @Override
-    public boolean isLocked( )
-    {
-        return locked;
     }
 
     @Override

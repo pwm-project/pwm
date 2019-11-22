@@ -23,8 +23,10 @@ package password.pwm.config.value;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
@@ -105,7 +107,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
 
 
     @Override
-    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final X509Certificate value : certificates )
@@ -113,7 +115,9 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
             final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
             try
             {
-                valueElement.addText( X509Utils.certificateToBase64( value ) );
+                final String b64Value = X509Utils.certificateToBase64( value );
+                final String splitValue = StringUtil.insertRepeatedLineBreaks( b64Value, 80 );
+                valueElement.addText( splitValue );
             }
             catch ( final CertificateEncodingException e )
             {

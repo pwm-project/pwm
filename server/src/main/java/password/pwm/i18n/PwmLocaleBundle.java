@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -54,7 +53,6 @@ public enum PwmLocaleBundle
     }
 
     private final Flag[] flags;
-    private Set<String> keys;
 
     PwmLocaleBundle( final Class<? extends PwmDisplayBundle> theClass, final Flag... flags )
     {
@@ -92,14 +90,10 @@ public enum PwmLocaleBundle
         return getTheClass().getName();
     }
 
-    public Set<String> getKeys( )
+    public Set<String> getDisplayKeys( )
     {
-        if ( keys == null )
-        {
-            final ResourceBundle defaultBundle = ResourceBundle.getBundle( this.getTheClass().getName(), PwmConstants.DEFAULT_LOCALE );
-            keys = Collections.unmodifiableSet( new HashSet<>( defaultBundle.keySet() ) );
-        }
-        return keys;
+        final ResourceBundle defaultBundle = ResourceBundle.getBundle( this.getTheClass().getName(), PwmConstants.DEFAULT_LOCALE );
+        return Collections.unmodifiableSet( new HashSet<>( defaultBundle.keySet() ) );
     }
 
     public static Collection<PwmLocaleBundle> allValues( )
@@ -110,13 +104,7 @@ public enum PwmLocaleBundle
     public static Collection<PwmLocaleBundle> userFacingValues( )
     {
         final List<PwmLocaleBundle> returnValue = new ArrayList<>( allValues() );
-        for ( final Iterator<PwmLocaleBundle> iter = returnValue.iterator(); iter.hasNext(); )
-        {
-            if ( iter.next().isAdminOnly() )
-            {
-                iter.remove();
-            }
-        }
+        returnValue.removeIf( PwmLocaleBundle::isAdminOnly );
         return Collections.unmodifiableList( returnValue );
     }
 }

@@ -387,7 +387,7 @@ public class LocaleHelper
         final Map<PwmLocaleBundle, Map<String, List<Locale>>> returnObj = new LinkedHashMap<>();
         for ( final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.values() )
         {
-            for ( final String key : pwmLocaleBundle.getKeys() )
+            for ( final String key : pwmLocaleBundle.getDisplayKeys() )
             {
                 for ( final Locale locale : configuration.getKnownLocales() )
                 {

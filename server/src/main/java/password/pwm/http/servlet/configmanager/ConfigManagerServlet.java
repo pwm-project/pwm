@@ -326,7 +326,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
             if ( pwmApplication.getAuditManager() != null && pwmApplication.getAuditManager().status() == PwmService.STATUS.OPEN )
             {
-                final ComparingChangeLog comparingChangeLog = new ComparingChangeLog( pwmApplication.getConfig().getStoredConfiguration(), storedConfiguration );
+                final ComparingChangeLog comparingChangeLog = ComparingChangeLog.create( pwmApplication.getConfig().getStoredConfiguration(), storedConfiguration );
                 final String modifyMessage = "Configuration Changes: " + StoredConfigurationUtil.changeLogAsDebugString(
                         storedConfiguration,
                         comparingChangeLog,

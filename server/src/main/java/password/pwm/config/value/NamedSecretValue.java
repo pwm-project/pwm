@@ -25,6 +25,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -155,7 +156,7 @@ public class NamedSecretValue implements StoredValue
         return 0;
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         if ( values == null )
         {
@@ -169,7 +170,7 @@ public class NamedSecretValue implements StoredValue
             {
                 final String name = entry.getKey();
                 final PasswordData passwordData = entry.getValue().getPassword();
-                final String encodedValue = SecureEngine.encryptToString( passwordData.getStringValue(), outputConfiguration.getPwmSecurityKey(), PwmBlockAlgorithm.CONFIG );
+                final String encodedValue = SecureEngine.encryptToString( passwordData.getStringValue(), xmlOutputProcessData.getPwmSecurityKey(), PwmBlockAlgorithm.CONFIG );
                 final XmlElement newValueElement = XmlFactory.getFactory().newElement( "value" );
                 final XmlElement nameElement = XmlFactory.getFactory().newElement( ELEMENT_NAME );
                 nameElement.addText( name );

@@ -165,19 +165,24 @@ public class JavaHelper
 
     public static <E extends Enum<E>> E readEnumFromString( final Class<E> enumClass, final E defaultValue, final String input )
     {
+        return readEnumFromString( enumClass, input ).orElse( defaultValue );
+    }
+
+    public static <E extends Enum<E>> Optional<E> readEnumFromString( final Class<E> enumClass, final String input )
+    {
         if ( StringUtil.isEmpty( input ) )
         {
-            return defaultValue;
+            return Optional.empty();
         }
 
         if ( enumClass == null || !enumClass.isEnum() )
         {
-            return defaultValue;
+            return Optional.empty();
         }
 
         try
         {
-            return Enum.valueOf( enumClass, input );
+            return Optional.of( Enum.valueOf( enumClass, input ) );
         }
         catch ( IllegalArgumentException e )
         {
@@ -189,7 +194,7 @@ public class JavaHelper
             LOGGER.warn( "unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName() + ", error: " + e.getMessage() );
         }
 
-        return defaultValue;
+        return Optional.empty();
     }
 
     public static String throwableToString( final Throwable throwable )

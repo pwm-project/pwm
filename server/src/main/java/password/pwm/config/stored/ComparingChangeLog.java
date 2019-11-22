@@ -20,6 +20,7 @@
 
 package password.pwm.config.stored;
 
+import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -28,6 +29,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,16 +37,24 @@ public class ComparingChangeLog implements ConfigChangeLog
 {
     public static final PwmLogger LOGGER = PwmLogger.forClass( ComparingChangeLog.class );
 
-    private final StoredConfiguration originalConfiguration;
-    private final StoredConfiguration modifiedConfiguration;
+    private final StoredConfigurationSpi originalConfiguration;
+    private final StoredConfigurationSpi modifiedConfiguration;
 
-    public ComparingChangeLog(
+    private ComparingChangeLog(
             final StoredConfiguration originalConfiguration,
             final StoredConfiguration modifiedConfiguration
     )
     {
-        this.originalConfiguration = originalConfiguration;
-        this.modifiedConfiguration = modifiedConfiguration;
+        this.originalConfiguration = ( StoredConfigurationSpi ) originalConfiguration;
+        this.modifiedConfiguration = ( StoredConfigurationSpi ) modifiedConfiguration;
+    }
+
+    public static ComparingChangeLog create(
+            final StoredConfiguration originalConfiguration,
+            final StoredConfiguration modifiedConfiguration
+    )
+    {
+        return new ComparingChangeLog( originalConfiguration, modifiedConfiguration );
     }
 
     @Override
@@ -59,9 +69,9 @@ public class ComparingChangeLog implements ConfigChangeLog
         final Set<StoredConfigItemKey> deltaReferences = interestedReferences.parallelStream()
                 .filter( reference ->
                         {
-                            final String hash = StoredConfigurationUtil.valueForReference( originalConfiguration, reference ).valueHash();
-                            final String hash2 = StoredConfigurationUtil.valueForReference( modifiedConfiguration, reference ).valueHash();
-                            return !Objects.equals( hash, hash2 );
+                            final Optional<String> hash = originalConfiguration.readStoredValue( reference ).map( StoredValue::valueHash );
+                            final Optional<String> hash2 = modifiedConfiguration.readStoredValue( reference ).map( StoredValue::valueHash );
+                            return hash.isPresent() && hash2.isPresent() && !Objects.equals( hash.get(), hash2.get() );
                         }
                 ).collect( Collectors.toSet() );
 

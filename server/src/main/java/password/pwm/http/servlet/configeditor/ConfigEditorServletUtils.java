@@ -106,7 +106,7 @@ public class ConfigEditorServletUtils
         {
             final Locale locale = pwmRequest.getLocale();
 
-            final ConfigChangeLog changeLog = new ComparingChangeLog(
+            final ConfigChangeLog changeLog = ComparingChangeLog.create(
                     pwmRequest.getPwmApplication().getConfig().getStoredConfiguration(),
                     configManagerBean.getStoredConfiguration() );
 

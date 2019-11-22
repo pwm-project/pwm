@@ -26,7 +26,9 @@ import lombok.Value;
 import password.pwm.config.StoredValue;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Value
 @Builder( toBuilder = true )
@@ -45,10 +47,24 @@ class StoredConfigData
     private Map<StoredConfigItemKey, ValueMetaData> metaDatas;
 
     @Value
-    static class ValueAndMetaTuple
+    static class ValueAndMetaCarrier
     {
         private final StoredConfigItemKey key;
         private final StoredValue value;
         private final ValueMetaData metaData;
+    }
+
+    static Map<StoredConfigItemKey, ValueMetaData> carrierAsMetaDataMap( final Collection<ValueAndMetaCarrier> input )
+    {
+        return input.stream()
+                .filter( ( t ) -> t.getKey() != null && t.getMetaData() != null )
+                .collect( Collectors.toMap( StoredConfigData.ValueAndMetaCarrier::getKey, StoredConfigData.ValueAndMetaCarrier::getMetaData ) );
+    }
+
+    static Map<StoredConfigItemKey, StoredValue> carrierAsStoredValueMap( final Collection<ValueAndMetaCarrier> input )
+    {
+        return input.stream()
+                .filter( ( t ) -> t.getKey() != null && t.getValue() != null )
+                .collect( Collectors.toMap( StoredConfigData.ValueAndMetaCarrier::getKey, StoredConfigData.ValueAndMetaCarrier::getValue ) );
     }
 }

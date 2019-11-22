@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.config;
+package password.pwm.config.value;
 
 import lombok.Value;
 import password.pwm.PwmConstants;
@@ -39,18 +39,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class StoredValueEncoder
+public abstract class StoredValueEncoder
 {
-    public enum SecureOutputMode
+    private StoredValueEncoder()
     {
-        Plain( new PlaintextModeEngine(), "PLAIN" + DELIMITER, "PLAINTEXT" + DELIMITER, "RAW" + DELIMITER ),
-        Stripped( new StrippedModeEngine(), "REMOVED" + DELIMITER ),
-        Encoded( new EncodedModeEngine(), "ENC-PW" + DELIMITER, "ENCODED" + DELIMITER ),;
+    }
+
+    public enum Mode
+    {
+        PLAIN( new PlaintextModeEngine(), "PLAIN" + DELIMITER, "PLAINTEXT" + DELIMITER, "RAW" + DELIMITER ),
+        STRIPPED( new StrippedModeEngine(), "REMOVED" + DELIMITER ),
+        CONFIG_PW( new ConfigPwModeEngine(), "CONFIG-PW" + DELIMITER ),
+        ENCODED( new EncodedModeEngine(), "ENC-PW" + DELIMITER, "ENCODED" + DELIMITER ),;
 
         private final List<String> prefixes;
         private final SecureOutputEngine secureOutputEngine;
 
-        SecureOutputMode( final SecureOutputEngine secureOutputEngine, final String... prefixes )
+        Mode( final SecureOutputEngine secureOutputEngine, final String... prefixes )
         {
             this.secureOutputEngine = secureOutputEngine;
             this.prefixes = Collections.unmodifiableList( Arrays.asList( prefixes ) );
@@ -78,17 +83,7 @@ public class StoredValueEncoder
 
     public static Optional<String> decode(
             final String input,
-            final StoredValue.OutputConfiguration outputConfiguration
-    )
-            throws PwmOperationalException
-    {
-        return decode( input, outputConfiguration.getSecureOutputMode(), outputConfiguration.getPwmSecurityKey() );
-    }
-
-
-    public static Optional<String> decode(
-            final String input,
-            final SecureOutputMode modeHint,
+            final Mode modeHint,
             final PwmSecurityKey pwmSecurityKey
     )
             throws PwmOperationalException
@@ -99,14 +94,14 @@ public class StoredValueEncoder
         }
 
         final ParsedInput parsedInput = ParsedInput.parseInput( input );
-        final SecureOutputMode requestedMode = modeHint == null ? SecureOutputMode.Plain : modeHint;
-        final SecureOutputMode effectiveMode = parsedInput.getSecureOutputMode() == null
+        final Mode requestedMode = modeHint == null ? Mode.PLAIN : modeHint;
+        final Mode effectiveMode = parsedInput.getMode() == null
                 ? requestedMode
-                : parsedInput.getSecureOutputMode();
+                : parsedInput.getMode();
         return Optional.ofNullable( effectiveMode.getSecureOutputEngine().decode( parsedInput, pwmSecurityKey ) );
     }
 
-    public static String encode( final String realValue, final SecureOutputMode mode, final PwmSecurityKey pwmSecurityKey )
+    public static String encode( final String realValue, final Mode mode, final PwmSecurityKey pwmSecurityKey )
             throws PwmOperationalException
     {
         return mode.getSecureOutputEngine().encode( realValue, pwmSecurityKey );
@@ -115,14 +110,14 @@ public class StoredValueEncoder
     @Value
     private static class ParsedInput
     {
-        private SecureOutputMode secureOutputMode;
+        private Mode mode;
         private String value;
 
         static ParsedInput parseInput( final String value )
         {
             if ( !StringUtil.isEmpty( value ) )
             {
-                for ( final SecureOutputMode mode : SecureOutputMode.values() )
+                for ( final Mode mode : Mode.values() )
                 {
                     for ( final String prefix : mode.getPrefixes() )
                     {
@@ -151,7 +146,7 @@ public class StoredValueEncoder
         @Override
         public String encode( final String rawValue, final PwmSecurityKey pwmSecurityKey ) throws PwmOperationalException
         {
-            return SecureOutputMode.Plain.getPrefix() + rawValue;
+            return Mode.PLAIN.getPrefix() + rawValue;
         }
 
         @Override
@@ -166,13 +161,48 @@ public class StoredValueEncoder
         @Override
         public String encode( final String rawValue, final PwmSecurityKey pwmSecurityKey ) throws PwmOperationalException
         {
-            return SecureOutputMode.Plain.getPrefix() + rawValue;
+            return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
         }
 
         @Override
         public String decode( final ParsedInput input, final PwmSecurityKey pwmSecurityKey ) throws PwmOperationalException
         {
             return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
+        }
+    }
+
+    private static class ConfigPwModeEngine implements SecureOutputEngine
+    {
+        @Override
+        public String encode( final String rawValue, final PwmSecurityKey pwmSecurityKey ) throws PwmOperationalException
+        {
+            try
+            {
+                final String encryptedValue = SecureEngine.encryptToString( rawValue, pwmSecurityKey, PwmBlockAlgorithm.CONFIG );
+                return Mode.CONFIG_PW + encryptedValue;
+            }
+            catch ( final Exception e )
+            {
+                final String errorMsg = "unable to encrypt config-password value for setting: " + e.getMessage();
+                final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
+                throw new PwmOperationalException( errorInfo );
+            }
+        }
+
+        @Override
+        public String decode( final ParsedInput input, final PwmSecurityKey pwmSecurityKey ) throws PwmOperationalException
+        {
+            try
+            {
+                return SecureEngine.decryptStringValue( input.getValue(), pwmSecurityKey, PwmBlockAlgorithm.CONFIG );
+            }
+            catch ( final Exception e )
+            {
+                final String errorMsg = "unable to decrypt config password value for setting: " + e.getMessage();
+                final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
+                LOGGER.warn( errorInfo.toDebugStr() );
+                throw new PwmOperationalException( errorInfo );
+            }
         }
     }
 
@@ -183,11 +213,11 @@ public class StoredValueEncoder
         {
             if ( rawValue == null )
             {
-                return SecureOutputMode.Encoded.getPrefix();
+                return Mode.ENCODED.getPrefix();
             }
 
             // make sure value isn't already encoded
-            if ( ParsedInput.parseInput( rawValue ).getSecureOutputMode() == null )
+            if ( ParsedInput.parseInput( rawValue ).getMode() == null )
             {
                 try
                 {
@@ -195,7 +225,7 @@ public class StoredValueEncoder
                     final StoredPwData storedPwData = new StoredPwData( salt, rawValue );
                     final String jsonData = JsonUtil.serialize( storedPwData );
                     final String encryptedValue = SecureEngine.encryptToString( jsonData, pwmSecurityKey, PwmBlockAlgorithm.CONFIG );
-                    return SecureOutputMode.Encoded.getPrefix() + encryptedValue;
+                    return Mode.ENCODED.getPrefix() + encryptedValue;
                 }
                 catch ( final Exception e )
                 {

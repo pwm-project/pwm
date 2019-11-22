@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
@@ -106,7 +107,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final OutputConfiguration outputConfiguration )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final UserPermission value : values )

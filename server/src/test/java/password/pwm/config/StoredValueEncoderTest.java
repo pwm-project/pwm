@@ -22,6 +22,7 @@ package password.pwm.config;
 
 import org.junit.Assert;
 import org.junit.Test;
+import password.pwm.config.value.StoredValueEncoder;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.Optional;
@@ -33,14 +34,11 @@ public class StoredValueEncoderTest
     {
         final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( "SuperSecretKeyValue" );
 
-        {
-            final String encodedValue = StoredValueEncoder.encode( "password", StoredValueEncoder.SecureOutputMode.Encoded, pwmSecurityKey );
-            final Optional<String> decodedValue = StoredValueEncoder.decode( encodedValue, StoredValueEncoder.SecureOutputMode.Encoded, pwmSecurityKey );
-            Assert.assertTrue( decodedValue.isPresent() );
-            Assert.assertEquals( "password", decodedValue.get() );
-            Assert.assertNotEquals( "password", encodedValue );
-            Assert.assertTrue( encodedValue.startsWith( StoredValueEncoder.SecureOutputMode.Encoded.getPrefix() ) );
-
-        }
+        final String encodedValue = StoredValueEncoder.encode( "password", StoredValueEncoder.Mode.ENCODED, pwmSecurityKey );
+        final Optional<String> decodedValue = StoredValueEncoder.decode( encodedValue, StoredValueEncoder.Mode.ENCODED, pwmSecurityKey );
+        Assert.assertTrue( decodedValue.isPresent() );
+        Assert.assertEquals( "password", decodedValue.get() );
+        Assert.assertNotEquals( "password", encodedValue );
+        Assert.assertTrue( encodedValue.startsWith( StoredValueEncoder.Mode.ENCODED.getPrefix() ) );
     }
 }
