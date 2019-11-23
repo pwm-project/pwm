@@ -21,6 +21,8 @@
 package password.pwm.config;
 
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.LazySoftReference;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.java.XmlDocument;
 import password.pwm.util.java.XmlElement;
@@ -34,7 +36,6 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.LinkedHashSet;
