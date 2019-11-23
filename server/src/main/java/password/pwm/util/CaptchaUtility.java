@@ -351,7 +351,7 @@ public class CaptchaUtility
                 }
                 else
                 {
-                    LOGGER.error( pwmRequest, "skipCaptcha value is in request, however value '" + requestValue + "' does not match configured value" );
+                    LOGGER.debug( pwmRequest, () -> "skipCaptcha value is in request, however value '" + requestValue + "' does not match configured value" );
                 }
             }
         }

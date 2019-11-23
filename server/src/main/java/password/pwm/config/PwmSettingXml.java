@@ -21,7 +21,6 @@
 package password.pwm.config;
 
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.LazySoftReference;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.java.XmlDocument;
 import password.pwm.util.java.XmlElement;
@@ -35,6 +34,7 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -46,15 +46,24 @@ public class PwmSettingXml
     public static final String SETTING_XML_FILENAME = ( PwmSetting.class.getPackage().getName()
             + "." + PwmSetting.class.getSimpleName() ).replace( ".", "/" ) + ".xml";
 
-    public static final String XML_ELEMENT_LDAP_PERMISSION = "ldapPermission";
-    public static final String XML_ELEMENT_EXAMPLE = "example";
-    public static final String XML_ELEMENT_DEFAULT = "default";
-    public static final String XML_ELEMENT_OPTIONS = "options";
-    public static final String XML_ELEMENT_OPTION = "option";
+    static final String XML_ELEMENT_LDAP_PERMISSION = "ldapPermission";
+    static final String XML_ELEMENT_EXAMPLE = "example";
+    static final String XML_ELEMENT_DEFAULT = "default";
 
-    public static final String XML_ATTRIBUTE_PERMISSION_ACTOR = "actor";
-    public static final String XML_ATTRIBUTE_PERMISSION_ACCESS = "access";
-    public static final String XML_ATTRIBUTE_TEMPLATE = "template";
+    static final String XML_ATTRIBUTE_PERMISSION_ACTOR = "actor";
+    static final String XML_ATTRIBUTE_PERMISSION_ACCESS = "access";
+    static final String XML_ATTRIBUTE_TEMPLATE = "template";
+    static final String XML_ELEMENT_REGEX = "regex";
+    static final String XML_ELEMENT_HIDDEN = "hidden";
+    static final String XML_ELEMENT_REQUIRED = "required";
+    static final String XML_ELEMENT_LEVEL = "level";
+    static final String XML_ELEMENT_PROPERTIES = "properties";
+    static final String XML_ELEMENT_PROPERTY = "property";
+    static final String XML_ATTRIBUTE_KEY = "key";
+    static final String XML_ELEMENT_VALUE = "value";
+    static final String XML_ELEMENT_OPTION = "option";
+    static final String XML_ELEMENT_OPTIONS = "options";
+
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSettingXml.class );
 
@@ -88,7 +97,7 @@ public class PwmSettingXml
             final Validator validator = schema.newValidator();
             validator.validate( new StreamSource( xmlInputStream ) );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new IllegalStateException( "error validating PwmSetting.xml schema using PwmSetting.xsd definition: " + e.getMessage() );
         }
@@ -121,14 +130,14 @@ public class PwmSettingXml
         {
             return Collections.emptySet();
         }
-        final String templateStrValues = element.getAttributeValue( "template" );
+        final String templateStrValues = element.getAttributeValue( XML_ATTRIBUTE_TEMPLATE );
         final String[] templateSplitValues = templateStrValues == null
                 ? new String[ 0 ]
                 : templateStrValues.split( "," );
         final Set<PwmSettingTemplate> definedTemplates = new LinkedHashSet<>();
         for ( final String templateStrValue : templateSplitValues )
         {
-            final PwmSettingTemplate template = PwmSettingTemplate.valueOf( templateStrValue );
+            final PwmSettingTemplate template = JavaHelper.readEnumFromString( PwmSettingTemplate.class, null, templateStrValue );
             if ( template != null )
             {
                 definedTemplates.add( template );
