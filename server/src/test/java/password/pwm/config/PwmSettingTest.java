@@ -62,7 +62,7 @@ public class PwmSettingTest
     }
 
     @Test
-    public void testSettingXmlPresence() throws PwmUnrecoverableException, PwmOperationalException
+    public void testSettingXmlPresence() throws PwmUnrecoverableException
     {
         final InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( PwmSettingXml.SETTING_XML_FILENAME );
         final XmlDocument xmlDoc = XmlFactory.getFactory().parseXml( inputStream );
