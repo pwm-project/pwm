@@ -33,7 +33,7 @@ public class ConfigNewCommand extends AbstractCliCommand
     public void doCommand( )
             throws Exception
     {
-        final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newStoredConfiguration();
+        final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newConfig();
 
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
 

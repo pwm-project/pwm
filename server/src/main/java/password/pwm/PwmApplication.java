@@ -28,6 +28,8 @@ import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -101,8 +103,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * A repository for objects common to the servlet context.  A singleton
@@ -307,20 +309,18 @@ public class PwmApplication
 
         try
         {
-            pwmEnvironment.getConfig().outputToLog();
+            outputConfigurationToLog( this );
         }
         catch ( PwmException e )
         {
             LOGGER.error( "error outputting log to debug: " + e.getMessage() );
         }
-
-
-
+        
         // detect if config has been modified since previous startup
         try
         {
             final String previousHash = readAppAttribute( AppAttribute.CONFIG_HASH, String.class );
-            final String currentHash = pwmEnvironment.getConfig().configurationHash();
+            final String currentHash = pwmEnvironment.getConfig().configurationHash( this.getSecureService() );
             if ( previousHash == null || !previousHash.equals( currentHash ) )
             {
                 writeAppAttribute( AppAttribute.CONFIG_HASH, currentHash );
@@ -519,6 +519,31 @@ public class PwmApplication
             LOGGER.info( () -> "successfully wrote tomcat configuration to file " + tomcatOutputFile.getAbsolutePath() );
         }
     }
+
+    private static void outputConfigurationToLog( final PwmApplication pwmApplication )
+            throws PwmUnrecoverableException
+    {
+        if ( !LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        {
+            return;
+        }
+
+        final StoredConfiguration storedConfiguration = pwmApplication.getConfig().getStoredConfiguration();
+        final Map<String, String> debugStrings = StoredConfigurationUtil.makeDebugMap( storedConfiguration, storedConfiguration.modifiedItems(), PwmConstants.DEFAULT_LOCALE );
+        final List<Supplier<CharSequence>> outputStrings = new ArrayList<>();
+
+        for ( final Map.Entry<String, String> entry : debugStrings.entrySet() )
+        {
+            final String spacedValue = entry.getValue().replace( "\n", "\n   " );
+            final String output = " " + entry.getKey() + "\n   " + spacedValue + "\n";
+            outputStrings.add( () -> output );
+        }
+
+        LOGGER.trace( () -> "--begin current configuration output--" );
+        outputStrings.forEach( LOGGER::trace );
+        LOGGER.trace( () -> "--end current configuration output--" );
+    }
+
 
     public String getInstanceID( )
     {

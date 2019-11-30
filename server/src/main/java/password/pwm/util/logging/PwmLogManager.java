@@ -33,6 +33,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -110,6 +111,20 @@ public class PwmLogManager
 
         // disable jersey warnings.
         java.util.logging.Logger.getLogger( "org.glassfish.jersey" ).setLevel( java.util.logging.Level.SEVERE );
+    }
+
+
+    public static void preInitConsoleLogLevel( final String pwmLogLevel )
+    {
+        try
+        {
+            initConsoleLogger( new Configuration( StoredConfigurationFactory.newConfig() ), pwmLogLevel );
+        }
+        catch ( final Exception e )
+        {
+            final String msg = "error pre-initializing logger: " + e.getMessage();
+            System.err.println( msg );
+        }
     }
 
     private static void initConsoleLogger(

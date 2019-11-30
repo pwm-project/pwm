@@ -18,15 +18,11 @@
  * limitations under the License.
  */
 
-package password.pwm.config.stored;
+package password.pwm.util.java;
 
-import password.pwm.config.StoredValue;
+import password.pwm.error.PwmUnrecoverableException;
 
-import java.util.Optional;
-
-interface StoredConfigurationSpi extends StoredConfiguration
+public interface PwmSupplier<T>
 {
-    Optional<ValueMetaData> readMetaData( StoredConfigItemKey storedConfigItemKey );
-
-    Optional<StoredValue> readStoredValue( StoredConfigItemKey storedConfigItemKey );
+    T get() throws PwmUnrecoverableException;
 }

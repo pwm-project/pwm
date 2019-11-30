@@ -112,7 +112,7 @@ public class BooleanValue implements StoredValue
     }
 
     @Override
-    public String valueHash( )
+    public String valueHash()
     {
         return value ? "1" : "0";
     }

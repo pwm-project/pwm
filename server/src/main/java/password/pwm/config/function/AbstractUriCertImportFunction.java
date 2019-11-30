@@ -24,7 +24,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
-import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -45,7 +45,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
     @Override
     public String provideFunction(
             final PwmRequest pwmRequest,
-            final StoredConfiguration storedConfiguration,
+            final StoredConfigurationModifier modifier,
             final PwmSetting setting,
             final String profile,
             final String extraData )
@@ -54,17 +54,17 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final List<X509Certificate> certs;
 
-        final String urlString = getUri( storedConfiguration, setting, profile, extraData );
+        final String urlString = getUri( modifier, setting, profile, extraData );
         try
         {
             final URI uri = URI.create( urlString );
             if ( "https".equalsIgnoreCase( uri.getScheme() ) )
             {
-                certs = X509Utils.readRemoteHttpCertificates( pwmRequest.getPwmApplication(), pwmSession.getLabel(), uri, new Configuration( storedConfiguration ) );
+                certs = X509Utils.readRemoteHttpCertificates( pwmRequest.getPwmApplication(), pwmSession.getLabel(), uri, new Configuration( modifier.newStoredConfiguration() ) );
             }
             else
             {
-                final Configuration configuration = new Configuration( storedConfiguration );
+                final Configuration configuration = new Configuration( modifier.newStoredConfiguration() );
                 certs = X509Utils.readRemoteCertificates( URI.create( urlString ), configuration );
             }
         }
@@ -80,7 +80,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
 
 
         final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
-        store( certs, storedConfiguration, setting, profile, extraData, userIdentity );
+        store( certs, modifier, setting, profile, extraData, userIdentity );
 
         final StringBuffer returnStr = new StringBuffer();
         for ( final X509Certificate loopCert : certs )
@@ -91,12 +91,18 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
         return returnStr.toString();
     }
 
-    abstract String getUri( StoredConfiguration storedConfiguration, PwmSetting pwmSetting, String profile, String extraData ) throws PwmOperationalException;
+    abstract String getUri(
+            StoredConfigurationModifier modifier,
+            PwmSetting pwmSetting,
+            String profile,
+            String extraData
+    )
+            throws PwmOperationalException, PwmUnrecoverableException;
 
 
     void store(
             final List<X509Certificate> certs,
-            final StoredConfiguration storedConfiguration,
+            final StoredConfigurationModifier storedConfiguration,
             final PwmSetting pwmSetting,
             final String profile,
             final String extraData,

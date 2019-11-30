@@ -64,7 +64,7 @@ class ConfigurationCleaner
             new UpdatePropertiesWithoutType()
     ) );
 
-    private static final List<PwmExceptionLoggingConsumer<StoredConfigurationSpi>> STORED_CONFIG_POST_PROCESSORS = Collections.unmodifiableList( Arrays.asList(
+    private static final List<PwmExceptionLoggingConsumer<StoredConfigurationModifier>> STORED_CONFIG_POST_PROCESSORS = Collections.unmodifiableList( Arrays.asList(
             new UpdateDeprecatedAdComplexitySettings(),
             new UpdateDeprecatedMinPwdLifetimeSetting(),
             new UpdateDeprecatedPublicHealthSetting()
@@ -80,7 +80,7 @@ class ConfigurationCleaner
 
 
     static void postProcessStoredConfig(
-            final StoredConfigurationSpi storedConfiguration
+            final StoredConfigurationModifier storedConfiguration
     )
     {
         STORED_CONFIG_POST_PROCESSORS.forEach( aClass -> PwmExceptionLoggingConsumer.wrapConsumer( aClass ).accept( storedConfiguration ) );
@@ -319,18 +319,19 @@ class ConfigurationCleaner
         }
     }
 
-    private static class UpdateDeprecatedAdComplexitySettings implements PwmExceptionLoggingConsumer<StoredConfigurationSpi>
+    private static class UpdateDeprecatedAdComplexitySettings implements PwmExceptionLoggingConsumer<StoredConfigurationModifier>
     {
         @Override
-        public void accept( final StoredConfigurationSpi storedConfiguration )
+        public void accept( final StoredConfigurationModifier modifier )
                 throws PwmUnrecoverableException
         {
-            final Configuration configuration = new Configuration( storedConfiguration );
+            final StoredConfiguration oldConfig = modifier.newStoredConfiguration();
+            final Configuration configuration = new Configuration( oldConfig );
             for ( final String profileID : configuration.getPasswordProfileIDs() )
             {
-                if ( !storedConfiguration.isDefaultValue( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) )
+                if ( !oldConfig.isDefaultValue( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) )
                 {
-                    final boolean ad2003Enabled = ( boolean ) storedConfiguration.readSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ).toNativeObject();
+                    final boolean ad2003Enabled = ( boolean ) oldConfig.readSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ).toNativeObject();
                     final StoredValue value;
                     if ( ad2003Enabled )
                     {
@@ -342,30 +343,31 @@ class ConfigurationCleaner
                     }
                     LOGGER.info( () -> "converting deprecated non-default setting " + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
                             + " to replacement setting " + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value=" + value.toNativeObject().toString() );
-                    final Optional<ValueMetaData> valueMetaData = storedConfiguration.readMetaData(
+                    final Optional<ValueMetaData> valueMetaData = oldConfig.readMetaData(
                             StoredConfigItemKey.fromSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) );
                     final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
-                    storedConfiguration.writeSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL, profileID, value, userIdentity );
+                    modifier.writeSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL, profileID, value, userIdentity );
                 }
             }
         }
     }
 
-    private static class UpdateDeprecatedMinPwdLifetimeSetting implements PwmExceptionLoggingConsumer<StoredConfigurationSpi>
+    private static class UpdateDeprecatedMinPwdLifetimeSetting implements PwmExceptionLoggingConsumer<StoredConfigurationModifier>
     {
         @Override
-        public void accept( final StoredConfigurationSpi storedConfiguration )
+        public void accept( final StoredConfigurationModifier modifier )
                 throws PwmUnrecoverableException
         {
-            for ( final String profileID : storedConfiguration.profilesForSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME ) )
+            final StoredConfiguration oldConfig = modifier.newStoredConfiguration();
+            for ( final String profileID : oldConfig.profilesForSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME ) )
             {
-                if ( !storedConfiguration.isDefaultValue( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID ) )
+                if ( !oldConfig.isDefaultValue( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID ) )
                 {
-                    final boolean enforceEnabled = ( boolean ) storedConfiguration.readSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID ).toNativeObject();
+                    final boolean enforceEnabled = ( boolean ) oldConfig.readSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID ).toNativeObject();
                     final StoredValue value = enforceEnabled
                             ? new StringValue( RecoveryMinLifetimeOption.NONE.name() )
                             : new StringValue( RecoveryMinLifetimeOption.ALLOW.name() );
-                    final ValueMetaData existingData = storedConfiguration.readSettingMetadata( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID );
+                    final ValueMetaData existingData = oldConfig.readSettingMetadata( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID );
                     final UserIdentity newActor = existingData != null && existingData.getUserIdentity() != null
                             ? existingData.getUserIdentity()
                             : null;
@@ -373,33 +375,34 @@ class ConfigurationCleaner
                             + PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) + "/" + profileID
                             + " to replacement setting " + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE )
                             + ", value=" + value.toNativeObject().toString() );
-                    storedConfiguration.writeSetting( PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS, profileID, value, newActor );
+                    modifier.writeSetting( PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS, profileID, value, newActor );
                 }
             }
         }
     }
 
-    private static class UpdateDeprecatedPublicHealthSetting implements PwmExceptionLoggingConsumer<StoredConfigurationSpi>
+    private static class UpdateDeprecatedPublicHealthSetting implements PwmExceptionLoggingConsumer<StoredConfigurationModifier>
     {
         @Override
-        public void accept( final StoredConfigurationSpi storedConfiguration )
+        public void accept( final StoredConfigurationModifier modifier )
                 throws PwmUnrecoverableException
         {
-            if ( !storedConfiguration.isDefaultValue( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES ) )
+            final StoredConfiguration oldConfig = modifier.newStoredConfiguration();
+            if ( !oldConfig.isDefaultValue( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES, null ) )
             {
                 LOGGER.info( () -> "converting deprecated non-default setting "
                         + PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE )
                         + " to replacement setting " + PwmSetting.WEBSERVICES_PUBLIC_ENABLE.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ) );
-                final Set<String> existingValues = ( Set<String> ) storedConfiguration.readSetting( PwmSetting.WEBSERVICES_PUBLIC_ENABLE ).toNativeObject();
+                final Set<String> existingValues = ( Set<String> ) oldConfig.readSetting( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, null ).toNativeObject();
                 final Set<String> newValues = new LinkedHashSet<>( existingValues );
                 newValues.add( WebServiceUsage.Health.name() );
                 newValues.add( WebServiceUsage.Statistics.name() );
 
-                final Optional<ValueMetaData> valueMetaData = storedConfiguration.readMetaData(
+                final Optional<ValueMetaData> valueMetaData = oldConfig.readMetaData(
                         StoredConfigItemKey.fromSetting( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES, null ) );
                 final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
 
-                storedConfiguration.writeSetting( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, null, new OptionListValue( newValues ), userIdentity );
+                modifier.writeSetting( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, null, new OptionListValue( newValues ), userIdentity );
             }
         }
     }

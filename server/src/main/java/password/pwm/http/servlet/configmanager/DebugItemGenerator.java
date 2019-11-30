@@ -132,9 +132,8 @@ public class DebugItemGenerator
         this.pwmApplication = pwmApplication;
         this.sessionLabel = sessionLabel;
 
-        final StoredConfiguration storedConfiguration = pwmApplication.getConfig().getStoredConfiguration().copy();
-        StoredConfigurationUtil.resetAllPasswordValuesWithComment( storedConfiguration );
-        this.obfuscatedConfiguration = new Configuration( storedConfiguration );
+        final StoredConfiguration obfuscatedStoredConfig = StoredConfigurationUtil.copyConfigAndBlankAllPasswords( pwmApplication.getConfig().getStoredConfiguration() );
+        this.obfuscatedConfiguration = new Configuration( obfuscatedStoredConfig );
     }
 
     private String getFilenameBase()
@@ -218,11 +217,11 @@ public class DebugItemGenerator
             final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedConfiguration().getStoredConfiguration();
             final TreeMap<String, Object> outputObject = new TreeMap<>();
 
-            for ( final StoredConfigItemKey storedConfigItemKey : storedConfiguration.modifiedSettings() )
+            for ( final StoredConfigItemKey storedConfigItemKey : storedConfiguration.modifiedItems() )
             {
                 if ( storedConfigItemKey.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
                 {
-                    final String key = storedConfigItemKey.toString( PwmConstants.DEFAULT_LOCALE );
+                    final String key = storedConfigItemKey.getLabel( PwmConstants.DEFAULT_LOCALE );
                     final StoredValue value = storedConfiguration.readSetting( storedConfigItemKey.toPwmSetting(), storedConfigItemKey.getProfileID() );
                     outputObject.put( key, value );
                 }
@@ -255,7 +254,7 @@ public class DebugItemGenerator
             writer.write( "This file is " + PwmConstants.DEFAULT_CHARSET.displayName() + " encoded\n" );
 
             writer.write( "\n" );
-            final Set<StoredConfigItemKey> modifiedSettings = storedConfiguration.modifiedSettings();
+            final Set<StoredConfigItemKey> modifiedSettings = storedConfiguration.modifiedItems();
 
             for ( final StoredConfigItemKey storedConfigItemKey : modifiedSettings )
             {

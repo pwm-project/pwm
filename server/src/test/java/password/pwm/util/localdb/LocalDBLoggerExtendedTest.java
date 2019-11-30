@@ -81,7 +81,7 @@ public class LocalDBLoggerExtendedTest
     {
         TestHelper.setupLogging();
         final File localDBPath = testFolder.newFolder( "localdb-logger-test" );
-        config = new Configuration( StoredConfigurationFactory.newStoredConfiguration() );
+        config = new Configuration( StoredConfigurationFactory.newConfig() );
 
         localDB = LocalDBFactory.getInstance(
                 localDBPath,

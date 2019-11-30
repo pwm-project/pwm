@@ -21,7 +21,10 @@
 package password.pwm.config;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
@@ -32,6 +35,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlDocument;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
+import password.pwm.util.localdb.TestHelper;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.InputStream;
@@ -43,10 +47,13 @@ import java.util.Set;
 
 public class PwmSettingTest
 {
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Test
-    public void testDefaultValues() throws PwmUnrecoverableException, PwmOperationalException
+    public void testDefaultValues() throws Exception
     {
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
         final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( "abcdefghijklmnopqrstuvwxyz" );
         final XmlOutputProcessData outputSettings = XmlOutputProcessData.builder()
                 .pwmSecurityKey( pwmSecurityKey )

@@ -230,7 +230,7 @@ public class ConfigurationChecker implements HealthChecker
 
             try
             {
-                for ( final StoredConfigItemKey key : config.getStoredConfiguration().modifiedSettings() )
+                for ( final StoredConfigItemKey key : config.getStoredConfiguration().modifiedItems() )
                 {
                     final Instant startTime = Instant.now();
                     if ( key.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
@@ -393,30 +393,25 @@ public class ConfigurationChecker implements HealthChecker
                 {
                     if ( loopSetting.getCategory().hasProfiles() )
                     {
-                        try
+
+                        final List<String> profiles = config.getStoredConfiguration().profilesForSetting( loopSetting );
+                        for ( final String profile : profiles )
                         {
-                            final List<String> profiles = config.getStoredConfiguration().profilesForSetting( loopSetting );
-                            for ( final String profile : profiles )
+                            final StoredValue storedValue = config.getStoredConfiguration().readSetting( loopSetting, profile );
+                            final List<FormConfiguration> forms = (List<FormConfiguration>) storedValue.toNativeObject();
+                            for ( final FormConfiguration form : forms )
                             {
-                                final StoredValue storedValue = config.getStoredConfiguration().readSetting( loopSetting, profile );
-                                final List<FormConfiguration> forms = (List<FormConfiguration>) storedValue.toNativeObject();
-                                for ( final FormConfiguration form : forms )
+                                if ( !StringUtil.isEmpty( form.getJavascript() ) )
                                 {
-                                    if ( !StringUtil.isEmpty( form.getJavascript() ) )
-                                    {
-                                        records.add( HealthRecord.forMessage(
-                                                HealthMessage.Config_DeprecatedJSForm,
-                                                loopSetting.toMenuLocationDebug( profile, locale ),
-                                                PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT.toMenuLocationDebug( null, locale )
-                                        ) );
-                                    }
+                                    records.add( HealthRecord.forMessage(
+                                            HealthMessage.Config_DeprecatedJSForm,
+                                            loopSetting.toMenuLocationDebug( profile, locale ),
+                                            PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT.toMenuLocationDebug( null, locale )
+                                    ) );
                                 }
                             }
                         }
-                        catch ( PwmUnrecoverableException e )
-                        {
-                            LOGGER.error( "unexpected error examining profiles for deprecated form  js option check: " + e.getMessage() );
-                        }
+
                     }
                     else
                     {

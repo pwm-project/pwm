@@ -30,7 +30,6 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
-import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
@@ -54,6 +53,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @WebServlet(
         name = "ConfigManagerCertificateServlet",
@@ -116,7 +116,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
     List<CertificateDebugDataItem> makeCertificateDebugData( final Configuration configuration ) throws PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = configuration.getStoredConfiguration();
-        final List<StoredConfigItemKey> modifiedSettings = StoredConfigurationUtil.modifiedItems( storedConfiguration );
+        final Set<StoredConfigItemKey> modifiedSettings = storedConfiguration.modifiedItems();
 
         final List<CertificateDebugDataItem> certificateDebugDataItems = new ArrayList<>();
 
@@ -134,7 +134,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
                     }
                     else
                     {
-                        storedValue = storedConfiguration.readSetting( pwmSetting );
+                        storedValue = storedConfiguration.readSetting( pwmSetting, null );
                     }
                     final X509Certificate[] arrayCerts = ( X509Certificate[] ) storedValue.toNativeObject();
                     final List<X509Certificate> certificates = arrayCerts == null ? Collections.emptyList() : Arrays.asList( arrayCerts );
@@ -149,7 +149,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
                     }
                     else
                     {
-                        storedValue = storedConfiguration.readSetting( pwmSetting );
+                        storedValue = storedConfiguration.readSetting( pwmSetting, null );
                     }
                     final List<ActionConfiguration> actionConfigurations = ( List ) storedValue.toNativeObject();
                     for ( final ActionConfiguration actionConfiguration : actionConfigurations )

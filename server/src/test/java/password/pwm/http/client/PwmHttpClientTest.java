@@ -62,7 +62,7 @@ public class PwmHttpClientTest
 
 
     // Create a few mock objects, in case they're needed by the tests
-    private Configuration configuration = Mockito.spy( new Configuration( StoredConfigurationFactory.newStoredConfiguration() ) );
+    private Configuration configuration = Mockito.spy( new Configuration( StoredConfigurationFactory.newConfig() ) );
 
     public PwmHttpClientTest() throws PwmUnrecoverableException
     {

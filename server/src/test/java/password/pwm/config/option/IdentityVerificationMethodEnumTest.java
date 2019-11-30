@@ -31,7 +31,7 @@ public class IdentityVerificationMethodEnumTest
     @Test
     public void testLabels() throws PwmUnrecoverableException
     {
-        final Configuration configuration = new Configuration( StoredConfigurationFactory.newStoredConfiguration() );
+        final Configuration configuration = new Configuration( StoredConfigurationFactory.newConfig() );
         for ( final IdentityVerificationMethod method : IdentityVerificationMethod.values() )
         {
             method.getLabel( configuration, PwmConstants.DEFAULT_LOCALE );
@@ -41,7 +41,7 @@ public class IdentityVerificationMethodEnumTest
     @Test
     public void testDescriptions() throws PwmUnrecoverableException
     {
-        final Configuration configuration = new Configuration( StoredConfigurationFactory.newStoredConfiguration() );
+        final Configuration configuration = new Configuration( StoredConfigurationFactory.newConfig() );
         for ( final IdentityVerificationMethod category : IdentityVerificationMethod.values() )
         {
             category.getDescription( configuration, PwmConstants.DEFAULT_LOCALE );

@@ -29,7 +29,6 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
-import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.ActionValue;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -46,6 +45,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class CertificateChecker implements HealthChecker
 {
@@ -95,7 +95,7 @@ public class CertificateChecker implements HealthChecker
         final StoredConfiguration storedConfiguration = configuration.getStoredConfiguration();
 
         final List<HealthRecord> returnList = new ArrayList<>();
-        final List<StoredConfigItemKey> modifiedReferences = StoredConfigurationUtil.modifiedItems( storedConfiguration );
+        final Set<StoredConfigItemKey> modifiedReferences = storedConfiguration.modifiedItems();
         for ( final StoredConfigItemKey storedConfigItemKey : modifiedReferences )
         {
             if ( storedConfigItemKey.getRecordType() == StoredConfigItemKey.RecordType.SETTING )

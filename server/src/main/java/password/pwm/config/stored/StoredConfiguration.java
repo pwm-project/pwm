@@ -20,9 +20,7 @@
 
 package password.pwm.config.stored;
 
-import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
@@ -43,11 +41,7 @@ public interface StoredConfiguration
 
     Instant modifyTime( );
 
-    StoredConfiguration copy() throws PwmUnrecoverableException;
-
     Optional<String> readConfigProperty( ConfigurationProperty propertyName );
-
-    void writeConfigProperty( ConfigurationProperty propertyName, String value );
 
     PwmSettingTemplateSet getTemplateSet();
 
@@ -57,38 +51,17 @@ public interface StoredConfiguration
 
     Map<String, String> readLocaleBundleMap( PwmLocaleBundle bundleName, String keyName );
 
-    void resetLocaleBundleMap( PwmLocaleBundle bundleName, String keyName );
-
-    void resetSetting( PwmSetting setting, String profileID, UserIdentity userIdentity );
-
-    boolean isDefaultValue( PwmSetting setting );
+    StoredValue readSetting( PwmSetting setting, String profileID );
 
     boolean isDefaultValue( PwmSetting setting, String profileID );
 
-    StoredValue readSetting( PwmSetting setting );
+    String valueHash();
 
-    StoredValue readSetting( PwmSetting setting, String profileID );
+    Set<StoredConfigItemKey> modifiedItems();
 
-    void writeLocaleBundleMap( PwmLocaleBundle bundleName, String keyName, Map<String, String> localeMap );
+    Optional<ValueMetaData> readMetaData( StoredConfigItemKey storedConfigItemKey );
 
-    void copyProfileID( PwmSettingCategory category, String sourceID, String destinationID, UserIdentity userIdentity )
-            throws PwmUnrecoverableException;
+    Optional<StoredValue> readStoredValue( StoredConfigItemKey storedConfigItemKey );
 
-    void writeSetting(
-            PwmSetting setting,
-            StoredValue value,
-            UserIdentity userIdentity
-    ) throws PwmUnrecoverableException;
-
-    void writeSetting(
-            PwmSetting setting,
-            String profileID,
-            StoredValue value,
-            UserIdentity userIdentity
-    ) throws PwmUnrecoverableException;
-
-
-    String settingChecksum() throws PwmUnrecoverableException;
-
-    Set<StoredConfigItemKey> modifiedSettings();
+    StoredConfiguration copy();
 }

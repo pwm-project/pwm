@@ -40,6 +40,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -233,9 +234,7 @@ public abstract class StringUtil
 
     public static boolean nullSafeEquals( final String value1, final String value2 )
     {
-        return value1 == null
-                ? value2 == null
-                : value1.equals( value2 );
+        return Objects.equals( value1, value2 );
     }
 
     public enum Base64Options
@@ -588,5 +587,33 @@ public abstract class StringUtil
             index += periodicity;
         }
         return output.toString();
+    }
+
+    public static boolean caseIgnoreContains( final Collection<String> collection, final String value )
+    {
+        if ( value == null || collection == null )
+        {
+            return false;
+        }
+
+        if ( collection.contains( value ) )
+        {
+            return true;
+        }
+
+        final String lcaseValue = value.toLowerCase();
+        for ( final String item : collection )
+        {
+            if ( item != null )
+            {
+                final String lcaseItem = item.toLowerCase();
+                if ( lcaseItem.equalsIgnoreCase( lcaseValue ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

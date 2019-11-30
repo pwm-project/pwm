@@ -45,7 +45,7 @@ public class JsonAuditFormatterTest
         final String expectedOutput = PwmConstants.PWM_APP_NAME + " " + jsonInput;
         final AuditFormatter auditFormatter = new JsonAuditFormatter();
         final PwmApplication pwmApplication = Mockito.mock( PwmApplication.class );
-        Mockito.when( pwmApplication.getConfig() ).thenReturn( new Configuration( StoredConfigurationFactory.newStoredConfiguration() ) );
+        Mockito.when( pwmApplication.getConfig() ).thenReturn( new Configuration( StoredConfigurationFactory.newConfig() ) );
         final String output = auditFormatter.convertAuditRecordToMessage( pwmApplication, auditRecord );
         Assert.assertEquals( expectedOutput, output );
     }

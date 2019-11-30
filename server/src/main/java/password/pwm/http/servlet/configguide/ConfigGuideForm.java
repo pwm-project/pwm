@@ -25,6 +25,7 @@ import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.BooleanValue;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.config.value.FileValue;
@@ -70,7 +71,7 @@ public class ConfigGuideForm
 
     private static void updateStoredConfigTemplateValue(
             final Map<ConfigGuideFormField, String> formData,
-            final StoredConfiguration storedConfiguration,
+            final StoredConfigurationModifier modifier,
             final PwmSetting pwmSetting,
             final ConfigGuideFormField formField,
             final PwmSettingTemplate.Type type
@@ -81,7 +82,7 @@ public class ConfigGuideForm
         if ( !StringUtil.isEmpty( formValue ) )
         {
             final PwmSettingTemplate template = PwmSettingTemplate.templateForString( formValue, type );
-            storedConfiguration.writeSetting( pwmSetting, null, new StringValue( template.toString() ), null );
+            modifier.writeSetting( pwmSetting, null, new StringValue( template.toString() ), null );
         }
     }
 
@@ -94,7 +95,7 @@ public class ConfigGuideForm
     {
 
         final Map<ConfigGuideFormField, String> formData = configGuideBean.getFormData();
-        final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newStoredConfiguration();
+        final StoredConfigurationModifier storedConfiguration = StoredConfigurationModifier.newModifier( StoredConfigurationFactory.newConfig() );
 
         // templates
         updateStoredConfigTemplateValue(
@@ -175,7 +176,7 @@ public class ConfigGuideForm
                     .type( UserPermission.Type.ldapGroup )
                     .ldapBase( groupDN )
                     .build() );
-            storedConfiguration.writeSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, new UserPermissionValue( userPermissions ), null );
+            storedConfiguration.writeSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, null, new UserPermissionValue( userPermissions ), null );
         }
 
         {
@@ -219,12 +220,12 @@ public class ConfigGuideForm
         }
 
         // set site url
-        storedConfiguration.writeSetting( PwmSetting.PWM_SITE_URL, new StringValue( formData.get( ConfigGuideFormField.PARAM_APP_SITEURL ) ), null );
+        storedConfiguration.writeSetting( PwmSetting.PWM_SITE_URL, null, new StringValue( formData.get( ConfigGuideFormField.PARAM_APP_SITEURL ) ), null );
 
         // enable debug mode
         storedConfiguration.writeSetting( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS, null, new BooleanValue( true ), null );
 
-        return storedConfiguration;
+        return storedConfiguration.newStoredConfiguration();
     }
 
     static String figureLdapUrlFromFormConfig( final Map<ConfigGuideFormField, String> ldapForm )

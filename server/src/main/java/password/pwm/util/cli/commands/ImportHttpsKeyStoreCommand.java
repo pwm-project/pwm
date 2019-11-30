@@ -23,6 +23,7 @@ package password.pwm.util.cli.commands;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.util.PasswordData;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.StringUtil;
@@ -65,24 +66,25 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand
 
         final ConfigurationReader configurationReader = new ConfigurationReader( cliEnvironment.getConfigurationFile() );
         final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
 
         try ( FileInputStream fileInputStream = new FileInputStream( inputFile ) )
         {
             HttpsServerCertificateManager.importKey(
-                    storedConfiguration,
+                    modifier,
                     format,
                     fileInputStream,
                     new PasswordData( keyStorePassword ),
                     inputAliasName
             );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             out( "unable to load configured https certificate: " + e.getMessage() );
             return;
         }
 
-        configurationReader.saveConfiguration( storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
+        configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
         out( "success: keystore has been imported" );
     }
 

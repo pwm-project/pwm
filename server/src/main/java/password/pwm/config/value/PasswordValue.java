@@ -32,10 +32,10 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -45,6 +45,8 @@ import java.util.Optional;
 
 public class PasswordValue implements StoredValue
 {
+    private final transient LazySupplier<String> valueHashSupplier = new LazySupplier<>( () -> AbstractValue.valueHashComputer( PasswordValue.this ) );
+
     private final PasswordData value;
 
     PasswordValue( )
@@ -194,15 +196,8 @@ public class PasswordValue implements StoredValue
     }
 
     @Override
-    public String valueHash( )
+    public String valueHash()
     {
-        try
-        {
-            return value == null ? "" : SecureEngine.hash( JsonUtil.serialize( value.getStringValue() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            throw new IllegalStateException( e );
-        }
+        return valueHashSupplier.get();
     }
 }

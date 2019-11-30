@@ -31,7 +31,7 @@ public class LDAPPermissionCalculatorTest
     public void testDefaultPermissionCalculator()
             throws PwmUnrecoverableException
     {
-        final StoredConfiguration defaultConfig = StoredConfigurationFactory.newStoredConfiguration();
+        final StoredConfiguration defaultConfig = StoredConfigurationFactory.newConfig();
         final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( defaultConfig );
         ldapPermissionCalculator.getPermissionRecords();
     }

@@ -33,6 +33,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.StringValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogLevel;
@@ -59,9 +60,10 @@ public class TestHelper
     public static PwmApplication makeTestPwmApplication( final File tempFolder )
             throws PwmUnrecoverableException
     {
-        final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newStoredConfiguration();
-        storedConfiguration.writeSetting( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL, new StringValue( PwmLogLevel.FATAL.toString() ), null );
-        final Configuration configuration = new Configuration( storedConfiguration );
+        final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newConfig();
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
+        modifier.writeSetting( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL, null, new StringValue( PwmLogLevel.FATAL.toString() ), null );
+        final Configuration configuration = new Configuration( modifier.newStoredConfiguration() );
         return makeTestPwmApplication( tempFolder, configuration );
     }
 

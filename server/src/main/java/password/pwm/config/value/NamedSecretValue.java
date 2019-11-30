@@ -33,6 +33,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -51,6 +52,9 @@ import java.util.Optional;
 
 public class NamedSecretValue implements StoredValue
 {
+
+    private final transient LazySupplier<String> valueHashSupplier = new LazySupplier<>( () -> AbstractValue.valueHashComputer( NamedSecretValue.this ) );
+
     private static final String ELEMENT_NAME = "name";
     private static final String ELEMENT_PASSWORD = "password";
     private static final String ELEMENT_USAGE = "usage";
@@ -248,15 +252,8 @@ public class NamedSecretValue implements StoredValue
     }
 
     @Override
-    public String valueHash( )
+    public String valueHash()
     {
-        try
-        {
-            return values == null ? "" : SecureEngine.hash( JsonUtil.serializeMap( values ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            throw new IllegalStateException( e );
-        }
+        return valueHashSupplier.get();
     }
 }

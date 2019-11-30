@@ -20,7 +20,6 @@
 
 package password.pwm.config.stored;
 
-import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Config;
@@ -33,7 +32,6 @@ import java.io.Serializable;
 import java.util.Locale;
 import java.util.Objects;
 
-@Value
 public class StoredConfigItemKey implements Serializable, Comparable
 {
     public enum RecordType
@@ -55,19 +53,33 @@ public class StoredConfigItemKey implements Serializable, Comparable
         }
     }
 
-
     private final RecordType recordType;
     private final String recordID;
     private final String profileID;
 
     private StoredConfigItemKey( final RecordType recordType, final String recordID, final String profileID )
     {
+        Objects.requireNonNull( recordType, "recordType can not be null" );
+        Objects.requireNonNull( recordID, "recordID can not be null" );
+
         this.recordType = recordType;
         this.recordID = recordID;
         this.profileID = profileID;
+    }
 
-        Objects.requireNonNull( recordType, "recordType can not be null" );
-        Objects.requireNonNull( recordID, "recordID can not be null" );
+    public RecordType getRecordType()
+    {
+        return recordType;
+    }
+
+    public String getRecordID()
+    {
+        return recordID;
+    }
+
+    public String getProfileID()
+    {
+        return profileID;
     }
 
     static StoredConfigItemKey fromSetting( final PwmSetting pwmSetting, final String profileID )
@@ -137,14 +149,7 @@ public class StoredConfigItemKey implements Serializable, Comparable
         }
     }
 
-
-    @Override
-    public String toString()
-    {
-        return "StoredConfigItemKey: " + toString( PwmConstants.DEFAULT_LOCALE  );
-    }
-
-    public String toString( final Locale locale )
+    public String getLabel( final Locale locale )
     {
         final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
 
@@ -157,7 +162,6 @@ public class StoredConfigItemKey implements Serializable, Comparable
                 return recordType.getLabel() + separator + this.getRecordID();
 
             case LOCALE_BUNDLE:
-                toLocaleBundle().getKey();
                 return recordType.getLabel()
                         + separator
                         + this.getRecordID()
@@ -203,8 +207,29 @@ public class StoredConfigItemKey implements Serializable, Comparable
     }
 
     @Override
+    public int hashCode()
+    {
+        return toString().hashCode();
+    }
+
+    @Override
+    public boolean equals( final Object anotherObject )
+    {
+        return anotherObject != null
+                && anotherObject instanceof StoredConfigItemKey
+                && toString().equals( anotherObject.toString() );
+    }
+
+    @Override
+    public String toString()
+    {
+        return getLabel( PwmConstants.DEFAULT_LOCALE );
+       // return getRecordType().name() + "-" + this.getRecordID() + "-" + this.getProfileID();
+    }
+
+    @Override
     public int compareTo( final Object o )
     {
-        return toString().compareTo( o.toString() );
+        return getLabel( PwmConstants.DEFAULT_LOCALE ).compareTo( o.toString() );
     }
 }

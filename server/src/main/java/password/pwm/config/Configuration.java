@@ -45,10 +45,8 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
-import password.pwm.config.stored.ComparingChangeLog;
 import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
-import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.BooleanValue;
 import password.pwm.config.value.CustomLinkValue;
@@ -80,6 +78,7 @@ import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.SecureService;
 
 import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
@@ -97,7 +96,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.Supplier;
 
 /**
  * @author Jason D. Rivard
@@ -109,8 +107,6 @@ public class Configuration implements SettingReader
     private final StoredConfiguration storedConfiguration;
 
     private DataCache dataCache = new DataCache();
-
-    private String cashedConfigurationHash;
 
     public Configuration( final StoredConfiguration storedConfiguration )
     {
@@ -125,30 +121,6 @@ public class Configuration implements SettingReader
                     + " setting is using a no longer functional setting value: " + value;
             throw new IllegalStateException( msg );
         }
-    }
-
-    public void outputToLog( )
-            throws PwmUnrecoverableException
-    {
-        if ( !LOGGER.isEnabled( PwmLogLevel.TRACE ) )
-        {
-            return;
-        }
-
-        final ComparingChangeLog changeLog = ComparingChangeLog.create( StoredConfigurationFactory.newStoredConfiguration(), storedConfiguration );
-        final Map<String, String> debugStrings = StoredConfigurationUtil.asDebugMap( storedConfiguration, changeLog.changedValues(), PwmConstants.DEFAULT_LOCALE );
-        final List<Supplier<CharSequence>> outputStrings = new ArrayList<>();
-
-        for ( final Map.Entry<String, String> entry : debugStrings.entrySet() )
-        {
-            final String spacedValue = entry.getValue().replace( "\n", "\n   " );
-            final String output = " " + entry.getKey() + "\n   " + spacedValue + "\n";
-            outputStrings.add( () -> output );
-        }
-
-        LOGGER.trace( () -> "--begin current configuration output--" );
-        outputStrings.forEach( LOGGER::trace );
-        LOGGER.trace( () -> "--end current configuration output--" );
     }
 
     public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )
@@ -647,7 +619,7 @@ public class Configuration implements SettingReader
 
         // set case sensitivity
         final String caseSensitivitySetting = JavaTypeConverter.valueToString( storedConfiguration.readSetting(
-                PwmSetting.PASSWORD_POLICY_CASE_SENSITIVITY ) );
+                PwmSetting.PASSWORD_POLICY_CASE_SENSITIVITY, null ) );
         if ( !"read".equals( caseSensitivitySetting ) )
         {
             passwordPolicySettings.put( PwmPasswordRule.CaseSensitive.getKey(), caseSensitivitySetting );
@@ -678,7 +650,7 @@ public class Configuration implements SettingReader
 
     public boolean isDefaultValue( final PwmSetting pwmSetting )
     {
-        return storedConfiguration.isDefaultValue( pwmSetting );
+        return storedConfiguration.isDefaultValue( pwmSetting, null );
     }
 
     public Collection<Locale> localesForSetting( final PwmSetting setting )
@@ -716,7 +688,7 @@ public class Configuration implements SettingReader
 
     public Map<FileValue.FileInformation, FileValue.FileContent> readSettingAsFile( final PwmSetting setting )
     {
-        final FileValue fileValue = ( FileValue ) storedConfiguration.readSetting( setting );
+        final FileValue fileValue = ( FileValue ) storedConfiguration.readSetting( setting, null );
         return ( Map ) fileValue.toNativeObject();
     }
 
@@ -1013,7 +985,7 @@ public class Configuration implements SettingReader
             return dataCache.settings.get( setting );
         }
 
-        final StoredValue readValue = storedConfiguration.readSetting( setting );
+        final StoredValue readValue = storedConfiguration.readSetting( setting, null );
         dataCache.settings.put( setting, readValue );
         return readValue;
     }
@@ -1127,9 +1099,9 @@ public class Configuration implements SettingReader
         return profileFactory.makeFromStoredConfiguration( storedConfiguration, profileID );
     }
 
-    public StoredConfiguration getStoredConfiguration( ) throws PwmUnrecoverableException
+    public StoredConfiguration getStoredConfiguration( )
     {
-        return this.storedConfiguration.copy();
+        return this.storedConfiguration;
     }
 
     public boolean isDevDebugMode( )
@@ -1137,20 +1109,16 @@ public class Configuration implements SettingReader
         return Boolean.parseBoolean( readAppProperty( AppProperty.LOGGING_DEV_OUTPUT ) );
     }
 
-    public String configurationHash( )
+    public String configurationHash( final SecureService secureService )
             throws PwmUnrecoverableException
     {
-        if ( this.cashedConfigurationHash == null )
-        {
-            this.cashedConfigurationHash = storedConfiguration.settingChecksum();
-        }
-        return cashedConfigurationHash;
+        return storedConfiguration.valueHash();
     }
 
     public Set<PwmSetting> nonDefaultSettings( )
     {
         final Set<PwmSetting> returnSet = new LinkedHashSet<>();
-        for ( final StoredConfigItemKey key : this.storedConfiguration.modifiedSettings() )
+        for ( final StoredConfigItemKey key : this.storedConfiguration.modifiedItems() )
         {
             if ( key.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
             {
@@ -1166,7 +1134,6 @@ public class Configuration implements SettingReader
         return mode == null
                 ? CertificateMatchingMode.CA_ONLY
                 : mode;
-
     }
 
     public Optional<PeopleSearchProfile> getPublicPeopleSearchProfile()

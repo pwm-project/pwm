@@ -49,7 +49,7 @@ public class HealthMessageTest
     @Test
     public void testHealthMessageDescription() throws PwmUnrecoverableException
     {
-        final Configuration configuration = new Configuration( StoredConfigurationFactory.newStoredConfiguration() );
+        final Configuration configuration = new Configuration( StoredConfigurationFactory.newConfig() );
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
         for ( final HealthMessage healthMessage : HealthMessage.values() )
         {

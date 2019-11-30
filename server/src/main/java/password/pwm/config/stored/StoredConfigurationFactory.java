@@ -71,18 +71,34 @@ public class StoredConfigurationFactory
     private static final String XML_FORMAT_VERSION = "5";
 
 
-    public static StoredConfiguration newStoredConfiguration() throws PwmUnrecoverableException
+    public static StoredConfiguration newConfig() throws PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = new StoredConfigurationImpl(  );
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
 
-        StoredConfigurationUtil.initNewRandomSecurityKey( storedConfiguration );
-        storedConfiguration.writeConfigProperty(
+        StoredConfigurationUtil.initNewRandomSecurityKey( modifier );
+        modifier.writeConfigProperty(
                 ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( true ) );
-        storedConfiguration.writeConfigProperty(
+        modifier.writeConfigProperty(
                 ConfigurationProperty.CONFIG_EPOCH, String.valueOf( 0 ) );
 
 
-        return new StoredConfigurationImpl(  );
+        return modifier.newStoredConfiguration();
+    }
+
+    public static StoredConfigurationModifier newModifiableConfig() throws PwmUnrecoverableException
+    {
+        final StoredConfiguration storedConfiguration = new StoredConfigurationImpl(  );
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
+
+        StoredConfigurationUtil.initNewRandomSecurityKey( modifier );
+        modifier.writeConfigProperty(
+                ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( true ) );
+        modifier.writeConfigProperty(
+                ConfigurationProperty.CONFIG_EPOCH, String.valueOf( 0 ) );
+
+
+        return modifier;
     }
 
     public static StoredConfiguration fromXml( final InputStream inputStream )
@@ -94,10 +110,10 @@ public class StoredConfigurationFactory
 
         final XmlInputDocumentReader xmlInputDocumentReader = new XmlInputDocumentReader( xmlDocument );
         final StoredConfigData storedConfigData = xmlInputDocumentReader.getStoredConfigData();
-        final StoredConfigurationSpi storedConfiguration = new StoredConfigurationImpl( storedConfigData );
-        ConfigurationCleaner.postProcessStoredConfig( storedConfiguration );
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier(  new StoredConfigurationImpl( storedConfigData ) );
+        ConfigurationCleaner.postProcessStoredConfig( modifier );
 
-        return storedConfiguration;
+        return modifier.newStoredConfiguration();
     }
 
     public static void toXml(
@@ -212,7 +228,6 @@ public class StoredConfigurationFactory
                 final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID );
                 final ValueMetaData metaData = readMetaDataFromXmlElement( key, settingElement.get() ).orElse( null );
                 return Optional.of( new StoredConfigData.ValueAndMetaCarrier( key, storedValue, metaData ) );
-
             }
             catch ( final PwmException e )
             {
@@ -328,32 +343,33 @@ public class StoredConfigurationFactory
         private Collection<StoredConfigData.ValueAndMetaCarrier> readLocaleBundles()
         {
             final List<StoredConfigData.ValueAndMetaCarrier> returnWrapper = new ArrayList<>();
-            for ( final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.values() )
-            {
-                for ( final String key : pwmLocaleBundle.getDisplayKeys() )
-                {
-                    final String bundleName = pwmLocaleBundle.getKey();
-                    final Optional<XmlElement> localeBundleElement = xpathForLocaleBundleSetting( bundleName, key );
 
-                    if ( localeBundleElement.isPresent() )
+            for ( final XmlElement localeBundleElement : xpathForLocaleBundles() )
+            {
+                final String bundleName = localeBundleElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_BUNDLE );
+                final Optional<PwmLocaleBundle> pwmLocaleBundle = PwmLocaleBundle.forKey( bundleName );
+                pwmLocaleBundle.ifPresent( ( bundle ) ->
+                {
+                    final String key = localeBundleElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY );
+                    if ( bundle.getDisplayKeys().contains( key ) )
                     {
                         final Map<String, String> bundleMap = new LinkedHashMap<>();
-                        for ( final XmlElement valueElement : localeBundleElement.get().getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE ) )
+                        for ( final XmlElement valueElement : localeBundleElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE ) )
                         {
                             final String localeStrValue = valueElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE );
                             bundleMap.put( localeStrValue == null ? "" : localeStrValue, valueElement.getText() );
                         }
                         if ( !bundleMap.isEmpty() )
                         {
-                            final StoredConfigItemKey storedConfigItemKey = StoredConfigItemKey.fromLocaleBundle( pwmLocaleBundle, key );
+                            final StoredConfigItemKey storedConfigItemKey = StoredConfigItemKey.fromLocaleBundle( pwmLocaleBundle.get(), key );
                             final StoredValue storedValue = new LocalizedStringValue( bundleMap );
-                            final ValueMetaData metaData = readMetaDataFromXmlElement( storedConfigItemKey, localeBundleElement.get() ).orElse( null );
+                            final ValueMetaData metaData = readMetaDataFromXmlElement( storedConfigItemKey, localeBundleElement ).orElse( null );
                             returnWrapper.add( new StoredConfigData.ValueAndMetaCarrier( storedConfigItemKey, storedValue, metaData ) );
                         }
                     }
-                }
+                } );
             }
-            return returnWrapper;
+            return Collections.unmodifiableList( returnWrapper );
         }
 
         private Optional<ValueMetaData> readMetaDataFromXmlElement( final StoredConfigItemKey key, final XmlElement xmlElement )
@@ -398,10 +414,10 @@ public class StoredConfigurationFactory
             return Optional.empty();
         }
 
-        Optional<XmlElement> xpathForLocaleBundleSetting( final String bundleName, final String keyName )
+        List<XmlElement> xpathForLocaleBundles()
         {
-            final String xpathString = "//localeBundle[@bundle=\"" + bundleName + "\"][@key=\"" + keyName + "\"]";
-            return document.evaluateXpathToElement( xpathString );
+            final String xpathString = "//localeBundle";
+            return document.evaluateXpathToElements( xpathString );
         }
 
         XmlElement xpathForSettings()
@@ -588,7 +604,7 @@ public class StoredConfigurationFactory
                 final XmlElement xmlElement
         )
         {
-            final Optional<ValueMetaData> valueMetaData = ( ( StoredConfigurationSpi ) storedConfiguration ).readMetaData( key );
+            final Optional<ValueMetaData> valueMetaData = ( ( StoredConfiguration ) storedConfiguration ).readMetaData( key );
 
             if ( valueMetaData.isPresent() )
             {

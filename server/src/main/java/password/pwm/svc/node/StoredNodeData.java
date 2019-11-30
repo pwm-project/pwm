@@ -47,7 +47,7 @@ class StoredNodeData implements Serializable
                 pwmApplication.getStartupTime(),
                 pwmApplication.getInstanceID(),
                 pwmApplication.getRuntimeNonce(),
-                pwmApplication.getConfig().configurationHash()
+                pwmApplication.getConfig().configurationHash( pwmApplication.getSecureService() )
         );
     }
 }

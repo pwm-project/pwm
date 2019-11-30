@@ -85,7 +85,7 @@ public class ConfigurationReader
 
         if ( storedConfiguration == null )
         {
-            this.storedConfiguration = StoredConfigurationFactory.newStoredConfiguration();
+            this.storedConfiguration = StoredConfigurationFactory.newConfig();
         }
 
         LOGGER.debug( () -> "configuration mode: " + configMode );
@@ -106,7 +106,7 @@ public class ConfigurationReader
         if ( configuration == null )
         {
             final StoredConfiguration newStoredConfig = this.storedConfiguration == null
-                    ? StoredConfigurationFactory.newStoredConfiguration()
+                    ? StoredConfigurationFactory.newConfig()
                     : this.storedConfiguration;
             configuration = new Configuration( newStoredConfig );
         }
@@ -248,7 +248,10 @@ public class ConfigurationReader
             {
                 LOGGER.error( sessionLabel, "error trying to parse previous config epoch property: " + e.getMessage() );
             }
-            storedConfiguration.writeConfigProperty( ConfigurationProperty.CONFIG_EPOCH, newEpochStrValue );
+
+            final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
+            modifier.writeConfigProperty( ConfigurationProperty.CONFIG_EPOCH, newEpochStrValue );
+            this.storedConfiguration = modifier.newStoredConfiguration();
         }
 
         if ( backupDirectory != null && !backupDirectory.exists() )
@@ -292,7 +295,7 @@ public class ConfigurationReader
         LOGGER.info( () -> "saved configuration in " + TimeDuration.compactFromCurrent( saveFileStartTime ) );
         if ( pwmApplication != null )
         {
-            final String actualChecksum = storedConfiguration.settingChecksum();
+            final String actualChecksum = storedConfiguration.valueHash();
             pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.CONFIG_HASH, actualChecksum );
         }
 

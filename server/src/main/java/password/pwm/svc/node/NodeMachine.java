@@ -78,7 +78,7 @@ class NodeMachine
     public List<NodeInfo> nodes( ) throws PwmUnrecoverableException
     {
         final Map<String, NodeInfo> returnObj = new TreeMap<>();
-        final String configHash = pwmApplication.getConfig().configurationHash();
+        final String configHash = pwmApplication.getConfig().configurationHash( pwmApplication.getSecureService() );
         for ( final StoredNodeData storedNodeData : knownNodes.values() )
         {
             final boolean configMatch = configHash.equals( storedNodeData.getConfigHash() );

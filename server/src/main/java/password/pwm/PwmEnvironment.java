@@ -74,7 +74,8 @@ public class PwmEnvironment
         AppliancePort,
         ApplianceHostnameFile,
         ApplianceTokenFile,
-        InstanceID,;
+        InstanceID,
+        InitConsoleLogLevel,;
 
         public static ApplicationParameter forString( final String input )
         {
@@ -317,7 +318,7 @@ public class PwmEnvironment
             final String rawValue = readValueFromSystem( EnvironmentParameter.applicationParamFile, contextName );
             if ( rawValue != null )
             {
-                return parseApplicationParamValueParameter( rawValue );
+                return readAppParametersFromPath( rawValue );
             }
             return Collections.emptyMap();
         }
@@ -393,7 +394,7 @@ public class PwmEnvironment
             return returnFlags;
         }
 
-        public static Map<ApplicationParameter, String> parseApplicationParamValueParameter( final String input )
+        public static Map<ApplicationParameter, String> readAppParametersFromPath( final String input )
         {
             if ( input == null )
             {

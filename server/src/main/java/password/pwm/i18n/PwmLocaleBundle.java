@@ -22,6 +22,7 @@ package password.pwm.i18n;
 
 import password.pwm.PwmConstants;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,7 +30,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -74,9 +74,7 @@ public enum PwmLocaleBundle
     {
         for ( final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.values() )
         {
-            if ( Objects.equals( key, pwmLocaleBundle.name() )
-                    || Objects.equals( key, pwmLocaleBundle.getKey() )
-            )
+            if ( StringUtil.caseIgnoreContains( pwmLocaleBundle.getLegacyKeys(), key ) )
             {
                 return Optional.of( pwmLocaleBundle );
             }
@@ -87,7 +85,16 @@ public enum PwmLocaleBundle
 
     public String getKey()
     {
-        return getTheClass().getName();
+        return getTheClass().getSimpleName();
+    }
+
+    public Set<String> getLegacyKeys()
+    {
+        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList(
+                this.getTheClass().getSimpleName(),
+                this.getTheClass().getName(),
+                "password.pwm." + this.getTheClass().getSimpleName()
+        ) ) );
     }
 
     public Set<String> getDisplayKeys( )

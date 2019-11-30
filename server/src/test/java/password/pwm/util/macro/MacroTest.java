@@ -105,7 +105,7 @@ public class MacroTest
         {
             final PwmApplication pwmApplication = Mockito.mock( PwmApplication.class );
             Mockito.when( pwmApplication.getApplicationMode() ).thenReturn( PwmApplicationMode.RUNNING );
-            Mockito.when( pwmApplication.getConfig() ).thenReturn( new Configuration( StoredConfigurationFactory.newStoredConfiguration() ) );
+            Mockito.when( pwmApplication.getConfig() ).thenReturn( new Configuration( StoredConfigurationFactory.newConfig() ) );
 
             final UserInfo userInfo = Mockito.mock( UserInfo.class );
             final UserIdentity userIdentity = new UserIdentity( userDN, "profile" );

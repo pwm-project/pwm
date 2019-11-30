@@ -32,6 +32,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -58,7 +59,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
     @Override
     public Serializable provideFunction(
             final PwmRequest pwmRequest,
-            final StoredConfiguration storedConfiguration,
+            final StoredConfigurationModifier storedConfiguration,
             final PwmSetting setting,
             final String profile,
             final String extraData )
@@ -68,7 +69,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
 
         final Instant startSearchTime = Instant.now();
         final int maxResultSize = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT ) );
-        final Collection<UserIdentity> users = discoverMatchingUsers( pwmApplication, maxResultSize, storedConfiguration, setting, profile );
+        final Collection<UserIdentity> users = discoverMatchingUsers( pwmApplication, maxResultSize, storedConfiguration.newStoredConfiguration(), setting, profile );
         final TimeDuration searchDuration = TimeDuration.fromCurrent( startSearchTime );
 
         final UserMatchViewerResults userMatchViewerResults = new UserMatchViewerResults();

@@ -24,6 +24,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.util.cli.CliParameters;
 
 import java.util.Optional;
@@ -42,8 +43,9 @@ public class ConfigLockCommand extends AbstractCliCommand
             return;
         }
 
-        storedConfiguration.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( false ) );
-        configurationReader.saveConfiguration( storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
+        modifier.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( false ) );
+        configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
         out( "success: configuration has been locked" );
     }
 

@@ -22,7 +22,6 @@ package password.pwm.config.value;
 
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -256,18 +255,6 @@ public class FileValue extends AbstractValue implements StoredValue
             }
         }
         return Collections.unmodifiableList( returnObj );
-    }
-
-    protected String valueHashImpl()
-    {
-        try
-        {
-            return SecureEngine.hash( JsonUtil.serializeCollection( toInfoMap() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            throw new IllegalStateException( e );
-        }
     }
 
     @Value

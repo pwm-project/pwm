@@ -22,8 +22,7 @@ package password.pwm.http.servlet.configeditor;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.stored.ComparingChangeLog;
-import password.pwm.config.stored.ConfigChangeLog;
+import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.FileValue;
 import password.pwm.error.ErrorInformation;
@@ -47,6 +46,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class ConfigEditorServletUtils
 {
@@ -102,17 +102,15 @@ public class ConfigEditorServletUtils
             final Map<String, Object> outputMap
     )
     {
-        try
-        {
             final Locale locale = pwmRequest.getLocale();
 
-            final ConfigChangeLog changeLog = ComparingChangeLog.create(
+            final Set<StoredConfigItemKey> changeLog = StoredConfigurationUtil.changedValues(
                     pwmRequest.getPwmApplication().getConfig().getStoredConfiguration(),
                     configManagerBean.getStoredConfiguration() );
 
-            final Map<String, String> changeLogMap = StoredConfigurationUtil.asDebugMap(
+            final Map<String, String> changeLogMap = StoredConfigurationUtil.makeDebugMap(
                     configManagerBean.getStoredConfiguration(),
-                    changeLog.changedValues(),
+                    changeLog,
                     locale );
 
             final StringBuilder output = new StringBuilder();
@@ -132,15 +130,8 @@ public class ConfigEditorServletUtils
                 }
             }
             outputMap.put( "html", output.toString() );
-            outputMap.put( "modified", changeLog.isModified() );
-        }
-        catch ( PwmUnrecoverableException e )
-        {
+            outputMap.put( "modified", !changeLog.isEmpty() );
 
-            final String msg = "error generating change log html: " + e.getMessage();
-            LOGGER.error( msg, e );
-            outputMap.put( "html", msg );
-        }
     }
 
     static HealthData configurationHealth(

@@ -28,7 +28,6 @@ public enum ConfigurationProperty
     NOTES( "notes" ),
     PASSWORD_HASH( "configPasswordHash" ),
     STORE_PLAINTEXT_VALUES( "storePlaintextValues" ),
-    SAVE_CONFIG_ON_START( "saveConfigOnStart" ),
     MODIFICATION_TIMESTAMP( "modificationTimestamp" ),
     IMPORT_LDAP_CERTIFICATES( "importLdapCertificates" ),;
 

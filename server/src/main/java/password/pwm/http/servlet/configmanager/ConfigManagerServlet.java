@@ -27,11 +27,12 @@ import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.stored.ComparingChangeLog;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -76,6 +77,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipOutputStream;
 
 @WebServlet(
@@ -269,10 +271,11 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                 return;
             }
 
-            storedConfiguration.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, "false" );
-            saveConfiguration( pwmRequest, storedConfiguration );
+            final StoredConfigurationModifier modifiedConfig = StoredConfigurationModifier.newModifier( storedConfiguration );
+            modifiedConfig.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, "false" );
+            saveConfiguration( pwmRequest, modifiedConfig.newStoredConfiguration() );
             final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
-            configManagerBean.setConfiguration( null );
+            configManagerBean.setStoredConfiguration( null );
         }
         catch ( PwmException e )
         {
@@ -326,10 +329,12 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
             if ( pwmApplication.getAuditManager() != null && pwmApplication.getAuditManager().status() == PwmService.STATUS.OPEN )
             {
-                final ComparingChangeLog comparingChangeLog = ComparingChangeLog.create( pwmApplication.getConfig().getStoredConfiguration(), storedConfiguration );
+                final Set<StoredConfigItemKey> configurationDifferential = StoredConfigurationUtil.changedValues(
+                        pwmApplication.getConfig().getStoredConfiguration(),
+                        storedConfiguration );
                 final String modifyMessage = "Configuration Changes: " + StoredConfigurationUtil.changeLogAsDebugString(
                         storedConfiguration,
-                        comparingChangeLog,
+                        configurationDifferential,
                         PwmConstants.DEFAULT_LOCALE
                 );
                 final AuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createUserAuditRecord(
@@ -404,17 +409,14 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     public static StoredConfiguration readCurrentConfiguration( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final ContextManager contextManager = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() );
-        final ConfigurationReader runningConfigReader = contextManager.getConfigReader();
-        final StoredConfiguration runningConfig = runningConfigReader.getStoredConfiguration();
-        return runningConfig.copy( );
+        return pwmRequest.getConfig().getStoredConfiguration();
     }
 
     private void showSummary( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
-        final Map<String, String> outputMap = StoredConfigurationUtil.asDebugMap( storedConfiguration, storedConfiguration.modifiedSettings(), pwmRequest.getLocale() );
+        final Map<String, String> outputMap = StoredConfigurationUtil.makeDebugMap( storedConfiguration, storedConfiguration.modifiedItems(), pwmRequest.getLocale() );
         pwmRequest.setAttribute( PwmRequestAttribute.ConfigurationSummaryOutput, new LinkedHashMap<>( outputMap ) );
         pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_EDITOR_SUMMARY );
     }

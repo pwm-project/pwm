@@ -49,7 +49,7 @@ public class CEFAuditFormatterTest
 
         final CEFAuditFormatter cefAuditFormatter = new CEFAuditFormatter();
         final PwmApplication pwmApplication = Mockito.mock( PwmApplication.class );
-        Mockito.when( pwmApplication.getConfig() ).thenReturn( new Configuration( StoredConfigurationFactory.newStoredConfiguration() ) );
+        Mockito.when( pwmApplication.getConfig() ).thenReturn( new Configuration( StoredConfigurationFactory.newConfig() ) );
         final String output = cefAuditFormatter.convertAuditRecordToMessage( pwmApplication, auditRecord );
         Assert.assertEquals( expectedOutput, output );
     }

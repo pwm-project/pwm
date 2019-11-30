@@ -113,7 +113,7 @@ public class WordlistServiceTest
     public void testCaseSensitiveWordlist()
             throws Exception
     {
-        final Configuration configuration = Mockito.spy( new Configuration( StoredConfigurationFactory.newStoredConfiguration() ) );
+        final Configuration configuration = Mockito.spy( new Configuration( StoredConfigurationFactory.newConfig() ) );
         Mockito.when( configuration.readSettingAsBoolean( PwmSetting.WORDLIST_CASE_SENSITIVE ) ).thenReturn( true );
         final WordlistService wordlistService = makeWordlistService( configuration );
 
@@ -129,7 +129,7 @@ public class WordlistServiceTest
     public void testChunkedWords()
             throws Exception
     {
-        final Configuration configuration = Mockito.spy( new Configuration( StoredConfigurationFactory.newStoredConfiguration() ) );
+        final Configuration configuration = Mockito.spy( new Configuration( StoredConfigurationFactory.newConfig() ) );
         Mockito.when( configuration.readSettingAsLong( PwmSetting.PASSWORD_WORDLIST_WORDSIZE ) ).thenReturn( 4L );
         final WordlistService wordlistService = makeWordlistService( configuration );
 
@@ -149,7 +149,7 @@ public class WordlistServiceTest
     {
 
         final Configuration configuration = inputConfiguration == null
-                ? Mockito.spy( new Configuration( StoredConfigurationFactory.newStoredConfiguration() ) )
+                ? Mockito.spy( new Configuration( StoredConfigurationFactory.newConfig() ) )
                 : inputConfiguration;
         Mockito.when( configuration.readAppProperty( AppProperty.WORDLIST_TEST_MODE ) ).thenReturn( "true" );
         Mockito.when( configuration.readSettingAsString( PwmSetting.WORDLIST_FILENAME ) ).thenReturn( "" );

@@ -25,6 +25,7 @@ import password.pwm.config.StoredValue;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.BooleanValue;
 import password.pwm.config.value.PasswordValue;
@@ -116,7 +117,7 @@ public class PropertyConfigurationImporter
     {
         readInputFile( propertiesInput );
 
-        final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newStoredConfiguration( );
+        final StoredConfigurationModifier storedConfiguration = StoredConfigurationModifier.newModifier( StoredConfigurationFactory.newConfig( ) );
         StoredConfigurationUtil.initNewRandomSecurityKey( storedConfiguration );
         storedConfiguration.writeConfigProperty(
                 ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( false ) );
@@ -126,25 +127,25 @@ public class PropertyConfigurationImporter
                 ConfigurationProperty.IMPORT_LDAP_CERTIFICATES, Boolean.toString( true ) );
 
         // static values
-        storedConfiguration.writeSetting( PwmSetting.TEMPLATE_LDAP, new StringValue(
+        storedConfiguration.writeSetting( PwmSetting.TEMPLATE_LDAP, null, new StringValue(
                         inputMap.getOrDefault( PropertyKey.TEMPLATE_LDAP.name( ), PropertyKey.TEMPLATE_LDAP.getDefaultValue() ) ),
                 null );
 
         if ( inputMap.containsKey( PropertyKey.DISPLAY_THEME.name( ) ) )
         {
-            storedConfiguration.writeSetting( PwmSetting.PASSWORD_POLICY_SOURCE, new StringValue(
+            storedConfiguration.writeSetting( PwmSetting.PASSWORD_POLICY_SOURCE, null, new StringValue(
                             inputMap.get( PropertyKey.DISPLAY_THEME.name( ) ) ),
                     null );
         }
 
-        storedConfiguration.writeSetting( PwmSetting.DISPLAY_HOME_BUTTON, new BooleanValue( false ), null );
-        storedConfiguration.writeSetting( PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE, new BooleanValue( false ), null );
-        storedConfiguration.writeSetting( PwmSetting.PASSWORD_REQUIRE_CURRENT, new BooleanValue( false ), null );
-        storedConfiguration.writeSetting( PwmSetting.PASSWORD_POLICY_SOURCE, new StringValue( "LDAP" ), null );
-        storedConfiguration.writeSetting( PwmSetting.CERTIFICATE_VALIDATION_MODE, new StringValue( "CA_ONLY" ), null );
+        storedConfiguration.writeSetting( PwmSetting.DISPLAY_HOME_BUTTON, null, new BooleanValue( false ), null );
+        storedConfiguration.writeSetting( PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE, null, new BooleanValue( false ), null );
+        storedConfiguration.writeSetting( PwmSetting.PASSWORD_REQUIRE_CURRENT, null, new BooleanValue( false ), null );
+        storedConfiguration.writeSetting( PwmSetting.PASSWORD_POLICY_SOURCE, null, new StringValue( "LDAP" ), null );
+        storedConfiguration.writeSetting( PwmSetting.CERTIFICATE_VALIDATION_MODE, null, new StringValue( "CA_ONLY" ), null );
         {
             final String notes = "Configuration generated via properties import at " + JavaHelper.toIsoDate( Instant.now( ) );
-            storedConfiguration.writeSetting( PwmSetting.NOTES, new StringValue( notes ), null );
+            storedConfiguration.writeSetting( PwmSetting.NOTES, null, new StringValue( notes ), null );
         }
 
         // ldap server
@@ -157,22 +158,22 @@ public class PropertyConfigurationImporter
                 new StringArrayValue( Collections.singletonList( inputMap.get( PropertyKey.USER_CONTAINER.name( ) ) ) ), null );
 
         // oauth
-        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_LOGIN_URL, new StringValue( makeOAuthBaseUrl( ) + "/grant" ), null );
-        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_CODERESOLVE_URL, new StringValue( makeOAuthBaseUrl( ) + "/authcoderesolve" ), null );
-        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_ATTRIBUTES_URL, new StringValue( makeOAuthBaseUrl( ) + "/getattributes" ), null );
-        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_CLIENTNAME, new StringValue( "sspr" ), null );
-        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_DN_ATTRIBUTE_NAME, new StringValue( "name" ), null );
-        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_SECRET,
+        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_LOGIN_URL, null, new StringValue( makeOAuthBaseUrl( ) + "/grant" ), null );
+        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_CODERESOLVE_URL, null, new StringValue( makeOAuthBaseUrl( ) + "/authcoderesolve" ), null );
+        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_ATTRIBUTES_URL, null, new StringValue( makeOAuthBaseUrl( ) + "/getattributes" ), null );
+        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_CLIENTNAME, null, new StringValue( "sspr" ), null );
+        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_DN_ATTRIBUTE_NAME, null, new StringValue( "name" ), null );
+        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_SECRET, null,
                 new PasswordValue( PasswordData.forStringValue( inputMap.get( PropertyKey.SSO_SERVICE_PWD.name( ) ) ) ), null );
 
         //urls
-        storedConfiguration.writeSetting( PwmSetting.URL_FORWARD, makeForwardUrl( ), null );
-        storedConfiguration.writeSetting( PwmSetting.URL_LOGOUT, makeLogoutUrl( ), null );
-        storedConfiguration.writeSetting( PwmSetting.PWM_SITE_URL, makeSelfUrl( ), null );
-        storedConfiguration.writeSetting( PwmSetting.SECURITY_REDIRECT_WHITELIST, makeWhitelistUrl( ), null );
+        storedConfiguration.writeSetting( PwmSetting.URL_FORWARD, null, makeForwardUrl( ), null );
+        storedConfiguration.writeSetting( PwmSetting.URL_LOGOUT, null, makeLogoutUrl( ), null );
+        storedConfiguration.writeSetting( PwmSetting.PWM_SITE_URL, null, makeSelfUrl( ), null );
+        storedConfiguration.writeSetting( PwmSetting.SECURITY_REDIRECT_WHITELIST, null, makeWhitelistUrl( ), null );
 
         // admin settings
-        storedConfiguration.writeSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, makeAdminPermissions( ), null );
+        storedConfiguration.writeSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, null, makeAdminPermissions( ), null );
         StoredConfigurationUtil.setPassword( storedConfiguration, inputMap.get( PropertyKey.CONFIGURATION_PWD.name( ) ) );
 
         // certificates
@@ -187,19 +188,19 @@ public class PropertyConfigurationImporter
             final Optional<Collection<X509Certificate>> optionalCert = readCertificate( PropertyKey.AUDIT_SERVERCERTS );
             if ( optionalCert.isPresent( ) )
             {
-                storedConfiguration.writeSetting( PwmSetting.AUDIT_SYSLOG_CERTIFICATES, new X509CertificateValue( optionalCert.get( ) ), null );
+                storedConfiguration.writeSetting( PwmSetting.AUDIT_SYSLOG_CERTIFICATES, null, new X509CertificateValue( optionalCert.get( ) ), null );
             }
         }
         {
             final Optional<Collection<X509Certificate>> optionalCert = readCertificate( PropertyKey.OAUTH_IDSERVER_SERVERCERTS );
             if ( optionalCert.isPresent( ) )
             {
-                storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_CERTIFICATE, new X509CertificateValue( optionalCert.get( ) ), null );
+                storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_CERTIFICATE, null, new X509CertificateValue( optionalCert.get( ) ), null );
             }
         }
 
 
-        return storedConfiguration;
+        return storedConfiguration.newStoredConfiguration();
     }
 
     private String makeOAuthBaseUrl( )

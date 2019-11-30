@@ -35,6 +35,7 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.ValueFactory;
@@ -359,7 +360,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         {
             final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
             final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
-            final Serializable output = userMatchViewerFunction.provideFunction( pwmRequest, storedConfiguration, PwmSetting.QUERY_MATCH_PWM_ADMIN, null, null );
+            final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
+            final Serializable output = userMatchViewerFunction.provideFunction( pwmRequest, modifier, PwmSetting.QUERY_MATCH_PWM_ADMIN, null, null );
             pwmRequest.outputJsonResult( RestResultBean.withData( output ) );
         }
         catch ( PwmException e )
@@ -384,11 +386,13 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     {
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
 
-        final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
+        StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
         if ( configGuideBean.getStep() == GuideStep.LDAP_PROXY )
         {
-            storedConfiguration.resetSetting( PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE_KEY, null );
-            storedConfiguration.resetSetting( PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, null );
+            final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
+            modifier.resetSetting( PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE_KEY, null );
+            modifier.resetSetting( PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, null );
+            storedConfiguration = modifier.newStoredConfiguration();
         }
 
         final Instant startTime = Instant.now();
@@ -573,10 +577,10 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final ContextManager contextManager = ContextManager.getContextManager( pwmRequest );
         try
         {
-            final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newStoredConfiguration();
+            final StoredConfigurationModifier storedConfiguration = StoredConfigurationModifier.newModifier( StoredConfigurationFactory.newConfig() );
             storedConfiguration.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, "true" );
             StoredConfigurationUtil.setPassword( storedConfiguration, password );
-            ConfigGuideUtils.writeConfig( contextManager, storedConfiguration );
+            ConfigGuideUtils.writeConfig( contextManager, storedConfiguration.newStoredConfiguration() );
             pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
             pwmRequest.invalidateSession();
         }

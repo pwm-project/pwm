@@ -18,15 +18,11 @@
  * limitations under the License.
  */
 
-package password.pwm.config.stored;
+package password.pwm.util.java;
 
 import password.pwm.error.PwmUnrecoverableException;
 
-import java.util.Collection;
-
-public interface ConfigChangeLog
+public interface PwmCallable
 {
-    boolean isModified( ) throws PwmUnrecoverableException;
-
-    Collection<StoredConfigItemKey> changedValues( ) throws PwmUnrecoverableException;
+    void call() throws PwmUnrecoverableException;
 }

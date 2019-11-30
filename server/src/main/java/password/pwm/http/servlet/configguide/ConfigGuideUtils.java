@@ -32,6 +32,7 @@ import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -72,9 +73,10 @@ public class ConfigGuideUtils
     static void writeConfig(
             final ContextManager contextManager,
             final ConfigGuideBean configGuideBean
-    ) throws PwmOperationalException, PwmUnrecoverableException
+    )
+            throws PwmOperationalException, PwmUnrecoverableException
     {
-        final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
+        final StoredConfigurationModifier storedConfiguration = StoredConfigurationModifier.newModifier( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
         final String configPassword = configGuideBean.getFormData().get( ConfigGuideFormField.PARAM_CONFIG_PASSWORD );
         if ( configPassword != null && configPassword.length() > 0 )
         {
@@ -86,7 +88,7 @@ public class ConfigGuideUtils
         }
 
         storedConfiguration.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, "false" );
-        ConfigGuideUtils.writeConfig( contextManager, storedConfiguration );
+        ConfigGuideUtils.writeConfig( contextManager, storedConfiguration.newStoredConfiguration() );
     }
 
     static void writeConfig(
@@ -100,18 +102,19 @@ public class ConfigGuideUtils
 
         try
         {
+            final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
             // add a random security key
-            StoredConfigurationUtil.initNewRandomSecurityKey( storedConfiguration );
+            StoredConfigurationUtil.initNewRandomSecurityKey( modifier );
 
-            configReader.saveConfiguration( storedConfiguration, pwmApplication, null );
+            configReader.saveConfiguration( modifier.newStoredConfiguration(), pwmApplication, null );
 
             contextManager.requestPwmApplicationRestart();
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             throw new PwmOperationalException( e.getErrorInformation() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, "unable to save configuration: " + e.getLocalizedMessage() );
             throw new PwmOperationalException( errorInformation );

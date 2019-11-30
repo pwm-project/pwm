@@ -23,7 +23,6 @@ package password.pwm;
 import org.apache.commons.csv.CSVFormat;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.secure.PwmHashAlgorithm;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -118,9 +117,6 @@ public abstract class PwmConstants
     public static final String REQUEST_ATTR_FORGOTTEN_PW_USERINFO_CACHE = "ForgottenPw-UserInfoCache";
     public static final String REQUEST_ATTR_FORGOTTEN_PW_AVAIL_TOKEN_DEST_CACHE = "ForgottenPw-AvailableTokenDestCache";
     public static final String REQUEST_ATTR_PWM_APPLICATION = "PwmApplication";
-
-    public static final PwmHashAlgorithm SETTING_CHECKSUM_HASH_METHOD = PwmHashAlgorithm.SHA256;
-
 
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle( "log.removedValue" );
 

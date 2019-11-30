@@ -31,7 +31,6 @@ import java.util.Locale;
 
 public interface StoredValue extends Serializable
 {
-
     List<XmlElement> toXmlValues( String valueElementName, XmlOutputProcessData xmlOutputProcessData );
 
     Object toNativeObject( );
@@ -52,5 +51,5 @@ public interface StoredValue extends Serializable
                 throws PwmException;
     }
 
-    String valueHash( );
+    String valueHash();
 }
