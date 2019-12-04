@@ -75,6 +75,7 @@ import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.client.rest.form.FormDataRequestBean;
 import password.pwm.ws.client.rest.form.FormDataResponseBean;
 import password.pwm.ws.client.rest.form.RestFormDataClient;
+import password.pwm.PwmConstants;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -88,6 +89,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+//import java.io.File;
+import java.io.FileReader;
+import java.io.BufferedReader;
+import java.nio.charset.StandardCharsets;
 
 class NewUserUtils
 {
@@ -284,9 +289,26 @@ class NewUserUtils
             {
                 try
                 {
+                    final Configuration config = pwmApplication.getConfig();
+                    final Locale locale = pwmSession.getSessionStateBean().getLocale();
+                    final String mail = config.readSettingAsEmail( PwmSetting.EMAIL_NEWUSER, locale ).toString();  
+                    final List<String> gruposD = new ArrayList<String>();
+
+                    dominios( mail, gruposD );
+
+                    for ( String grupo : gruposD ) 
+                    {
+                        //LOGGER.info( pwmSession, "se agrega " + newUserDN + " al grupo" + grupo );
+    
+                    //crear una cuenta en el servicio
+                    theUser.writeStringAttribute( "memberOf", grupo );
+
+                    //pwmApplication.getProxyChaiProvider().writeStringAttribute(newUserDN, "memberOf", memberOf, false);
+                    }
+
                     theUser.writeStringAttribute( "userAccountControl", "512" );
                 }
-                catch ( ChaiOperationException e )
+                catch ( ChaiOperationException | IOException e )
                 {
                     final String errorMsg = "error enabling AD account when writing userAccountControl attribute: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
@@ -767,5 +789,36 @@ class NewUserUtils
         }
 
         return null;
+    }
+
+    private static void dominios( final String mail, final List<String> grupos ) throws IOException 
+    {
+        
+        final String[] contenedor = mail.split( "@" );
+        final String dominio = contenedor[1];
+        
+        try ( BufferedReader br = new BufferedReader(
+                new FileReader( PwmConstants.URL_CONFIG_DOMINIOS, StandardCharsets.UTF_8 ) ) ) 
+        {
+
+            String line;
+            while ( ( line = br.readLine() ) != null ) 
+            {
+
+                final String[] items = line.split( ":" );
+                if ( dominio.equals( items[0] ) )
+                {
+                    for ( int i = 1; i < items.length; i++ )
+                    {
+                        grupos.add( items[i] );
+                    }
+                    break;
+                }
+            }
+        }
+        catch ( Exception e )
+        {
+            e.printStackTrace();
+        }
     }
 }

@@ -303,6 +303,7 @@ public class NewUserServlet extends ControlledPwmServlet
             LOGGER.error( pwmSession, e.getErrorInformation().toDebugStr() );
             pwmRequest.respondWithError( e.getErrorInformation() );
         }
+
     }
 
     private boolean showFormPage( final NewUserProfile profile )
@@ -815,4 +816,6 @@ public class NewUserServlet extends ControlledPwmServlet
 
         pwmRequest.forwardToJsp( JspUrl.NEW_USER );
     }
+
 }
+
