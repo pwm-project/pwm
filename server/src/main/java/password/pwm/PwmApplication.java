@@ -315,32 +315,7 @@ public class PwmApplication
         {
             LOGGER.error( "error outputting log to debug: " + e.getMessage() );
         }
-        
-        // detect if config has been modified since previous startup
-        try
-        {
-            final String previousHash = readAppAttribute( AppAttribute.CONFIG_HASH, String.class );
-            final String currentHash = pwmEnvironment.getConfig().configurationHash( this.getSecureService() );
-            if ( previousHash == null || !previousHash.equals( currentHash ) )
-            {
-                writeAppAttribute( AppAttribute.CONFIG_HASH, currentHash );
-                LOGGER.warn( "configuration checksum does not match previously seen checksum, configuration has been modified since last startup" );
-                if ( this.getAuditManager() != null )
-                {
-                    final String modifyMessage = "configuration was modified directly (not using ConfigEditor UI)";
-                    this.getAuditManager().submit( new AuditRecordFactory( this ).createUserAuditRecord(
-                            AuditEvent.MODIFY_CONFIGURATION,
-                            null,
-                            null,
-                            modifyMessage
-                    ) );
-                }
-            }
-        }
-        catch ( Exception e )
-        {
-            LOGGER.debug( () -> "unable to detect if configuration has been modified since previous startup: " + e.getMessage() );
-        }
+
 
         if ( this.getConfig() != null )
         {

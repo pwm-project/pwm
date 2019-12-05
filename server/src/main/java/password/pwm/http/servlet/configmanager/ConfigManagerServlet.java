@@ -29,7 +29,6 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -56,10 +55,6 @@ import password.pwm.http.servlet.configguide.ConfigGuideUtils;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
-import password.pwm.svc.PwmService;
-import password.pwm.svc.event.AuditEvent;
-import password.pwm.svc.event.AuditRecord;
-import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
@@ -77,7 +72,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.zip.ZipOutputStream;
 
 @WebServlet(
@@ -325,26 +319,6 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                     contextManager.getPwmApplication(),
                     pwmRequest.getSessionLabel()
             );
-
-            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-            if ( pwmApplication.getAuditManager() != null && pwmApplication.getAuditManager().status() == PwmService.STATUS.OPEN )
-            {
-                final Set<StoredConfigItemKey> configurationDifferential = StoredConfigurationUtil.changedValues(
-                        pwmApplication.getConfig().getStoredConfiguration(),
-                        storedConfiguration );
-                final String modifyMessage = "Configuration Changes: " + StoredConfigurationUtil.changeLogAsDebugString(
-                        storedConfiguration,
-                        configurationDifferential,
-                        PwmConstants.DEFAULT_LOCALE
-                );
-                final AuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createUserAuditRecord(
-                        AuditEvent.MODIFY_CONFIGURATION,
-                        pwmRequest.getUserInfoIfLoggedIn(),
-                        pwmRequest.getSessionLabel(),
-                        modifyMessage
-                );
-                pwmApplication.getAuditManager().submit( auditRecord );
-            }
 
             contextManager.requestPwmApplicationRestart();
         }

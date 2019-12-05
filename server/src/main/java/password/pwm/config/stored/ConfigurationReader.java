@@ -25,11 +25,15 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
+import password.pwm.config.StoredValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
@@ -46,6 +50,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Read the PWM configuration.
@@ -263,6 +268,11 @@ public class ConfigurationReader
             }
         }
 
+        if ( pwmApplication != null && pwmApplication.getAuditManager() != null )
+        {
+            auditModifiedSettings( pwmApplication, storedConfiguration, sessionLabel );
+        }
+
         try
         {
             outputConfigurationFile( storedConfiguration, pwmApplication, sessionLabel, backupRotations, backupDirectory );
@@ -270,6 +280,34 @@ public class ConfigurationReader
         finally
         {
             saveInProgress = false;
+        }
+    }
+
+    private static void auditModifiedSettings( final PwmApplication pwmApplication, final StoredConfiguration newConfig, final SessionLabel sessionLabel )
+            throws PwmUnrecoverableException
+    {
+        final Set<StoredConfigItemKey> changedKeys = StoredConfigurationUtil.changedValues( newConfig, pwmApplication.getConfig().getStoredConfiguration() );
+
+        for ( final StoredConfigItemKey key : changedKeys )
+        {
+            if ( key.getRecordType() == StoredConfigItemKey.RecordType.SETTING
+                    || key.getRecordType() == StoredConfigItemKey.RecordType.LOCALE_BUNDLE )
+            {
+                final Optional<StoredValue> storedValue = newConfig.readStoredValue( key );
+                if ( storedValue.isPresent() )
+                {
+                    final Optional<ValueMetaData> valueMetaData = newConfig.readMetaData( key );
+                    final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
+                    final String modifyMessage = "configuration record '" + key.getLabel( PwmConstants.DEFAULT_LOCALE )
+                            + "' has been modified, new value: " + storedValue.get().toDebugString( PwmConstants.DEFAULT_LOCALE );
+                    pwmApplication.getAuditManager().submit( new AuditRecordFactory( pwmApplication ).createUserAuditRecord(
+                            AuditEvent.MODIFY_CONFIGURATION,
+                            userIdentity,
+                            sessionLabel,
+                            modifyMessage
+                    ) );
+                }
+            }
         }
     }
 
