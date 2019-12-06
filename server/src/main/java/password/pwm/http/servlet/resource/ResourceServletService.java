@@ -31,6 +31,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MovingAverage;
@@ -277,9 +278,15 @@ public class ResourceServletService implements PwmService
                         final File resourcePath = new File( basePath.getAbsolutePath() + File.separator + "public" + File.separator + "resources" );
                         if ( resourcePath.exists() )
                         {
-                            for ( final FileSystemUtility.FileSummaryInformation fileSummaryInformation : FileSystemUtility.readFileInformation( resourcePath ) )
+                            try ( ClosableIterator<FileSystemUtility.FileSummaryInformation> iter =
+                                          FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) ) )
                             {
-                                checksumStream.write( JavaHelper.longToBytes( fileSummaryInformation.getChecksum() ) );
+                                while ( iter.hasNext()  )
+                                {
+                                    final FileSystemUtility.FileSummaryInformation fileSummaryInformation = iter.next();
+                                    checksumStream.write( JavaHelper.longToBytes( fileSummaryInformation.getChecksum() ) );
+                                }
+
                             }
                         }
                     }

@@ -20,7 +20,6 @@
 
 package password.pwm.util.secure;
 
-import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -37,7 +36,6 @@ import javax.crypto.spec.GCMParameterSpec;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
@@ -279,13 +277,12 @@ public class SecureEngine
     )
             throws PwmUnrecoverableException
     {
-        FileInputStream fileInputStream = null;
         try
         {
             final MessageDigest messageDigest = MessageDigest.getInstance( hashAlgorithm.getAlgName() );
-            fileInputStream = new FileInputStream( file );
-            final FileChannel fileChannel = fileInputStream.getChannel();
-            final ByteBuffer byteBuffer = ByteBuffer.allocateDirect( HASH_FILE_BUFFER_SIZE );
+            final int bufferSize = (int) Math.min( file.length(), HASH_FILE_BUFFER_SIZE );
+            final FileChannel fileChannel = FileChannel.open( file.toPath() );
+            final ByteBuffer byteBuffer = ByteBuffer.allocateDirect( bufferSize );
 
             while ( fileChannel.read( byteBuffer ) > 0 )
             {
@@ -306,10 +303,6 @@ public class SecureEngine
             final String errorMsg = "unexpected error during file hash operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( fileInputStream );
         }
     }
 
