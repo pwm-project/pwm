@@ -50,6 +50,7 @@ import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.LDAPPermissionCalculator;
+import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.DebugOutputBuilder;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
@@ -468,9 +469,9 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final List<FileSystemUtility.FileSummaryInformation> fileSummaryInformations = new ArrayList<>();
             final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
             final File applicationPath = pwmApplication.getPwmEnvironment().getApplicationPath();
+            final List<File> interestedFiles = new ArrayList<>(  );
 
             if ( pwmApplication.getPwmEnvironment().getContextManager() != null )
             {
@@ -483,7 +484,7 @@ public class DebugItemGenerator
 
                         if ( servletRootPath != null )
                         {
-                            fileSummaryInformations.addAll( FileSystemUtility.readFileInformation( webInfPath ) );
+                            interestedFiles.add( webInfPath );
                         }
                     }
                 }
@@ -497,7 +498,7 @@ public class DebugItemGenerator
             {
                 try
                 {
-                    fileSummaryInformations.addAll( FileSystemUtility.readFileInformation( applicationPath ) );
+                    interestedFiles.add( applicationPath );
                 }
                 catch ( Exception e )
                 {
@@ -505,6 +506,8 @@ public class DebugItemGenerator
                 }
             }
 
+
+            try ( ClosableIterator<FileSystemUtility.FileSummaryInformation> iter = FileSystemUtility.readFileInformation( interestedFiles ); )
             {
                 final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
                 {
@@ -516,8 +519,10 @@ public class DebugItemGenerator
                     headerRow.add( "Checksum" );
                     csvPrinter.printComment( StringUtil.join( headerRow, "," ) );
                 }
-                for ( final FileSystemUtility.FileSummaryInformation fileSummaryInformation : fileSummaryInformations )
+
+                while ( iter.hasNext() )
                 {
+                    final FileSystemUtility.FileSummaryInformation fileSummaryInformation = iter.next();
                     try
                     {
                         final List<String> dataRow = new ArrayList<>();
