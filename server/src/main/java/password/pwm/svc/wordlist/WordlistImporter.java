@@ -353,7 +353,7 @@ class WordlistImporter implements Runnable
 
 
             getLogger().debug( () -> "will skip forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead ) + " in wordlist that has been previously imported" );
-            while ( !cancelFlag.getAsBoolean() && bytesSkipped < ( previousBytesRead + 1024 ) )
+            while ( !cancelFlag.getAsBoolean() && bytesSkipped < previousBytesRead )
             {
                 zipFileReader.nextLine();
                 bytesSkipped = zipFileReader.getByteCount();

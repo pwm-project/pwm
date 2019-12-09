@@ -23,7 +23,8 @@ package password.pwm.config.value;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.i18n.Display;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
@@ -34,10 +35,11 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 public class BooleanValue implements StoredValue
 {
-    boolean value;
+    private final boolean value;
 
     public BooleanValue( final boolean value )
     {
@@ -56,9 +58,13 @@ public class BooleanValue implements StoredValue
 
             public BooleanValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
-                final XmlElement valueElement = settingElement.getChild( "value" );
-                final String value = valueElement.getText();
-                return new BooleanValue( Boolean.valueOf( value ) );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                if ( valueElement.isPresent() )
+                {
+                    final String value = valueElement.get().getTextTrim();
+                    return new BooleanValue( Boolean.valueOf( value ) );
+                }
+                return new BooleanValue( false );
             }
 
         };
@@ -70,7 +76,7 @@ public class BooleanValue implements StoredValue
     }
 
     @Override
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
         valueElement.addText( String.valueOf( value ) );
@@ -100,19 +106,13 @@ public class BooleanValue implements StoredValue
     }
 
     @Override
-    public boolean requiresStoredUpdate( )
-    {
-        return false;
-    }
-
-    @Override
     public int currentSyntaxVersion( )
     {
         return 0;
     }
 
     @Override
-    public String valueHash( ) throws PwmUnrecoverableException
+    public String valueHash()
     {
         return value ? "1" : "0";
     }

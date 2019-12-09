@@ -27,7 +27,7 @@ import org.junit.rules.TemporaryFolder;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JsonUtil;
@@ -81,7 +81,7 @@ public class LocalDBLoggerExtendedTest
     {
         TestHelper.setupLogging();
         final File localDBPath = testFolder.newFolder( "localdb-logger-test" );
-        config = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
+        config = new Configuration( StoredConfigurationFactory.newConfig() );
 
         localDB = LocalDBFactory.getInstance(
                 localDBPath,

@@ -23,6 +23,8 @@ package password.pwm.config.value;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
@@ -32,6 +34,7 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,13 +63,14 @@ public class StringValue extends AbstractValue implements StoredValue
 
             public StringValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
-                final XmlElement valueElement = settingElement.getChild( "value" );
-                return new StringValue( valueElement == null ? "" : valueElement.getText() );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final String value = valueElement.map( XmlElement::getText ).orElse( "" );
+                return new StringValue( value );
             }
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
         valueElement.addText( value );

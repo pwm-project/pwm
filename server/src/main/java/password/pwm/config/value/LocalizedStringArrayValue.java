@@ -23,6 +23,7 @@ package password.pwm.config.value;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
@@ -40,11 +41,11 @@ import java.util.regex.Pattern;
 
 public class LocalizedStringArrayValue extends AbstractValue implements StoredValue
 {
-    final Map<String, List<String>> values;
+    private final Map<String, List<String>> values;
 
     LocalizedStringArrayValue( final Map<String, List<String>> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
     }
 
     public static StoredValueFactory factory( )
@@ -89,7 +90,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<String, List<String>> entry : values.entrySet() )

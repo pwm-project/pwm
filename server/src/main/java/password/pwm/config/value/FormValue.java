@@ -24,6 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JavaHelper;
@@ -42,13 +43,11 @@ import java.util.Set;
 
 public class FormValue extends AbstractValue implements StoredValue
 {
-    final List<FormConfiguration> values;
-
-    private boolean needsXmlUpdate;
+    private final List<FormConfiguration> values;
 
     public FormValue( final List<FormConfiguration> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyList() : Collections.unmodifiableList( values );
     }
 
     public static StoredValueFactory factory( )
@@ -59,14 +58,14 @@ public class FormValue extends AbstractValue implements StoredValue
             {
                 if ( input == null )
                 {
-                    return new FormValue( Collections.<FormConfiguration>emptyList() );
+                    return new FormValue( Collections.emptyList() );
                 }
                 else
                 {
                     List<FormConfiguration> srcList = JsonUtil.deserialize( input, new TypeToken<List<FormConfiguration>>()
                     {
                     } );
-                    srcList = srcList == null ? Collections.<FormConfiguration>emptyList() : srcList;
+                    srcList = srcList == null ? Collections.emptyList() : srcList;
                     while ( srcList.contains( null ) )
                     {
                         srcList.remove( null );
@@ -98,13 +97,12 @@ public class FormValue extends AbstractValue implements StoredValue
                     }
                 }
                 final FormValue formValue = new FormValue( values );
-                formValue.needsXmlUpdate = oldType;
                 return formValue;
             }
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final FormConfiguration value : values )
@@ -147,18 +145,13 @@ public class FormValue extends AbstractValue implements StoredValue
             {
                 loopConfig.validate();
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 return Collections.singletonList( "format error: " + e.getErrorInformation().toDebugStr() );
             }
         }
 
         return Collections.emptyList();
-    }
-
-    public boolean isNeedsXmlUpdate( )
-    {
-        return needsXmlUpdate;
     }
 
     public String toDebugString( final Locale locale )

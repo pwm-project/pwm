@@ -166,12 +166,13 @@ class WordlistSource
                     new ConditionalTaskExecutor.TimeDurationPredicate( AbstractWordlist.DEBUG_OUTPUT_FREQUENCY )
             );
 
-            bytes = JavaHelper.copyWhilePredicate(
+            JavaHelper.copyWhilePredicate(
                     countingInputStream,
                     new NullOutputStream(),
                     WordlistConfiguration.STREAM_BUFFER_SIZE, o -> !cancelFlag.getAsBoolean(),
                     debugOutputter );
 
+            bytes = countingInputStream.getByteCount();
             hash = JavaHelper.byteArrayToHexString( checksumInputStream.getMessageDigest().digest() );
         }
         catch ( IOException e )

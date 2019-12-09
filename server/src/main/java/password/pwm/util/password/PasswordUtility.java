@@ -812,17 +812,21 @@ public class PasswordUtility
             final String password
     )
     {
+        final int maxTestLength = 100;
+
         if ( StringUtil.isEmpty( password ) )
         {
             return Integer.parseInt( configuration.readAppProperty( AppProperty.PASSWORD_STRENGTH_THRESHOLD_VERY_WEAK ) );
         }
 
+        final String testPassword = StringUtil.truncate( password, maxTestLength );
+
         final Zxcvbn zxcvbn = new Zxcvbn();
-        final Strength strength = zxcvbn.measure( password );
+        final Strength strength = zxcvbn.measure( testPassword );
 
         final int zxcvbnScore = strength.getScore();
 
-        // zxcvbn returns a score of 0-4 (see: https://github.com/dropbox/zxcvbn)
+        // zxcvbn returns a score of 0-4 (see: https://github.com/nulab/zxcvbn4j)
         switch ( zxcvbnScore )
         {
             case 4:

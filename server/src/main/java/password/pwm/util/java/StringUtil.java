@@ -40,7 +40,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class StringUtil
@@ -232,9 +234,7 @@ public abstract class StringUtil
 
     public static boolean nullSafeEquals( final String value1, final String value2 )
     {
-        return value1 == null
-                ? value2 == null
-                : value1.equals( value2 );
+        return Objects.equals( value1, value2 );
     }
 
     public enum Base64Options
@@ -531,5 +531,89 @@ public abstract class StringUtil
         {
             return defaultValue;
         }
+    }
+
+    public static String stripAllWhitespace( final String input )
+    {
+        return stripAllChars( input, Character::isWhitespace );
+    }
+
+    public static String stripAllChars( final String input, final Predicate<Character> stripPredicate )
+    {
+        final StringBuilder sb = new StringBuilder( input );
+        int index = 0;
+        while ( index < sb.length() )
+        {
+            final char loopChar = sb.charAt( index );
+            if ( stripPredicate.test( loopChar ) )
+            {
+                sb.deleteCharAt( index );
+            }
+            else
+            {
+                index++;
+            }
+        }
+        return sb.toString();
+    }
+
+    public static String insertRepeatedLineBreaks( final String input, final int periodicity )
+    {
+        final String lineSeparator = System.lineSeparator();
+        return repeatedInsert( input, periodicity, lineSeparator );
+    }
+
+    public static String repeatedInsert( final String input, final int periodicity, final String insertValue )
+    {
+        if ( StringUtil.isEmpty( input ) )
+        {
+            return "";
+        }
+
+        if ( StringUtil.isEmpty( insertValue ) )
+        {
+            return input;
+        }
+
+        final int inputLength = input.length();
+        final StringBuilder output = new StringBuilder( inputLength + ( periodicity * insertValue.length() ) );
+
+        int index = 0;
+        while ( index < inputLength )
+        {
+            final int endIndex = Math.min( index + periodicity, inputLength );
+            output.append( input, index, endIndex );
+            output.append( insertValue );
+            index += periodicity;
+        }
+        return output.toString();
+    }
+
+    public static boolean caseIgnoreContains( final Collection<String> collection, final String value )
+    {
+        if ( value == null || collection == null )
+        {
+            return false;
+        }
+
+        if ( collection.contains( value ) )
+        {
+            return true;
+        }
+
+        final String lcaseValue = value.toLowerCase();
+        for ( final String item : collection )
+        {
+            if ( item != null )
+            {
+                final String lcaseItem = item.toLowerCase();
+                if ( lcaseItem.equalsIgnoreCase( lcaseValue ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

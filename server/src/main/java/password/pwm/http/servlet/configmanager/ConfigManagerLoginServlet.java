@@ -32,7 +32,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfiguration;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -60,10 +60,12 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @WebServlet(
         name = "ConfigManagerLogin",
@@ -133,12 +135,12 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final ConfigurationReader runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
-        final StoredConfigurationImpl storedConfig = runningConfigReader.getStoredConfiguration();
+        final StoredConfiguration storedConfig = runningConfigReader.getStoredConfiguration();
 
         final String password = pwmRequest.readParameterAsString( "password" );
         if ( !StringUtil.isEmpty( password ) )
         {
-            if ( storedConfig.verifyPassword( password, pwmRequest.getConfig() ) )
+            if ( StoredConfigurationUtil.verifyPassword( storedConfig, password ) )
             {
                 LOGGER.trace( pwmRequest, () -> "valid configuration password accepted" );
                 updateLoginHistory( pwmRequest, pwmRequest.getUserInfoIfLoggedIn(), true );
@@ -300,11 +302,9 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
         if ( persistentSeconds > 0 )
         {
-            final TimeDuration persistenceDuration = TimeDuration.of( persistentSeconds, TimeDuration.Unit.SECONDS );
-            final Instant expirationDate = persistenceDuration.incrementFromInstant( Instant.now() );
-            final StoredConfigurationImpl storedConfig = pwmRequest.getConfig().getStoredConfiguration();
+            final StoredConfiguration storedConfig = pwmRequest.getConfig().getStoredConfiguration();
             final String persistentLoginValue = makePersistentLoginPassword( pwmRequest, storedConfig );
-            final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo( expirationDate, persistentLoginValue );
+            final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo( Instant.now(), persistentLoginValue );
             final String cookieValue = pwmRequest.getPwmApplication().getSecureService().encryptObjectToString( persistentLoginInfo );
             pwmRequest.getPwmResponse().writeCookie(
                     COOKIE_NAME,
@@ -312,10 +312,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
                     persistentSeconds,
                     COOKIE_PATH
             );
-            LOGGER.debug( pwmRequest, () -> "set persistent config login cookie (expires "
-                    + JavaHelper.toIsoDate( expirationDate )
-                    + ")"
-            );
+            LOGGER.debug( pwmRequest, () -> "issued persistent config login cookie" );
         }
     }
 
@@ -330,7 +327,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         }
 
         final ConfigurationReader runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
-        final StoredConfigurationImpl storedConfig = runningConfigReader.getStoredConfiguration();
+        final StoredConfiguration storedConfig = runningConfigReader.getStoredConfiguration();
 
         try
         {
@@ -338,25 +335,41 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             if ( !StringUtil.isEmpty( cookieValue ) )
             {
                 final PersistentLoginInfo persistentLoginInfo = pwmRequest.getPwmApplication().getSecureService().decryptObject( cookieValue, PersistentLoginInfo.class );
-                if ( persistentLoginInfo != null )
+                if ( persistentLoginInfo != null && persistentLoginInfo.getIssueTimestamp() != null )
                 {
-                    if ( persistentLoginInfo.getExpireDate().isAfter( Instant.now() ) )
+                    final int maxLoginSeconds = figureMaxLoginSeconds( pwmRequest );
+                    final TimeDuration cookieAge = TimeDuration.fromCurrent( persistentLoginInfo.getIssueTimestamp() );
+
+                    if ( cookieAge.isShorterThan( TimeDuration.of( maxLoginSeconds, TimeDuration.Unit.SECONDS ) ) )
                     {
                         final String persistentLoginPassword = makePersistentLoginPassword( pwmRequest, storedConfig );
                         if ( StringUtil.nullSafeEquals( persistentLoginPassword, persistentLoginInfo.getPassword() ) )
                         {
-                            LOGGER.debug( pwmRequest, () -> "accepting persistent config login from cookie (expires "
-                                    + JavaHelper.toIsoDate( persistentLoginInfo.getExpireDate() )
+                            final Instant expireTime = Instant.now().plus( maxLoginSeconds, ChronoUnit.SECONDS );
+                            LOGGER.debug( pwmRequest, () -> "accepting persistent config login from cookie (expires at "
+                                    + expireTime.toString()
                                     + ")"
                             );
 
                             final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
                             configManagerBean.setPasswordVerified( true );
                         }
+                        else
+                        {
+                            LOGGER.debug( pwmRequest, () -> "discarding persistent login cookie with incorrect password value" );
+                            pwmRequest.getPwmResponse().removeCookie( COOKIE_NAME, COOKIE_PATH );
+                        }
                     }
-
+                    else
+                    {
+                        LOGGER.debug( pwmRequest, () -> "removing expired (" + cookieAge.asCompactString() + ") persistent config login cookie" );
+                        pwmRequest.getPwmResponse().removeCookie( COOKIE_NAME, COOKIE_PATH );
+                    }
+                }
+                else
+                {
+                    LOGGER.debug( pwmRequest, () -> "discarding invalid persistent login cookie " );
                     pwmRequest.getPwmResponse().removeCookie( COOKIE_NAME, COOKIE_PATH );
-                    LOGGER.debug( pwmRequest, () -> "removing non-working persistent config login cookie" );
                 }
             }
         }
@@ -370,8 +383,8 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     @Value
     private static class PersistentLoginInfo implements Serializable
     {
-        @SerializedName( "e" )
-        private Instant expireDate;
+        @SerializedName( "i" )
+        private Instant issueTimestamp;
 
         @SerializedName( "p" )
         private String password;
@@ -393,13 +406,17 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             throws PwmUnrecoverableException
     {
         final int hashChars = 32;
-        String hashValue = storedConfig.readConfigProperty( ConfigurationProperty.PASSWORD_HASH );
 
-        if ( PwmApplicationMode.RUNNING == pwmRequest.getPwmApplication().getApplicationMode() )
+        if ( !persistentLoginEnabled( pwmRequest ) )
         {
-            final PwmSession pwmSession = pwmRequest.getPwmSession();
-            hashValue += pwmSession.getUserInfo().getUserIdentity().toDelimitedKey();
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "persistent login not enabled" );
         }
+
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final String configPasswordHash = storedConfig.readConfigProperty( ConfigurationProperty.PASSWORD_HASH )
+                .orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "missing config password" ) );
+
+        final String hashValue = configPasswordHash + pwmSession.getUserInfo().getUserIdentity().toDelimitedKey();
 
         return StringUtil.truncate( SecureEngine.hash( hashValue, PwmHashAlgorithm.SHA512 ), hashChars );
     }
@@ -407,11 +424,24 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
     private static boolean persistentLoginEnabled(
             final PwmRequest pwmRequest
-    )
+    ) throws PwmUnrecoverableException
     {
+        if ( PwmApplicationMode.RUNNING != pwmRequest.getPwmApplication().getApplicationMode() )
+        {
+            LOGGER.debug( pwmRequest, () -> "app not in running mode, persistent login not possible." );
+            return false;
+        }
+
         if ( pwmRequest.getConfig().isDefaultValue( PwmSetting.PWM_SECURITY_KEY ) )
         {
-            LOGGER.debug( pwmRequest, () -> "security not available, persistent login not possible." );
+            LOGGER.debug( pwmRequest, () -> "security key not available, persistent login not possible." );
+            return false;
+        }
+
+        final Optional<String> configPasswordHash = pwmRequest.getConfig().getStoredConfiguration().readConfigProperty( ConfigurationProperty.PASSWORD_HASH );
+        if ( !configPasswordHash.isPresent() )
+        {
+            LOGGER.debug( pwmRequest, () -> "config password is not present, persistent login not possible." );
             return false;
         }
 

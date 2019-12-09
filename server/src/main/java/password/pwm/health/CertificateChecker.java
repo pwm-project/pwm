@@ -27,9 +27,8 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.profile.LdapProfile;
-import password.pwm.config.stored.StoredConfigReference;
-import password.pwm.config.stored.StoredConfigurationImpl;
-import password.pwm.config.stored.StoredConfigurationUtil;
+import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.ActionValue;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -46,6 +45,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class CertificateChecker implements HealthChecker
 {
@@ -92,24 +92,24 @@ public class CertificateChecker implements HealthChecker
     private static List<HealthRecord> doActionHealthCheck( final Configuration configuration ) throws PwmUnrecoverableException
     {
 
-        final StoredConfigurationImpl storedConfiguration = configuration.getStoredConfiguration();
+        final StoredConfiguration storedConfiguration = configuration.getStoredConfiguration();
 
         final List<HealthRecord> returnList = new ArrayList<>();
-        final List<StoredConfigReference> modifiedReferences = StoredConfigurationUtil.modifiedSettings( storedConfiguration );
-        for ( final StoredConfigReference storedConfigReference : modifiedReferences )
+        final Set<StoredConfigItemKey> modifiedReferences = storedConfiguration.modifiedItems();
+        for ( final StoredConfigItemKey storedConfigItemKey : modifiedReferences )
         {
-            if ( storedConfigReference.getRecordType() == StoredConfigReference.RecordType.SETTING )
+            if ( storedConfigItemKey.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
             {
-                final PwmSetting pwmSetting = PwmSetting.forKey( storedConfigReference.getRecordID() );
+                final PwmSetting pwmSetting = PwmSetting.forKey( storedConfigItemKey.getRecordID() );
                 if ( pwmSetting != null && pwmSetting.getSyntax() == PwmSettingSyntax.ACTION )
                 {
-                    final ActionValue value = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, storedConfigReference.getProfileID() );
+                    final ActionValue value = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, storedConfigItemKey.getProfileID() );
                     for ( final ActionConfiguration actionConfiguration : value.toNativeObject() )
                     {
                         for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions()  )
                         {
                             final List<X509Certificate> certificates = webAction.getCertificates();
-                            returnList.addAll( doHealthCheck( configuration, pwmSetting, storedConfigReference.getProfileID(), certificates ) );
+                            returnList.addAll( doHealthCheck( configuration, pwmSetting, storedConfigItemKey.getProfileID(), certificates ) );
                         }
                     }
                 }

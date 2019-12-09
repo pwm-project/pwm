@@ -30,7 +30,10 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -70,13 +73,14 @@ public class ConfigGuideUtils
     static void writeConfig(
             final ContextManager contextManager,
             final ConfigGuideBean configGuideBean
-    ) throws PwmOperationalException, PwmUnrecoverableException
+    )
+            throws PwmOperationalException, PwmUnrecoverableException
     {
-        final StoredConfigurationImpl storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
+        final StoredConfigurationModifier storedConfiguration = StoredConfigurationModifier.newModifier( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
         final String configPassword = configGuideBean.getFormData().get( ConfigGuideFormField.PARAM_CONFIG_PASSWORD );
         if ( configPassword != null && configPassword.length() > 0 )
         {
-            storedConfiguration.setPassword( configPassword );
+            StoredConfigurationUtil.setPassword( storedConfiguration, configPassword );
         }
         else
         {
@@ -84,31 +88,33 @@ public class ConfigGuideUtils
         }
 
         storedConfiguration.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, "false" );
-        ConfigGuideUtils.writeConfig( contextManager, storedConfiguration );
+        ConfigGuideUtils.writeConfig( contextManager, storedConfiguration.newStoredConfiguration() );
     }
 
     static void writeConfig(
             final ContextManager contextManager,
-            final StoredConfigurationImpl storedConfiguration
-    ) throws PwmOperationalException, PwmUnrecoverableException
+            final StoredConfiguration storedConfiguration
+    )
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         final ConfigurationReader configReader = contextManager.getConfigReader();
         final PwmApplication pwmApplication = contextManager.getPwmApplication();
 
         try
         {
+            final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
             // add a random security key
-            storedConfiguration.initNewRandomSecurityKey();
+            StoredConfigurationUtil.initNewRandomSecurityKey( modifier );
 
-            configReader.saveConfiguration( storedConfiguration, pwmApplication, null );
+            configReader.saveConfiguration( modifier.newStoredConfiguration(), pwmApplication, null );
 
             contextManager.requestPwmApplicationRestart();
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             throw new PwmOperationalException( e.getErrorInformation() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, "unable to save configuration: " + e.getLocalizedMessage() );
             throw new PwmOperationalException( errorInformation );
@@ -232,8 +238,8 @@ public class ConfigGuideUtils
             {
                 try
                 {
-                    final StoredConfigurationImpl storedConfig = StoredConfigurationImpl.fromXml( uploadedFile );
-                    final List<String> configErrors = storedConfig.validateValues();
+                    final StoredConfiguration storedConfig = StoredConfigurationFactory.fromXml( uploadedFile );
+                    final List<String> configErrors = StoredConfigurationUtil.validateValues( storedConfig );
                     if ( configErrors != null && !configErrors.isEmpty() )
                     {
                         throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, configErrors.get( 0 ) ) );

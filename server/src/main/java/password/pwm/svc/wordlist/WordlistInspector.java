@@ -330,7 +330,7 @@ class WordlistInspector implements Runnable
                 getLogger().debug( () -> "auto-import url remote hash does not equal currently stored hash, will start auto-import" );
                 needsAutoImport = true;
             }
-            else if ( remoteInfo.getBytes() > existingStatus.getBytes() || !existingStatus.isCompleted() )
+            else if ( !existingStatus.isCompleted() )
             {
                 getLogger().debug( () -> "auto-import did not previously complete, will continue previous import" );
                 needsAutoImport = true;

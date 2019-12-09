@@ -23,6 +23,7 @@ package password.pwm.config.value;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.ChallengeItemConfiguration;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
@@ -43,11 +44,11 @@ public class ChallengeValue extends AbstractValue implements StoredValue
     private static final PwmLogger LOGGER = PwmLogger.forClass( ChallengeValue.class );
 
     //locale str as key.
-    final Map<String, List<ChallengeItemConfiguration>> values;
+    private final Map<String, List<ChallengeItemConfiguration>> values;
 
     ChallengeValue( final Map<String, List<ChallengeItemConfiguration>> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
     }
 
     public static StoredValueFactory factory( )
@@ -111,7 +112,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<String, List<ChallengeItemConfiguration>> entry : values.entrySet() )
@@ -207,7 +208,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             {
                 minLength = Integer.parseInt( s1[ 1 ] );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.debug( () -> "unexpected error parsing config input '" + inputString + "' " + e.getMessage() );
             }
@@ -218,7 +219,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             {
                 maxLength = Integer.parseInt( s1[ 2 ] );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.debug( () -> "unexpected error parsing config input '" + inputString + "' " + e.getMessage() );
             }
@@ -231,7 +232,12 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             adminDefined = false;
         }
 
-        return new ChallengeItemConfiguration( challengeText, minLength, maxLength, adminDefined );
+        return ChallengeItemConfiguration.builder()
+                .text( challengeText )
+                .minLength( minLength )
+                .maxLength( maxLength )
+                .adminDefined( adminDefined )
+                .build();
     }
 
     public String toDebugString( final Locale locale )

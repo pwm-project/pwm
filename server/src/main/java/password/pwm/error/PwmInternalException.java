@@ -18,22 +18,12 @@
  * limitations under the License.
  */
 
-package password.pwm.config.stored;
+package password.pwm.error;
 
-import java.io.Serializable;
-
-public interface StoredConfigReference extends Serializable, Comparable
+public class PwmInternalException extends RuntimeException
 {
-    RecordType getRecordType( );
-
-    String getRecordID( );
-
-    String getProfileID( );
-
-    enum RecordType
+    public PwmInternalException( final String message, final Throwable cause )
     {
-        SETTING,
-        LOCALE_BUNDLE,
-        PROPERTY,
+        super( message, cause );
     }
 }

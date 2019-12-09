@@ -40,7 +40,7 @@ import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.PrivateKeyValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -353,12 +353,13 @@ public class HttpsServerCertificateManager
     }
 
     public static void importKey(
-            final StoredConfiguration storedConfiguration,
+            final StoredConfigurationModifier storedConfiguration,
             final KeyStoreFormat keyStoreFormat,
             final InputStream inputStream,
             final PasswordData password,
             final String alias
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         final char[] charPassword = password == null ? new char[ 0 ] : password.getStringValue().toCharArray();
         final PrivateKeyCertificate privateKeyCertificate;
@@ -399,7 +400,7 @@ public class HttpsServerCertificateManager
             LOGGER.debug( () -> "importing certificate chain: " + JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( certificates ) ) );
             privateKeyCertificate = new PrivateKeyCertificate( certificates, key );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unable to load configured https certificate: " + e.getMessage();
             final String[] errorDetail = new String[]
@@ -410,7 +411,7 @@ public class HttpsServerCertificateManager
         }
 
         final StoredValue storedValue = new PrivateKeyValue( privateKeyCertificate );
-        storedConfiguration.writeSetting( PwmSetting.HTTPS_CERT, storedValue, null );
+        storedConfiguration.writeSetting( PwmSetting.HTTPS_CERT, null, storedValue, null );
     }
 
 }

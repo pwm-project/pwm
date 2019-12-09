@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Supplier;
 
@@ -322,10 +323,10 @@ public enum PwmSettingCategory
         while ( nextCategory != null )
         {
             final XmlElement categoryElement = PwmSettingXml.readCategoryXml( nextCategory );
-            final XmlElement profileElement = categoryElement.getChild( "profile" );
-            if ( profileElement != null )
+            final Optional<XmlElement> profileElement = categoryElement.getChild( "profile" );
+            if ( profileElement.isPresent() )
             {
-                final String settingKey = profileElement.getAttributeValue( "setting" );
+                final String settingKey = profileElement.get().getAttributeValue( "setting" );
                 if ( settingKey != null )
                 {
                     return password.pwm.config.PwmSetting.forKey( settingKey );

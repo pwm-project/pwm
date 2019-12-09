@@ -23,6 +23,8 @@ package password.pwm.config.value;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
@@ -40,11 +42,11 @@ import java.util.regex.Pattern;
 
 public class LocalizedStringValue extends AbstractValue implements StoredValue
 {
-    final Map<String, String> value;
+    private final Map<String, String> value;
 
     public LocalizedStringValue( final Map<String, String> values )
     {
-        this.value = Collections.unmodifiableMap( values );
+        this.value = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
     }
 
     public static StoredValueFactory factory( )
@@ -69,11 +71,11 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
 
             public LocalizedStringValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
-                final List<XmlElement> elements = settingElement.getChildren( "value" );
+                final List<XmlElement> elements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final Map<String, String> values = new TreeMap<>();
                 for ( final XmlElement loopValueElement : elements )
                 {
-                    final String localeString = loopValueElement.getAttributeValue( "locale" );
+                    final String localeString = loopValueElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE );
                     final String value = loopValueElement.getText();
                     values.put( localeString == null ? "" : localeString, value );
                 }
@@ -82,7 +84,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<String, String> entry : value.entrySet() )

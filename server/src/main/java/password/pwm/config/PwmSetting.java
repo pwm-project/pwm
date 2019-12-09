@@ -38,10 +38,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -1467,6 +1470,16 @@ public enum PwmSetting
         private final Set<PwmSettingTemplate> settingTemplates;
     }
 
+    public static Set<PwmSetting> sortedByMenuLocation( final Locale locale )
+    {
+        final TreeMap<String, PwmSetting> treeMap = new TreeMap<>();
+        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        {
+            treeMap.put( pwmSetting.toMenuLocationDebug( null, locale ), pwmSetting );
+        }
+        return Collections.unmodifiableSet( new LinkedHashSet<>( treeMap.values() ) );
+    }
+
     private static TemplateSetAssociation associationForTempleSet(
             final List<TemplateSetAssociation> associationSets,
             final PwmSettingTemplateSet pwmSettingTemplate
@@ -1529,10 +1542,10 @@ public enum PwmSetting
         {
             final Map<String, String> returnList = new LinkedHashMap<>();
             final XmlElement settingElement = PwmSettingXml.readSettingXml( pwmSetting );
-            final XmlElement optionsElement = settingElement.getChild( PwmSettingXml.XML_ELEMENT_OPTIONS );
-            if ( optionsElement != null )
+            final Optional<XmlElement> optionsElement = settingElement.getChild( PwmSettingXml.XML_ELEMENT_OPTIONS );
+            if ( optionsElement.isPresent() )
             {
-                final List<XmlElement> optionElements = optionsElement.getChildren( PwmSettingXml.XML_ELEMENT_OPTION );
+                final List<XmlElement> optionElements = optionsElement.get().getChildren( PwmSettingXml.XML_ELEMENT_OPTION );
                 if ( optionElements != null )
                 {
                     for ( final XmlElement optionElement : optionElements )
@@ -1601,10 +1614,10 @@ public enum PwmSetting
         {
             final Map<PwmSettingProperty, String> newProps = new LinkedHashMap<>();
             final XmlElement settingElement = PwmSettingXml.readSettingXml( pwmSetting );
-            final XmlElement propertiesElement = settingElement.getChild( PwmSettingXml.XML_ELEMENT_PROPERTIES );
-            if ( propertiesElement != null )
+            final Optional<XmlElement> propertiesElement = settingElement.getChild( PwmSettingXml.XML_ELEMENT_PROPERTIES );
+            if ( propertiesElement.isPresent() )
             {
-                final List<XmlElement> propertyElements = propertiesElement.getChildren( PwmSettingXml.XML_ELEMENT_PROPERTY );
+                final List<XmlElement> propertyElements = propertiesElement.get().getChildren( PwmSettingXml.XML_ELEMENT_PROPERTY );
                 if ( propertyElements != null )
                 {
                     for ( final XmlElement propertyElement : propertyElements )
@@ -1678,12 +1691,12 @@ public enum PwmSetting
         private static Pattern readPattern( final PwmSetting pwmSetting )
         {
             final XmlElement settingNode = PwmSettingXml.readSettingXml( pwmSetting );
-            final XmlElement regexNode = settingNode.getChild( PwmSettingXml.XML_ELEMENT_REGEX );
-            if ( regexNode != null )
+            final Optional<XmlElement> regexNode = settingNode.getChild( PwmSettingXml.XML_ELEMENT_REGEX );
+            if ( regexNode.isPresent() )
             {
                 try
                 {
-                    return Pattern.compile( regexNode.getText() );
+                    return Pattern.compile( regexNode.get().getText() );
                 }
                 catch ( final PatternSyntaxException e )
                 {

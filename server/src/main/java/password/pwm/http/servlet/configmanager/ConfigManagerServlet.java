@@ -29,7 +29,10 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -52,10 +55,6 @@ import password.pwm.http.servlet.configguide.ConfigGuideUtils;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
-import password.pwm.svc.PwmService;
-import password.pwm.svc.event.AuditEvent;
-import password.pwm.svc.event.AuditRecord;
-import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
@@ -72,6 +71,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipOutputStream;
 
 @WebServlet(
@@ -205,7 +205,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         pwmRequest.setAttribute(
                 PwmRequestAttribute.ConfigHasPassword,
                 LocaleHelper.booleanString(
-                        configurationReader.getStoredConfiguration().hasPassword(),
+                        StoredConfigurationUtil.hasPassword( configurationReader.getStoredConfiguration() ),
                         pwmRequest.getLocale(),
                         pwmRequest.getConfig()
                 )
@@ -251,8 +251,8 @@ public class ConfigManagerServlet extends AbstractPwmServlet
 
         try
         {
-            final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration( pwmRequest );
-            if ( !storedConfiguration.hasPassword() )
+            final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
+            if ( !StoredConfigurationUtil.hasPassword( storedConfiguration ) )
             {
                 final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                         {
@@ -265,10 +265,11 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                 return;
             }
 
-            storedConfiguration.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, "false" );
-            saveConfiguration( pwmRequest, storedConfiguration );
+            final StoredConfigurationModifier modifiedConfig = StoredConfigurationModifier.newModifier( storedConfiguration );
+            modifiedConfig.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, "false" );
+            saveConfiguration( pwmRequest, modifiedConfig.newStoredConfiguration() );
             final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
-            configManagerBean.setConfiguration( null );
+            configManagerBean.setStoredConfiguration( null );
         }
         catch ( PwmException e )
         {
@@ -293,12 +294,12 @@ public class ConfigManagerServlet extends AbstractPwmServlet
 
     public static void saveConfiguration(
             final PwmRequest pwmRequest,
-            final StoredConfigurationImpl storedConfiguration
+            final StoredConfiguration storedConfiguration
     )
             throws PwmUnrecoverableException
     {
         {
-            final List<String> errorStrings = storedConfiguration.validateValues();
+            final List<String> errorStrings = StoredConfigurationUtil.validateValues( storedConfiguration );
             if ( errorStrings != null && !errorStrings.isEmpty() )
             {
                 final String errorString = errorStrings.get( 0 );
@@ -319,30 +320,17 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                     pwmRequest.getSessionLabel()
             );
 
-            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-            if ( pwmApplication.getAuditManager() != null && pwmApplication.getAuditManager().status() == PwmService.STATUS.OPEN )
-            {
-                final String modifyMessage = "Configuration Changes: " + storedConfiguration.changeLogAsDebugString( PwmConstants.DEFAULT_LOCALE, false );
-                final AuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createUserAuditRecord(
-                        AuditEvent.MODIFY_CONFIGURATION,
-                        pwmRequest.getUserInfoIfLoggedIn(),
-                        pwmRequest.getSessionLabel(),
-                        modifyMessage
-                );
-                pwmApplication.getAuditManager().submit( auditRecord );
-            }
-
             contextManager.requestPwmApplicationRestart();
         }
         catch ( Exception e )
         {
             final String errorString = "error saving file: " + e.getMessage();
-            LOGGER.error( pwmRequest, errorString );
+            LOGGER.error( pwmRequest, errorString, e );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                     {
                             errorString,
                     }
-            ) );
+            ), e );
         }
 
     }
@@ -361,11 +349,11 @@ public class ConfigManagerServlet extends AbstractPwmServlet
 
         try
         {
-            final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration( pwmRequest );
+            final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
             final OutputStream responseWriter = resp.getOutputStream();
             resp.setHeader( HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
             resp.setContentType( HttpContentType.xml );
-            storedConfiguration.toXml( responseWriter );
+            StoredConfigurationFactory.toXml( storedConfiguration, responseWriter );
             responseWriter.close();
         }
         catch ( Exception e )
@@ -392,28 +380,25 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     }
 
 
-    public static StoredConfigurationImpl readCurrentConfiguration( final PwmRequest pwmRequest )
+    public static StoredConfiguration readCurrentConfiguration( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final ContextManager contextManager = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() );
-        final ConfigurationReader runningConfigReader = contextManager.getConfigReader();
-        final StoredConfigurationImpl runningConfig = runningConfigReader.getStoredConfiguration();
-        return StoredConfigurationImpl.copy( runningConfig );
+        return pwmRequest.getConfig().getStoredConfiguration();
     }
 
     private void showSummary( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration( pwmRequest );
-        final LinkedHashMap<String, Object> outputMap = new LinkedHashMap<>( storedConfiguration.toOutputMap( pwmRequest.getLocale() ) );
-        pwmRequest.setAttribute( PwmRequestAttribute.ConfigurationSummaryOutput, outputMap );
+        final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
+        final Map<String, String> outputMap = StoredConfigurationUtil.makeDebugMap( storedConfiguration, storedConfiguration.modifiedItems(), pwmRequest.getLocale() );
+        pwmRequest.setAttribute( PwmRequestAttribute.ConfigurationSummaryOutput, new LinkedHashMap<>( outputMap ) );
         pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_EDITOR_SUMMARY );
     }
 
     private void showPermissions( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration( pwmRequest );
+        final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
         final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( storedConfiguration );
         pwmRequest.setAttribute( PwmRequestAttribute.LdapPermissionItems, ldapPermissionCalculator );
         pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_PERMISSIONS );
@@ -434,7 +419,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         try
         {
 
-            final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration( pwmRequest );
+            final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
             final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( storedConfiguration );
 
             for ( final LDAPPermissionCalculator.PermissionRecord permissionRecord : ldapPermissionCalculator.getPermissionRecords() )

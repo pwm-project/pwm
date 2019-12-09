@@ -45,8 +45,8 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
-import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.BooleanValue;
 import password.pwm.config.value.CustomLinkValue;
@@ -70,6 +70,7 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
@@ -77,8 +78,8 @@ import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.SecureService;
 
-import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -95,7 +96,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.Supplier;
 
 /**
  * @author Jason D. Rivard
@@ -104,13 +104,11 @@ public class Configuration implements SettingReader
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( Configuration.class );
 
-    private final StoredConfigurationImpl storedConfiguration;
+    private final StoredConfiguration storedConfiguration;
 
     private DataCache dataCache = new DataCache();
 
-    private String cashedConfigurationHash;
-
-    public Configuration( final StoredConfigurationImpl storedConfiguration )
+    public Configuration( final StoredConfiguration storedConfiguration )
     {
         this.storedConfiguration = storedConfiguration;
     }
@@ -123,28 +121,6 @@ public class Configuration implements SettingReader
                     + " setting is using a no longer functional setting value: " + value;
             throw new IllegalStateException( msg );
         }
-    }
-
-    public void outputToLog( )
-    {
-        if ( !LOGGER.isEnabled( PwmLogLevel.TRACE ) )
-        {
-            return;
-        }
-
-        final Map<String, String> debugStrings = storedConfiguration.getModifiedSettingDebugValues( PwmConstants.DEFAULT_LOCALE, true );
-        final List<Supplier<CharSequence>> outputStrings = new ArrayList<>();
-
-        for ( final Map.Entry<String, String> entry : debugStrings.entrySet() )
-        {
-            final String spacedValue = entry.getValue().replace( "\n", "\n   " );
-            final String output = " " + entry.getKey() + "\n   " + spacedValue + "\n";
-            outputStrings.add( () -> output );
-        }
-
-        LOGGER.trace( () -> "--begin current configuration output--" );
-        outputStrings.forEach( LOGGER::trace );
-        LOGGER.trace( () -> "--end current configuration output--" );
     }
 
     public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )
@@ -516,7 +492,7 @@ public class Configuration implements SettingReader
         }
     }
 
-    public Map<Locale, String> readLocalizedBundle( final String className, final String keyName )
+    public Map<Locale, String> readLocalizedBundle( final PwmLocaleBundle className, final String keyName )
     {
         final String key = className + "-" + keyName;
         if ( dataCache.customText.containsKey( key ) )
@@ -643,7 +619,7 @@ public class Configuration implements SettingReader
 
         // set case sensitivity
         final String caseSensitivitySetting = JavaTypeConverter.valueToString( storedConfiguration.readSetting(
-                PwmSetting.PASSWORD_POLICY_CASE_SENSITIVITY ) );
+                PwmSetting.PASSWORD_POLICY_CASE_SENSITIVITY, null ) );
         if ( !"read".equals( caseSensitivitySetting ) )
         {
             passwordPolicySettings.put( PwmPasswordRule.CaseSensitive.getKey(), caseSensitivitySetting );
@@ -674,7 +650,7 @@ public class Configuration implements SettingReader
 
     public boolean isDefaultValue( final PwmSetting pwmSetting )
     {
-        return storedConfiguration.isDefaultValue( pwmSetting );
+        return storedConfiguration.isDefaultValue( pwmSetting, null );
     }
 
     public Collection<Locale> localesForSetting( final PwmSetting setting )
@@ -705,11 +681,6 @@ public class Configuration implements SettingReader
         return returnCollection;
     }
 
-    public String readProperty( final ConfigurationProperty key )
-    {
-        return storedConfiguration.readConfigProperty( key );
-    }
-
     public boolean readSettingAsBoolean( final PwmSetting setting )
     {
         return JavaTypeConverter.valueToBoolean( readStoredValue( setting ) );
@@ -717,7 +688,7 @@ public class Configuration implements SettingReader
 
     public Map<FileValue.FileInformation, FileValue.FileContent> readSettingAsFile( final PwmSetting setting )
     {
-        final FileValue fileValue = ( FileValue ) storedConfiguration.readSetting( setting );
+        final FileValue fileValue = ( FileValue ) storedConfiguration.readSetting( setting, null );
         return ( Map ) fileValue.toNativeObject();
     }
 
@@ -748,48 +719,50 @@ public class Configuration implements SettingReader
         return ( PrivateKeyCertificate ) readStoredValue( setting ).toNativeObject();
     }
 
-    public String getNotes( )
-    {
-        return storedConfiguration.readConfigProperty( ConfigurationProperty.NOTES );
-    }
-
     private PwmSecurityKey tempInstanceKey = null;
 
     public PwmSecurityKey getSecurityKey( ) throws PwmUnrecoverableException
     {
-        final PasswordData configValue = readSettingAsPassword( PwmSetting.PWM_SECURITY_KEY );
-
-        if ( configValue == null || configValue.getStringValue().isEmpty() )
+        if ( dataCache.pwmSecurityKey == null )
         {
-            final String errorMsg = "Security Key value is not configured,will generate temp value for use by runtime instance";
-            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-            LOGGER.warn( errorInfo.toDebugStr() );
-            if ( tempInstanceKey == null )
+            final PasswordData configValue = readSettingAsPassword( PwmSetting.PWM_SECURITY_KEY );
+
+            if ( configValue == null || configValue.getStringValue().isEmpty() )
             {
-                tempInstanceKey = new PwmSecurityKey( PwmRandom.getInstance().alphaNumericString( 256 ) );
+                final String errorMsg = "Security Key value is not configured, will generate temp value for use by runtime instance";
+                final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
+                LOGGER.warn( errorInfo.toDebugStr() );
+                if ( tempInstanceKey == null )
+                {
+                    tempInstanceKey = new PwmSecurityKey( PwmRandom.getInstance().alphaNumericString( 1024 ) );
+                }
+                dataCache.pwmSecurityKey = tempInstanceKey;
             }
-            return tempInstanceKey;
+            else
+            {
+                final int minSecurityKeyLength = Integer.parseInt( readAppProperty( AppProperty.SECURITY_CONFIG_MIN_SECURITY_KEY_LENGTH ) );
+                if ( configValue.getStringValue().length() < minSecurityKeyLength )
+                {
+                    final String errorMsg = "Security Key must be greater than 32 characters in length";
+                    final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
+                    throw new PwmUnrecoverableException( errorInfo );
+                }
+
+                try
+                {
+                    dataCache.pwmSecurityKey = new PwmSecurityKey( configValue.getStringValue() );
+                }
+                catch ( Exception e )
+                {
+                    final String errorMsg = "unexpected error generating Security Key crypto: " + e.getMessage();
+                    final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
+                    LOGGER.error( errorInfo.toDebugStr(), e );
+                    throw new PwmUnrecoverableException( errorInfo );
+                }
+            }
         }
 
-        final int minSecurityKeyLength = Integer.parseInt( readAppProperty( AppProperty.SECURITY_CONFIG_MIN_SECURITY_KEY_LENGTH ) );
-        if ( configValue.getStringValue().length() < minSecurityKeyLength )
-        {
-            final String errorMsg = "Security Key must be greater than 32 characters in length";
-            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-            throw new PwmUnrecoverableException( errorInfo );
-        }
-
-        try
-        {
-            return new PwmSecurityKey( configValue.getStringValue() );
-        }
-        catch ( Exception e )
-        {
-            final String errorMsg = "unexpected error generating Security Key crypto: " + e.getMessage();
-            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-            LOGGER.error( errorInfo.toDebugStr(), e );
-            throw new PwmUnrecoverableException( errorInfo );
-        }
+        return dataCache.pwmSecurityKey;
     }
 
     public List<DataStorageMethod> getResponseStorageLocations( final PwmSetting setting )
@@ -1012,12 +985,12 @@ public class Configuration implements SettingReader
             return dataCache.settings.get( setting );
         }
 
-        final StoredValue readValue = storedConfiguration.readSetting( setting );
+        final StoredValue readValue = storedConfiguration.readSetting( setting, null );
         dataCache.settings.put( setting, readValue );
         return readValue;
     }
 
-    private static class DataCache implements Serializable
+    private static class DataCache
     {
         private final Map<String, Map<Locale, PwmPasswordPolicy>> cachedPasswordPolicy = new LinkedHashMap<>();
         private Map<Locale, String> localeFlagMap = null;
@@ -1025,6 +998,7 @@ public class Configuration implements SettingReader
         private final Map<String, Map<Locale, String>> customText = new LinkedHashMap<>();
         private final Map<ProfileDefinition, Map> profileCache = new LinkedHashMap<>();
         private Map<String, String> appPropertyOverrides = null;
+        private PwmSecurityKey pwmSecurityKey;
     }
 
     public Map<AppProperty, String> readAllNonDefaultAppProperties( )
@@ -1125,11 +1099,9 @@ public class Configuration implements SettingReader
         return profileFactory.makeFromStoredConfiguration( storedConfiguration, profileID );
     }
 
-    public StoredConfigurationImpl getStoredConfiguration( ) throws PwmUnrecoverableException
+    public StoredConfiguration getStoredConfiguration( )
     {
-        final StoredConfigurationImpl copiedStoredConfiguration = StoredConfigurationImpl.copy( storedConfiguration );
-        copiedStoredConfiguration.lock();
-        return copiedStoredConfiguration;
+        return this.storedConfiguration;
     }
 
     public boolean isDevDebugMode( )
@@ -1137,22 +1109,21 @@ public class Configuration implements SettingReader
         return Boolean.parseBoolean( readAppProperty( AppProperty.LOGGING_DEV_OUTPUT ) );
     }
 
-    public String configurationHash( )
+    public String configurationHash( final SecureService secureService )
             throws PwmUnrecoverableException
     {
-        if ( this.cashedConfigurationHash == null )
-        {
-            this.cashedConfigurationHash = storedConfiguration.settingChecksum();
-        }
-        return cashedConfigurationHash;
+        return storedConfiguration.valueHash();
     }
 
     public Set<PwmSetting> nonDefaultSettings( )
     {
-        final Set returnSet = new LinkedHashSet();
-        for ( final StoredConfigurationImpl.SettingValueRecord valueRecord : this.storedConfiguration.modifiedSettings() )
+        final Set<PwmSetting> returnSet = new LinkedHashSet<>();
+        for ( final StoredConfigItemKey key : this.storedConfiguration.modifiedItems() )
         {
-            returnSet.add( valueRecord.getSetting() );
+            if ( key.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
+            {
+                returnSet.add( key.toPwmSetting() );
+            }
         }
         return returnSet;
     }
@@ -1163,7 +1134,6 @@ public class Configuration implements SettingReader
         return mode == null
                 ? CertificateMatchingMode.CA_ONLY
                 : mode;
-
     }
 
     public Optional<PeopleSearchProfile> getPublicPeopleSearchProfile()

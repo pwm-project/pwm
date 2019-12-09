@@ -21,7 +21,8 @@
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
-import password.pwm.config.CustomLinkConfiguration;
+import password.pwm.config.stored.XmlOutputProcessData;
+import password.pwm.config.value.data.CustomLinkConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
@@ -39,11 +40,11 @@ import java.util.Set;
 
 public class CustomLinkValue extends AbstractValue implements StoredValue
 {
-    final List<CustomLinkConfiguration> values;
+    private final List<CustomLinkConfiguration> values;
 
     public CustomLinkValue( final List<CustomLinkConfiguration> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyList() : Collections.unmodifiableList( values );
     }
 
     public static StoredValueFactory factory( )
@@ -88,7 +89,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final CustomLinkConfiguration value : values )

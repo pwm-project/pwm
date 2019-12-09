@@ -23,7 +23,7 @@ package password.pwm.config.option;
 import org.junit.Test;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
 
 public class IdentityVerificationMethodEnumTest
@@ -31,7 +31,7 @@ public class IdentityVerificationMethodEnumTest
     @Test
     public void testLabels() throws PwmUnrecoverableException
     {
-        final Configuration configuration = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
+        final Configuration configuration = new Configuration( StoredConfigurationFactory.newConfig() );
         for ( final IdentityVerificationMethod method : IdentityVerificationMethod.values() )
         {
             method.getLabel( configuration, PwmConstants.DEFAULT_LOCALE );
@@ -41,7 +41,7 @@ public class IdentityVerificationMethodEnumTest
     @Test
     public void testDescriptions() throws PwmUnrecoverableException
     {
-        final Configuration configuration = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
+        final Configuration configuration = new Configuration( StoredConfigurationFactory.newConfig() );
         for ( final IdentityVerificationMethod category : IdentityVerificationMethod.values() )
         {
             category.getDescription( configuration, PwmConstants.DEFAULT_LOCALE );

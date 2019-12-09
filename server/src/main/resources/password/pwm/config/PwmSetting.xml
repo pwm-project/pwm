@@ -3047,6 +3047,7 @@
         </options>
     </setting>
     <setting hidden="true" key="updateAttributes.check.queryMatch" level="3">
+        <flag>Deprecated</flag>
         <ldapPermission actor="proxy" access="read"/>
         <default>
             <value />
@@ -3155,6 +3156,7 @@
         </default>
     </setting>
     <setting hidden="true" key="peopleSearch.searchAttributes" level="1" required="false">
+        <flag>Deprecated</flag>
         <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>givenName</value>
@@ -3253,6 +3255,7 @@
         </properties>
     </setting>
     <setting hidden="true" key="peopleSearch.displayName.user" level="1" required="true">
+        <flag>Deprecated</flag>
         <flag>MacroSupport</flag>
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @LDAP:title@</value>
@@ -3644,6 +3647,7 @@
         </default>
     </setting>
     <setting hidden="true" key="helpdesk.displayName" level="2">
+        <flag>Deprecated</flag>
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @User:ID@ - @User:Email@</value>
         </default>
@@ -3840,6 +3844,7 @@
         </default>
     </setting>
     <setting hidden="true" key="reporting.ldap.searchFilter" level="1">
+        <flag>Deprecated</flag>
         <default>
             <value />
         </default>
@@ -4055,6 +4060,7 @@
     </setting>
     <!-- DEPRECATED SETTINGS -->
     <setting hidden="true" key="password.policy.ADComplexity" level="99" required="false">
+        <flag>Deprecated</flag>
         <default>
             <value>false</value>
         </default>
@@ -4063,27 +4069,31 @@
         </default>
     </setting>
     <setting hidden="true" key="recovery.require.otp" level="1" required="true">
+        <flag>Deprecated</flag>
         <default>
             <value>false</value>
         </default>
     </setting>
     <setting hidden="true" key="challenge.requireResponses" level="1">
+        <flag>Deprecated</flag>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting hidden="true" key="helpdesk.otp.verify" level="1">
+        <flag>Deprecated</flag>
         <default>
             <value>false</value>
         </default>
     </setting>
     <setting hidden="true" key="webservices.healthStats.makePublic" level="2">
+        <flag>Deprecated</flag>
         <default>
             <value>false</value>
         </default>
     </setting>
     <setting hidden="true" key="challenge.enforceMinimumPasswordLifetime" level="2" required="true">
-        <!-- deprecated 2018-02-27-->
+        <flag>Deprecated</flag>
         <default>
             <value>false</value>
         </default>

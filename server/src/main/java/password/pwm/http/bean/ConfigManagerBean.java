@@ -20,18 +20,19 @@
 
 package password.pwm.http.bean;
 
+import lombok.Data;
 import password.pwm.config.option.SessionBeanMode;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 
 import java.util.Collections;
 import java.util.Set;
 
+@Data
 public class ConfigManagerBean extends PwmSessionBean
 {
-    private transient StoredConfigurationImpl storedConfiguration;
+    private transient StoredConfiguration storedConfiguration;
     private boolean passwordVerified;
     private boolean configUnlockedWarningShown;
-
     private String prePasswordEntryUrl;
 
     public ConfigManagerBean( )
@@ -41,47 +42,6 @@ public class ConfigManagerBean extends PwmSessionBean
     public Type getType( )
     {
         return Type.AUTHENTICATED;
-    }
-
-
-    public StoredConfigurationImpl getStoredConfiguration( )
-    {
-        return storedConfiguration;
-    }
-
-    public void setConfiguration( final StoredConfigurationImpl storedConfiguration )
-    {
-        this.storedConfiguration = storedConfiguration;
-    }
-
-    public boolean isPasswordVerified( )
-    {
-        return passwordVerified;
-    }
-
-    public void setPasswordVerified( final boolean passwordVerified )
-    {
-        this.passwordVerified = passwordVerified;
-    }
-
-    public String getPrePasswordEntryUrl( )
-    {
-        return prePasswordEntryUrl;
-    }
-
-    public void setPrePasswordEntryUrl( final String prePasswordEntryUrl )
-    {
-        this.prePasswordEntryUrl = prePasswordEntryUrl;
-    }
-
-    public boolean isConfigUnlockedWarningShown( )
-    {
-        return configUnlockedWarningShown;
-    }
-
-    public void setConfigUnlockedWarningShown( final boolean configUnlockedWarningShown )
-    {
-        this.configUnlockedWarningShown = configUnlockedWarningShown;
     }
 
     @Override

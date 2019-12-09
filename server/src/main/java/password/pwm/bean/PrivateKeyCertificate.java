@@ -20,30 +20,16 @@
 
 package password.pwm.bean;
 
+import lombok.Value;
+
 import java.io.Serializable;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.Collections;
 import java.util.List;
 
+@Value
 public class PrivateKeyCertificate implements Serializable
 {
-    private final List<X509Certificate> certificates;
-    private final PrivateKey key;
-
-    public PrivateKeyCertificate( final List<X509Certificate> certificates, final PrivateKey key )
-    {
-        this.certificates = Collections.unmodifiableList( certificates );
-        this.key = key;
-    }
-
-    public List<X509Certificate> getCertificates( )
-    {
-        return Collections.unmodifiableList( certificates );
-    }
-
-    public PrivateKey getKey( )
-    {
-        return key;
-    }
+    private List<X509Certificate> certificates;
+    private PrivateKey key;
 }

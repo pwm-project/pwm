@@ -20,8 +20,8 @@
 
 package password.pwm.config;
 
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmException;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -31,7 +31,7 @@ import java.util.Locale;
 
 public interface StoredValue extends Serializable
 {
-    List<XmlElement> toXmlValues( String valueElementName, PwmSecurityKey pwmSecurityKey );
+    List<XmlElement> toXmlValues( String valueElementName, XmlOutputProcessData xmlOutputProcessData );
 
     Object toNativeObject( );
 
@@ -40,8 +40,6 @@ public interface StoredValue extends Serializable
     Serializable toDebugJsonObject( Locale locale );
 
     String toDebugString( Locale locale );
-
-    boolean requiresStoredUpdate( );
 
     int currentSyntaxVersion( );
 
@@ -53,5 +51,5 @@ public interface StoredValue extends Serializable
                 throws PwmException;
     }
 
-    String valueHash( ) throws PwmUnrecoverableException;
+    String valueHash();
 }
