@@ -56,7 +56,7 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand
         {
             format = HttpsServerCertificateManager.KeyStoreFormat.valueOf( formatString );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             out( "unknown format '" + formatString + "', must be one of " + StringUtil.join( HttpsServerCertificateManager.KeyStoreFormat.values(), "," ) );
             return;

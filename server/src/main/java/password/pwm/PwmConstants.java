@@ -269,14 +269,14 @@ public abstract class PwmConstants
                             }
                         }
                     }
-                    catch ( Throwable t )
+                    catch ( final Throwable t )
                     {
                         System.out.println( t );
                     }
                 }
             }
         }
-        catch ( Throwable t )
+        catch ( final Throwable t )
         {
             System.out.println( t );
         }

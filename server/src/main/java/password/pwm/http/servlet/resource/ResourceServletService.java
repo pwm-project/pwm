@@ -130,7 +130,7 @@ public class ResourceServletService implements PwmService
 
             status = STATUS.OPEN;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error during cache initialization, will remain closed; error: " + e.getMessage() );
             status = STATUS.CLOSED;
@@ -141,7 +141,7 @@ public class ResourceServletService implements PwmService
         {
             resourceNonce = makeResourcePathNonce();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error during nonce generation, will remain closed; error: " + e.getMessage() );
             status = STATUS.CLOSED;
@@ -292,7 +292,7 @@ public class ResourceServletService implements PwmService
                     }
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "unable to generate resource path nonce: " + e.getMessage() );
             }

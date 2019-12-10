@@ -95,7 +95,7 @@ public class BeanCryptoMachine<T extends Serializable>
             this.key = key;
             return Optional.of( ( T ) bean );
         }
-        catch ( ClassNotFoundException e )
+        catch ( final ClassNotFoundException e )
         {
             final String msg = "error clasting return bean class";
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );

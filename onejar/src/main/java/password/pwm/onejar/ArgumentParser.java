@@ -58,7 +58,7 @@ public class ArgumentParser
             {
                 commandLine = new DefaultParser().parse( Argument.asOptions(), args );
             }
-            catch ( ParseException e )
+            catch ( final ParseException e )
             {
                 throw new ArgumentParserException( "unable to parse command line: " + e.getMessage() );
             }
@@ -100,7 +100,7 @@ public class ArgumentParser
                 {
                     onejarConfig = makeTomcatConfig( argumentMap );
                 }
-                catch ( IOException e )
+                catch ( final IOException e )
                 {
                     throw new ArgumentParserException( "error while reading input: " + e.getMessage() );
                 }
@@ -118,7 +118,7 @@ public class ArgumentParser
         {
             props.load( is );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             throw new ArgumentParserException( "unable to read properties input file: " + e.getMessage() );
         }
@@ -204,7 +204,7 @@ public class ArgumentParser
                     port = Integer.parseInt( argumentMap.get( Argument.port ) );
                     onejarConfig.port( port );
                 }
-                catch ( NumberFormatException e )
+                catch ( final NumberFormatException e )
                 {
                     final String msg = Argument.port.name() + " argument must be numeric";
                     System.out.println( msg );
@@ -228,7 +228,7 @@ public class ArgumentParser
                 final ServerSocket socket = new ServerSocket( port, 100, InetAddress.getByName( localAddress ) );
                 socket.close();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 throw new ArgumentParserException( "port or address conflict: " + e.getMessage() );
             }

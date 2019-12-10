@@ -62,7 +62,7 @@ public class LdapCrOperator implements CrOperator
         {
             return ChaiCrFactory.readChaiResponseSet( theUser );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             LOGGER.debug( () -> "ldap error reading response set: " + e.getMessage(), e );
         }
@@ -77,7 +77,7 @@ public class LdapCrOperator implements CrOperator
             final ResponseSet responseSet = readResponseSet( theUser, userIdentity, userGUID );
             return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean( responseSet, DataStorageMethod.LDAP );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             final String errorMsg = "unexpected error reading response info " + e.getMessage();
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_RESPONSES_NORESPONSES, errorMsg ) );
@@ -105,7 +105,7 @@ public class LdapCrOperator implements CrOperator
             }
             LOGGER.info( () -> "cleared responses for user to chai-ldap format" );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             final String errorMsg;
             if ( e.getErrorCode() == ChaiError.NO_ACCESS )
@@ -123,7 +123,7 @@ public class LdapCrOperator implements CrOperator
             pwmOE.initCause( e );
             throw pwmOE;
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() ) );
         }
@@ -153,7 +153,7 @@ public class LdapCrOperator implements CrOperator
             ChaiCrFactory.writeChaiResponseSet( responseSet, theUser );
             LOGGER.info( () -> "saved responses for user to chai-ldap format" );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             final String errorMsg;
             if ( e.getErrorCode() == ChaiError.NO_ACCESS )

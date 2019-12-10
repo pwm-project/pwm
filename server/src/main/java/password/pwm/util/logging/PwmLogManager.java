@@ -97,7 +97,7 @@ public class PwmLogManager
                 LOGGER.debug( () -> "successfully initialized log4j using file " + log4jConfigFile.getAbsolutePath() );
                 return;
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "error loading log4jconfig file '" + log4jConfigFile + "' error: " + e.getMessage() );
             }
@@ -207,7 +207,7 @@ public class PwmLogManager
                 }
                 LOGGER.debug( () -> "successfully initialized default file log4j config at log level " + level.toString() );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 LOGGER.debug( () -> "error initializing RollingFileAppender: " + e.getMessage() );
             }
@@ -235,7 +235,7 @@ public class PwmLogManager
                 PwmLogger.setLocalDBLogger( localDBLogLevel, localDBLogger );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.warn( "unable to initialize localDBLogger: " + e.getMessage() );
             return null;
@@ -256,7 +256,7 @@ public class PwmLogManager
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.warn( "unable to initialize localDBLogger/extraAppender: " + e.getMessage() );
         }
@@ -274,7 +274,7 @@ public class PwmLogManager
             final LocalDBLoggerSettings settings = LocalDBLoggerSettings.fromConfiguration( pwmApplication.getConfig() );
             return new LocalDBLogger( pwmApplication, pwmDB, settings );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             //nothing to do;
         }

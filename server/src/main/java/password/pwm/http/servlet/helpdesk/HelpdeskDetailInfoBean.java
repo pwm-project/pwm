@@ -138,7 +138,7 @@ public class HelpdeskDetailInfoBean implements Serializable
                     pwmRequest.getLocale() );
             builder.userHistory( userHistory );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( pwmRequest, "unexpected error reading userHistory for user '" + userIdentity + "', " + e.getMessage() );
         }

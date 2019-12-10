@@ -251,7 +251,7 @@ public class NewUserServlet extends ControlledPwmServlet
                 {
                     verifyForm( pwmRequest, newUserBean.getNewUserForm(), false );
                 }
-                catch ( PwmDataValidationException e )
+                catch ( final PwmDataValidationException e )
                 {
                     throw new PwmUnrecoverableException( e.getErrorInformation() );
                 }
@@ -293,7 +293,7 @@ public class NewUserServlet extends ControlledPwmServlet
             newUserBean.setCreateStartTime( Instant.now() );
             forwardToWait( pwmRequest, newUserProfile );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.error( pwmRequest, "error during user creation: " + e.getMessage() );
             if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_DELETE_ON_FAIL ) )
@@ -383,7 +383,7 @@ public class NewUserServlet extends ControlledPwmServlet
             final RestResultBean restResultBean = RestResultBean.withData( jsonData );
             pwmRequest.outputJsonResult( restResultBean );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
             LOGGER.debug( pwmRequest, () -> "error while validating new user form: " + e.getMessage() );
@@ -475,7 +475,7 @@ public class NewUserServlet extends ControlledPwmServlet
             );
 
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.debug( pwmRequest, () -> "error while checking entered token: " );
             errorInformation = e.getErrorInformation();
@@ -503,7 +503,7 @@ public class NewUserServlet extends ControlledPwmServlet
                         newUserBean.getCompletedTokenFields().addAll( newUserTokenData.getCompletedTokenFields() );
                         newUserBean.setCurrentTokenField( newUserTokenData.getCurrentTokenField() );
                     }
-                    catch ( PwmUnrecoverableException | PwmOperationalException e )
+                    catch ( final PwmUnrecoverableException | PwmOperationalException e )
                     {
                         LOGGER.error( pwmRequest, "while reading stored form data in token payload, form validation error occurred: " + e.getMessage() );
                         errorInformation = e.getErrorInformation();
@@ -519,7 +519,7 @@ public class NewUserServlet extends ControlledPwmServlet
                     }
                 }
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 errorInformation = e.getErrorInformation();
             }
@@ -597,7 +597,7 @@ public class NewUserServlet extends ControlledPwmServlet
             newUserBean.setNewUserForm( newUserForm );
             newUserBean.setFormPassed( true );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             setLastError( pwmRequest, e.getErrorInformation() );
             forwardToFormPage( pwmRequest, newUserBean );

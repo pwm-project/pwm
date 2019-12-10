@@ -70,7 +70,7 @@ public class RestHealthServer extends RestServlet
             StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_HEALTH );
             return RestResultBean.withData( resultString );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );

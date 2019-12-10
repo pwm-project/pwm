@@ -129,7 +129,7 @@ class ReportSettings implements Serializable
                 final int dayValue = Integer.parseInt( splitDay );
                 returnValue.add( dayValue );
             }
-            catch ( NumberFormatException e )
+            catch ( final NumberFormatException e )
             {
                 LOGGER.error( "error parsing reporting summary day value '" + splitDay + "', error: " + e.getMessage() );
             }

@@ -92,12 +92,12 @@ public class SetupOtpBean extends PwmSessionBean
             {
                 random = SecureRandom.getInstance( "SHA1PRNG", "SUN" );
             }
-            catch ( NoSuchAlgorithmException ex )
+            catch ( final NoSuchAlgorithmException ex )
             {
                 random = new SecureRandom();
                 LOGGER.error( ex.getMessage(), ex );
             }
-            catch ( NoSuchProviderException ex )
+            catch ( final NoSuchProviderException ex )
             {
                 random = new SecureRandom();
                 LOGGER.error( ex.getMessage(), ex );

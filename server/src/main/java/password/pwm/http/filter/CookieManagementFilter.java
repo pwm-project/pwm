@@ -58,7 +58,7 @@ public class CookieManagementFilter implements Filter
             pwmApplication = ContextManager.getPwmApplication( filterConfig.getServletContext() );
             value = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_SAMESITE_VALUE );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.trace( () -> "unable to load application configuration while checking samesite cookie attribute config", e );
         }
@@ -94,7 +94,7 @@ public class CookieManagementFilter implements Filter
             {
                 pwmSession = PwmSessionWrapper.readPwmSession( httpSession );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.trace( () -> "unable to load session while checking samesite cookie attribute config", e );
             }

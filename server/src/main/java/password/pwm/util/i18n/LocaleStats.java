@@ -223,7 +223,7 @@ public class LocaleStats
                 }
             }
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             if ( DEBUG_FLAG )
             {

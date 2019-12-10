@@ -203,7 +203,7 @@ public abstract class StoredConfigurationUtil
                         errorStrings.add( pwmSetting.toMenuLocationDebug( storedConfigItemKey.getProfileID(), PwmConstants.DEFAULT_LOCALE ) + " - " + loopError );
                     }
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( "unexpected error during validate value for "
                             + pwmSetting.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) + ", error: "

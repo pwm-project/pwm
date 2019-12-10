@@ -129,7 +129,7 @@ public enum PwmServletDefinition
         {
             this.patterns = getWebServletAnnotation( pwmServletClass ).urlPatterns();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new IllegalStateException( "error initializing PwmServletInfo value " + this.toString() + ", error: " + e.getMessage() );
         }

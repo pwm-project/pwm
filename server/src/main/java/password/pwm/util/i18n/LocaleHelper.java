@@ -75,7 +75,7 @@ public class LocaleHelper
         {
             return Class.forName( className );
         }
-        catch ( ClassNotFoundException e )
+        catch ( final ClassNotFoundException e )
         {
             return null;
         }
@@ -146,7 +146,7 @@ public class LocaleHelper
             {
                 returnValue = bundle.getString( key );
             }
-            catch ( MissingResourceException e )
+            catch ( final MissingResourceException e )
             {
                 final String errorMsg = "missing key '" + key + "' for " + bundleClass.getName();
                 if ( config != null && config.isDevDebugMode() )

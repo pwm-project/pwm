@@ -131,7 +131,7 @@ class MemoryCacheStore implements CacheStore
     public List<CacheDebugItem> getCacheDebugItems( )
     {
         final List<CacheDebugItem> items = new ArrayList<>();
-        for ( Map.Entry<CacheKey, CacheValueWrapper> entry : memoryStore.asMap().entrySet() )
+        for ( final Map.Entry<CacheKey, CacheValueWrapper> entry : memoryStore.asMap().entrySet() )
         {
             final CacheKey cacheKey = entry.getKey();
             final CacheValueWrapper cacheValueWrapper = entry.getValue();
@@ -184,7 +184,7 @@ class MemoryCacheStore implements CacheStore
     public long byteCount()
     {
         long byteCount = 0;
-        for ( Map.Entry<CacheKey, CacheValueWrapper> entry : memoryStore.asMap().entrySet() )
+        for ( final Map.Entry<CacheKey, CacheValueWrapper> entry : memoryStore.asMap().entrySet() )
         {
             final CacheKey cacheKey = entry.getKey();
             final UserIdentity userIdentity = cacheKey.getUserIdentity();

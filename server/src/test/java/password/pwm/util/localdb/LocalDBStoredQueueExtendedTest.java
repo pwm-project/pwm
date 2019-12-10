@@ -95,11 +95,11 @@ public class LocalDBStoredQueueExtendedTest
             storedQueue.remove();
             Assert.assertTrue( false );
         }
-        catch ( NoSuchElementException e )
+        catch ( final NoSuchElementException e )
         {
             Assert.assertTrue( true );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             Assert.assertTrue( false );
         }

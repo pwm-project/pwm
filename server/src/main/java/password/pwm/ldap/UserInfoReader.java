@@ -160,11 +160,11 @@ public class UserInfoReader implements UserInfo
         {
             return chaiUser.readLastLoginTime();
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             LOGGER.warn( sessionLabel, "error reading user's last ldap login time: " + e.getMessage() );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -232,13 +232,13 @@ public class UserInfoReader implements UserInfo
                     final PwmPasswordRuleValidator passwordRuleValidator = new PwmPasswordRuleValidator( pwmApplication, passwordPolicy );
                     passwordRuleValidator.testPassword( currentPassword, null, selfCachedReference, chaiUser );
                 }
-                catch ( PwmDataValidationException | PwmUnrecoverableException e )
+                catch ( final PwmDataValidationException | PwmUnrecoverableException e )
                 {
                     LOGGER.debug( sessionLabel, () -> "user " + userDN + " password does not conform to current password policy ("
                             + e.getMessage() + "), marking as requiring change." );
                     passwordStatusBuilder.violatesPolicy( true );
                 }
-                catch ( ChaiUnavailableException e )
+                catch ( final ChaiUnavailableException e )
                 {
                     throw PwmUnrecoverableException.fromChaiException( e );
                 }
@@ -259,11 +259,11 @@ public class UserInfoReader implements UserInfo
                 LOGGER.trace( sessionLabel, () -> "password for " + userDN + " does not appear to be expired" );
             }
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             LOGGER.info( sessionLabel, () -> "error reading LDAP attributes for " + userDN + " while reading isPasswordExpired(): " + e.getMessage() );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -369,7 +369,7 @@ public class UserInfoReader implements UserInfo
         {
             return chaiUser.isAccountEnabled();
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -382,7 +382,7 @@ public class UserInfoReader implements UserInfo
         {
             return chaiUser.isAccountExpired();
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -395,7 +395,7 @@ public class UserInfoReader implements UserInfo
         {
             return chaiUser.isPasswordLocked();
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -414,7 +414,7 @@ public class UserInfoReader implements UserInfo
                     selfCachedReference.getChallengeProfile().getChallengeSet(),
                     selfCachedReference.getResponseInfoBean() );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -512,12 +512,12 @@ public class UserInfoReader implements UserInfo
             LOGGER.debug( sessionLabel, () -> "checkProfile: " + userIdentity + " has value for attributes, update profile will not be required" );
             return false;
         }
-        catch ( PwmDataValidationException e )
+        catch ( final PwmDataValidationException e )
         {
             LOGGER.debug( sessionLabel, () -> "checkProfile: " + userIdentity + " does not have good attributes (" + e.getMessage() + "), update profile will be required" );
             return true;
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             e.printStackTrace();
         }
@@ -532,7 +532,7 @@ public class UserInfoReader implements UserInfo
         {
             return PasswordUtility.determinePwdLastModified( pwmApplication, sessionLabel, userIdentity );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -600,7 +600,7 @@ public class UserInfoReader implements UserInfo
         {
             return crService.readUserResponseInfo( sessionLabel, getUserIdentity(), chaiUser );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -616,7 +616,7 @@ public class UserInfoReader implements UserInfo
             {
                 return otpService.readOTPUserConfiguration( sessionLabel, userIdentity );
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 throw PwmUnrecoverableException.fromChaiException( e );
             }
@@ -631,11 +631,11 @@ public class UserInfoReader implements UserInfo
         {
             return chaiUser.readAccountExpirationDate();
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             LOGGER.warn( sessionLabel, "error reading user's account expiration time: " + e.getMessage() );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -713,7 +713,7 @@ public class UserInfoReader implements UserInfo
                 return value[0];
             }
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -729,7 +729,7 @@ public class UserInfoReader implements UserInfo
         {
             return chaiUser.readDateAttribute( attribute );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -789,13 +789,13 @@ public class UserInfoReader implements UserInfo
                         SearchScope.BASE
                 );
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 final String msg = "ldap operational error while reading user data" + e.getMessage();
                 LOGGER.error( sessionLabel, msg );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, msg ) );
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 throw PwmUnrecoverableException.fromChaiException( e );
             }

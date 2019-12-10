@@ -217,7 +217,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
                 {
                     actionExecutor.executeActions( actions, pwmRequest.getSessionLabel() );
                 }
-                catch ( PwmOperationalException e )
+                catch ( final PwmOperationalException e )
                 {
                     LOGGER.error( "error during user delete action execution: " + e.getMessage() );
                     throw new PwmUnrecoverableException( e.getErrorInformation(), e.getCause() );
@@ -248,7 +248,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
             {
                 chaiUser.getChaiProvider().deleteEntry( chaiUser.getEntryDN() );
             }
-            catch ( ChaiException e )
+            catch ( final ChaiException e )
             {
                 final PwmUnrecoverableException pwmException = PwmUnrecoverableException.fromChaiException( e );
                 LOGGER.error( "error during user delete", pwmException );

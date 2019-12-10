@@ -170,7 +170,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         {
             return ConfigManagerLoginAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             return null;
         }
@@ -373,7 +373,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( pwmRequest, "error examining persistent config login cookie: " + e.getMessage() );
         }

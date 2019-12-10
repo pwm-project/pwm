@@ -194,7 +194,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                     configGuideBean.setCertsTrustedbyKeystore( false );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "error reading/testing ldap server certificates: " + e.getMessage() );
             }
@@ -252,7 +252,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                     ConfigGuideUtils.checkLdapServer( configGuideBean );
                     records.add( password.pwm.health.HealthRecord.forMessage( HealthMessage.LDAP_OK ) );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Can not connect to remote server: " + e.getMessage() ) );
                 }
@@ -302,11 +302,11 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                         records.add( new HealthRecord( HealthStatus.GOOD, HealthTopic.LDAP, "Admin group validated" ) );
                     }
                 }
-                catch ( PwmException e )
+                catch ( final PwmException e )
                 {
                     records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Error during admin group validation: " + e.getErrorInformation().toDebugStr() ) );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Error during admin group validation: " + e.getMessage() ) );
                 }
@@ -364,12 +364,12 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             final Serializable output = userMatchViewerFunction.provideFunction( pwmRequest, modifier, PwmSetting.QUERY_MATCH_PWM_ADMIN, null, null );
             pwmRequest.outputJsonResult( RestResultBean.withData( output ) );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( pwmRequest, e.getErrorInformation() );
             pwmRequest.respondWithError( e.getErrorInformation(), false );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error while testing matches = " + e.getMessage() );
             LOGGER.error( pwmRequest, errorInformation );
@@ -453,7 +453,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             {
                 step = GuideStep.valueOf( requestedStep );
             }
-            catch ( IllegalArgumentException e )
+            catch ( final IllegalArgumentException e )
             {
                 final String errorMsg = "unknown goto step request: " + requestedStep;
                 LOGGER.error( pwmRequest, errorMsg );
@@ -490,13 +490,13 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 ConfigGuideUtils.writeConfig( contextManager, configGuideBean );
                 pwmRequest.getPwmSession().getSessionStateBean().setTheme( null );
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
                 pwmRequest.outputJsonResult( restResultBean );
                 return ProcessStatus.Halt;
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( pwmRequest, "error during save: " + e.getMessage(), e );
                 final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation(
@@ -536,7 +536,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             final SchemaOperationResult schemaOperationResult = ConfigGuideUtils.extendSchema( pwmRequest.getPwmApplication(), configGuideBean, true );
             pwmRequest.outputJsonResult( RestResultBean.withData( schemaOperationResult.getOperationLog() ) );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
@@ -559,7 +559,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
             pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
             pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
@@ -584,7 +584,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
             pwmRequest.invalidateSession();
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.error( "error during skip config guide: " + e.getMessage(), e );
         }
@@ -644,7 +644,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 configGuideBean.getFormData().put( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA, JsonUtil.serialize( (Serializable) storedValue.toNativeObject() ) );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "error writing default value for setting " + setting.toString() + ", error: " + e.getMessage();
             LOGGER.error( errorMsg, e );

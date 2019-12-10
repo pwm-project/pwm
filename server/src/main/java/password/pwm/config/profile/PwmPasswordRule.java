@@ -403,7 +403,7 @@ public enum PwmPasswordRule
             }
             assert keys.size() == PwmSetting.values().length;
         }
-        catch ( Throwable t )
+        catch ( final Throwable t )
         {
             LOGGER.fatal( "error initializing PwmPasswordRule class: " + t.getMessage(), t );
         }
@@ -515,7 +515,7 @@ public enum PwmPasswordRule
         {
             return LocaleHelper.getLocalizedMessage( locale, key, config, Message.class );
         }
-        catch ( MissingResourceException e )
+        catch ( final MissingResourceException e )
         {
             return "MissingKey-" + key;
         }

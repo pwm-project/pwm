@@ -102,11 +102,11 @@ public class RestProfileServer extends RestServlet
         {
             return doGetProfileDataImpl( restRequest, username );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             return RestResultBean.fromError( restRequest, e.getErrorInformation() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -179,7 +179,7 @@ public class RestProfileServer extends RestServlet
         {
             return doPostProfileDataImpl( restRequest, jsonInput );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );

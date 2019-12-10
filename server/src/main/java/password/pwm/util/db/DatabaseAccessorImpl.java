@@ -107,7 +107,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             {
                 exists = containsImpl( table, key );
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
                 processSqlException( debugInfo, e );
             }
@@ -222,7 +222,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     }
                 }
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
                 processSqlException( debugInfo, e );
             }
@@ -289,7 +289,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     }
                 }
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
                 processSqlException( debugInfo, e );
             }
@@ -322,7 +322,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             }
 
         }
-        catch ( SQLException e )
+        catch ( final SQLException e )
         {
             LOGGER.debug( () -> "error while checking connection validity: " + e.getMessage() );
         }
@@ -362,7 +362,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                 resultSet = statement.executeQuery();
                 connection.commit();
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
                 processSqlException( null, e );
             }
@@ -404,7 +404,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     close();
                 }
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
                 finished = true;
                 LOGGER.warn( "unexpected error during result set iteration: " + e.getMessage() );
@@ -430,7 +430,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                         resultSet.close();
                         resultSet = null;
                     }
-                    catch ( SQLException e )
+                    catch ( final SQLException e )
                     {
                         LOGGER.error( "error closing inner resultSet in iterator: " + e.getMessage() );
                     }
@@ -443,7 +443,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                         statement.close();
                         statement = null;
                     }
-                    catch ( SQLException e )
+                    catch ( final SQLException e )
                     {
                         LOGGER.error( "error closing inner statement in iterator: " + e.getMessage() );
                     }
@@ -546,7 +546,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     iterator.close();
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.warn( "error while closing connection: " + e.getMessage() );
             }
@@ -555,7 +555,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             {
                 connection.close();
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
                 LOGGER.warn( "error while closing connection: " + e.getMessage() );
             }
@@ -602,7 +602,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             }
             statement.executeUpdate();
         }
-        catch ( SQLException e )
+        catch ( final SQLException e )
         {
             processSqlException( debugInfo, e );
         }
@@ -622,7 +622,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         {
             return connection.isValid( 5000 );
         }
-        catch ( SQLException e )
+        catch ( final SQLException e )
         {
             LOGGER.error( "error while checking database connection: " + e.getMessage() );
         }

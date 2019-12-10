@@ -87,7 +87,7 @@ public class BasicAuthInfo implements Serializable
                     //   "cn=user,o=company:chpass" or "user:chpass"
                     return parseHeaderString( decoded );
                 }
-                catch ( IOException e )
+                catch ( final IOException e )
                 {
                     LOGGER.debug( () -> "error decoding auth header" + e.getMessage() );
                 }
@@ -117,7 +117,7 @@ public class BasicAuthInfo implements Serializable
                 return new BasicAuthInfo( input, null );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error decoding auth header: " + e.getMessage() );
             throw new IllegalArgumentException( "invalid basic authentication input string: " + e.getMessage(), e );

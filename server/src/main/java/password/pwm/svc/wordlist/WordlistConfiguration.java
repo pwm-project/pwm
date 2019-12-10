@@ -164,7 +164,7 @@ public class WordlistConfiguration implements Serializable
         {
             return SecureEngine.hash( JsonUtil.serialize( WordlistConfiguration.this ), HASH_ALGORITHM );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             throw new IllegalStateException( "unexpected error generating wordlist-config hash: " + e.getMessage() );
         }

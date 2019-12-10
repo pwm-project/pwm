@@ -66,13 +66,13 @@ public class ConfigEditorServletUtils
         {
             fileUploads = pwmRequest.readFileUploads( maxFileSize, 1 );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             pwmRequest.outputJsonResult( RestResultBean.fromError( e.getErrorInformation(), pwmRequest ) );
             LOGGER.error( pwmRequest, "error during file upload: " + e.getErrorInformation().toDebugStr() );
             return null;
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error during file upload: " + e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
@@ -157,7 +157,7 @@ public class ConfigEditorServletUtils
                     .records( password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords( healthRecords, locale, config ) )
                     .build();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( pwmRequest, "error generating health records: " + e.getMessage() );
         }

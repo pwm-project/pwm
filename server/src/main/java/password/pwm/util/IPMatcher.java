@@ -57,7 +57,7 @@ public class IPMatcher
             {
                 network = Inet6Address.getByName( parts[ 0 ] ).getAddress();
             }
-            catch ( UnknownHostException e )
+            catch ( final UnknownHostException e )
             {
                 throw new IPMatcherException(
                         "Malformed IP range specification " + ipSpec, e );
@@ -73,7 +73,7 @@ public class IPMatcher
                     {
                         maskBits = Integer.parseInt( parts[ 1 ] );
                     }
-                    catch ( NumberFormatException nfe )
+                    catch ( final NumberFormatException nfe )
                     {
                         throw new IPMatcherException(
                                 "Malformed IP range specification " + ipSpec, nfe );
@@ -132,7 +132,7 @@ public class IPMatcher
                         {
                             x = Integer.parseInt( maskParts[ 0 ] );
                         }
-                        catch ( NumberFormatException nfe )
+                        catch ( final NumberFormatException nfe )
                         {
                             throw new IPMatcherException(
                                     "Malformed IP range specification " + ipSpec, nfe );
@@ -223,7 +223,7 @@ public class IPMatcher
                 bytes[ i ] = ( byte ) ( p < 128 ? p : p - 256 );
             }
         }
-        catch ( NumberFormatException nfe )
+        catch ( final NumberFormatException nfe )
         {
             throw new IPMatcherException( "Malformed IP specification " + ip,
                     nfe );
@@ -258,7 +258,7 @@ public class IPMatcher
             {
                 candidate = Inet6Address.getByName( ipIn ).getAddress();
             }
-            catch ( UnknownHostException e )
+            catch ( final UnknownHostException e )
             {
                 throw new IPMatcherException( "Malformed IPv6 address ", e );
             }

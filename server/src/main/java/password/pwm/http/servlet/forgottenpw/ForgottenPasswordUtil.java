@@ -105,7 +105,7 @@ public class ForgottenPasswordUtil
             {
                 verifyRequirementsForAuthMethod( commonValues, forgottenPasswordBean, recoveryVerificationMethods );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 result.remove( recoveryVerificationMethods );
             }
@@ -176,7 +176,7 @@ public class ForgottenPasswordUtil
                     theUser
             );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -243,7 +243,7 @@ public class ForgottenPasswordUtil
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( pwmRequest, "unexpected error while examining cookie auth record: " + e.getMessage() );
         }
@@ -336,7 +336,7 @@ public class ForgottenPasswordUtil
                         }
                     }
                 }
-                catch ( ChaiValidationException e )
+                catch ( final ChaiValidationException e )
                 {
                     final String errorMsg = "stored response set for user '"
                             + userInfo.getUserIdentity() + "' do not meet current challenge set requirements: " + e.getLocalizedMessage();
@@ -440,7 +440,7 @@ public class ForgottenPasswordUtil
             theUser.unlockPassword();
             LOGGER.trace( pwmRequest, () -> "unlock account succeeded" );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             final String errorMsg = "unable to unlock user " + theUser.getEntryDN() + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNLOCK_FAILURE, errorMsg );
@@ -478,7 +478,7 @@ public class ForgottenPasswordUtil
                 LOGGER.trace( pwmRequest, () -> "set user " + userIdentity.toDisplayString()
                         + " password to system generated random value" );
             }
-            catch ( ChaiException e )
+            catch ( final ChaiException e )
             {
                 throw PwmUnrecoverableException.fromChaiException( e );
             }
@@ -512,12 +512,12 @@ public class ForgottenPasswordUtil
 
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_PasswordSend, toAddress );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.warn( pwmRequest, "unexpected error setting new password during recovery process for user: " + e.getMessage() );
             pwmRequest.respondWithError( e.getErrorInformation() );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation(
                     PwmError.ERROR_INTERNAL,
@@ -558,7 +558,7 @@ public class ForgottenPasswordUtil
         final List<FormConfiguration> formData = new ArrayList<>(  );
         {
             int counter = 0;
-            for ( Challenge challenge: challengeList )
+            for ( final Challenge challenge: challengeList )
             {
                 final FormConfiguration formConfiguration = FormConfiguration.builder()
                         .name( "challenge" + counter++ )
@@ -605,7 +605,7 @@ public class ForgottenPasswordUtil
                     userIdentity
             );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.debug( sessionLabel, () -> "can't read user's forgotten password profile - assuming no profile assigned, error: " + e.getMessage() );
         }
@@ -704,13 +704,13 @@ public class ForgottenPasswordUtil
                 );
                 challengeSet = responseSet == null ? null : responseSet.getPresentableChallengeSet();
             }
-            catch ( ChaiValidationException e )
+            catch ( final ChaiValidationException e )
             {
                 final String errorMsg = "unable to determine presentable challengeSet for stored responses: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NO_CHALLENGES, errorMsg );
                 throw new PwmUnrecoverableException( errorInformation );
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
             }
@@ -731,14 +731,14 @@ public class ForgottenPasswordUtil
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTRUDER_LDAP ) );
                 }
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL,
                         "error checking user '" + userInfo.getUserIdentity() + "' ldap intruder lock status: " + e.getMessage() );
                 LOGGER.error( sessionLabel, errorInformation );
                 throw new PwmUnrecoverableException( errorInformation );
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
             }
@@ -795,7 +795,7 @@ public class ForgottenPasswordUtil
                         LOGGER.trace( commonValues.getSessionLabel(), () -> "excluding optional required attribute(" + formItem.getName() + "), user has no value" );
                     }
                 }
-                catch ( PwmUnrecoverableException e )
+                catch ( final PwmUnrecoverableException e )
                 {
                     throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_NO_CHALLENGES, "unexpected error reading value for attribute " + formItem.getName() ) );
                 }

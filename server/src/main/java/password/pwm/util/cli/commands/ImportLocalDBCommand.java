@@ -52,7 +52,7 @@ public class ImportLocalDBCommand extends AbstractCliCommand
         {
             pwmDBUtility.importLocalDB( inputFile, System.out );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             out( "error during import: " + e.getMessage() );
         }

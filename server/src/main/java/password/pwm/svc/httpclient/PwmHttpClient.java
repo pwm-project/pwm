@@ -174,7 +174,7 @@ public class PwmHttpClient implements AutoCloseable
             clientBuilder.setSSLSocketFactory( sslConnectionFactory );
             clientBuilder.setConnectionManager( ccm );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error creating promiscuous https client: " + e.getMessage() ) );
         }
@@ -321,7 +321,7 @@ public class PwmHttpClient implements AutoCloseable
         {
             return makeRequestImpl( clientRequest, sessionLabel );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_UNREACHABLE, "error while making http request: " + e.getMessage() ), e );
         }
@@ -407,7 +407,7 @@ public class PwmHttpClient implements AutoCloseable
                         ( ( HttpPost ) httpRequest ).setEntity( new StringEntity( requestBody, PwmConstants.DEFAULT_CHARSET ) );
                     }
                 }
-                catch ( URISyntaxException e )
+                catch ( final URISyntaxException e )
                 {
                     throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "malformed url: " + clientRequest.getUrl() + ", error: " + e.getMessage() );
                 }

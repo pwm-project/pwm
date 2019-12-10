@@ -72,11 +72,11 @@ public class LdapBrowser
         {
             return doBrowseImpl( figureLdapProfileID( profile ), dn );
         }
-        catch ( ChaiUnavailableException | ChaiOperationException e )
+        catch ( final ChaiUnavailableException | ChaiOperationException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, e.getMessage() ) );
         }
@@ -228,7 +228,7 @@ public class LdapBrowser
                         final Map<String, Map<String, String>> subSearchResults = chaiProvider.search( resultDN, searchHelper );
                         hasSubs = !subSearchResults.isEmpty();
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
                         LOGGER.debug( () -> "error during subordinate entry count of " + dn + ", error: " + e.getMessage() );
                     }

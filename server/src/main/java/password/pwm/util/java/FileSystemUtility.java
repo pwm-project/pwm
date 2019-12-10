@@ -169,7 +169,7 @@ public class FileSystemUtility
                             taskData.getOutputQueue().offer( fileSummaryInformation );
                         }
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
                         LOGGER.debug( () -> "error executing file summary reader: " + e.getMessage() );
                     }
@@ -192,7 +192,7 @@ public class FileSystemUtility
                     .mapToLong( path -> path.toFile().length() )
                     .sum();
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             LOGGER.error( "error calculating disk size of '" + dir.getAbsolutePath() + "', error: " + e.getMessage(), e );
         }
@@ -296,7 +296,7 @@ public class FileSystemUtility
             {
                 Files.delete( path.toPath() );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 LOGGER.warn( "error deleting temporary file '" + path.getAbsolutePath() + "', error: " + e.getMessage() );
             }

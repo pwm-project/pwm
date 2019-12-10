@@ -103,7 +103,7 @@ public class RestFormSigningServer extends RestServlet
             }
             throw PwmUnrecoverableException.newException( PwmError.ERROR_MISSING_PARAMETER, "POST body should be a json object" );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             if ( e instanceof PwmUnrecoverableException )
             {

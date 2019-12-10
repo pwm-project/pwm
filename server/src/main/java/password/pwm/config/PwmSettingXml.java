@@ -81,7 +81,7 @@ public class PwmSettingXml
             LOGGER.trace( () -> "parsed PwmSettingXml in " + parseDuration.asCompactString() + ", loads=" + LOAD_COUNTER.getAndIncrement() );
             return newDoc;
         }
-        catch ( IOException | PwmUnrecoverableException e )
+        catch ( final IOException | PwmUnrecoverableException e )
         {
             throw new IllegalStateException( "error parsing " + SETTING_XML_FILENAME + ": " + e.getMessage() );
         }

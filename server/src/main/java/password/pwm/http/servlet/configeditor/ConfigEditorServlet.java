@@ -220,7 +220,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final RestResultBean restResultBean = RestResultBean.forSuccessMessage( result, pwmRequest, Message.Success_Unknown );
             pwmRequest.outputJsonResult( restResultBean );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final RestResultBean restResultBean;
             if ( e instanceof PwmException )
@@ -732,7 +732,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 returnRecords.add( new HealthRecord( HealthStatus.INFO, HealthTopic.SMS, "message sent" ) );
                 returnRecords.add( new HealthRecord( HealthStatus.INFO, HealthTopic.SMS, "response body: \n" + StringUtil.escapeHtml( responseBody ) ) );
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 returnRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.SMS, "unable to send message: " + e.getMessage() ) );
             }
@@ -1001,7 +1001,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final String output = macroMachine.expandMacros( input );
             pwmRequest.outputJsonResult( RestResultBean.withData( output ) );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( pwmRequest, e.getErrorInformation() );
             pwmRequest.respondWithError( e.getErrorInformation() );
@@ -1029,7 +1029,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         {
             result = ldapBrowser.doBrowse( profile, dn );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             // Probably was given a bad dn, better just browse without a DN than error out completely
             result = ldapBrowser.doBrowse( profile, "" );

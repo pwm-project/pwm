@@ -252,7 +252,7 @@ public class PhotoDataReader
             }
             return Optional.empty();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String msg = "error reading remote http photo data: " + JavaHelper.readHostileExceptionMessage( e );
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_UNREACHABLE, msg ) );
@@ -300,7 +300,7 @@ public class PhotoDataReader
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.debug( pwmRequest, () -> "error reading user photo data: " + e.getMessage() );
             if ( !pwmRequest.getPwmResponse().isCommitted() )

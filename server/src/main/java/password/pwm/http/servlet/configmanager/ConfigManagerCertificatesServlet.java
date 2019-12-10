@@ -89,7 +89,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
         {
             return ConfigManagerCertificateAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             return null;
         }
@@ -206,7 +206,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
         {
             builder.detail( X509Utils.makeDetailText( certificate ) );
         }
-        catch ( CertificateEncodingException e )
+        catch ( final CertificateEncodingException e )
         {
             LOGGER.error( "unexpected error parsing certificate detail text: " + e.getMessage() );
         }

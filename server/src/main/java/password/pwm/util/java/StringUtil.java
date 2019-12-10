@@ -289,7 +289,7 @@ public abstract class StringUtil
         {
             return URLEncoder.encode( input, PwmConstants.DEFAULT_CHARSET.toString() );
         }
-        catch ( UnsupportedEncodingException e )
+        catch ( final UnsupportedEncodingException e )
         {
             LOGGER.error( "unexpected error during url encoding: " + e.getMessage() );
             return input;
@@ -302,7 +302,7 @@ public abstract class StringUtil
         {
             return URLDecoder.decode( input, PwmConstants.DEFAULT_CHARSET.toString() );
         }
-        catch ( UnsupportedEncodingException e )
+        catch ( final UnsupportedEncodingException e )
         {
             LOGGER.error( "unexpected error during url decoding: " + e.getMessage() );
             return input;
@@ -527,7 +527,7 @@ public abstract class StringUtil
         {
             return Integer.parseInt( string );
         }
-        catch ( NumberFormatException e )
+        catch ( final NumberFormatException e )
         {
             return defaultValue;
         }

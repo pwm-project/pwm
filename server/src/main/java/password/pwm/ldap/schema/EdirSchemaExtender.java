@@ -58,7 +58,7 @@ public class EdirSchemaExtender implements SchemaExtender
         {
             schemaEntry = chaiProvider.getEntryFactory().newChaiEntry( LDAP_SCHEMA_DN );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() ) );
         }
@@ -119,11 +119,11 @@ public class EdirSchemaExtender implements SchemaExtender
                 }
             }
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() ) );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() ) );
         }
@@ -151,7 +151,7 @@ public class EdirSchemaExtender implements SchemaExtender
                     logActivity( "+ objectclass '" + name + "' has been modified" );
                     stateMap.put( name, SchemaDefinition.State.correct );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     logActivity( "error while updating objectclass definition '" + name + "', error: " + e.getMessage() );
                 }
@@ -170,7 +170,7 @@ public class EdirSchemaExtender implements SchemaExtender
                     logActivity( "+ objectclass '" + name + "' has been added" );
                     stateMap.put( name, SchemaDefinition.State.correct );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     logActivity( "error while updating objectclass definition '" + name + "', error: " + e.getMessage() );
                 }
@@ -197,7 +197,7 @@ public class EdirSchemaExtender implements SchemaExtender
                     logActivity( "+ attribute '" + name + "' has been modified" );
                     stateMap.put( name, SchemaDefinition.State.correct );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     logActivity( "error while updating attribute definition '" + name + "', error: " + e.getMessage() );
                 }
@@ -216,7 +216,7 @@ public class EdirSchemaExtender implements SchemaExtender
                     logActivity( "+ attribute '" + name + "' has been added" );
                     stateMap.put( name, SchemaDefinition.State.correct );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     logActivity( "error while adding attribute definition '" + name + "', error: " + e.getMessage() );
                 }
@@ -253,7 +253,7 @@ public class EdirSchemaExtender implements SchemaExtender
                 }
             }
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             e.printStackTrace();
         }
@@ -286,7 +286,7 @@ public class EdirSchemaExtender implements SchemaExtender
                 }
             }
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             e.printStackTrace();
         }
@@ -306,7 +306,7 @@ public class EdirSchemaExtender implements SchemaExtender
             {
                 schemaParser = new SchemaParser( key );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "error parsing schema attribute definition: " + e.getMessage() );
             }
@@ -333,7 +333,7 @@ public class EdirSchemaExtender implements SchemaExtender
             {
                 schemaParser = new SchemaParser( key );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "error parsing schema objectclasses definition: " + e.getMessage() );
             }

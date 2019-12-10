@@ -164,7 +164,7 @@ public class JsonUtil
             {
                 return new JsonPrimitive( StringUtil.base64Encode( cert.getEncoded() ) );
             }
-            catch ( CertificateEncodingException e )
+            catch ( final CertificateEncodingException e )
             {
                 throw new IllegalStateException( "unable to json-encode certificate: " + e.getMessage() );
             }
@@ -179,7 +179,7 @@ public class JsonUtil
                 return ( X509Certificate ) certificateFactory.generateCertificate( new ByteArrayInputStream( StringUtil.base64Decode(
                         jsonElement.getAsString() ) ) );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 throw new JsonParseException( "unable to parse x509certificate: " + e.getMessage() );
             }
@@ -218,7 +218,7 @@ public class JsonUtil
             {
                 return ISO_DATE_FORMAT.parse( jsonElement.getAsString() );
             }
-            catch ( ParseException e )
+            catch ( final ParseException e )
             {
                 /* noop */
             }
@@ -228,7 +228,7 @@ public class JsonUtil
             {
                 return GSON_DATE_FORMAT.parse( jsonElement.getAsString() );
             }
-            catch ( ParseException e )
+            catch ( final ParseException e )
             {
                 LOGGER.debug( () -> "unable to parse stored json Date.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage() );
                 throw new JsonParseException( e );
@@ -256,7 +256,7 @@ public class JsonUtil
             {
                 return JavaHelper.parseIsoToInstant( jsonElement.getAsString() );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.debug( () -> "unable to parse stored json Instant.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage() );
                 throw new JsonParseException( e );
@@ -276,7 +276,7 @@ public class JsonUtil
             {
                 return null;
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.debug( () -> "unable to parse stored json ChallengeSet.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage() );
                 throw new JsonParseException( e );
@@ -292,7 +292,7 @@ public class JsonUtil
             {
                 return StringUtil.base64Decode( json.getAsString() );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 final String errorMsg = "io stream error while de-serializing byte array: " + e.getMessage();
                 LOGGER.error( errorMsg );
@@ -306,7 +306,7 @@ public class JsonUtil
             {
                 return new JsonPrimitive( StringUtil.base64Encode( src, StringUtil.Base64Options.GZIP ) );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 final String errorMsg = "io stream error while serializing byte array: " + e.getMessage();
                 LOGGER.error( errorMsg );
@@ -323,7 +323,7 @@ public class JsonUtil
             {
                 return new PasswordData( json.getAsString() );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 final String errorMsg = "error while deserializing password data: " + e.getMessage();
                 LOGGER.error( errorMsg );
@@ -337,7 +337,7 @@ public class JsonUtil
             {
                 return new JsonPrimitive( src.getStringValue() );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 final String errorMsg = "error while serializing password data: " + e.getMessage();
                 LOGGER.error( errorMsg );

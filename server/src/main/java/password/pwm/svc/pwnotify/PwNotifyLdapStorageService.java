@@ -124,13 +124,13 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
         {
             configObjectRecord.updatePayload( payload );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             final String msg = "error writing user pwNotifyStatus attribute '" + getLdapUserAttribute( userIdentity ) + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, msg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -163,13 +163,13 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
         {
             configObjectRecord.updatePayload( payload );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             final String msg = "error writing user pwNotifyStatus attribute on proxy user '" + getLdapUserAttribute( proxyUser ) + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, msg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -197,7 +197,7 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
                 return list.iterator().next();
             }
         }
-        catch ( ChaiUnavailableException | ChaiOperationException e )
+        catch ( final ChaiUnavailableException | ChaiOperationException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }

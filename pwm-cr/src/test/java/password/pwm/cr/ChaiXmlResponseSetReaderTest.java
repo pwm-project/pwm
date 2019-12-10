@@ -25,7 +25,7 @@ import password.pwm.cr.api.ChallengeItemPolicy;
 import password.pwm.cr.api.QuestionSource;
 import password.pwm.cr.api.ResponseLevel;
 
-
+@SuppressWarnings( "checkstyle:MultipleStringLiterals" )
 public class ChaiXmlResponseSetReaderTest
 {
 

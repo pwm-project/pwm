@@ -139,7 +139,7 @@ class RecordManagerImpl implements RecordManager
         {
             return recordStore.read( makeKey( subject ) );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( "unable to read read intruder record from storage: " + e.getMessage() );
         }
@@ -152,7 +152,7 @@ class RecordManagerImpl implements RecordManager
         {
             recordStore.write( makeKey( intruderRecord.getSubject() ), intruderRecord );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.warn( "unexpected error attempting to write intruder record " + JsonUtil.serialize( intruderRecord ) + ", error: " + e.getMessage() );
         }
@@ -165,7 +165,7 @@ class RecordManagerImpl implements RecordManager
         {
             hash = SecureEngine.hash( subject, KEY_HASH_ALG );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "error generating md5sum for intruder record: " + e.getMessage() );
         }

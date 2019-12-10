@@ -95,7 +95,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
         {
             return ConfigManagerAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             return null;
         }
@@ -146,7 +146,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
             localDBUtility.exportLocalDB( bos, LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getSessionLabel() ) );
             LOGGER.debug( pwmRequest, () -> "completed localDBExport process in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( pwmRequest, "error downloading export localdb: " + e.getMessage() );
         }
@@ -196,7 +196,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
                     LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getSessionLabel() ) );
             LOGGER.info( pwmRequest, () -> "completed LocalDB import" );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final ErrorInformation errorInformation = e instanceof PwmException
                     ? ( ( PwmException ) e ).getErrorInformation()
@@ -213,7 +213,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
                 {
                     localDB.close();
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( pwmRequest, "error closing LocalDB after import process: " + e.getMessage() );
                 }

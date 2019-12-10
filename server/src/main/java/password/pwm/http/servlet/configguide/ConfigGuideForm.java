@@ -246,7 +246,7 @@ public class ConfigGuideForm
             final URI uri = new URI( uriString );
             return uri.getHost();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error calculating ldap hostname example: " + e.getMessage() );
         }

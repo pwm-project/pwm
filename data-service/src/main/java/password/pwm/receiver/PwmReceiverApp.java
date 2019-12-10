@@ -53,7 +53,7 @@ public class PwmReceiverApp
         {
             settings = Settings.readFromFile( propsFile );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             final String errorMsg = "can't read configuration: " + JavaHelper.readHostileExceptionMessage( e );
             status.setErrorState( errorMsg );
@@ -65,7 +65,7 @@ public class PwmReceiverApp
         {
             storage = new Storage( settings );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "can't start storage system: " + JavaHelper.readHostileExceptionMessage( e );
             status.setErrorState( errorMsg );

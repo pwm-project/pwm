@@ -465,7 +465,7 @@ public class PwmURL
                         LOGGER.trace( sessionLabel, () -> "negative URL match for regex pattern: " + strPattern );
                     }
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( sessionLabel, "error while testing URL match for regex pattern: '" + loopFragment + "', error: " + e.getMessage() );
                 }

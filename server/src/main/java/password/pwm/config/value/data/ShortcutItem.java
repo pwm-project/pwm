@@ -61,7 +61,7 @@ public class ShortcutItem implements Serializable
                         splitSettings[ 3 ]
                 );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.warn( "malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage() );
             }
@@ -84,7 +84,7 @@ public class ShortcutItem implements Serializable
                         splitSettings[ 2 ]
                 );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.warn( "malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage() );
             }

@@ -169,7 +169,7 @@ public class CaptchaUtility
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error during reCaptcha API execution: " + e.getMessage();
             LOGGER.error( errorMsg, e );

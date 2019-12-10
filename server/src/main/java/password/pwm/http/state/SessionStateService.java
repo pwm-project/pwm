@@ -192,7 +192,7 @@ public class SessionStateService implements PwmService
         {
             return theClass.newInstance().supportedModes().contains( mode );
         }
-        catch ( InstantiationException | IllegalAccessException e )
+        catch ( final InstantiationException | IllegalAccessException e )
         {
             e.printStackTrace();
         }
@@ -208,7 +208,7 @@ public class SessionStateService implements PwmService
             newBean.setTimestamp( Instant.now() );
             return newBean;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage();
             LOGGER.error( errorMsg, e );

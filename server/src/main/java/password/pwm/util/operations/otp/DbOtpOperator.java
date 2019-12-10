@@ -86,7 +86,7 @@ public class DbOtpOperator extends AbstractOtpOperator
                 }
             }
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             throw new PwmUnrecoverableException( e.getErrorInformation() );
         }
@@ -123,7 +123,7 @@ public class DbOtpOperator extends AbstractOtpOperator
             databaseAccessor.put( DatabaseTable.OTP, userGUID, value );
             LOGGER.debug( pwmSession, () -> "saved OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
         }
-        catch ( PwmOperationalException ex )
+        catch ( final PwmOperationalException ex )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to db: " + ex.getMessage() );
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
@@ -158,7 +158,7 @@ public class DbOtpOperator extends AbstractOtpOperator
             databaseAccessor.remove( DatabaseTable.OTP, userGUID );
             LOGGER.info( () -> "cleared OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
         }
-        catch ( DatabaseException ex )
+        catch ( final DatabaseException ex )
         {
             final ErrorInformation errorInfo = new ErrorInformation(
                     PwmError.ERROR_WRITING_OTP_SECRET,

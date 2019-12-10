@@ -61,7 +61,7 @@ public class ImportPropertyConfigCommand extends AbstractCliCommand
                 out( "output configuration file " + configFile.getAbsolutePath() );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             out( "error during import: " + e.getMessage() );
         }

@@ -51,7 +51,7 @@ public final class ServletUtility
         {
             IOUtils.copy( readerStream, stringWriter );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "error reading request body stream: " + e.getMessage();
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );

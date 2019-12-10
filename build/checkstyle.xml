@@ -269,12 +269,16 @@
         <module name="FallThrough"/>
         <module name="EqualsHashCode"/>
         <module name="ArrayTrailingCommaCheck"/>
-        <module name="FinalLocalVariable"/>
+        <module name="FinalLocalVariable">
+            <property name="validateEnhancedForLoopVariable" value="true"/>
+        </module>
         <module name="MissingSwitchDefault"/>
         <module name="ModifiedControlVariable"/>
         <module name="MultipleVariableDeclarations"/>
         <module name="OneStatementPerLine"/>
-        <module name="FinalParameters"/>
+        <module name="FinalParameters">
+            <property name="tokens" value="METHOD_DEF,CTOR_DEF,LITERAL_CATCH"/>
+        </module>
         <module name="ParameterAssignment"/>
         <module name="SimplifyBooleanReturn"/>
         <module name="StringLiteralEquality"/>

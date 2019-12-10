@@ -39,7 +39,7 @@ public class PwmAutofocusTag extends TagSupport
                 req.setAttribute( "autoFocusHasBeenSet", true );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new JspTagException( e.getMessage() );
         }

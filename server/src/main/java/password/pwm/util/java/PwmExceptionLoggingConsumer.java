@@ -36,7 +36,7 @@ public interface PwmExceptionLoggingConsumer<T>
             {
                 throwingConsumer.accept( t );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final PwmLogger pwmLogger = PwmLogger.forClass( throwingConsumer.getClass() );
                 pwmLogger.error( "unexpected error running '" + throwingConsumer.getClass().getName()

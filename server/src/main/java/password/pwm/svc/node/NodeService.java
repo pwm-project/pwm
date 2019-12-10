@@ -108,12 +108,12 @@ public class NodeService implements PwmService
                 return;
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             startupError = e.getErrorInformation();
             LOGGER.error( "error starting up node service: " + e.getMessage() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             startupError = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, "error starting up node service: " + e.getMessage() );
             LOGGER.error( startupError );

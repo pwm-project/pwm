@@ -68,7 +68,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
                 certs = X509Utils.readRemoteCertificates( URI.create( urlString ), configuration );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             if ( e instanceof PwmException )
             {

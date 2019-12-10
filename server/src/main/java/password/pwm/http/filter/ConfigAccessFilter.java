@@ -64,7 +64,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
             {
                 UserAgentUtils.checkIfPreIE11( pwmRequest );
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 pwmRequest.respondWithError( e.getErrorInformation() );
                 return;
@@ -79,7 +79,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
                 filterChain.doFilter();
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             pwmRequest.respondWithError( e.getErrorInformation() );
         }

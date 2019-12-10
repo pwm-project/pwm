@@ -107,7 +107,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
             final Map<String, Object> map = JsonUtil.deserializeStringObjectMap( body );
             LOGGER.trace( () -> "CSP Report: " + JsonUtil.serializeMap( map, JsonUtil.Flag.PrettyPrint ) );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error processing csp report: " + e.getMessage() + ", body=" + body );
         }

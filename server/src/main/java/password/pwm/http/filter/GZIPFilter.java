@@ -57,7 +57,7 @@ public class GZIPFilter implements Filter
             pwmApplication = ContextManager.getPwmApplication( filterConfig.getServletContext() );
             enabled = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_ENABLE_GZIP ) );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.warn( "unable to load application configuration, defaulting to disabled" );
         }
@@ -96,7 +96,7 @@ public class GZIPFilter implements Filter
                 return false;
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "unable to parse request url, defaulting to non-gzip: " + e.getMessage() );
         }

@@ -179,7 +179,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
                     TokenService.TokenEntryType.authenticated
             );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.debug( pwmRequest, () -> "error while checking entered token: " );
             errorInformation = e.getErrorInformation();
@@ -229,7 +229,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
 
             updateProfileBean.getFormData().putAll( FormUtility.asStringMap( formValues ) );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             success = false;
             userMessage = e.getErrorInformation().toUserStr( pwmRequest.getPwmSession(), pwmRequest.getPwmApplication() );
@@ -318,7 +318,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         {
             readFormParametersFromRequest( pwmRequest, updateProfileProfile, updateProfileBean );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.error( pwmRequest, e.getMessage() );
             setLastError( pwmRequest, e.getErrorInformation() );
@@ -381,7 +381,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             final Map<FormConfiguration, String> formValues = FormUtility.readFormValuesFromMap( updateProfileBean.getFormData(), formFields, pwmRequest.getLocale() );
             UpdateProfileUtil.verifyFormAttributes( pwmRequest.getPwmApplication(), pwmRequest.getUserInfoIfLoggedIn(), pwmRequest.getLocale(), formValues, true );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( pwmSession, e.getMessage() );
             setLastError( pwmRequest, e.getErrorInformation() );
@@ -433,12 +433,12 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_UpdateProfile );
             return;
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( pwmSession, e.getMessage() );
             setLastError( pwmRequest, e.getErrorInformation() );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UPDATE_ATTRS_FAILURE, e.toString() );
             LOGGER.error( pwmSession, errorInformation.toDebugStr() );

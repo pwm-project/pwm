@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.TimeZone;
 
+@SuppressWarnings( "checkstyle:MultipleStringLiterals" )
 public class CrUtils
 {
     static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss Z";

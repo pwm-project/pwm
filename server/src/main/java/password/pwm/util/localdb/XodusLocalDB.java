@@ -137,7 +137,7 @@ public class XodusLocalDB implements LocalDBProvider
                 LOGGER.trace( () -> "created openLock file" );
             }
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             LOGGER.error( "error creating openLock file: " + e.getMessage() );
         }
@@ -221,7 +221,7 @@ public class XodusLocalDB implements LocalDBProvider
                 environmentConfig.setSettings( singleMap );
                 LOGGER.trace( () -> "set env setting from appProperty: " + key + "=" + value );
             }
-            catch ( InvalidSettingException e )
+            catch ( final InvalidSettingException e )
             {
                 LOGGER.warn( "problem setting configured env settings: " + e.getMessage() );
             }
@@ -291,7 +291,7 @@ public class XodusLocalDB implements LocalDBProvider
             {
                 checkStatus( false );
             }
-            catch ( LocalDBException e )
+            catch ( final LocalDBException e )
             {
                 throw new IllegalStateException( e );
             }
@@ -321,7 +321,7 @@ public class XodusLocalDB implements LocalDBProvider
                 }
                 nextValue = decodedValue;
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 e.printStackTrace();
                 throw e;
@@ -533,7 +533,7 @@ public class XodusLocalDB implements LocalDBProvider
                 outputStats.put( "size." + db.name(), this.size( db ) );
             }
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             LOGGER.debug( () -> "error while calculating sizes for localDB debug output: "  + e.getMessage() );
         }
@@ -616,7 +616,7 @@ public class XodusLocalDB implements LocalDBProvider
                 deflaterOutputStream.write( data );
                 deflaterOutputStream.close();
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 throw new IllegalStateException( "unexpected exception compressing data stream: " + e.getMessage(), e );
             }
@@ -632,7 +632,7 @@ public class XodusLocalDB implements LocalDBProvider
                 inflaterOutputStream.write( data );
                 inflaterOutputStream.close();
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 throw new IllegalStateException( "unexpected exception decompressing data stream: " + e.getMessage(), e );
             }
@@ -655,7 +655,7 @@ public class XodusLocalDB implements LocalDBProvider
             final byte[] byteContents = contents.getBytes( PwmConstants.DEFAULT_CHARSET );
             Files.write( xodusPath.toPath(), byteContents, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             LOGGER.error( "error writing LocalDB readme file: " + e.getMessage() );
         }

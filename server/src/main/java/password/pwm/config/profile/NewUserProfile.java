@@ -135,7 +135,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
                     final UserIdentity userIdentity = new UserIdentity( lookupDN, defaultLdapProfile.getIdentifier() );
                     thePolicy = PasswordUtility.readPasswordPolicyForUser( pwmApplication, null, userIdentity, chaiUser, userLocale );
                 }
-                catch ( ChaiUnavailableException e )
+                catch ( final ChaiUnavailableException e )
                 {
                     throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
                 }

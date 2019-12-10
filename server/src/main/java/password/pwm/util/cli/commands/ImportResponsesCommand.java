@@ -76,7 +76,7 @@ public class ImportResponsesCommand extends AbstractCliCommand
                         final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean( PwmConstants.DEFAULT_LOCALE, challengeSet.getIdentifier() );
                         pwmApplication.getCrService().writeResponses( userIdentity, user, userGuid, responseInfoBean );
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
                         out( "error writing responses to user '" + user.getEntryDN() + "', error: " + e.getMessage() );
                         return;

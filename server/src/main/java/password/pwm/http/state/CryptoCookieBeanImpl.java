@@ -68,7 +68,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
                 return cookieBean;
             }
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.debug( pwmRequest, () -> "ignoring existing existing " + cookieName + " cookie bean due to error: " + e.getMessage() );
         }
@@ -154,7 +154,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
                 }
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( pwmRequest, "error writing cookie bean to response: " + e.getMessage(), e );
         }

@@ -152,7 +152,7 @@ public class UserSearchEngine implements PwmService
             {
                 inputIdentity = UserIdentity.fromKey( username, pwmApplication );
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 /* input is not a userIdentity */
             }
@@ -169,11 +169,11 @@ public class UserSearchEngine implements PwmService
                         return new UserIdentity( canonicalDN, inputIdentity.getLdapProfileID() );
                     }
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_CANT_MATCH_USER, e.getMessage() ) );
                 }
-                catch ( ChaiUnavailableException e )
+                catch ( final ChaiUnavailableException e )
                 {
                     throw PwmUnrecoverableException.fromChaiException( e );
                 }
@@ -203,7 +203,7 @@ public class UserSearchEngine implements PwmService
                 return performSingleUserSearch( searchConfiguration, sessionLabel );
             }
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             throw new PwmOperationalException( new ErrorInformation(
                     PwmError.ERROR_CANT_MATCH_USER,
@@ -211,7 +211,7 @@ public class UserSearchEngine implements PwmService
                     e.getErrorInformation().getFieldValues() )
             );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -355,7 +355,7 @@ public class UserSearchEngine implements PwmService
                             returnAttributes
                     ) );
                 }
-                catch ( PwmUnrecoverableException e )
+                catch ( final PwmUnrecoverableException e )
                 {
                     if ( e.getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
                     {
@@ -521,11 +521,11 @@ public class UserSearchEngine implements PwmService
         {
             results = userSearchJob.getChaiProvider().search( userSearchJob.getContext(), searchHelper );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() ) );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             throw new PwmOperationalException( PwmError.forChaiError( e.getErrorCode() ), "ldap error during searchID="
                     + searchID + ", error=" + e.getMessage() );
@@ -643,7 +643,7 @@ public class UserSearchEngine implements PwmService
                 {
                     return new UserIdentity( user.readCanonicalDN(), ldapProfile.getIdentifier() );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     LOGGER.error( "unexpected error reading canonical userDN for '" + userDN + "', error: " + e.getMessage() );
                 }
@@ -663,7 +663,7 @@ public class UserSearchEngine implements PwmService
         final List<JobInfo> jobs = new ArrayList<>();
         {
             int jobID = 0;
-            for ( UserSearchJob userSearchJob : userSearchJobs )
+            for ( final UserSearchJob userSearchJob : userSearchJobs )
             {
                 final int loopJobID = jobID++;
 
@@ -698,7 +698,7 @@ public class UserSearchEngine implements PwmService
                     submittedToExecutor = true;
                     backgroundJobCounter.incrementAndGet();
                 }
-                catch ( RejectedExecutionException e )
+                catch ( final RejectedExecutionException e )
                 {
                     // executor is full, so revert to running locally
                     rejectionJobCounter.incrementAndGet();
@@ -712,7 +712,7 @@ public class UserSearchEngine implements PwmService
                     jobInfo.getFutureTask().run();
                     foregroundJobCounter.incrementAndGet();
                 }
-                catch ( Throwable t )
+                catch ( final Throwable t )
                 {
                     log( PwmLogLevel.ERROR, sessionLabel, searchID, jobInfo.getJobID(), "unexpected error running job in local thread: " + t.getMessage() );
                 }
@@ -739,14 +739,14 @@ public class UserSearchEngine implements PwmService
                 {
                     results.putAll( jobInfo.getFutureTask().get( maxWaitTime, TimeUnit.MILLISECONDS ) );
                 }
-                catch ( InterruptedException e )
+                catch ( final InterruptedException e )
                 {
                     final String errorMsg = "unexpected interruption during search job execution: " + e.getMessage();
                     log( PwmLogLevel.WARN, sessionLabel, searchID, jobInfo.getJobID(), errorMsg );
                     LOGGER.error( sessionLabel, errorMsg, e );
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
                 }
-                catch ( ExecutionException e )
+                catch ( final ExecutionException e )
                 {
                     final Throwable t = e.getCause();
                     final ErrorInformation errorInformation;
@@ -764,7 +764,7 @@ public class UserSearchEngine implements PwmService
                     log( PwmLogLevel.WARN, sessionLabel, searchID, jobInfo.getJobID(), "error during user search: " + errorInformation.toDebugStr() );
                     throw new PwmUnrecoverableException( errorInformation );
                 }
-                catch ( TimeoutException e )
+                catch ( final TimeoutException e )
                 {
                     final String errorMsg = "background search job timeout after " + jobInfo.getUserSearchJob().getTimeoutMs()
                             + "ms, to ldapProfile '"

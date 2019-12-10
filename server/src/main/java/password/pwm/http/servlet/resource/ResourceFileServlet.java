@@ -82,7 +82,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
         {
             pwmRequest = PwmRequest.forRequest( req, resp );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( "unable to satisfy request using standard mechanism, reverting to raw resource server" );
         }
@@ -93,7 +93,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             {
                 processAction( pwmRequest );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.error( pwmRequest, "error during resource servlet request processing: " + e.getMessage() );
             }
@@ -104,7 +104,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             {
                 rawRequestProcessor( req, resp );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.error( "error serving raw resource request: " + e.getMessage() );
             }
@@ -150,14 +150,14 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
         {
             file = resourceFileRequest.getRequestedFileResource();
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             pwmRequest.getPwmResponse().getHttpServletResponse().sendError( HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage() );
             try
             {
                 pwmRequest.debugHttpRequestToLog( "returning HTTP 500 status" );
             }
-            catch ( PwmUnrecoverableException e2 )
+            catch ( final PwmUnrecoverableException e2 )
             {
                 /* noop */
             }
@@ -171,7 +171,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             {
                 pwmRequest.debugHttpRequestToLog( "returning HTTP 404 status" );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 /* noop */
             }
@@ -203,7 +203,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                 fromCache = handleCacheableResponse( resourceFileRequest, response, resourceService.getCacheMap() );
                 debugText = makeDebugText( fromCache, acceptsGzip, false );
             }
-            catch ( UncacheableResourceException e )
+            catch ( final UncacheableResourceException e )
             {
                 handleUncachedResponse( response, file, acceptsGzip );
                 debugText = makeDebugText( fromCache, acceptsGzip, true );
@@ -215,7 +215,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             StatisticsManager.incrementStat( pwmApplication, Statistic.HTTP_RESOURCE_REQUESTS );
             cacheHitRatio.update( fromCache ? 1 : 0 );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( pwmRequest, "error fulfilling response for url '" + requestURI + "', error: " + e.getMessage() );
         }
@@ -374,7 +374,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             {
                 pwmRequest.debugHttpRequestToLog( "returning HTTP 304 status" );
             }
-            catch ( PwmUnrecoverableException e2 )
+            catch ( final PwmUnrecoverableException e2 )
             {
                 /* noop */
             }

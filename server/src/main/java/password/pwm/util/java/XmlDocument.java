@@ -136,7 +136,7 @@ public interface XmlDocument
                 final NodeList nodeList = (NodeList) expression.evaluate( document, XPathConstants.NODESET );
                 return XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList );
             }
-            catch ( XPathExpressionException e )
+            catch ( final XPathExpressionException e )
             {
                 throw new IllegalStateException( "error evaluating xpath expression: " + e.getMessage() );
             }

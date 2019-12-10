@@ -383,7 +383,7 @@ public class PasswordChangeProgressChecker
                 return progressRecord;
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( pwmSession, "error during password replication status check: " + e.getMessage() );
         }

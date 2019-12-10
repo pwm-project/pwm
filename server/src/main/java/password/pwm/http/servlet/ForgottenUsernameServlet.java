@@ -89,7 +89,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
         {
             return ForgottenUsernameAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             return null;
         }
@@ -221,7 +221,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
             return;
 
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             final ErrorInformation errorInfo;
             errorInfo = e.getError() == PwmError.ERROR_INTERNAL

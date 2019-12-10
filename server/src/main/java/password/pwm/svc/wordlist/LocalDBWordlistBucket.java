@@ -53,7 +53,7 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
         {
             localDB.putAll( db, values );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_LOCALDB_UNAVAILABLE, "error while writing words to wordlist: " + e.getMessage() );
         }
@@ -67,7 +67,7 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
         {
             return pwmApplication.getLocalDB().get( db, key );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "error while generating random word: " + e.getMessage() );
         }
@@ -81,7 +81,7 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
         {
             return pwmApplication.getLocalDB().contains( db, key );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_LOCALDB_UNAVAILABLE, e.getMessage() );
         }
@@ -94,7 +94,7 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
         {
             return localDB.size( db );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_LOCALDB_UNAVAILABLE, e.getMessage() );
         }
@@ -108,7 +108,7 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
         {
             localDB.truncate( db );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_LOCALDB_UNAVAILABLE, e.getMessage() );
         }

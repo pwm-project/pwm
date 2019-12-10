@@ -35,7 +35,7 @@ public class PwmContextTag extends TagSupport
             final HttpServletRequest req = ( HttpServletRequest ) pageContext.getRequest();
             pageContext.getOut().write( req.getContextPath() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new JspTagException( e.getMessage() );
         }

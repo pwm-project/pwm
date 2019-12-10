@@ -142,7 +142,7 @@ public class ChaiXmlResponseSetSerializer
                     {
                         timestamp = CrUtils.parseDateString( timeStr );
                     }
-                    catch ( ParseException e )
+                    catch ( final ParseException e )
                     {
                         throw new IllegalArgumentException( "unexpected error attempting to parse timestamp: " + e.getMessage() );
                     }
@@ -173,14 +173,14 @@ public class ChaiXmlResponseSetSerializer
                                 break;
 
                             default:
-                                throw new IllegalStateException( "unknown response type '" + type + "'" );
+                                throw new IllegalStateException( "unknown response type '" + type + '\'' );
 
                         }
                     }
                 }
             }
         }
-        catch ( JDOMException | IOException | NullPointerException e )
+        catch ( final JDOMException | IOException | NullPointerException e )
         {
             throw new IllegalArgumentException( "error parsing stored response record: " + e.getMessage() );
         }
@@ -228,7 +228,7 @@ public class ChaiXmlResponseSetSerializer
                 return XML_NODE_HELPDESK_RESPONSE;
 
             default:
-                throw new IllegalArgumentException( "unknown type '" + type + "'" );
+                throw new IllegalArgumentException( "unknown type '" + type + '\'' );
         }
     }
 
@@ -279,7 +279,7 @@ public class ChaiXmlResponseSetSerializer
         {
             saltCount = Integer.parseInt( hashCount );
         }
-        catch ( NumberFormatException e )
+        catch ( final NumberFormatException e )
         {
             /* noop */
         }
@@ -306,7 +306,7 @@ public class ChaiXmlResponseSetSerializer
             final byte[] hashedBytes = md.digest( questionText.getBytes( StandardCharsets.UTF_8 ) );
             return net.iharder.Base64.encodeBytes( hashedBytes, Base64.URL_SAFE );
         }
-        catch ( NoSuchAlgorithmException | IOException e )
+        catch ( final NoSuchAlgorithmException | IOException e )
         {
             throw new IllegalStateException( "unable to load SHA1 message digest algorithm: " + e.getMessage() );
         }

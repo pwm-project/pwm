@@ -215,12 +215,12 @@ public class RestSetPasswordServer extends RestServlet
             final JsonInputData jsonResultData = new JsonInputData( targetUserIdentity.getUserIdentity().toDelimitedKey(), null, random );
             return RestResultBean.forSuccessMessage( jsonResultData, restRequest, Message.Success_PasswordChange );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( "error during set password REST operation: " + e.getMessage() );
             return RestResultBean.fromError( restRequest, e.getErrorInformation() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );

@@ -352,7 +352,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             {
                 requestedChoice = IdentityVerificationMethod.valueOf( requestedChoiceStr );
             }
-            catch ( IllegalArgumentException e )
+            catch ( final IllegalArgumentException e )
             {
                 final String errorMsg = "unknown verification method requested";
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, errorMsg );
@@ -467,7 +467,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
             return ProcessStatus.Continue;
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             if ( e.getError() != PwmError.ERROR_CANT_MATCH_USER || !bogusUserModeEnabled )
             {
@@ -534,12 +534,12 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                 return ProcessStatus.Halt;
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.debug( pwmRequest, () -> "error while checking entered token: " );
             errorInformation = e.getErrorInformation();
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             final String errorMsg = "token incorrect: " + e.getMessage();
             errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
@@ -643,7 +643,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                     handleUserVerificationBadAttempt( pwmRequest, forgottenPasswordBean, new ErrorInformation( PwmError.ERROR_INCORRECT_OTP_TOKEN ) );
                 }
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 handleUserVerificationBadAttempt( pwmRequest, forgottenPasswordBean, new ErrorInformation(
                         PwmError.ERROR_INCORRECT_OTP_TOKEN,
@@ -695,7 +695,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             {
                 oauthUserIdentity = userSearchEngine.resolveUsername( userDNfromOAuth, null, null, pwmRequest.getSessionLabel() );
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 final String errorMsg = "unexpected error searching for oauth supplied username in ldap; error: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
@@ -756,7 +756,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             {
                 responsesPassed = responseSet.test( crMap );
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 if ( e.getCause() instanceof PwmUnrecoverableException )
                 {
@@ -783,7 +783,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                 return ProcessStatus.Continue;
             }
         }
-        catch ( ChaiValidationException e )
+        catch ( final ChaiValidationException e )
         {
             LOGGER.debug( pwmRequest, () -> "chai validation error checking user responses: " + e.getMessage() );
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.forChaiError( e.getErrorCode() ) );
@@ -911,7 +911,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                         ) );
                     }
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     LOGGER.error( pwmRequest, "error during param validation of '" + attrName + "', error: " + e.getMessage() );
                     throw new PwmDataValidationException( new ErrorInformation( PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", new String[]
@@ -924,7 +924,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
             forgottenPasswordBean.getProgress().getSatisfiedMethods().add( IdentityVerificationMethod.ATTRIBUTES );
         }
-        catch ( PwmDataValidationException e )
+        catch ( final PwmDataValidationException e )
         {
             handleUserVerificationBadAttempt( pwmRequest, forgottenPasswordBean, new ErrorInformation( PwmError.ERROR_INCORRECT_RESPONSE, e.getErrorInformation().toDebugStr() ) );
         }
@@ -1158,7 +1158,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_UnlockAccount );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             final String errorMsg = "unable to unlock user " + userIdentity + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNLOCK_FAILURE, errorMsg );
@@ -1193,7 +1193,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             theUser.unlockPassword();
             LOGGER.trace( pwmSession, () -> "unlock account succeeded" );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             final String errorMsg = "unable to unlock user " + theUser.getEntryDN() + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNLOCK_FAILURE, errorMsg );
@@ -1222,7 +1222,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             // redirect user to change password screen.
             pwmRequest.sendRedirect( PwmServletDefinition.PublicChangePassword.servletUrlName() );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.warn( pwmSession,
                     "unexpected error authenticating during forgotten password recovery process user: " + e.getMessage() );
@@ -1292,7 +1292,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                     forgottenPasswordBean
             );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             clearForgottenPasswordBean( pwmRequest );
             final ErrorInformation errorInformation = new ErrorInformation(

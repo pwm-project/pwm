@@ -202,7 +202,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                     pwmApplication.getStatisticsManager().incrementValue( Statistic.SETUP_OTP_SECRET );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final ErrorInformation errorInformation;
                 if ( e instanceof PwmException )
@@ -303,7 +303,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             LOGGER.trace( pwmSession, () -> "returning result for restValidateCode: " + JsonUtil.serialize( restResultBean ) );
             pwmRequest.outputJsonResult( restResultBean );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
 
             final String errorMsg = "error during otp code validation: " + e.getMessage();
@@ -330,7 +330,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
         {
             service.clearOTPUserConfiguration( pwmSession, theUser, pwmSession.getSessionManager().getActor( pwmApplication ) );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             setLastError( pwmRequest, e.getErrorInformation() );
             LOGGER.error( pwmRequest, e.getErrorInformation() );
@@ -382,7 +382,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                     setLastError( pwmRequest, new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT ) );
                 }
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 LOGGER.error( pwmRequest, "error validating otp token: " + e.getMessage() );
                 setLastError( pwmRequest, e.getErrorInformation() );
@@ -419,7 +419,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             {
                 existingUserRecord = service.readOTPUserConfiguration( pwmRequest.getSessionLabel(), theUser );
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 throw PwmUnrecoverableException.fromChaiException( e );
             }
@@ -456,7 +456,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                     LOGGER.trace( pwmRequest, () -> "newly generated otp record: " + JsonUtil.serialize( otpUserRecord ) );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final String errorMsg = "error setting up new OTP secret: " + e.getMessage();
                 LOGGER.error( pwmSession, errorMsg );
@@ -505,7 +505,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                     .stream()
                     .toByteArray();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "error generating qrcode image: " + e.getMessage() + ", payload length=" + qrCodeContent.length();
             LOGGER.error( pwmRequest, errorMsg, e );

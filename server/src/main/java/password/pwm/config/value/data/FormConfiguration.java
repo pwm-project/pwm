@@ -159,7 +159,7 @@ public class FormConfiguration implements Serializable
             {
                 builder.type( Type.valueOf( typeStr.toLowerCase() ) );
             }
-            catch ( IllegalArgumentException e )
+            catch ( final IllegalArgumentException e )
             {
                 throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
                         "unknown type for form config: " + typeStr,
@@ -172,7 +172,7 @@ public class FormConfiguration implements Serializable
         {
             builder.minimumLength( Integer.parseInt( st.nextToken() ) );
         }
-        catch ( NumberFormatException e )
+        catch ( final NumberFormatException e )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
                     "invalid minimum length type for form config: " + e.getMessage(),
@@ -229,7 +229,7 @@ public class FormConfiguration implements Serializable
             {
                 Pattern.compile( this.getRegex() );
             }
-            catch ( PatternSyntaxException e )
+            catch ( final PatternSyntaxException e )
             {
                 throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
                         " regular expression for '" + this.getName() + " ' is not valid: " + e.getMessage(),
@@ -328,7 +328,7 @@ public class FormConfiguration implements Serializable
                     {
                         new BigInteger( value );
                     }
-                    catch ( NumberFormatException e )
+                    catch ( final NumberFormatException e )
                     {
                         final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_NOT_A_NUMBER, null, new String[] {
                                 getLabel( locale ),

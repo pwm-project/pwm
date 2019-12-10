@@ -73,16 +73,16 @@ public class PwmValueTag extends TagSupport
                 pageContext.getOut().write( escapedOutput );
 
             }
-            catch ( IllegalArgumentException e )
+            catch ( final IllegalArgumentException e )
             {
                 LOGGER.error( "can't output requested value name '" + getName() + "'" );
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( "error while processing PwmValueTag: " + e.getMessage() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new JspTagException( e.getMessage(), e );
         }
@@ -102,7 +102,7 @@ public class PwmValueTag extends TagSupport
             {
                 return value.getValueOutput().valueOutput( pwmRequest, pageContext );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "error executing value tag option '" + value.toString() + "', error: " + e.getMessage() );
             }

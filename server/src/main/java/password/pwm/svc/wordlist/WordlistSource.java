@@ -92,7 +92,7 @@ class WordlistSource
                 final URL url = new URL( importUrl );
                 return url.openStream();
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 final String msg = "unable to open auto-import URL: " + e.getMessage();
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_WORDLIST_IMPORT_ERROR, msg );
@@ -175,7 +175,7 @@ class WordlistSource
             bytes = countingInputStream.getByteCount();
             hash = JavaHelper.byteArrayToHexString( checksumInputStream.getMessageDigest().digest() );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation(
                     PwmError.ERROR_WORDLIST_IMPORT_ERROR,

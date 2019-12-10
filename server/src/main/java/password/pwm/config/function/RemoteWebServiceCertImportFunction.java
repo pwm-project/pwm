@@ -57,7 +57,7 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
         {
             URI.create( uriString );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR,
                     "Setting " + pwmSetting.toMenuLocationDebug( profile, null ) + " action " + serviceName + " has an invalid URL syntax" );

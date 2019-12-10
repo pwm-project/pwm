@@ -107,7 +107,7 @@ class LdapTokenMachine implements TokenMachine
                 return tokenService.fromEncryptedString( splitString[ 1 ] );
             }
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             if ( e.getError() == PwmError.ERROR_CANT_MATCH_USER )
             {
@@ -115,7 +115,7 @@ class LdapTokenMachine implements TokenMachine
             }
             throw e;
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             final String errorMsg = "unexpected ldap error searching for token: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
@@ -136,7 +136,7 @@ class LdapTokenMachine implements TokenMachine
             final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
             chaiUser.writeStringAttribute( tokenAttribute, md5sumToken + KEY_VALUE_DELIMITER + encodedTokenPayload );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             final String errorMsg = "unexpected ldap error saving token: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -156,7 +156,7 @@ class LdapTokenMachine implements TokenMachine
                 final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
                 chaiUser.deleteAttribute( tokenAttribute, null );
             }
-            catch ( ChaiException e )
+            catch ( final ChaiException e )
             {
                 final String errorMsg = "unexpected ldap error removing token: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );

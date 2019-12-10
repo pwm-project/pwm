@@ -60,7 +60,7 @@ public class CertificateChecker implements HealthChecker
         {
             records.addAll( doActionHealthCheck( pwmApplication.getConfig() ) );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( "error while checking action certificates: " + e.getMessage(), e );
         }
@@ -137,7 +137,7 @@ public class CertificateChecker implements HealthChecker
                     checkCertificate( certificate, warnDurationMs );
                     return Collections.emptyList();
                 }
-                catch ( PwmOperationalException e )
+                catch ( final PwmOperationalException e )
                 {
                     final String errorDetail = e.getErrorInformation().getDetailedErrorMsg();
                     final HealthRecord record = HealthRecord.forMessage( HealthMessage.Config_Certificate,
@@ -164,7 +164,7 @@ public class CertificateChecker implements HealthChecker
         {
             certificate.checkValidity();
         }
-        catch ( CertificateException e )
+        catch ( final CertificateException e )
         {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append( "certificate for subject " );

@@ -444,14 +444,14 @@ public class Configuration implements SettingReader
                 {
                     return ( E ) enumClass.getMethod( "valueOf", String.class ).invoke( null, strValue );
                 }
-                catch ( InvocationTargetException e1 )
+                catch ( final InvocationTargetException e1 )
                 {
                     if ( e1.getCause() instanceof IllegalArgumentException )
                     {
                         LOGGER.error( "illegal setting value for option '" + strValue + "' for setting key '" + setting.getKey() + "' is not recognized, will use default" );
                     }
                 }
-                catch ( Exception e1 )
+                catch ( final Exception e1 )
                 {
                     LOGGER.error( "unexpected error", e1 );
                 }
@@ -475,14 +475,14 @@ public class Configuration implements SettingReader
                 {
                     returnSet.add( ( E ) enumClass.getMethod( "valueOf", String.class ).invoke( null, strValue ) );
                 }
-                catch ( InvocationTargetException e1 )
+                catch ( final InvocationTargetException e1 )
                 {
                     if ( e1.getCause() instanceof IllegalArgumentException )
                     {
                         LOGGER.error( "illegal setting value for option '" + strValue + "' is not recognized, will use default" );
                     }
                 }
-                catch ( Exception e1 )
+                catch ( final Exception e1 )
                 {
                     LOGGER.error( "unexpected error", e1 );
                 }
@@ -752,7 +752,7 @@ public class Configuration implements SettingReader
                 {
                     dataCache.pwmSecurityKey = new PwmSecurityKey( configValue.getStringValue() );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     final String errorMsg = "unexpected error generating Security Key crypto: " + e.getMessage();
                     final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
@@ -786,7 +786,7 @@ public class Configuration implements SettingReader
             {
                 storageMethods.add( DataStorageMethod.valueOf( rawValue ) );
             }
-            catch ( IllegalArgumentException e )
+            catch ( final IllegalArgumentException e )
             {
                 LOGGER.error( "unknown STORAGE_METHOD found: " + rawValue );
             }
@@ -875,7 +875,7 @@ public class Configuration implements SettingReader
         {
             return TokenStorageMethod.valueOf( readSettingAsString( PwmSetting.TOKEN_STORAGEMETHOD ) );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unknown storage method specified: " + readSettingAsString( PwmSetting.TOKEN_STORAGEMETHOD );
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg );
@@ -1092,7 +1092,7 @@ public class Configuration implements SettingReader
         {
             profileFactory = profileFactoryClass.getDeclaredConstructor().newInstance();
         }
-        catch ( InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
+        catch ( final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
         {
             throw new IllegalStateException( "unable to create profile instance for " + profileDefinition );
         }

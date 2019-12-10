@@ -65,7 +65,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
         final List<String> syslogConfigStrs = ( List<String> ) modifier.newStoredConfiguration().readSetting( PwmSetting.AUDIT_SYSLOG_SERVERS, null ).toNativeObject();
         if ( syslogConfigStrs != null && !syslogConfigStrs.isEmpty() )
         {
-            for ( String entry : syslogConfigStrs )
+            for ( final String entry : syslogConfigStrs )
             {
                 if ( entry.toUpperCase().startsWith( "TLS" ) )
                 {
@@ -85,7 +85,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
                                 error = false;
                             }
                         }
-                        catch ( Exception e )
+                        catch ( final Exception e )
                         {
                             error = true;
                             exeception = e;

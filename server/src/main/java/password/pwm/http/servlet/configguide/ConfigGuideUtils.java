@@ -154,7 +154,7 @@ public class ConfigGuideUtils
                 return SchemaManager.checkExistingSchema( chaiProvider );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "unable to create schema extender object: " + e.getMessage() );
             return null;
@@ -250,7 +250,7 @@ public class ConfigGuideUtils
                     pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
                     req.getSession().invalidate();
                 }
-                catch ( PwmException e )
+                catch ( final PwmException e )
                 {
                     final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
                     pwmRequest.getPwmResponse().outputJsonResult( restResultBean );

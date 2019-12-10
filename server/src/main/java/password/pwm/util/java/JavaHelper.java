@@ -184,12 +184,12 @@ public class JavaHelper
         {
             return Optional.of( Enum.valueOf( enumClass, input ) );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             /* noop */
             //LOGGER.trace("input=" + input + " does not exist in enumClass=" + enumClass.getSimpleName());
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             LOGGER.warn( "unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName() + ", error: " + e.getMessage() );
         }
@@ -348,7 +348,7 @@ public class JavaHelper
         {
             executor.awaitTermination( timeDuration.asMillis(), TimeUnit.MILLISECONDS );
         }
-        catch ( InterruptedException e )
+        catch ( final InterruptedException e )
         {
             LOGGER.warn( "unexpected error shutting down executor service " + executor.getClass().toString() + " error: " + e.getMessage() );
         }
@@ -431,7 +431,7 @@ public class JavaHelper
                 }
             }
 
-            for ( MonitorInfo mi : threadInfo.getLockedMonitors() )
+            for ( final MonitorInfo mi : threadInfo.getLockedMonitors() )
             {
                 if ( mi.getLockedStackDepth() == counter )
                 {
@@ -451,7 +451,7 @@ public class JavaHelper
         {
             sb.append( "\n\tNumber of locked synchronizers = " + locks.length );
             sb.append( '\n' );
-            for ( LockInfo li : locks )
+            for ( final LockInfo li : locks )
             {
                 sb.append( "\t- " + li );
                 sb.append( '\n' );
@@ -549,7 +549,7 @@ public class JavaHelper
             out.flush();
             return byteArrayOutputStream.toByteArray().length;
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             LOGGER.debug( () -> "exception while estimating session size: " + e.getMessage() );
             return 0;
@@ -579,7 +579,7 @@ public class JavaHelper
                         return Optional.ofNullable( uriHost );
                     }
                 }
-                catch ( IllegalArgumentException e )
+                catch ( final IllegalArgumentException e )
                 {
                     LOGGER.trace( () -> " error parsing siteURL hostname: " + e.getMessage() );
                 }
@@ -613,7 +613,7 @@ public class JavaHelper
         {
             return Integer.parseInt( input );
         }
-        catch ( NumberFormatException e )
+        catch ( final NumberFormatException e )
         {
             return defaultValue;
         }
@@ -625,7 +625,7 @@ public class JavaHelper
         {
             return Long.parseLong( input );
         }
-        catch ( NumberFormatException e )
+        catch ( final NumberFormatException e )
         {
             return defaultValue;
         }

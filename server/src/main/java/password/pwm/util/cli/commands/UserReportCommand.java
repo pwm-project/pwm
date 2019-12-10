@@ -72,7 +72,7 @@ public class UserReportCommand extends AbstractCliCommand
             final ReportCsvUtility reportCsvUtility = new ReportCsvUtility( pwmApplication );
             reportCsvUtility.outputToCsv( outputFileStream, true, PwmConstants.DEFAULT_LOCALE );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             out( "unable to open file '" + outputFile.getAbsolutePath() + "' for writing" );
             System.exit( -1 );

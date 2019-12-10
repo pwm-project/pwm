@@ -174,7 +174,7 @@ class NewUserUtils
 
             NewUserUtils.LOGGER.info( pwmSession, () -> "created user entry: " + newUserDN );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             final String userMessage = "unexpected ldap error creating user entry: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
@@ -214,7 +214,7 @@ class NewUserUtils
                 proxiedUser.setPassword( temporaryPassword.getStringValue() );
                 NewUserUtils.LOGGER.debug( pwmSession, () -> "set temporary password for new user entry: " + newUserDN );
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 final String userMessage = "unexpected ldap error setting temporary password for new user entry: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
@@ -231,7 +231,7 @@ class NewUserUtils
                             "setting userAccountControl attribute to enable account " + theUser.getEntryDN() );
                     theUser.writeStringAttribute( "userAccountControl", "512" );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     final String errorMsg = "error enabling AD account when writing userAccountControl attribute: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
@@ -255,7 +255,7 @@ class NewUserUtils
                 NewUserUtils.LOGGER.debug( pwmSession, () -> "changed to user requested password for new user entry: " + newUserDN );
                 bindAsProvider.close();
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 final String userMessage = "unexpected ldap error setting user password for new user entry: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
@@ -271,7 +271,7 @@ class NewUserUtils
                 theUser.setPassword( userPassword.getStringValue() );
                 NewUserUtils.LOGGER.debug( pwmSession, () -> "set user requested password for new user entry: " + newUserDN );
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 final String userMessage = "unexpected ldap error setting password for new user entry: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
@@ -286,7 +286,7 @@ class NewUserUtils
                 {
                     theUser.writeStringAttribute( "userAccountControl", "512" );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     final String errorMsg = "error enabling AD account when writing userAccountControl attribute: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
@@ -349,7 +349,7 @@ class NewUserUtils
             pwmRequest.getConfig().getDefaultLdapProfile().getProxyChaiProvider( pwmRequest.getPwmApplication() ).deleteEntry( userDN );
             NewUserUtils.LOGGER.warn( pwmRequest, "ldap user account " + userDN + " has been deleted" );
         }
-        catch ( ChaiUnavailableException | ChaiOperationException e )
+        catch ( final ChaiUnavailableException | ChaiOperationException e )
         {
             NewUserUtils.LOGGER.error( pwmRequest, "error deleting ldap user account " + userDN + ", " + e.getMessage() );
         }
@@ -447,7 +447,7 @@ class NewUserUtils
                     searchConfiguration, 2, Collections.emptyList(), pwmRequest.getSessionLabel() );
             return results != null && !results.isEmpty();
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             final String msg = "ldap error while searching for duplicate entry names: " + e.getMessage();
             NewUserUtils.LOGGER.error( pwmRequest, msg );

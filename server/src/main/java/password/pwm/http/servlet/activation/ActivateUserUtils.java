@@ -93,7 +93,7 @@ class ActivateUserUtils
             {
                 theUser.unlockPassword();
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 final String errorMsg = "error unlocking user " + userIdentity + ": " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_ACTIVATION_FAILURE, errorMsg );
@@ -139,7 +139,7 @@ class ActivateUserUtils
             // send email or sms
             sendPostActivationNotice( pwmRequest );
         }
-        catch ( ImpossiblePasswordPolicyException e )
+        catch ( final ImpossiblePasswordPolicyException e )
         {
             final ErrorInformation info = new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected ImpossiblePasswordPolicyException error while activating user" );
             LOGGER.warn( pwmSession, info, e );
@@ -187,7 +187,7 @@ class ActivateUserUtils
                     }
                     LOGGER.trace( pwmSession, () -> "successful validation of ldap value for '" + attrName + "'" );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     LOGGER.error( pwmSession.getLabel(), "error during param validation of '" + attrName + "', error: " + e.getMessage() );
                     throw new PwmDataValidationException( new ErrorInformation(
@@ -274,7 +274,7 @@ class ActivateUserUtils
         {
             toSmsNumber = userInfo.readStringAttribute( ldapProfile.readSettingAsString( PwmSetting.SMS_USER_PHONE_ATTRIBUTE ) );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.debug( pwmSession, () -> "error reading SMS attribute from user '" + pwmSession.getUserInfo().getUserIdentity() + "': " + e.getMessage() );
             return false;

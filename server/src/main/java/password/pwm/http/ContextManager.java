@@ -203,7 +203,7 @@ public class ContextManager implements Serializable
         {
             Locale.setDefault( PwmConstants.DEFAULT_LOCALE );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             outputError( "unable to set default locale as Java machine default locale: " + e.getMessage() );
         }
@@ -246,7 +246,7 @@ public class ContextManager implements Serializable
                 outputError( "Startup Error: " + ( startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr() ) );
             }
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             handleStartupError( "unable to initialize application due to configuration related error: ", e );
         }
@@ -276,7 +276,7 @@ public class ContextManager implements Serializable
                     .createPwmEnvironment();
             pwmApplication = new PwmApplication( pwmEnvironment );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             handleStartupError( "unable to initialize application: ", e );
         }
@@ -361,7 +361,7 @@ public class ContextManager implements Serializable
         {
             LOGGER.fatal( SESSION_LABEL, startupErrorInformation.getDetailedErrorMsg() );
         }
-        catch ( Exception e2 )
+        catch ( final Exception e2 )
         {
             // noop
         }
@@ -379,7 +379,7 @@ public class ContextManager implements Serializable
             {
                 pwmApplication.shutdown();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "unexpected error attempting to close application: " + e.getMessage() );
             }
@@ -445,7 +445,7 @@ public class ContextManager implements Serializable
                         requestPwmApplicationRestart();
                         success = true;
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
                         LOGGER.error( SESSION_LABEL, "error importing " + silentPropertiesFile.getAbsolutePath() + ", error: " + e.getMessage() );
                     }
@@ -459,7 +459,7 @@ public class ContextManager implements Serializable
                         Files.move( source, dest );
                         LOGGER.info( SESSION_LABEL, () -> "file " + source.toString() + " has been renamed to " + dest.toString() );
                     }
-                    catch ( IOException e )
+                    catch ( final IOException e )
                     {
                         LOGGER.error( SESSION_LABEL, "error renaming file " + source.toString() + " to " + dest.toString() + ", error: " + e.getMessage() );
                     }
@@ -517,12 +517,12 @@ public class ContextManager implements Serializable
 
                         oldPwmApplication.shutdown();
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
                         LOGGER.error( SESSION_LABEL, "unexpected error attempting to close application: " + e.getMessage() );
                     }
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.fatal( "unexpected error during shutdown: " + e.getMessage(), e );
                 }
@@ -726,7 +726,7 @@ public class ContextManager implements Serializable
             {
                 importLdapCert();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( SESSION_LABEL, "error trying to auto-import certs: " + e.getMessage() );
             }

@@ -70,7 +70,7 @@ public class TomcatOnejarRunner
             tlsProperties = this.executeOnejarHelper( onejarConfig );
             out( "keystore generated" );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new OnejarException( "error generating keystore: " + e.getMessage() );
         }
@@ -113,7 +113,7 @@ public class TomcatOnejarRunner
             tomcat.start();
             out( "tomcat started in " + Duration.between( Instant.now(), startTime ).toString() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new OnejarException( "unable to start tomcat: " + e.getMessage() );
         }
@@ -199,7 +199,7 @@ public class TomcatOnejarRunner
             return attr.getValue( "Implementation-Version-Display" )
                     + "  [" + ServerInfo.getServerInfo() + "]";
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             throw new OnejarException( "error reading internal version info: " + e.getMessage() );
         }

@@ -82,7 +82,7 @@ public class ConfigurationReader
             this.storedConfiguration = readStoredConfig();
             this.configFileError = null;
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             this.configFileError = e.getErrorInformation();
             LOGGER.warn( "error reading configuration file: " + e.getMessage() );
@@ -145,7 +145,7 @@ public class ConfigurationReader
 
             //System.out.println( new String( baos.toByteArray(), "UTF-8" )  );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             e.printStackTrace(  );
         }
@@ -156,7 +156,7 @@ public class ConfigurationReader
         {
             theFileData = Files.newInputStream( configFile.toPath() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unable to read configuration file: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
@@ -173,7 +173,7 @@ public class ConfigurationReader
         {
             storedConfiguration = StoredConfigurationFactory.fromXml( theFileData );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             final String errorMsg = "unable to parse configuration file: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
@@ -249,7 +249,7 @@ public class ConfigurationReader
                 final BigInteger epochValue = storedEpochStrValue.map( BigInteger::new ).orElse( BigInteger.ZERO );
                 newEpochStrValue = epochValue.add( BigInteger.ONE ).toString();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( sessionLabel, "error trying to parse previous config epoch property: " + e.getMessage() );
             }
@@ -342,7 +342,7 @@ public class ConfigurationReader
         {
             Files.move( tempWriteFile.toPath(), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unable to rename temporary save file from " + tempWriteFile.getAbsolutePath()
                     + " to " + configFile.getAbsolutePath() + "; error: " + e.getMessage();

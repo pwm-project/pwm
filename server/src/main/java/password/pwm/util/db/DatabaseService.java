@@ -176,7 +176,7 @@ public class DatabaseService implements PwmService
             status = STATUS.OPEN;
             initialized = true;
         }
-        catch ( Throwable t )
+        catch ( final Throwable t )
         {
             final String errorMsg = "exception initializing database service: " + t.getMessage();
             LOGGER.warn( errorMsg );
@@ -202,7 +202,7 @@ public class DatabaseService implements PwmService
         {
             driver = null;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.debug( () -> "error while de-registering driver: " + e.getMessage() );
         }
@@ -216,7 +216,7 @@ public class DatabaseService implements PwmService
 
     private void clearCurrentAccessors( )
     {
-        for ( DatabaseAccessorImpl accessor : accessors.values() )
+        for ( final DatabaseAccessorImpl accessor : accessors.values() )
         {
             accessor.close();
         }
@@ -245,7 +245,7 @@ public class DatabaseService implements PwmService
             final DatabaseAccessor accessor = getAccessor();
             accessor.put( DatabaseTable.PWM_META, KEY_TEST, JsonUtil.serializeMap( tempMap ) );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             returnRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Database, "Error writing to database: " + e.getErrorInformation().toDebugStr() ) );
             return returnRecords;
@@ -358,7 +358,7 @@ public class DatabaseService implements PwmService
             connection.setAutoCommit( false );
             return connection;
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             final String errorMsg = "error connecting to database: " + JavaHelper.readHostileExceptionMessage( e );
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
@@ -413,7 +413,7 @@ public class DatabaseService implements PwmService
                 debugInfo.clear();
                 debugInfo.putAll( Collections.unmodifiableMap( returnObj ) );
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
                 LOGGER.error( "error reading jdbc meta data: " + e.getMessage() );
             }

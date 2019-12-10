@@ -85,7 +85,7 @@ public class HttpClientService implements PwmService
             {
                 pwmHttpClient.close();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.debug( () -> "error closing pwmHttpClient instance: " + e.getMessage() );
             }

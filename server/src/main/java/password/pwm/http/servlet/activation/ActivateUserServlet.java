@@ -275,7 +275,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
             pwmApplication.getIntruderManager().convenience().clearAttributes( formValues );
             pwmApplication.getIntruderManager().convenience().clearAddressAndSession( pwmSession );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             pwmApplication.getIntruderManager().convenience().markAttributes( formValues, pwmRequest.getSessionLabel() );
             pwmApplication.getIntruderManager().convenience().markAddressAndSession( pwmSession );
@@ -351,7 +351,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
                 return ProcessStatus.Halt;
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.debug( pwmRequest, () -> "error while checking entered token: " );
             errorInformation = e.getErrorInformation();
@@ -474,7 +474,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
             ActivateUserUtils.activateUser( pwmRequest, activateUserBean.getUserIdentity() );
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_ActivateUser );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.debug( pwmRequest, e.getErrorInformation() );
             pwmApplication.getIntruderManager().convenience().markUserIdentity( activateUserBean.getUserIdentity(), pwmSession );

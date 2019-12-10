@@ -142,7 +142,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
                 final ChaiProvider proxiedProvider = pwmApplication.getProxyChaiProvider( loopID );
                 chaiEntry = proxiedProvider.getEntryFactory().newChaiEntry( baseDN );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "error while testing entry DN for profile '" + profileID + "', error:" + profileID );
             }
@@ -154,7 +154,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
                     throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg ) );
                 }
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 throw PwmUnrecoverableException.fromChaiException( e );
             }

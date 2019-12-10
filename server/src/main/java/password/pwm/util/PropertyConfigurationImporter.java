@@ -300,7 +300,7 @@ public class PropertyConfigurationImporter
                     }
 
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     throw new IOException( "error importing key " + propertyKey.name() + ", error: " + e.getMessage() );
                 }

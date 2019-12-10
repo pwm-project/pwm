@@ -86,7 +86,7 @@ public class ConfigurationChecker implements HealthChecker
                 {
                     newUserProfile.getNewUserPasswordPolicy( pwmApplication, PwmConstants.DEFAULT_LOCALE );
                 }
-                catch ( PwmUnrecoverableException e )
+                catch ( final PwmUnrecoverableException e )
                 {
                     records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Configuration, e.getMessage() ) );
                 }
@@ -123,7 +123,7 @@ public class ConfigurationChecker implements HealthChecker
                 healthCheckClass = clazz.getDeclaredConstructor().newInstance();
                 records.addAll( healthCheckClass.healthCheck( config, locale ) );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "unexpected error during health check operation for class " + clazz.toString() + ", error:" + e.getMessage(), e );
             }
@@ -205,7 +205,7 @@ public class ConfigurationChecker implements HealthChecker
                                 ) );
                             }
                         }
-                        catch ( URISyntaxException e )
+                        catch ( final URISyntaxException e )
                         {
                             records.add( HealthRecord.forMessage( HealthMessage.Config_ParseError,
                                     e.getMessage(),
@@ -258,7 +258,7 @@ public class ConfigurationChecker implements HealthChecker
                     }
                 }
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.error( "unexpected error examining password strength of configuration: " );
             }
@@ -371,7 +371,7 @@ public class ConfigurationChecker implements HealthChecker
                     final PwmPasswordPolicy pwmPasswordPolicy = config.getPasswordPolicy( profileID, locale );
                     records.addAll( pwmPasswordPolicy.health( locale ) );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( "unexpected error during password policy health check: " + e.getMessage(), e );
                 }

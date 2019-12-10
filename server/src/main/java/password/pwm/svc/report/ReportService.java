@@ -128,7 +128,7 @@ public class ReportService implements PwmService
             userCacheService = new UserCacheService();
             userCacheService.init( pwmApplication );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "unable to init cache service" );
             status = STATUS.CLOSED;
@@ -170,7 +170,7 @@ public class ReportService implements PwmService
         {
             pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.REPORT_STATUS, reportStatus.get() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "error writing cached report dredge info into memory: " + e.getMessage() );
         }
@@ -295,7 +295,7 @@ public class ReportService implements PwmService
 
                     }
                 }
-                catch ( LocalDBException e )
+                catch ( final LocalDBException e )
                 {
                     throw new IllegalStateException( "unexpected iterator traversal error while reading LocalDB: " + e.getMessage() );
                 }
@@ -340,7 +340,7 @@ public class ReportService implements PwmService
                 readUserListFromLdap();
                 executorService.execute( new ProcessWorkQueueTask() );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 boolean errorProcessed = false;
                 if ( e instanceof PwmException )
@@ -437,7 +437,7 @@ public class ReportService implements PwmService
                     writeReportStatus();
                 }
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 if ( e.getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
                 {
@@ -529,7 +529,7 @@ public class ReportService implements PwmService
                                 TimeDuration.of( avgTracker.avgAsLong(), TimeDuration.Unit.MILLISECONDS ).pause();
                             }
                         }
-                        catch ( Exception e )
+                        catch ( final Exception e )
                         {
                             String errorMsg = "error while updating report cache for " + userIdentity.toString() + ", cause: ";
                             errorMsg += e instanceof PwmException ? ( ( PwmException ) e ).getErrorInformation().toDebugStr() : e.getMessage();
@@ -625,7 +625,7 @@ public class ReportService implements PwmService
                 initTempData();
                 LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, () -> "report service initialized: " + JsonUtil.serialize( reportStatus.get() ) );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "error during initialization: " + e.getMessage() );
                 status = STATUS.CLOSED;
@@ -648,7 +648,7 @@ public class ReportService implements PwmService
                 final ReportStatusInfo localReportStatus = pwmApplication.readAppAttribute( PwmApplication.AppAttribute.REPORT_STATUS, ReportStatusInfo.class );
                 reportStatus.set( localReportStatus );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "error loading cached report status info into memory: " + e.getMessage() );
             }
@@ -698,7 +698,7 @@ public class ReportService implements PwmService
             {
                 doClear();
             }
-            catch ( LocalDBException | PwmUnrecoverableException e )
+            catch ( final LocalDBException | PwmUnrecoverableException e )
             {
                 LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "error during clear operation: " + e.getMessage() );
             }

@@ -83,7 +83,7 @@ public class UserDebugDataReader
         {
             readablePassword = null != LdapOperationsHelper.readLdapPassword( pwmApplication, sessionLabel, userIdentity );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             /* disregard */
         }
@@ -174,7 +174,7 @@ public class UserDebugDataReader
                     return value.get();
                 }
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.debug( () -> "error reading user pwNotify status: " + e.getMessage() );
             }

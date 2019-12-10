@@ -186,7 +186,7 @@ public class EmailServerUtil
             properties.put( "mail.smtp.starttls.enable", useStartTls );
             properties.put( "mail.smtp.starttls.required", useStartTls );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String msg = "unable to create message transport properties: " + e.getMessage();
             throw new PwmUnrecoverableException( PwmError.CONFIG_FORMAT_ERROR, msg );
@@ -222,7 +222,7 @@ public class EmailServerUtil
             {
                 address.setPersonal( splitString[ 0 ].trim(), PwmConstants.DEFAULT_CHARSET.toString() );
             }
-            catch ( UnsupportedEncodingException e )
+            catch ( final UnsupportedEncodingException e )
             {
                 LOGGER.error( "unsupported encoding error while parsing internet address '" + input + "', error: " + e.getMessage() );
             }
@@ -400,7 +400,7 @@ public class EmailServerUtil
             {
                 return certReaderTm.getCertificates();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final String exceptionMessage = JavaHelper.readHostileExceptionMessage( e );
                 final String errorMsg = "error connecting to secure server while reading SMTP certificates: " + exceptionMessage;

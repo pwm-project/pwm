@@ -117,7 +117,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         {
             return ConfigManagerAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             return null;
         }
@@ -271,7 +271,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
             configManagerBean.setStoredConfiguration( null );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             final ErrorInformation errorInfo = e.getErrorInformation();
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
@@ -279,7 +279,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
@@ -322,7 +322,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
 
             contextManager.requestPwmApplicationRestart();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorString = "error saving file: " + e.getMessage();
             LOGGER.error( pwmRequest, errorString, e );
@@ -356,7 +356,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             StoredConfigurationFactory.toXml( storedConfiguration, responseWriter );
             responseWriter.close();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( pwmSession, "unable to download configuration: " + e.getMessage() );
         }
@@ -373,7 +373,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         {
             debugItemGenerator.outputZipDebugFile( zipOutput );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( pwmRequest, "error during zip debug building: " + e.getMessage() );
         }
@@ -436,7 +436,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             }
 
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             LOGGER.error( pwmRequest, errorInformation );

@@ -183,7 +183,7 @@ public class PwNotifyEngine
                     + ", sent " + noticeCount + " notices."
             );
         }
-        catch ( PwmUnrecoverableException | PwmOperationalException e )
+        catch ( final PwmUnrecoverableException | PwmOperationalException e )
         {
             log( "error while executing job: " + e.getMessage() );
             throw e;
@@ -219,7 +219,7 @@ public class PwNotifyEngine
                 processUserIdentity( userIdentity );
                 debugOutputTask.conditionallyExecuteTask();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.trace( () -> "unexpected error processing user '" + userIdentity.toDisplayString() + "', error: " + e.getMessage() );
             }
@@ -356,7 +356,7 @@ public class PwNotifyEngine
                 debugWriter.append( msg );
                 debugWriter.flush();
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 LOGGER.warn( SessionLabel.PWNOTIFY_SESSION_LABEL, "unexpected IO error writing to debugWriter: " + e.getMessage() );
             }

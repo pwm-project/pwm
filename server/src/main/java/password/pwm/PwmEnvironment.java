@@ -373,7 +373,7 @@ public class PwmEnvironment
                 }
                 return Collections.unmodifiableList( returnFlags );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 //
             }
@@ -406,7 +406,7 @@ public class PwmEnvironment
             {
                 propValues.load( fileInputStream );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.warn( "error reading properties file '" + input + "' specified by environment setting "
                         + EnvironmentParameter.applicationParamFile.toString() + ", error: " + e.getMessage() );
@@ -430,7 +430,7 @@ public class PwmEnvironment
                 }
                 return Collections.unmodifiableMap( returnParams );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.warn( "unable to parse jason value of " + EnvironmentParameter.applicationParamFile.toString() + ", error: " + e.getMessage() );
             }
@@ -626,7 +626,7 @@ public class PwmEnvironment
                         LOGGER.debug( () -> "unable to obtain file lock on file " + lockfile.getAbsolutePath() );
                     }
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( "unable to obtain file lock on file " + lockfile.getAbsolutePath() + " due to error: " + e.getMessage() );
                 }
@@ -646,7 +646,7 @@ public class PwmEnvironment
                 props.store( stringWriter, comment );
                 file.write( stringWriter.getBuffer().toString().getBytes( PwmConstants.DEFAULT_CHARSET ) );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 LOGGER.error( "unable to write contents of application lock file: " + e.getMessage() );
             }
@@ -661,7 +661,7 @@ public class PwmEnvironment
                 {
                     lock.release();
                 }
-                catch ( IOException e )
+                catch ( final IOException e )
                 {
                     LOGGER.error( "error releasing file lock: " + e.getMessage() );
                 }

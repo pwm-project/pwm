@@ -234,7 +234,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error reading file upload: " + e.getMessage() );
         }
@@ -277,7 +277,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error reading file upload: " + e.getMessage() );
         }

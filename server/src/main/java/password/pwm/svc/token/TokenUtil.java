@@ -198,7 +198,7 @@ public class TokenUtil
 
             return tokenPayload;
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             final String errorMsg = "token incorrect: " + e.getMessage();
             throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
@@ -270,7 +270,7 @@ public class TokenUtil
                 );
                 tokenKey = commonValues.getPwmApplication().getTokenService().generateNewToken( tokenPayload, commonValues.getSessionLabel() );
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 throw new PwmUnrecoverableException( e.getErrorInformation() );
             }

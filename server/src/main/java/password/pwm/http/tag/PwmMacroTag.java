@@ -56,11 +56,11 @@ public class PwmMacroTag extends TagSupport
             final String outputValue = macroMachine.expandMacros( value );
             pageContext.getOut().write( outputValue );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( "error while processing PwmMacroTag: " + e.getMessage() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new JspTagException( e.getMessage(), e );
         }

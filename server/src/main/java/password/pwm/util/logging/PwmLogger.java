@@ -142,7 +142,7 @@ public class PwmLogger
                 final CharSequence cleanedString = PwmLogger.removeUserDataFromString( pwmSession.getLoginInfoBean(), message.get() );
                 cleanedMessage = () -> cleanedString;
             }
-            catch ( PwmUnrecoverableException e1 )
+            catch ( final PwmUnrecoverableException e1 )
             {
                 /* can't be logged */
             }
@@ -206,7 +206,7 @@ public class PwmLogger
                 }
             }
         }
-        catch ( Exception e2 )
+        catch ( final Exception e2 )
         {
             //nothing can be done about it now;
         }

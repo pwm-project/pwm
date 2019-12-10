@@ -62,7 +62,7 @@ public class MBeanUtility
             mbs.registerMBean( mbean, name );
             mbs.setAttributes( name, attributeList );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.debug( () -> "error registering mbean: " + e.getMessage() );
         }
@@ -75,7 +75,7 @@ public class MBeanUtility
             final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
             mbs.unregisterMBean( figureMBeanName( pwmApplication ) );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.debug( () -> "error unregistering mbean: " + e.getMessage() );
         }

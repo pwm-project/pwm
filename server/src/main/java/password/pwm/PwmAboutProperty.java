@@ -140,7 +140,7 @@ public enum PwmAboutProperty
                     final String value = valueProvider.value( pwmApplication );
                     aboutMap.put( pwmAboutProperty.name(), value == null ? "" : value );
                 }
-                catch ( Throwable t )
+                catch ( final Throwable t )
                 {
                     aboutMap.put( pwmAboutProperty.name(), LocaleHelper.getLocalizedMessage( null, Display.Value_NotApplicable, null ) );
                     LOGGER.trace( () -> "error generating about value for '" + pwmAboutProperty.name() + "', error: " + t.getMessage() );
@@ -199,7 +199,7 @@ public enum PwmAboutProperty
         {
             return String.join( " ", SSLContext.getDefault().getSupportedSSLParameters().getProtocols() );
         }
-        catch ( NoSuchAlgorithmException e )
+        catch ( final NoSuchAlgorithmException e )
         {
             return "";
         }

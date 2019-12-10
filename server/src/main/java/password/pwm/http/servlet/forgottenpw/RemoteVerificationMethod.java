@@ -164,12 +164,12 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
             final String responseBodyStr = response.getBody();
             this.lastResponse = JsonUtil.deserialize( responseBodyStr, RemoteVerificationResponseBean.class );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( sessionLabel, e.getErrorInformation() );
             throw new PwmUnrecoverableException( e.getErrorInformation() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "error reading remote responses web service response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );

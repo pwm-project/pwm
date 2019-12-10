@@ -141,7 +141,7 @@ public class HttpsServerCertificateManager
             );
             return keyStore;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "error generating keystore file;: " + e.getMessage() ) );
         }
@@ -157,7 +157,7 @@ public class HttpsServerCertificateManager
             final SelfCertGenerator selfCertGenerator = new SelfCertGenerator( configuration );
             return selfCertGenerator.makeSelfSignedCert( pwmApplication, password, alias );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, "unable to generate self signed certificate: " + e.getMessage() ) );
         }
@@ -264,7 +264,7 @@ public class HttpsServerCertificateManager
                             cnName = uri.getHost();
                         }
                     }
-                    catch ( URISyntaxException e )
+                    catch ( final URISyntaxException e )
                     {
                         // disregard
                     }

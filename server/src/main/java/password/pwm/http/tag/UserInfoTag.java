@@ -53,7 +53,7 @@ public class UserInfoTag extends TagSupport
                 pageContext.getOut().write( StringUtil.escapeHtml( ldapValue == null ? "" : ldapValue ) );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new JspTagException( e.getMessage() );
         }

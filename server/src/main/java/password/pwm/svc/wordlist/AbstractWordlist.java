@@ -246,7 +246,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         {
             return wordlistBucket.size();
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             getLogger().error( "error reading size: " + e.getMessage() );
         }
@@ -430,7 +430,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                     activity = Wordlist.Activity.Idle;
                 }
             }
-            catch ( Throwable t )
+            catch ( final Throwable t )
             {
                 getLogger().error( "error running InspectorJob: " + t.getMessage(), t );
                 throw t;

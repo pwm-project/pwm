@@ -42,13 +42,13 @@ public class CurrentUrlTag extends TagSupport
             final String currentUrl = pwmRequest.getURLwithoutQueryString();
             pageContext.getOut().write( StringUtil.escapeHtml( currentUrl ) );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             try
             {
                 pageContext.getOut().write( "errorGeneratingPwmFormID" );
             }
-            catch ( IOException e1 )
+            catch ( final IOException e1 )
             {
                 /* ignore */
             }

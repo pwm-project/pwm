@@ -146,7 +146,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
 
             setStatus( STATUS.OPEN );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             setStatus( STATUS.CLOSED );
             LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> "will remain closed, pw notify feature is not enabled due to error: " + e.getMessage() );
@@ -166,7 +166,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
             nextExecutionTime = figureNextJobExecutionTime();
             LOGGER.debug( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> "scheduled next job execution at " + nextExecutionTime.toString() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( SessionLabel.PWNOTIFY_SESSION_LABEL, "error calculating next job execution time: " + e.getMessage() );
         }
@@ -232,7 +232,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
                 }
             }
         }
-        catch ( PwmUnrecoverableException e  )
+        catch ( final PwmUnrecoverableException e  )
         {
             LOGGER.error( SessionLabel.PWNOTIFY_SESSION_LABEL, "error while generating health information: " + e.getMessage() );
         }
@@ -294,7 +294,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
                     doJob();
                     scheduleNextJobExecution();
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( SessionLabel.PWNOTIFY_SESSION_LABEL, "unexpected error running job: " + e.getMessage() );
                 }
@@ -315,7 +315,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
                 final PwNotifyStoredJobState pwNotifyStoredJobState = new PwNotifyStoredJobState( start, finish, pwmApplication.getInstanceID(), null, true );
                 storageService.writeStoredJobState( pwNotifyStoredJobState );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final ErrorInformation errorInformation;
                 if ( e instanceof PwmException )
@@ -335,7 +335,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
                 {
                     storageService.writeStoredJobState( pwNotifyStoredJobState );
                 }
-                catch ( Exception e2 )
+                catch ( final Exception e2 )
                 {
                     //no hope
                 }

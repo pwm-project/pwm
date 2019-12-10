@@ -112,7 +112,7 @@ public interface XmlFactory
             {
                 inputDocument = builder.build( inputStream );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                         {
@@ -193,7 +193,7 @@ public interface XmlFactory
                 final DocumentBuilder builder = getBuilder();
                 inputDocument = builder.parse( inputStream );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                         {
@@ -216,7 +216,7 @@ public interface XmlFactory
                 dbFactory.setExpandEntityReferences( false );
                 return dbFactory.newDocumentBuilder();
             }
-            catch ( ParserConfigurationException e )
+            catch ( final ParserConfigurationException e )
             {
                 throw new IllegalArgumentException( "unable to generate dom xml builder: " + e.getMessage() );
             }
@@ -234,7 +234,7 @@ public interface XmlFactory
                 tr.setOutputProperty( OutputKeys.ENCODING, STORAGE_CHARSET.toString() );
                 tr.transform( new DOMSource( ( ( XmlDocument.XmlDocumentW3c ) document ).document ), new StreamResult( outputStream ) );
             }
-            catch ( TransformerException e )
+            catch ( final TransformerException e )
             {
                 throw new IOException( "error loading xml transformer: " + e.getMessage() );
             }

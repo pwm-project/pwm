@@ -87,7 +87,7 @@ public class SecureEngine
                     ? StringUtil.base64Encode( encrypted, StringUtil.Base64Options.URL_SAFE, StringUtil.Base64Options.GZIP )
                     : StringUtil.base64Encode( encrypted );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error b64 encoding crypto result: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
@@ -153,7 +153,7 @@ public class SecureEngine
             return output;
 
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error performing simple crypt operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
@@ -183,7 +183,7 @@ public class SecureEngine
                     : StringUtil.base64Decode( value );
             return decryptBytes( decoded, key, blockAlgorithm );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error performing simple decrypt operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
@@ -250,7 +250,7 @@ public class SecureEngine
             final byte[] decrypted = cipher.doFinal( workingValue );
             return new String( decrypted, PwmConstants.DEFAULT_CHARSET );
         }
-        catch ( GeneralSecurityException e )
+        catch ( final GeneralSecurityException e )
         {
             final String errorMsg = "unexpected error performing simple decrypt operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
@@ -298,7 +298,7 @@ public class SecureEngine
             return JavaHelper.byteArrayToHexString( messageDigest.digest() );
 
         }
-        catch ( NoSuchAlgorithmException | IOException e )
+        catch ( final NoSuchAlgorithmException | IOException e )
         {
             final String errorMsg = "unexpected error during file hash operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
@@ -353,7 +353,7 @@ public class SecureEngine
             mac.init( secretKey );
             return mac.doFinal( input );
         }
-        catch ( GeneralSecurityException e )
+        catch ( final GeneralSecurityException e )
         {
             final String errorMsg = "error during hmac operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
@@ -376,7 +376,7 @@ public class SecureEngine
         {
             messageDigest = MessageDigest.getInstance( algorithm.getAlgName() );
         }
-        catch ( NoSuchAlgorithmException e )
+        catch ( final NoSuchAlgorithmException e )
         {
             final String errorMsg = "missing hash algorithm: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
@@ -400,7 +400,7 @@ public class SecureEngine
 
             return messageDigest.digest();
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             final String errorMsg = "unexpected error during hash operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );

@@ -109,7 +109,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         {
             LOGGER.trace( pwmRequest, () -> "forwarding to " + url );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             /* noop, server may not be up enough to do the log output */
         }
@@ -149,7 +149,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         {
             forwardToJsp( JspUrl.SUCCESS );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( "unexpected error sending user to success page: " + e.toString() );
         }
@@ -194,7 +194,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
             {
                 forwardToJsp( JspUrl.ERROR );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.error( "unexpected error sending user to error page: " + e.toString() );
             }

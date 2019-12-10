@@ -173,7 +173,7 @@ public class DebugItemGenerator
                 LOGGER.trace( sessionLabel, () -> finishMsg );
                 debugGeneratorLogFile.appendLine( finishMsg );
             }
-            catch ( Throwable e )
+            catch ( final Throwable e )
             {
                 final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
                 LOGGER.error( sessionLabel, errorMsg, e );
@@ -196,7 +196,7 @@ public class DebugItemGenerator
             zipOutput.write( debugGeneratorLogFile.toString().getBytes( PwmConstants.DEFAULT_CHARSET ) );
             zipOutput.closeEntry();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error generating " + debugFileName + ": " + e.getMessage() );
         }
@@ -488,7 +488,7 @@ public class DebugItemGenerator
                         }
                     }
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( debugItemInput.getSessionLabel(), "unable to generate webInfPath fileMd5sums during zip debug building: " + e.getMessage() );
                 }
@@ -500,7 +500,7 @@ public class DebugItemGenerator
                 {
                     interestedFiles.add( applicationPath );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( debugItemInput.getSessionLabel(), "unable to generate appPath fileMd5sums during zip debug building: " + e.getMessage() );
                 }
@@ -533,7 +533,7 @@ public class DebugItemGenerator
                         dataRow.add( Long.toString( fileSummaryInformation.getChecksum() ) );
                         csvPrinter.printRecord( dataRow );
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
                         LOGGER.trace( () -> "error generating file summary info: " + e.getMessage() );
                     }
@@ -808,7 +808,7 @@ public class DebugItemGenerator
                         dataRow.add( sValue );
                         csvPrinter.printRecord( dataRow );
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
                         LOGGER.trace( () -> "error generating csv-stats summary info: " + e.getMessage() );
                     }
