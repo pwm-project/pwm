@@ -107,7 +107,7 @@ public enum GuideStep
                 visibilityCheckImpl = visibilityCheckClass.newInstance();
                 return visibilityCheckImpl.visible( configGuideBean );
             }
-            catch ( ReflectiveOperationException e )
+            catch ( final ReflectiveOperationException e )
             {
                 LOGGER.error( "unexpected error during step visibility check: " + e.getMessage(), e );
             }
@@ -130,7 +130,7 @@ public enum GuideStep
                 final Set<PwmSettingTemplate> templates = ConfigGuideForm.generateStoredConfig( configGuideBean ).getTemplateSet().getTemplates();
                 return templates.contains( PwmSettingTemplate.LDAP );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 return true;
             }
@@ -146,7 +146,7 @@ public enum GuideStep
                 final Set<PwmSettingTemplate> templates = ConfigGuideForm.generateStoredConfig( configGuideBean ).getTemplateSet().getTemplates();
                 return templates.contains( PwmSettingTemplate.DB );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 return true;
             }

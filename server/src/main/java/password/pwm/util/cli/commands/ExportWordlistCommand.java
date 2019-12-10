@@ -49,7 +49,7 @@ public class ExportWordlistCommand extends AbstractCliCommand
         {
             localDBUtility.exportWordlist( fileOutputStream, System.out );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             out( "error during export: " + e.getMessage() );
         }

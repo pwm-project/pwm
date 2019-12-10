@@ -163,7 +163,7 @@ public class LocalDBLogger implements PwmService
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "unexpected error attempting to determine tail event timestamp: " + e.getMessage() );
         }
@@ -267,7 +267,7 @@ public class LocalDBLogger implements PwmService
         {
             return PwmLogEvent.fromEncodedString( value );
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             if ( !hasShownReadError )
             {
@@ -306,7 +306,7 @@ public class LocalDBLogger implements PwmService
                 pattern = Pattern.compile( searchParameters.getUsername() );
             }
         }
-        catch ( PatternSyntaxException e )
+        catch ( final PatternSyntaxException e )
         {
             LOGGER.trace( () -> "invalid regex syntax for " + searchParameters.getUsername() + ", reverting to plaintext search" );
         }
@@ -403,7 +403,7 @@ public class LocalDBLogger implements PwmService
             {
                 localBuffer.add( pwmLogEvent.toEncodedString() );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 LOGGER.warn( "error flushing events to localDB: " + e.getMessage(), e );
             }
@@ -417,7 +417,7 @@ public class LocalDBLogger implements PwmService
             }
             localDBListQueue.addAll( localBuffer );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error writing to localDBLogger: " + e.getMessage(), e );
         }
@@ -435,7 +435,7 @@ public class LocalDBLogger implements PwmService
                     flushEvents();
                 }
             }
-            catch ( Throwable t )
+            catch ( final Throwable t )
             {
                 LOGGER.fatal( "localDBLogger flush thread has failed: " + t.getMessage(), t );
             }
@@ -463,7 +463,7 @@ public class LocalDBLogger implements PwmService
                     }
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.fatal( "unexpected error during LocalDBLogger log event cleanup: " + e.getMessage(), e );
             }

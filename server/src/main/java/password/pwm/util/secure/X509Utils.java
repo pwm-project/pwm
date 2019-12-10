@@ -115,7 +115,7 @@ public abstract class X509Utils
             sslSock.close();
             LOGGER.debug( () -> "ServerCertReader: certificate information read from host=" + host + ", port=" + port );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append( "unable to read server certificates from host=" );
@@ -170,7 +170,7 @@ public abstract class X509Utils
         {
             pwmHttpClient.makeRequest( request, sessionLabel );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             requestError = e.getErrorInformation();
         }
@@ -223,7 +223,7 @@ public abstract class X509Utils
             sslSock.close();
             return true;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.trace( () -> "exception while testing ldap server cert validity against default keystore: " + e.getMessage() );
         }
@@ -300,7 +300,7 @@ public abstract class X509Utils
                     {
                         LOGGER.debug( () -> "promiscuous trusting certificate during authType=" + authType + ", subject=" + cert.getSubjectDN().toString() );
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
                         LOGGER.error( "error while decoding certificate: " + e.getMessage() );
                         throw new IllegalStateException( e );
@@ -505,7 +505,7 @@ public abstract class X509Utils
                 returnMap.put( CertDebugInfoKey.detail.toString(), X509Utils.makeDetailText( cert ) );
             }
         }
-        catch ( PwmUnrecoverableException | CertificateEncodingException e )
+        catch ( final PwmUnrecoverableException | CertificateEncodingException e )
         {
             LOGGER.warn( "error generating hash for certificate: " + e.getMessage() );
         }
@@ -577,7 +577,7 @@ public abstract class X509Utils
             tmf.init( (KeyStore) null );
             return tmf.getTrustManagers();
         }
-        catch ( GeneralSecurityException e )
+        catch ( final GeneralSecurityException e )
         {
             final String errorMsg = "unexpected error loading default java TrustManager: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -592,7 +592,7 @@ public abstract class X509Utils
         {
             return SecureEngine.hash( new ByteArrayInputStream( certificate.getEncoded() ), pwmHashAlgorithm );
         }
-        catch ( CertificateEncodingException e )
+        catch ( final CertificateEncodingException e )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unexpected error encoding certificate: " + e.getMessage() );
         }
@@ -614,7 +614,7 @@ public abstract class X509Utils
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             if ( e instanceof PwmException )
             {

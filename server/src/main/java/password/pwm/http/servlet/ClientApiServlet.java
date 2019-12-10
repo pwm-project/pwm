@@ -32,7 +32,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
@@ -199,7 +198,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             final RestResultBean restResultBean = RestResultBean.withData( displayData );
             pwmRequest.outputJsonResult( restResultBean );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMSg = "error during rest /strings call for bundle " + bundleName + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMSg );
@@ -223,13 +222,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
             pwmRequest.outputJsonResult( restResultBean );
         }
-        catch ( PwmException e )
-        {
-            final ErrorInformation errorInformation = e.getErrorInformation();
-            LOGGER.debug( pwmRequest, errorInformation );
-            pwmRequest.respondWithError( errorInformation );
-        }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
@@ -338,7 +331,7 @@ public class ClientApiServlet extends ControlledPwmServlet
                     final TimeDuration maxIdleTime = IdleTimeoutCalculator.idleTimeoutForRequest( pwmURL, pwmApplication, pwmSession );
                     idleSeconds = maxIdleTime.as( TimeDuration.Unit.SECONDS );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( pwmSession, "error determining idle timeout time for request: " + e.getMessage() );
                 }
@@ -444,7 +437,7 @@ public class ClientApiServlet extends ControlledPwmServlet
                 displayStrings.put( key, displayValue );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( pwmSession, "error expanding macro display value: " + e.getMessage() );
         }

@@ -126,7 +126,7 @@ public class RestFormDataClient
             final FormDataResponseBean formDataResponseBean = JsonUtil.deserialize( responseBody, FormDataResponseBean.class );
             return formDataResponseBean;
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             final String errorMsg = "http response error while executing external rest call, error: " + e.getMessage();
             LOGGER.error( errorMsg );

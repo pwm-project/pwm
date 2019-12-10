@@ -27,7 +27,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
@@ -47,13 +47,13 @@ class NavTreeHelper
     static Set<String> determineModifiedKeysSettings(
             final PwmLocaleBundle bundle,
             final Configuration config,
-            final StoredConfigurationImpl storedConfiguration
+            final StoredConfiguration storedConfiguration
     )
     {
         final Set<String> modifiedKeys = new TreeSet<>();
-        for ( final String key : bundle.getKeys() )
+        for ( final String key : bundle.getDisplayKeys() )
         {
-            final Map<String, String> storedBundle = storedConfiguration.readLocaleBundleMap( bundle.getTheClass().getName(), key );
+            final Map<String, String> storedBundle = storedConfiguration.readLocaleBundleMap( bundle, key );
             if ( !storedBundle.isEmpty() )
             {
                 for ( final Locale locale : config.getKnownLocales() )
@@ -77,7 +77,7 @@ class NavTreeHelper
     static boolean categoryMatcher(
             final PwmApplication pwmApplication,
             final PwmSettingCategory category,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfiguration storedConfiguration,
             final boolean modifiedOnly,
             final int minLevel,
             final String text
@@ -138,7 +138,7 @@ class NavTreeHelper
 
     static List<PwmSettingCategory> filteredCategories(
             final PwmApplication pwmApplication,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfiguration storedConfiguration,
             final Locale locale,
             final boolean modifiedSettingsOnly,
             final double level,
@@ -170,7 +170,7 @@ class NavTreeHelper
      */
     static List<NavTreeItem> makeSettingNavItems(
             final List<PwmSettingCategory> categories,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfiguration storedConfiguration,
             final Locale locale
     )
     {
@@ -277,7 +277,7 @@ class NavTreeHelper
     }
 
     private static boolean settingMatches(
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfiguration storedConfiguration,
             final PwmSetting setting,
             final String profileID,
             final boolean modifiedOnly,
@@ -313,7 +313,7 @@ class NavTreeHelper
             final StoredValue storedValue = storedConfiguration.readSetting( setting, profileID );
             for ( final String term : StringUtil.whitespaceSplit( text ) )
             {
-                if ( storedConfiguration.matchSetting( setting, storedValue, term, PwmConstants.DEFAULT_LOCALE ) )
+                if ( StoredConfigurationUtil.matchSetting( storedConfiguration, setting, storedValue, term, PwmConstants.DEFAULT_LOCALE ) )
                 {
                     return true;
                 }

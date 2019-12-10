@@ -24,6 +24,8 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -31,6 +33,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -45,23 +48,27 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public class NamedSecretValue implements StoredValue
 {
+
+    private final transient LazySupplier<String> valueHashSupplier = new LazySupplier<>( () -> AbstractValue.valueHashComputer( NamedSecretValue.this ) );
+
     private static final String ELEMENT_NAME = "name";
     private static final String ELEMENT_PASSWORD = "password";
     private static final String ELEMENT_USAGE = "usage";
 
-    private Map<String, NamedSecretData> values;
+    private final Map<String, NamedSecretData> values;
 
     NamedSecretValue( )
     {
+        values = Collections.emptyMap();
     }
-
 
     public NamedSecretValue( final Map<String, NamedSecretData> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
     }
 
     public static StoredValue.StoredValueFactory factory( )
@@ -78,7 +85,7 @@ public class NamedSecretValue implements StoredValue
                     final Map<String, NamedSecretData> linkedValues = new LinkedHashMap<>( values );
                     return new NamedSecretValue( linkedValues );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     throw new IllegalStateException(
                             "NamedPasswordValue can not be json de-serialized: " + e.getMessage() );
@@ -93,34 +100,33 @@ public class NamedSecretValue implements StoredValue
                     throws PwmOperationalException, PwmUnrecoverableException
             {
                 final Map<String, NamedSecretData> values = new LinkedHashMap<>();
-                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
 
                 try
                 {
-                    if ( valueElements != null )
+                    for ( final XmlElement value : valueElements )
                     {
-                        for ( final XmlElement value : valueElements )
+                        final Optional<XmlElement> nameElement = value.getChild( ELEMENT_NAME );
+                        final Optional<XmlElement> passwordElement = value.getChild( ELEMENT_PASSWORD );
+                        if ( nameElement.isPresent() && passwordElement.isPresent() )
                         {
-                            if ( value.getChild( ELEMENT_NAME ) != null && value.getChild( ELEMENT_PASSWORD ) != null )
+                            final String name = nameElement.get().getText();
+                            final String encodedValue = passwordElement.get().getText();
+                            final PasswordData passwordData = new PasswordData( SecureEngine.decryptStringValue( encodedValue, key, PwmBlockAlgorithm.CONFIG ) );
+                            final List<XmlElement> usages = value.getChildren( ELEMENT_USAGE );
+                            final List<String> strUsages = new ArrayList<>();
+                            if ( usages != null )
                             {
-                                final String name = value.getChild( ELEMENT_NAME ).getText();
-                                final String encodedValue = value.getChild( ELEMENT_PASSWORD ).getText();
-                                final PasswordData passwordData = new PasswordData( SecureEngine.decryptStringValue( encodedValue, key, PwmBlockAlgorithm.CONFIG ) );
-                                final List<XmlElement> usages = value.getChildren( ELEMENT_USAGE );
-                                final List<String> strUsages = new ArrayList<>();
-                                if ( usages != null )
+                                for ( final XmlElement usageElement : usages )
                                 {
-                                    for ( final XmlElement usageElement : usages )
-                                    {
-                                        strUsages.add( usageElement.getText() );
-                                    }
+                                    strUsages.add( usageElement.getText() );
                                 }
-                                values.put( name, new NamedSecretData( passwordData, Collections.unmodifiableList( strUsages ) ) );
                             }
+                            values.put( name, new NamedSecretData( passwordData, Collections.unmodifiableList( strUsages ) ) );
                         }
                     }
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     final String errorMsg = "unable to decode encrypted password value for setting: " + e.getMessage();
                     final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
@@ -154,7 +160,7 @@ public class NamedSecretValue implements StoredValue
         return 0;
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey key )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         if ( values == null )
         {
@@ -168,7 +174,7 @@ public class NamedSecretValue implements StoredValue
             {
                 final String name = entry.getKey();
                 final PasswordData passwordData = entry.getValue().getPassword();
-                final String encodedValue = SecureEngine.encryptToString( passwordData.getStringValue(), key, PwmBlockAlgorithm.CONFIG );
+                final String encodedValue = SecureEngine.encryptToString( passwordData.getStringValue(), xmlOutputProcessData.getPwmSecurityKey(), PwmBlockAlgorithm.CONFIG );
                 final XmlElement newValueElement = XmlFactory.getFactory().newElement( "value" );
                 final XmlElement nameElement = XmlFactory.getFactory().newElement( ELEMENT_NAME );
                 nameElement.addText( name );
@@ -189,7 +195,7 @@ public class NamedSecretValue implements StoredValue
                 valuesElement.add( newValueElement );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new RuntimeException( "missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage() );
         }
@@ -239,21 +245,15 @@ public class NamedSecretValue implements StoredValue
             }
             return copiedValues;
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             throw new IllegalStateException( e.getErrorInformation().toDebugStr() );
         }
     }
 
-    public boolean requiresStoredUpdate( )
-    {
-        return false;
-    }
-
     @Override
-    public String valueHash( ) throws PwmUnrecoverableException
+    public String valueHash()
     {
-        return values == null ? "" : SecureEngine.hash( JsonUtil.serializeMap( values ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
+        return valueHashSupplier.get();
     }
-
 }

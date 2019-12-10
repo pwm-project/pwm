@@ -23,7 +23,6 @@ package password.pwm.svc.report;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.UserPermission;
@@ -31,6 +30,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;
@@ -129,7 +129,7 @@ class ReportSettings implements Serializable
                 final int dayValue = Integer.parseInt( splitDay );
                 returnValue.add( dayValue );
             }
-            catch ( NumberFormatException e )
+            catch ( final NumberFormatException e )
             {
                 LOGGER.error( "error parsing reporting summary day value '" + splitDay + "', error: " + e.getMessage() );
             }
@@ -141,6 +141,6 @@ class ReportSettings implements Serializable
     String getSettingsHash( )
             throws PwmUnrecoverableException
     {
-        return SecureEngine.hash( JsonUtil.serialize( this ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
+        return SecureEngine.hash( JsonUtil.serialize( this ), PwmHashAlgorithm.SHA512 );
     }
 }

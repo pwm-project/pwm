@@ -24,7 +24,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.PwmUnrecoverableException;
@@ -43,7 +43,7 @@ public class LdapCertImportFunction implements SettingUIFunction
     @Override
     public String provideFunction(
             final PwmRequest pwmRequest,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfigurationModifier modifier,
             final PwmSetting setting,
             final String profile,
             final String extraData
@@ -53,7 +53,7 @@ public class LdapCertImportFunction implements SettingUIFunction
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        final StringArrayValue ldapUrlsValue = ( StringArrayValue ) storedConfiguration.readSetting( PwmSetting.LDAP_SERVER_URLS, profile );
+        final StringArrayValue ldapUrlsValue = ( StringArrayValue ) modifier.newStoredConfiguration().readSetting( PwmSetting.LDAP_SERVER_URLS, profile );
         final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
         if ( ldapUrlsValue != null && ldapUrlsValue.toNativeObject() != null )
         {
@@ -62,7 +62,7 @@ public class LdapCertImportFunction implements SettingUIFunction
         }
 
         final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
-        storedConfiguration.writeSetting( setting, profile, new X509CertificateValue( resultCertificates ), userIdentity );
+        modifier.writeSetting( setting, profile, new X509CertificateValue( resultCertificates ), userIdentity );
         return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig() );
     }
 

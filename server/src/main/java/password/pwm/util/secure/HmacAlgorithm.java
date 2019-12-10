@@ -20,7 +20,7 @@
 
 package password.pwm.util.secure;
 
-enum HmacAlgorithm
+public enum HmacAlgorithm
 {
     HMAC_SHA_256( "HmacSHA256", PwmSecurityKey.Type.HMAC_256, 32 ),
     HMAC_SHA_512( "HmacSHA512", PwmSecurityKey.Type.HMAC_512, 64 ),;

@@ -134,7 +134,7 @@ public class SessionTrackService implements PwmService
                     sizeTotal += pwmSession.size();
                     sessionCounter++;
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( "error during session size calculation: " + e.getMessage() );
                 }
@@ -146,7 +146,7 @@ public class SessionTrackService implements PwmService
                     sessionCounter < 1 ? "0" : String.valueOf( ( int ) ( sizeTotal / sessionCounter ) ) );
             return returnMap;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error during session debug generation: " + e.getMessage() );
         }
@@ -278,7 +278,7 @@ public class SessionTrackService implements PwmService
                         ? loopUiBean.getUsername()
                         : "" );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.error( "unexpected error reading username: " + e.getMessage(), e );
             }

@@ -22,14 +22,13 @@ package password.pwm.config.function;
 
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.RemoteWebServiceValue;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
@@ -40,9 +39,10 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
 {
 
     @Override
-    String getUri( final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
+    String getUri( final StoredConfigurationModifier modifier, final PwmSetting pwmSetting, final String profile, final String extraData )
+            throws PwmOperationalException, PwmUnrecoverableException
     {
-        final RemoteWebServiceValue actionValue = ( RemoteWebServiceValue ) storedConfiguration.readSetting( pwmSetting, profile );
+        final RemoteWebServiceValue actionValue = ( RemoteWebServiceValue ) modifier.newStoredConfiguration().readSetting( pwmSetting, profile );
         final String serviceName = actionNameFromExtraData( extraData );
         final RemoteWebServiceConfiguration action = actionValue.forName( serviceName );
         final String uriString = action.getUrl();
@@ -57,7 +57,7 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
         {
             URI.create( uriString );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR,
                     "Setting " + pwmSetting.toMenuLocationDebug( profile, null ) + " action " + serviceName + " has an invalid URL syntax" );
@@ -73,7 +73,7 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
 
     void store(
             final List<X509Certificate> certs,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfigurationModifier modifier,
             final PwmSetting pwmSetting,
             final String profile,
             final String extraData,
@@ -81,24 +81,25 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final RemoteWebServiceValue actionValue = ( RemoteWebServiceValue ) storedConfiguration.readSetting( pwmSetting, profile );
+        final RemoteWebServiceValue actionValue = ( RemoteWebServiceValue ) modifier.newStoredConfiguration().readSetting( pwmSetting, profile );
         final String actionName = actionNameFromExtraData( extraData );
         final List<RemoteWebServiceConfiguration> newList = new ArrayList<>();
         for ( final RemoteWebServiceConfiguration loopConfiguration : actionValue.toNativeObject() )
         {
             if ( actionName.equals( loopConfiguration.getName() ) )
             {
-                final RemoteWebServiceConfiguration newConfig = JsonUtil.cloneUsingJson( loopConfiguration, RemoteWebServiceConfiguration.class );
-                newConfig.setCertificates( certs );
+                final RemoteWebServiceConfiguration newConfig = loopConfiguration.toBuilder()
+                        .certificates( certs )
+                        .build();
                 newList.add( newConfig );
             }
             else
             {
-                newList.add( JsonUtil.cloneUsingJson( loopConfiguration, RemoteWebServiceConfiguration.class ) );
+                newList.add( loopConfiguration );
             }
         }
         final RemoteWebServiceValue newActionValue = new RemoteWebServiceValue( newList );
-        storedConfiguration.writeSetting( pwmSetting, profile, newActionValue, userIdentity );
+        modifier.writeSetting( pwmSetting, profile, newActionValue, userIdentity );
     }
 
 }

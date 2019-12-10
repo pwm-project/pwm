@@ -21,19 +21,32 @@
 package password.pwm.http.servlet.configeditor;
 
 import password.pwm.PwmConstants;
+import password.pwm.config.Configuration;
+import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.FileValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.ConfigurationChecker;
+import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.bean.ConfigManagerBean;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
+import password.pwm.ws.server.rest.bean.HealthData;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class ConfigEditorServletUtils
 {
@@ -53,13 +66,13 @@ public class ConfigEditorServletUtils
         {
             fileUploads = pwmRequest.readFileUploads( maxFileSize, 1 );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             pwmRequest.outputJsonResult( RestResultBean.fromError( e.getErrorInformation(), pwmRequest ) );
             LOGGER.error( pwmRequest, "error during file upload: " + e.getErrorInformation().toDebugStr() );
             return null;
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error during file upload: " + e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
@@ -83,4 +96,72 @@ public class ConfigEditorServletUtils
         return null;
     }
 
+    static void outputChangeLogData(
+            final PwmRequest pwmRequest,
+            final ConfigManagerBean configManagerBean,
+            final Map<String, Object> outputMap
+    )
+    {
+            final Locale locale = pwmRequest.getLocale();
+
+            final Set<StoredConfigItemKey> changeLog = StoredConfigurationUtil.changedValues(
+                    pwmRequest.getPwmApplication().getConfig().getStoredConfiguration(),
+                    configManagerBean.getStoredConfiguration() );
+
+            final Map<String, String> changeLogMap = StoredConfigurationUtil.makeDebugMap(
+                    configManagerBean.getStoredConfiguration(),
+                    changeLog,
+                    locale );
+
+            final StringBuilder output = new StringBuilder();
+            if ( changeLogMap.isEmpty() )
+            {
+                output.append( "No setting changes." );
+            }
+            else
+            {
+                for ( final Map.Entry<String, String> entry : changeLogMap.entrySet() )
+                {
+                    output.append( "<div class=\"changeLogKey\">" );
+                    output.append( entry.getKey() );
+                    output.append( "</div><div class=\"changeLogValue\">" );
+                    output.append( StringUtil.escapeHtml( entry.getValue() ) );
+                    output.append( "</div>" );
+                }
+            }
+            outputMap.put( "html", output.toString() );
+            outputMap.put( "modified", !changeLog.isEmpty() );
+
+    }
+
+    static HealthData configurationHealth(
+            final PwmRequest pwmRequest,
+            final ConfigManagerBean configManagerBean
+    )
+    {
+        final Instant startTime = Instant.now();
+        try
+        {
+            final Locale locale = pwmRequest.getLocale();
+            final ConfigurationChecker configurationChecker = new ConfigurationChecker();
+            final Configuration config = new Configuration( configManagerBean.getStoredConfiguration() );
+            final List<HealthRecord> healthRecords = configurationChecker.doHealthCheck(
+                    config,
+                    pwmRequest.getLocale()
+            );
+
+            LOGGER.debug( () -> "config health check done in " + TimeDuration.compactFromCurrent( startTime ) );
+
+            return HealthData.builder()
+                    .overall( "CONFIG" )
+                    .records( password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords( healthRecords, locale, config ) )
+                    .build();
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.error( pwmRequest, "error generating health records: " + e.getMessage() );
+        }
+
+        return HealthData.builder().build();
+    }
 }

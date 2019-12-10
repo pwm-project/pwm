@@ -182,7 +182,7 @@ public class IntruderManager implements PwmService
                     {
                         recordStore.cleanup( TimeDuration.of( maxRecordAge, TimeDuration.Unit.MILLISECONDS ) );
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
                         LOGGER.error( "error cleaning recordStore: " + e.getMessage(), e );
                     }
@@ -195,7 +195,7 @@ public class IntruderManager implements PwmService
             initializeRecordManagers( config, recordStore );
             status = STATUS.OPEN;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "unexpected error starting intruder manager: " + e.getMessage() );
             LOGGER.error( errorInformation.toDebugStr() );
@@ -371,7 +371,7 @@ public class IntruderManager implements PwmService
                     return;
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "error examining address: " + subject );
             }
@@ -405,7 +405,7 @@ public class IntruderManager implements PwmService
         {
             check( recordType, subject );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             if ( !manager.isAlerted( subject ) )
             {
@@ -487,7 +487,7 @@ public class IntruderManager implements PwmService
                 final UserIdentity identity = UserIdentity.fromDelimitedKey( intruderRecord.getSubject() );
                 sendIntruderNoticeEmail( pwmApplication, sessionLabel, identity );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.error( "unable to send intruder mail, can't read userDN/ldapProfile from stored record: " + e.getMessage() );
             }
@@ -518,7 +518,7 @@ public class IntruderManager implements PwmService
                         check( recordType, intruderRecord.getSubject() );
                         rowData.put( "status", "watching" );
                     }
-                    catch ( PwmException e )
+                    catch ( final PwmException e )
                     {
                         rowData.put( "status", "locked" );
                     }
@@ -707,7 +707,7 @@ public class IntruderManager implements PwmService
 
             pwmApplication.getEmailQueue().submitEmail( configuredEmailSetting, userInfo, macroMachine );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( "error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage() );
         }

@@ -191,7 +191,7 @@ public class SecureService implements PwmService
             final MessageDigest messageDigest = MessageDigest.getInstance( pwmHashAlgorithm.getAlgName() );
             return new DigestInputStream( inputStream, messageDigest );
         }
-        catch ( NoSuchAlgorithmException e )
+        catch ( final NoSuchAlgorithmException e )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_CRYPT_ERROR, "can't create digest inputstream: " + e.getMessage() );
         }

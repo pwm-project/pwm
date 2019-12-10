@@ -114,7 +114,7 @@ public class SessionManager
             final String userDN = userIdentity.getUserDN();
             chaiProvider.getEntryFactory().newChaiEntry( userDN ).exists();
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation(
                     PwmError.ERROR_DIRECTORY_UNAVAILABLE,
@@ -134,7 +134,7 @@ public class SessionManager
                 chaiProvider.close();
                 chaiProvider = null;
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( pwmSession, "error while closing user connection: " + e.getMessage() );
             }
@@ -182,7 +182,7 @@ public class SessionManager
             final ChaiProvider provider = this.getChaiProvider();
             return provider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }

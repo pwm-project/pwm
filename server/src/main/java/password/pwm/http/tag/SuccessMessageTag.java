@@ -65,7 +65,7 @@ public class SuccessMessageTag extends PwmAbstractTag
 
             pageContext.getOut().write( outputMsg );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new JspTagException( e.getMessage() );
         }

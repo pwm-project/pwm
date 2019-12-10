@@ -22,10 +22,11 @@ package password.pwm.config.function;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
 
 import java.net.URI;
@@ -35,7 +36,8 @@ public class OAuthCertImportFunction extends AbstractUriCertImportFunction
 
 
     @Override
-    String getUri( final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
+    String getUri( final StoredConfigurationModifier modifier, final PwmSetting pwmSetting, final String profile, final String extraData )
+            throws PwmOperationalException, PwmUnrecoverableException
     {
 
         final String uriString;
@@ -44,12 +46,12 @@ public class OAuthCertImportFunction extends AbstractUriCertImportFunction
         switch ( pwmSetting )
         {
             case OAUTH_ID_CERTIFICATE:
-                uriString = ( String ) storedConfiguration.readSetting( PwmSetting.OAUTH_ID_CODERESOLVE_URL ).toNativeObject();
+                uriString = ( String ) modifier.newStoredConfiguration().readSetting( PwmSetting.OAUTH_ID_CODERESOLVE_URL, null ).toNativeObject();
                 menuDebugLocation = PwmSetting.OAUTH_ID_CODERESOLVE_URL.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
                 break;
 
             case RECOVERY_OAUTH_ID_CERTIFICATE:
-                uriString = ( String ) storedConfiguration.readSetting( PwmSetting.RECOVERY_OAUTH_ID_CODERESOLVE_URL, profile ).toNativeObject();
+                uriString = ( String ) modifier.newStoredConfiguration().readSetting( PwmSetting.RECOVERY_OAUTH_ID_CODERESOLVE_URL, profile ).toNativeObject();
                 menuDebugLocation = PwmSetting.RECOVERY_OAUTH_ID_CERTIFICATE.toMenuLocationDebug( profile, PwmConstants.DEFAULT_LOCALE );
                 break;
 
@@ -68,7 +70,7 @@ public class OAuthCertImportFunction extends AbstractUriCertImportFunction
         {
             URI.create( uriString );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "Setting " + menuDebugLocation + " has an invalid URL syntax" );
             throw new PwmOperationalException( errorInformation );

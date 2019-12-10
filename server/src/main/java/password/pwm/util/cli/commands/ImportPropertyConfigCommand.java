@@ -20,7 +20,8 @@
 
 package password.pwm.util.cli.commands;
 
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.PropertyConfigurationImporter;
 import password.pwm.util.cli.CliParameters;
 
@@ -28,7 +29,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-
 import java.util.Collections;
 
 /**
@@ -53,15 +53,15 @@ public class ImportPropertyConfigCommand extends AbstractCliCommand
         try
         {
             final PropertyConfigurationImporter importer = new PropertyConfigurationImporter();
-            final StoredConfigurationImpl storedConfiguration = importer.readConfiguration( new FileInputStream( inputFile ) );
+            final StoredConfiguration storedConfiguration = importer.readConfiguration( new FileInputStream( inputFile ) );
 
             try ( OutputStream outputStream = new FileOutputStream( configFile ) )
             {
-                storedConfiguration.toXml( outputStream );
+                StoredConfigurationFactory.toXml( storedConfiguration,  outputStream );
                 out( "output configuration file " + configFile.getAbsolutePath() );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             out( "error during import: " + e.getMessage() );
         }

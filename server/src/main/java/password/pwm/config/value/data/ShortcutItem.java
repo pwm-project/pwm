@@ -20,15 +20,13 @@
 
 package password.pwm.config.value.data;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
 import java.net.URI;
 
-@Getter
-@AllArgsConstructor
+@Value
 public class ShortcutItem implements Serializable
 {
 
@@ -63,7 +61,7 @@ public class ShortcutItem implements Serializable
                         splitSettings[ 3 ]
                 );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.warn( "malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage() );
             }
@@ -86,7 +84,7 @@ public class ShortcutItem implements Serializable
                         splitSettings[ 2 ]
                 );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.warn( "malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage() );
             }

@@ -55,7 +55,7 @@ class WordlistInspector implements Runnable
         {
             checkPopulation();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             getLogger().error( "unexpected error running population worker: " + e.getMessage(), e );
         }
@@ -96,7 +96,7 @@ class WordlistInspector implements Runnable
             {
                 checkAutoPopulation( existingStatus );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 getLogger().error( "error importing auto-import wordlist: " + e.getMessage() );
                 rootWordlist.setAutoImportError( e.getErrorInformation() );
@@ -274,7 +274,7 @@ class WordlistInspector implements Runnable
                 {
                     testWordlistSource.readRemoteWordlistInfo( pwmApplication, cancelFlag, getLogger() );
                 }
-                catch ( PwmUnrecoverableException e )
+                catch ( final PwmUnrecoverableException e )
                 {
                     rootWordlist.setAutoImportError( e.getErrorInformation() );
                     getLogger().debug( () -> "existing stored list is not type AutoImport but auto-import is configured"
@@ -330,7 +330,7 @@ class WordlistInspector implements Runnable
                 getLogger().debug( () -> "auto-import url remote hash does not equal currently stored hash, will start auto-import" );
                 needsAutoImport = true;
             }
-            else if ( remoteInfo.getBytes() > existingStatus.getBytes() || !existingStatus.isCompleted() )
+            else if ( !existingStatus.isCompleted() )
             {
                 getLogger().debug( () -> "auto-import did not previously complete, will continue previous import" );
                 needsAutoImport = true;

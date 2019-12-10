@@ -173,7 +173,7 @@ public class Storage
                 }
                 nextValue = string;
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 e.printStackTrace();
                 throw e;

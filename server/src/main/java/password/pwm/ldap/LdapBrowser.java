@@ -32,7 +32,7 @@ import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.profile.LdapProfile;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -51,14 +51,14 @@ import java.util.TreeMap;
 public class LdapBrowser
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapBrowser.class );
-    private final StoredConfigurationImpl storedConfiguration;
+    private final StoredConfiguration storedConfiguration;
 
     private final ChaiProviderFactory chaiProviderFactory;
     private final Map<String, ChaiProvider> providerCache = new HashMap<>();
 
     public LdapBrowser(
             final ChaiProviderFactory chaiProviderFactory,
-            final StoredConfigurationImpl storedConfiguration
+            final StoredConfiguration storedConfiguration
     )
             throws PwmUnrecoverableException
     {
@@ -72,11 +72,11 @@ public class LdapBrowser
         {
             return doBrowseImpl( figureLdapProfileID( profile ), dn );
         }
-        catch ( ChaiUnavailableException | ChaiOperationException e )
+        catch ( final ChaiUnavailableException | ChaiOperationException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, e.getMessage() ) );
         }
@@ -228,7 +228,7 @@ public class LdapBrowser
                         final Map<String, Map<String, String>> subSearchResults = chaiProvider.search( resultDN, searchHelper );
                         hasSubs = !subSearchResults.isEmpty();
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
                         LOGGER.debug( () -> "error during subordinate entry count of " + dn + ", error: " + e.getMessage() );
                     }

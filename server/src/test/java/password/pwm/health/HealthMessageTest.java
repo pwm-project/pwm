@@ -24,7 +24,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.util.HashSet;
@@ -49,7 +49,7 @@ public class HealthMessageTest
     @Test
     public void testHealthMessageDescription() throws PwmUnrecoverableException
     {
-        final Configuration configuration = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
+        final Configuration configuration = new Configuration( StoredConfigurationFactory.newConfig() );
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
         for ( final HealthMessage healthMessage : HealthMessage.values() )
         {

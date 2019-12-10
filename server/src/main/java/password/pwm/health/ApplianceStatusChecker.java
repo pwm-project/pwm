@@ -72,7 +72,7 @@ public class ApplianceStatusChecker implements HealthChecker
         {
             healthRecords.addAll( readApplianceHealthStatus( pwmApplication ) );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, "error communicating with client " + e.getMessage() );
         }
@@ -174,7 +174,7 @@ public class ApplianceStatusChecker implements HealthChecker
             }
             return "";
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             final String msg = "unable to read contents of file '" + filename + "', error: " + e.getMessage();
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ), e );

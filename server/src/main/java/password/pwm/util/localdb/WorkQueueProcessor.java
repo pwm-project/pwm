@@ -191,7 +191,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                 executorService.execute( ( ) -> sendAndQueueIfNecessary( itemWrapper ) );
                 preQueueSubmit.incrementAndGet();
             }
-            catch ( RejectedExecutionException e )
+            catch ( final RejectedExecutionException e )
             {
                 submitToQueue( itemWrapper );
                 preQueueBypass.incrementAndGet();
@@ -219,13 +219,13 @@ public final class WorkQueueProcessor<W extends Serializable>
                 {
                     submitToQueue( itemWrapper );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     logger.error( "error submitting to work queue after executor returned retry status: " + e.getMessage() );
                 }
             }
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             logger.error( "unexpected error while processing itemWrapper: " + e.getMessage(), e );
         }
@@ -281,7 +281,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         {
             itemMsg = itemWrapper.toDebugString( itemProcessor );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             itemMsg = "error";
         }
@@ -315,7 +315,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                     waitForWork();
                 }
             }
-            catch ( Throwable t )
+            catch ( final Throwable t )
             {
                 logger.error( "unexpected error processing work item queue: " + JavaHelper.readHostileExceptionMessage( t ), t );
             }
@@ -334,7 +334,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                         processNextItem();
                     }
                 }
-                catch ( Throwable t )
+                catch ( final Throwable t )
                 {
                     logger.error( "unexpected error processing work item queue: " + JavaHelper.readHostileExceptionMessage( t ), t );
                 }
@@ -412,7 +412,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                     return;
                 }
             }
-            catch ( Throwable e )
+            catch ( final Throwable e )
             {
                 removeQueueTop();
                 logger.warn( "discarding stored record due to parsing error: " + e.getMessage() + ", record=" + nextStrValue );
@@ -463,7 +463,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                     }
                 }
             }
-            catch ( Throwable e )
+            catch ( final Throwable e )
             {
                 if ( !shutdownFlag.get() )
                 {
@@ -516,7 +516,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                 final Object o = JsonUtil.deserialize( item, clazz );
                 return ( W ) o;
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error deserializing work queue item: " + e.getMessage() ) );
             }

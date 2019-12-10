@@ -24,7 +24,6 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.EnhancedPatternLayout;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Logger;
-import org.apache.log4j.varia.NullAppender;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -269,7 +268,7 @@ public class MainClass
                                 }
                                 returnObj.put( option.getName(), theFile );
                             }
-                            catch ( Exception e )
+                            catch ( final Exception e )
                             {
                                 if ( e instanceof CliException )
                                 {
@@ -290,7 +289,7 @@ public class MainClass
                                 }
                                 returnObj.put( option.getName(), theFile );
                             }
-                            catch ( Exception e )
+                            catch ( final Exception e )
                             {
                                 if ( e instanceof CliException )
                                 {
@@ -369,7 +368,7 @@ public class MainClass
         {
             cliEnvironment = createEnv( command.getCliParameters(), argList );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unable to establish operating environment: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_ENVIRONMENT_ERROR, errorMsg );
@@ -383,7 +382,7 @@ public class MainClass
         {
             command.execute( commandStr, cliEnvironment );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             System.out.println( e.getMessage() );
             //System.exit(-1);
@@ -396,7 +395,7 @@ public class MainClass
             {
                 cliEnvironment.getPwmApplication().shutdown();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 out( "error closing operating environment: " + e.getMessage() );
                 e.printStackTrace();
@@ -408,7 +407,7 @@ public class MainClass
             {
                 cliEnvironment.getLocalDB().close();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 out( "error closing LocalDB environment: " + e.getMessage() );
             }
@@ -423,9 +422,7 @@ public class MainClass
     {
         if ( logLevel == null )
         {
-            Logger.getRootLogger().removeAllAppenders();
-            Logger.getRootLogger().addAppender( new NullAppender() );
-            PwmLogger.markInitialized();
+            PwmLogger.disableAllLogging();
             return;
         }
 

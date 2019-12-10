@@ -82,7 +82,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         {
             updateUserHistoryImpl( auditRecord );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
         }
@@ -124,7 +124,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         {
             corList = ConfigObjectRecord.readRecordFromLDAP( theUser, corAttribute, corRecordIdentifer, null, null );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "error reading LDAP user event history for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -145,7 +145,7 @@ class LdapXmlUserHistory implements UserHistoryStore
 
             storedHistory = StoredHistory.fromXml( theCor.getPayload() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "ldap error writing user event log: " + e.getMessage() );
             return;
@@ -164,7 +164,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         {
             theCor.updatePayload( storedHistory.toXml() );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             LOGGER.error( "ldap error writing user event log: " + e.getMessage() );
         }
@@ -179,7 +179,7 @@ class LdapXmlUserHistory implements UserHistoryStore
             final StoredHistory storedHistory = readUserHistory( pwmApplication, userInfo.getUserIdentity(), theUser );
             return storedHistory.asAuditRecords( userInfo );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
         }
@@ -211,7 +211,7 @@ class LdapXmlUserHistory implements UserHistoryStore
                 return StoredHistory.fromXml( theCor.getPayload() );
             }
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             LOGGER.error( "ldap error reading user event log: " + e.getMessage() );
         }
@@ -305,7 +305,7 @@ class LdapXmlUserHistory implements UserHistoryStore
                     returnHistory.addEvent( storedEvent );
                 }
             }
-            catch ( JDOMException | IOException e )
+            catch ( final JDOMException | IOException e )
             {
                 LOGGER.error( "error parsing user event history record: " + e.getMessage() );
             }

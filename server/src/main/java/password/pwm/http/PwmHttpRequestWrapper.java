@@ -270,7 +270,7 @@ public class PwmHttpRequestWrapper
         {
             return Integer.parseInt( strValue );
         }
-        catch ( NumberFormatException e )
+        catch ( final NumberFormatException e )
         {
             return defaultValue;
         }
@@ -416,7 +416,7 @@ public class PwmHttpRequestWrapper
         {
             decodedValue = new String( input.getBytes( "ISO-8859-1" ), PwmConstants.DEFAULT_CHARSET );
         }
-        catch ( UnsupportedEncodingException e )
+        catch ( final UnsupportedEncodingException e )
         {
             LOGGER.error( "error decoding request parameter: " + e.getMessage() );
         }
@@ -554,7 +554,7 @@ public class PwmHttpRequestWrapper
         {
             return JsonUtil.deserialize( json, classOfT );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             if ( e instanceof JsonParseException )
             {

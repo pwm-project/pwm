@@ -125,7 +125,7 @@ public abstract class AbstractWordlistBucket implements WordlistBucket
                 return getValue( seedlistLongToKey( randomKey ) );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "error while generating random word: " + e.getMessage() );
         }

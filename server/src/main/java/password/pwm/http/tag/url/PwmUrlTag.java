@@ -66,7 +66,7 @@ public class PwmUrlTag extends PwmAbstractTag
         {
             pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             /* noop */
         }
@@ -97,7 +97,7 @@ public class PwmUrlTag extends PwmAbstractTag
         {
             pageContext.getOut().write( outputURL );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new JspTagException( e.getMessage() );
         }

@@ -34,7 +34,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
@@ -62,7 +62,7 @@ public class PwmHttpClientTest
 
 
     // Create a few mock objects, in case they're needed by the tests
-    private Configuration configuration = Mockito.spy( new Configuration( StoredConfigurationImpl.newStoredConfiguration() ) );
+    private Configuration configuration = Mockito.spy( new Configuration( StoredConfigurationFactory.newConfig() ) );
 
     public PwmHttpClientTest() throws PwmUnrecoverableException
     {

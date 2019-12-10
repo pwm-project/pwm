@@ -107,7 +107,7 @@ public class LdapOperationsHelper
             final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
             addUserObjectClass( sessionLabel, theUser, newObjClasses );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -134,7 +134,7 @@ public class LdapOperationsHelper
                 LOGGER.info( sessionLabel, () -> "added objectclass '" + finalAuxClass + "' to user " + theUser.getEntryDN() );
             }
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             final StringBuilder errorMsg = new StringBuilder();
 
@@ -183,7 +183,7 @@ public class LdapOperationsHelper
         {
             return createChaiProvider( chaiProviderFactory, sessionLabel, ldapProfile, config, proxyDN, proxyPW );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             if ( statisticsManager != null )
             {
@@ -302,7 +302,7 @@ public class LdapOperationsHelper
                     {
                         newBytes = StringUtil.base64Decode( sValue );
                     }
-                    catch ( IOException e )
+                    catch ( final IOException e )
                     {
                         throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "error processing binary form value: " + e.getMessage() );
                     }
@@ -322,7 +322,7 @@ public class LdapOperationsHelper
                                 existingBytes = null;
                             }
                         }
-                        catch ( ChaiOperationException e )
+                        catch ( final ChaiOperationException e )
                         {
                             final String errorMsg = "error reading existing values on user " + theUser.getEntryDN()
                                     + " prior to replacing values, error: " + e.getMessage();
@@ -341,7 +341,7 @@ public class LdapOperationsHelper
                                 {
                                     theUser.writeBinaryAttribute( attrName, newBytes );
                                 }
-                                catch ( ChaiOperationException e )
+                                catch ( final ChaiOperationException e )
                                 {
                                     final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
@@ -358,7 +358,7 @@ public class LdapOperationsHelper
                             theUser.deleteAttribute( attrName, null );
                             LOGGER.info( () -> "deleted binary attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
                         }
-                        catch ( ChaiOperationException e )
+                        catch ( final ChaiOperationException e )
                         {
                             final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
@@ -383,7 +383,7 @@ public class LdapOperationsHelper
                     {
                         currentValue = theUser.readStringAttribute( attrName );
                     }
-                    catch ( ChaiOperationException e )
+                    catch ( final ChaiOperationException e )
                     {
                         final String errorMsg = "error reading existing values on user " + theUser.getEntryDN() + " prior to replacing values, error: " + e.getMessage();
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
@@ -400,7 +400,7 @@ public class LdapOperationsHelper
                                 final String finalAttrValue = attrValue;
                                 LOGGER.info( () -> "set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + finalAttrValue + ")" );
                             }
-                            catch ( ChaiOperationException e )
+                            catch ( final ChaiOperationException e )
                             {
                                 final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
@@ -416,7 +416,7 @@ public class LdapOperationsHelper
                                     theUser.deleteAttribute( attrName, null );
                                     LOGGER.info( () -> "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
                                 }
-                                catch ( ChaiOperationException e )
+                                catch ( final ChaiOperationException e )
                                 {
                                     final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
@@ -468,7 +468,7 @@ public class LdapOperationsHelper
                     }
                     return guidValue;
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     final String errorMsg = "error while reading vendor GUID value for user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     return processError( errorMsg, throwExceptionOnError );
@@ -479,13 +479,13 @@ public class LdapOperationsHelper
             {
                 return theUser.readStringAttribute( guidAttributeName );
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 final String errorMsg = "unexpected error while reading attribute GUID value for user "
                         + userIdentity + " from '" + guidAttributeName + "', error: " + e.getMessage();
                 return processError( errorMsg, throwExceptionOnError );
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 throw PwmUnrecoverableException.fromChaiException( e );
             }
@@ -527,7 +527,7 @@ public class LdapOperationsHelper
                         final UserIdentity result = userSearchEngine.performSingleUserSearch( searchConfiguration, sessionLabel );
                         exists = result != null;
                     }
-                    catch ( PwmOperationalException e )
+                    catch ( final PwmOperationalException e )
                     {
                         if ( e.getError() != PwmError.ERROR_CANT_MATCH_USER )
                         {
@@ -578,7 +578,7 @@ public class LdapOperationsHelper
                 LOGGER.info( sessionLabel, () -> "added GUID value '" + finalNewGuid + "' to user " + userIdentity );
                 return newGuid;
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 final String errorMsg = "unable to write GUID value to user attribute " + guidAttributeName + " : " + e.getMessage()
                         + ", cannot write GUID value to user " + userIdentity;
@@ -586,7 +586,7 @@ public class LdapOperationsHelper
                 LOGGER.error( errorInformation.toDebugStr() );
                 throw new PwmUnrecoverableException( errorInformation );
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 throw PwmUnrecoverableException.fromChaiException( e );
             }
@@ -727,7 +727,7 @@ public class LdapOperationsHelper
             final Answer.FormatType formatType = Answer.FormatType.valueOf( storageMethodString );
             configBuilder.setSetting( ChaiSetting.CR_DEFAULT_FORMAT_TYPE, formatType.toString() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.warn( "unknown CR storage format type '" + storageMethodString + "' " );
         }
@@ -831,7 +831,7 @@ public class LdapOperationsHelper
                 LOGGER.debug( sessionLabel, () -> "wrote pwdLastModified update attribute for " + theUser.getEntryDN() );
                 success = true;
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 LOGGER.debug( sessionLabel, () -> "error writing update attribute for user '" + theUser.getEntryDN() + "' " + e.getMessage() );
             }
@@ -915,7 +915,7 @@ public class LdapOperationsHelper
             }
             return ldapPasswordExpirationTime;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.warn( "error reading password expiration time: " + e.getMessage() );
         }
@@ -951,7 +951,7 @@ public class LdapOperationsHelper
                     LOGGER.debug( sessionLabel, () -> "successfully retrieved user's current password from ldap, now conducting standard authentication" );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.debug( sessionLabel, () -> "unable to retrieve user password from ldap: " + e.getMessage() );
             }
@@ -996,11 +996,11 @@ public class LdapOperationsHelper
             photoData = photoAttributeData[ 0 ];
             mimeType = URLConnection.guessContentTypeFromStream( new ByteArrayInputStream( photoData ) );
         }
-        catch ( IOException | ChaiOperationException e )
+        catch ( final IOException | ChaiOperationException e )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, "error reading user photo ldap attribute: " + e.getMessage() ) );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -1032,7 +1032,7 @@ public class LdapOperationsHelper
 
             return LocaleHelper.parseLocaleString( storedValue );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -1068,7 +1068,7 @@ public class LdapOperationsHelper
                 user.writeStringAttribute( languageAttr, languageCodeValue );
                 LOGGER.debug( sessionLabel, () -> "wrote current browser session language value '" + languageCodeValue + "' to user attribute " + languageAttr );
             }
-            catch ( ChaiException e )
+            catch ( final ChaiException e )
             {
                 LOGGER.error( sessionLabel, "error writing language value to language attribute '" + languageAttr + "', error: " + e.getMessage() );
             }

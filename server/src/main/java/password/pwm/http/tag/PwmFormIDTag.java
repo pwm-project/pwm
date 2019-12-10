@@ -77,13 +77,13 @@ public class PwmFormIDTag extends TagSupport
 
             pageContext.getOut().write( pwmFormID );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             try
             {
                 pageContext.getOut().write( "errorGeneratingPwmFormID" );
             }
-            catch ( IOException e1 )
+            catch ( final IOException e1 )
             {
                 /* ignore */
             }

@@ -74,7 +74,7 @@ class FtpDataIngestor
                     {
                         readFile( ftpClient, fileName, storage );
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
                         app.getStatus().setLastFtpIngest( Instant.now() );
                         final String msg = "error while reading ftp file '" + fileName + "': " + e.getMessage();
@@ -93,7 +93,7 @@ class FtpDataIngestor
             app.getStatus().setLastFtpIngest( Instant.now() );
             app.getStatus().setLastFtpFilesRead( files.size() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             app.getStatus().setLastFtpIngest( Instant.now() );
             app.getStatus().setLastFtpStatus( "error during ftp scan: " + e.getMessage() );
@@ -130,7 +130,7 @@ class FtpDataIngestor
                 storage.store( bean );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String msg = "error reading ftp file '" + fileName + "', error: " + e.getMessage();
             LOGGER.info( msg );

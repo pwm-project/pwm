@@ -37,6 +37,7 @@ import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.Percent;
+import password.pwm.util.java.PwmCallable;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -245,7 +246,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         {
             return wordlistBucket.size();
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             getLogger().error( "error reading size: " + e.getMessage() );
         }
@@ -392,11 +393,6 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         executorService.execute( new InspectorJob() );
     }
 
-    private interface PwmCallable
-    {
-        void call() throws PwmUnrecoverableException;
-    }
-
     private void cancelBackgroundAndRunImmediate( final PwmCallable runnable ) throws PwmUnrecoverableException
     {
         inhibitBackgroundImportFlag.set( true );
@@ -434,7 +430,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                     activity = Wordlist.Activity.Idle;
                 }
             }
-            catch ( Throwable t )
+            catch ( final Throwable t )
             {
                 getLogger().error( "error running InspectorJob: " + t.getMessage(), t );
                 throw t;

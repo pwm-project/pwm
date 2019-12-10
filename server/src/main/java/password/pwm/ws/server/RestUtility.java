@@ -54,7 +54,7 @@ public class RestUtility
             }
             return jsonData;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             if ( e.getCause() instanceof MalformedJsonException )
             {
@@ -144,7 +144,7 @@ public class RestUtility
 
             return new RestServlet.TargetUserIdentity( restRequest, userIdentity, false );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             throw new PwmUnrecoverableException( e.getErrorInformation() );
         }

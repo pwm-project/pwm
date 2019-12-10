@@ -26,7 +26,7 @@ import org.mockito.Mockito;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
 
@@ -45,7 +45,7 @@ public class JsonAuditFormatterTest
         final String expectedOutput = PwmConstants.PWM_APP_NAME + " " + jsonInput;
         final AuditFormatter auditFormatter = new JsonAuditFormatter();
         final PwmApplication pwmApplication = Mockito.mock( PwmApplication.class );
-        Mockito.when( pwmApplication.getConfig() ).thenReturn( new Configuration( StoredConfigurationImpl.newStoredConfiguration() ) );
+        Mockito.when( pwmApplication.getConfig() ).thenReturn( new Configuration( StoredConfigurationFactory.newConfig() ) );
         final String output = auditFormatter.convertAuditRecordToMessage( pwmApplication, auditRecord );
         Assert.assertEquals( expectedOutput, output );
     }

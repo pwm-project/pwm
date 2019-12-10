@@ -23,8 +23,11 @@ package password.pwm.util.cli.commands;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.util.cli.CliParameters;
+
+import java.util.Optional;
 
 public class ConfigUnlockCommand extends AbstractCliCommand
 {
@@ -32,15 +35,18 @@ public class ConfigUnlockCommand extends AbstractCliCommand
             throws Exception
     {
         final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
-        final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
-        if ( Boolean.parseBoolean( storedConfiguration.readConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE ) ) )
+        final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
+
+        final Optional<String> configIsEditable = storedConfiguration.readConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE );
+        if ( configIsEditable.isPresent() && Boolean.parseBoolean( configIsEditable.get() ) )
         {
             out( "configuration is already unlocked" );
             return;
         }
 
-        storedConfiguration.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( true ) );
-        configurationReader.saveConfiguration( storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
+        modifier.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( true ) );
+        configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
         out( "success: configuration has been unlocked" );
     }
 

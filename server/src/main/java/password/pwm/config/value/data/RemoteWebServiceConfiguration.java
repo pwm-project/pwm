@@ -20,16 +20,16 @@
 
 package password.pwm.config.value.data;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Value;
 
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 
-@Getter
-@Setter
+@Value
+@Builder( toBuilder = true )
 public class RemoteWebServiceConfiguration implements Serializable
 {
 

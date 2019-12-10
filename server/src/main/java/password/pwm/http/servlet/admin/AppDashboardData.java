@@ -413,7 +413,7 @@ public class AppDashboardData implements Serializable
                 returnData.put( db, numberFormat.format( localDB.size( db ) ) );
             }
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             LOGGER.error( "error making localDB size bean: " + e.getMessage() );
         }
@@ -547,7 +547,7 @@ public class AppDashboardData implements Serializable
                 ) );
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.trace( () -> "error building AppDashboardData node-state: " + e.getMessage() );
         }

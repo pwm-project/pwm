@@ -75,7 +75,7 @@ public class LocaleHelper
         {
             return Class.forName( className );
         }
-        catch ( ClassNotFoundException e )
+        catch ( final ClassNotFoundException e )
         {
             return null;
         }
@@ -123,7 +123,9 @@ public class LocaleHelper
         String returnValue = null;
         if ( config != null )
         {
-            final Map<Locale, String> configuredBundle = config.readLocalizedBundle( bundleClass.getName(), key );
+            final PwmLocaleBundle pwmLocaleBundle = PwmLocaleBundle.forKey( bundleClass.getName() )
+                    .orElseThrow( () -> new IllegalStateException( "unknown locale bundle name '" + bundleClass.getName() + "'" ) );
+            final Map<Locale, String> configuredBundle = config.readLocalizedBundle( pwmLocaleBundle, key );
             if ( configuredBundle != null )
             {
                 final Locale resolvedLocale = localeResolver( locale, configuredBundle.keySet() );
@@ -144,7 +146,7 @@ public class LocaleHelper
             {
                 returnValue = bundle.getString( key );
             }
-            catch ( MissingResourceException e )
+            catch ( final MissingResourceException e )
             {
                 final String errorMsg = "missing key '" + key + "' for " + bundleClass.getName();
                 if ( config != null && config.isDevDebugMode() )
@@ -385,7 +387,7 @@ public class LocaleHelper
         final Map<PwmLocaleBundle, Map<String, List<Locale>>> returnObj = new LinkedHashMap<>();
         for ( final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.values() )
         {
-            for ( final String key : pwmLocaleBundle.getKeys() )
+            for ( final String key : pwmLocaleBundle.getDisplayKeys() )
             {
                 for ( final Locale locale : configuration.getKnownLocales() )
                 {
@@ -395,11 +397,11 @@ public class LocaleHelper
                     {
                         if ( !returnObj.containsKey( pwmLocaleBundle ) )
                         {
-                            returnObj.put( pwmLocaleBundle, new LinkedHashMap<String, List<Locale>>() );
+                            returnObj.put( pwmLocaleBundle, new LinkedHashMap<>() );
                         }
                         if ( !returnObj.get( pwmLocaleBundle ).containsKey( key ) )
                         {
-                            returnObj.get( pwmLocaleBundle ).put( key, new ArrayList<Locale>() );
+                            returnObj.get( pwmLocaleBundle ).put( key, new ArrayList<>() );
                         }
 
                         returnObj.get( pwmLocaleBundle ).get( key ).add( locale );

@@ -28,8 +28,10 @@ import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
+import javax.net.ssl.SSLContext;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
@@ -69,6 +71,7 @@ public enum PwmAboutProperty
     app_secureBlockAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().getDefaultBlockAlgorithm().getLabel() ),
     app_secureHashAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().getDefaultHashAlgorithm().toString() ),
     app_ldapProfileCount( null, pwmApplication -> Integer.toString( pwmApplication.getConfig().getLdapProfiles().size() ) ),
+    app_ldapConnectionCount( null, pwmApplication -> Integer.toString( pwmApplication.getLdapConnectionService().connectionCount() ) ),
 
     build_Time( "Build Time", pwmApplication -> PwmConstants.BUILD_TIME ),
     build_Number( "Build Number", pwmApplication -> PwmConstants.BUILD_NUMBER ),
@@ -91,9 +94,10 @@ public enum PwmAboutProperty
     java_osName( "Operating System Name", pwmApplication -> System.getProperty( "os.name" ) ),
     java_osVersion( "Operating System Version", pwmApplication -> System.getProperty( "os.version" ) ),
     java_osArch( "Operating System Architecture", pwmApplication -> System.getProperty( "os.arch" ) ),
-    java_randomAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().pwmRandom().getAlgorithm() ),
-    java_defaultCharset( null, pwmApplication -> Charset.defaultCharset().name() ),
+    java_randomAlgorithm( "Random Algorithm", pwmApplication -> pwmApplication.getSecureService().pwmRandom().getAlgorithm() ),
+    java_defaultCharset( "Default Character Set", pwmApplication -> Charset.defaultCharset().name() ),
     java_appServerInfo( "Java AppServer Info", pwmApplication -> pwmApplication.getPwmEnvironment().getContextManager().getServerInfo() ),
+    java_sslVersions( "Java SSL Versions", pwmApplication ->  readSslVersions() ),
 
     database_driverName( null,
             pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseAboutProperty.driverName ) ),
@@ -136,7 +140,7 @@ public enum PwmAboutProperty
                     final String value = valueProvider.value( pwmApplication );
                     aboutMap.put( pwmAboutProperty.name(), value == null ? "" : value );
                 }
-                catch ( Throwable t )
+                catch ( final Throwable t )
                 {
                     aboutMap.put( pwmAboutProperty.name(), LocaleHelper.getLocalizedMessage( null, Display.Value_NotApplicable, null ) );
                     LOGGER.trace( () -> "error generating about value for '" + pwmAboutProperty.name() + "', error: " + t.getMessage() );
@@ -187,5 +191,17 @@ public enum PwmAboutProperty
             outputProps.put( aboutProperty.toString().replace( "_", "." ), value );
         }
         return Collections.unmodifiableMap( outputProps );
+    }
+
+    private static String readSslVersions()
+    {
+        try
+        {
+            return String.join( " ", SSLContext.getDefault().getSupportedSSLParameters().getProtocols() );
+        }
+        catch ( final NoSuchAlgorithmException e )
+        {
+            return "";
+        }
     }
 }

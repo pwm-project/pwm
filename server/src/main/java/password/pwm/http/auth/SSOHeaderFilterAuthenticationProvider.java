@@ -69,7 +69,7 @@ public class SSOHeaderFilterAuthenticationProvider implements PwmHttpFilterAuthe
             {
                 sessionAuthenticator.authUserWithUnknownPassword( headerValue, AuthenticationType.AUTH_WITHOUT_PASSWORD );
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 throw new PwmUnrecoverableException( e.getErrorInformation() );
             }

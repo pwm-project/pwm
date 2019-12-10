@@ -44,7 +44,7 @@ public class RestTestUtilities
         {
             IOUtils.copy( readerStream, stringWriter );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "error reading request body stream: " + e.getMessage();
             throw new IOException( errorMsg );

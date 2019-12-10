@@ -80,7 +80,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
                 reader = new BufferedReader( new InputStreamReader( zipStream, PwmConstants.DEFAULT_CHARSET ) );
             }
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_WORDLIST_IMPORT_ERROR, "error reading wordlist zip: " + e.getMessage() );
         }
@@ -92,7 +92,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
         {
             zipStream.close();
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             LOGGER.debug( () -> "error closing zip stream: " + e.getMessage() );
         }
@@ -101,7 +101,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
         {
             reader.close();
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             LOGGER.debug( () -> "error closing zip stream: " + e.getMessage() );
         }
@@ -123,7 +123,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
             {
                 line = reader.readLine();
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_WORDLIST_IMPORT_ERROR, "error reading zip wordlist file: " + e.getMessage() );
             }

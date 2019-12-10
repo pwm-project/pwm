@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings( "checkstyle:MultipleStringLiterals" )
 public class TypicalHashMachine extends AbstractHashMachine implements ResponseHashMachineSpi
 {
 
@@ -106,7 +107,7 @@ public class TypicalHashMachine extends AbstractHashMachine implements ResponseH
         {
             md = MessageDigest.getInstance( algorithm );
         }
-        catch ( NoSuchAlgorithmException e )
+        catch ( final NoSuchAlgorithmException e )
         {
             throw new IllegalStateException( "unable to load " + algorithm + " message digest algorithm: " + e.getMessage() );
         }
@@ -117,7 +118,7 @@ public class TypicalHashMachine extends AbstractHashMachine implements ResponseH
         {
             hashedBytes = input.getBytes( "UTF-8" );
         }
-        catch ( UnsupportedEncodingException e )
+        catch ( final UnsupportedEncodingException e )
         {
             throw new IllegalStateException( "unsupported UTF8 byte encoding: " + e.getMessage() );
         }

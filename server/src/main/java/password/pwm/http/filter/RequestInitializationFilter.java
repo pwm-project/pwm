@@ -106,7 +106,7 @@ public class RequestInitializationFilter implements Filter
         {
             localPwmApplication = ContextManager.getPwmApplication( req );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.trace( () -> "unable to load pwmApplication: " + e.getMessage() );
         }
@@ -142,7 +142,7 @@ public class RequestInitializationFilter implements Filter
                     servletRequest.setAttribute( PwmRequestAttribute.PwmErrorInfo.toString(), startupError );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 if ( pwmURL.isResourceURL() )
                 {
@@ -183,7 +183,7 @@ public class RequestInitializationFilter implements Filter
             checkAndInitSessionState( req );
             PwmRequest.forRequest( req, resp );
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             LOGGER.error( "can't load application: " + e.getMessage(), e );
             if ( !( new PwmURL( req ).isResourceURL() ) )
@@ -210,7 +210,7 @@ public class RequestInitializationFilter implements Filter
             {
                 handleRequestSecurityChecks( pwmRequest );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.error( pwmRequest, e.getErrorInformation() );
                 pwmRequest.respondWithError( e.getErrorInformation() );
@@ -222,7 +222,7 @@ public class RequestInitializationFilter implements Filter
             }
 
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             final String logMsg = "can't init request: " + e.getMessage();
             if ( e instanceof PwmException && ( ( PwmException ) e ).getError() != PwmError.ERROR_INTERNAL )
@@ -256,7 +256,7 @@ public class RequestInitializationFilter implements Filter
                 errorInformation = contextManager.getStartupErrorInformation();
             }
         }
-        catch ( PwmUnrecoverableException e2 )
+        catch ( final PwmUnrecoverableException e2 )
         {
             LOGGER.error( "error reading session context from servlet container: " + e2.getMessage() );
         }
@@ -441,7 +441,7 @@ public class RequestInitializationFilter implements Filter
         {
             return InetAddress.getByName( userIPAddress ).getCanonicalHostName();
         }
-        catch ( UnknownHostException e )
+        catch ( final UnknownHostException e )
         {
             LOGGER.trace( () -> "unknown host while trying to compute hostname for src request: " + e.getMessage() );
         }
@@ -690,12 +690,12 @@ public class RequestInitializationFilter implements Filter
                             match = true;
                         }
                     }
-                    catch ( IPMatcher.IPMatcherException e )
+                    catch ( final IPMatcher.IPMatcherException e )
                     {
                         LOGGER.error( "error while attempting to match permitted address range '" + ipMatchString + "', error: " + e );
                     }
                 }
-                catch ( IPMatcher.IPMatcherException e )
+                catch ( final IPMatcher.IPMatcherException e )
                 {
                     LOGGER.error( "error parsing permitted address range '" + ipMatchString + "', error: " + e );
                 }

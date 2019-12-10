@@ -80,7 +80,7 @@ public class BasicFilterAuthenticationProvider implements PwmHttpFilterAuthentic
             pwmSession.getLoginInfoBean().setBasicAuth( basicAuthInfo );
 
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             if ( e.getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
             {

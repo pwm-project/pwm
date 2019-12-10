@@ -66,7 +66,7 @@ class DataStoreRecordStore implements RecordStore
         {
             value = dataStore.get( key );
         }
-        catch ( PwmDataStoreException e )
+        catch ( final PwmDataStoreException e )
         {
             LOGGER.error( "error reading stored intruder record: " + e.getMessage() );
             if ( e.getError() == PwmError.ERROR_DB_UNAVAILABLE )
@@ -85,7 +85,7 @@ class DataStoreRecordStore implements RecordStore
         {
             return JsonUtil.deserialize( value, IntruderRecord.class );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error decoding IntruderRecord:" + e.getMessage() );
         }
@@ -95,7 +95,7 @@ class DataStoreRecordStore implements RecordStore
         {
             dataStore.remove( key );
         }
-        catch ( PwmDataStoreException e )
+        catch ( final PwmDataStoreException e )
         {
             /*noop*/
         }
@@ -111,7 +111,7 @@ class DataStoreRecordStore implements RecordStore
         {
             dataStore.put( key, jsonRecord );
         }
-        catch ( PwmDataStoreException e )
+        catch ( final PwmDataStoreException e )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_LOCALDB_UNAVAILABLE, "error writing to LocalDB: " + e.getMessage() ) );
         }
@@ -124,7 +124,7 @@ class DataStoreRecordStore implements RecordStore
         {
             return new RecordIterator( dataStore.iterator() );
         }
-        catch ( PwmDataStoreException e )
+        catch ( final PwmDataStoreException e )
         {
             throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "iterator unavailable:" + e.getMessage() );
         }
@@ -153,7 +153,7 @@ class DataStoreRecordStore implements RecordStore
             {
                 return read( key );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 throw new IllegalStateException( e );
             }
@@ -202,7 +202,7 @@ class DataStoreRecordStore implements RecordStore
                     dataStore.remove( key );
                 }
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 LOGGER.error( "unable to perform removal of identified stale records: " + e.getMessage() );
             }
@@ -239,7 +239,7 @@ class DataStoreRecordStore implements RecordStore
                 }
             }
         }
-        catch ( PwmDataStoreException | PwmUnrecoverableException e )
+        catch ( final PwmDataStoreException | PwmUnrecoverableException e )
         {
             LOGGER.error( "unable to perform intruder table cleanup: " + e.getMessage() );
         }

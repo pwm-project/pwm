@@ -240,7 +240,7 @@ public class AuditRecordFactory
                 );
                 userID = userInfo.getUsername();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.warn( "unable to read userID for " + userIdentity + ", error: " + e.getMessage() );
             }

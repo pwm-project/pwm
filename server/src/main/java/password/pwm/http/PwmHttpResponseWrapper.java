@@ -222,7 +222,7 @@ public class PwmHttpResponseWrapper
             final String value = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_SAMESITE_VALUE );
             CookieManagementFilter.addSameSiteCookieAttribute( httpServletResponse, value );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.trace( () -> "unable to load application configuration while checking samesite cookie attribute config", e );
         }

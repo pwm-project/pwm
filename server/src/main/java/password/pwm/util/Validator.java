@@ -107,7 +107,7 @@ public class Validator
                     throw new PwmOperationalException( PwmError.ERROR_INCORRECT_REQ_SEQUENCE, debugMsg );
                 }
             }
-            catch ( StringIndexOutOfBoundsException | NumberFormatException e )
+            catch ( final StringIndexOutOfBoundsException | NumberFormatException e )
             {
                 throw new PwmOperationalException( PwmError.ERROR_INCORRECT_REQ_SEQUENCE );
             }

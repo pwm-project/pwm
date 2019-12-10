@@ -23,6 +23,7 @@ package password.pwm.config.value;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
@@ -39,11 +40,11 @@ import java.util.TreeSet;
 
 public class OptionListValue extends AbstractValue implements StoredValue
 {
-    final Set<String> values;
+    private final Set<String> values;
 
     public OptionListValue( final Set<String> values )
     {
-        this.values = new TreeSet( values );
+        this.values = values == null ? Collections.emptySet() : Collections.unmodifiableSet( new TreeSet<>( values ) );
     }
 
     public static StoredValueFactory factory( )
@@ -88,7 +89,7 @@ public class OptionListValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final String value : values )

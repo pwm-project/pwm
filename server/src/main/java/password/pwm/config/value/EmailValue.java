@@ -25,6 +25,7 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
@@ -42,11 +43,11 @@ import java.util.TreeMap;
 public class EmailValue extends AbstractValue implements StoredValue
 {
     //key is locale identifier
-    final Map<String, EmailItemBean> values;
+    private final Map<String, EmailItemBean> values;
 
     EmailValue( final Map<String, EmailItemBean> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
     }
 
     public static StoredValueFactory factory( )
@@ -99,7 +100,7 @@ public class EmailValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<String, EmailItemBean> entry : values.entrySet() )

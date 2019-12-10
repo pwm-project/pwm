@@ -105,15 +105,15 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
                 }
             }
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             throw new PwmUnrecoverableException( e.getErrorInformation() );
         }
-        catch ( UnsupportedEncodingException e )
+        catch ( final UnsupportedEncodingException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "error during CAS authentication: " + e.getMessage() ) );
         }
@@ -188,7 +188,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
                         new URL( clearPassRequestUrl ), new HttpsURLConnectionFactory(), "UTF-8" );
                 password = new PasswordData( XmlUtils.getTextForElement( response, "credentials" ) );
             }
-            catch ( MalformedURLException e )
+            catch ( final MalformedURLException e )
             {
                 LOGGER.error( pwmSession, "Invalid CAS clearPassUrl" );
             }
@@ -247,44 +247,44 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
                     {
                         password = new PasswordData( new String( cipherData, PwmConstants.DEFAULT_CHARSET ) );
                     }
-                    catch ( PwmUnrecoverableException e )
+                    catch ( final PwmUnrecoverableException e )
                     {
                         LOGGER.error( "Decryption failed", e );
                         return password;
                     }
                 }
             }
-            catch ( NoSuchAlgorithmException e1 )
+            catch ( final NoSuchAlgorithmException e1 )
             {
                 LOGGER.error( "Decryption failed", e1 );
                 return password;
             }
-            catch ( InvalidKeySpecException e1 )
+            catch ( final InvalidKeySpecException e1 )
             {
                 LOGGER.error( "Decryption failed", e1 );
                 return password;
             }
-            catch ( NoSuchPaddingException e1 )
+            catch ( final NoSuchPaddingException e1 )
             {
                 LOGGER.error( "Decryption failed", e1 );
                 return password;
             }
-            catch ( IOException e1 )
+            catch ( final IOException e1 )
             {
                 LOGGER.error( "Decryption failed", e1 );
                 return password;
             }
-            catch ( InvalidKeyException e1 )
+            catch ( final InvalidKeyException e1 )
             {
                 LOGGER.error( "Decryption failed", e1 );
                 return password;
             }
-            catch ( IllegalBlockSizeException e )
+            catch ( final IllegalBlockSizeException e )
             {
                 LOGGER.error( "Decryption failed", e );
                 return password;
             }
-            catch ( BadPaddingException e )
+            catch ( final BadPaddingException e )
             {
                 LOGGER.error( "Decryption failed", e );
                 return password;

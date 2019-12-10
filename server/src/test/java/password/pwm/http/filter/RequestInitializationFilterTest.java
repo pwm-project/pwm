@@ -25,7 +25,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.BooleanValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
@@ -38,7 +39,7 @@ public class RequestInitializationFilterTest
     public void readUserNetworkAddressTest()
             throws PwmUnrecoverableException
     {
-        final Configuration conf = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
+        final Configuration conf = new Configuration( StoredConfigurationFactory.newConfig() );
         final HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
         Mockito.when( mockRequest.getRemoteAddr() ).thenReturn( "10.1.1.1" );
 
@@ -50,7 +51,7 @@ public class RequestInitializationFilterTest
     public void readUserNetworkAddressTestBogus()
             throws PwmUnrecoverableException
     {
-        final Configuration conf = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
+        final Configuration conf = new Configuration( StoredConfigurationFactory.newConfig() );
         final HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
         Mockito.when( mockRequest.getRemoteAddr() ).thenReturn( "10.1.1.1m" );
 
@@ -62,7 +63,7 @@ public class RequestInitializationFilterTest
     public void readUserNetworkAddressTestXForward()
             throws PwmUnrecoverableException
     {
-        final Configuration conf = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
+        final Configuration conf = new Configuration( StoredConfigurationFactory.newConfig() );
         final HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
         Mockito.when( mockRequest.getRemoteAddr() ).thenReturn( "10.1.1.1" );
         Mockito.when( mockRequest.getHeader( HttpHeader.XForwardedFor.getHttpName() ) ).thenReturn( "10.1.1.2" );
@@ -75,7 +76,7 @@ public class RequestInitializationFilterTest
     public void readUserNetworkAddressTestBogusXForward()
             throws PwmUnrecoverableException
     {
-        final Configuration conf = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
+        final Configuration conf = new Configuration( StoredConfigurationFactory.newConfig() );
         final HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
         Mockito.when( mockRequest.getRemoteAddr() ).thenReturn( "10.1.1.1" );
         Mockito.when( mockRequest.getHeader( HttpHeader.XForwardedFor.getHttpName() ) ).thenReturn( "10.1.1.2a" );
@@ -88,7 +89,7 @@ public class RequestInitializationFilterTest
     public void readUserNetworkAddressTestMultipleXForward()
             throws PwmUnrecoverableException
     {
-        final Configuration conf = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
+        final Configuration conf = new Configuration( StoredConfigurationFactory.newConfig() );
         final HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
         Mockito.when( mockRequest.getRemoteAddr() ).thenReturn( "10.1.1.1" );
         Mockito.when( mockRequest.getHeader( HttpHeader.XForwardedFor.getHttpName() ) ).thenReturn( "10.1.1.2, 10.1.1.3" );
@@ -101,7 +102,7 @@ public class RequestInitializationFilterTest
     public void readUserNetworkAddressTestMultipleBogusXForward()
             throws PwmUnrecoverableException
     {
-        final Configuration conf = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
+        final Configuration conf = new Configuration( StoredConfigurationFactory.newConfig() );
         final HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
         Mockito.when( mockRequest.getRemoteAddr() ).thenReturn( "10.1.1.1" );
         Mockito.when( mockRequest.getHeader( HttpHeader.XForwardedFor.getHttpName() ) ).thenReturn( "10.1.1.2a, 10.1.1.3" );
@@ -114,7 +115,7 @@ public class RequestInitializationFilterTest
     public void readUserNetworkAddressTestIPv6()
             throws PwmUnrecoverableException
     {
-        final Configuration conf = new Configuration( StoredConfigurationImpl.newStoredConfiguration() );
+        final Configuration conf = new Configuration( StoredConfigurationFactory.newConfig() );
         final HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
         Mockito.when( mockRequest.getRemoteAddr() ).thenReturn( "10.1.1.1" );
         Mockito.when( mockRequest.getHeader( HttpHeader.XForwardedFor.getHttpName() ) ).thenReturn( "10.1.1.2a, 2001:0db8:85a3:0000:0000:8a2e:0370:7334" );
@@ -127,9 +128,9 @@ public class RequestInitializationFilterTest
     public void readUserNetworkAddressTestDisabledXForwardedFor()
             throws PwmUnrecoverableException
     {
-        final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
-        storedConfiguration.writeSetting( PwmSetting.USE_X_FORWARDED_FOR_HEADER, new BooleanValue( false ), null );
-        final Configuration conf = new Configuration( storedConfiguration );
+        final StoredConfigurationModifier modifier = StoredConfigurationFactory.newModifiableConfig();
+        modifier.writeSetting( PwmSetting.USE_X_FORWARDED_FOR_HEADER, null, new BooleanValue( false ), null );
+        final Configuration conf = new Configuration( modifier.newStoredConfiguration() );
         final HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
         Mockito.when( mockRequest.getRemoteAddr() ).thenReturn( "10.1.1.1" );
         Mockito.when( mockRequest.getHeader( HttpHeader.XForwardedFor.getHttpName() ) ).thenReturn( "10.1.1.2" );

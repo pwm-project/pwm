@@ -300,7 +300,7 @@ class PeopleSearchDataReader
         {
             linkMap = JsonUtil.deserializeStringMap( userLinksStr );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.warn( pwmRequest, "error de-serializing configured app property json for detail links: " + e.getMessage() );
             return Collections.emptyList();
@@ -345,14 +345,14 @@ class PeopleSearchDataReader
             }
             return Collections.unmodifiableList( returnObj );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation(
                     PwmError.ERROR_DIRECTORY_UNAVAILABLE,
                     "error reading attribute value '" + attributeName + "', error:" + e.getMessage()
             ) );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() ) );
         }
@@ -413,14 +413,14 @@ class PeopleSearchDataReader
         {
             ldapValues = chaiUser.readMultiStringAttribute( attributeName );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation(
                     PwmError.ERROR_DIRECTORY_UNAVAILABLE,
                     "error reading attribute value '" + attributeName + "', error:" + e.getMessage()
             ) );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() ) );
         }
@@ -729,7 +729,7 @@ class PeopleSearchDataReader
                     false
             );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             LOGGER.error( "unexpected error during detail lookup of '" + userIdentity + "', error: " + e.getMessage() );
             throw PwmUnrecoverableException.fromChaiException( e );
@@ -820,7 +820,7 @@ class PeopleSearchDataReader
             results = userSearchEngine.performMultiUserSearchFromForm( locale, searchConfiguration, maxResults, searchForm, pwmRequest.getSessionLabel() );
             sizeExceeded = results.isSizeExceeded();
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             final ErrorInformation errorInformation = e.getErrorInformation();
             LOGGER.error( pwmRequest.getSessionLabel(), errorInformation.toDebugStr() );
@@ -877,12 +877,12 @@ class PeopleSearchDataReader
             {
                 return getChaiUser( userIdentity ).readStringAttribute( attribute );
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 LOGGER.trace( pwmRequest, () -> "error reading attribute for user '" + userIdentity.toDisplayString() + "', error: " + e.getMessage() );
                 return null;
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 throw PwmUnrecoverableException.fromChaiException( e );
             }
@@ -990,7 +990,7 @@ class PeopleSearchDataReader
             {
                 doJob();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( pwmRequest, "error exporting csv row data: " + e.getMessage() );
             }

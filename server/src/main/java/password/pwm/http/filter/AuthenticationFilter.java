@@ -111,7 +111,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                 this.processUnAuthenticatedSession( pwmRequest, chain );
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( e.getErrorInformation() );
             pwmRequest.respondWithError( e.getErrorInformation(), true );
@@ -197,7 +197,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                     LoginServlet.redirectToLoginServlet( pwmRequest );
                     return;
                 }
-                catch ( Throwable e1 )
+                catch ( final Throwable e1 )
                 {
                     LOGGER.error( "error while marking pre-login url:" + e1.getMessage() );
                 }

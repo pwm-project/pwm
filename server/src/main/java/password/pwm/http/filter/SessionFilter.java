@@ -109,12 +109,12 @@ public class SessionFilter extends AbstractPwmFilter
         {
             chain.doFilter();
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             LOGGER.trace( pwmRequest, () -> "IO exception during servlet processing: " + e.getMessage() );
             throw new ServletException( e );
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             if ( e instanceof ServletException
                     && e.getCause() != null
@@ -165,7 +165,7 @@ public class SessionFilter extends AbstractPwmFilter
         {
             pwmApplication.getSessionStateService().readLoginSessionState( pwmRequest );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.warn( pwmRequest, "error while reading login session state: " + e.getMessage() );
         }
@@ -225,7 +225,7 @@ public class SessionFilter extends AbstractPwmFilter
                 {
                     checkUrlAgainstWhitelist( pwmApplication, pwmRequest.getSessionLabel(), forwardURL );
                 }
-                catch ( PwmOperationalException e )
+                catch ( final PwmOperationalException e )
                 {
                     LOGGER.error( pwmRequest, e.getErrorInformation() );
                     pwmRequest.respondWithError( e.getErrorInformation() );
@@ -245,7 +245,7 @@ public class SessionFilter extends AbstractPwmFilter
                 {
                     checkUrlAgainstWhitelist( pwmApplication, pwmRequest.getSessionLabel(), logoutURL );
                 }
-                catch ( PwmOperationalException e )
+                catch ( final PwmOperationalException e )
                 {
                     LOGGER.error( pwmRequest, e.getErrorInformation() );
                     pwmRequest.respondWithError( e.getErrorInformation() );
@@ -543,7 +543,7 @@ public class SessionFilter extends AbstractPwmFilter
         {
             inputURI = URI.create( inputURL );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             LOGGER.error( sessionLabel, "unable to parse requested redirect url '" + inputURL + "', error: " + e.getMessage() );
             // dont put input uri in error response
@@ -573,7 +573,7 @@ public class SessionFilter extends AbstractPwmFilter
                     throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_REDIRECT_ILLEGAL, errorMsg ) );
                 }
             }
-            catch ( UnknownHostException e )
+            catch ( final UnknownHostException e )
             {
                 /* noop */
             }

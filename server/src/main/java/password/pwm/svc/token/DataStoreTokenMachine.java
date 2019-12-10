@@ -95,7 +95,7 @@ public class DataStoreTokenMachine implements TokenMachine
                 retrieveToken( loopKey );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "unexpected error while cleaning expired stored tokens: " + e.getMessage() );
         }
@@ -148,7 +148,7 @@ public class DataStoreTokenMachine implements TokenMachine
             {
                 tokenPayload = tokenService.fromEncryptedString( storedRawValue );
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 LOGGER.trace( () -> "error while trying to decrypted stored token payload for key '" + storedHash + "', will purge record, error: " + e.getMessage() );
                 dataStore.remove( storedHash );

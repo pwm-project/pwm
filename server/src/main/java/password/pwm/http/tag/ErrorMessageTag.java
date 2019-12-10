@@ -55,7 +55,7 @@ public class ErrorMessageTag extends PwmAbstractTag
             {
                 pwmApplication = ContextManager.getPwmApplication( pageContext.getRequest() );
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 /* noop */
             }
@@ -93,11 +93,11 @@ public class ErrorMessageTag extends PwmAbstractTag
                 pageContext.getOut().write( outputMsg );
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             /* app not running */
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error executing error message tag: " + e.getMessage(), e );
             throw new JspTagException( e.getMessage() );

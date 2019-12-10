@@ -21,35 +21,43 @@
 package password.pwm.i18n;
 
 import password.pwm.PwmConstants;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 
 public enum PwmLocaleBundle
 {
-    DISPLAY( Display.class, false ),
-    ERRORS( Error.class, false ),
-    MESSAGE( Message.class, false ),
+    DISPLAY( Display.class ),
+    ERRORS( Error.class ),
+    MESSAGE( Message.class ),
 
-    CONFIG( Config.class, true ),
-    ADMIN( Admin.class, true ),
-    HEALTH( Health.class, true ),;
+    CONFIG( Config.class, Flag.AdminOnly ),
+    ADMIN( Admin.class, Flag.AdminOnly ),
+    HEALTH( Health.class, Flag.AdminOnly ),
+    CONFIG_GUIDE( ConfigGuide.class, Flag.AdminOnly ),;
 
     private final Class<? extends PwmDisplayBundle> theClass;
-    private final boolean adminOnly;
-    private Set<String> keys;
 
-    PwmLocaleBundle( final Class<? extends PwmDisplayBundle> theClass, final boolean adminOnly )
+    enum Flag
+    {
+        AdminOnly,
+    }
+
+    private final Flag[] flags;
+
+    PwmLocaleBundle( final Class<? extends PwmDisplayBundle> theClass, final Flag... flags )
     {
         this.theClass = theClass;
-        this.adminOnly = adminOnly;
+        this.flags = flags;
     }
 
     public Class<? extends PwmDisplayBundle> getTheClass( )
@@ -59,17 +67,40 @@ public enum PwmLocaleBundle
 
     public boolean isAdminOnly( )
     {
-        return adminOnly;
+        return JavaHelper.enumArrayContainsValue( flags, Flag.AdminOnly );
     }
 
-    public Set<String> getKeys( )
+    public static Optional<PwmLocaleBundle> forKey( final String key )
     {
-        if ( keys == null )
+        for ( final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.values() )
         {
-            final ResourceBundle defaultBundle = ResourceBundle.getBundle( this.getTheClass().getName(), PwmConstants.DEFAULT_LOCALE );
-            keys = Collections.unmodifiableSet( new HashSet<>( defaultBundle.keySet() ) );
+            if ( StringUtil.caseIgnoreContains( pwmLocaleBundle.getLegacyKeys(), key ) )
+            {
+                return Optional.of( pwmLocaleBundle );
+            }
         }
-        return keys;
+
+        return Optional.empty();
+    }
+
+    public String getKey()
+    {
+        return getTheClass().getSimpleName();
+    }
+
+    public Set<String> getLegacyKeys()
+    {
+        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList(
+                this.getTheClass().getSimpleName(),
+                this.getTheClass().getName(),
+                "password.pwm." + this.getTheClass().getSimpleName()
+        ) ) );
+    }
+
+    public Set<String> getDisplayKeys( )
+    {
+        final ResourceBundle defaultBundle = ResourceBundle.getBundle( this.getTheClass().getName(), PwmConstants.DEFAULT_LOCALE );
+        return Collections.unmodifiableSet( new HashSet<>( defaultBundle.keySet() ) );
     }
 
     public static Collection<PwmLocaleBundle> allValues( )
@@ -80,13 +111,7 @@ public enum PwmLocaleBundle
     public static Collection<PwmLocaleBundle> userFacingValues( )
     {
         final List<PwmLocaleBundle> returnValue = new ArrayList<>( allValues() );
-        for ( final Iterator<PwmLocaleBundle> iter = returnValue.iterator(); iter.hasNext(); )
-        {
-            if ( iter.next().isAdminOnly() )
-            {
-                iter.remove();
-            }
-        }
+        returnValue.removeIf( PwmLocaleBundle::isAdminOnly );
         return Collections.unmodifiableList( returnValue );
     }
 }

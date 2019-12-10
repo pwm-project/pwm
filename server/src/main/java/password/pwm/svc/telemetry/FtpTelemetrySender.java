@@ -99,7 +99,7 @@ public class FtpTelemetrySender implements TelemetrySender
 
             LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "connected to " + settings.getHost() );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             disconnectFtpClient( ftpClient );
             final String msg = "unable to connect to " + settings.getHost() + ", error: " + e.getMessage();
@@ -120,7 +120,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             disconnectFtpClient( ftpClient );
             final String msg = "unable to connect to " + settings.getHost() + ", error: " + e.getMessage();
@@ -142,7 +142,7 @@ public class FtpTelemetrySender implements TelemetrySender
 
             LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "authenticated to " + settings.getHost() + " as " + settings.getUsername() );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             disconnectFtpClient( ftpClient );
             final String msg = "error authenticating as " + settings.getUsername() + " to " + settings.getHost() + ", error: " + e.getMessage();
@@ -172,7 +172,7 @@ public class FtpTelemetrySender implements TelemetrySender
 
             LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "completed transfer of " + fileBytes.length + " in " + TimeDuration.compactFromCurrent( startTime ) );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             disconnectFtpClient( ftpClient );
             final String msg = "error uploading file  to " + settings.getHost() + ", error: " + e.getMessage();
@@ -189,7 +189,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 ftpClient.disconnect();
                 LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "disconnected" );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "error while disconnecting ftp client: " + e.getMessage() );
             }

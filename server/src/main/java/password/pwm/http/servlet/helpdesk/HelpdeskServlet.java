@@ -299,7 +299,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             pwmRequest.outputJsonResult( restResultBean );
             return ProcessStatus.Halt;
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.error( pwmRequest, e.getErrorInformation().toDebugStr() );
             final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
@@ -344,7 +344,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                     pwmRequest.getLocale() );
             userID = deletedUserInfo.getUsername();
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.warn( pwmSession, "unable to read username of deleted user while creating audit record" );
         }
@@ -359,7 +359,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         {
             provider.deleteEntry( userIdentity.getUserDN() );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             final String errorMsg = "error while attempting to delete user " + userIdentity.toString() + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -442,7 +442,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         {
             searchResultsBean = searchImpl( pwmRequest, helpdeskProfile, searchRequest );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             throw new PwmUnrecoverableException( e.getErrorInformation() );
         }
@@ -617,7 +617,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                 pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
             }
         }
-        catch ( ChaiPasswordPolicyException e )
+        catch ( final ChaiPasswordPolicyException e )
         {
             final ChaiError passwordError = e.getErrorCode();
             final PwmError pwmError = PwmError.forChaiError( passwordError );
@@ -625,7 +625,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             LOGGER.trace( pwmRequest, () -> "ChaiPasswordPolicyException was thrown while resetting password: " + e.toString() );
             return ProcessStatus.Halt;
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             final PwmError returnMsg = PwmError.forChaiError( e.getErrorCode() ) == null ? PwmError.ERROR_INTERNAL : PwmError.forChaiError( e.getErrorCode() );
             final ErrorInformation error = new ErrorInformation( returnMsg, e.getMessage() );
@@ -717,7 +717,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
             return outputVerificationResponseBean( pwmRequest, passed, verificationStateBean );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             pwmRequest.outputJsonResult( RestResultBean.fromError( e.getErrorInformation(), pwmRequest ) );
         }
@@ -800,7 +800,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                             .build()
             );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( pwmRequest, e.getErrorInformation() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( e.getErrorInformation(), pwmRequest ) );
@@ -948,7 +948,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                 pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
             }
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             final PwmError returnMsg = e.getError();
             final ErrorInformation error = new ErrorInformation( returnMsg, e.getMessage() );
@@ -1013,7 +1013,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         {
             results.put( "records", state.asViewableValidationRecords( pwmRequest.getPwmApplication(), pwmRequest.getLocale() ) );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -1062,7 +1062,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                         successCount++;
                     }
                 }
-                catch ( ChaiException e )
+                catch ( final ChaiException e )
                 {
                     LOGGER.error( pwmRequest, "error comparing ldap attribute during verification " + e.getMessage() );
                 }
@@ -1138,7 +1138,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         {
             userIdentity = readUserKeyRequestParameter( pwmRequest );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             pwmRequest.outputJsonResult( RestResultBean.fromError( e.getErrorInformation() ) );
             return ProcessStatus.Halt;
@@ -1319,7 +1319,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                     newPassword
             );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( "error during set password REST operation: " + e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( e.getErrorInformation(), pwmRequest ) );

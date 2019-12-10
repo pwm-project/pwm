@@ -179,7 +179,7 @@ public class StatisticsManager implements PwmService
             cachedStoredStats.put( key, returnBundle );
             return returnBundle;
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             LOGGER.error( "error retrieving stored stat for " + key + ": " + e.getMessage() );
         }
@@ -250,7 +250,7 @@ public class StatisticsManager implements PwmService
                 {
                     statsCummulative = StatisticsBundle.input( storedCumulativeBundleSir );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.warn( "error loading saved stored cumulative statistics: " + e.getMessage() );
                 }
@@ -278,7 +278,7 @@ public class StatisticsManager implements PwmService
         {
             localDB.put( LocalDB.DB.PWM_STATS, DB_KEY_TEMP, JavaHelper.toIsoDate( Instant.now() ) );
         }
-        catch ( IllegalStateException e )
+        catch ( final IllegalStateException e )
         {
             LOGGER.error( "unable to write to localDB, will remain closed, error: " + e.getMessage() );
             status = STATUS.CLOSED;
@@ -309,7 +309,7 @@ public class StatisticsManager implements PwmService
                 dbData.put( currentDailyKey.toString(), statsDaily.output() );
                 localDB.putAll( LocalDB.DB.PWM_STATS, dbData );
             }
-            catch ( LocalDBException e )
+            catch ( final LocalDBException e )
             {
                 LOGGER.error( "error outputting pwm statistics: " + e.getMessage() );
             }
@@ -348,7 +348,7 @@ public class StatisticsManager implements PwmService
         {
             writeDbValues();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "unexpected error closing: " + e.getMessage() );
         }

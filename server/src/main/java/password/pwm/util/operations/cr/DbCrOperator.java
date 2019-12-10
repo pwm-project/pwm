@@ -85,13 +85,13 @@ public class DbCrOperator implements CrOperator
                 LOGGER.trace( () -> "user guid for " + theUser.getEntryDN() + " not found in remote database (key=" + userGUID + ")" );
             }
         }
-        catch ( ChaiValidationException e )
+        catch ( final ChaiValidationException e )
         {
             final String errorMsg = "unexpected error reading responses for " + theUser.getEntryDN() + " from remote database: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             final String errorMsg = "unexpected error reading responses for " + theUser.getEntryDN() + " from remote database: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( e.getErrorInformation().getError(), errorMsg );
@@ -108,7 +108,7 @@ public class DbCrOperator implements CrOperator
             final ResponseSet responseSet = readResponseSet( theUser, userIdentity, userGUID );
             return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean( responseSet, DataStorageMethod.DB );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation(
                     PwmError.ERROR_RESPONSES_NORESPONSES,
@@ -134,7 +134,7 @@ public class DbCrOperator implements CrOperator
             databaseAccessor.remove( DatabaseTable.PWM_RESPONSES, userGUID );
             LOGGER.info( () -> "cleared responses for user " + theUser.getEntryDN() + " in remote database" );
         }
-        catch ( DatabaseException e )
+        catch ( final DatabaseException e )
         {
             final ErrorInformation errorInfo = new ErrorInformation(
                     PwmError.ERROR_CLEARING_RESPONSES,
@@ -180,11 +180,11 @@ public class DbCrOperator implements CrOperator
             databaseAccessor.put( DatabaseTable.PWM_RESPONSES, userGUID, responseSet.stringValue() );
             LOGGER.info( () -> "saved responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
-        catch ( DatabaseException e )
+        catch ( final DatabaseException e )
         {
             final ErrorInformation errorInfo = new ErrorInformation(
                     PwmError.ERROR_WRITING_RESPONSES,

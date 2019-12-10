@@ -133,7 +133,7 @@ public class RestVerifyResponsesServer extends RestServlet
             return restResultBean;
 
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }

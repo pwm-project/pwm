@@ -1744,3 +1744,7 @@ table.ias-table, table.ias-table td {
 #header-title > .title-short {
     display: none;
 }
+
+.pre-whitespace {
+    white-space: pre;
+}

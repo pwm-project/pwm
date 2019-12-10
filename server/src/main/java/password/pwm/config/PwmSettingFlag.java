@@ -54,4 +54,5 @@ public enum PwmSettingFlag
 
     WebService_NoBody,
 
+    Deprecated,
 }

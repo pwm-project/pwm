@@ -126,7 +126,7 @@ public class OtpService implements PwmService
                     throw new UnsupportedOperationException( "OTP type not supported: " + otpUserRecord.getType() );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( sessionLabel, "error checking otp secret: " + e.getMessage() );
         }
@@ -150,7 +150,7 @@ public class OtpService implements PwmService
                     {
                         pwmApplication.getOtpService().writeOTPUserConfiguration( null, userIdentity, otpUserRecord );
                     }
-                    catch ( ChaiUnavailableException e )
+                    catch ( final ChaiUnavailableException e )
                     {
                         throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, e.getMessage() ) );
                     }
@@ -274,7 +274,7 @@ public class OtpService implements PwmService
         {
             md = MessageDigest.getInstance( algorithm );
         }
-        catch ( NoSuchAlgorithmException e )
+        catch ( final NoSuchAlgorithmException e )
         {
             throw new IllegalStateException( "unable to load " + algorithm + " message digest algorithm: " + e.getMessage() );
         }
@@ -341,7 +341,7 @@ public class OtpService implements PwmService
                     {
                         otpConfig = operator.readOtpUserConfiguration( userIdentity, userGUID );
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
                         LOGGER.error( sessionLabel, "unexpected error reading stored otp configuration from "
                                 + location + " for user " + userIdentity + ", error: " + e.getMessage() );
@@ -396,7 +396,7 @@ public class OtpService implements PwmService
                         operator.writeOtpUserConfiguration( pwmSession, userIdentity, userGUID, otp );
                         successes++;
                     }
-                    catch ( PwmUnrecoverableException e )
+                    catch ( final PwmUnrecoverableException e )
                     {
                         LOGGER.error( pwmSession, "error writing to " + otpSecretStorageLocation + ", error: " + e.getMessage() );
                         errorMsgs.append( otpSecretStorageLocation ).append( " error: " ).append( e.getMessage() );
@@ -456,7 +456,7 @@ public class OtpService implements PwmService
                         operator.clearOtpUserConfiguration( pwmSession, userIdentity, chaiUser, userGUID );
                         successes++;
                     }
-                    catch ( PwmUnrecoverableException e )
+                    catch ( final PwmUnrecoverableException e )
                     {
                         LOGGER.error( pwmSession, "error clearing " + otpSecretStorageLocation + ", error: " + e.getMessage() );
                         errorMsgs.append( otpSecretStorageLocation ).append( " error: " ).append( e.getMessage() );

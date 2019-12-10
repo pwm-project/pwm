@@ -104,11 +104,11 @@ public class RestStatusServer extends RestServlet
                     + TimeDuration.compactFromCurrent( startTime ) + ", result=" + JsonUtil.serialize( restResultBean ) );
             return restResultBean;
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             return RestResultBean.fromError( e.getErrorInformation() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );

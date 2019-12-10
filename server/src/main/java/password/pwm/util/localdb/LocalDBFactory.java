@@ -127,7 +127,7 @@ public class LocalDBFactory
             }
             localDB = ( LocalDBProvider ) impl;
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             final String errorMsg = "error creating new LocalDB instance: " + e.getClass().getName() + ":" + e.getMessage();
             LOGGER.error( errorMsg, e );
@@ -156,7 +156,7 @@ public class LocalDBFactory
 
             pwmDBProvider.init( dbFileLocation, initParameters, parameters );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "error creating new LocalDB instance: " + e.getClass().getName() + ":" + e.getMessage();
             LOGGER.error( errorMsg, e );

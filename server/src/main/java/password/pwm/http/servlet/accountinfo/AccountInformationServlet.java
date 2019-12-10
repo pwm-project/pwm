@@ -90,7 +90,7 @@ public class AccountInformationServlet extends ControlledPwmServlet
             );
             pwmRequest.setAttribute( PwmRequestAttribute.AccountInfo, accountInformationBean );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( pwmRequest, "error reading user form data: " + e.getMessage() );
         }

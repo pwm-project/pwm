@@ -20,7 +20,9 @@
 
 package password.pwm.util.logging;
 
+import org.apache.log4j.Logger;
 import org.apache.log4j.RollingFileAppender;
+import org.apache.log4j.varia.NullAppender;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
@@ -140,7 +142,7 @@ public class PwmLogger
                 final CharSequence cleanedString = PwmLogger.removeUserDataFromString( pwmSession.getLoginInfoBean(), message.get() );
                 cleanedMessage = () -> cleanedString;
             }
-            catch ( PwmUnrecoverableException e1 )
+            catch ( final PwmUnrecoverableException e1 )
             {
                 /* can't be logged */
             }
@@ -204,7 +206,7 @@ public class PwmLogger
                 }
             }
         }
-        catch ( Exception e2 )
+        catch ( final Exception e2 )
         {
             //nothing can be done about it now;
         }
@@ -600,6 +602,13 @@ public class PwmLogger
                                 && minimumDbLogLevel != null
                                 && minimumDbLogLevel.compareTo( pwmLogLevel ) <= 0
                 );
+    }
+
+    public static void disableAllLogging()
+    {
+        Logger.getRootLogger().removeAllAppenders();
+        Logger.getRootLogger().addAppender( new NullAppender() );
+        PwmLogger.markInitialized();
     }
 }
 

@@ -21,7 +21,8 @@
 package password.pwm.util;
 
 import org.junit.Test;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
 
 public class LDAPPermissionCalculatorTest
@@ -30,7 +31,7 @@ public class LDAPPermissionCalculatorTest
     public void testDefaultPermissionCalculator()
             throws PwmUnrecoverableException
     {
-        final StoredConfigurationImpl defaultConfig = StoredConfigurationImpl.newStoredConfiguration();
+        final StoredConfiguration defaultConfig = StoredConfigurationFactory.newConfig();
         final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( defaultConfig );
         ldapPermissionCalculator.getPermissionRecords();
     }

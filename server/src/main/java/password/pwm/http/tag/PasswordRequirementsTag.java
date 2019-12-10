@@ -491,7 +491,7 @@ public class PasswordRequirementsTag extends TagSupport
         {
             return Message.getLocalizedMessage( policyValues.getLocale(), effectiveMessage, policyValues.getConfig(), String.valueOf( size ) );
         }
-        catch ( MissingResourceException e )
+        catch ( final MissingResourceException e )
         {
             LOGGER.error( "unable to display requirement tag for message '" + message.toString() + "': " + e.getMessage() );
         }
@@ -504,7 +504,7 @@ public class PasswordRequirementsTag extends TagSupport
         {
             return Message.getLocalizedMessage( policyValues.getLocale(), message, policyValues.getConfig(), field );
         }
-        catch ( MissingResourceException e )
+        catch ( final MissingResourceException e )
         {
             LOGGER.error( "unable to display requirement tag for message '" + message.toString() + "': " + e.getMessage() );
         }
@@ -589,7 +589,7 @@ public class PasswordRequirementsTag extends TagSupport
                 pageContext.getOut().write( requirementsText.toString() );
             }
         }
-        catch ( IOException | PwmException e )
+        catch ( final IOException | PwmException e )
         {
             LOGGER.error( "unexpected error during password requirements generation: " + e.getMessage(), e );
             throw new JspTagException( e.getMessage() );

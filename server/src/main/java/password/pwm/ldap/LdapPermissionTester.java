@@ -166,7 +166,7 @@ public class LdapPermissionTester
                     result = true;
                 }
             }
-            catch ( ChaiException e )
+            catch ( final ChaiException e )
             {
                 LOGGER.warn( pwmSession, "LDAP error during group for " + userIdentity + " using " + filterString + ", error:" + e.getMessage() );
             }
@@ -222,7 +222,7 @@ public class LdapPermissionTester
                     result = true;
                 }
             }
-            catch ( ChaiException e )
+            catch ( final ChaiException e )
             {
                 LOGGER.warn( pwmSession, "LDAP error during check for " + userIdentity + " using " + filterString + ", error:" + e.getMessage() );
             }
@@ -265,7 +265,7 @@ public class LdapPermissionTester
                             sessionLabel
                     ) );
                 }
-                catch ( PwmUnrecoverableException e )
+                catch ( final PwmUnrecoverableException e )
                 {
                     LOGGER.error( "error reading matching users: " + e.getMessage() );
                     throw new PwmOperationalException( e.getErrorInformation() );

@@ -125,7 +125,7 @@ public class ChangePasswordServletUtil
                 }
                 LOGGER.trace( pwmSession, () -> "successful validation of ldap value for '" + attrName + "'" );
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 LOGGER.error( pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage() );
                 throw new PwmDataValidationException( new ErrorInformation(

@@ -49,7 +49,7 @@ public class ExportLocalDBCommand extends AbstractCliCommand
         {
             localDBUtility.exportLocalDB( fileOutputStream, System.out );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             out( "error during export: " + e.getMessage() );
         }

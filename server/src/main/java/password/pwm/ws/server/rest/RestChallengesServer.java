@@ -234,7 +234,7 @@ public class RestChallengesServer extends RestServlet
             StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_CHALLENGES );
             return RestResultBean.withData( jsonData );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -291,7 +291,7 @@ public class RestChallengesServer extends RestServlet
 
             return RestResultBean.forSuccessMessage( restRequest, Message.Success_SetupResponse );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error reading json input: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -339,7 +339,7 @@ public class RestChallengesServer extends RestServlet
 
             return RestResultBean.forSuccessMessage( restRequest, Message.Success_Unknown );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error delete responses: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );

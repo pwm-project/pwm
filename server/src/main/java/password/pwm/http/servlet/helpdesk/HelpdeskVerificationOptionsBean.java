@@ -116,7 +116,7 @@ public class HelpdeskVerificationOptionsBean implements Serializable
                             testSetting
                     ) );
                 }
-                catch ( PwmUnrecoverableException e )
+                catch ( final PwmUnrecoverableException e )
                 {
                     LOGGER.trace( () -> "error while calculating available token methods: " + e.getMessage() );
                 }

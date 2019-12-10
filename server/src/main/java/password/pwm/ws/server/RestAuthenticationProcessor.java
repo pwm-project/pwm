@@ -203,7 +203,7 @@ public class RestAuthenticationProcessor
         {
             return userSearchEngine.resolveUsername( basicAuthInfo.getUsername(), null, null, sessionLabel );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             throw new PwmUnrecoverableException( e.getErrorInformation().wrapWithNewErrorCode( PwmError.ERROR_WRONGPASSWORD ) );
         }

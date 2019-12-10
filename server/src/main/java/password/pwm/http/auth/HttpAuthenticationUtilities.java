@@ -64,7 +64,7 @@ public abstract class HttpAuthenticationUtilities
                     final Object newInstance = clazz.newInstance();
                     filterAuthenticationProvider = ( PwmHttpFilterAuthenticationProvider ) newInstance;
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.trace( () -> "could not load authentication class '" + authenticationMethod + "', will ignore" );
                     IGNORED_AUTH_METHODS.add( authenticationMethod );
@@ -89,7 +89,7 @@ public abstract class HttpAuthenticationUtilities
                         }
 
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
                         final ErrorInformation errorInformation;
                         if ( e instanceof PwmException )
@@ -149,7 +149,7 @@ public abstract class HttpAuthenticationUtilities
             pwmRequest.getPwmResponse().writeEncryptedCookie( cookieName, httpAuthRecord, cookieAgeSeconds, PwmHttpResponseWrapper.CookiePath.Application );
             LOGGER.debug( pwmRequest, () -> "wrote auth record cookie to user browser for use during forgotten password" );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( pwmRequest, "error while setting authentication record cookie: " + e.getMessage() );
         }

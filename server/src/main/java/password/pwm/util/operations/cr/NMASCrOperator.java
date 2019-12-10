@@ -195,7 +195,7 @@ public class NMASCrOperator implements CrOperator
             }
             LOGGER.trace( () -> "initialized security provider " + saslProvider.getClass().getName() );
         }
-        catch ( Throwable t )
+        catch ( final Throwable t )
         {
             LOGGER.warn( "unable to create SASL provider, error: " + t.getMessage(), t );
         }
@@ -206,7 +206,7 @@ public class NMASCrOperator implements CrOperator
             {
                 Security.addProvider( saslProvider );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.warn( "error registering security provider" );
             }
@@ -222,7 +222,7 @@ public class NMASCrOperator implements CrOperator
             {
                 Security.removeProvider( NMASCrPwmSaslProvider.SASL_PROVIDER_NAME );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.warn( "error removing provider " + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + ", error: " + e.getMessage() );
             }
@@ -292,11 +292,11 @@ public class NMASCrOperator implements CrOperator
             }
             return responseSet;
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             throw new PwmUnrecoverableException( e.getErrorInformation() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error loading NMAS responses: " + e.getMessage();
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_RESPONSES_NORESPONSES, errorMsg ) );
@@ -324,7 +324,7 @@ public class NMASCrOperator implements CrOperator
             responseInfoBean.setTimestamp( null );
             return responseInfoBean;
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_RESPONSES_NORESPONSES, "unexpected error reading response info " + e.getMessage() ) );
         }
@@ -344,7 +344,7 @@ public class NMASCrOperator implements CrOperator
                 LOGGER.info( () -> "cleared responses for user " + theUser.getEntryDN() + " using NMAS method " );
             }
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             final String errorMsg = "error clearing responses from nmas: " + e.getMessage();
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CLEARING_RESPONSES, errorMsg );
@@ -377,7 +377,7 @@ public class NMASCrOperator implements CrOperator
                 LOGGER.info( () -> "saved responses for user using NMAS method " );
             }
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             final String errorMsg = "error writing responses to nmas: " + e.getMessage();
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
@@ -492,7 +492,7 @@ public class NMASCrOperator implements CrOperator
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_RESPONSES_NORESPONSES, "nmas account is disabled" ) );
                 }
             }
-            catch ( ChaiException e )
+            catch ( final ChaiException e )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_RESPONSES_NORESPONSES, "unable to evaluate nmas account status attributes" ) );
             }
@@ -575,7 +575,7 @@ public class NMASCrOperator implements CrOperator
             {
                 passed = ldapChallengeSession.testAnswers( answers );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "error testing responses: " + e.getMessage() );
             }
@@ -591,7 +591,7 @@ public class NMASCrOperator implements CrOperator
                         throw new ChaiUnavailableException( errorMsg, ChaiError.UNKNOWN );
                     }
                 }
-                catch ( PwmException e )
+                catch ( final PwmException e )
                 {
                     final String errorMsg = "error reading next challenges after testing responses: " + e.getMessage();
                     LOGGER.error( "error reading next challenges after testing responses: " + e.getMessage() );
@@ -599,7 +599,7 @@ public class NMASCrOperator implements CrOperator
                     chaiUnavailableException.initCause( e );
                     throw chaiUnavailableException;
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     final String errorMsg = "error reading next challenges after testing responses: " + e.getMessage();
                     LOGGER.error( "error reading next challenges after testing responses: " + e.getMessage() );
@@ -703,7 +703,7 @@ public class NMASCrOperator implements CrOperator
                 {
                     this.ldapConnection.disconnect();
                 }
-                catch ( LDAPException e )
+                catch ( final LDAPException e )
                 {
                     LOGGER.error( "error closing ldap connection: " + e.getMessage(), e );
                 }
@@ -740,7 +740,7 @@ public class NMASCrOperator implements CrOperator
                         {
                             handleNMASCallback( ( NMASCallback ) callback );
                         }
-                        catch ( com.novell.security.nmas.client.InvalidNMASCallbackException e )
+                        catch ( final com.novell.security.nmas.client.InvalidNMASCallbackException e )
                         {
                             LOGGER.error( "error processing NMASCallback: " + e.getMessage(), e );
                         }
@@ -752,7 +752,7 @@ public class NMASCrOperator implements CrOperator
                         {
                             handleLCMUserPromptCallback( ( LCMUserPromptCallback ) callback );
                         }
-                        catch ( LCMUserPromptException e )
+                        catch ( final LCMUserPromptException e )
                         {
                             LOGGER.error( "error processing LCMUserPromptCallback: " + e.getMessage(), e );
                         }
@@ -851,7 +851,7 @@ public class NMASCrOperator implements CrOperator
                 {
                     wait();
                 }
-                catch ( Exception localException )
+                catch ( final Exception localException )
                 {
                     /* noop */
                 }
@@ -934,7 +934,7 @@ public class NMASCrOperator implements CrOperator
                             this.callbackHandler
                     );
                 }
-                catch ( NullPointerException e )
+                catch ( final NullPointerException e )
                 {
                     LOGGER.error( "NullPointer error during CallBackHandler-NMASCR-bind; "
                             + "this is usually the result of an ldap disconnection, thread=" + this.toDebugString() );
@@ -953,7 +953,7 @@ public class NMASCrOperator implements CrOperator
                 setLoginResult( new com.novell.security.nmas.client.NMASLoginResult( this.callbackHandler.awaitRetCode(), this.ldapConn ) );
                 lastActivityTimestamp = Instant.now();
             }
-            catch ( LDAPException e )
+            catch ( final LDAPException e )
             {
                 if ( loginState == NMASThreadState.ABORTED )
                 {
@@ -985,7 +985,7 @@ public class NMASCrOperator implements CrOperator
             {
                 this.notify();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 /* ignore */
             }
@@ -994,7 +994,7 @@ public class NMASCrOperator implements CrOperator
             {
                 this.nmasResponseSession.lcmEnv.setUserResponse( null );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.trace( () -> "error during NMASResponseSession abort: " + e.getMessage() );
             }
@@ -1084,7 +1084,7 @@ public class NMASCrOperator implements CrOperator
                         final String saslFactoryName = password.pwm.util.operations.cr.NMASCrOperator.NMASCrPwmSaslFactory.class.getName();
                         thisInstance.put( "SaslClientFactory." + SASL_PROVIDER_NAME, saslFactoryName );
                     }
-                    catch ( SecurityException e )
+                    catch ( final SecurityException e )
                     {
                         LOGGER.warn( "error registering " + NMASCrPwmSaslProvider.class.getSimpleName() + " SASL Provider, error: " + e.getMessage(), e );
                     }
@@ -1126,7 +1126,7 @@ public class NMASCrOperator implements CrOperator
                 final SaslClientFactory realFactory = getRealSaslClientFactory();
                 return realFactory.createSaslClient( mechanisms, authorizationId, protocol, serverName, props, cbh );
             }
-            catch ( Throwable t )
+            catch ( final Throwable t )
             {
                 LOGGER.error( "error creating backing sasl factory: " + t.getMessage(), t );
             }
@@ -1149,7 +1149,7 @@ public class NMASCrOperator implements CrOperator
                 final SaslClientFactory realFactory = getRealSaslClientFactory();
                 return realFactory.getMechanismNames( props );
             }
-            catch ( Throwable t )
+            catch ( final Throwable t )
             {
                 LOGGER.error( "error creating backing sasl factory: " + t.getMessage(), t );
             }

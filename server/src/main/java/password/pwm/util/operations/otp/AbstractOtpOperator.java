@@ -137,7 +137,7 @@ public abstract class AbstractOtpOperator implements OtpOperator
             LOGGER.debug( () -> "detected JSON format - returning" );
             return otpconfig;
         }
-        catch ( JsonSyntaxException ex )
+        catch ( final JsonSyntaxException ex )
         {
             LOGGER.debug( () -> "no JSON format detected - returning" );
             /* So, it's not JSON, try something else */

@@ -20,10 +20,13 @@
 
 package password.pwm.config.value.data;
 
-import password.pwm.PwmConstants;
+import lombok.Builder;
+import lombok.Value;
 
 import java.io.Serializable;
 
+@Value
+@Builder
 public class UserPermission implements Serializable
 {
     public enum Type
@@ -32,38 +35,12 @@ public class UserPermission implements Serializable
         ldapGroup,
     }
 
-    private String ldapProfileID = PwmConstants.PROFILE_ID_ALL;
+    @Builder.Default
+    private Type type = Type.ldapQuery;
+
+    private String ldapProfileID;
     private String ldapQuery;
     private String ldapBase;
-    private Type type;
-
-    public UserPermission(
-            final Type type,
-            final String ldapProfileID,
-            final String ldapQuery,
-            final String ldapBase
-    )
-    {
-        this.type = type;
-        this.ldapProfileID = ldapProfileID;
-        this.ldapQuery = ldapQuery;
-        this.ldapBase = ldapBase;
-    }
-
-    public String getLdapProfileID( )
-    {
-        return ldapProfileID == null ? null : ldapProfileID.trim();
-    }
-
-    public String getLdapQuery( )
-    {
-        return ldapQuery;
-    }
-
-    public String getLdapBase( )
-    {
-        return ldapBase;
-    }
 
     public Type getType( )
     {

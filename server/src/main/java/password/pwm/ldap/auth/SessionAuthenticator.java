@@ -105,7 +105,7 @@ public class SessionAuthenticator
             final AuthenticationResult authResult = authEngine.authenticateUser( password );
             postAuthenticationSequence( userIdentity, authResult );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             postFailureSequence( e, username, userIdentity );
 
@@ -146,7 +146,7 @@ public class SessionAuthenticator
                     returnSet.add( pwmError );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( pwmSession, "error parsing app property " + AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES.getKey()
                         + ", error: " + e.getMessage() );
@@ -174,11 +174,11 @@ public class SessionAuthenticator
             final AuthenticationResult authResult = authEngine.authenticateUser( password );
             postAuthenticationSequence( userIdentity, authResult );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             postFailureSequence( e, null, userIdentity );
             throw e;
@@ -210,11 +210,11 @@ public class SessionAuthenticator
             final AuthenticationResult authResult = authEngine.authUsingUnknownPw();
             postAuthenticationSequence( userIdentity, authResult );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             postFailureSequence( e, username, userIdentity );
             throw e;
@@ -239,7 +239,7 @@ public class SessionAuthenticator
             final AuthenticationResult authResult = authEngine.authUsingUnknownPw();
             postAuthenticationSequence( userIdentity, authResult );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -301,7 +301,7 @@ public class SessionAuthenticator
 
             LOGGER.debug( sessionLabel, () -> "bad-password login attempt succeeded for " + userIdentity );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             if ( e.getErrorCode() == ChaiError.PASSWORD_BADPASSWORD )
             {
@@ -320,7 +320,7 @@ public class SessionAuthenticator
                 {
                     provider.close();
                 }
-                catch ( Throwable e )
+                catch ( final Throwable e )
                 {
                     LOGGER.error( sessionLabel,
                             "unexpected error closing invalid ldap connection after simulated bad-password failed login attempt: " + e.getMessage() );

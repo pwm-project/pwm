@@ -71,7 +71,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
         {
             rawDbValue = pwmApplication.getDatabaseAccessor().get( TABLE, guid );
         }
-        catch ( DatabaseException e )
+        catch ( final DatabaseException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, e.getMessage() ) );
         }
@@ -103,7 +103,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
         {
             pwmApplication.getDatabaseAccessor().put( TABLE, guid, rawDbValue );
         }
-        catch ( DatabaseException e )
+        catch ( final DatabaseException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, e.getMessage() ) );
         }
@@ -122,7 +122,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
             }
             return JsonUtil.deserialize( strValue, PwNotifyStoredJobState.class );
         }
-        catch ( DatabaseException e )
+        catch ( final DatabaseException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, e.getMessage() ) );
         }
@@ -137,7 +137,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
             final String strValue = JsonUtil.serialize( pwNotifyStoredJobState );
             pwmApplication.getDatabaseService().getAccessor().put( DatabaseTable.PW_NOTIFY, DB_STATE_STRING, strValue );
         }
-        catch ( DatabaseException e )
+        catch ( final DatabaseException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, e.getMessage() ) );
         }

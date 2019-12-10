@@ -93,13 +93,13 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
                 }
             }
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             final String errorMsg = "unexpected LocalDB error reading otp: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             final String errorMsg = "unexpected error reading otp: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -143,14 +143,14 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
             localDB.put( LocalDB.DB.OTP_SECRET, userGUID, value );
             LOGGER.info( pwmSession, () -> "saved OTP secret for user in LocalDB" );
         }
-        catch ( LocalDBException ex )
+        catch ( final LocalDBException ex )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, "unexpected LocalDB error saving otp to localDB: " + ex.getMessage() );
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
             pwmOE.initCause( ex );
             throw pwmOE;
         }
-        catch ( PwmOperationalException ex )
+        catch ( final PwmOperationalException ex )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to localDB: " + ex.getMessage() );
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
@@ -186,7 +186,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
             localDB.remove( LocalDB.DB.OTP_SECRET, userGUID );
             LOGGER.info( pwmSession, () -> "cleared OTP secret for user in LocalDB" );
         }
-        catch ( LocalDBException ex )
+        catch ( final LocalDBException ex )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to localDB: " + ex.getMessage() );
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );

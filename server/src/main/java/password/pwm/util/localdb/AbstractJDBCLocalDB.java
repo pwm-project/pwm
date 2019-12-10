@@ -675,7 +675,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                 {
                     AbstractJDBCLocalDB.this.remove( db, currentItem );
                 }
-                catch ( LocalDBException e )
+                catch ( final LocalDBException e )
                 {
                     throw new RuntimeException( e );
                 }

@@ -89,7 +89,7 @@ public class RestClientHelper
             }
             return responseBody;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "http response error while executing external rest call, error: " + e.getMessage();
             LOGGER.error( errorMsg );

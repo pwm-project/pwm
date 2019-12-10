@@ -124,7 +124,7 @@ class WordlistImporter implements Runnable
         {
             doImport();
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             errorMsg = "error during import: " + e.getErrorInformation().getDetailedErrorMsg();
         }
@@ -353,7 +353,7 @@ class WordlistImporter implements Runnable
 
 
             getLogger().debug( () -> "will skip forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead ) + " in wordlist that has been previously imported" );
-            while ( !cancelFlag.getAsBoolean() && bytesSkipped < ( previousBytesRead + 1024 ) )
+            while ( !cancelFlag.getAsBoolean() && bytesSkipped < previousBytesRead )
             {
                 zipFileReader.nextLine();
                 bytesSkipped = zipFileReader.getByteCount();
@@ -399,7 +399,7 @@ class WordlistImporter implements Runnable
                     }
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 getLogger().error( "error calculating import statistics: " + e.getMessage() );
 
@@ -443,7 +443,7 @@ class WordlistImporter implements Runnable
         {
             stats.put( DebugKey.WordsImported, PwmNumberFormat.forDefaultLocale().format( wordlistBucket.size() ) );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             getLogger().debug( () -> "error while calculating wordsImported stat during wordlist import: " + e.getMessage() );
         }

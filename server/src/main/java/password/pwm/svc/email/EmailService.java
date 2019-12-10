@@ -92,7 +92,7 @@ public class EmailService implements PwmService
         {
             servers.addAll( EmailServerUtil.makeEmailServersMap( pwmApplication.getConfig() ) );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             startupError = e.getErrorInformation();
             LOGGER.error( "unable to startup email service: " + e.getMessage() );
@@ -329,7 +329,7 @@ public class EmailService implements PwmService
                 workQueueProcessor.submit( finalBean );
             }
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.warn( "unable to add email to queue: " + e.getMessage() );
         }
@@ -403,7 +403,7 @@ public class EmailService implements PwmService
             StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_SUCCESSES );
             return WorkQueueProcessor.ProcessResult.SUCCESS;
         }
-        catch ( MessagingException | PwmException e )
+        catch ( final MessagingException | PwmException e )
         {
 
             final ErrorInformation errorInformation;
@@ -466,7 +466,7 @@ public class EmailService implements PwmService
                 serverErrors.remove( server );
                 return new EmailConnection( server, transport );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final String exceptionMsg = JavaHelper.readHostileExceptionMessage( e );
                 final String msg = "unable to connect to email server '" + server.toDebugString() + "', error: " + exceptionMsg;

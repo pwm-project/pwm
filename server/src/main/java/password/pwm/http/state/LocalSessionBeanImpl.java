@@ -47,7 +47,7 @@ class LocalSessionBeanImpl implements SessionBeanProvider
                 final Object newBean = SessionStateService.newBean( null, theClass );
                 sessionBeans.put( theClass, ( PwmSessionBean ) newBean );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage(), e );
             }

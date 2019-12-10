@@ -20,22 +20,16 @@
 
 package password.pwm.config.stored;
 
-import password.pwm.bean.UserIdentity;
-import password.pwm.config.StoredValue;
+import lombok.Builder;
+import lombok.Value;
+import password.pwm.config.value.StoredValueEncoder;
+import password.pwm.util.secure.PwmSecurityKey;
 
-public interface StorageEngine
+@Value
+@Builder
+public class XmlOutputProcessData
 {
-    StoredValue read( StoredConfigReference storedConfigReference );
-
-    void write( StoredConfigReference storedConfigReference, StoredValue value, UserIdentity userIdentity );
-
-    void reset( StoredConfigReference storedConfigReference, UserIdentity userIdentity );
-
-    boolean isWriteLocked( );
-
-    void writeLock( );
-
-    ValueMetaData readMetaData( StoredConfigReference storedConfigReference );
-
-    ConfigChangeLog changeLog( );
+    @Builder.Default
+    private StoredValueEncoder.Mode storedValueEncoderMode = StoredValueEncoder.Mode.ENCODED;
+    private PwmSecurityKey pwmSecurityKey;
 }

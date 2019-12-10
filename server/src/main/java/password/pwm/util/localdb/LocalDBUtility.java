@@ -134,7 +134,7 @@ public class LocalDBUtility
             }
             csvPrinter.printComment( "export completed at " + JavaHelper.toIsoDate( new Date() ) );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             writeStringToOut( debugOutput, "IO error during localDB export: " + e.getMessage() );
         }
@@ -176,7 +176,7 @@ public class LocalDBUtility
                 }
             }
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             writeStringToOut( debugOutput, "IO error during localDB export: " + e.getMessage() );
         }
@@ -216,7 +216,7 @@ public class LocalDBUtility
         {
             out.append( msg );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             LOGGER.error( "error writing to output appender while performing operation: " + e.getMessage() );
         }
@@ -435,7 +435,7 @@ public class LocalDBUtility
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error while examining LocalDB: " + e.getMessage() );
         }

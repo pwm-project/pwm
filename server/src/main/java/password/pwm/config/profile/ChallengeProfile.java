@@ -98,7 +98,7 @@ public class ChallengeProfile implements Profile, Serializable
                     minRandomRequired
             );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.trace( () -> "configured challengeSet for profile '" + profileID + "' is not valid: " + e.getMessage() );
         }
@@ -115,7 +115,7 @@ public class ChallengeProfile implements Profile, Serializable
                     1
             );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.trace( () -> "discarding configured helpdesk challengeSet for profile '" + profileID + "' issue: " + e.getMessage() );
         }
@@ -256,7 +256,7 @@ public class ChallengeProfile implements Profile, Serializable
         {
             return new ChaiChallengeSet( challenges, randoms, locale, PwmConstants.PWM_APP_NAME + "-defined " + PwmConstants.SERVLET_VERSION );
         }
-        catch ( ChaiValidationException e )
+        catch ( final ChaiValidationException e )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "invalid challenge set configuration: " + e.getMessage() ) );
         }

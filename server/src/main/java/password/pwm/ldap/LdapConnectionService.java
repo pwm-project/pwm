@@ -98,7 +98,7 @@ public class LdapConnectionService implements PwmService
             {
                 chaiProviderFactory.close();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "error closing ldap proxy connection: " + e.getMessage(), e );
             }
@@ -189,12 +189,12 @@ public class LdapConnectionService implements PwmService
 
             return newProvider;
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             setLastLdapFailure( ldapProfile, e.getErrorInformation() );
             throw e;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error creating new proxy ldap connection: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -241,7 +241,7 @@ public class LdapConnectionService implements PwmService
                 return returnMap;
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "unexpected error loading cached lastLdapFailure statuses: " + e.getMessage() + ", input=" + lastLdapFailureStr );
         }

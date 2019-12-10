@@ -20,27 +20,31 @@
 
 package password.pwm.config.value;
 
-import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.StoredValue;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
+import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.secure.PwmBlockAlgorithm;
-import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.java.LazySupplier;
+import password.pwm.util.java.XmlDocument;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
+import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Locale;
 
 public abstract class AbstractValue implements StoredValue
 {
-    static final String ENC_PW_PREFIX = "ENC-PW:";
+    private final transient LazySupplier<String> valueHashSupplier = new LazySupplier<>( () -> valueHashComputer( AbstractValue.this ) );
 
-    public String toString( )
+    public String toString()
     {
         return toDebugString( null );
     }
@@ -57,84 +61,39 @@ public abstract class AbstractValue implements StoredValue
         return ( Serializable ) this.toNativeObject();
     }
 
-    public boolean requiresStoredUpdate( )
-    {
-        return false;
-    }
-
     @Override
-    public int currentSyntaxVersion( )
+    public int currentSyntaxVersion()
     {
         return 0;
     }
 
     @Override
-    public String valueHash( ) throws PwmUnrecoverableException
+    public final String valueHash()
     {
-        return SecureEngine.hash( JsonUtil.serialize( ( Serializable ) this.toNativeObject() ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
+        return valueHashSupplier.get();
     }
 
-    static String decryptPwValue( final String input, final PwmSecurityKey pwmSecurityKey ) throws PwmOperationalException
+    static String valueHashComputer( final StoredValue storedValue )
     {
-        if ( input == null )
+        try
         {
-            return "";
-        }
+            final PwmSecurityKey testingKey = new PwmSecurityKey( "test" );
+            final XmlOutputProcessData xmlOutputProcessData = XmlOutputProcessData.builder()
+                    .pwmSecurityKey( testingKey )
+                    .storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN )
+                    .build();
+            final List<XmlElement> xmlValues = storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, xmlOutputProcessData );
+            final XmlDocument document = XmlFactory.getFactory().newDocument( "root" );
+            document.getRootElement().addContent( xmlValues );
+            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            XmlFactory.getFactory().outputDocument( document, byteArrayOutputStream );
+            final String stringToHash = new String( byteArrayOutputStream.toByteArray(), PwmConstants.DEFAULT_CHARSET );
+            return SecureEngine.hash( stringToHash, PwmHashAlgorithm.SHA512 );
 
-        if ( input.startsWith( ENC_PW_PREFIX ) )
+        }
+        catch ( final IOException | PwmUnrecoverableException e )
         {
-            try
-            {
-                final String pwValueSuffix = input.substring( ENC_PW_PREFIX.length(), input.length() );
-                final String decrpytedValue = SecureEngine.decryptStringValue( pwValueSuffix, pwmSecurityKey, PwmBlockAlgorithm.CONFIG );
-                final StoredPwData storedPwData = JsonUtil.deserialize( decrpytedValue, StoredPwData.class );
-                return storedPwData.getValue();
-            }
-            catch ( Exception e )
-            {
-                final String errorMsg = "unable to decrypt password value for setting: " + e.getMessage();
-                final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
-                throw new PwmOperationalException( errorInfo );
-            }
+            throw new IllegalStateException( e );
         }
-
-        return input;
     }
-
-    static String encryptPwValue( final String input, final PwmSecurityKey pwmSecurityKey )
-            throws PwmOperationalException
-    {
-        if ( input == null )
-        {
-            return "";
-        }
-
-        if ( !input.startsWith( ENC_PW_PREFIX ) )
-        {
-            try
-            {
-                final String salt = PwmRandom.getInstance().alphaNumericString( 32 );
-                final StoredPwData storedPwData = new StoredPwData( salt, input );
-                final String jsonData = JsonUtil.serialize( storedPwData );
-                final String encryptedValue = SecureEngine.encryptToString( jsonData, pwmSecurityKey, PwmBlockAlgorithm.CONFIG );
-                return ENC_PW_PREFIX + encryptedValue;
-            }
-            catch ( Exception e )
-            {
-                final String errorMsg = "unable to encrypt password value for setting: " + e.getMessage();
-                final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
-                throw new PwmOperationalException( errorInfo );
-            }
-        }
-
-        return input;
-    }
-
-    @Value
-    static class StoredPwData implements Serializable
-    {
-        private String salt;
-        private String value;
-    }
-
 }

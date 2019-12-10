@@ -21,6 +21,8 @@
 package password.pwm.config;
 
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.LazySoftReference;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.java.XmlDocument;
 import password.pwm.util.java.XmlElement;
@@ -34,7 +36,6 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -46,41 +47,44 @@ public class PwmSettingXml
     public static final String SETTING_XML_FILENAME = ( PwmSetting.class.getPackage().getName()
             + "." + PwmSetting.class.getSimpleName() ).replace( ".", "/" ) + ".xml";
 
-    public static final String XML_ELEMENT_LDAP_PERMISSION = "ldapPermission";
-    public static final String XML_ELEMENT_EXAMPLE = "example";
-    public static final String XML_ELEMENT_DEFAULT = "default";
+    static final String XML_ELEMENT_LDAP_PERMISSION = "ldapPermission";
+    static final String XML_ELEMENT_EXAMPLE = "example";
+    static final String XML_ELEMENT_DEFAULT = "default";
 
-    public static final String XML_ATTRIBUTE_PERMISSION_ACTOR = "actor";
-    public static final String XML_ATTRIBUTE_PERMISSION_ACCESS = "access";
-    public static final String XML_ATTRIBUTE_TEMPLATE = "template";
+    static final String XML_ATTRIBUTE_PERMISSION_ACTOR = "actor";
+    static final String XML_ATTRIBUTE_PERMISSION_ACCESS = "access";
+    static final String XML_ATTRIBUTE_TEMPLATE = "template";
+    static final String XML_ELEMENT_REGEX = "regex";
+    static final String XML_ELEMENT_HIDDEN = "hidden";
+    static final String XML_ELEMENT_REQUIRED = "required";
+    static final String XML_ELEMENT_LEVEL = "level";
+    static final String XML_ELEMENT_PROPERTIES = "properties";
+    static final String XML_ELEMENT_PROPERTY = "property";
+    static final String XML_ATTRIBUTE_KEY = "key";
+    static final String XML_ELEMENT_VALUE = "value";
+    static final String XML_ELEMENT_OPTION = "option";
+    static final String XML_ELEMENT_OPTIONS = "options";
+
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSettingXml.class );
 
-    private static WeakReference<XmlDocument> xmlDocCache = new WeakReference<>( null );
+    private static LazySoftReference<XmlDocument> xmlDocCache = new LazySoftReference<>( () -> readXml() );
     private static final AtomicInteger LOAD_COUNTER = new AtomicInteger( 0 );
 
     private static XmlDocument readXml( )
     {
-        final XmlDocument docRefCopy = xmlDocCache.get();
-        if ( docRefCopy == null )
+        try ( InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( SETTING_XML_FILENAME ) )
         {
-            try ( InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( SETTING_XML_FILENAME ) )
-            {
-                final Instant startTime = Instant.now();
-                final XmlDocument newDoc = XmlFactory.getFactory().parseXml( inputStream );
-                final TimeDuration parseDuration = TimeDuration.fromCurrent( startTime );
-                LOGGER.trace( () -> "parsed PwmSettingXml in " + parseDuration.asCompactString() + ", loads=" + LOAD_COUNTER.getAndIncrement() );
-
-                xmlDocCache = new WeakReference<>( newDoc );
-
-                return newDoc;
-            }
-            catch ( IOException | PwmUnrecoverableException e )
-            {
-                throw new IllegalStateException( "error parsing " + SETTING_XML_FILENAME + ": " + e.getMessage() );
-            }
+            final Instant startTime = Instant.now();
+            final XmlDocument newDoc = XmlFactory.getFactory().parseXml( inputStream );
+            final TimeDuration parseDuration = TimeDuration.fromCurrent( startTime );
+            LOGGER.trace( () -> "parsed PwmSettingXml in " + parseDuration.asCompactString() + ", loads=" + LOAD_COUNTER.getAndIncrement() );
+            return newDoc;
         }
-        return docRefCopy;
+        catch ( final IOException | PwmUnrecoverableException e )
+        {
+            throw new IllegalStateException( "error parsing " + SETTING_XML_FILENAME + ": " + e.getMessage() );
+        }
     }
 
     private static void validateXmlSchema( )
@@ -94,7 +98,7 @@ public class PwmSettingXml
             final Validator validator = schema.newValidator();
             validator.validate( new StreamSource( xmlInputStream ) );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new IllegalStateException( "error validating PwmSetting.xml schema using PwmSetting.xsd definition: " + e.getMessage() );
         }
@@ -103,19 +107,22 @@ public class PwmSettingXml
     static XmlElement readSettingXml( final PwmSetting setting )
     {
         final String expression = "/settings/setting[@key=\"" + setting.getKey() + "\"]";
-        return readXml().evaluateXpathToElement( expression );
+        return xmlDocCache.get().evaluateXpathToElement( expression )
+                .orElseThrow( () -> new IllegalStateException( "PwmSetting.xml is missing setting for key '" + setting.getKey() + "'" ) );
     }
 
     static XmlElement readCategoryXml( final PwmSettingCategory category )
     {
         final String expression = "/settings/category[@key=\"" + category.toString() + "\"]";
-        return readXml().evaluateXpathToElement( expression );
+        return xmlDocCache.get().evaluateXpathToElement( expression )
+                .orElseThrow( () -> new IllegalStateException( "PwmSetting.xml is missing category for key '" + category.getKey() + "'" ) );
     }
 
     static XmlElement readTemplateXml( final PwmSettingTemplate template )
     {
         final String expression = "/settings/template[@key=\"" + template.toString() + "\"]";
-        return readXml().evaluateXpathToElement( expression );
+        return xmlDocCache.get().evaluateXpathToElement( expression )
+                .orElseThrow( () -> new IllegalStateException( "PwmSetting.xml is missing template for key '" + template.toString() + "'" ) );
     }
 
     static Set<PwmSettingTemplate> parseTemplateAttribute( final XmlElement element )
@@ -124,14 +131,14 @@ public class PwmSettingXml
         {
             return Collections.emptySet();
         }
-        final String templateStrValues = element.getAttributeValue( "template" );
+        final String templateStrValues = element.getAttributeValue( XML_ATTRIBUTE_TEMPLATE );
         final String[] templateSplitValues = templateStrValues == null
                 ? new String[ 0 ]
                 : templateStrValues.split( "," );
         final Set<PwmSettingTemplate> definedTemplates = new LinkedHashSet<>();
         for ( final String templateStrValue : templateSplitValues )
         {
-            final PwmSettingTemplate template = PwmSettingTemplate.valueOf( templateStrValue );
+            final PwmSettingTemplate template = JavaHelper.readEnumFromString( PwmSettingTemplate.class, null, templateStrValue );
             if ( template != null )
             {
                 definedTemplates.add( template );

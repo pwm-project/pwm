@@ -92,7 +92,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             final Enum answer = JavaHelper.readEnumFromString( processStatusClass, null, inputParameter );
             return ( ProcessAction ) answer;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error", e );
         }
@@ -119,7 +119,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                 return ( ProcessStatus ) interestedMethod.invoke( this, pwmRequest );
             }
         }
-        catch ( InvocationTargetException e )
+        catch ( final InvocationTargetException e )
         {
             final Throwable cause = e.getCause();
             if ( cause != null )
@@ -136,7 +136,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             }
             LOGGER.error( "uncased invocation error: " + e.getMessage(), e );
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             final String msg = "unexpected error invoking action handler for '" + action + "', error: " + e.getMessage();
             LOGGER.error( msg, e );
@@ -215,7 +215,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
     {
         final Map<String, Method> map = new HashMap<>();
         final Collection<Method> methods = JavaHelper.getAllMethodsForClass( this.getClass() );
-        for ( Method method : methods )
+        for ( final Method method : methods )
         {
             if ( method.getAnnotation( ActionHandler.class ) != null )
             {

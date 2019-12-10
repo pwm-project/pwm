@@ -106,7 +106,7 @@ public class ShellCommand extends AbstractCliCommand
                 {
                     executeCommand( cliEnvironment, cliCommand, commandLine );
                 }
-                catch ( CliException e )
+                catch ( final CliException e )
                 {
                     out( "error executing command: " + e.getMessage() );
                 }

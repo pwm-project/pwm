@@ -115,7 +115,7 @@ class PBKDF2HashMachine extends AbstractHashMachine implements ResponseHashMachi
             final byte[] hash = skf.generateSecret( spec ).getEncoded();
             return Base64.encodeBytes( hash );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new IllegalStateException( "unable to perform PBKDF2 hashing operation: " + e.getMessage() );
         }

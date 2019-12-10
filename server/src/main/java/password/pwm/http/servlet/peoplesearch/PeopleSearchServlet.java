@@ -195,7 +195,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
             pwmRequest.outputJsonResult( RestResultBean.withData( orgChartData ) );
             StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_ORGCHART );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( pwmRequest, "error generating user detail object: " + e.getMessage() );
             pwmRequest.respondWithError( e.getErrorInformation() );

@@ -294,7 +294,7 @@ public abstract class InternalMacros
                 {
                     hashOutput = SecureEngine.hash( inputBytes, pwmHashAlgorithm );
                 }
-                catch ( PwmUnrecoverableException e )
+                catch ( final PwmUnrecoverableException e )
                 {
                     throw new MacroParseException( "error during hash operation: " + e.getMessage() );
                 }

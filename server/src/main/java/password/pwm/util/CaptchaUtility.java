@@ -169,7 +169,7 @@ public class CaptchaUtility
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error during reCaptcha API execution: " + e.getMessage();
             LOGGER.error( errorMsg, e );
@@ -351,7 +351,7 @@ public class CaptchaUtility
                 }
                 else
                 {
-                    LOGGER.error( pwmRequest, "skipCaptcha value is in request, however value '" + requestValue + "' does not match configured value" );
+                    LOGGER.debug( pwmRequest, () -> "skipCaptcha value is in request, however value '" + requestValue + "' does not match configured value" );
                 }
             }
         }
