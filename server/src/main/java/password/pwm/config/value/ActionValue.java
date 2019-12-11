@@ -25,9 +25,9 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.ActionConfiguration;
-import password.pwm.config.value.data.ActionConfigurationOldVersion1;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -46,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class ActionValue extends AbstractValue implements StoredValue
@@ -98,8 +99,8 @@ public class ActionValue extends AbstractValue implements StoredValue
                 final List<ActionConfiguration> values = new ArrayList<>();
 
                 final boolean oldType = PwmSettingSyntax.STRING_ARRAY.toString().equals(
-                        settingElement.getAttributeValue( "syntax" ) );
-                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                        settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX ) );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 for ( final XmlElement loopValueElement : valueElements )
                 {
                     final String stringValue = loopValueElement.getText();
@@ -109,17 +110,28 @@ public class ActionValue extends AbstractValue implements StoredValue
                         {
                             if ( oldType )
                             {
-                                if ( loopValueElement.getAttributeValue( "locale" ) == null )
+                                if ( loopValueElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ) == null )
                                 {
-                                    final ActionConfigurationOldVersion1 oldVersion1 = ActionConfigurationOldVersion1.parseOldConfigString( stringValue );
+                                    final ActionConfiguration.ActionConfigurationOldVersion1 oldVersion1 = ActionConfiguration.ActionConfigurationOldVersion1
+                                            .parseOldConfigString( stringValue );
                                     values.add( convertOldVersion1Values( oldVersion1 ) );
                                 }
                             }
                             else
                             {
-                                final ActionConfigurationOldVersion1 parsedAc = JsonUtil.deserialize( stringValue, ActionConfigurationOldVersion1.class );
-                                parsedAc.setPassword( decryptPwValue( parsedAc.getPassword(), pwmSecurityKey ) );
-                                values.add( convertOldVersion1Values( parsedAc ) );
+                                final ActionConfiguration.ActionConfigurationOldVersion1 parsedAc = JsonUtil
+                                        .deserialize( stringValue, ActionConfiguration.ActionConfigurationOldVersion1.class );
+                                if ( parsedAc != null )
+                                {
+                                    final Optional<String> decodedValue = StoredValueEncoder.decode(
+                                            parsedAc.getPassword(),
+                                            StoredValueEncoder.Mode.ENCODED,
+                                            pwmSecurityKey );
+                                    decodedValue.ifPresent( s ->
+                                    {
+                                        values.add( convertOldVersion1Values( parsedAc.toBuilder().password( s ).build() ) );
+                                    } );
+                                }
                             }
                         }
                         else if ( syntaxVersion == 2 )
@@ -136,14 +148,23 @@ public class ActionValue extends AbstractValue implements StoredValue
                                 // decrypt pw
                                 try
                                 {
-                                    clonedWebActions.add( webAction.toBuilder()
-                                            .password( decryptPwValue( webAction.getPassword(), pwmSecurityKey ) )
-                                            .successStatus( successStatus )
-                                            .build() );
+
+
+                                    final Optional<String> decodedValue = StoredValueEncoder.decode(
+                                            webAction.getPassword(),
+                                            StoredValueEncoder.Mode.ENCODED,
+                                            pwmSecurityKey );
+                                    decodedValue.ifPresent( s ->
+                                    {
+                                        clonedWebActions.add( webAction.toBuilder()
+                                                .password( s )
+                                                .successStatus( successStatus )
+                                                .build() );
+                                    } );
                                 }
-                                catch ( PwmOperationalException e )
+                                catch ( final PwmOperationalException e )
                                 {
-                                    LOGGER.warn( "error decoding stored pw value: " + e.getMessage() );
+                                    LOGGER.warn( "error decoding stored pw value on setting '" + pwmSetting.getKey() + "': " + e.getMessage() );
                                 }
                             }
 
@@ -162,7 +183,7 @@ public class ActionValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final ActionConfiguration value : values )
@@ -170,15 +191,22 @@ public class ActionValue extends AbstractValue implements StoredValue
             final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
             for ( final ActionConfiguration.WebAction webAction : value.getWebActions() )
             {
-                try
+                if ( !StringUtil.isEmpty( webAction.getPassword() ) )
                 {
-                    clonedWebActions.add( webAction.toBuilder()
-                            .password( encryptPwValue( webAction.getPassword(), pwmSecurityKey ) )
-                            .build() );
-                }
-                catch ( PwmOperationalException e )
-                {
-                    LOGGER.warn( "error encoding stored pw value: " + e.getMessage() );
+                    try
+                    {
+                        final String encodedValue = StoredValueEncoder.encode(
+                                webAction.getPassword(),
+                                xmlOutputProcessData.getStoredValueEncoderMode(),
+                                xmlOutputProcessData.getPwmSecurityKey() );
+                        clonedWebActions.add( webAction.toBuilder()
+                                .password( encodedValue )
+                                .build() );
+                    }
+                    catch ( final PwmOperationalException e )
+                    {
+                        LOGGER.warn( "error encoding stored pw value: " + e.getMessage() );
+                    }
                 }
             }
 
@@ -225,7 +253,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             {
                 loopConfig.validate();
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 return Collections.singletonList( "format error: " + e.getErrorInformation().toDebugStr() );
             }
@@ -367,14 +395,14 @@ public class ActionValue extends AbstractValue implements StoredValue
 
     private static int figureCurrentStoredSyntax( final XmlElement settingElement )
     {
-        final String storedSyntaxVersionString = settingElement.getAttributeValue( StoredConfiguration.XML_ATTRIBUTE_SYNTAX_VERSION );
+        final String storedSyntaxVersionString = settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION );
         if ( !StringUtil.isEmpty( storedSyntaxVersionString ) )
         {
             try
             {
                 return Integer.parseInt( storedSyntaxVersionString );
             }
-            catch ( NumberFormatException e )
+            catch ( final NumberFormatException e )
             {
                 LOGGER.debug( () -> "unable to parse syntax version for setting " + e.getMessage() );
             }
@@ -382,7 +410,7 @@ public class ActionValue extends AbstractValue implements StoredValue
         return 0;
     }
 
-    private static ActionConfiguration convertOldVersion1Values( final ActionConfigurationOldVersion1 oldAction )
+    private static ActionConfiguration convertOldVersion1Values( final ActionConfiguration.ActionConfigurationOldVersion1 oldAction )
     {
         final ActionConfiguration.ActionConfigurationBuilder builder = ActionConfiguration.builder();
         builder.name( oldAction.getName() );

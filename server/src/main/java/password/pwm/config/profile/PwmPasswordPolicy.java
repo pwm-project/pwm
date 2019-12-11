@@ -59,7 +59,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
 
     private static final PwmPasswordPolicy DEFAULT_POLICY;
 
-    private final Map<String, String> policyMap = new HashMap<>();
+    private final Map<String, String> policyMap;
 
     private final transient ChaiPasswordPolicy chaiPasswordPolicy;
 
@@ -111,7 +111,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
             }
             newDefaultPolicy = createPwmPasswordPolicy( defaultPolicyMap, null );
         }
-        catch ( Throwable t )
+        catch ( final Throwable t )
         {
             LOGGER.fatal( "error initializing PwmPasswordPolicy class: " + t.getMessage(), t );
         }
@@ -130,19 +130,20 @@ public class PwmPasswordPolicy implements Profile, Serializable
             final PolicyMetaData policyMetaData
     )
     {
+        final Map<String, String> effectivePolicyMap = new HashMap<>();
         if ( policyMap != null )
         {
-            this.policyMap.putAll( policyMap );
+            effectivePolicyMap.putAll( policyMap );
         }
         if ( chaiPasswordPolicy != null )
         {
             if ( Boolean.parseBoolean( chaiPasswordPolicy.getValue( ChaiPasswordRule.ADComplexity ) ) )
             {
-                this.policyMap.put( PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2003.toString() );
+                effectivePolicyMap.put( PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2003.toString() );
             }
             else if ( Boolean.parseBoolean( chaiPasswordPolicy.getValue( ChaiPasswordRule.ADComplexity2008 ) ) )
             {
-                this.policyMap.put( PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2008.toString() );
+                effectivePolicyMap.put( PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2008.toString() );
             }
         }
         this.chaiPasswordPolicy = chaiPasswordPolicy;
@@ -152,6 +153,8 @@ public class PwmPasswordPolicy implements Profile, Serializable
             this.userPermissions = policyMetaData.getUserPermissions();
             this.profileID = policyMetaData.getProfileID();
         }
+
+        this.policyMap = Collections.unmodifiableMap( effectivePolicyMap );
     }
 
     @Override
@@ -332,7 +335,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
     }
 
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         throw new UnsupportedOperationException();
     }

@@ -20,15 +20,13 @@
 
 package password.pwm.config.value.data;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.util.PasswordData;
 
 import java.io.Serializable;
 import java.util.List;
 
-@Getter
-@AllArgsConstructor
+@Value
 public class NamedSecretData implements Serializable
 {
     private PasswordData password;

@@ -183,10 +183,10 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
     {
         final List<password.pwm.ws.server.rest.bean.HealthRecord> healthRecordBeans = password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords(
                 profileRecords, locale, configuration );
-        final HealthData healthData = new HealthData();
-        healthData.timestamp = Instant.now();
-        healthData.overall = HealthMonitor.getMostSevereHealthStatus( profileRecords ).toString();
-        healthData.records = healthRecordBeans;
-        return healthData;
+        return HealthData.builder()
+                .timestamp( Instant.now() )
+                .overall( HealthMonitor.getMostSevereHealthStatus( profileRecords ).toString() )
+                .records( healthRecordBeans )
+                .build();
     }
 }

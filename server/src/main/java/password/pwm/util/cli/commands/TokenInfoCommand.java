@@ -46,7 +46,7 @@ public class TokenInfoCommand extends AbstractCliCommand
         {
             tokenPayload = tokenService.retrieveTokenData( SessionLabel.TOKEN_SESSION_LABEL, tokenKey );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             lookupError = e;
         }

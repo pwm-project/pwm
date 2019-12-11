@@ -24,7 +24,8 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
@@ -40,13 +41,13 @@ import java.util.Locale;
 
 public class UserPermissionValue extends AbstractValue implements StoredValue
 {
-    final List<UserPermission> values;
+    private final List<UserPermission> values;
 
     private boolean needsXmlUpdate;
 
     public UserPermissionValue( final List<UserPermission> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyList() : Collections.unmodifiableList( values );
     }
 
     public static StoredValueFactory factory( )
@@ -57,14 +58,14 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
             {
                 if ( input == null )
                 {
-                    return new UserPermissionValue( Collections.<UserPermission>emptyList() );
+                    return new UserPermissionValue( Collections.emptyList() );
                 }
                 else
                 {
                     List<UserPermission> srcList = JsonUtil.deserialize( input, new TypeToken<List<UserPermission>>()
                     {
                     } );
-                    srcList = srcList == null ? Collections.<UserPermission>emptyList() : srcList;
+                    srcList = srcList == null ? Collections.emptyList() : srcList;
                     while ( srcList.contains( null ) )
                     {
                         srcList.remove( null );
@@ -77,7 +78,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                     throws PwmOperationalException
             {
                 final boolean newType = "2".equals(
-                        settingElement.getAttributeValue( StoredConfigurationImpl.XML_ATTRIBUTE_SYNTAX_VERSION ) );
+                        settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION ) );
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final List<UserPermission> values = new ArrayList<>();
                 for ( final XmlElement loopValueElement : valueElements )
@@ -92,7 +93,10 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                         }
                         else
                         {
-                            values.add( new UserPermission( UserPermission.Type.ldapQuery, null, value, null ) );
+                            values.add( UserPermission.builder()
+                                    .type( UserPermission.Type.ldapQuery )
+                                    .ldapQuery( value )
+                                    .build() );
                         }
                     }
                 }
@@ -103,7 +107,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final UserPermission value : values )
@@ -129,7 +133,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
             {
                 validateLdapSearchFilter( userPermission.getLdapQuery() );
             }
-            catch ( IllegalArgumentException e )
+            catch ( final IllegalArgumentException e )
             {
                 returnObj.add( e.getMessage() + " for filter " + userPermission.getLdapQuery() );
             }

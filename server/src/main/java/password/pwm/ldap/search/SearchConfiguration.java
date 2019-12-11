@@ -22,22 +22,23 @@ package password.pwm.ldap.search;
 
 import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.UserPermission;
-import password.pwm.util.java.StringUtil;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-@Builder
-@Getter
+@Value
+@Builder( toBuilder = true )
 public class SearchConfiguration implements Serializable
 {
-
     private String filter;
     private String ldapProfile;
     private String username;
@@ -64,28 +65,41 @@ public class SearchConfiguration implements Serializable
         }
     }
 
-    public static SearchConfiguration fromPermission( final UserPermission permission )
+    public static SearchConfiguration fromPermission( final UserPermission userPermission ) throws PwmUnrecoverableException
     {
         final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
-        if ( !StringUtil.isEmpty( permission.getLdapQuery() ) )
-        {
-            builder.filter( permission.getLdapQuery() );
-        }
 
-        if ( !StringUtil.isEmpty( permission.getLdapBase() ) )
+        switch ( userPermission.getType() )
         {
-            builder.contexts( Collections.singletonList( permission.getLdapBase() ) );
-        }
-
-        {
-            final String ldapProfileID = permission.getLdapProfileID();
-            if ( !StringUtil.isEmpty( ldapProfileID ) )
+            case ldapQuery:
             {
-                if ( !PwmConstants.PROFILE_ID_ALL.equalsIgnoreCase( ldapProfileID ) )
+                builder.filter( userPermission.getLdapQuery() );
+                if ( userPermission.getLdapBase() != null && !userPermission.getLdapBase().isEmpty() )
                 {
-                    builder.ldapProfile( ldapProfileID );
+                    builder.enableContextValidation( false );
+                    builder.contexts( Collections.singletonList( userPermission.getLdapBase() ) );
                 }
             }
+            break;
+
+            case ldapGroup:
+            {
+                builder.groupDN( userPermission.getLdapBase() );
+            }
+            break;
+
+            default:
+                throw new PwmUnrecoverableException( new ErrorInformation(
+                        PwmError.ERROR_INTERNAL,
+                        "unknown permission type: " + userPermission.getType() )
+                );
+        }
+
+        if ( userPermission.getLdapProfileID() != null
+                && !userPermission.getLdapProfileID().isEmpty()
+                && !userPermission.getLdapProfileID().equals( PwmConstants.PROFILE_ID_ALL ) )
+        {
+            builder.ldapProfile( userPermission.getLdapProfileID() );
         }
 
         return builder.build();

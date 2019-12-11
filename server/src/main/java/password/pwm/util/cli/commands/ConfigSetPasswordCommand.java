@@ -22,7 +22,9 @@ package password.pwm.util.cli.commands;
 
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.util.cli.CliParameters;
 
 import java.util.Collections;
@@ -34,10 +36,11 @@ public class ConfigSetPasswordCommand extends AbstractCliCommand
             throws Exception
     {
         final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
-        final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
+        final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
         final String password = getOptionalPassword();
-        storedConfiguration.setPassword( password );
-        configurationReader.saveConfiguration( storedConfiguration, cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
+        StoredConfigurationUtil.setPassword( modifier, password );
+        configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
         out( "success: new password has been set" );
     }
 

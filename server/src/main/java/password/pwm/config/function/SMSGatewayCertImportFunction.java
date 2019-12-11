@@ -22,26 +22,24 @@ package password.pwm.config.function;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 
 import java.net.URI;
 
 public class SMSGatewayCertImportFunction extends AbstractUriCertImportFunction
 {
-
-
     @Override
-    String getUri( final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
+    String getUri( final StoredConfigurationModifier modifier, final PwmSetting pwmSetting, final String profile, final String extraData )
+            throws PwmOperationalException, PwmUnrecoverableException
     {
-
-
         final String uriString;
         final String menuDebugLocation;
 
-        uriString = ( String ) storedConfiguration.readSetting( PwmSetting.SMS_GATEWAY_URL ).toNativeObject();
+        uriString = ( String ) modifier.newStoredConfiguration().readSetting( PwmSetting.SMS_GATEWAY_URL, null ).toNativeObject();
         menuDebugLocation = PwmSetting.SMS_GATEWAY_URL.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
 
         if ( uriString.isEmpty() )
@@ -53,7 +51,7 @@ public class SMSGatewayCertImportFunction extends AbstractUriCertImportFunction
         {
             URI.create( uriString );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "Setting " + menuDebugLocation + " has an invalid URL syntax" );
             throw new PwmOperationalException( errorInformation );

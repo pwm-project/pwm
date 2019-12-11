@@ -57,7 +57,7 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
                     fileOutputStream
             );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             out( "error during tomcat config file export: " + e.getMessage() );
         }

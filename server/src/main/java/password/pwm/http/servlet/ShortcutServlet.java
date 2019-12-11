@@ -80,7 +80,7 @@ public class ShortcutServlet extends AbstractPwmServlet
         {
             return ShortcutAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             return null;
         }

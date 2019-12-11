@@ -20,7 +20,6 @@
 
 package password.pwm.http.servlet.configmanager;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -96,15 +95,16 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
         {
             return ConfigManagerAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             return null;
         }
     }
 
     protected void processAction( final PwmRequest pwmRequest )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+            throws ServletException, IOException, PwmUnrecoverableException
     {
+        ConfigManagerServlet.verifyConfigAccess( pwmRequest );
 
         final ConfigManagerAction processAction = readProcessAction( pwmRequest );
         if ( processAction != null )
@@ -143,10 +143,10 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
         {
             final int bufferSize = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_DOWNLOAD_BUFFER_SIZE ) );
             final OutputStream bos = new BufferedOutputStream( resp.getOutputStream(), bufferSize );
-            localDBUtility.exportLocalDB( bos, LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getSessionLabel() ), true );
+            localDBUtility.exportLocalDB( bos, LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getSessionLabel() ) );
             LOGGER.debug( pwmRequest, () -> "completed localDBExport process in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( pwmRequest, "error downloading export localdb: " + e.getMessage() );
         }
@@ -196,7 +196,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
                     LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getSessionLabel() ) );
             LOGGER.info( pwmRequest, () -> "completed LocalDB import" );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final ErrorInformation errorInformation = e instanceof PwmException
                     ? ( ( PwmException ) e ).getErrorInformation()
@@ -213,7 +213,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
                 {
                     localDB.close();
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( pwmRequest, "error closing LocalDB after import process: " + e.getMessage() );
                 }

@@ -24,6 +24,8 @@ import lombok.Value;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
+import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
@@ -36,17 +38,17 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public class VerificationMethodValue extends AbstractValue implements StoredValue
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( VerificationMethodValue.class );
 
-    private VerificationMethodSettings value = new VerificationMethodSettings();
+    private final VerificationMethodSettings value;
 
 
     public enum EnabledState
@@ -58,16 +60,18 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
     public static class VerificationMethodSettings implements Serializable
     {
-        private Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings = new HashMap<>();
-        private int minOptionalRequired;
+        private final Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings;
+        private final int minOptionalRequired;
 
         public VerificationMethodSettings( )
         {
+            methodSettings = Collections.emptyMap();
+            minOptionalRequired = 0;
         }
 
         public VerificationMethodSettings( final Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings, final int minOptionalRequired )
         {
-            this.methodSettings = methodSettings;
+            this.methodSettings = methodSettings == null ? Collections.emptyMap() : Collections.unmodifiableMap( methodSettings );
             this.minOptionalRequired = minOptionalRequired;
         }
 
@@ -87,7 +91,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     @Value
     public static class VerificationMethodSetting implements Serializable
     {
-        private final EnabledState enabledState;
+        private EnabledState enabledState;
     }
 
     public VerificationMethodValue( )
@@ -127,16 +131,20 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
             public VerificationMethodValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
-                final XmlElement valueElement = settingElement.getChild( "value" );
-                final String inputStr = valueElement.getText();
-                final VerificationMethodSettings settings = JsonUtil.deserialize( inputStr, VerificationMethodSettings.class );
-                return new VerificationMethodValue( settings );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                if ( valueElement.isPresent() )
+                {
+                    final String inputStr = valueElement.get().getText();
+                    final VerificationMethodSettings settings = JsonUtil.deserialize( inputStr, VerificationMethodSettings.class );
+                    return new VerificationMethodValue( settings );
+                }
+                return  new VerificationMethodValue(  );
             }
         };
     }
 
     @Override
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
         valueElement.addText( JsonUtil.serialize( value ) );

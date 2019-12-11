@@ -17,6 +17,10 @@
  ~ See the License for the specific language governing permissions and
  ~ limitations under the License.
 --%>
+<%--
+       THIS FILE IS NOT INTENDED FOR END USER MODIFICATION.
+       See the README.TXT file in WEB-INF/jsp before making changes.
+--%>
 
 
 <%@ page import="password.pwm.http.JspUtility" %>
@@ -54,32 +58,28 @@
                 </a>
             </pwm:if>
 
-            <pwm:if test="<%=PwmIfTest.peopleSearchEnabled%>">
-                <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PEOPLE_SEARCH%>">
-                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivatePeopleSearch.servletUrl()%>'/>#/search">
-                        <div class="tile">
-                            <div class="tile-content">
-                                <div class="tile-image search-image"></div>
-                                <div class="tile-title" title="<pwm:display key='Title_PeopleSearch'/>"><pwm:display key="Title_PeopleSearch"/></div>
-                                <div class="tile-subtitle" title="<pwm:display key='Long_Title_PeopleSearch'/>"><pwm:display key="Long_Title_PeopleSearch"/></div>
-                            </div>
+            <pwm:if test="<%=PwmIfTest.peopleSearchAvailable%>">
+                <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivatePeopleSearch.servletUrl()%>'/>#/search">
+                    <div class="tile">
+                        <div class="tile-content">
+                            <div class="tile-image search-image"></div>
+                            <div class="tile-title" title="<pwm:display key='Title_PeopleSearch'/>"><pwm:display key="Title_PeopleSearch"/></div>
+                            <div class="tile-subtitle" title="<pwm:display key='Long_Title_PeopleSearch'/>"><pwm:display key="Long_Title_PeopleSearch"/></div>
                         </div>
-                    </a>
-                </pwm:if>
+                    </div>
+                </a>
             </pwm:if>
 
             <pwm:if test="<%=PwmIfTest.orgChartEnabled%>">
-                <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PEOPLE_SEARCH%>">
-                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivatePeopleSearch.servletUrl()%>'/>#/orgchart">
-                        <div class="tile">
-                            <div class="tile-content">
-                                <div class="tile-image orgchart-image"></div>
-                                <div class="tile-title" title="<pwm:display key='Title_OrgChart'/>"><pwm:display key="Title_OrgChart"/></div>
-                                <div class="tile-subtitle" title="<pwm:display key='Title_OrgChart'/>"><pwm:display key="Title_OrgChart"/></div>
-                            </div>
+                <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivatePeopleSearch.servletUrl()%>'/>#/orgchart">
+                    <div class="tile">
+                        <div class="tile-content">
+                            <div class="tile-image orgchart-image"></div>
+                            <div class="tile-title" title="<pwm:display key='Title_OrgChart'/>"><pwm:display key="Title_OrgChart"/></div>
+                            <div class="tile-subtitle" title="<pwm:display key='Title_OrgChart'/>"><pwm:display key="Title_OrgChart"/></div>
                         </div>
-                    </a>
-                </pwm:if>
+                    </div>
+                </a>
             </pwm:if>
 
             <pwm:if test="<%=PwmIfTest.setupChallengeEnabled%>">

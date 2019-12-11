@@ -36,10 +36,10 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -155,7 +155,7 @@ public class SmsQueueManager implements PwmService
                 StatisticsManager.incrementStat( pwmApplication, Statistic.SMS_SEND_SUCCESSES );
                 lastError = null;
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 StatisticsManager.incrementStat( pwmApplication, Statistic.SMS_SEND_DISCARDS );
                 StatisticsManager.incrementStat( pwmApplication, Statistic.SMS_SEND_FAILURES );
@@ -163,7 +163,7 @@ public class SmsQueueManager implements PwmService
                 lastError = e.getErrorInformation();
                 return WorkQueueProcessor.ProcessResult.FAILED;
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 StatisticsManager.incrementStat( pwmApplication, Statistic.SMS_SEND_FAILURES );
                 lastError = e.getErrorInformation();
@@ -197,7 +197,7 @@ public class SmsQueueManager implements PwmService
         {
             workQueueProcessor.submit( shortenedBean );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error writing to LocalDB queue, discarding sms send request: " + e.getMessage() );
         }
@@ -501,21 +501,22 @@ public class SmsQueueManager implements PwmService
             {
                 if ( JavaHelper.isEmpty( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) ) )
                 {
-                    pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel );
+                    pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( );
                 }
                 else
                 {
                     final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
+                            .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
                             .certificates( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) )
                             .build();
 
-                    pwmHttpClient = new PwmHttpClient( pwmApplication, sessionLabel, clientConfiguration );
+                    pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( clientConfiguration );
                 }
             }
 
             try
             {
-                final PwmHttpClientResponse pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
+                final PwmHttpClientResponse pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, sessionLabel );
                 final int resultCode = pwmHttpClientResponse.getStatusCode();
 
                 final String responseBody = pwmHttpClientResponse.getBody();
@@ -524,7 +525,7 @@ public class SmsQueueManager implements PwmService
                 determineIfResultSuccessful( config, resultCode, responseBody );
                 LOGGER.debug( () -> "SMS send successful, HTTP status: " + resultCode );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 final ErrorInformation errorInformation = new ErrorInformation(
                         PwmError.ERROR_SMS_SEND_ERROR,
@@ -558,7 +559,7 @@ public class SmsQueueManager implements PwmService
                 final String gatewayStrPass = gatewayPass == null ? null : gatewayPass.getStringValue();
                 requestData = requestData.replace( TOKEN_PASS, smsDataEncode( gatewayStrPass, encoding ) );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.error( "unable to read sms password while reading configuration" );
             }
@@ -635,7 +636,12 @@ public class SmsQueueManager implements PwmService
                     ? requestData
                     : null;
 
-            return new PwmHttpClientRequest( httpMethod, fullUrl, body, headers );
+            return PwmHttpClientRequest.builder()
+                    .method( httpMethod )
+                    .url( fullUrl )
+                    .body( body )
+                    .headers( headers )
+                    .build();
         }
 
         public String getLastResponseBody( )

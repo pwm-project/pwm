@@ -30,8 +30,8 @@ import java.io.InputStream;
 
 public interface Wordlist extends PwmService
 {
-
-    long size( );
+    long size( )
+            throws PwmUnrecoverableException;
 
     WordlistStatus readWordlistStatus( );
 
@@ -46,6 +46,8 @@ public interface Wordlist extends PwmService
     ErrorInformation getAutoImportError( );
 
     AbstractWordlist.Activity getActivity();
+
+    String getImportPercentComplete();
 
     enum Activity
     {

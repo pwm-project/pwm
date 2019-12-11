@@ -382,7 +382,11 @@ PWM_MAIN.handleLoginFormSubmit = function(form, event) {
                 options['content'] = domForm.toObject(form);
                 delete options['content']['processAction'];
                 delete options['content']['pwmFormID'];
-                var url = 'login?processAction=restLogin&skipCaptcha=' + options['content']['skipCaptcha'];
+                var url = 'login?processAction=restLogin';
+                if (options['content']['skipCaptcha'])
+                {
+                    PWM_MAIN.addParamToUrl( url, 'skipCaptcha', options['content']['skipCaptcha']);
+                }
                 var loadFunction = function(data) {
                     if (data['error'] === true) {
                         PWM_MAIN.getObject('password').value = '';

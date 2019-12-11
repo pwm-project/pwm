@@ -24,7 +24,6 @@ import org.jdom2.Comment;
 import org.jdom2.Content;
 import org.jdom2.Element;
 import org.jdom2.Text;
-import org.jdom2.input.DOMBuilder;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -32,10 +31,11 @@ import javax.xml.parsers.DocumentBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public interface XmlElement
 {
-    XmlElement getChild( String elementName );
+    Optional<XmlElement> getChild( String elementName );
 
     String getAttributeValue( String attribute );
 
@@ -46,8 +46,6 @@ public interface XmlElement
     String getTextTrim();
 
     String getChildText( String elementName );
-
-    org.jdom2.Element asJdomElement();
 
     String getName();
 
@@ -69,6 +67,10 @@ public interface XmlElement
 
     List<XmlElement> getChildren();
 
+    XmlElement copy();
+
+    XmlElement parent();
+
     class XmlElementJDOM implements XmlElement
     {
         private final Element element;
@@ -85,14 +87,14 @@ public interface XmlElement
         }
 
         @Override
-        public XmlElement getChild( final String elementName )
+        public Optional<XmlElement> getChild( final String elementName )
         {
             final List<XmlElement> children = getChildren( elementName );
             if ( JavaHelper.isEmpty( children ) )
             {
-                return null;
+                return Optional.empty();
             }
-            return children.iterator().next();
+            return Optional.of( children.iterator().next() );
         }
 
         @Override
@@ -141,18 +143,8 @@ public interface XmlElement
         @Override
         public String getChildText( final String elementName )
         {
-            final XmlElement child = getChild( elementName );
-            if ( child == null )
-            {
-                return null;
-            }
-            return child.getText();
-        }
-
-        @Override
-        public Element asJdomElement()
-        {
-            return element;
+            final Optional<XmlElement> child = getChild( elementName );
+            return child.map( XmlElement::getText ).orElse( null );
         }
 
         @Override
@@ -219,6 +211,18 @@ public interface XmlElement
                 element.addContent( 0, new Comment( text ) );
             }
         }
+
+        @Override
+        public XmlElement copy()
+        {
+            return new XmlElementJDOM( this.element.clone() );
+        }
+
+        @Override
+        public XmlElement parent()
+        {
+            return new XmlElementJDOM( this.element.getParentElement() );
+        }
     }
 
     class XmlElementW3c implements XmlElement
@@ -237,14 +241,14 @@ public interface XmlElement
         }
 
         @Override
-        public XmlElement getChild( final String elementName )
+        public Optional<XmlElement> getChild( final String elementName )
         {
             final List<XmlElement> children = getChildren( elementName );
             if ( JavaHelper.isEmpty( children ) )
             {
-                return null;
+                return Optional.empty();
             }
-            return children.iterator().next();
+            return Optional.of( children.iterator().next() );
         }
 
         @Override
@@ -285,19 +289,8 @@ public interface XmlElement
         @Override
         public String getChildText( final String elementName )
         {
-            final XmlElement child = getChild( elementName );
-            if ( child == null )
-            {
-                return null;
-            }
-            return child.getText();
-        }
-
-        @Override
-        public Element asJdomElement()
-        {
-            final DOMBuilder domBuilder = new DOMBuilder();
-            return domBuilder.build( element );
+            final Optional<XmlElement> child = getChild( elementName );
+            return child.map( XmlElement::getText ).orElse( null );
         }
 
         @Override
@@ -389,6 +382,20 @@ public interface XmlElement
                 }
 
             }
+        }
+
+        @Override
+        public XmlElement copy()
+        {
+            final Node newNode = this.element.cloneNode( true );
+            this.element.getOwnerDocument().adoptNode( newNode );
+            return new XmlElementW3c( (org.w3c.dom.Element ) newNode );
+        }
+
+        @Override
+        public XmlElement parent()
+        {
+            return new XmlElementW3c( ( org.w3c.dom.Element ) this.element.getParentNode() );
         }
     }
 }

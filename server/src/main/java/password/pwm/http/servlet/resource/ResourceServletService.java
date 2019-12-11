@@ -31,9 +31,10 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
-import password.pwm.util.EventRateMeter;
+import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -59,7 +60,7 @@ public class ResourceServletService implements PwmService
 
     private ResourceServletConfiguration resourceServletConfiguration;
     private Cache<CacheKey, CacheEntry> cache;
-    private EventRateMeter.MovingAverage cacheHitRatio = new EventRateMeter.MovingAverage( 60 * 60 * 1000 );
+    private MovingAverage cacheHitRatio = new MovingAverage( 60 * 60 * 1000 );
     private String resourceNonce;
     private STATUS status = STATUS.NEW;
 
@@ -75,7 +76,7 @@ public class ResourceServletService implements PwmService
         return cache;
     }
 
-    public EventRateMeter.MovingAverage getCacheHitRatio( )
+    public MovingAverage getCacheHitRatio( )
     {
         return cacheHitRatio;
     }
@@ -129,7 +130,7 @@ public class ResourceServletService implements PwmService
 
             status = STATUS.OPEN;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error during cache initialization, will remain closed; error: " + e.getMessage() );
             status = STATUS.CLOSED;
@@ -140,7 +141,7 @@ public class ResourceServletService implements PwmService
         {
             resourceNonce = makeResourcePathNonce();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error during nonce generation, will remain closed; error: " + e.getMessage() );
             status = STATUS.CLOSED;
@@ -277,15 +278,21 @@ public class ResourceServletService implements PwmService
                         final File resourcePath = new File( basePath.getAbsolutePath() + File.separator + "public" + File.separator + "resources" );
                         if ( resourcePath.exists() )
                         {
-                            for ( final FileSystemUtility.FileSummaryInformation fileSummaryInformation : FileSystemUtility.readFileInformation( resourcePath ) )
+                            try ( ClosableIterator<FileSystemUtility.FileSummaryInformation> iter =
+                                          FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) ) )
                             {
-                                checksumStream.write( JavaHelper.longToBytes( fileSummaryInformation.getChecksum() ) );
+                                while ( iter.hasNext()  )
+                                {
+                                    final FileSystemUtility.FileSummaryInformation fileSummaryInformation = iter.next();
+                                    checksumStream.write( JavaHelper.longToBytes( fileSummaryInformation.getChecksum() ) );
+                                }
+
                             }
                         }
                     }
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "unable to generate resource path nonce: " + e.getMessage() );
             }

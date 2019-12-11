@@ -29,14 +29,13 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.X509Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,7 +72,7 @@ public class ApplianceStatusChecker implements HealthChecker
         {
             healthRecords.addAll( readApplianceHealthStatus( pwmApplication ) );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, "error communicating with client " + e.getMessage() );
         }
@@ -89,12 +88,17 @@ public class ApplianceStatusChecker implements HealthChecker
         final Map<String, String> requestHeaders = Collections.singletonMap( "sspr-authorization-token", getApplianceAccessToken( pwmApplication ) );
 
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                .trustManager( new X509Utils.PromiscuousTrustManager( SessionLabel.HEALTH_SESSION_LABEL ) )
+                .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
                 .build();
 
-        final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, SessionLabel.HEALTH_SESSION_LABEL, pwmHttpClientConfiguration );
-        final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest( HttpMethod.GET, url, null, requestHeaders );
-        final PwmHttpClientResponse response = pwmHttpClient.makeRequest( pwmHttpClientRequest );
+        final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
+        final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder()
+                .method( HttpMethod.GET )
+                .url( url )
+                .headers( requestHeaders )
+                .build();
+
+        final PwmHttpClientResponse response = pwmHttpClient.makeRequest( pwmHttpClientRequest, SessionLabel.HEALTH_SESSION_LABEL );
 
         LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "https response from appliance server request: " + response.getBody() );
 
@@ -170,7 +174,7 @@ public class ApplianceStatusChecker implements HealthChecker
             }
             return "";
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             final String msg = "unable to read contents of file '" + filename + "', error: " + e.getMessage();
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ), e );

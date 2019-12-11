@@ -27,26 +27,58 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.value.data.UserPermission;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.CommonValues;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class ProfileUtility
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ProfileUtility.class );
 
+    public static Optional<String> discoverProfileIDforUser(
+            final CommonValues commonValues,
+            final UserIdentity userIdentity,
+            final ProfileDefinition profileDefinition
+    )
+            throws PwmUnrecoverableException
+    {
+        final String profileID = discoverProfileIDforUser( commonValues.getPwmApplication(), commonValues.getSessionLabel(), userIdentity, profileDefinition );
+        return Optional.ofNullable( profileID );
+    }
+
+    public static <T extends Profile> T profileForUser(
+            final CommonValues commonValues,
+            final UserIdentity userIdentity,
+            final ProfileDefinition profileDefinition,
+            final Class<T> classOfT
+    )
+            throws PwmUnrecoverableException
+    {
+        final Optional<String> profileID = discoverProfileIDforUser( commonValues, userIdentity, profileDefinition );
+        if ( !profileID.isPresent() )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "profile of type " + profileDefinition + " is required but not assigned" );
+        }
+        final Profile profileImpl = commonValues.getConfig().profileMap( profileDefinition ).get( profileID.get() );
+        return ( T ) profileImpl;
+    }
+
+
     public static String discoverProfileIDforUser(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
-            final ProfileType profileType
+            final ProfileDefinition profileDefinition
     )
             throws PwmUnrecoverableException
     {
-        final Map<String, Profile> profileMap = pwmApplication.getConfig().profileMap( profileType );
+        final Map<String, Profile> profileMap = pwmApplication.getConfig().profileMap( profileDefinition );
         for ( final Profile profile : profileMap.values() )
         {
             final List<UserPermission> queryMatches = profile.getPermissionMatches();

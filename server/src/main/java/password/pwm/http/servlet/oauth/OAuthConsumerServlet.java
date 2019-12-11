@@ -187,7 +187,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                         JavaHelper.unhandledSwitchStatement( oAuthUseCaseCase );
                 }
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
@@ -204,7 +204,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         {
             resolveResults = oAuthMachine.makeOAuthResolveRequest( pwmRequest, requestCodeStr );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             final String errorMsg = "unexpected error communicating with oauth server: " + e.toString();
             final ErrorInformation errorInformation = new ErrorInformation( e.getError(), errorMsg );
@@ -269,7 +269,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                     return;
                 }
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 final String errorMsg = "error while examining incoming oauth code for already authenticated session: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
@@ -295,7 +295,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             LOGGER.debug( pwmSession, () -> "oauth authentication completed, redirecting to originally requested URL: " + nextUrl );
             pwmRequest.sendRedirect( nextUrl );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( pwmSession, "error during OAuth authentication attempt: " + e.getMessage() );
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, e.getMessage() );

@@ -27,7 +27,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.value.data.UserPermission;
@@ -40,7 +40,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import java.util.Collections;
 import java.util.List;
@@ -67,7 +67,7 @@ public class UserDebugDataReader
 
         final Map<Permission, String> permissions = UserDebugDataReader.permissionMap( pwmApplication, sessionLabel, userIdentity );
 
-        final Map<ProfileType, String> profiles = UserDebugDataReader.profileMap( pwmApplication, sessionLabel, userIdentity );
+        final Map<ProfileDefinition, String> profiles = UserDebugDataReader.profileMap( pwmApplication, sessionLabel, userIdentity );
 
         final PwmPasswordPolicy ldapPasswordPolicy = PasswordUtility.readLdapPasswordPolicy( pwmApplication, pwmApplication.getProxiedChaiUser( userIdentity ) );
 
@@ -83,7 +83,7 @@ public class UserDebugDataReader
         {
             readablePassword = null != LdapOperationsHelper.readLdapPassword( pwmApplication, sessionLabel, userIdentity );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             /* disregard */
         }
@@ -134,22 +134,26 @@ public class UserDebugDataReader
         return Collections.unmodifiableMap( results );
     }
 
-    private static Map<ProfileType, String> profileMap(
+    private static Map<ProfileDefinition, String> profileMap(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
     ) throws PwmUnrecoverableException
     {
-        final Map<ProfileType, String> results = new TreeMap<>();
-        for ( final ProfileType profileType : ProfileType.values() )
+        final Map<ProfileDefinition, String> results = new TreeMap<>();
+        for ( final ProfileDefinition profileDefinition : ProfileDefinition.values() )
         {
-            final String id = ProfileUtility.discoverProfileIDforUser(
-                    pwmApplication,
-                    sessionLabel,
-                    userIdentity,
-                    profileType
-            );
-            results.put( profileType, id );
+            if ( profileDefinition.isAuthenticated() )
+            {
+                final String id = ProfileUtility.discoverProfileIDforUser(
+                        pwmApplication,
+                        sessionLabel,
+                        userIdentity,
+                        profileDefinition
+                );
+
+                results.put( profileDefinition, id );
+            }
         }
         return Collections.unmodifiableMap( results );
     }
@@ -170,7 +174,7 @@ public class UserDebugDataReader
                     return value.get();
                 }
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.debug( () -> "error reading user pwNotify status: " + e.getMessage() );
             }

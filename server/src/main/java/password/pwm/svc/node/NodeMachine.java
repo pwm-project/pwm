@@ -78,7 +78,7 @@ class NodeMachine
     public List<NodeInfo> nodes( ) throws PwmUnrecoverableException
     {
         final Map<String, NodeInfo> returnObj = new TreeMap<>();
-        final String configHash = pwmApplication.getConfig().configurationHash();
+        final String configHash = pwmApplication.getConfig().configurationHash( pwmApplication.getSecureService() );
         for ( final StoredNodeData storedNodeData : knownNodes.values() )
         {
             final boolean configMatch = configHash.equals( storedNodeData.getConfigHash() );
@@ -175,7 +175,7 @@ class NodeMachine
                 clusterDataServiceProvider.writeNodeStatus( storedNodeData );
                 nodeServiceStatistics.getClusterWrites().incrementAndGet();
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 final String errorMsg = "error writing node service heartbeat: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, errorMsg );
@@ -192,7 +192,7 @@ class NodeMachine
                 knownNodes.putAll( readNodeData );
                 nodeServiceStatistics.getClusterReads().incrementAndGet();
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 final String errorMsg = "error reading node statuses: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, errorMsg );
@@ -208,7 +208,7 @@ class NodeMachine
                 final int purges = clusterDataServiceProvider.purgeOutdatedNodes( settings.getNodePurgeInterval() );
                 nodeServiceStatistics.getNodePurges().addAndGet( purges );
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 final String errorMsg = "error purging outdated node reference: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, errorMsg );

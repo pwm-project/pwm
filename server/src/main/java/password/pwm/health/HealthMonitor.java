@@ -227,7 +227,7 @@ public class HealthMonitor implements PwmService
                     tempResults.addAll( loopResults );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 if ( status == STATUS.OPEN )
                 {
@@ -245,7 +245,7 @@ public class HealthMonitor implements PwmService
                     tempResults.addAll( loopResults );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 if ( status == STATUS.OPEN )
                 {
@@ -291,7 +291,7 @@ public class HealthMonitor implements PwmService
                 doHealthChecks();
                 LOGGER.trace( () -> "completed health check dredge " + TimeDuration.compactFromCurrent( startTime ) );
             }
-            catch ( Throwable e )
+            catch ( final Throwable e )
             {
                 LOGGER.error( "error during health check execution: " + e.getMessage(), e );
             }
@@ -341,7 +341,7 @@ public class HealthMonitor implements PwmService
             {
                 writeSupportZipToAppPath();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.debug( SessionLabel.HEALTH_SESSION_LABEL, () -> "error writing support zip to file system: " + e.getMessage() );
             }

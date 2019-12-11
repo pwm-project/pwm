@@ -255,7 +255,7 @@ public class LogoutServlet extends ControlledPwmServlet
 
 
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.debug( () -> "error parsing client specified url parameter: " + e.getMessage() );
         }

@@ -23,6 +23,8 @@ package password.pwm.config.value;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingProperty;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -30,10 +32,11 @@ import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class NumericValue extends AbstractValue implements StoredValue
 {
-    long value;
+    private final long value;
 
     public NumericValue( final long value )
     {
@@ -51,9 +54,16 @@ public class NumericValue extends AbstractValue implements StoredValue
 
             public NumericValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
-                final XmlElement valueElement = settingElement.getChild( "value" );
-                final String value = valueElement.getText();
-                return new NumericValue( normalizeValue( pwmSetting, Long.parseLong( value ) ) );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                if ( valueElement.isPresent() )
+                {
+                    final String value = valueElement.get().getText();
+                    return new NumericValue( normalizeValue( pwmSetting, Long.parseLong( value ) ) );
+                }
+                else
+                {
+                    return new NumericValue( 0 );
+                }
             }
         };
     }
@@ -77,7 +87,7 @@ public class NumericValue extends AbstractValue implements StoredValue
     }
 
     @Override
-    public List<XmlElement> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
         valueElement.addText( Long.toString( value ) );

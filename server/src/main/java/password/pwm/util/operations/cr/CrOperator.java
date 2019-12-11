@@ -99,7 +99,7 @@ public interface CrOperator
                     }
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "unable to determine formatType of stored responses: " + e.getMessage() );
             }

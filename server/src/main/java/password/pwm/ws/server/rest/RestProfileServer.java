@@ -25,7 +25,7 @@ import lombok.Data;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.WebServiceUsage;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.value.data.FormConfiguration;
@@ -102,11 +102,11 @@ public class RestProfileServer extends RestServlet
         {
             return doGetProfileDataImpl( restRequest, username );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             return RestResultBean.fromError( restRequest, e.getErrorInformation() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -126,7 +126,7 @@ public class RestProfileServer extends RestServlet
                 restRequest.getPwmApplication(),
                 restRequest.getSessionLabel(),
                 targetUserIdentity.getUserIdentity(),
-                ProfileType.UpdateAttributes
+                ProfileDefinition.UpdateAttributes
         );
 
         if ( StringUtil.isEmpty( updateProfileID ) )
@@ -179,7 +179,7 @@ public class RestProfileServer extends RestServlet
         {
             return doPostProfileDataImpl( restRequest, jsonInput );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -205,7 +205,7 @@ public class RestProfileServer extends RestServlet
                 restRequest.getPwmApplication(),
                 restRequest.getSessionLabel(),
                 targetUserIdentity.getUserIdentity(),
-                ProfileType.UpdateAttributes
+                ProfileDefinition.UpdateAttributes
         );
 
         if ( StringUtil.isEmpty( updateProfileID ) )

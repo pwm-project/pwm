@@ -92,7 +92,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 {
                     Validator.validatePwmRequestCounter( pwmRequest );
                 }
-                catch ( PwmOperationalException e )
+                catch ( final PwmOperationalException e )
                 {
                     if ( e.getError() == PwmError.ERROR_INCORRECT_REQ_SEQUENCE )
                     {
@@ -122,14 +122,14 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
 
             this.processAction( pwmRequest );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final PwmRequest pwmRequest;
             try
             {
                 pwmRequest = PwmRequest.forRequest( req, resp );
             }
-            catch ( Exception e2 )
+            catch ( final Exception e2 )
             {
                 try
                 {
@@ -137,7 +137,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                             "exception occurred, but exception handler unable to load request instance; error=" + e.getMessage(),
                             e );
                 }
-                catch ( Exception e3 )
+                catch ( final Exception e3 )
                 {
                     e3.printStackTrace();
                 }
@@ -165,7 +165,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             {
                 pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, theClass );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.debug( pwmRequest, () -> "error while clearing module bean during after module error output: " + e.getMessage() );
             }
@@ -205,7 +205,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         {
             stackTraceHash = SecureEngine.hash( stackTraceText, PwmHashAlgorithm.SHA1 );
         }
-        catch ( PwmUnrecoverableException e1 )
+        catch ( final PwmUnrecoverableException e1 )
         {
             /* */
         }
@@ -233,7 +233,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 {
                     pwmApplication.getStatisticsManager().incrementValue( Statistic.LDAP_UNAVAILABLE_COUNT );
                 }
-                catch ( Throwable e1 )
+                catch ( final Throwable e1 )
                 {
                     //noop
                 }
@@ -250,7 +250,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                     LoginServlet.redirectToLoginServlet( PwmRequest.forRequest( req, resp ) );
                     return true;
                 }
-                catch ( Throwable e1 )
+                catch ( final Throwable e1 )
                 {
                     LOGGER.error( "error while marking pre-login url:" + e1.getMessage() );
                 }
@@ -268,7 +268,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                         pwmApplication.getStatisticsManager().incrementValue( Statistic.PWM_UNKNOWN_ERRORS );
                     }
                 }
-                catch ( Throwable e1 )
+                catch ( final Throwable e1 )
                 {
                     //noop
                 }

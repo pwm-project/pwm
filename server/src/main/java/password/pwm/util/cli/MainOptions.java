@@ -122,7 +122,7 @@ public class MainOptions implements Serializable
                             {
                                 pwmLogLevel = PwmLogLevel.valueOf( levelStr.toUpperCase() );
                             }
-                            catch ( IllegalArgumentException e )
+                            catch ( final IllegalArgumentException e )
                             {
                                 out( debugWriter, " unknown log level value: " + levelStr );
                                 System.exit( -1 );
@@ -182,7 +182,7 @@ public class MainOptions implements Serializable
                 debugWriter.append( "\n" );
                 debugWriter.flush();
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 e.printStackTrace();
             }

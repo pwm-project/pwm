@@ -39,10 +39,10 @@ public class ValueFactory
     {
         try
         {
-            final StoredValue.StoredValueFactory factory = setting.getSyntax().getStoredValueImpl();
+            final StoredValue.StoredValueFactory factory = setting.getSyntax().getFactory();
             return factory.fromJson( input );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append( "error parsing value stored configuration value: " ).append( e.getMessage() );
@@ -59,10 +59,10 @@ public class ValueFactory
     {
         try
         {
-            final StoredValue.StoredValueFactory factory = setting.getSyntax().getStoredValueImpl();
+            final StoredValue.StoredValueFactory factory = setting.getSyntax().getFactory();
             return factory.fromXmlElement( setting, settingElement, key );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append( "error parsing stored configuration value: " ).append( e.getMessage() );
@@ -71,7 +71,7 @@ public class ValueFactory
                 errorMsg.append( ", cause: " ).append( e.getCause().getMessage() );
             }
             LOGGER.error( errorMsg, e );
-            throw new IllegalStateException( "unable to read xml element '" + settingElement.getName() + "' from setting '" + setting.getKey() + "' error: " + e.getMessage() );
+            throw new IllegalStateException( "unable to read xml element '" + settingElement.getName() + "' from setting '" + setting.getKey() + "' error: " + e.getMessage(), e );
         }
     }
 }

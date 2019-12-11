@@ -54,7 +54,7 @@ public class HashFactory
         {
             alg = ResponseHashAlgorithm.valueOf( algName );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             throw new IllegalArgumentException( "unknown format type '" + algName + "'" );
         }
@@ -64,7 +64,7 @@ public class HashFactory
         {
             responseHashMachine = ( ResponseHashMachineSpi ) algClass.newInstance();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new IllegalStateException( "unexpected error instantiating response hash machine spi class: " + e.getMessage() );
         }

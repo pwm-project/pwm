@@ -23,7 +23,6 @@ package password.pwm;
 import org.apache.commons.csv.CSVFormat;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.secure.PwmHashAlgorithm;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -101,6 +100,7 @@ public abstract class PwmConstants
 
     public static final String LDAP_AD_PASSWORD_POLICY_CONTROL_ASN = "1.2.840.113556.1.4.2066";
     public static final String PROFILE_ID_ALL = "all";
+    public static final String PROFILE_ID_DEFAULT = "default";
 
     public static final String TOKEN_KEY_PWD_CHG_DATE = "_lastPwdChange";
 
@@ -117,9 +117,6 @@ public abstract class PwmConstants
     public static final String REQUEST_ATTR_FORGOTTEN_PW_USERINFO_CACHE = "ForgottenPw-UserInfoCache";
     public static final String REQUEST_ATTR_FORGOTTEN_PW_AVAIL_TOKEN_DEST_CACHE = "ForgottenPw-AvailableTokenDestCache";
     public static final String REQUEST_ATTR_PWM_APPLICATION = "PwmApplication";
-
-    public static final PwmHashAlgorithm SETTING_CHECKSUM_HASH_METHOD = PwmHashAlgorithm.SHA256;
-
 
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle( "log.removedValue" );
 
@@ -217,6 +214,7 @@ public abstract class PwmConstants
             "Your password must be scanned by the TSA to ensure the safety of your fellow travelers.  Please take off your password's shoes to continue.",
             "That password really tied the room together dude.",
             "Bite my shiny metal password!",
+            "ben makes password software go woooo",
 
             //nick helm
             "I needed a password eight characters long so I picked Snow White and the Seven Dwarves.",
@@ -271,14 +269,14 @@ public abstract class PwmConstants
                             }
                         }
                     }
-                    catch ( Throwable t )
+                    catch ( final Throwable t )
                     {
                         System.out.println( t );
                     }
                 }
             }
         }
-        catch ( Throwable t )
+        catch ( final Throwable t )
         {
             System.out.println( t );
         }

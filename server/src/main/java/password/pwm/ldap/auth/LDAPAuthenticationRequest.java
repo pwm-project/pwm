@@ -62,7 +62,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -158,7 +158,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
         {
             return authenticateUserImpl( userPassword );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             if ( strategy == AuthenticationStrategy.READ_THEN_BIND )
             {
@@ -243,7 +243,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             {
                 testCredentials( userIdentity, password );
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 boolean permitAuthDespiteError = false;
                 final DirectoryVendor vendor = pwmApplication.getProxyChaiProvider(
@@ -427,7 +427,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
 
             bindSucceeded = true;
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             if ( e.getErrorCode() != null && e.getErrorCode() == ChaiError.INTRUDER_LOCKOUT )
             {
@@ -458,7 +458,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                     userProvider.close();
                     userProvider = null;
                 }
-                catch ( Throwable e )
+                catch ( final Throwable e )
                 {
                     log( PwmLogLevel.ERROR, () -> "unexpected error closing invalid ldap connection after failed login attempt: " + e.getMessage() );
                 }
@@ -516,7 +516,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
 
                 log( PwmLogLevel.DEBUG, () -> "user " + userIdentity + " password has been set to random value to use for user authentication" );
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 final String errorStr = "error setting random password for user " + userIdentity + " " + e.getMessage();
                 log( PwmLogLevel.ERROR, () -> errorStr );

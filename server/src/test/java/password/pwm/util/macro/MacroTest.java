@@ -29,7 +29,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.ldap.UserInfo;
 
 public class MacroTest
@@ -105,7 +105,7 @@ public class MacroTest
         {
             final PwmApplication pwmApplication = Mockito.mock( PwmApplication.class );
             Mockito.when( pwmApplication.getApplicationMode() ).thenReturn( PwmApplicationMode.RUNNING );
-            Mockito.when( pwmApplication.getConfig() ).thenReturn( new Configuration( StoredConfigurationImpl.newStoredConfiguration() ) );
+            Mockito.when( pwmApplication.getConfig() ).thenReturn( new Configuration( StoredConfigurationFactory.newConfig() ) );
 
             final UserInfo userInfo = Mockito.mock( UserInfo.class );
             final UserIdentity userIdentity = new UserIdentity( userDN, "profile" );

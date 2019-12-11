@@ -28,6 +28,8 @@ import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -46,6 +48,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditService;
 import password.pwm.svc.event.SystemAuditRecord;
+import password.pwm.svc.httpclient.HttpClientService;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.node.NodeService;
@@ -100,8 +103,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * A repository for objects common to the servlet context.  A singleton
@@ -176,7 +179,7 @@ public class PwmApplication
         {
             initialize();
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.fatal( e.getMessage() );
             throw e;
@@ -241,7 +244,7 @@ public class PwmApplication
             {
                 FileSystemUtility.deleteDirectoryContents( tempFileDirectory );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR,
                         "unable to clear temp file directory '" + tempFileDirectory.getAbsolutePath() + "', error: " + e.getMessage()
@@ -304,33 +307,15 @@ public class PwmApplication
     {
         final Instant startTime = Instant.now();
 
-        pwmEnvironment.getConfig().outputToLog();
-
-        // detect if config has been modified since previous startup
         try
         {
-            final String previousHash = readAppAttribute( AppAttribute.CONFIG_HASH, String.class );
-            final String currentHash = pwmEnvironment.getConfig().configurationHash();
-            if ( previousHash == null || !previousHash.equals( currentHash ) )
-            {
-                writeAppAttribute( AppAttribute.CONFIG_HASH, currentHash );
-                LOGGER.warn( "configuration checksum does not match previously seen checksum, configuration has been modified since last startup" );
-                if ( this.getAuditManager() != null )
-                {
-                    final String modifyMessage = "configuration was modified directly (not using ConfigEditor UI)";
-                    this.getAuditManager().submit( new AuditRecordFactory( this ).createUserAuditRecord(
-                            AuditEvent.MODIFY_CONFIGURATION,
-                            null,
-                            null,
-                            modifyMessage
-                    ) );
-                }
-            }
+            outputConfigurationToLog( this );
         }
-        catch ( Exception e )
+        catch ( final PwmException e )
         {
-            LOGGER.debug( () -> "unable to detect if configuration has been modified since previous startup: " + e.getMessage() );
+            LOGGER.error( "error outputting log to debug: " + e.getMessage() );
         }
+
 
         if ( this.getConfig() != null )
         {
@@ -359,7 +344,7 @@ public class PwmApplication
             );
             getAuditManager().submit( auditRecord );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.warn( "unable to submit start alert event " + e.getMessage() );
         }
@@ -369,7 +354,7 @@ public class PwmApplication
             final Map<PwmAboutProperty, String> infoMap = PwmAboutProperty.makeInfoBean( this );
             LOGGER.trace( () ->  "application info: " + JsonUtil.serializeMap( infoMap ) );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error generating about application bean: " + e.getMessage(), e );
         }
@@ -378,7 +363,7 @@ public class PwmApplication
         {
             this.getIntruderManager().clear( RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.warn( "error while clearing configmanager-intruder-username from intruder table: " + e.getMessage() );
         }
@@ -389,7 +374,7 @@ public class PwmApplication
             {
                 outputKeystore( this );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.debug( () -> "error while generating keystore output: " + e.getMessage() );
             }
@@ -398,7 +383,7 @@ public class PwmApplication
             {
                 outputTomcatConf( this );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.debug( () -> "error while generating tomcat conf output: " + e.getMessage() );
             }
@@ -410,7 +395,7 @@ public class PwmApplication
         {
             UserAgentUtils.initializeCache();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.debug( () -> "error initializing UserAgentUtils: " + e.getMessage() );
         }
@@ -483,11 +468,15 @@ public class PwmApplication
             }
 
             final ByteArrayOutputStream outputContents = new ByteArrayOutputStream();
-            ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
-                    pwmApplication.getConfig(),
-                    new FileInputStream( tomcatSourceFile ),
-                    outputContents
-            );
+            try ( FileInputStream fileInputStream = new FileInputStream( tomcatOutputFile ) )
+            {
+                ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
+                        pwmApplication.getConfig(),
+                        fileInputStream,
+                        outputContents
+                );
+            }
+
             if ( tomcatOutputFile.exists() )
             {
                 LOGGER.trace( () -> "deleting existing tomcat configuration file " + tomcatOutputFile.getAbsolutePath() );
@@ -505,6 +494,31 @@ public class PwmApplication
             LOGGER.info( () -> "successfully wrote tomcat configuration to file " + tomcatOutputFile.getAbsolutePath() );
         }
     }
+
+    private static void outputConfigurationToLog( final PwmApplication pwmApplication )
+            throws PwmUnrecoverableException
+    {
+        if ( !LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        {
+            return;
+        }
+
+        final StoredConfiguration storedConfiguration = pwmApplication.getConfig().getStoredConfiguration();
+        final Map<String, String> debugStrings = StoredConfigurationUtil.makeDebugMap( storedConfiguration, storedConfiguration.modifiedItems(), PwmConstants.DEFAULT_LOCALE );
+        final List<Supplier<CharSequence>> outputStrings = new ArrayList<>();
+
+        for ( final Map.Entry<String, String> entry : debugStrings.entrySet() )
+        {
+            final String spacedValue = entry.getValue().replace( "\n", "\n   " );
+            final String output = " " + entry.getKey() + "\n   " + spacedValue + "\n";
+            outputStrings.add( () -> output );
+        }
+
+        LOGGER.trace( () -> "--begin current configuration output--" );
+        outputStrings.forEach( LOGGER::trace );
+        LOGGER.trace( () -> "--end current configuration output--" );
+    }
+
 
     public String getInstanceID( )
     {
@@ -529,7 +543,7 @@ public class PwmApplication
             final ChaiProvider proxiedProvider = getProxyChaiProvider( userIdentity.getLdapProfileID() );
             return proxiedProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -551,6 +565,11 @@ public class PwmApplication
         return ( HealthMonitor ) pwmServiceManager.getService( HealthMonitor.class );
     }
 
+    public HttpClientService getHttpClientService()
+    {
+        return ( HttpClientService ) pwmServiceManager.getService( HttpClientService.class );
+    }
+
     public List<PwmService> getPwmServices( )
     {
         final List<PwmService> pwmServices = new ArrayList<>();
@@ -560,7 +579,7 @@ public class PwmApplication
         return Collections.unmodifiableList( pwmServices );
     }
 
-    public WordlistService getWordlistManager( )
+    public WordlistService getWordlistService( )
     {
         return ( WordlistService ) pwmServiceManager.getService( WordlistService.class );
     }
@@ -679,7 +698,7 @@ public class PwmApplication
                     return Instant.ofEpochMilli( Long.parseLong( storedDateStr ) );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "error retrieving installation date from localDB: " + e.getMessage() );
             }
@@ -780,7 +799,7 @@ public class PwmApplication
         {
             smsQueue.addSmsToQueue( smsItemBean );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.warn( "unable to add sms to queue: " + e.getMessage() );
         }
@@ -804,7 +823,7 @@ public class PwmApplication
                     getAuditManager().submit( auditRecord );
                 }
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 LOGGER.warn( "unable to submit shutdown alert event " + e.getMessage() );
             }
@@ -820,7 +839,7 @@ public class PwmApplication
             {
                 localDBLogger.close();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "error closing localDBLogger: " + e.getMessage(), e );
             }
@@ -834,7 +853,7 @@ public class PwmApplication
                 LOGGER.trace( () -> "beginning close of LocalDB" );
                 localDB.close();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.fatal( "error closing localDB: " + e, e );
             }
@@ -873,7 +892,7 @@ public class PwmApplication
                 final String localDBLocationSetting = pwmApplication.getConfig().readAppProperty( AppProperty.LOCALDB_LOCATION );
                 databaseDirectory = FileSystemUtility.figureFilepath( localDBLocationSetting, pwmApplication.pwmEnvironment.getApplicationPath() );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 pwmApplication.lastLocalDBFailure = new ErrorInformation( PwmError.ERROR_LOCALDB_UNAVAILABLE, "error locating configured LocalDB directory: " + e.getMessage() );
                 LOGGER.warn( pwmApplication.lastLocalDBFailure.toDebugStr() );
@@ -888,7 +907,7 @@ public class PwmApplication
                 final boolean readOnly = pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY;
                 return LocalDBFactory.getInstance( databaseDirectory, readOnly, pwmApplication, pwmApplication.getConfig() );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 pwmApplication.lastLocalDBFailure = new ErrorInformation( PwmError.ERROR_LOCALDB_UNAVAILABLE, "unable to initialize LocalDB: " + e.getMessage() );
                 LOGGER.warn( pwmApplication.lastLocalDBFailure.toDebugStr() );
@@ -925,7 +944,7 @@ public class PwmApplication
             final String strValue = localDB.get( LocalDB.DB.PWM_META, appAttribute.getKey() );
             return JsonUtil.deserialize( strValue, returnClass );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error retrieving key '" + appAttribute.getKey() + "' value from localDB: " + e.getMessage() );
         }
@@ -957,14 +976,14 @@ public class PwmApplication
                 localDB.put( LocalDB.DB.PWM_META, appAttribute.getKey(), jsonValue );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error retrieving key '" + appAttribute.getKey() + "' installation date from localDB: " + e.getMessage() );
             try
             {
                 localDB.remove( LocalDB.DB.PWM_META, appAttribute.getKey() );
             }
-            catch ( Exception e2 )
+            catch ( final Exception e2 )
             {
                 LOGGER.error( "error removing bogus appAttribute value for key " + appAttribute.getKey() + ", error: " + localDB );
             }

@@ -24,7 +24,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
@@ -41,7 +41,7 @@ public class SmtpCertImportFunction implements SettingUIFunction
     @Override
     public String provideFunction(
             final PwmRequest pwmRequest,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfigurationModifier modifier,
             final PwmSetting setting,
             final String profile,
             final String extraData
@@ -50,12 +50,12 @@ public class SmtpCertImportFunction implements SettingUIFunction
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        final Configuration configuration = new Configuration( storedConfiguration );
+        final Configuration configuration = new Configuration( modifier.newStoredConfiguration() );
         final List<X509Certificate> certs = EmailServerUtil.readCertificates( configuration, profile );
         if ( !JavaHelper.isEmpty( certs ) )
         {
             final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
-            storedConfiguration.writeSetting( PwmSetting.EMAIL_SERVER_CERTS, profile, new X509CertificateValue( certs ), userIdentity );
+            modifier.writeSetting( PwmSetting.EMAIL_SERVER_CERTS, profile, new X509CertificateValue( certs ), userIdentity );
         }
 
         return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmRequest.getConfig() );

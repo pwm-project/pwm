@@ -734,34 +734,11 @@
     </setting>
     <setting hidden="false" key="email.smtp.userpassword" level="1">
     </setting>
-
-    <setting hidden="false" key="email.smtp.address" level="1">
-        <regex>^[a-zA-Z0-9.-]*$</regex>
-        <default>
-            <value />
-        </default>
-    </setting>
-    <setting hidden="false" key="email.smtp.port" level="1">
-        <default>
-            <value>25</value>
-        </default>
-        <properties>
-            <property key="Minimum">1</property>
-            <property key="Maximum">65535</property>
-        </properties>
-    </setting>
     <setting hidden="false" key="email.default.fromAddress" level="1">
         <flag>emailSyntax</flag>
         <default>
             <value>noreply@example.org</value>
         </default>
-    </setting>
-    <setting hidden="false" key="email.smtp.username" level="2">
-        <default>
-            <value />
-        </default>
-    </setting>
-    <setting hidden="false" key="email.smtp.userpassword" level="2">
     </setting>
     <setting hidden="false" key="email.userMailAttribute" level="2" required="true">
         <ldapPermission actor="proxy" access="read"/>
@@ -1428,11 +1405,6 @@
             <value>300</value>
         </default>
     </setting>
-    <setting hidden="false" key="intruder.address.checkTime" level="1" required="true">
-        <default>
-            <value>300</value>
-        </default>
-    </setting>
     <setting hidden="false" key="intruder.enable" level="1" required="true">
         <default>
             <value>true</value>
@@ -1643,7 +1615,7 @@
     </setting>
     <setting hidden="false" key="security.cspHeader" level="2">
         <default>
-            <value><![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'nonce-%NONCE%'; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/cspReport]]></value>
+            <value><![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.recaptcha.net/recaptcha/ https://www.gstatic.cn/recaptcha/  https://www.gstatic.com/recaptcha/ https://www.google.com/recaptcha/ 'self' 'unsafe-eval' 'nonce-%NONCE%'; frame-src https://www.recaptcha.net/recaptcha/ https://www.gstatic.cn/recaptcha/ https://www.gstatic.com/recaptcha/ https://www.google.com/recaptcha/ ; report-uri /sspr/public/command/cspReport]]></value>
         </default>
     </setting>
     <setting hidden="false" key="email.adminAlert.toAddress" level="1">
@@ -2932,6 +2904,15 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="true" key="activateUser.profile.list" level="1">
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <properties>
+            <property key="Minimum">1</property>
+        </properties>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
     <setting hidden="false" key="activateUser.allowUnlock" level="1" required="true">
         <default>
             <value>true</value>
@@ -3066,6 +3047,7 @@
         </options>
     </setting>
     <setting hidden="true" key="updateAttributes.check.queryMatch" level="3">
+        <flag>Deprecated</flag>
         <ldapPermission actor="proxy" access="read"/>
         <default>
             <value />
@@ -3099,11 +3081,6 @@
             <value>0</value>
         </default>
     </setting>
-    <setting hidden="false" key="updateAttributes.enable" level="1">
-        <default>
-            <value>false</value>
-        </default>
-    </setting>
     <setting hidden="false" key="shortcut.enable" level="1">
         <default>
             <value>false</value>
@@ -3121,11 +3098,6 @@
             <value><![CDATA[X-Shortcuts]]></value>
         </default>
     </setting>
-    <setting hidden="false" key="shortcut.httpHeaders" level="1">
-        <default>
-            <value><![CDATA[X-Shortcuts]]></value>
-        </default>
-    </setting>
     <setting hidden="false" key="shortcut.newWindow" level="1">
         <default>
             <value>false</value>
@@ -3136,9 +3108,20 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="true" key="peopleSearch.profile.list" level="1">
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
     <setting hidden="false" key="peopleSearch.enablePublic" level="1">
         <default>
             <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="peopleSearch.public.profile" level="1">
+        <default>
+            <value>default</value>
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.enablePhoto" level="1">
@@ -3173,6 +3156,7 @@
         </default>
     </setting>
     <setting hidden="true" key="peopleSearch.searchAttributes" level="1" required="false">
+        <flag>Deprecated</flag>
         <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>givenName</value>
@@ -3271,6 +3255,7 @@
         </properties>
     </setting>
     <setting hidden="true" key="peopleSearch.displayName.user" level="1" required="true">
+        <flag>Deprecated</flag>
         <flag>MacroSupport</flag>
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @LDAP:title@</value>
@@ -3662,6 +3647,7 @@
         </default>
     </setting>
     <setting hidden="true" key="helpdesk.displayName" level="2">
+        <flag>Deprecated</flag>
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @User:ID@ - @User:Email@</value>
         </default>
@@ -3677,11 +3663,6 @@
         <properties>
             <property key="Maximum">4</property>
         </properties>
-    </setting>
-    <setting hidden="false" key="helpdesk.enable" level="1" required="true">
-        <default>
-            <value>false</value>
-        </default>
     </setting>
     <setting hidden="true" key="helpdesk.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
@@ -3863,6 +3844,7 @@
         </default>
     </setting>
     <setting hidden="true" key="reporting.ldap.searchFilter" level="1">
+        <flag>Deprecated</flag>
         <default>
             <value />
         </default>
@@ -4078,6 +4060,7 @@
     </setting>
     <!-- DEPRECATED SETTINGS -->
     <setting hidden="true" key="password.policy.ADComplexity" level="99" required="false">
+        <flag>Deprecated</flag>
         <default>
             <value>false</value>
         </default>
@@ -4086,27 +4069,31 @@
         </default>
     </setting>
     <setting hidden="true" key="recovery.require.otp" level="1" required="true">
+        <flag>Deprecated</flag>
         <default>
             <value>false</value>
         </default>
     </setting>
     <setting hidden="true" key="challenge.requireResponses" level="1">
+        <flag>Deprecated</flag>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting hidden="true" key="helpdesk.otp.verify" level="1">
+        <flag>Deprecated</flag>
         <default>
             <value>false</value>
         </default>
     </setting>
     <setting hidden="true" key="webservices.healthStats.makePublic" level="2">
+        <flag>Deprecated</flag>
         <default>
             <value>false</value>
         </default>
     </setting>
     <setting hidden="true" key="challenge.enforceMinimumPasswordLifetime" level="2" required="true">
-        <!-- deprecated 2018-02-27-->
+        <flag>Deprecated</flag>
         <default>
             <value>false</value>
         </default>
@@ -4283,6 +4270,11 @@
     </category>
     <category hidden="false" key="ACTIVATION">
     </category>
+    <category hidden="false" key="ACTIVATION_SETTINGS">
+    </category>
+    <category hidden="false" key="ACTIVATION_PROFILE">
+        <profile setting="activateUser.profile.list"/>
+    </category>
     <category hidden="false" key="UPDATE">
     </category>
     <category hidden="false" key="UPDATE_SETTINGS">
@@ -4293,6 +4285,11 @@
     <category hidden="false" key="SHORTCUT">
     </category>
     <category hidden="false" key="PEOPLE_SEARCH">
+    </category>
+    <category hidden="false" key="PEOPLE_SEARCH_SETTINGS">
+    </category>
+    <category hidden="false" key="PEOPLE_SEARCH_PROFILE">
+        <profile setting="peopleSearch.profile.list"/>
     </category>
     <category hidden="false" key="HELPDESK">
     </category>

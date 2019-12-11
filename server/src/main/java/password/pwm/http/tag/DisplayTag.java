@@ -120,7 +120,7 @@ public class DisplayTag extends PwmAbstractTag
             {
                 pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 /* noop */
             }
@@ -138,14 +138,14 @@ public class DisplayTag extends PwmAbstractTag
 
             pageContext.getOut().write( displayMessage );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             {
                 LOGGER.debug( () -> "error while executing jsp display tag: " + e.getMessage() );
                 return EVAL_PAGE;
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.debug( () -> "error while executing jsp display tag: " + e.getMessage(), e );
             throw new JspTagException( e.getMessage(), e );
@@ -164,7 +164,7 @@ public class DisplayTag extends PwmAbstractTag
         {
             return Class.forName( bundle );
         }
-        catch ( ClassNotFoundException e )
+        catch ( final ClassNotFoundException e )
         {
             /* no op */
         }
@@ -173,7 +173,7 @@ public class DisplayTag extends PwmAbstractTag
         {
             return Class.forName( Display.class.getPackage().getName() + "." + bundle );
         }
-        catch ( ClassNotFoundException e )
+        catch ( final ClassNotFoundException e )
         {
             /* no op */
         }
@@ -198,7 +198,7 @@ public class DisplayTag extends PwmAbstractTag
                             }
             );
         }
-        catch ( MissingResourceException e )
+        catch ( final MissingResourceException e )
         {
             if ( !displayIfMissing )
             {

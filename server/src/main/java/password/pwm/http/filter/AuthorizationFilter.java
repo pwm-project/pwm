@@ -72,7 +72,7 @@ public class AuthorizationFilter extends AbstractPwmFilter
         {
             hasPermission = pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.warn( pwmRequest, "error during authorization check: " + e.getMessage() );
         }
@@ -85,7 +85,7 @@ public class AuthorizationFilter extends AbstractPwmFilter
                 return;
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.warn( pwmRequest, "unexpected error executing filter chain: " + e.getMessage() );
             return;

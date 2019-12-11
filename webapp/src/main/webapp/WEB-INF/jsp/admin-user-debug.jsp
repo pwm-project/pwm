@@ -17,6 +17,10 @@
  ~ See the License for the specific language governing permissions and
  ~ limitations under the License.
 --%>
+<%--
+       THIS FILE IS NOT INTENDED FOR END USER MODIFICATION.
+       See the README.TXT file in WEB-INF/jsp before making changes.
+--%>
 
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
@@ -24,7 +28,7 @@
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
 <%@ page import="password.pwm.bean.pub.PublicUserInfoBean" %>
 <%@ page import="password.pwm.config.profile.ChallengeProfile" %>
-<%@ page import="password.pwm.config.profile.ProfileType" %>
+<%@ page import="password.pwm.config.profile.ProfileDefinition" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordPolicy" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordRule" %>
 <%@ page import="password.pwm.http.servlet.admin.UserDebugDataBean" %>
@@ -63,12 +67,6 @@
         <div class="buttonbar">
             <form method="get" class="pwm-form">
                 <button type="submit" class="btn"><pwm:display key="Button_Continue"/></button>
-            </form>
-        </div>
-        <div class="buttonbar">
-            <form method="get">
-                <input type="hidden" name="processAction" value="<%=AdminServlet.AdminAction.downloadUserDebug.toString()%>"/>
-                <button type="submit" class="btn">Download</button>
             </form>
         </div>
         <% final PublicUserInfoBean userInfo = userDebugDataBean.getPublicUserInfoBean(); %>
@@ -296,10 +294,10 @@
                             <td class="key">Service</td>
                             <td class="key">ProfileID</td>
                         </tr>
-                        <% for (final ProfileType profileType : userDebugDataBean.getProfiles().keySet()) { %>
+                        <% for (final ProfileDefinition profileDefinition : userDebugDataBean.getProfiles().keySet()) { %>
                         <tr>
-                            <td><%=profileType%></td>
-                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getProfiles().get(profileType))%></td>
+                            <td><%=profileDefinition%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getProfiles().get(profileDefinition))%></td>
                         </tr>
                         <% } %>
                     </table>
@@ -531,6 +529,10 @@
         <div class="buttonbar">
             <form method="get" class="pwm-form">
                 <button type="submit" class="btn"><pwm:display key="Button_Continue"/></button>
+            </form>
+            <form method="get">
+                <input type="hidden" name="processAction" value="<%=AdminServlet.AdminAction.downloadUserDebug.toString()%>"/>
+                <button type="submit" class="btn">Download</button>
             </form>
         </div>
         <% } %>

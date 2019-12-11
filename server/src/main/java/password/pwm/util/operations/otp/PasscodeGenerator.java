@@ -171,7 +171,7 @@ public class PasscodeGenerator
         {
             val = input.readInt();
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             throw new IllegalStateException( e );
         }

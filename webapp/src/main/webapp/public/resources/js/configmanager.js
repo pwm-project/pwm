@@ -356,6 +356,7 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
         var uploadOptions = {};
         uploadOptions['url'] = 'wordlists?processAction=uploadWordlist&wordlist=' + type;
         uploadOptions['title'] = 'Upload ' + label;
+        uploadOptions['text'] = PWM_CONFIG.showString('Display_UploadWordlist');
         uploadOptions['nextFunction'] = function () {
             PWM_MAIN.showDialog({
                 title: 'Finished', text: 'Upload Completed', okAction: function () {

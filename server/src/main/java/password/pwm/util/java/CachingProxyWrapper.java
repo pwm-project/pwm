@@ -76,7 +76,7 @@ public class CachingProxyWrapper
                 cache.put( methodSignature, Optional.ofNullable( result ) );
                 return result;
             }
-            catch ( InvocationTargetException e )
+            catch ( final InvocationTargetException e )
             {
                 throw e.getTargetException();
             }

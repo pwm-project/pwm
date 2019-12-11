@@ -58,11 +58,11 @@ public class TelemetryRestReceiver extends HttpServlet
             stoage.store( telemetryPublishBean );
             resp.getWriter().print( RestResultBean.forSuccessMessage( null, null, null, Message.Success_Unknown ).toJson() );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             resp.getWriter().print( RestResultBean.fromError( e.getErrorInformation() ).toJson() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() ) );
             resp.getWriter().print( restResultBean.toJson() );

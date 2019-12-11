@@ -21,6 +21,7 @@
 package password.pwm.util.localdb;
 
 import password.pwm.util.java.ClosableIterator;
+import password.pwm.util.java.JavaHelper;
 
 import java.io.File;
 import java.io.Serializable;
@@ -116,35 +117,39 @@ public interface LocalDB
         /**
          * Used for various pwm operational data.
          */
-        PWM_META( true ),
-        SHAREDHISTORY_META( true ),
-        SHAREDHISTORY_WORDS( true ),
+        PWM_META( Flag.Backup ),
+        SHAREDHISTORY_META( Flag.Backup ),
+        SHAREDHISTORY_WORDS( Flag.Backup ),
         // WORDLIST_META(true), // @deprecated
-        WORDLIST_WORDS( true ),
+        WORDLIST_WORDS( Flag.Backup ),
         // SEEDLIST_META(true), // @deprecated
-        SEEDLIST_WORDS( true ),
-        PWM_STATS( true ),
-        EVENTLOG_EVENTS( true ),
-        EMAIL_QUEUE( true ),
-        SMS_QUEUE( true ),
-        RESPONSE_STORAGE( true ),
-        OTP_SECRET( true ),
-        TOKENS( true ),
-        INTRUDER( true ),
-        AUDIT_QUEUE( true ),
-        AUDIT_EVENTS( true ),
-        USER_CACHE( true ),
-        TEMP( false ),
-        SYSLOG_QUEUE( true ),
-        CACHE( false ),
-
-        REPORT_QUEUE( false ),;
+        SEEDLIST_WORDS( Flag.Backup ),
+        PWM_STATS( Flag.Backup ),
+        EVENTLOG_EVENTS( Flag.Backup ),
+        EMAIL_QUEUE( Flag.Backup ),
+        SMS_QUEUE( Flag.Backup ),
+        RESPONSE_STORAGE( Flag.Backup ),
+        OTP_SECRET( Flag.Backup ),
+        TOKENS( Flag.Backup ),
+        INTRUDER( Flag.Backup ),
+        AUDIT_QUEUE( Flag.Backup ),
+        AUDIT_EVENTS( Flag.Backup ),
+        USER_CACHE( Flag.Backup ),
+        TEMP(  ),
+        SYSLOG_QUEUE( Flag.Backup ),
+        CACHE(  ),
+        REPORT_QUEUE( ),;
 
         private final boolean backup;
 
-        DB( final boolean backup )
+        private enum Flag
         {
-            this.backup = backup;
+            Backup,
+        }
+
+        DB( final Flag... flag )
+        {
+            this.backup = JavaHelper.enumArrayContainsValue( flag, Flag.Backup );
         }
 
         public boolean isBackup( )

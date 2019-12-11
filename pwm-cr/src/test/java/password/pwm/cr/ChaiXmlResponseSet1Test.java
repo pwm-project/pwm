@@ -33,6 +33,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 
+@SuppressWarnings( "checkstyle:MultipleStringLiterals" )
 public class ChaiXmlResponseSet1Test
 {
 

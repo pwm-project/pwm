@@ -172,7 +172,7 @@ public class PasswordRuleReaderHelper
                     final Pattern loopPattern = Pattern.compile( valueToCompile );
                     patterns.add( loopPattern );
                 }
-                catch ( PatternSyntaxException e )
+                catch ( final PatternSyntaxException e )
                 {
                     LOGGER.warn( "reading password rule value '" + valueToCompile + "' for rule " + rule.getKey() + " is not a valid regular expression " + e.getMessage() );
                 }

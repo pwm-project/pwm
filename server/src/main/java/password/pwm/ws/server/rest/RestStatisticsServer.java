@@ -315,7 +315,7 @@ public class RestStatisticsServer extends RestServlet
                 final RestResultBean resultBean = RestResultBean.withData( jsonOutput );
                 return resultBean;
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final String errorMsg = "unexpected error building json response: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );

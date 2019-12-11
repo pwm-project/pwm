@@ -76,7 +76,7 @@ class DatabaseUserHistory implements UserHistoryStore
             storedHistory.getRecords().add( auditRecord );
             writeStoredHistory( guid, storedHistory );
         }
-        catch ( DatabaseException e )
+        catch ( final DatabaseException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, e.getMessage() ) );
         }
@@ -90,7 +90,7 @@ class DatabaseUserHistory implements UserHistoryStore
         {
             return readStoredHistory( userGuid ).getRecords();
         }
-        catch ( DatabaseException e )
+        catch ( final DatabaseException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, e.getMessage() ) );
         }

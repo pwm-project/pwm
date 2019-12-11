@@ -46,7 +46,7 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import java.util.Locale;
 import java.util.Map;
@@ -125,7 +125,7 @@ public class ChangePasswordServletUtil
                 }
                 LOGGER.trace( pwmSession, () -> "successful validation of ldap value for '" + attrName + "'" );
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 LOGGER.error( pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage() );
                 throw new PwmDataValidationException( new ErrorInformation(
@@ -215,7 +215,7 @@ public class ChangePasswordServletUtil
         final ChangePasswordBean cpb = pwmApplication.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
 
         // change password
-        PasswordUtility.setActorPassword( pwmSession, pwmApplication, newPassword );
+        PasswordUtility.setActorPassword( pwmRequest, pwmApplication, newPassword );
 
         //init values for progress screen
         {

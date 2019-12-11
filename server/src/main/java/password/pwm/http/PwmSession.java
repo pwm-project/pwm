@@ -204,7 +204,7 @@ public class PwmSession implements Serializable
                     ? this.getUserInfo().getUsername()
                     : null;
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( "unexpected error reading username: " + e.getMessage(), e );
         }
@@ -254,7 +254,7 @@ public class PwmSession implements Serializable
             {
                 pwmRequest.getPwmApplication().getSessionStateService().clearLoginSession( pwmRequest );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 final String errorMsg = "unexpected error writing removing login cookie from response: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -295,7 +295,7 @@ public class PwmSession implements Serializable
             debugData.put( "locale", getSessionStateBean().getLocale() );
             debugData.put( "theme", getSessionStateBean().getTheme() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             return "exception generating PwmSession.toString(): " + e.getMessage();
         }

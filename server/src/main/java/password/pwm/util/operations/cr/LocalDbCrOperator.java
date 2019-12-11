@@ -81,13 +81,13 @@ public class LocalDbCrOperator implements CrOperator
                 return userResponseSet;
             }
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             final String errorMsg = "unexpected LocalDB error reading responses: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             final String errorMsg = "unexpected chai error reading responses from LocalDB: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -104,7 +104,7 @@ public class LocalDbCrOperator implements CrOperator
             final ResponseSet responseSet = readResponseSet( theUser, userIdentity, userGUID );
             return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean( responseSet, DataStorageMethod.LOCALDB );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_RESPONSES_NORESPONSES, "unexpected error reading response info " + e.getMessage() ) );
         }
@@ -129,7 +129,7 @@ public class LocalDbCrOperator implements CrOperator
             localDB.remove( LocalDB.DB.RESPONSE_STORAGE, userGUID );
             LOGGER.info( () -> "cleared responses for user " + theUser.getEntryDN() + " in local LocalDB" );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CLEARING_RESPONSES, "unexpected LocalDB error clearing responses: " + e.getMessage() );
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
@@ -167,14 +167,14 @@ public class LocalDbCrOperator implements CrOperator
             localDB.put( LocalDB.DB.RESPONSE_STORAGE, userGUID, responseSet.stringValue() );
             LOGGER.info( () -> "saved responses for user in LocalDB" );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, "unexpected LocalDB error saving responses to localDB: " + e.getMessage() );
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
             pwmOE.initCause( e );
             throw pwmOE;
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses to localDB: " + e.getMessage() );
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );

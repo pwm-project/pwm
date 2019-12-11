@@ -47,7 +47,7 @@ public abstract class AbstractCliCommand implements CliCommand
                 cliEnvironment.getDebugWriter().append( "\n" );
                 cliEnvironment.getDebugWriter().flush();
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 e.printStackTrace();
             }
@@ -66,7 +66,7 @@ public abstract class AbstractCliCommand implements CliCommand
         {
             doCommand();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             e.printStackTrace();
         }

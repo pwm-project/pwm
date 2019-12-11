@@ -37,7 +37,7 @@ import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.ForceSetupPolicy;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.LdapProfile;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
@@ -52,7 +52,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
 import password.pwm.util.PasswordData;
-import password.pwm.util.password.PwmPasswordRuleValidator;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CachingProxyWrapper;
@@ -61,8 +60,9 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.util.password.PwmPasswordRuleValidator;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -160,11 +160,11 @@ public class UserInfoReader implements UserInfo
         {
             return chaiUser.readLastLoginTime();
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             LOGGER.warn( sessionLabel, "error reading user's last ldap login time: " + e.getMessage() );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -232,13 +232,13 @@ public class UserInfoReader implements UserInfo
                     final PwmPasswordRuleValidator passwordRuleValidator = new PwmPasswordRuleValidator( pwmApplication, passwordPolicy );
                     passwordRuleValidator.testPassword( currentPassword, null, selfCachedReference, chaiUser );
                 }
-                catch ( PwmDataValidationException | PwmUnrecoverableException e )
+                catch ( final PwmDataValidationException | PwmUnrecoverableException e )
                 {
                     LOGGER.debug( sessionLabel, () -> "user " + userDN + " password does not conform to current password policy ("
                             + e.getMessage() + "), marking as requiring change." );
                     passwordStatusBuilder.violatesPolicy( true );
                 }
-                catch ( ChaiUnavailableException e )
+                catch ( final ChaiUnavailableException e )
                 {
                     throw PwmUnrecoverableException.fromChaiException( e );
                 }
@@ -259,11 +259,11 @@ public class UserInfoReader implements UserInfo
                 LOGGER.trace( sessionLabel, () -> "password for " + userDN + " does not appear to be expired" );
             }
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             LOGGER.info( sessionLabel, () -> "error reading LDAP attributes for " + userDN + " while reading isPasswordExpired(): " + e.getMessage() );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -369,7 +369,7 @@ public class UserInfoReader implements UserInfo
         {
             return chaiUser.isAccountEnabled();
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -382,7 +382,7 @@ public class UserInfoReader implements UserInfo
         {
             return chaiUser.isAccountExpired();
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -395,7 +395,7 @@ public class UserInfoReader implements UserInfo
         {
             return chaiUser.isPasswordLocked();
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -414,7 +414,7 @@ public class UserInfoReader implements UserInfo
                     selfCachedReference.getChallengeProfile().getChallengeSet(),
                     selfCachedReference.getResponseInfoBean() );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -426,10 +426,10 @@ public class UserInfoReader implements UserInfo
         LOGGER.trace( sessionLabel, () ->  "checkOtp: beginning process to check if user OTP setup is required" );
 
         SetupOtpProfile setupOtpProfile = null;
-        final Map<ProfileType, String> profileIDs = selfCachedReference.getProfileIDs();
-        if ( profileIDs.containsKey( ProfileType.UpdateAttributes ) )
+        final Map<ProfileDefinition, String> profileIDs = selfCachedReference.getProfileIDs();
+        if ( profileIDs.containsKey( ProfileDefinition.UpdateAttributes ) )
         {
-            setupOtpProfile = pwmApplication.getConfig().getSetupOTPProfiles().get( profileIDs.get( ProfileType.SetupOTPProfile ) );
+            setupOtpProfile = pwmApplication.getConfig().getSetupOTPProfiles().get( profileIDs.get( ProfileDefinition.SetupOTPProfile ) );
         }
 
         if ( setupOtpProfile == null )
@@ -478,10 +478,10 @@ public class UserInfoReader implements UserInfo
         }
 
         UpdateProfileProfile updateProfileProfile = null;
-        final Map<ProfileType, String> profileIDs = selfCachedReference.getProfileIDs();
-        if ( profileIDs.containsKey( ProfileType.UpdateAttributes ) )
+        final Map<ProfileDefinition, String> profileIDs = selfCachedReference.getProfileIDs();
+        if ( profileIDs.containsKey( ProfileDefinition.UpdateAttributes ) )
         {
-            updateProfileProfile = configuration.getUpdateAttributesProfile().get( profileIDs.get( ProfileType.UpdateAttributes ) );
+            updateProfileProfile = configuration.getUpdateAttributesProfile().get( profileIDs.get( ProfileDefinition.UpdateAttributes ) );
         }
 
         if ( updateProfileProfile == null )
@@ -512,12 +512,12 @@ public class UserInfoReader implements UserInfo
             LOGGER.debug( sessionLabel, () -> "checkProfile: " + userIdentity + " has value for attributes, update profile will not be required" );
             return false;
         }
-        catch ( PwmDataValidationException e )
+        catch ( final PwmDataValidationException e )
         {
             LOGGER.debug( sessionLabel, () -> "checkProfile: " + userIdentity + " does not have good attributes (" + e.getMessage() + "), update profile will be required" );
             return true;
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             e.printStackTrace();
         }
@@ -532,7 +532,7 @@ public class UserInfoReader implements UserInfo
         {
             return PasswordUtility.determinePwdLastModified( pwmApplication, sessionLabel, userIdentity );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -600,7 +600,7 @@ public class UserInfoReader implements UserInfo
         {
             return crService.readUserResponseInfo( sessionLabel, getUserIdentity(), chaiUser );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -616,7 +616,7 @@ public class UserInfoReader implements UserInfo
             {
                 return otpService.readOTPUserConfiguration( sessionLabel, userIdentity );
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 throw PwmUnrecoverableException.fromChaiException( e );
             }
@@ -631,11 +631,11 @@ public class UserInfoReader implements UserInfo
         {
             return chaiUser.readAccountExpirationDate();
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             LOGGER.warn( sessionLabel, "error reading user's account expiration time: " + e.getMessage() );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -643,22 +643,22 @@ public class UserInfoReader implements UserInfo
     }
 
     @Override
-    public Map<ProfileType, String> getProfileIDs( ) throws PwmUnrecoverableException
+    public Map<ProfileDefinition, String> getProfileIDs( ) throws PwmUnrecoverableException
     {
-        final Map<ProfileType, String> returnMap = new HashMap<>();
-        for ( final ProfileType profileType : ProfileType.values() )
+        final Map<ProfileDefinition, String> returnMap = new HashMap<>();
+        for ( final ProfileDefinition profileDefinition : ProfileDefinition.values() )
         {
-            if ( profileType.isAuthenticated() )
+            if ( profileDefinition.isAuthenticated() )
             {
-                final String profileID = ProfileUtility.discoverProfileIDforUser( pwmApplication, sessionLabel, userIdentity, profileType );
-                returnMap.put( profileType, profileID );
+                final String profileID = ProfileUtility.discoverProfileIDforUser( pwmApplication, sessionLabel, userIdentity, profileDefinition );
+                returnMap.put( profileDefinition, profileID );
                 if ( profileID != null )
                 {
-                    LOGGER.debug( sessionLabel, () -> "assigned " + profileType.toString() + " profileID \"" + profileID + "\" to " + userIdentity.toDisplayString() );
+                    LOGGER.debug( sessionLabel, () -> "assigned " + profileDefinition.toString() + " profileID \"" + profileID + "\" to " + userIdentity.toDisplayString() );
                 }
                 else
                 {
-                    LOGGER.debug( sessionLabel, () -> profileType.toString() + " has no matching profiles for user " + userIdentity.toDisplayString() );
+                    LOGGER.debug( sessionLabel, () -> profileDefinition.toString() + " has no matching profiles for user " + userIdentity.toDisplayString() );
                 }
             }
         }
@@ -713,7 +713,7 @@ public class UserInfoReader implements UserInfo
                 return value[0];
             }
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -729,7 +729,7 @@ public class UserInfoReader implements UserInfo
         {
             return chaiUser.readDateAttribute( attribute );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
@@ -789,13 +789,13 @@ public class UserInfoReader implements UserInfo
                         SearchScope.BASE
                 );
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
                 final String msg = "ldap operational error while reading user data" + e.getMessage();
                 LOGGER.error( sessionLabel, msg );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, msg ) );
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 throw PwmUnrecoverableException.fromChaiException( e );
             }

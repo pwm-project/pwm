@@ -162,7 +162,7 @@ public class LocalDbAuditVault implements AuditVault
                     {
                         event = AuditEvent.valueOf( eventCode );
                     }
-                    catch ( IllegalArgumentException e )
+                    catch ( final IllegalArgumentException e )
                     {
                         errorMsg = "error de-serializing audit record: " + e.getMessage();
                         LOGGER.error( errorMsg );
@@ -174,7 +174,7 @@ public class LocalDbAuditVault implements AuditVault
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             errorMsg = e.getMessage();
         }

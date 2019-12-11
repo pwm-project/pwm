@@ -31,7 +31,9 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.StringValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogLevel;
@@ -58,10 +60,17 @@ public class TestHelper
     public static PwmApplication makeTestPwmApplication( final File tempFolder )
             throws PwmUnrecoverableException
     {
+        final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newConfig();
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
+        modifier.writeSetting( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL, null, new StringValue( PwmLogLevel.FATAL.toString() ), null );
+        final Configuration configuration = new Configuration( modifier.newStoredConfiguration() );
+        return makeTestPwmApplication( tempFolder, configuration );
+    }
+
+    public static PwmApplication makeTestPwmApplication( final File tempFolder, final Configuration configuration )
+            throws PwmUnrecoverableException
+    {
         Logger.getRootLogger().setLevel( Level.OFF );
-        final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
-        storedConfiguration.writeSetting( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL, new StringValue( PwmLogLevel.FATAL.toString() ), null );
-        final Configuration configuration = new Configuration( storedConfiguration );
         final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder( configuration, tempFolder )
                 .setApplicationMode( PwmApplicationMode.READ_ONLY )
                 .setInternalRuntimeInstance( true )

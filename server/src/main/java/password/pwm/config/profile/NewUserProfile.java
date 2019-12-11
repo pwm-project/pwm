@@ -35,17 +35,17 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public class NewUserProfile extends AbstractProfile
+public class NewUserProfile extends AbstractProfile implements Profile
 {
 
-    private static final ProfileType PROFILE_TYPE = ProfileType.NewUser;
+    private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.NewUser;
     public static final String TEST_USER_CONFIG_VALUE = "TESTUSER";
 
     private Instant newUserPasswordPolicyCacheTime;
@@ -56,15 +56,8 @@ public class NewUserProfile extends AbstractProfile
         super( identifier, storedValueMap );
     }
 
-    public static NewUserProfile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
-    {
-        final Map<PwmSetting, StoredValue> valueMap = makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() );
-        return new NewUserProfile( identifier, valueMap );
-
-    }
-
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         return PROFILE_TYPE;
     }
@@ -142,7 +135,7 @@ public class NewUserProfile extends AbstractProfile
                     final UserIdentity userIdentity = new UserIdentity( lookupDN, defaultLdapProfile.getIdentifier() );
                     thePolicy = PasswordUtility.readPasswordPolicyForUser( pwmApplication, null, userIdentity, chaiUser, userLocale );
                 }
-                catch ( ChaiUnavailableException e )
+                catch ( final ChaiUnavailableException e )
                 {
                     throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
                 }
@@ -172,5 +165,14 @@ public class NewUserProfile extends AbstractProfile
             return TimeDuration.of( defaultDuration, TimeDuration.Unit.SECONDS );
         }
         return TimeDuration.of( newUserDuration, TimeDuration.Unit.SECONDS );
+    }
+
+    public static class NewUserProfileFactory implements ProfileFactory
+    {
+        @Override
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        {
+            return new NewUserProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+        }
     }
 }

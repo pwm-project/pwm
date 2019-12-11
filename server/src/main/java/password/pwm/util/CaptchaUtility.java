@@ -33,14 +33,15 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmURL;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.stats.Statistic;
@@ -124,15 +125,16 @@ public class CaptchaUtility
 
         try
         {
-            final PwmHttpClientRequest clientRequest = new PwmHttpClientRequest(
-                    HttpMethod.POST,
-                    pwmApplication.getConfig().readAppProperty( AppProperty.RECAPTCHA_VALIDATE_URL ),
-                    bodyText,
-                    Collections.singletonMap( "Content-Type", HttpContentType.form.getHeaderValue() )
-            );
+            final PwmHttpClientRequest clientRequest = PwmHttpClientRequest.builder()
+                    .method( HttpMethod.POST )
+                    .url( pwmApplication.getConfig().readAppProperty( AppProperty.RECAPTCHA_VALIDATE_URL ) )
+                    .body( bodyText )
+                    .headers( Collections.singletonMap( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValueWithEncoding() ) )
+                    .build();
+
             LOGGER.debug( pwmRequest, () -> "sending reCaptcha verification request" );
-            final PwmHttpClient client = new PwmHttpClient( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel() );
-            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest );
+            final PwmHttpClient client = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient();
+            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, pwmRequest.getSessionLabel()  );
 
             if ( clientResponse.getStatusCode() != HttpServletResponse.SC_OK )
             {
@@ -167,7 +169,7 @@ public class CaptchaUtility
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error during reCaptcha API execution: " + e.getMessage();
             LOGGER.error( errorMsg, e );
@@ -338,16 +340,19 @@ public class CaptchaUtility
         final String configValue = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_PARAM );
         if ( !StringUtil.isEmpty( configValue ) )
         {
-            final String skipCaptcha = pwmRequest.readParameterAsString( PwmConstants.PARAM_SKIP_CAPTCHA );
-            if ( StringUtil.nullSafeEquals( configValue, skipCaptcha ) )
+            final String requestValue = pwmRequest.readParameterAsString( PwmConstants.PARAM_SKIP_CAPTCHA );
+            if ( !StringUtil.isEmpty( requestValue ) )
             {
-                LOGGER.trace( pwmRequest, () -> "valid skipCaptcha value in request, skipping captcha check for this session" );
-                pwmRequest.getPwmSession().getSessionStateBean().setCaptchaBypassedViaParameter( true );
-                return true;
-            }
-            else
-            {
-                LOGGER.error( pwmRequest, "skipCaptcha value is in request, however value '" + skipCaptcha + "' does not match configured value" );
+                if ( StringUtil.nullSafeEquals( configValue, requestValue ) )
+                {
+                    LOGGER.trace( pwmRequest, () -> "valid skipCaptcha value in request, skipping captcha check for this session" );
+                    pwmRequest.getPwmSession().getSessionStateBean().setCaptchaBypassedViaParameter( true );
+                    return true;
+                }
+                else
+                {
+                    LOGGER.debug( pwmRequest, () -> "skipCaptcha value is in request, however value '" + requestValue + "' does not match configured value" );
+                }
             }
         }
 

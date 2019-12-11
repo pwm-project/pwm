@@ -84,7 +84,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         {
             developerDebug = pwmApplication.getConfig().isDevDebugMode();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.debug( () -> "can't read app property for developerDebug mode: " + e.getMessage() );
         }
@@ -109,7 +109,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         {
             internalQueue.removeLast( removalCount, false );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( "unexpected localDB error while modifying queue: " + e.getMessage(), e );
         }
@@ -121,7 +121,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         {
             internalQueue.removeFirst( removalCount, false );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( "unexpected localDB error while modifying queue: " + e.getMessage(), e );
         }
@@ -133,7 +133,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         {
             return internalQueue.size() == 0;
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( e );
         }
@@ -180,7 +180,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             internalQueue.addFirst( stringCollection );
             return true;
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( "unexpected LocalDB error while modifying queue: " + e.getMessage(), e );
         }
@@ -198,7 +198,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             internalQueue.addFirst( Collections.singletonList( s ) );
             return true;
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( "unexpected LocalDB error while modifying queue: " + e.getMessage(), e );
         }
@@ -215,7 +215,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         {
             internalQueue.clear();
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( "unexpected LocalDB error while modifying queue: " + e.getMessage(), e );
         }
@@ -237,7 +237,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         {
             return internalQueue.size();
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( e );
         }
@@ -249,7 +249,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         {
             internalQueue.addFirst( Collections.singletonList( s ) );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( "unexpected LocalDB error while modifying queue: " + e.getMessage(), e );
         }
@@ -261,7 +261,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         {
             internalQueue.addLast( Collections.singletonList( s ) );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( "unexpected LocalDB error while modifying queue: " + e.getMessage(), e );
         }
@@ -274,7 +274,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             internalQueue.addFirst( Collections.singletonList( s ) );
             return true;
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( "unexpected localDB error while modifying queue: " + e.getMessage(), e );
         }
@@ -287,7 +287,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             internalQueue.addLast( Collections.singletonList( s ) );
             return true;
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( "unexpected localDB error while modifying queue: " + e.getMessage(), e );
         }
@@ -324,7 +324,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             }
             return values.get( 0 );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( "unexpected localDB error while modifying queue: " + e.getMessage(), e );
         }
@@ -341,7 +341,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             }
             return values.get( 0 );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( "unexpected localDB error while modifying queue: " + e.getMessage(), e );
         }
@@ -378,7 +378,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             }
             return values.get( 0 );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( "unexpected localDB error while modifying queue: " + e.getMessage(), e );
         }
@@ -395,7 +395,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             }
             return values.get( 0 );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( "unexpected localDB error while modifying queue: " + e.getMessage(), e );
         }
@@ -432,7 +432,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         {
             return new InnerIterator( internalQueue, false );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( e );
         }
@@ -444,7 +444,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         {
             return new InnerIterator( internalQueue, true );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             throw new IllegalStateException( e );
         }
@@ -467,7 +467,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         {
             return this.removeFirst();
         }
-        catch ( NoSuchElementException e )
+        catch ( final NoSuchElementException e )
         {
             return null;
         }
@@ -535,7 +535,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                 }
                 return nextValue;
             }
-            catch ( LocalDBException e )
+            catch ( final LocalDBException e )
             {
                 throw new IllegalStateException( "unexpected localDB error while iterating queue: " + e.getMessage(), e );
             }
@@ -1052,7 +1052,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                         }
                     }
                 }
-                catch ( LocalDBException e )
+                catch ( final LocalDBException e )
                 {
                     LOGGER.error( "error generating logMsg: " + e.getMessage() );
                 }
@@ -1087,7 +1087,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                                         + ", size=" + dbSize
                                         + ", head=" + headPosition.toString() + ", tail=" + tailPosition.toString() );
                             }
-                            catch ( Exception e )
+                            catch ( final Exception e )
                             {
                                 LOGGER.error( "unexpected error during output of debug message during stored queue repair operation: " + e.getMessage(), e );
                             }

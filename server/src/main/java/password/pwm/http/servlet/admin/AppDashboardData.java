@@ -123,6 +123,7 @@ public class AppDashboardData implements Serializable
             final Locale locale,
             final Flag... flags
     )
+            throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
 
@@ -275,6 +276,7 @@ public class AppDashboardData implements Serializable
     }
 
     private static List<DisplayElement> makeLocalDbInfo( final PwmApplication pwmApplication, final Locale locale )
+            throws PwmUnrecoverableException
     {
         final List<DisplayElement> localDbInfo = new ArrayList<>();
         final String notApplicable = Display.getLocalizedMessage( locale, Display.Value_NotApplicable, pwmApplication.getConfig() );
@@ -284,7 +286,7 @@ public class AppDashboardData implements Serializable
                 "worlistSize",
                 DisplayElement.Type.number,
                 "Word List Dictionary Size",
-                numberFormat.format( pwmApplication.getWordlistManager().size() )
+                numberFormat.format( pwmApplication.getWordlistService().size() )
         ) );
 
         localDbInfo.add( new DisplayElement(
@@ -411,7 +413,7 @@ public class AppDashboardData implements Serializable
                 returnData.put( db, numberFormat.format( localDB.size( db ) ) );
             }
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             LOGGER.error( "error making localDB size bean: " + e.getMessage() );
         }
@@ -545,7 +547,7 @@ public class AppDashboardData implements Serializable
                 ) );
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.trace( () -> "error building AppDashboardData node-state: " + e.getMessage() );
         }

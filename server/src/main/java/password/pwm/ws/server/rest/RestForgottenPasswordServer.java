@@ -123,7 +123,7 @@ public class RestForgottenPasswordServer extends RestServlet
 
             stateMachine.nextStage();
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             return RestResultBean.fromError( e.getErrorInformation() );
         }
@@ -135,7 +135,7 @@ public class RestForgottenPasswordServer extends RestServlet
             {
                 stateMachine.applyFormValues( jsonInput.getForm() );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 errorInformation = e.getErrorInformation();
             }
@@ -146,7 +146,7 @@ public class RestForgottenPasswordServer extends RestServlet
         {
             jsonResponse = JsonResponse.makeResponse( beanBeanCryptoMachine, stateMachine );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             errorInformation = e.getErrorInformation();
         }

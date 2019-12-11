@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class PwmURL
@@ -48,7 +49,8 @@ public class PwmURL
             final String contextPath
     )
     {
-        this.uri = uri;
+        Objects.requireNonNull( uri );
+        this.uri = uri.normalize();
         this.contextPath = contextPath;
     }
 
@@ -463,7 +465,7 @@ public class PwmURL
                         LOGGER.trace( sessionLabel, () -> "negative URL match for regex pattern: " + strPattern );
                     }
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( sessionLabel, "error while testing URL match for regex pattern: '" + loopFragment + "', error: " + e.getMessage() );
                 }

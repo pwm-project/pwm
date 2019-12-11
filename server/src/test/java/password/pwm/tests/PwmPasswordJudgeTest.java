@@ -26,7 +26,7 @@ import org.mockito.Mockito;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.StrengthMeterType;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -30,7 +30,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.annotation.CheckReturnValue;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -166,31 +165,36 @@ public class JavaHelper
 
     public static <E extends Enum<E>> E readEnumFromString( final Class<E> enumClass, final E defaultValue, final String input )
     {
+        return readEnumFromString( enumClass, input ).orElse( defaultValue );
+    }
+
+    public static <E extends Enum<E>> Optional<E> readEnumFromString( final Class<E> enumClass, final String input )
+    {
         if ( StringUtil.isEmpty( input ) )
         {
-            return defaultValue;
+            return Optional.empty();
         }
 
         if ( enumClass == null || !enumClass.isEnum() )
         {
-            return defaultValue;
+            return Optional.empty();
         }
 
         try
         {
-            return Enum.valueOf( enumClass, input );
+            return Optional.of( Enum.valueOf( enumClass, input ) );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             /* noop */
             //LOGGER.trace("input=" + input + " does not exist in enumClass=" + enumClass.getSimpleName());
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             LOGGER.warn( "unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName() + ", error: " + e.getMessage() );
         }
 
-        return defaultValue;
+        return Optional.empty();
     }
 
     public static String throwableToString( final Throwable throwable )
@@ -278,7 +282,7 @@ public class JavaHelper
             final OutputStream output,
             final int bufferSize,
             final Predicate<Long> predicate,
-            final ConditionalTaskExecutor condtionalTaskExecutor
+            final ConditionalTaskExecutor conditionalTaskExecutor
     )
             throws IOException
     {
@@ -292,9 +296,9 @@ public class JavaHelper
             {
                 totalCopied += bytesCopied;
             }
-            if ( condtionalTaskExecutor != null )
+            if ( conditionalTaskExecutor != null )
             {
-                condtionalTaskExecutor.conditionallyExecuteTask();
+                conditionalTaskExecutor.conditionallyExecuteTask();
             }
             if ( !predicate.test( bytesCopied ) )
             {
@@ -332,32 +336,27 @@ public class JavaHelper
         return Instant.parse( input );
     }
 
-    @CheckReturnValue( when = javax.annotation.meta.When.NEVER )
-    public static boolean closeAndWaitExecutor( final ExecutorService executor, final TimeDuration timeDuration )
+    public static void closeAndWaitExecutor( final ExecutorService executor, final TimeDuration timeDuration )
     {
         if ( executor == null )
         {
-            return true;
+            return;
         }
 
         executor.shutdown();
         try
         {
-            return executor.awaitTermination( timeDuration.asMillis(), TimeUnit.MILLISECONDS );
+            executor.awaitTermination( timeDuration.asMillis(), TimeUnit.MILLISECONDS );
         }
-        catch ( InterruptedException e )
+        catch ( final InterruptedException e )
         {
             LOGGER.warn( "unexpected error shutting down executor service " + executor.getClass().toString() + " error: " + e.getMessage() );
         }
-        return false;
     }
 
     public static Collection<Method> getAllMethodsForClass( final Class clazz )
     {
-        final LinkedHashSet<Method> methods = new LinkedHashSet<>();
-
-        // add local methods;
-        methods.addAll( Arrays.asList( clazz.getDeclaredMethods() ) );
+        final LinkedHashSet<Method> methods = new LinkedHashSet<>( Arrays.asList( clazz.getDeclaredMethods() ) );
 
         final Class superClass = clazz.getSuperclass();
         if ( superClass != null )
@@ -432,7 +431,7 @@ public class JavaHelper
                 }
             }
 
-            for ( MonitorInfo mi : threadInfo.getLockedMonitors() )
+            for ( final MonitorInfo mi : threadInfo.getLockedMonitors() )
             {
                 if ( mi.getLockedStackDepth() == counter )
                 {
@@ -452,7 +451,7 @@ public class JavaHelper
         {
             sb.append( "\n\tNumber of locked synchronizers = " + locks.length );
             sb.append( '\n' );
-            for ( LockInfo li : locks )
+            for ( final LockInfo li : locks )
             {
                 sb.append( "\t- " + li );
                 sb.append( '\n' );
@@ -550,7 +549,7 @@ public class JavaHelper
             out.flush();
             return byteArrayOutputStream.toByteArray().length;
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             LOGGER.debug( () -> "exception while estimating session size: " + e.getMessage() );
             return 0;
@@ -580,7 +579,7 @@ public class JavaHelper
                         return Optional.ofNullable( uriHost );
                     }
                 }
-                catch ( IllegalArgumentException e )
+                catch ( final IllegalArgumentException e )
                 {
                     LOGGER.trace( () -> " error parsing siteURL hostname: " + e.getMessage() );
                 }
@@ -614,7 +613,7 @@ public class JavaHelper
         {
             return Integer.parseInt( input );
         }
-        catch ( NumberFormatException e )
+        catch ( final NumberFormatException e )
         {
             return defaultValue;
         }
@@ -626,7 +625,7 @@ public class JavaHelper
         {
             return Long.parseLong( input );
         }
-        catch ( NumberFormatException e )
+        catch ( final NumberFormatException e )
         {
             return defaultValue;
         }

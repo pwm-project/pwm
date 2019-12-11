@@ -74,7 +74,7 @@ public class JDBCDriverLoader
                     return new DriverWrapper( driver, loader );
                 }
             }
-            catch ( PwmUnrecoverableException | DatabaseException e )
+            catch ( final PwmUnrecoverableException | DatabaseException e )
             {
                 errorMsgs.add( strategy + " error: " + e.getMessage() );
             }
@@ -108,7 +108,7 @@ public class JDBCDriverLoader
                 constructor.setAccessible( true );
                 return constructor.newInstance();
             }
-            catch ( InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
+            catch ( final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
             {
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unable to load jdbc driver loader: " + e.getMessage() );
             }
@@ -141,7 +141,7 @@ public class JDBCDriverLoader
                 LOGGER.debug( () -> "successfully loaded JDBC database driver from classpath: " + jdbcClassName );
                 return driver;
             }
-            catch ( Throwable e )
+            catch ( final Throwable e )
             {
                 final String errorMsg = e.getClass().getName() + " error loading JDBC database driver from classpath: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
@@ -186,7 +186,7 @@ public class JDBCDriverLoader
 
                 return driver;
             }
-            catch ( Throwable e )
+            catch ( final Throwable e )
             {
                 final String errorMsg = "error registering JDBC database driver stored in configuration: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
@@ -257,7 +257,7 @@ public class JDBCDriverLoader
 
                 return driver;
             }
-            catch ( Throwable e )
+            catch ( final Throwable e )
             {
                 final String errorMsg = "error registering JDBC database driver stored in configuration: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
@@ -310,7 +310,7 @@ public class JDBCDriverLoader
             {
                 jdbcDriverHash = pwmApplication.getSecureService().hash( jdbcDriverBytes );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 throw new DatabaseException( e.getErrorInformation() );
             }
@@ -336,7 +336,7 @@ public class JDBCDriverLoader
                     );
                     driverCache.put( jdbcDriverHash, urlClassLoader );
                 }
-                catch ( Throwable e )
+                catch ( final Throwable e )
                 {
                     final String errorMsg = "error establishing classloader for driver: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
@@ -352,7 +352,7 @@ public class JDBCDriverLoader
                 LOGGER.debug( () -> "successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration" );
                 return driver;
             }
-            catch ( Throwable e )
+            catch ( final Throwable e )
             {
                 final String errorMsg = "error registering JDBC database driver stored in configuration: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );

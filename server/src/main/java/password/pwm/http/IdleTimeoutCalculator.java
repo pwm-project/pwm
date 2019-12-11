@@ -31,7 +31,8 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.HelpdeskProfile;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.PeopleSearchProfile;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.ldap.UserInfo;
@@ -40,6 +41,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -72,12 +74,17 @@ public class IdleTimeoutCalculator
 
             if ( configuration.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC ) )
             {
-                final long peopleSearchIdleTimeout = configuration.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );
-                if ( peopleSearchIdleTimeout > 0 )
+                final Optional<PeopleSearchProfile> optionalPeopleSearchProfile = configuration.getPublicPeopleSearchProfile();
+                if ( optionalPeopleSearchProfile.isPresent() )
                 {
-                    results.add( new MaxIdleTimeoutResult(
-                            MaxIdleTimeoutResult.reasonFor( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS, null ),
-                            TimeDuration.of( peopleSearchIdleTimeout, TimeDuration.Unit.SECONDS ) ) );
+                    final PeopleSearchProfile publicProfile = optionalPeopleSearchProfile.get();
+                    final long peopleSearchIdleTimeout = publicProfile.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );
+                    if ( peopleSearchIdleTimeout > 0 )
+                    {
+                        results.add( new MaxIdleTimeoutResult(
+                                MaxIdleTimeoutResult.reasonFor( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS, publicProfile.getIdentifier() ),
+                                TimeDuration.of( peopleSearchIdleTimeout, TimeDuration.Unit.SECONDS ) ) );
+                    }
                 }
             }
 
@@ -111,7 +118,7 @@ public class IdleTimeoutCalculator
 
         if ( configuration.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE ) )
         {
-            final String helpdeskProfileID = userInfo.getProfileIDs().get( ProfileType.Helpdesk );
+            final String helpdeskProfileID = userInfo.getProfileIDs().get( ProfileDefinition.Helpdesk );
             if ( !StringUtil.isEmpty( helpdeskProfileID ) )
             {
                 final HelpdeskProfile helpdeskProfile = configuration.getHelpdeskProfiles().get( helpdeskProfileID );
@@ -124,12 +131,18 @@ public class IdleTimeoutCalculator
 
         if ( configuration.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
         {
-            final long peopleSearchIdleTimeout = configuration.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );
-            if ( peopleSearchIdleTimeout > 0 )
+            final String peopleSearchID = userInfo.getProfileIDs().get( ProfileDefinition.PeopleSearch );
+            if ( !StringUtil.isEmpty( peopleSearchID ) )
             {
-                results.add( new MaxIdleTimeoutResult(
-                        MaxIdleTimeoutResult.reasonFor( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS, null ),
-                        TimeDuration.of( peopleSearchIdleTimeout, TimeDuration.Unit.SECONDS ) ) );
+                final PeopleSearchProfile peopleSearchProfile = configuration.getPeopleSearchProfiles().get( peopleSearchID );
+                final long peopleSearchIdleTimeout = peopleSearchProfile.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );
+                if ( peopleSearchIdleTimeout > 0 )
+                {
+                    results.add( new MaxIdleTimeoutResult(
+                            MaxIdleTimeoutResult.reasonFor( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS, peopleSearchID ),
+                            TimeDuration.of( peopleSearchIdleTimeout, TimeDuration.Unit.SECONDS ) ) );
+                }
+
             }
         }
 
@@ -169,7 +182,12 @@ public class IdleTimeoutCalculator
         return idleTimeoutForRequest( pwmRequest.getURL(), pwmRequest.getPwmApplication(), pwmRequest.getPwmSession() );
     }
 
-    public static TimeDuration idleTimeoutForRequest( final PwmURL pwmURL, final PwmApplication pwmApplication, final PwmSession pwmSession ) throws PwmUnrecoverableException
+    public static TimeDuration idleTimeoutForRequest(
+            final PwmURL pwmURL,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws PwmUnrecoverableException
     {
         if ( pwmURL.isResourceURL() )
         {
@@ -201,9 +219,10 @@ public class IdleTimeoutCalculator
                         && pwmURL.isPrivateUrl()
                 )
         {
-            if ( config.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
+            final PeopleSearchProfile peopleSearchProfile = pwmSession.getSessionManager().getPeopleSearchProfile( pwmApplication );
+            if ( peopleSearchProfile != null )
             {
-                final long peopleSearchIdleTimeout = config.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );
+                final long peopleSearchIdleTimeout = peopleSearchProfile.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );
                 if ( peopleSearchIdleTimeout > 0 )
                 {
                     return TimeDuration.of( peopleSearchIdleTimeout, TimeDuration.Unit.SECONDS );
@@ -224,7 +243,7 @@ public class IdleTimeoutCalculator
                     }
                 }
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.error( pwmSession, "error while figuring max idle timeout for session: " + e.getMessage() );
             }

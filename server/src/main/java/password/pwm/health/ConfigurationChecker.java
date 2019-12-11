@@ -24,30 +24,31 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.profile.ActivateUserProfile;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -85,7 +86,7 @@ public class ConfigurationChecker implements HealthChecker
                 {
                     newUserProfile.getNewUserPasswordPolicy( pwmApplication, PwmConstants.DEFAULT_LOCALE );
                 }
-                catch ( PwmUnrecoverableException e )
+                catch ( final PwmUnrecoverableException e )
                 {
                     records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Configuration, e.getMessage() ) );
                 }
@@ -99,151 +100,14 @@ public class ConfigurationChecker implements HealthChecker
 
     public List<HealthRecord> doHealthCheck( final Configuration config, final Locale locale )
     {
-
-
-        final List<HealthRecord> records = new ArrayList<>();
-
         if ( config.readSettingAsBoolean( PwmSetting.HIDE_CONFIGURATION_HEALTH_WARNINGS ) )
         {
-            return records;
+            return Collections.emptyList();
         }
 
-        records.addAll( allChecks( config, locale ) );
-
-        final String siteUrl = config.readSettingAsString( PwmSetting.PWM_SITE_URL );
-        final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
-
-        if ( siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(
-                PwmSetting.PWM_SITE_URL.getDefaultValue( config.getTemplate() ).toNativeObject() ) )
-        {
-            records.add(
-                    HealthRecord.forMessage( HealthMessage.Config_NoSiteURL, PwmSetting.PWM_SITE_URL.toMenuLocationDebug( null, locale ) ) );
-        }
-
-
-
-        if ( config.readSettingAsBoolean( PwmSetting.LDAP_ENABLE_WIRE_TRACE ) )
-        {
-            records.add(
-                    HealthRecord.forMessage( HealthMessage.Config_LDAPWireTrace, PwmSetting.LDAP_ENABLE_WIRE_TRACE.toMenuLocationDebug( null, locale ) ) );
-        }
-
-        if ( Boolean.parseBoolean( config.readAppProperty( AppProperty.LDAP_PROMISCUOUS_ENABLE ) ) )
-        {
-            final String appPropertyKey = "AppProperty" + separator + AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey();
-            records.add( HealthRecord.forMessage( HealthMessage.Config_PromiscuousLDAP, appPropertyKey ) );
-        }
-
-        if ( config.readSettingAsBoolean( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS ) )
-        {
-            records.add( HealthRecord.forMessage( HealthMessage.Config_ShowDetailedErrors, PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.toMenuLocationDebug( null, locale ) ) );
-        }
-
-        for ( final LdapProfile ldapProfile : config.getLdapProfiles().values() )
-        {
-            final String testUserDN = ldapProfile.readSettingAsString( PwmSetting.LDAP_TEST_USER_DN );
-            if ( testUserDN == null || testUserDN.length() < 1 )
-            {
-                records.add( HealthRecord.forMessage( HealthMessage.Config_AddTestUser, PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getIdentifier(), locale ) ) );
-            }
-        }
-
-        for ( final LdapProfile ldapProfile : config.getLdapProfiles().values() )
-        {
-            final List<String> ldapServerURLs = ldapProfile.getLdapUrls();
-            if ( ldapServerURLs != null && !ldapServerURLs.isEmpty() )
-            {
-                for ( final String urlStringValue : ldapServerURLs )
-                {
-                    try
-                    {
-                        final URI url = new URI( urlStringValue );
-                        final boolean secure = "ldaps".equalsIgnoreCase( url.getScheme() );
-                        if ( !secure )
-                        {
-                            records.add( HealthRecord.forMessage(
-                                    HealthMessage.Config_LDAPUnsecure,
-                                    PwmSetting.LDAP_SERVER_URLS.toMenuLocationDebug( ldapProfile.getIdentifier(), locale )
-                            ) );
-                        }
-                    }
-                    catch ( URISyntaxException e )
-                    {
-                        records.add( HealthRecord.forMessage( HealthMessage.Config_ParseError,
-                                e.getMessage(),
-                                PwmSetting.LDAP_SERVER_URLS.toMenuLocationDebug( ldapProfile.getIdentifier(), locale ),
-                                urlStringValue
-                        ) );
-                    }
-                }
-            }
-        }
-
-        records.addAll( passwordStrengthChecks( config, locale ) );
-
-        return records;
+        return Collections.unmodifiableList( allChecks( config, locale ) );
     }
 
-    private List<HealthRecord> passwordStrengthChecks(
-            final Configuration config,
-            final Locale locale
-    )
-    {
-        final List<HealthRecord> records = new ArrayList<>(  );
-
-        for ( final PwmSetting setting : PwmSetting.values() )
-        {
-            if ( setting.getSyntax() == PwmSettingSyntax.PASSWORD )
-            {
-                if ( !setting.getCategory().hasProfiles() )
-                {
-                    if ( !config.isDefaultValue( setting ) )
-                    {
-                        try
-                        {
-                            final PasswordData passwordValue = config.readSettingAsPassword( setting );
-                            final int strength = PasswordUtility.judgePasswordStrength( config,
-                                    passwordValue.getStringValue() );
-                            if ( strength < 50 )
-                            {
-                                records.add( HealthRecord.forMessage( HealthMessage.Config_WeakPassword,
-                                        setting.toMenuLocationDebug( null, locale ), String.valueOf( strength ) ) );
-                            }
-                        }
-                        catch ( Exception e )
-                        {
-                            LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, "error while inspecting setting "
-                                    + setting.toMenuLocationDebug( null, locale ) + ", error: " + e.getMessage() );
-                        }
-                    }
-                }
-            }
-        }
-        for ( final LdapProfile profile : config.getLdapProfiles().values() )
-        {
-            final PwmSetting setting = PwmSetting.LDAP_PROXY_USER_PASSWORD;
-            try
-            {
-                final PasswordData passwordValue = profile.readSettingAsPassword( setting );
-                final int strength = PasswordUtility.judgePasswordStrength( config, passwordValue == null ? null : passwordValue.getStringValue() );
-                if ( strength < 50 )
-                {
-                    records.add( HealthRecord.forMessage( HealthMessage.Config_WeakPassword,
-                            setting.toMenuLocationDebug( profile.getIdentifier(), locale ),
-                            String.valueOf( strength ) ) );
-                }
-            }
-            catch ( PwmException e )
-            {
-                LOGGER.error(
-                        SessionLabel.HEALTH_SESSION_LABEL,
-                        "error while inspecting setting " + setting.toMenuLocationDebug( profile.getIdentifier(), locale )
-                                + ", error: " + e.getMessage() );
-            }
-        }
-
-        return records;
-    }
 
     private List<HealthRecord> allChecks(
             final Configuration config,
@@ -256,10 +120,10 @@ public class ConfigurationChecker implements HealthChecker
             final ConfigHealthCheck healthCheckClass;
             try
             {
-                healthCheckClass = clazz.newInstance();
+                healthCheckClass = clazz.getDeclaredConstructor().newInstance();
                 records.addAll( healthCheckClass.healthCheck( config, locale ) );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "unexpected error during health check operation for class " + clazz.toString() + ", error:" + e.getMessage(), e );
             }
@@ -268,12 +132,140 @@ public class ConfigurationChecker implements HealthChecker
     }
 
     private static final List<Class<? extends ConfigHealthCheck>> ALL_CHECKS = Collections.unmodifiableList( Arrays.asList(
+            VerifyBasicConfigs.class,
+            VerifyPasswordStrengthLevels.class,
             VerifyPasswordPolicyConfigs.class,
             VerifyResponseLdapAttribute.class,
             VerifyDbConfiguredIfNeeded.class,
             VerifyIfDeprecatedSendMethodValuesUsed.class,
             VerifyIfDeprecatedJsFormOptionUsed.class
     ) );
+
+    static class VerifyBasicConfigs implements ConfigHealthCheck
+    {
+        @Override
+        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        {
+            final List<HealthRecord> records = new ArrayList<>();
+            final String siteUrl = config.readSettingAsString( PwmSetting.PWM_SITE_URL );
+            final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
+
+            if ( siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(
+                    PwmSetting.PWM_SITE_URL.getDefaultValue( config.getTemplate() ).toNativeObject() ) )
+            {
+                records.add(
+                        HealthRecord.forMessage( HealthMessage.Config_NoSiteURL, PwmSetting.PWM_SITE_URL.toMenuLocationDebug( null, locale ) ) );
+            }
+
+            if ( config.readSettingAsBoolean( PwmSetting.LDAP_ENABLE_WIRE_TRACE ) )
+            {
+                records.add(
+                        HealthRecord.forMessage( HealthMessage.Config_LDAPWireTrace, PwmSetting.LDAP_ENABLE_WIRE_TRACE.toMenuLocationDebug( null, locale ) ) );
+            }
+
+            if ( Boolean.parseBoolean( config.readAppProperty( AppProperty.LDAP_PROMISCUOUS_ENABLE ) ) )
+            {
+                final String appPropertyKey = "AppProperty" + separator + AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey();
+                records.add( HealthRecord.forMessage( HealthMessage.Config_PromiscuousLDAP, appPropertyKey ) );
+            }
+
+            if ( config.readSettingAsBoolean( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS ) )
+            {
+                records.add( HealthRecord.forMessage( HealthMessage.Config_ShowDetailedErrors, PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.toMenuLocationDebug( null, locale ) ) );
+            }
+
+            for ( final LdapProfile ldapProfile : config.getLdapProfiles().values() )
+            {
+                final String testUserDN = ldapProfile.readSettingAsString( PwmSetting.LDAP_TEST_USER_DN );
+                if ( testUserDN == null || testUserDN.length() < 1 )
+                {
+                    records.add( HealthRecord.forMessage(
+                            HealthMessage.Config_AddTestUser,
+                            PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getIdentifier(), locale )
+                    ) );
+                }
+            }
+
+            for ( final LdapProfile ldapProfile : config.getLdapProfiles().values() )
+            {
+                final List<String> ldapServerURLs = ldapProfile.getLdapUrls();
+                if ( ldapServerURLs != null && !ldapServerURLs.isEmpty() )
+                {
+                    for ( final String urlStringValue : ldapServerURLs )
+                    {
+                        try
+                        {
+                            final URI url = new URI( urlStringValue );
+                            final boolean secure = "ldaps".equalsIgnoreCase( url.getScheme() );
+                            if ( !secure )
+                            {
+                                records.add( HealthRecord.forMessage(
+                                        HealthMessage.Config_LDAPUnsecure,
+                                        PwmSetting.LDAP_SERVER_URLS.toMenuLocationDebug( ldapProfile.getIdentifier(), locale )
+                                ) );
+                            }
+                        }
+                        catch ( final URISyntaxException e )
+                        {
+                            records.add( HealthRecord.forMessage( HealthMessage.Config_ParseError,
+                                    e.getMessage(),
+                                    PwmSetting.LDAP_SERVER_URLS.toMenuLocationDebug( ldapProfile.getIdentifier(), locale ),
+                                    urlStringValue
+                            ) );
+                        }
+                    }
+                }
+            }
+
+            return records;
+        }
+    }
+
+    static class VerifyPasswordStrengthLevels implements ConfigHealthCheck
+    {
+        @Override
+        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        {
+            final List<HealthRecord> records = new ArrayList<>();
+
+            try
+            {
+                for ( final StoredConfigItemKey key : config.getStoredConfiguration().modifiedItems() )
+                {
+                    final Instant startTime = Instant.now();
+                    if ( key.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
+                    {
+                        final PwmSetting pwmSetting = key.toPwmSetting();
+                        if ( pwmSetting.getSyntax() == PwmSettingSyntax.PASSWORD )
+                        {
+                            final StoredValue storedValue = config.getStoredConfiguration().readSetting( pwmSetting, key.getProfileID() );
+                            final PasswordData passwordValue = ( PasswordData ) storedValue.toNativeObject();
+                            if ( passwordValue != null )
+                            {
+                                final String stringValue = passwordValue.getStringValue();
+
+                                if ( !StringUtil.isEmpty( stringValue ) )
+                                {
+                                    final int strength = PasswordUtility.judgePasswordStrength( config, stringValue );
+                                    if ( strength < 50 )
+                                    {
+                                        records.add( HealthRecord.forMessage( HealthMessage.Config_WeakPassword,
+                                                pwmSetting.toMenuLocationDebug( key.getProfileID(), locale ), String.valueOf( strength ) ) );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                LOGGER.error( "unexpected error examining password strength of configuration: " );
+            }
+
+            return Collections.unmodifiableList( records );
+        }
+    }
 
     static class VerifyResponseLdapAttribute implements ConfigHealthCheck
     {
@@ -379,7 +371,7 @@ public class ConfigurationChecker implements HealthChecker
                     final PwmPasswordPolicy pwmPasswordPolicy = config.getPasswordPolicy( profileID, locale );
                     records.addAll( pwmPasswordPolicy.health( locale ) );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( "unexpected error during password policy health check: " + e.getMessage(), e );
                 }
@@ -401,30 +393,25 @@ public class ConfigurationChecker implements HealthChecker
                 {
                     if ( loopSetting.getCategory().hasProfiles() )
                     {
-                        try
+
+                        final List<String> profiles = config.getStoredConfiguration().profilesForSetting( loopSetting );
+                        for ( final String profile : profiles )
                         {
-                            final List<String> profiles = config.getStoredConfiguration().profilesForSetting( loopSetting );
-                            for ( final String profile : profiles )
+                            final StoredValue storedValue = config.getStoredConfiguration().readSetting( loopSetting, profile );
+                            final List<FormConfiguration> forms = (List<FormConfiguration>) storedValue.toNativeObject();
+                            for ( final FormConfiguration form : forms )
                             {
-                                final StoredValue storedValue = config.getStoredConfiguration().readSetting( loopSetting, profile );
-                                final List<FormConfiguration> forms = (List<FormConfiguration>) storedValue.toNativeObject();
-                                for ( final FormConfiguration form : forms )
+                                if ( !StringUtil.isEmpty( form.getJavascript() ) )
                                 {
-                                    if ( !StringUtil.isEmpty( form.getJavascript() ) )
-                                    {
-                                        records.add( HealthRecord.forMessage(
-                                                HealthMessage.Config_DeprecatedJSForm,
-                                                loopSetting.toMenuLocationDebug( profile, locale ),
-                                                PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT.toMenuLocationDebug( null, locale )
-                                        ) );
-                                    }
+                                    records.add( HealthRecord.forMessage(
+                                            HealthMessage.Config_DeprecatedJSForm,
+                                            loopSetting.toMenuLocationDebug( profile, locale ),
+                                            PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT.toMenuLocationDebug( null, locale )
+                                    ) );
                                 }
                             }
                         }
-                        catch ( PwmUnrecoverableException e )
-                        {
-                            LOGGER.error( "unexpected error examining profiles for deprecated form  js option check: " + e.getMessage() );
-                        }
+
                     }
                     else
                     {
@@ -459,8 +446,9 @@ public class ConfigurationChecker implements HealthChecker
 
             final List<HealthRecord> records = new ArrayList<>();
 
+            for ( final ActivateUserProfile activationProfile : config.getUserActivationProfiles().values() )
             {
-                final MessageSendMethod method = config.readSettingAsEnum( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class );
+                final MessageSendMethod method = activationProfile.readSettingAsEnum( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class );
                 if ( deprecatedMethods.contains( method ) )
                 {
                     records.add( HealthRecord.forMessage( HealthMessage.Config_InvalidSendMethod,

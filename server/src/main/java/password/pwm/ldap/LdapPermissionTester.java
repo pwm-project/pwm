@@ -166,7 +166,7 @@ public class LdapPermissionTester
                     result = true;
                 }
             }
-            catch ( ChaiException e )
+            catch ( final ChaiException e )
             {
                 LOGGER.warn( pwmSession, "LDAP error during group for " + userIdentity + " using " + filterString + ", error:" + e.getMessage() );
             }
@@ -222,7 +222,7 @@ public class LdapPermissionTester
                     result = true;
                 }
             }
-            catch ( ChaiException e )
+            catch ( final ChaiException e )
             {
                 LOGGER.warn( pwmSession, "LDAP error during check for " + userIdentity + " using " + filterString + ", error:" + e.getMessage() );
             }
@@ -254,43 +254,7 @@ public class LdapPermissionTester
         {
             if ( ( maxResultSize ) - results.size() > 0 )
             {
-
-                final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
-
-                switch ( userPermission.getType() )
-                {
-                    case ldapQuery:
-                    {
-                        builder.filter( userPermission.getLdapQuery() );
-                        if ( userPermission.getLdapBase() != null && !userPermission.getLdapBase().isEmpty() )
-                        {
-                            builder.enableContextValidation( false );
-                            builder.contexts( Collections.singletonList( userPermission.getLdapBase() ) );
-                        }
-                    }
-                    break;
-
-                    case ldapGroup:
-                    {
-                        builder.groupDN( userPermission.getLdapBase() );
-                    }
-                    break;
-
-                    default:
-                        throw new PwmUnrecoverableException( new ErrorInformation(
-                                PwmError.ERROR_INTERNAL,
-                                "unknown permission type: " + userPermission.getType() )
-                        );
-                }
-
-                if ( userPermission.getLdapProfileID() != null
-                        && !userPermission.getLdapProfileID().isEmpty()
-                        && !userPermission.getLdapProfileID().equals( PwmConstants.PROFILE_ID_ALL ) )
-                {
-                    builder.ldapProfile( userPermission.getLdapProfileID() );
-                }
-
-                final SearchConfiguration searchConfiguration = builder.build();
+                final SearchConfiguration searchConfiguration = SearchConfiguration.fromPermission( userPermission );
 
                 try
                 {
@@ -301,7 +265,7 @@ public class LdapPermissionTester
                             sessionLabel
                     ) );
                 }
-                catch ( PwmUnrecoverableException e )
+                catch ( final PwmUnrecoverableException e )
                 {
                     LOGGER.error( "error reading matching users: " + e.getMessage() );
                     throw new PwmOperationalException( e.getErrorInformation() );

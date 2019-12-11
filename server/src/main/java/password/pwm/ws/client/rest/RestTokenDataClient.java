@@ -116,7 +116,7 @@ public class RestTokenDataClient implements RestClient
                 LOGGER.trace( sessionLabel, () -> "beginning token destination rest client call to " + configuredUrl );
                 return invoke( sessionLabel, tokenDestinationData, userIdentity, configuredUrl, locale );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final String errorMsg = "error making token destination rest client call; error: " + e.getMessage();
                 LOGGER.error( sessionLabel, errorMsg );

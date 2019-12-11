@@ -59,7 +59,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.PwmPasswordRuleValidator;
 import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.RestResultBean;
@@ -83,7 +83,6 @@ import java.util.Map;
 
 public abstract class ChangePasswordServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ChangePasswordServlet.class );
 
     public enum ChangePasswordAction implements ControlledPwmServlet.ProcessAction
@@ -195,7 +194,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             final PasswordData oldPassword = pwmRequest.getPwmSession().getLoginInfoBean().getUserCurrentPassword();
             pwmPasswordRuleValidator.testPassword( password1, oldPassword, userInfo, theUser );
         }
-        catch ( PwmDataValidationException e )
+        catch ( final PwmDataValidationException e )
         {
             setLastError( pwmRequest, e.getErrorInformation() );
             LOGGER.debug( pwmRequest, () -> "failed password validation check: " + e.getErrorInformation().toDebugStr() );
@@ -217,7 +216,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         {
             ChangePasswordServletUtil.executeChangePassword( pwmRequest, password1 );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.debug( () -> e.getErrorInformation().toDebugStr() );
             setLastError( pwmRequest, e.getErrorInformation() );
@@ -300,7 +299,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
             cpb.setFormPassed( true );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             pwmRequest.getPwmApplication().getIntruderManager().convenience().markAddressAndSession( pwmRequest.getPwmSession() );
             pwmRequest.getPwmApplication().getIntruderManager().convenience().markUserIdentity( userInfo.getUserIdentity(), pwmRequest.getSessionLabel() );
@@ -367,7 +366,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                     pwmRequest.getPwmApplication().getStatisticsManager().updateAverageValue( AvgStatistic.AVG_PASSWORD_SYNC_TIME, totalTime.asMillis() );
                     LOGGER.trace( pwmRequest, () -> "password sync process marked completed (" + totalTime.asCompactString() + ")" );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     LOGGER.error( pwmRequest, "unable to update average password sync time statistic: " + e.getMessage() );
                 }

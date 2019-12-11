@@ -23,7 +23,6 @@ package password.pwm.svc.report;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.UserPermission;
@@ -31,6 +30,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;
@@ -74,7 +74,7 @@ class ReportSettings implements Serializable
         HIGH,
     }
 
-    public static ReportSettings readSettingsFromConfig( final Configuration config )
+    static ReportSettings readSettingsFromConfig( final Configuration config )
     {
         final ReportSettings.ReportSettingsBuilder builder = ReportSettings.builder();
         builder.maxCacheAge( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.REPORTING_MAX_REPORT_AGE_SECONDS ) ), TimeDuration.Unit.SECONDS ) );
@@ -82,15 +82,23 @@ class ReportSettings implements Serializable
         builder.maxSearchSize ( ( int ) config.readSettingAsLong( PwmSetting.REPORTING_MAX_QUERY_SIZE ) );
         builder.dailyJobEnabled( config.readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB ) );
 
-        if ( builder.searchFilter == null || builder.searchFilter.isEmpty() )
         {
-            builder.searchFilter = null;
+            final List<UserPermission> userMatches = config.readSettingAsUserPermission( PwmSetting.REPORTING_USER_MATCH );
+            builder.searchFilter(
+                    userMatches == null || userMatches.isEmpty()
+                            ? null
+                            : userMatches
+            );
         }
 
-        builder.jobOffsetSeconds = ( int ) config.readSettingAsLong( PwmSetting.REPORTING_JOB_TIME_OFFSET );
-        if ( builder.jobOffsetSeconds > 60 * 60 * 24 )
         {
-            builder.jobOffsetSeconds = 0;
+            int reportJobOffset = ( int ) config.readSettingAsLong( PwmSetting.REPORTING_JOB_TIME_OFFSET );
+            if ( reportJobOffset > 60 * 60 * 24 )
+            {
+                reportJobOffset = 0;
+            }
+
+            builder.jobOffsetSeconds( reportJobOffset );
         }
 
         builder.trackDays( parseDayIntervalStr( config ) );
@@ -121,7 +129,7 @@ class ReportSettings implements Serializable
                 final int dayValue = Integer.parseInt( splitDay );
                 returnValue.add( dayValue );
             }
-            catch ( NumberFormatException e )
+            catch ( final NumberFormatException e )
             {
                 LOGGER.error( "error parsing reporting summary day value '" + splitDay + "', error: " + e.getMessage() );
             }
@@ -133,6 +141,6 @@ class ReportSettings implements Serializable
     String getSettingsHash( )
             throws PwmUnrecoverableException
     {
-        return SecureEngine.hash( JsonUtil.serialize( this ), PwmConstants.SETTING_CHECKSUM_HASH_METHOD );
+        return SecureEngine.hash( JsonUtil.serialize( this ), PwmHashAlgorithm.SHA512 );
     }
 }

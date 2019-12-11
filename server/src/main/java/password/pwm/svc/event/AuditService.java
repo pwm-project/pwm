@@ -116,7 +116,7 @@ public class AuditService implements PwmService
             {
                 syslogManager = new SyslogAuditService( pwmApplication );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SYSLOG_WRITE_ERROR, "startup error: " + e.getMessage() );
                 LOGGER.error( errorInformation.toDebugStr() );
@@ -375,7 +375,7 @@ public class AuditService implements PwmService
             {
                 auditVault.add( auditRecord );
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 LOGGER.warn( "discarding audit event due to storage error: " + e.getMessage() );
             }
@@ -408,7 +408,7 @@ public class AuditService implements PwmService
             {
                 syslogManager.add( auditRecord );
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 lastError = e.getErrorInformation();
             }

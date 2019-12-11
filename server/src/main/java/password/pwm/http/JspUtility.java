@@ -62,7 +62,7 @@ public abstract class JspUtility
         {
             return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, theClass );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.warn( "unable to load pwmRequest object during jsp execution: " + e.getMessage() );
         }
@@ -97,7 +97,7 @@ public abstract class JspUtility
                     ( HttpServletResponse ) pageContext.getResponse()
             );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.warn( "unable to load pwmRequest object during jsp execution: " + e.getMessage() );
             return;
@@ -133,7 +133,7 @@ public abstract class JspUtility
             {
                 return pwmRequest.getConfig().readSettingAsLong( pwmSetting );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.warn( pwmRequest, "error reading number setting " + pwmSetting.getKey() + ", error: " + e.getMessage() );
             }

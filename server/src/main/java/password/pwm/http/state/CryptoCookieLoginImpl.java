@@ -84,7 +84,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
                 LOGGER.trace( pwmRequest, () -> "wrote LoginInfoBean=" + debugTxt );
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             final String errorMsg = "unexpected error writing login cookie to response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -100,7 +100,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
         {
             remoteLoginCookie = pwmRequest.readEncryptedCookie( cookieName, LoginInfoBean.class );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             final String errorMsg = "unexpected error reading login cookie, will clear and ignore; error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
@@ -117,7 +117,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
                 {
                     checkIfRemoteLoginCookieIsValid( pwmRequest, remoteLoginCookie );
                 }
-                catch ( PwmOperationalException e )
+                catch ( final PwmOperationalException e )
                 {
                     LOGGER.debug( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
                     clearLoginSession( pwmRequest );
@@ -135,7 +135,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
 
                 importRemoteCookie( pwmRequest, remoteLoginCookie );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final String errorMsg = "unexpected error authenticating using crypto session cookie: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -202,7 +202,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
                     remoteLoginCookie.getAuthFlags().add( AuthenticationType.AUTH_FROM_REQ_COOKIE );
                     LOGGER.debug( pwmRequest, () -> "logged in using encrypted request cookie = " + JsonUtil.serialize( remoteLoginCookie ) );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     final String errorMsg = "unexpected error reading session cookie: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );

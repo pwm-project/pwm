@@ -481,7 +481,7 @@ public class TimeDuration implements Comparable, Serializable
             {
                 Thread.sleep( pauseTime );
             }
-            catch ( InterruptedException e )
+            catch ( final InterruptedException e )
             {
                 // ignore
             }

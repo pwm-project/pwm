@@ -48,7 +48,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( AbstractPwmServlet.class );
 
-    private Map<String, Method> actionMethodCache;
+    private final Map<String, Method> actionMethodCache = createMethodCache();
 
     public String servletUriRemainder( final PwmRequest pwmRequest, final String command ) throws PwmUnrecoverableException
     {
@@ -92,7 +92,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             final Enum answer = JavaHelper.readEnumFromString( processStatusClass, null, inputParameter );
             return ( ProcessAction ) answer;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error", e );
         }
@@ -112,14 +112,14 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         }
         try
         {
-            final Method interestedMethod = discoverMethodForAction( this.getClass(), action );
+            final Method interestedMethod = actionMethodCache.get( action.toString() );
             if ( interestedMethod != null )
             {
                 interestedMethod.setAccessible( true );
                 return ( ProcessStatus ) interestedMethod.invoke( this, pwmRequest );
             }
         }
-        catch ( InvocationTargetException e )
+        catch ( final InvocationTargetException e )
         {
             final Throwable cause = e.getCause();
             if ( cause != null )
@@ -136,7 +136,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             }
             LOGGER.error( "uncased invocation error: " + e.getMessage(), e );
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             final String msg = "unexpected error invoking action handler for '" + action + "', error: " + e.getMessage();
             LOGGER.error( msg, e );
@@ -211,25 +211,20 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         String action( );
     }
 
-    private Method discoverMethodForAction( final Class clazz, final ProcessAction action )
+    private Map<String, Method> createMethodCache()
     {
-        if ( actionMethodCache == null )
+        final Map<String, Method> map = new HashMap<>();
+        final Collection<Method> methods = JavaHelper.getAllMethodsForClass( this.getClass() );
+        for ( final Method method : methods )
         {
-            final Map<String, Method> map = new HashMap<>();
-            final Collection<Method> methods = JavaHelper.getAllMethodsForClass( clazz );
-            for ( Method method : methods )
+            if ( method.getAnnotation( ActionHandler.class ) != null )
             {
-                if ( method.getAnnotation( ActionHandler.class ) != null )
-                {
-                    final String actionName = method.getAnnotation( ActionHandler.class ).action();
-                    map.put( actionName, method );
+                final String actionName = method.getAnnotation( ActionHandler.class ).action();
+                map.put( actionName, method );
 
-                }
             }
-            actionMethodCache = Collections.unmodifiableMap( map );
         }
-
-        return actionMethodCache.get( action.toString() );
+        return Collections.unmodifiableMap( map );
     }
 }
 

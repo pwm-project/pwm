@@ -68,7 +68,7 @@ public class PwmSecurityKey
         {
             return input.getBytes( "iso-8859-1" );
         }
-        catch ( UnsupportedEncodingException e )
+        catch ( final UnsupportedEncodingException e )
         {
             final String errorMsg = "unexpected error converting input text to crypto key bytes: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
@@ -124,7 +124,7 @@ public class PwmSecurityKey
             final byte[] key = Arrays.copyOfRange( sha1Hash, 0, keyLength );
             return new SecretKeySpec( key, keySpecName );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error generating simple crypto key: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );

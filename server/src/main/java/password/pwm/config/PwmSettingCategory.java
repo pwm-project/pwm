@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Supplier;
 
@@ -146,6 +147,8 @@ public enum PwmSettingCategory
     FORGOTTEN_USERNAME( MODULES_PUBLIC ),
 
     ACTIVATION( MODULES_PUBLIC ),
+    ACTIVATION_SETTINGS( ACTIVATION ),
+    ACTIVATION_PROFILE( ACTIVATION ),
 
     NEWUSER( MODULES_PUBLIC ),
     NEWUSER_SETTINGS( NEWUSER ),
@@ -157,7 +160,10 @@ public enum PwmSettingCategory
 
     GUEST( MODULES_PRIVATE ),
     SHORTCUT( MODULES_PRIVATE ),
+
     PEOPLE_SEARCH( MODULES_PRIVATE ),
+    PEOPLE_SEARCH_SETTINGS( PEOPLE_SEARCH ),
+    PEOPLE_SEARCH_PROFILE( PEOPLE_SEARCH ),
 
     HELPDESK( MODULES_PRIVATE ),
     HELPDESK_PROFILE( HELPDESK ),
@@ -317,10 +323,10 @@ public enum PwmSettingCategory
         while ( nextCategory != null )
         {
             final XmlElement categoryElement = PwmSettingXml.readCategoryXml( nextCategory );
-            final XmlElement profileElement = categoryElement.getChild( "profile" );
-            if ( profileElement != null )
+            final Optional<XmlElement> profileElement = categoryElement.getChild( "profile" );
+            if ( profileElement.isPresent() )
             {
-                final String settingKey = profileElement.getAttributeValue( "setting" );
+                final String settingKey = profileElement.get().getAttributeValue( "setting" );
                 if ( settingKey != null )
                 {
                     return password.pwm.config.PwmSetting.forKey( settingKey );

@@ -144,7 +144,7 @@ public class LocaleStats
     )
     {
         final List<Locale> knownLocales = LocaleHelper.knownBuiltInLocales();
-        final int totalKeysInBundle = pwmLocaleBundle.getKeys().size();
+        final int totalKeysInBundle = pwmLocaleBundle.getDisplayKeys().size();
 
         int totalSlots = 0;
         int missingSlots = 0;
@@ -204,13 +204,13 @@ public class LocaleStats
                 {
                     LOGGER.trace( () -> "missing resource bundle: bundle=" + pwmLocaleBundle.getTheClass().getName() + ", locale=" + locale.toString() );
                 }
-                returnList.addAll( pwmLocaleBundle.getKeys() );
+                returnList.addAll( pwmLocaleBundle.getDisplayKeys() );
             }
             else
             {
                 LOGGER.trace( () -> "checking file " + bundleFilename );
                 checkProperties.load( stream );
-                for ( final String key : pwmLocaleBundle.getKeys() )
+                for ( final String key : pwmLocaleBundle.getDisplayKeys() )
                 {
                     if ( !checkProperties.containsKey( key ) )
                     {
@@ -223,7 +223,7 @@ public class LocaleStats
                 }
             }
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             if ( DEBUG_FLAG )
             {

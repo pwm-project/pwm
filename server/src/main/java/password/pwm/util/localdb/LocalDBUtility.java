@@ -32,6 +32,8 @@ import password.pwm.util.ProgressInfo;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.Percent;
+import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -45,17 +47,17 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class LocalDBUtility
 {
@@ -66,7 +68,7 @@ public class LocalDBUtility
     private final LocalDB localDB;
     private int exportLineCounter;
 
-    private static final int GZIP_BUFFER_SIZE = 1024 * 512;
+    private static final int GZIP_BUFFER_SIZE = 1024 * 1024;
 
 
     public LocalDBUtility( final LocalDB localDB )
@@ -74,68 +76,48 @@ public class LocalDBUtility
         this.localDB = localDB;
     }
 
-    public void exportLocalDB( final OutputStream outputStream, final Appendable debugOutput, final boolean showLineCount )
-            throws PwmOperationalException, IOException
+    private long countBackupableRecords( final Appendable debugOutput )
+            throws LocalDBException
     {
-        if ( outputStream == null )
+        long counter = 0;
+        writeStringToOut( debugOutput, "counting records in LocalDB..." );
+        for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
         {
-            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "outputFileStream for exportLocalDB cannot be null" );
-        }
-
-
-        final int totalLines;
-        if ( showLineCount )
-        {
-            writeStringToOut( debugOutput, "counting records in LocalDB..." );
-            exportLineCounter = 0;
-            for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
+            if ( loopDB.isBackup() )
             {
-                if ( loopDB.isBackup() )
-                {
-                    exportLineCounter += localDB.size( loopDB );
-                }
+                counter += localDB.size( loopDB );
             }
-            totalLines = exportLineCounter;
-            writeStringToOut( debugOutput, " total lines: " + totalLines );
         }
-        else
-        {
-            totalLines = 0;
-        }
+        writeStringToOut( debugOutput, " total lines: " + counter );
+        return counter;
+    }
+
+    public void exportLocalDB( final OutputStream outputStream, final Appendable debugOutput )
+            throws PwmOperationalException
+    {
+        Objects.requireNonNull( outputStream );
         exportLineCounter = 0;
 
-        writeStringToOut( debugOutput, "export beginning" );
-        final long startTime = System.currentTimeMillis();
-        final Timer statTimer = new Timer( true );
-        statTimer.schedule( new TimerTask()
-        {
-            @Override
-            public void run( )
-            {
-                if ( showLineCount )
-                {
-                    final float percentComplete = ( float ) exportLineCounter / ( float ) totalLines;
-                    final String percentStr = DecimalFormat.getPercentInstance().format( percentComplete );
-                    writeStringToOut( debugOutput, "exported " + exportLineCounter + " records, " + percentStr + " complete" );
-                }
-                else
-                {
-                    writeStringToOut( debugOutput, "exported " + exportLineCounter + " records" );
-                }
-            }
-        }, 30 * 1000, 30 * 1000 );
+        final long totalLines = countBackupableRecords( debugOutput );
 
+
+        writeStringToOut( debugOutput, "LocalDB export beginning of " + totalLines + " records" );
+        final Instant startTime = Instant.now();
+
+        final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
+        final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask( () ->
+                        outputExportDebugStats( totalLines, eventRateMeter, startTime, debugOutput ),
+                TimeDuration.MINUTE );
 
         try ( CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( new GZIPOutputStream( outputStream, GZIP_BUFFER_SIZE ) ) )
         {
-            csvPrinter.printComment( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " LocalDB export on " + JavaHelper.toIsoDate( new Date() ) );
+            csvPrinter.printComment( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " LocalDB export on " + JavaHelper.toIsoDate( Instant.now() ) );
             for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
             {
                 if ( loopDB.isBackup() )
                 {
                     csvPrinter.printComment( "Export of " + loopDB.toString() );
-                    final LocalDB.LocalDBIterator<String> localDBIterator = localDB.iterator( loopDB );
-                    try
+                    try ( LocalDB.LocalDBIterator<String> localDBIterator = localDB.iterator( loopDB ) )
                     {
                         while ( localDBIterator.hasNext() )
                         {
@@ -143,27 +125,82 @@ public class LocalDBUtility
                             final String value = localDB.get( loopDB, key );
                             csvPrinter.printRecord( loopDB.toString(), key, value );
                             exportLineCounter++;
+                            eventRateMeter.markEvents( 1 );
+                            debugOutputter.conditionallyExecuteTask();
                         }
-                    }
-                    finally
-                    {
-                        localDBIterator.close();
                     }
                     csvPrinter.flush();
                 }
             }
             csvPrinter.printComment( "export completed at " + JavaHelper.toIsoDate( new Date() ) );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             writeStringToOut( debugOutput, "IO error during localDB export: " + e.getMessage() );
         }
-        finally
+
+        writeStringToOut( debugOutput, "export complete, exported " + exportLineCounter + " records in " + TimeDuration.fromCurrent( startTime ).asLongString() );
+    }
+
+    public void exportWordlist( final OutputStream outputStream, final Appendable debugOutput )
+            throws PwmOperationalException, IOException
+    {
+        Objects.requireNonNull( outputStream );
+
+        final long totalLines = localDB.size( LocalDB.DB.WORDLIST_WORDS );
+
+        exportLineCounter = 0;
+
+        writeStringToOut( debugOutput, "Wordlist ZIP export beginning of "
+                + StringUtil.formatDiskSize( totalLines ) + " records" );
+        final Instant startTime = Instant.now();
+
+        final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
+        final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask( () ->
+                        outputExportDebugStats( totalLines, eventRateMeter, startTime, debugOutput ),
+                TimeDuration.MINUTE );
+
+        try ( ZipOutputStream zipOutputStream = new ZipOutputStream( outputStream, PwmConstants.DEFAULT_CHARSET ) )
         {
-            statTimer.cancel();
+            zipOutputStream.putNextEntry( new ZipEntry( "wordlist.txt" ) );
+            try ( LocalDB.LocalDBIterator<String> localDBIterator = localDB.iterator( LocalDB.DB.WORDLIST_WORDS ) )
+            {
+                while ( localDBIterator.hasNext() )
+                {
+                    final String key = localDBIterator.next();
+                    zipOutputStream.write( key.getBytes( PwmConstants.DEFAULT_CHARSET ) );
+                    zipOutputStream.write( '\n' );
+                    exportLineCounter++;
+                    eventRateMeter.markEvents( 1 );
+                    debugOutputter.conditionallyExecuteTask();
+                }
+            }
+        }
+        catch ( final IOException e )
+        {
+            writeStringToOut( debugOutput, "IO error during localDB export: " + e.getMessage() );
         }
 
         writeStringToOut( debugOutput, "export complete, exported " + exportLineCounter + " records in " + TimeDuration.fromCurrent( startTime ).asLongString() );
+    }
+
+    private void outputExportDebugStats(
+            final long totalLines,
+            final EventRateMeter eventRateMeter,
+            final Instant startTime,
+            final Appendable debugOutput
+    )
+    {
+        final Percent percentComplete = new Percent( exportLineCounter, totalLines );
+        final String percentStr = percentComplete.pretty( 2 );
+        final long secondsRemaining = totalLines / eventRateMeter.readEventRate().longValue();
+
+        final String msg = "export stats: recordsOut=" + PwmNumberFormat.forDefaultLocale().format( exportLineCounter )
+                + ", duration=" + percentStr
+                + ", percentComplete=" + TimeDuration.fromCurrent( startTime ).asCompactString()
+                + ", recordsPerSecond=" + PwmNumberFormat.forDefaultLocale().format( eventRateMeter.readEventRate().longValue() )
+                + ", remainingTime=" + TimeDuration.of( secondsRemaining, TimeDuration.Unit.SECONDS ).asCompactString();
+        writeStringToOut( debugOutput, msg );
     }
 
     private static void writeStringToOut( final Appendable out, final String string )
@@ -173,15 +210,15 @@ public class LocalDBUtility
             return;
         }
 
-        final String msg = JavaHelper.toIsoDate( new Date() ) + " " + string + "\n";
+        final String msg = string + "\n";
 
         try
         {
             out.append( msg );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
-            LOGGER.error( "error writing to output appender while performing operation: " + e.getMessage() + ", message:" + msg );
+            LOGGER.error( "error writing to output appender while performing operation: " + e.getMessage() );
         }
     }
 
@@ -398,7 +435,7 @@ public class LocalDBUtility
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error while examining LocalDB: " + e.getMessage() );
         }

@@ -61,13 +61,13 @@ public class JspThrowableHandlerTag extends TagSupport
             final String jspOutout = jspOutput( errorHash );
             pageContext.getOut().write( jspOutout );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             try
             {
                 pageContext.getOut().write( "" );
             }
-            catch ( IOException e1 )
+            catch ( final IOException e1 )
             {
                 /* ignore */
             }
@@ -86,7 +86,7 @@ public class JspThrowableHandlerTag extends TagSupport
             userLocale = pwmRequest.getLocale();
             configuration = pwmRequest.getConfig();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( "error during pwmFormIDTag output of pwmFormID: " + e.getMessage() );
         }

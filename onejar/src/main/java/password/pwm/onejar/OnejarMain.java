@@ -52,7 +52,7 @@ public class OnejarMain
         {
             onejarConfig = argumentParser.parseArguments( args );
         }
-        catch ( ArgumentParserException | OnejarException e )
+        catch ( final ArgumentParserException | OnejarException e )
         {
             output( "error parsing command line: " + e.getMessage() );
         }
@@ -91,7 +91,7 @@ public class OnejarMain
 
             mainMethod.invoke( null, ( Object ) arguments );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             e.printStackTrace( );
         }
@@ -111,7 +111,7 @@ public class OnejarMain
                 runner.startTomcat( onejarConfig );
 
             }
-            catch ( OnejarException | ServletException | IOException e )
+            catch ( final OnejarException | ServletException | IOException e )
             {
                 out( "error starting tomcat: " + e.getMessage() );
             }

@@ -225,7 +225,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
 
             pwmRequest.sendRedirect( PwmServletDefinition.SetupResponses );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.debug( pwmSession, e.getErrorInformation() );
             setLastError( pwmRequest, e.getErrorInformation() );
@@ -279,7 +279,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             pwmApplication.getCrService().validateResponses( setupData.getChallengeSet(), responseMap, minRandomRequiredSetup );
             generateResponseInfoBean( pwmRequest, setupData.getChallengeSet(), responseMap, Collections.emptyMap() );
         }
-        catch ( PwmDataValidationException e )
+        catch ( final PwmDataValidationException e )
         {
             success = false;
             userMessage = e.getErrorInformation().toUserStr( pwmSession, pwmApplication );
@@ -372,12 +372,12 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_SetupResponse );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.error( pwmRequest.getSessionLabel(), e.getErrorInformation() );
             pwmRequest.respondWithError( e.getErrorInformation() );
         }
-        catch ( ChaiValidationException e )
+        catch ( final ChaiValidationException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_RANDOM_RESPONSE, e.getMessage() );
             LOGGER.error( pwmRequest.getSessionLabel(), errorInformation );
@@ -406,7 +406,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             final int minRandomRequiredSetup = setupData.getMinRandomSetup();
             pwmRequest.getPwmApplication().getCrService().validateResponses( challengeSet, responseMap, minRandomRequiredSetup );
         }
-        catch ( PwmDataValidationException e )
+        catch ( final PwmDataValidationException e )
         {
             LOGGER.debug( pwmRequest, () -> "error with new " + ( helpdeskMode ? "helpdesk" : "user" ) + " responses: " + e.getErrorInformation().toDebugStr() );
             setLastError( pwmRequest, e.getErrorInformation() );
@@ -565,7 +565,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
 
             return responseInfoBean;
         }
-        catch ( ChaiValidationException e )
+        catch ( final ChaiValidationException e )
         {
             final ErrorInformation errorInfo = convertChaiValidationException( e );
             throw new PwmDataValidationException( errorInfo );

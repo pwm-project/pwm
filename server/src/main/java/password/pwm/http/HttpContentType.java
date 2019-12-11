@@ -28,45 +28,51 @@ import java.util.List;
 
 public enum HttpContentType
 {
-    json( "application/json", PwmConstants.DEFAULT_CHARSET ),
-    zip( "application/zip" ),
-    gzip( "application/gzip" ),
-    xml( "text/xml", PwmConstants.DEFAULT_CHARSET ),
-    csv( "text/csv", PwmConstants.DEFAULT_CHARSET ),
-    javascript( "text/javascript", PwmConstants.DEFAULT_CHARSET ),
-    plain( "text/plain", PwmConstants.DEFAULT_CHARSET ),
-    html( "text/html", PwmConstants.DEFAULT_CHARSET ),
-    form( "application/x-www-form-urlencoded", PwmConstants.DEFAULT_CHARSET ),
-    png( "image/png" ),
-    octetstream( "application/octet-stream" ),;
+    json( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "application/json", "application/javascript" ),
+    zip( HttpEntityDataType.ByteArray, null, "application/zip" ),
+    gzip( HttpEntityDataType.ByteArray, null, "application/gzip" ),
+    xml( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "text/xml" ),
+    csv( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "text/csv" ),
+    javascript( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "text/javascript" ),
+    plain( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "text/plain" ),
+    html( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "text/html" ),
+    form( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "application/x-www-form-urlencoded" ),
+    png( HttpEntityDataType.ByteArray, null, "image/png" ),
+    jpg( HttpEntityDataType.ByteArray, null, "image/jpg", "image/jpeg" ),
+    bmp( HttpEntityDataType.ByteArray, null, "image/bmp" ),
+    webp( HttpEntityDataType.ByteArray, null, "image/webp" ),
+    octetstream( HttpEntityDataType.ByteArray, null, "application/octet-stream" ),;
 
-    private final String mimeType;
-    private final String charset;
+    private final String[] mimeType;
+    private final Charset charset;
+    private final HttpEntityDataType dataType;
 
-    HttpContentType( final String mimeType, final Charset charset )
+    HttpContentType( final HttpEntityDataType dataType, final Charset charset, final String... mimeType )
     {
         this.mimeType = mimeType;
-        this.charset = charset.name();
+        this.dataType = dataType;
+        this.charset = charset;
     }
 
-    HttpContentType( final String mimeType )
+    public String getHeaderValueWithEncoding( )
     {
-        this.mimeType = mimeType;
-        this.charset = null;
-    }
-
-    public String getHeaderValue( )
-    {
-        if ( charset == null )
+        String output = getMimeType();
+        if ( charset != null )
         {
-            return mimeType;
+            output += "; charset=" + charset.name();
         }
-        return mimeType + "; charset=" + charset;
+
+        return output;
     }
 
     public String getMimeType( )
     {
-        return this.mimeType;
+        return this.mimeType[0];
+    }
+
+    public HttpEntityDataType getDataType()
+    {
+        return dataType;
     }
 
     public static HttpContentType fromContentTypeHeader( final String headerValue, final HttpContentType anyMatch )
@@ -86,9 +92,12 @@ public enum HttpContentType
 
             for ( final HttpContentType httpContentType : HttpContentType.values() )
             {
-                if ( mimeValue.equalsIgnoreCase( httpContentType.getMimeType() ) )
+                for ( final String type : httpContentType.mimeType )
                 {
-                    return httpContentType;
+                    if ( mimeValue.equalsIgnoreCase( type ) )
+                    {
+                        return httpContentType;
+                    }
                 }
             }
         }

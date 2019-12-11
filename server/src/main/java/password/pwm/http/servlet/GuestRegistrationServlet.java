@@ -60,7 +60,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -125,7 +125,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         {
             return GuestRegistrationAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             return null;
         }
@@ -197,7 +197,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         {
             guestRegistrationBean.setCurrentPage( Page.valueOf( requestedPage ) );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             LOGGER.error( pwmRequest, "unknown page select request: " + requestedPage );
         }
@@ -268,12 +268,12 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_UpdateGuest );
             return;
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.error( pwmSession, e.getErrorInformation().toDebugStr() );
             setLastError( pwmRequest, e.getErrorInformation() );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             final ErrorInformation info = new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error writing to ldap: " + e.getMessage() );
             LOGGER.error( pwmSession, info );
@@ -390,12 +390,12 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
                 this.forwardToUpdateJSP( pwmRequest, guestRegistrationBean );
                 return;
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.warn( pwmSession, "error reading current attributes for user: " + e.getMessage() );
             }
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             final ErrorInformation error = e.getErrorInformation();
             setLastError( pwmRequest, error );
@@ -509,14 +509,14 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_CreateGuest );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             final ErrorInformation info = new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE, "error creating user: " + e.getMessage() );
             setLastError( pwmRequest, info );
             LOGGER.warn( pwmSession, info );
             this.forwardToJSP( pwmRequest, guestRegistrationBean );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.error( pwmSession, e.getErrorInformation().toDebugStr() );
             setLastError( pwmRequest, e.getErrorInformation() );
@@ -546,7 +546,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         {
             expirationDate = new SimpleDateFormat( "yyyy-MM-dd" ).parse( expirationDateStr );
         }
-        catch ( ParseException e )
+        catch ( final ParseException e )
         {
             final String errorMsg = "unable to read expiration date value: " + e.getMessage();
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_FIELD_REQUIRED, errorMsg, new String[]

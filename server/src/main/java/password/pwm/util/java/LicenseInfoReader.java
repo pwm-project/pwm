@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class LicenseInfoReader
 {
@@ -61,14 +62,17 @@ public class LicenseInfoReader
 
                     final List<LicenseInfo> licenseInfos = new ArrayList<>();
                     {
-                        final XmlElement licenses = dependency.getChild( "licenses" );
-                        final List<XmlElement> licenseList = licenses.getChildren( "license" );
-                        for ( final XmlElement license : licenseList )
+                        final Optional<XmlElement> licenses = dependency.getChild( "licenses" );
+                        if ( licenses.isPresent() )
                         {
-                            final String licenseUrl = license.getChildText( "url" );
-                            final String licenseName = license.getChildText( "name" );
-                            final LicenseInfo licenseInfo = new LicenseInfo( licenseUrl, licenseName );
-                            licenseInfos.add( licenseInfo );
+                            final List<XmlElement> licenseList = licenses.get().getChildren( "license" );
+                            for ( final XmlElement license : licenseList )
+                            {
+                                final String licenseUrl = license.getChildText( "url" );
+                                final String licenseName = license.getChildText( "name" );
+                                final LicenseInfo licenseInfo = new LicenseInfo( licenseUrl, licenseName );
+                                licenseInfos.add( licenseInfo );
+                            }
                         }
                     }
 

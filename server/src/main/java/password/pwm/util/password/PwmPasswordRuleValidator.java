@@ -119,17 +119,17 @@ public class PwmPasswordRuleValidator
                 LOGGER.trace( () -> "calling chai directory password validation checker" );
                 user.testPasswordPolicy( password.getStringValue() );
             }
-            catch ( UnsupportedOperationException e )
+            catch ( final UnsupportedOperationException e )
             {
                 LOGGER.trace( () -> "Unsupported operation was thrown while validating password: " + e.toString() );
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 pwmApplication.getStatisticsManager().incrementValue( Statistic.LDAP_UNAVAILABLE_COUNT );
                 LOGGER.warn( "ChaiUnavailableException was thrown while validating password: " + e.toString() );
                 throw e;
             }
-            catch ( ChaiPasswordPolicyException e )
+            catch ( final ChaiPasswordPolicyException e )
             {
                 final ChaiError passwordError = e.getErrorCode();
                 final PwmError pwmError = PwmError.forChaiError( passwordError );
@@ -273,7 +273,7 @@ public class PwmPasswordRuleValidator
             }
 
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             final String errorMsg = "error executing external rule REST call: " + e.getMessage();
             LOGGER.error( errorMsg );

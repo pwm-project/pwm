@@ -37,7 +37,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
@@ -113,12 +113,12 @@ public class RestRandomPasswordServer extends RestServlet
             final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
             return restResultBean;
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( restRequest.getSessionLabel(), "error executing rest-json random password request: " + e.getMessage(), e );
             return RestResultBean.fromError( restRequest, e.getErrorInformation() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
@@ -155,7 +155,7 @@ public class RestRandomPasswordServer extends RestServlet
             final JsonOutput jsonOutput = doOperation( restRequest, jsonInput );
             return RestResultBean.withData( jsonOutput.getPassword() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( restRequest.getSessionLabel(), "error executing rest-json random password request: " + e.getMessage(), e );
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
@@ -176,12 +176,12 @@ public class RestRandomPasswordServer extends RestServlet
             final JsonOutput jsonOutput = doOperation( restRequest, jsonInput );
             return RestResultBean.withData( jsonOutput );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( restRequest.getSessionLabel(), "error executing rest-form random password request: " + e.getMessage(), e );
             return RestResultBean.fromError( restRequest, e.getErrorInformation() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( restRequest.getSessionLabel(), "error executing rest-form random password request: " + e.getMessage(), e );
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();

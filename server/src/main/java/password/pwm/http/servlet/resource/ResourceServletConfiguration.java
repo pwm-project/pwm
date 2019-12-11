@@ -101,7 +101,7 @@ class ResourceServletConfiguration
                         zipResources.put( ResourceFileServlet.RESOURCE_PATH + configuredZipFileResource.getUrl(), zipFile );
                         LOGGER.debug( () -> "registered resource-zip file " + configuredZipFileResource.getZipFile() + " at path " + zipFileFile.getAbsolutePath() );
                     }
-                    catch ( IOException e )
+                    catch ( final IOException e )
                     {
                         LOGGER.warn( "unable to resource-zip file " + configuredZipFileResource + ", error: " + e.getMessage() );
                     }
@@ -127,7 +127,7 @@ class ResourceServletConfiguration
                 customFileBundle.clear();
                 customFileBundle.putAll( customFiles );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 LOGGER.error( "error assembling memory file map zip bundle: " + e.getMessage() );
             }

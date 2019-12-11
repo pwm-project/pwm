@@ -30,7 +30,7 @@ import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
@@ -59,11 +59,11 @@ public class LDAPPermissionCalculator implements Serializable
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPPermissionCalculator.class );
 
-    private final transient StoredConfigurationImpl storedConfiguration;
+    private final transient StoredConfiguration storedConfiguration;
     private final transient Configuration configuration;
     private final Collection<PermissionRecord> permissionRecords;
 
-    public LDAPPermissionCalculator( final StoredConfigurationImpl storedConfiguration ) throws PwmUnrecoverableException
+    public LDAPPermissionCalculator( final StoredConfiguration storedConfiguration ) throws PwmUnrecoverableException
     {
         this.storedConfiguration = storedConfiguration;
         this.configuration = new Configuration( storedConfiguration );
@@ -96,7 +96,7 @@ public class LDAPPermissionCalculator implements Serializable
         return Collections.unmodifiableMap( returnObj );
     }
 
-    private Collection<PermissionRecord> figureRecords( final StoredConfigurationImpl storedConfiguration ) throws PwmUnrecoverableException
+    private Collection<PermissionRecord> figureRecords( final StoredConfiguration storedConfiguration ) throws PwmUnrecoverableException
     {
         final List<PermissionRecord> permissionRecords = new ArrayList<>();
 
@@ -241,7 +241,7 @@ public class LDAPPermissionCalculator implements Serializable
         {
             case PEOPLE_SEARCH:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.PEOPLE_SEARCH_ENABLE ).toNativeObject() )
+                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.PEOPLE_SEARCH_ENABLE, null ).toNativeObject() )
                 {
                     return Collections.emptyList();
                 }
@@ -268,7 +268,7 @@ public class LDAPPermissionCalculator implements Serializable
 
             case GUEST:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.GUEST_ENABLE ).toNativeObject() )
+                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.GUEST_ENABLE, null ).toNativeObject() )
                 {
                     return Collections.emptyList();
                 }
@@ -279,7 +279,7 @@ public class LDAPPermissionCalculator implements Serializable
             case UPDATE_PROFILE:
             case UPDATE_SETTINGS:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.UPDATE_PROFILE_ENABLE ).toNativeObject() )
+                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.UPDATE_PROFILE_ENABLE, null ).toNativeObject() )
                 {
                     return Collections.emptyList();
                 }
@@ -288,7 +288,7 @@ public class LDAPPermissionCalculator implements Serializable
 
             case FORGOTTEN_USERNAME:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.FORGOTTEN_USERNAME_ENABLE ).toNativeObject() )
+                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.FORGOTTEN_USERNAME_ENABLE, null ).toNativeObject() )
                 {
                     return Collections.emptyList();
                 }
@@ -299,7 +299,7 @@ public class LDAPPermissionCalculator implements Serializable
             case NEWUSER_PROFILE:
             case NEWUSER_SETTINGS:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.NEWUSER_ENABLE ).toNativeObject() )
+                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.NEWUSER_ENABLE, null ).toNativeObject() )
                 {
                     return Collections.emptyList();
                 }
@@ -308,7 +308,7 @@ public class LDAPPermissionCalculator implements Serializable
 
             case ACTIVATION:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.ACTIVATE_USER_ENABLE ).toNativeObject() )
+                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.ACTIVATE_USER_ENABLE, null ).toNativeObject() )
                 {
                     return Collections.emptyList();
                 }
@@ -317,7 +317,7 @@ public class LDAPPermissionCalculator implements Serializable
 
             case HELPDESK_PROFILE:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.HELPDESK_ENABLE ).toNativeObject() )
+                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.HELPDESK_ENABLE, null ).toNativeObject() )
                 {
                     return Collections.emptyList();
                 }

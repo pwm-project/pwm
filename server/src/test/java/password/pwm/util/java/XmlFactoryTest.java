@@ -26,6 +26,7 @@ import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 public class XmlFactoryTest
 {
@@ -36,9 +37,10 @@ public class XmlFactoryTest
         final InputStream xmlFactoryTestXmlFile = this.getClass().getResourceAsStream( "XmlFactoryTest.xml" );
         final XmlDocument xmlDocument = XmlFactory.getFactory().parseXml( xmlFactoryTestXmlFile );
         Assert.assertEquals( "PwmConfiguration", xmlDocument.getRootElement().getName() );
-        final XmlElement configIsEditable = xmlDocument.evaluateXpathToElement( "//property[@key='configIsEditable']" );
-        Assert.assertEquals( "false", configIsEditable.getText() );
+        final Optional<XmlElement> configIsEditable = xmlDocument.evaluateXpathToElement( "//property[@key='configIsEditable']" );
+        Assert.assertTrue( configIsEditable.isPresent() );
+        Assert.assertEquals( "false", configIsEditable.get().getText() );
         final List<XmlElement> allSettings = xmlDocument.evaluateXpathToElements( "//setting" );
-        Assert.assertEquals( 280, allSettings.size() );
+        Assert.assertEquals( 279, allSettings.size() );
     }
 }

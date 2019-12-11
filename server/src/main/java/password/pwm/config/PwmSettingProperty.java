@@ -22,7 +22,6 @@ package password.pwm.config;
 
 public enum PwmSettingProperty
 {
-
     ModificationWarning,
 
     Minimum,
@@ -36,4 +35,6 @@ public enum PwmSettingProperty
     Cert_ImportHandler,
 
     MethodType,
+
+    Restart_Requirements,
 }

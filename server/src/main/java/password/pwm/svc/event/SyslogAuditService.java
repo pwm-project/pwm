@@ -102,7 +102,7 @@ public class SyslogAuditService
         final List<String> syslogConfigStringArray = configuration.readSettingAsStringArray( PwmSetting.AUDIT_SYSLOG_SERVERS );
         try
         {
-            for ( String entry : syslogConfigStringArray )
+            for ( final String entry : syslogConfigStringArray )
             {
                 final SyslogConfig syslogCfg = SyslogConfig.fromConfigString( entry );
                 final SyslogIF syslogInstance = makeSyslogInstance( syslogCfg );
@@ -110,7 +110,7 @@ public class SyslogAuditService
             }
             LOGGER.trace( () -> "queued service running for syslog entries" );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             LOGGER.error( "error parsing syslog configuration for  syslogConfigStrings ERROR: " + e.getMessage() );
         }
@@ -215,7 +215,7 @@ public class SyslogAuditService
         {
             syslogMsg = auditFormatter.convertAuditRecordToMessage( pwmApplication, event );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             final String msg = "error generating syslog message text: " + e.getMessage();
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_SYSLOG_WRITE_ERROR, msg );
@@ -228,7 +228,7 @@ public class SyslogAuditService
         {
             workQueueProcessor.submit( syslogMsg );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.warn( "unable to add syslog message to queue: " + e.getMessage() );
         }
@@ -252,7 +252,7 @@ public class SyslogAuditService
     private WorkQueueProcessor.ProcessResult processEvent( final String auditRecord )
     {
 
-        for ( SyslogIF syslogInstance : syslogInstances )
+        for ( final SyslogIF syslogInstance : syslogInstances )
         {
             try
             {
@@ -262,7 +262,7 @@ public class SyslogAuditService
                 StatisticsManager.incrementStat( this.pwmApplication, Statistic.SYSLOG_MESSAGES_SENT );
                 return WorkQueueProcessor.ProcessResult.SUCCESS;
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final String errorMsg = "error while sending syslog message to remote service: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SYSLOG_WRITE_ERROR, errorMsg, new String[]
@@ -319,7 +319,7 @@ public class SyslogAuditService
             {
                 protocol = Protocol.valueOf( parts[ 0 ] );
             }
-            catch ( IllegalArgumentException e )
+            catch ( final IllegalArgumentException e )
             {
                 throw new IllegalArgumentException( "unknown protocol '" + parts[ 0 ] + "'" );
             }
@@ -329,7 +329,7 @@ public class SyslogAuditService
             {
                 port = Integer.parseInt( parts[ 2 ] );
             }
-            catch ( NumberFormatException e )
+            catch ( final NumberFormatException e )
             {
                 throw new IllegalArgumentException( "invalid port number '" + parts[ 2 ] + "'" );
             }
@@ -370,7 +370,7 @@ public class SyslogAuditService
                             new java.security.SecureRandom() );
                     return sc.getSocketFactory();
                 }
-                catch ( NoSuchAlgorithmException | KeyManagementException e )
+                catch ( final NoSuchAlgorithmException | KeyManagementException e )
                 {
                     LOGGER.error( "unexpected error loading syslog certificates: " + e.getMessage() );
                 }

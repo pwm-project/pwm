@@ -23,24 +23,27 @@ package password.pwm.http.client;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.ContentType;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
+import password.pwm.http.HttpMethod;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
+import password.pwm.util.localdb.TestHelper;
 
-import javax.net.ssl.SSLHandshakeException;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
@@ -54,8 +57,12 @@ public class PwmHttpClientTest
             .dynamicPort()
             .dynamicHttpsPort() );
 
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+
     // Create a few mock objects, in case they're needed by the tests
-    private Configuration configuration = Mockito.spy( new Configuration( StoredConfigurationImpl.newStoredConfiguration() ) );
+    private Configuration configuration = Mockito.spy( new Configuration( StoredConfigurationFactory.newConfig() ) );
 
     public PwmHttpClientTest() throws PwmUnrecoverableException
     {
@@ -73,29 +80,31 @@ public class PwmHttpClientTest
                         .withHeader( "Content-Type", "text/plain" )
                         .withBody( "PwmAbout from the local mock server" ) ) );
 
-        // Obtain the HTTP client from PWM
-        final HttpClient httpClient = PwmHttpClient.getHttpClient( configuration );
+        // Obtain the HTTP client
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
+        final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(  );
 
         // Execute the HTTP request
-        final HttpGet httpGet = new HttpGet( String.format( "http://localhost:%d/simpleHello", wireMockRule.port() ) );
-        final HttpResponse response = httpClient.execute( httpGet );
+        final String url = String.format( "http://localhost:%d/simpleHello", wireMockRule.port() );
+        final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
+        final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest, null );
 
         // Verify the response
-        final int responseStatusCode = response.getStatusLine().getStatusCode();
+        final int responseStatusCode = response.getStatusCode();
         Assert.assertEquals( responseStatusCode, 200 );
 
-        final String responseContent = IOUtils.toString( response.getEntity().getContent() );
+        final String responseContent = response.getBody();
         Assert.assertTrue( responseContent.startsWith( "PwmAbout" ) );
 
         // Verify the HTTP server got called as expected
         wireMockRule.verify( WireMock.getRequestedFor( WireMock.urlEqualTo( "/simpleHello" ) )
-                .withHeader( "User-Agent", WireMock.equalTo( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION ) ) );
+                .withHeader( "User-Agent", WireMock.equalTo( PwmConstants.PWM_APP_NAME ) ) );
     }
 
     /**
      * Test making an SSL request without setting SECURITY_HTTP_PROMISCUOUS_ENABLE to true, or supplying any certificates.
      */
-    @Test( expected = SSLHandshakeException.class )
+    @Test( expected = PwmUnrecoverableException.class )
     public void testGetHttpClientSslHelloFail() throws Exception
     {
         // Stub out our local HTTP server
@@ -104,12 +113,17 @@ public class PwmHttpClientTest
                         .withHeader( "Content-Type", "text/plain" )
                         .withBody( "PwmAbout from the local mock server" ) ) );
 
-        final HttpClient httpClient = PwmHttpClient.getHttpClient( configuration );
+        // Obtain the HTTP client
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
+        final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(  );
 
-        final HttpGet httpGet = new HttpGet( String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() ) );
+        // Execute the HTTP request
+        final String url = String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() );
+        final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
+
 
         // This should throw an exception, since we're doing https without setting SECURITY_HTTP_PROMISCUOUS_ENABLE, or setting certificates
-        httpClient.execute( httpGet );
+        httpClient.makeRequest( pwmHttpClientRequest, null );
     }
 
     /**
@@ -121,28 +135,34 @@ public class PwmHttpClientTest
         // Stub out our local HTTP server
         wireMockRule.stubFor( WireMock.get( WireMock.urlEqualTo( "/simpleHello" ) )
                 .willReturn( WireMock.aResponse()
-                        .withHeader( "Content-Type", "text/plain" )
+                        .withHeader( HttpHeader.ContentType.getHttpName(), "text/plain" )
                         .withBody( "PwmAbout from the local mock server" ) ) );
 
         // Stub out some mock object behavior
         Mockito.when( configuration.readAppProperty( AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE ) ).thenReturn( "true" );
 
-        final HttpClient httpClient = PwmHttpClient.getHttpClient( configuration );
+        // Obtain the HTTP client
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
+        final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(
+                PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous ).build()
+        );
 
-        final HttpGet httpGet = new HttpGet( String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() ) );
-        final HttpResponse response = httpClient.execute( httpGet );
+        // Execute the HTTP request
+        final String url = String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() );
+        final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
+        final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest, null );
 
-        // Verify the response
-        final int responseStatusCode = response.getStatusLine().getStatusCode();
+        final int responseStatusCode = response.getStatusCode();
         Assert.assertEquals( responseStatusCode, 200 );
 
-        final String responseContent = IOUtils.toString( response.getEntity().getContent() );
+        final String responseContent = response.getBody();
         Assert.assertTrue( responseContent.startsWith( "PwmAbout" ) );
     }
 
     /**
      * Test making an SSL request using the server's certificate.
      */
+
     @Test
     public void testGetHttpClientSslWithCertificates() throws Exception
     {
@@ -152,23 +172,25 @@ public class PwmHttpClientTest
                         .withHeader( HttpHeader.ContentType.getHttpName(), ContentType.TEXT_PLAIN.getMimeType() )
                         .withBody( "PwmAbout from the local mock server" ) ) );
 
-        final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                .certificates( getWireMockSelfSignedCertificate() )
-                .build();
-
         Mockito.when( configuration.readAppProperty( AppProperty.HTTP_CLIENT_ENABLE_HOSTNAME_VERIFICATION ) ).thenReturn( "false" );
 
+        // Obtain the HTTP client
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), configuration );
+        final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(
+                PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
+                        .certificates( getWireMockSelfSignedCertificate() ).build()
+        );
 
-        final HttpClient httpClient = PwmHttpClient.getHttpClient( configuration, pwmHttpClientConfiguration, null  );
-
-        final HttpGet httpGet = new HttpGet( String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() ) );
-        final HttpResponse response = httpClient.execute( httpGet );
+        // Execute the HTTP request
+        final String url = String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() );
+        final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
+        final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest, null );
 
         // Verify the response
-        final int responseStatusCode = response.getStatusLine().getStatusCode();
+        final int responseStatusCode = response.getStatusCode();
         Assert.assertEquals( responseStatusCode, 200 );
 
-        final String responseContent = IOUtils.toString( response.getEntity().getContent() );
+        final String responseContent = response.getBody();
         Assert.assertTrue( responseContent.startsWith( "PwmAbout" ) );
     }
 
@@ -185,19 +207,27 @@ public class PwmHttpClientTest
                         .withBody( "PwmAbout from the local mock server" ) ) );
 
         // Stub out some mock object behavior
-        Mockito.when( configuration.readSettingAsString( PwmSetting.HTTP_PROXY_URL ) ).thenReturn( String.format( "http://localhost:%d/simpleHello", wireMockRule.port() ) );
+        Mockito.when( configuration.readSettingAsString( PwmSetting.HTTP_PROXY_URL ) )
+                .thenReturn( String.format( "http://localhost:%d/simpleHello", wireMockRule.port() ) );
 
-        final HttpClient httpClient = PwmHttpClient.getHttpClient( configuration );
+        // Obtain the HTTP client
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), configuration );
+        final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(
+                PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
+                        .certificates( getWireMockSelfSignedCertificate() ).build()
+        );
 
-        // We are making a request to www.microfocus.com, but our server on localhost will receive it
-        final HttpGet httpGet = new HttpGet( "http://www.microfocus.com/simpleHello" );
-        final HttpResponse response = httpClient.execute( httpGet );
+
+        // We are making a request to www.example.com, but our server on localhost will receive it
+        final String url = "http://www.example.com/simpleHello";
+        final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
+        final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest, null );
 
         // Verify the response
-        final int responseStatusCode = response.getStatusLine().getStatusCode();
+        final int responseStatusCode = response.getStatusCode();
         Assert.assertEquals( responseStatusCode, 200 );
 
-        final String responseContent = IOUtils.toString( response.getEntity().getContent() );
+        final String responseContent = response.getBody();
         Assert.assertTrue( responseContent.startsWith( "PwmAbout" ) );
     }
 

@@ -93,7 +93,7 @@ public class MacroMachine
                 }
                 map.get( scope ).put( pattern, macroImplementation );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "unable to load macro class " + macroClass.getName() + ", error: " + e.getMessage() );
             }
@@ -243,7 +243,7 @@ public class MacroMachine
         {
             replaceStr = macroImplementation.replaceValue( matchedStr, macroRequestInfo );
         }
-        catch ( MacroParseException e )
+        catch ( final MacroParseException e )
         {
             LOGGER.debug( sessionLabel, () -> "macro parse error replacing macro '" + matchedStr + "', error: " + e.getMessage() );
             if ( pwmApplication != null )
@@ -255,7 +255,7 @@ public class MacroMachine
                 replaceStr = "[" + e.getErrorInformation().toUserStr( PwmConstants.DEFAULT_LOCALE, null ) + "]";
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.error( sessionLabel, "error while replacing macro '" + matchedStr + "', error: " + e.getMessage() );
         }
@@ -271,7 +271,7 @@ public class MacroMachine
             {
                 replaceStr = stringReplacer.replace( matchedStr, replaceStr );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( sessionLabel, "unexpected error while executing '" + matchedStr + "' during StringReplacer.replace(), error: " + e.getMessage() );
             }

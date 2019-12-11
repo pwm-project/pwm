@@ -20,19 +20,24 @@
 
 package password.pwm.config.profile;
 
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.data.UserPermission;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 
-public interface Profile extends Serializable
+public interface Profile
 {
-    ProfileType profileType( );
+    ProfileDefinition profileType( );
 
     String getIdentifier( );
 
     String getDisplayName( Locale locale );
 
     List<UserPermission> getPermissionMatches( );
+
+    interface ProfileFactory
+    {
+        Profile makeFromStoredConfiguration( StoredConfiguration storedConfiguration, String identifier );
+    }
 }

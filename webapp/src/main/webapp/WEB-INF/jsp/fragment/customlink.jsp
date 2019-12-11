@@ -17,6 +17,10 @@
  ~ See the License for the specific language governing permissions and
  ~ limitations under the License.
 --%>
+<%--
+       THIS FILE IS NOT INTENDED FOR END USER MODIFICATION.
+       See the README.TXT file in WEB-INF/jsp before making changes.
+--%>
 
 
 <%@ page import="password.pwm.http.JspUtility" %>
@@ -24,7 +28,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
-<%@ page import="password.pwm.config.CustomLinkConfiguration" %>
+<%@ page import="password.pwm.config.value.data.CustomLinkConfiguration" %>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 

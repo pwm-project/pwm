@@ -39,7 +39,7 @@ public enum PwmApplicationMode
         {
             contextManager = ContextManager.getContextManager( httpServletRequest.getServletContext() );
         }
-        catch ( Throwable t )
+        catch ( final Throwable t )
         {
             return ERROR;
         }
@@ -49,7 +49,7 @@ public enum PwmApplicationMode
         {
             pwmApplication = contextManager.getPwmApplication();
         }
-        catch ( Throwable t )
+        catch ( final Throwable t )
         {
             return ERROR;
         }

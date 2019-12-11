@@ -185,7 +185,7 @@ public class EmailServerUtil
                     properties.put( "mail.smtp.ssl.socketFactory.port", port );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String msg = "unable to create message transport properties: " + e.getMessage();
             throw new PwmUnrecoverableException( PwmError.CONFIG_FORMAT_ERROR, msg );
@@ -221,7 +221,7 @@ public class EmailServerUtil
             {
                 address.setPersonal( splitString[ 0 ].trim(), PwmConstants.DEFAULT_CHARSET.toString() );
             }
-            catch ( UnsupportedEncodingException e )
+            catch ( final UnsupportedEncodingException e )
             {
                 LOGGER.error( "unsupported encoding error while parsing internet address '" + input + "', error: " + e.getMessage() );
             }
@@ -330,19 +330,19 @@ public class EmailServerUtil
                     final MimeMultipart content = new MimeMultipart( "alternative" );
                     final MimeBodyPart text = new MimeBodyPart();
                     final MimeBodyPart html = new MimeBodyPart();
-                    text.setContent( emailItemBean.getBodyPlain(), HttpContentType.plain.getHeaderValue() );
-                    html.setContent( emailItemBean.getBodyHtml(), HttpContentType.html.getHeaderValue() );
+                    text.setContent( emailItemBean.getBodyPlain(), HttpContentType.plain.getHeaderValueWithEncoding() );
+                    html.setContent( emailItemBean.getBodyHtml(), HttpContentType.html.getHeaderValueWithEncoding() );
                     content.addBodyPart( text );
                     content.addBodyPart( html );
                     message.setContent( content );
                 }
                 else if ( hasPlainText )
                 {
-                    message.setContent( emailItemBean.getBodyPlain(), HttpContentType.plain.getHeaderValue() );
+                    message.setContent( emailItemBean.getBodyPlain(), HttpContentType.plain.getHeaderValueWithEncoding() );
                 }
                 else if ( hasHtml )
                 {
-                    message.setContent( emailItemBean.getBodyHtml(), HttpContentType.html.getHeaderValue() );
+                    message.setContent( emailItemBean.getBodyHtml(), HttpContentType.html.getHeaderValueWithEncoding() );
                 }
 
                 messages.add( message );
@@ -385,7 +385,9 @@ public class EmailServerUtil
             throws PwmUnrecoverableException
     {
         final EmailServerProfile emailServerProfile = configuration.getEmailServerProfiles().get( profile );
-        final X509Utils.CertReaderTrustManager certReaderTm = new X509Utils.CertReaderTrustManager( X509Utils.ReadCertificateFlag.ReadOnlyRootCA );
+        final X509Utils.CertReaderTrustManager certReaderTm = new X509Utils.CertReaderTrustManager(
+                new X509Utils.PromiscuousTrustManager(),
+                X509Utils.ReadCertificateFlag.ReadOnlyRootCA );
         final TrustManager[] trustManagers =  new TrustManager[]
                 {
                         certReaderTm,
@@ -397,7 +399,7 @@ public class EmailServerUtil
             {
                 return certReaderTm.getCertificates();
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final String exceptionMessage = JavaHelper.readHostileExceptionMessage( e );
                 final String errorMsg = "error connecting to secure server while reading SMTP certificates: " + exceptionMessage;

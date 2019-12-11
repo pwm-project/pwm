@@ -62,7 +62,7 @@ public class DatabaseStatusChecker implements HealthChecker
             accessor.get( DatabaseTable.PWM_META, "test" );
             return runtimeInstance.getDatabaseService().healthCheck();
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( "error during healthcheck: " + e.getMessage() );
             e.printStackTrace();

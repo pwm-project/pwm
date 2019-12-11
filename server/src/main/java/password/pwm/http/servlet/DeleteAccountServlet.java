@@ -30,7 +30,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.DeleteAccountProfile;
-import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -181,7 +181,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getSessionLabel(),
-                    ProfileType.DeleteAccount.toString()
+                    ProfileDefinition.DeleteAccount.toString()
             );
             pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
         }
@@ -217,7 +217,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
                 {
                     actionExecutor.executeActions( actions, pwmRequest.getSessionLabel() );
                 }
-                catch ( PwmOperationalException e )
+                catch ( final PwmOperationalException e )
                 {
                     LOGGER.error( "error during user delete action execution: " + e.getMessage() );
                     throw new PwmUnrecoverableException( e.getErrorInformation(), e.getCause() );
@@ -248,7 +248,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
             {
                 chaiUser.getChaiProvider().deleteEntry( chaiUser.getEntryDN() );
             }
-            catch ( ChaiException e )
+            catch ( final ChaiException e )
             {
                 final PwmUnrecoverableException pwmException = PwmUnrecoverableException.fromChaiException( e );
                 LOGGER.error( "error during user delete", pwmException );

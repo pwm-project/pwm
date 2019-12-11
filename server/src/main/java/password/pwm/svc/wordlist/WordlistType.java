@@ -32,7 +32,7 @@ public enum WordlistType
         switch ( this )
         {
             case WORDLIST:
-                return pwmApplication.getWordlistManager();
+                return pwmApplication.getWordlistService();
 
             case SEEDLIST:
                 return pwmApplication.getSeedlistManager();

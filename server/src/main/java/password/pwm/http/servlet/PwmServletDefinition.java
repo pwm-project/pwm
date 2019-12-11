@@ -48,6 +48,7 @@ import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.http.servlet.configguide.ConfigGuideServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerCertificatesServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerLocalDBServlet;
+import password.pwm.http.servlet.configmanager.ConfigManagerLoginServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerWordlistServlet;
 import password.pwm.http.servlet.newuser.NewUserServlet;
@@ -90,6 +91,7 @@ public enum PwmServletDefinition
     ConfigGuide( ConfigGuideServlet.class, ConfigGuideBean.class ),
     ConfigEditor( ConfigEditorServlet.class, null ),
     ConfigManager( ConfigManagerServlet.class, ConfigManagerBean.class ),
+    ConfigManager_Login( ConfigManagerLoginServlet.class, ConfigManagerBean.class ),
     ConfigManager_Wordlists( ConfigManagerWordlistServlet.class, ConfigManagerBean.class ),
     ConfigManager_LocalDB( ConfigManagerLocalDBServlet.class, ConfigManagerBean.class ),
     ConfigManager_Certificates( ConfigManagerCertificatesServlet.class, ConfigManagerBean.class ),
@@ -127,7 +129,7 @@ public enum PwmServletDefinition
         {
             this.patterns = getWebServletAnnotation( pwmServletClass ).urlPatterns();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new IllegalStateException( "error initializing PwmServletInfo value " + this.toString() + ", error: " + e.getMessage() );
         }

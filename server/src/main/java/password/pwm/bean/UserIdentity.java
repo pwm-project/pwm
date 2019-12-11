@@ -112,7 +112,7 @@ public class UserIdentity implements Serializable, Comparable
             cacheService.put( cacheKey, CachePolicy.makePolicyWithExpiration( TimeDuration.DAY ), localValue );
             return localValue;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error making obfuscated user key: " + e.getMessage() ) );
         }
@@ -146,7 +146,7 @@ public class UserIdentity implements Serializable, Comparable
             final String jsonValue = pwmApplication.getSecureService().decryptStringValue( input );
             return JsonUtil.deserialize( jsonValue, UserIdentity.class );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error reversing obfuscated user key: " + e.getMessage() ) );
         }
@@ -260,7 +260,7 @@ public class UserIdentity implements Serializable, Comparable
         {
             userDN = chaiUser.readCanonicalDN();
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }

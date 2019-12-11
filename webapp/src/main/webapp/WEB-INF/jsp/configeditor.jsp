@@ -17,6 +17,10 @@
  ~ See the License for the specific language governing permissions and
  ~ limitations under the License.
 --%>
+<%--
+       THIS FILE IS NOT INTENDED FOR END USER MODIFICATION.
+       See the README.TXT file in WEB-INF/jsp before making changes.
+--%>
 
 
 <%@ page import="password.pwm.http.JspUtility" %>
@@ -155,6 +159,7 @@
 <pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-action.js"/>
+<pwm:script-ref url="/public/resources/js/configeditor-settings-email.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-form.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-challenges.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-customlink.js"/>

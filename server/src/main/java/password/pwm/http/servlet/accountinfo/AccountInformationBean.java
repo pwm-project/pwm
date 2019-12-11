@@ -126,7 +126,7 @@ public class AccountInformationBean implements Serializable
         {
             auditRecords.addAll( pwmApplication.getAuditManager().readUserHistory( userInfo ) );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.debug( sessionLabel, () -> "error reading audit data for user: " + e.getMessage() );
         }

@@ -112,6 +112,7 @@ table {
 table td {
     border: 2px solid #003333;
     padding-left: 5px;
+    color: black;
 }
 
 table td.title {
@@ -127,6 +128,15 @@ table td.key {
     font-weight: bold;
     padding-right: 10px;
     width: 200px;
+    color: black;
+}
+
+table td.ng-binding {
+    color: white;
+}
+
+table td.noborder {
+    color: white;
 }
 
 #randomPasswordDialog_underlay {
@@ -197,10 +207,6 @@ table td.key {
     background-color: #071119;
     color: #dae1e1;
     }
-
-
-
-
 
 #header-menu-icon {
   display: inline-block;

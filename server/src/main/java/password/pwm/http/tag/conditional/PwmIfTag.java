@@ -95,7 +95,7 @@ public class PwmIfTag extends BodyTagSupport
                             final PwmIfOptions options = new PwmIfOptions( negate, permission, setting, requestFlag );
                             showBody = testEnum.passed( pwmRequest, options );
                         }
-                        catch ( ChaiUnavailableException e )
+                        catch ( final ChaiUnavailableException e )
                         {
                             LOGGER.error( "error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage() );
                         }
@@ -106,7 +106,7 @@ public class PwmIfTag extends BodyTagSupport
                         LOGGER.warn( pwmSession, errorMsg );
                     }
                 }
-                catch ( PwmUnrecoverableException e )
+                catch ( final PwmUnrecoverableException e )
                 {
                     LOGGER.error( "error executing PwmIfTag for test '" + test + "', error: " + e.getMessage() );
                 }

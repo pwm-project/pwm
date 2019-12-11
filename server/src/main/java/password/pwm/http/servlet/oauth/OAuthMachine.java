@@ -36,10 +36,10 @@ import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.java.JavaHelper;
@@ -144,7 +144,7 @@ public class OAuthMachine
             pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress( true );
             LOGGER.debug( sessionLabel, () -> "redirecting user to oauth id server, url: " + redirectUrl );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -281,22 +281,28 @@ public class OAuthMachine
                 headers.put( HttpHeader.Authorization.getHttpName(),
                         "Bearer " + accessToken );
             }
-            headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValue() );
+            headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValueWithEncoding() );
 
-            pwmHttpClientRequest = new PwmHttpClientRequest( HttpMethod.POST, requestUrl, requestBody, headers );
+            pwmHttpClientRequest = PwmHttpClientRequest.builder()
+                    .method( HttpMethod.POST )
+                    .url( requestUrl )
+                    .body( requestBody )
+                    .headers( headers )
+                    .build();
         }
 
         final PwmHttpClientResponse pwmHttpClientResponse;
         try
         {
             final PwmHttpClientConfiguration config = PwmHttpClientConfiguration.builder()
+                    .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
                     .certificates( JavaHelper.isEmpty( certs ) ? null : certs )
                     .maskBodyDebugOutput( true )
                     .build();
-            final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), config );
-            pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
+            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient( config );
+            pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, pwmRequest.getSessionLabel() );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             final String errorMsg = "error during " + debugText + " http request to oauth server, remote error: " + e.getErrorInformation().toDebugStr();
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg ) );
@@ -347,7 +353,7 @@ public class OAuthMachine
                             + pwmRequest.getContextPath()
                             + PwmServletDefinition.OAuthConsumer.servletUrl();
                 }
-                catch ( URISyntaxException e )
+                catch ( final URISyntaxException e )
                 {
                     throw new IllegalStateException( "unable to parse inbound request uri while generating oauth redirect: " + e.getMessage() );
                 }
@@ -394,7 +400,7 @@ public class OAuthMachine
                 }
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( sessionLabel, "error while processing oauth token refresh: " + e.getMessage() );
         }
@@ -528,7 +534,7 @@ public class OAuthMachine
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.debug( sessionLabel, () -> "unexpected error parsing json response: " + e.getMessage() );
         }

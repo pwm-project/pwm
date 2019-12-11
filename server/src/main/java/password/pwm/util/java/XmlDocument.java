@@ -33,12 +33,13 @@ import javax.xml.xpath.XPathExpressionException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public interface XmlDocument
 {
     XmlElement getRootElement();
 
-    XmlElement evaluateXpathToElement( String xpathExpression );
+    Optional<XmlElement> evaluateXpathToElement( String xpathExpression );
 
     List<XmlElement> evaluateXpathToElements( String xpathExpression );
 
@@ -60,14 +61,16 @@ public interface XmlDocument
         }
 
         @Override
-        public XmlElement evaluateXpathToElement(
+        public Optional<XmlElement> evaluateXpathToElement(
                 final String xpathExpression
         )
         {
             final XPathFactory xpfac = XPathFactory.instance();
             final XPathExpression<Element> xp = xpfac.compile( xpathExpression, Filters.element() );
             final Element element = xp.evaluateFirst( document );
-            return element == null ? null : new XmlElement.XmlElementJDOM( element );
+            return element == null
+                    ? Optional.empty()
+                    : Optional.of( new XmlElement.XmlElementJDOM( element ) );
         }
 
         @Override
@@ -109,16 +112,16 @@ public interface XmlDocument
         }
 
         @Override
-        public XmlElement evaluateXpathToElement(
+        public Optional<XmlElement> evaluateXpathToElement(
                 final String xpathExpression
         )
         {
             final List<XmlElement> elements = evaluateXpathToElements( xpathExpression );
             if ( JavaHelper.isEmpty( elements ) )
             {
-                return null;
+                return Optional.empty();
             }
-            return elements.iterator().next();
+            return Optional.of( elements.iterator().next() );
         }
 
         @Override
@@ -133,7 +136,7 @@ public interface XmlDocument
                 final NodeList nodeList = (NodeList) expression.evaluate( document, XPathConstants.NODESET );
                 return XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList );
             }
-            catch ( XPathExpressionException e )
+            catch ( final XPathExpressionException e )
             {
                 throw new IllegalStateException( "error evaluating xpath expression: " + e.getMessage() );
             }

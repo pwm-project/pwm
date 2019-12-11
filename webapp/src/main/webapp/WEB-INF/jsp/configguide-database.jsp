@@ -17,6 +17,10 @@
  ~ See the License for the specific language governing permissions and
  ~ limitations under the License.
 --%>
+<%--
+       THIS FILE IS NOT INTENDED FOR END USER MODIFICATION.
+       See the README.TXT file in WEB-INF/jsp before making changes.
+--%>
 
 
 <%@ page import="password.pwm.config.value.FileValue" %>
@@ -63,10 +67,7 @@
                                     <td class="key">Size</td><td><%=fileInfo.getSize()%></td>
                                 </tr>
                                 <tr>
-                                    <td class="key">md5</td><td><%=fileInfo.getMd5sum()%></td>
-                                </tr>
-                                <tr>
-                                    <td class="key">sha1</td><td><%=fileInfo.getSha1sum()%></td>
+                                    <td class="key">sha512</td><td><%=fileInfo.getSha512sum()%></td>
                                 </tr>
                             </table>
                             <% }  %>

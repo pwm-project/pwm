@@ -40,7 +40,7 @@ public abstract class AuthenticationUtility
         {
             checkIfUserEligibleToAuthenticationImpl( pwmApplication, userIdentity );
         }
-        catch ( ChaiOperationException | ChaiUnavailableException e )
+        catch ( final ChaiOperationException | ChaiUnavailableException e )
         {
             throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
         }

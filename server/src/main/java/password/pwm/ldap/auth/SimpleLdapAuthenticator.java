@@ -64,11 +64,11 @@ public class SimpleLdapAuthenticator
         {
             authResult = authEngine.authenticateUser( password );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             throw new PwmUnrecoverableException( e.getErrorInformation() );
         }

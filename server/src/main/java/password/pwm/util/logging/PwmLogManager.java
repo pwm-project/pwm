@@ -33,6 +33,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -96,7 +97,7 @@ public class PwmLogManager
                 LOGGER.debug( () -> "successfully initialized log4j using file " + log4jConfigFile.getAbsolutePath() );
                 return;
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "error loading log4jconfig file '" + log4jConfigFile + "' error: " + e.getMessage() );
             }
@@ -110,6 +111,20 @@ public class PwmLogManager
 
         // disable jersey warnings.
         java.util.logging.Logger.getLogger( "org.glassfish.jersey" ).setLevel( java.util.logging.Level.SEVERE );
+    }
+
+
+    public static void preInitConsoleLogLevel( final String pwmLogLevel )
+    {
+        try
+        {
+            initConsoleLogger( new Configuration( StoredConfigurationFactory.newConfig() ), pwmLogLevel );
+        }
+        catch ( final Exception e )
+        {
+            final String msg = "error pre-initializing logger: " + e.getMessage();
+            System.err.println( msg );
+        }
     }
 
     private static void initConsoleLogger(
@@ -192,7 +207,7 @@ public class PwmLogManager
                 }
                 LOGGER.debug( () -> "successfully initialized default file log4j config at log level " + level.toString() );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
                 LOGGER.debug( () -> "error initializing RollingFileAppender: " + e.getMessage() );
             }
@@ -220,7 +235,7 @@ public class PwmLogManager
                 PwmLogger.setLocalDBLogger( localDBLogLevel, localDBLogger );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.warn( "unable to initialize localDBLogger: " + e.getMessage() );
             return null;
@@ -241,7 +256,7 @@ public class PwmLogManager
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             LOGGER.warn( "unable to initialize localDBLogger/extraAppender: " + e.getMessage() );
         }
@@ -259,7 +274,7 @@ public class PwmLogManager
             final LocalDBLoggerSettings settings = LocalDBLoggerSettings.fromConfiguration( pwmApplication.getConfig() );
             return new LocalDBLogger( pwmApplication, pwmDB, settings );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             //nothing to do;
         }

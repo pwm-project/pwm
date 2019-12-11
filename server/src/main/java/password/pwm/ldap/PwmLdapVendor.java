@@ -47,7 +47,7 @@ public enum PwmLdapVendor
             return null;
         }
 
-        for ( PwmLdapVendor vendor : PwmLdapVendor.values() )
+        for ( final PwmLdapVendor vendor : PwmLdapVendor.values() )
         {
             if ( vendor.name().equals( input ) )
             {
@@ -71,7 +71,7 @@ public enum PwmLdapVendor
 
     public static PwmLdapVendor fromChaiVendor( final DirectoryVendor directoryVendor )
     {
-        for ( PwmLdapVendor vendor : PwmLdapVendor.values() )
+        for ( final PwmLdapVendor vendor : PwmLdapVendor.values() )
         {
             if ( vendor.chaiVendor == directoryVendor )
             {

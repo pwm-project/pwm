@@ -25,7 +25,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -49,7 +49,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
     @Override
     public String provideFunction(
             final PwmRequest pwmRequest,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfigurationModifier modifier,
             final PwmSetting setting,
             final String profile,
             final String extraData )
@@ -62,10 +62,10 @@ public class SyslogCertImportFunction implements SettingUIFunction
 
         final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
 
-        final List<String> syslogConfigStrs = ( List<String> ) storedConfiguration.readSetting( PwmSetting.AUDIT_SYSLOG_SERVERS ).toNativeObject();
+        final List<String> syslogConfigStrs = ( List<String> ) modifier.newStoredConfiguration().readSetting( PwmSetting.AUDIT_SYSLOG_SERVERS, null ).toNativeObject();
         if ( syslogConfigStrs != null && !syslogConfigStrs.isEmpty() )
         {
-            for ( String entry : syslogConfigStrs )
+            for ( final String entry : syslogConfigStrs )
             {
                 if ( entry.toUpperCase().startsWith( "TLS" ) )
                 {
@@ -77,7 +77,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
                             final List<X509Certificate> certs = X509Utils.readRemoteCertificates(
                                     syslogConfig.getHost(),
                                     syslogConfig.getPort(),
-                                    new Configuration( storedConfiguration )
+                                    new Configuration( modifier.newStoredConfiguration() )
                             );
                             if ( certs != null )
                             {
@@ -85,7 +85,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
                                 error = false;
                             }
                         }
-                        catch ( Exception e )
+                        catch ( final Exception e )
                         {
                             error = true;
                             exeception = e;
@@ -98,7 +98,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
         if ( !error )
         {
             final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
-            storedConfiguration.writeSetting( setting, new X509CertificateValue( resultCertificates ), userIdentity );
+            modifier.writeSetting( setting, null, new X509CertificateValue( resultCertificates ), userIdentity );
             return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig() );
         }
         else

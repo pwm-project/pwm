@@ -17,6 +17,10 @@
  ~ See the License for the specific language governing permissions and
  ~ limitations under the License.
 --%>
+<%--
+       THIS FILE IS NOT INTENDED FOR END USER MODIFICATION.
+       See the README.TXT file in WEB-INF/jsp before making changes.
+--%>
 
 
 <%@ page import="password.pwm.http.filter.ConfigAccessFilter" %>
@@ -24,6 +28,8 @@
 <%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="password.pwm.http.servlet.configmanager.ConfigManagerServlet" %>
+<%@ page import="password.pwm.http.servlet.configmanager.ConfigManagerLoginServlet" %>
 
 <!DOCTYPE html>
 
@@ -66,11 +72,12 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-sign-in"></span></pwm:if>
                     <pwm:display key="Button_Login"/>
                 </button>
+                <input type="hidden" name="processAction" value="<%=ConfigManagerLoginServlet.ConfigManagerLoginAction.login%>"/>
                 <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>" autofocus/>
             </div>
         </form>
-        <% final ConfigAccessFilter.ConfigLoginHistory configLoginHistory = (ConfigAccessFilter.ConfigLoginHistory)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ConfigLoginHistory); %>
+        <% final ConfigManagerLoginServlet.ConfigLoginHistory configLoginHistory = (ConfigManagerLoginServlet.ConfigLoginHistory)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ConfigLoginHistory); %>
         <% if (configLoginHistory != null && !configLoginHistory.successEvents().isEmpty()) { %>
         <h2 style="margin-top: 15px;">Previous Authentications</h2>
         <table>
@@ -79,7 +86,7 @@
                 <td class="title">Timestamp</td>
                 <td class="title">Network Address</td>
             </tr>
-            <% for (final ConfigAccessFilter.ConfigLoginEvent event : configLoginHistory.successEvents()) { %>
+            <% for (final ConfigManagerLoginServlet.ConfigLoginEvent event : configLoginHistory.successEvents()) { %>
             <tr>
                 <td><%=event.getUserIdentity()%></td>
                 <td><span  class="timestamp"><%=JavaHelper.toIsoDate(event.getDate())%></span></td>
@@ -97,7 +104,7 @@
                 <td class="title">Timestamp</td>
                 <td class="title">Network Address</td>
             </tr>
-            <% for (final ConfigAccessFilter.ConfigLoginEvent event : configLoginHistory.failedEvents()) { %>
+            <% for (final ConfigManagerLoginServlet.ConfigLoginEvent event : configLoginHistory.failedEvents()) { %>
             <tr>
                 <td><%=event.getUserIdentity()%></td>
                 <td><span  class="timestamp"><%=JavaHelper.toIsoDate(event.getDate())%></span></td>

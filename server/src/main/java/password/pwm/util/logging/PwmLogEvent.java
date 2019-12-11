@@ -135,7 +135,7 @@ public class PwmLogEvent implements Serializable, Comparable
             }
             return from.toString();
         }
-        catch ( NullPointerException e )
+        catch ( final NullPointerException e )
         {
             return "";
         }

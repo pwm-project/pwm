@@ -33,7 +33,10 @@ import password.pwm.config.StoredValue;
 import password.pwm.config.function.UserMatchViewerFunction;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.ErrorInformation;
@@ -97,7 +100,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger( ConfigGuideServlet.class.getName() );
 
-    private static final String LDAP_PROFILE_KEY = "default";
+    private static final String LDAP_PROFILE_KEY = PwmConstants.PROFILE_ID_DEFAULT;
 
     public enum ConfigGuideAction implements AbstractPwmServlet.ProcessAction
     {
@@ -191,7 +194,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                     configGuideBean.setCertsTrustedbyKeystore( false );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( "error reading/testing ldap server certificates: " + e.getMessage() );
             }
@@ -230,8 +233,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     {
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
 
-        final StoredConfigurationImpl storedConfigurationImpl = ConfigGuideForm.generateStoredConfig( configGuideBean );
-        final Configuration tempConfiguration = new Configuration( storedConfigurationImpl );
+        final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
+        final Configuration tempConfiguration = new Configuration( storedConfiguration );
         final PwmApplication tempApplication = new PwmApplication( pwmRequest.getPwmApplication()
                 .getPwmEnvironment()
                 .makeRuntimeInstance( tempConfiguration ) );
@@ -249,7 +252,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                     ConfigGuideUtils.checkLdapServer( configGuideBean );
                     records.add( password.pwm.health.HealthRecord.forMessage( HealthMessage.LDAP_OK ) );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Can not connect to remote server: " + e.getMessage() ) );
                 }
@@ -285,7 +288,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                     final Collection<UserIdentity> results = userMatchViewerFunction.discoverMatchingUsers(
                             pwmRequest.getPwmApplication(),
                             2,
-                            storedConfigurationImpl,
+                            storedConfiguration,
                             PwmSetting.QUERY_MATCH_PWM_ADMIN,
                             null
                     );
@@ -299,11 +302,11 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                         records.add( new HealthRecord( HealthStatus.GOOD, HealthTopic.LDAP, "Admin group validated" ) );
                     }
                 }
-                catch ( PwmException e )
+                catch ( final PwmException e )
                 {
                     records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Error during admin group validation: " + e.getErrorInformation().toDebugStr() ) );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Error during admin group validation: " + e.getMessage() ) );
                 }
@@ -335,11 +338,11 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 JavaHelper.unhandledSwitchStatement( configGuideBean.getStep() );
         }
 
-        final HealthData jsonOutput = new HealthData();
-        jsonOutput.records = password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords( records,
-                pwmRequest.getLocale(), tempConfiguration );
-        jsonOutput.timestamp = Instant.now();
-        jsonOutput.overall = HealthMonitor.getMostSevereHealthStatus( records ).toString();
+        final HealthData jsonOutput = HealthData.builder()
+                .records( password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords( records, pwmRequest.getLocale(), tempConfiguration ) )
+                .timestamp( Instant.now() )
+                .overall( HealthMonitor.getMostSevereHealthStatus( records ).toString() )
+                .build();
         final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
@@ -356,16 +359,17 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         try
         {
             final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
-            final StoredConfigurationImpl storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
-            final Serializable output = userMatchViewerFunction.provideFunction( pwmRequest, storedConfiguration, PwmSetting.QUERY_MATCH_PWM_ADMIN, null, null );
+            final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
+            final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
+            final Serializable output = userMatchViewerFunction.provideFunction( pwmRequest, modifier, PwmSetting.QUERY_MATCH_PWM_ADMIN, null, null );
             pwmRequest.outputJsonResult( RestResultBean.withData( output ) );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             LOGGER.error( pwmRequest, e.getErrorInformation() );
             pwmRequest.respondWithError( e.getErrorInformation(), false );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error while testing matches = " + e.getMessage() );
             LOGGER.error( pwmRequest, errorInformation );
@@ -382,11 +386,13 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     {
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
 
-        final StoredConfigurationImpl storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
+        StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
         if ( configGuideBean.getStep() == GuideStep.LDAP_PROXY )
         {
-            storedConfiguration.resetSetting( PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE_KEY, null );
-            storedConfiguration.resetSetting( PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, null );
+            final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
+            modifier.resetSetting( PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE_KEY, null );
+            modifier.resetSetting( PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, null );
+            storedConfiguration = modifier.newStoredConfiguration();
         }
 
         final Instant startTime = Instant.now();
@@ -447,7 +453,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             {
                 step = GuideStep.valueOf( requestedStep );
             }
-            catch ( IllegalArgumentException e )
+            catch ( final IllegalArgumentException e )
             {
                 final String errorMsg = "unknown goto step request: " + requestedStep;
                 LOGGER.error( pwmRequest, errorMsg );
@@ -484,13 +490,13 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 ConfigGuideUtils.writeConfig( contextManager, configGuideBean );
                 pwmRequest.getPwmSession().getSessionStateBean().setTheme( null );
             }
-            catch ( PwmException e )
+            catch ( final PwmException e )
             {
                 final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
                 pwmRequest.outputJsonResult( restResultBean );
                 return ProcessStatus.Halt;
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 LOGGER.error( pwmRequest, "error during save: " + e.getMessage(), e );
                 final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation(
@@ -530,7 +536,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             final SchemaOperationResult schemaOperationResult = ConfigGuideUtils.extendSchema( pwmRequest.getPwmApplication(), configGuideBean, true );
             pwmRequest.outputJsonResult( RestResultBean.withData( schemaOperationResult.getOperationLog() ) );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
@@ -553,7 +559,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
             pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
             pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
@@ -571,14 +577,14 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final ContextManager contextManager = ContextManager.getContextManager( pwmRequest );
         try
         {
-            final StoredConfigurationImpl storedConfiguration = new StoredConfigurationImpl();
+            final StoredConfigurationModifier storedConfiguration = StoredConfigurationModifier.newModifier( StoredConfigurationFactory.newConfig() );
             storedConfiguration.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, "true" );
-            storedConfiguration.setPassword( password );
-            ConfigGuideUtils.writeConfig( contextManager, storedConfiguration );
+            StoredConfigurationUtil.setPassword( storedConfiguration, password );
+            ConfigGuideUtils.writeConfig( contextManager, storedConfiguration.newStoredConfiguration() );
             pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
             pwmRequest.invalidateSession();
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             LOGGER.error( "error during skip config guide: " + e.getMessage(), e );
         }
@@ -591,15 +597,15 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     {
         final String profileID = "default";
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
-        final StoredConfigurationImpl storedConfigurationImpl = ConfigGuideForm.generateStoredConfig( configGuideBean );
+        final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
 
         final String key = pwmRequest.readParameterAsString( "key" );
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
         final PwmSetting theSetting = PwmSetting.forKey( key );
 
         final Object returnValue;
-        returnValue = storedConfigurationImpl.readSetting( theSetting, profileID ).toNativeObject();
-        returnMap.put( "isDefault", storedConfigurationImpl.isDefaultValue( theSetting, profileID ) );
+        returnValue = storedConfiguration.readSetting( theSetting, profileID ).toNativeObject();
+        returnMap.put( "isDefault", storedConfiguration.isDefaultValue( theSetting, profileID ) );
         returnMap.put( "key", key );
         returnMap.put( "category", theSetting.getCategory().toString() );
         returnMap.put( "syntax", theSetting.getSyntax().toString() );
@@ -619,7 +625,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final String bodyString = pwmRequest.readRequestBodyAsString();
         final PwmSetting setting = PwmSetting.forKey( key );
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
-        final StoredConfigurationImpl storedConfigurationImpl = ConfigGuideForm.generateStoredConfig( configGuideBean );
+        final StoredConfiguration storedConfigurationImpl = ConfigGuideForm.generateStoredConfig( configGuideBean );
 
 
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
@@ -638,7 +644,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 configGuideBean.getFormData().put( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA, JsonUtil.serialize( (Serializable) storedValue.toNativeObject() ) );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "error writing default value for setting " + setting.toString() + ", error: " + e.getMessage();
             LOGGER.error( errorMsg, e );
@@ -659,11 +665,11 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             throws IOException, PwmUnrecoverableException
     {
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
-        final StoredConfigurationImpl storedConfigurationImpl = ConfigGuideForm.generateStoredConfig( configGuideBean );
+        final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
 
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>( ConfigEditorServlet.generateSettingData(
                 pwmRequest.getPwmApplication(),
-                storedConfigurationImpl,
+                storedConfiguration,
                 pwmRequest.getSessionLabel(),
                 pwmRequest.getLocale()
         )
