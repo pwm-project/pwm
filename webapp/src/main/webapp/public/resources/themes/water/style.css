@@ -132,11 +132,11 @@ table td.key {
 }
 
 table td.ng-binding {
-		color: white;
+    color: white;
 }
 
 table td.noborder {
-		color: white;
+    color: white;
 }
 
 #randomPasswordDialog_underlay {
@@ -207,10 +207,6 @@ table td.noborder {
     background-color: #071119;
     color: #dae1e1;
     }
-
-
-
-
 
 #header-menu-icon {
   display: inline-block;
