@@ -89,10 +89,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-//import java.io.File;
+import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.nio.charset.StandardCharsets;
+//import java.util.HashMap;
+import java.io.PrintWriter;
 
 class NewUserUtils
 {
@@ -160,7 +162,16 @@ class NewUserUtils
 
         // set up the user creation attributes
         final Map<String, String> createAttributes = NewUserFormUtils.getLdapDataFromNewUserForm( NewUserServlet.getNewUserProfile( pwmRequest ), newUserForm );
+        
+        //File file = new File( "/var/lib/tomcat/webapps/pwm/public/resources/filename.txt" );
+        //try ( PrintWriter out = new PrintWriter( file ) )
+        //{
+        //out.println( "Datos en archivo: " + createAttributes.toString() );
+        //}
+        //catch ( Exception e )
+        //{
 
+        //}
         // read the creation object classes from configuration
         final Set<String> createObjectClasses = new LinkedHashSet<>(
                 pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES ) );
@@ -175,9 +186,14 @@ class NewUserUtils
         try
         {
             // create the ldap entry
+            //createAttributes.put( "memberOf", "cn=cci,ou=grupos,dc=interior,dc=udelar,dc=edu,dc=uy" );
             chaiProvider.createEntry( newUserDN, createObjectClasses, createAttributes );
 
-            NewUserUtils.LOGGER.info( pwmSession, () -> "created user entry: " + newUserDN );
+//        final Configuration config = pwmRequest.getConfig();
+//        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+//        final EmailItemBean mail = config.readSettingAsEmail( PwmSetting.EMAIL_NEWUSER, locale );
+        //final String mail = pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
+          //  NewUserUtils.LOGGER.info( pwmSession, () -> "created user entry: " + newUserDN + " mail: " + mail );
         }
         catch ( ChaiOperationException e )
         {
@@ -289,26 +305,26 @@ class NewUserUtils
             {
                 try
                 {
-                    final Configuration config = pwmApplication.getConfig();
-                    final Locale locale = pwmSession.getSessionStateBean().getLocale();
-                    final String mail = config.readSettingAsEmail( PwmSetting.EMAIL_NEWUSER, locale ).toString();  
-                    final List<String> gruposD = new ArrayList<String>();
+//                    final Configuration config = pwmRequest.getConfig();
+//                    final Locale locale = pwmSession.getSessionStateBean().getLocale();
+//                    final String mail = config.readSettingAsEmail( PwmRequest.EMAIL_NEWUSER, locale ).toString();  
+//                    final List<String> gruposD = new ArrayList<String>();
+//                    NewUserUtils.LOGGER.debug( pwmSession, () -> "mail: " + mail );
+//                    dominios( mail, gruposD );
 
-                    dominios( mail, gruposD );
-
-                    for ( String grupo : gruposD ) 
-                    {
-                        //LOGGER.info( pwmSession, "se agrega " + newUserDN + " al grupo" + grupo );
-    
+//                    for ( String grupo : gruposD ) 
+//                    {
                     //crear una cuenta en el servicio
-                    theUser.writeStringAttribute( "memberOf", grupo );
+//                    theUser.writeStringAttribute( "memberOf", grupo );
 
-                    //pwmApplication.getProxyChaiProvider().writeStringAttribute(newUserDN, "memberOf", memberOf, false);
-                    }
+ //                   }
+
+                  NewUserUtils.LOGGER.debug( pwmSession, () ->
+                            "setting userAccountControl attribute to enable account " + theUser.getEntryDN() );
 
                     theUser.writeStringAttribute( "userAccountControl", "512" );
                 }
-                catch ( ChaiOperationException | IOException e )
+                catch ( ChaiOperationException e )
                 {
                     final String errorMsg = "error enabling AD account when writing userAccountControl attribute: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
