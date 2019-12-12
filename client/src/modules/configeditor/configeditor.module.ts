@@ -20,6 +20,7 @@
 
 import 'textangular';
 import 'textangular/dist/textAngular-sanitize';
+import * as angular from 'angular';
 
 import { module } from 'angular';
 
@@ -27,3 +28,11 @@ import ConfigEditorController from './configeditor.controller';
 
 module('configeditor.module', ['textAngular'])
     .controller('ConfigEditorController', ConfigEditorController);
+
+// lowercase and uppercase have been removed from angular, but textAngular still hasn't caught up with the change. So
+// The following polyfills it for now:
+
+// @ts-ignore
+if (!angular.lowercase) angular.lowercase = (str) => str ? str.toLowerCase() : str;
+// @ts-ignore
+if (!angular.uppercase) angular.uppercase = (str) => str ? str.toUpperCase() : str;
