@@ -20,5 +20,6 @@ EXPOSE 8443
 
 COPY --from=build-env /usr/src/pwm/onejar/target/* /app/libs/
 COPY --from=build-env /usr/src/pwm/docker/src/main/image-files/app/* /app/
+RUN chmod o+x /app/*.sh
 
 ENTRYPOINT ["/app/startup.sh"]
