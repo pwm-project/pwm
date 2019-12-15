@@ -81,8 +81,8 @@
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>1.8.0</version>
                 <configuration>
-                    <nodeVersion>v10.16.3</nodeVersion>
-                    <npmVersion>6.9.0</npmVersion>
+                    <nodeVersion>v12.13.1</nodeVersion>
+                    <npmVersion>6.13.4</npmVersion>
                     <installDirectory>.node</installDirectory>
                 </configuration>
                 <executions>
