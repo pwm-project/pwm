@@ -89,12 +89,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.nio.charset.StandardCharsets;
-//import java.util.HashMap;
-import java.io.PrintWriter;
+import password.pwm.config.value.data.ActionConfiguration.LdapAction;
 
 class NewUserUtils
 {
@@ -160,18 +158,8 @@ class NewUserUtils
             userPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getSessionLabel(), pwmPasswordPolicy, pwmRequest.getPwmApplication() );
         }
 
-        // set up the user creation attributes
         final Map<String, String> createAttributes = NewUserFormUtils.getLdapDataFromNewUserForm( NewUserServlet.getNewUserProfile( pwmRequest ), newUserForm );
         
-        //File file = new File( "/var/lib/tomcat/webapps/pwm/public/resources/filename.txt" );
-        //try ( PrintWriter out = new PrintWriter( file ) )
-        //{
-        //out.println( "Datos en archivo: " + createAttributes.toString() );
-        //}
-        //catch ( Exception e )
-        //{
-
-        //}
         // read the creation object classes from configuration
         final Set<String> createObjectClasses = new LinkedHashSet<>(
                 pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES ) );
@@ -186,14 +174,7 @@ class NewUserUtils
         try
         {
             // create the ldap entry
-            //createAttributes.put( "memberOf", "cn=cci,ou=grupos,dc=interior,dc=udelar,dc=edu,dc=uy" );
             chaiProvider.createEntry( newUserDN, createObjectClasses, createAttributes );
-
-//        final Configuration config = pwmRequest.getConfig();
-//        final Locale locale = pwmSession.getSessionStateBean().getLocale();
-//        final EmailItemBean mail = config.readSettingAsEmail( PwmSetting.EMAIL_NEWUSER, locale );
-        //final String mail = pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
-          //  NewUserUtils.LOGGER.info( pwmSession, () -> "created user entry: " + newUserDN + " mail: " + mail );
         }
         catch ( ChaiOperationException e )
         {
@@ -204,7 +185,6 @@ class NewUserUtils
         }
 
         final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( newUserDN );
-
         final boolean useTempPw;
         {
             final String settingValue = pwmApplication.getConfig().readAppProperty( AppProperty.NEWUSER_LDAP_USE_TEMP_PW );
@@ -305,20 +285,6 @@ class NewUserUtils
             {
                 try
                 {
-//                    final Configuration config = pwmRequest.getConfig();
-//                    final Locale locale = pwmSession.getSessionStateBean().getLocale();
-//                    final String mail = config.readSettingAsEmail( PwmRequest.EMAIL_NEWUSER, locale ).toString();  
-//                    final List<String> gruposD = new ArrayList<String>();
-//                    NewUserUtils.LOGGER.debug( pwmSession, () -> "mail: " + mail );
-//                    dominios( mail, gruposD );
-
-//                    for ( String grupo : gruposD ) 
-//                    {
-                    //crear una cuenta en el servicio
-//                    theUser.writeStringAttribute( "memberOf", grupo );
-
- //                   }
-
                   NewUserUtils.LOGGER.debug( pwmSession, () ->
                             "setting userAccountControl attribute to enable account " + theUser.getEntryDN() );
 
@@ -345,9 +311,20 @@ class NewUserUtils
         sessionAuthenticator.authenticateUser( userIdentity, userPassword );
 
         {
+            final String mail = pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
+
+            // add groups to email
+            final LdapAction customAction = LdapAction.builder().attributeName( "memberof" )
+              .attributeValue( "cn=cci,ou=grupos,dc=interior,dc=udelar,dc=edu,dc=uy" )
+              .ldapMethod( ActionConfiguration.LdapMethod.add )
+              .build();
+
             // execute configured actions
             final List<ActionConfiguration> actions = newUserProfile.readSettingAsAction(
                     PwmSetting.NEWUSER_WRITE_ATTRIBUTES );
+
+            addGroupsByEmail( newUserForm.getFormData().get( "mail" ), actions );
+
             if ( actions != null && !actions.isEmpty() )
             {
                 NewUserUtils.LOGGER.debug( pwmSession, () -> "executing configured actions to user " + theUser.getEntryDN() );
@@ -807,30 +784,34 @@ class NewUserUtils
         return null;
     }
 
-    private static void dominios( final String mail, final List<String> grupos ) throws IOException 
+
+    private static void addGroupsByEmail( final String mail, final List<ActionConfiguration> actions )
     {
         
-        final String[] contenedor = mail.split( "@" );
-        final String dominio = contenedor[1];
+        final String[] container = mail.split( "@" );
+        final String domain = container[1];
         
         try ( BufferedReader br = new BufferedReader(
-                new FileReader( PwmConstants.URL_CONFIG_DOMINIOS, StandardCharsets.UTF_8 ) ) ) 
+                new FileReader( PwmConstants.URL_CONFIG_DOMAINS, StandardCharsets.UTF_8 ) ) ) 
         {
-
             String line;
             while ( ( line = br.readLine() ) != null ) 
             {
-
                 final String[] items = line.split( ":" );
-                if ( dominio.equals( items[0] ) )
+                if ( domain.equals( items[0] ) )
                 {
                     for ( int i = 1; i < items.length; i++ )
                     {
-                        grupos.add( items[i] );
+                        final LdapAction customAction = LdapAction.builder().attributeName( "memberof" )
+                        .attributeValue( items[i] )
+                        .ldapMethod( ActionConfiguration.LdapMethod.add )
+                        .build();
+                       
+                        actions.get( 0 ).getLdapActions().add( customAction );                      
                     }
                     break;
                 }
-            }
+            }            
         }
         catch ( Exception e )
         {
