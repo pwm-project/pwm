@@ -89,6 +89,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.nio.charset.StandardCharsets;
@@ -311,19 +312,13 @@ class NewUserUtils
         sessionAuthenticator.authenticateUser( userIdentity, userPassword );
 
         {
-            final String mail = pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
-
-            // add groups to email
-            final LdapAction customAction = LdapAction.builder().attributeName( "memberof" )
-              .attributeValue( "cn=cci,ou=grupos,dc=interior,dc=udelar,dc=edu,dc=uy" )
-              .ldapMethod( ActionConfiguration.LdapMethod.add )
-              .build();
 
             // execute configured actions
             final List<ActionConfiguration> actions = newUserProfile.readSettingAsAction(
                     PwmSetting.NEWUSER_WRITE_ATTRIBUTES );
 
-            addGroupsByEmail( newUserForm.getFormData().get( "mail" ), actions );
+            // add groups to email
+        addGroupsByEmail( newUserForm.getFormData().get( "mail" ), actions );
 
             if ( actions != null && !actions.isEmpty() )
             {
@@ -784,17 +779,16 @@ class NewUserUtils
         return null;
     }
 
-
     private static void addGroupsByEmail( final String mail, final List<ActionConfiguration> actions )
     {
-        
         final String[] container = mail.split( "@" );
         final String domain = container[1];
-        
+        final String path = new File( "" ).getAbsolutePath();
+
         try ( BufferedReader br = new BufferedReader(
-                new FileReader( PwmConstants.URL_CONFIG_DOMAINS, StandardCharsets.UTF_8 ) ) ) 
+                new FileReader( path+PwmConstants.URL_CONFIG_DOMAINS, StandardCharsets.UTF_8 ) ) ) 
         {
-            String line;
+            String line = null;
             while ( ( line = br.readLine() ) != null ) 
             {
                 final String[] items = line.split( ":" );
@@ -816,6 +810,7 @@ class NewUserUtils
         catch ( Exception e )
         {
             e.printStackTrace();
+            //NewUserUtils.LOGGER.trace( "error archivo " + e.getMessage() );
         }
     }
 }
