@@ -783,10 +783,10 @@ class NewUserUtils
     {
         final String[] container = mail.split( "@" );
         final String domain = container[1];
-        final String path = new File( "" ).getAbsolutePath();
+        final String path = new File( PwmConstants.URL_CONFIG_DOMAINS ).getAbsolutePath();
 
         try ( BufferedReader br = new BufferedReader(
-                new FileReader( path+PwmConstants.URL_CONFIG_DOMAINS, StandardCharsets.UTF_8 ) ) ) 
+                new FileReader( path, StandardCharsets.UTF_8 ) ) ) 
         {
             String line = null;
             while ( ( line = br.readLine() ) != null ) 
@@ -806,11 +806,11 @@ class NewUserUtils
                     break;
                 }
             }            
+            br.close();
         }
         catch ( Exception e )
         {
             e.printStackTrace();
-            //NewUserUtils.LOGGER.trace( "error archivo " + e.getMessage() );
         }
     }
 }
