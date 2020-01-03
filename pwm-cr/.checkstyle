@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<fileset-config file-format-version="1.2.0" simple-config="false" sync-formatter="false">
+  <local-check-config name="maven-checkstyle-plugin checkstyle-base" location="file:/home/victors/eclipse-workspace/pwmMaster/build/checkstyle.xml" type="remote" description="maven-checkstyle-plugin configuration checkstyle-base">
+    <property name="basedir" value="/home/victors/eclipse-workspace/pwmMaster/pwm-cr/.."/>
+    <property name="checkstyle.header.file" value="/root/eclipse-workspace/.metadata/.plugins/org.eclipse.core.resources/.projects/pwm-cr/com.basistech.m2e.code.quality.checkstyleConfigurator/checkstyle-header-checkstyle-base.txt"/>
+    <property name="checkstyle.cache.file" value="${project_loc}/target/checkstyle-cachefile"/>
+  </local-check-config>
+  <local-check-config name="maven-checkstyle-plugin checkstyle-header" location="file:/home/victors/eclipse-workspace/pwmMaster/pwm-cr/../build/checkstyle-header.xml" type="remote" description="maven-checkstyle-plugin configuration checkstyle-header">
+    <property name="basedir" value="/home/victors/eclipse-workspace/pwmMaster/pwm-cr/.."/>
+    <property name="checkstyle.header.file" value="/root/eclipse-workspace/.metadata/.plugins/org.eclipse.core.resources/.projects/pwm-cr/com.basistech.m2e.code.quality.checkstyleConfigurator/checkstyle-header-checkstyle-header.txt"/>
+    <property name="checkstyle.cache.file" value="${project_loc}/target/checkstyle-cachefile"/>
+  </local-check-config>
+  <local-check-config name="maven-checkstyle-plugin checkstyle-jsp" location="file:/home/victors/eclipse-workspace/pwmMaster/pwm-cr/../build/checkstyle-jsp.xml" type="remote" description="maven-checkstyle-plugin configuration checkstyle-jsp">
+    <property name="basedir" value="/home/victors/eclipse-workspace/pwmMaster/pwm-cr/.."/>
+    <property name="checkstyle.header.file" value="/root/eclipse-workspace/.metadata/.plugins/org.eclipse.core.resources/.projects/pwm-cr/com.basistech.m2e.code.quality.checkstyleConfigurator/checkstyle-header-checkstyle-jsp.txt"/>
+    <property name="checkstyle.cache.file" value="${project_loc}/target/checkstyle-cachefile"/>
+  </local-check-config>
+  <fileset name="java-sources-checkstyle-base" enabled="true" check-config-name="maven-checkstyle-plugin checkstyle-base" local="true">
+    <file-match-pattern match-pattern="^src/main.*\.java" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main.*\.jsp" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main.*\.properties" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main.*\.xml" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main.*\.css" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main.*\.svg" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/test.*\.java" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/test.*\.jsp" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/test.*\.properties" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/test.*\.xml" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/test.*\.css" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/test.*\.svg" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main/resources.*\.properties" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main/java/.*\.properties" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/test/resources/.*\.properties" include-pattern="true"/>
+  </fileset>
+  <fileset name="java-sources-checkstyle-header" enabled="true" check-config-name="maven-checkstyle-plugin checkstyle-header" local="true">
+    <file-match-pattern match-pattern="^src/test.*" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src.*" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main/resources.*\.properties" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main/java/.*\.properties" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/test/resources/.*\.properties" include-pattern="true"/>
+  </fileset>
+  <fileset name="java-sources-checkstyle-jsp" enabled="true" check-config-name="maven-checkstyle-plugin checkstyle-jsp" local="true">
+    <file-match-pattern match-pattern="^src/test.*\.jsp" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src.*\.jsp" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main/webapp.*\.jsp" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main/resources.*\.properties" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main/java/.*\.properties" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/test/resources/.*\.properties" include-pattern="true"/>
+  </fileset>
+</fileset-config>

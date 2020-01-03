@@ -31,7 +31,7 @@
             Explicit location of application path working directory or the literal value "unspecified".  See the environment documentation at /public/reference/environment.jsp for more information.
         </description>
         <param-name>applicationPath</param-name>
-        <param-value>unspecified</param-value>
+        <param-value>/media/pwm</param-value>
     </context-param>
     <!-- uncomment and set parameters for CAS integration
     <context-param>
