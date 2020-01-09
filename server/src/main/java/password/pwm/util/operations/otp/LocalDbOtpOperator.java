@@ -35,7 +35,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmSession;
+import password.pwm.http.PwmRequest;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -56,7 +56,11 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
     }
 
     @Override
-    public OTPUserRecord readOtpUserConfiguration( final UserIdentity theUser, final String userGUID ) throws PwmUnrecoverableException
+    public OTPUserRecord readOtpUserConfiguration(
+            final UserIdentity theUser,
+            final String userGUID
+    )
+            throws PwmUnrecoverableException
     {
         LOGGER.trace( () -> String.format( "Enter: readOtpUserConfiguration(%s, %s)", theUser, userGUID ) );
         if ( userGUID == null || userGUID.length() < 1 )
@@ -110,14 +114,14 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
 
     @Override
     public void writeOtpUserConfiguration(
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final UserIdentity theUser,
             final String userGUID,
             final OTPUserRecord otpConfig
     )
             throws PwmUnrecoverableException
     {
-        LOGGER.trace( pwmSession, () -> String.format( "Enter: writeOtpUserConfiguration(%s, %s, %s)", theUser, userGUID, otpConfig ) );
+        LOGGER.trace( pwmRequest, () -> String.format( "Enter: writeOtpUserConfiguration(%s, %s, %s)", theUser, userGUID, otpConfig ) );
         if ( userGUID == null || userGUID.length() < 1 )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_GUID, "cannot save otp to localDB, user does not have a pwmGUID" ) );
@@ -136,12 +140,12 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
             String value = composeOtpAttribute( otpConfig );
             if ( config.readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
             {
-                LOGGER.debug( pwmSession, () -> "Encrypting OTP secret for storage" );
+                LOGGER.debug( pwmRequest, () -> "Encrypting OTP secret for storage" );
                 value = encryptAttributeValue( value );
             }
 
             localDB.put( LocalDB.DB.OTP_SECRET, userGUID, value );
-            LOGGER.info( pwmSession, () -> "saved OTP secret for user in LocalDB" );
+            LOGGER.info( pwmRequest, () -> "saved OTP secret for user in LocalDB" );
         }
         catch ( final LocalDBException ex )
         {
@@ -161,14 +165,14 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
 
     @Override
     public void clearOtpUserConfiguration(
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final UserIdentity theUser,
             final ChaiUser chaiUser,
             final String userGUID
     )
             throws PwmUnrecoverableException
     {
-        LOGGER.trace( pwmSession, () -> String.format( "Enter: clearOtpUserConfiguration(%s, %s)", theUser, userGUID ) );
+        LOGGER.trace( pwmRequest, () -> String.format( "Enter: clearOtpUserConfiguration(%s, %s)", theUser, userGUID ) );
         if ( userGUID == null || userGUID.length() < 1 )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_GUID, "cannot save otp to localDB, user does not have a pwmGUID" ) );
@@ -184,7 +188,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
         try
         {
             localDB.remove( LocalDB.DB.OTP_SECRET, userGUID );
-            LOGGER.info( pwmSession, () -> "cleared OTP secret for user in LocalDB" );
+            LOGGER.info( pwmRequest, () -> "cleared OTP secret for user in LocalDB" );
         }
         catch ( final LocalDBException ex )
         {

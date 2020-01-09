@@ -57,10 +57,10 @@ public class AuditRecordFactory
         this.macroMachine = macroMachine;
     }
 
-    public AuditRecordFactory( final PwmApplication pwmApplication, final PwmSession pwmSession ) throws PwmUnrecoverableException
+    public AuditRecordFactory( final PwmApplication pwmApplication, final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
-        this.macroMachine = pwmSession.getSessionManager().getMacroMachine( pwmApplication );
+        this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication );
     }
 
     public AuditRecordFactory( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
@@ -177,8 +177,8 @@ public class AuditRecordFactory
                 eventCode,
                 perpetrator,
                 message,
-                sessionLabel != null ? sessionLabel.getSrcAddress() : null,
-                sessionLabel != null ? sessionLabel.getSrcHostname() : null
+                sessionLabel != null ? sessionLabel.getSourceAddress() : null,
+                sessionLabel != null ? sessionLabel.getSourceHostname() : null
         );
     }
 

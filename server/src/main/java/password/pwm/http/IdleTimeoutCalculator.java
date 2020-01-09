@@ -177,18 +177,13 @@ public class IdleTimeoutCalculator
         }
     }
 
-    public static TimeDuration idleTimeoutForRequest( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
-    {
-        return idleTimeoutForRequest( pwmRequest.getURL(), pwmRequest.getPwmApplication(), pwmRequest.getPwmSession() );
-    }
-
-    public static TimeDuration idleTimeoutForRequest(
-            final PwmURL pwmURL,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
-    )
+    public static TimeDuration idleTimeoutForRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
+        final PwmURL pwmURL = pwmRequest.getURL();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+
         if ( pwmURL.isResourceURL() )
         {
             return figureMaxSessionTimeout( pwmApplication, pwmSession ).getIdleTimeout();
@@ -245,7 +240,7 @@ public class IdleTimeoutCalculator
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( pwmSession, "error while figuring max idle timeout for session: " + e.getMessage() );
+                LOGGER.error( pwmRequest, "error while figuring max idle timeout for session: " + e.getMessage() );
             }
         }
 

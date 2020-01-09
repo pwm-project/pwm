@@ -97,6 +97,7 @@ public abstract class PwmConstants
     public static final int TRIAL_MAX_AUTHENTICATIONS = 100;
     public static final int TRIAL_MAX_TOTAL_AUTH = 10000;
 
+    public static final int XML_OUTPUT_LINE_WRAP_LENGTH = 120;
 
     public static final String LDAP_AD_PASSWORD_POLICY_CONTROL_ASN = "1.2.840.113556.1.4.2066";
     public static final String PROFILE_ID_ALL = "all";

@@ -129,7 +129,6 @@ public class PwmResponse extends PwmHttpResponseWrapper
 
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
         this.pwmRequest.setAttribute( PwmRequestAttribute.SuccessMessage, message );
 
         final boolean showMessage = !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_SUCCESS_PAGES )
@@ -137,7 +136,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
 
         if ( showMessage )
         {
-            LOGGER.trace( pwmSession, () -> "skipping success page due to configuration setting" );
+            LOGGER.trace( pwmRequest, () -> "skipping success page due to configuration setting" );
             final String redirectUrl = pwmRequest.getContextPath()
                     + PwmServletDefinition.PublicCommand.servletUrl()
                     + "?processAction=next";
@@ -161,7 +160,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
     )
             throws IOException, ServletException
     {
-        LOGGER.error( pwmRequest.getSessionLabel(), errorInformation );
+        LOGGER.error( pwmRequest.getLabel(), errorInformation );
 
         pwmRequest.setAttribute( PwmRequestAttribute.PwmErrorInfo, errorInformation );
 
@@ -180,7 +179,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         if ( isCommitted() )
         {
             final String msg = "cannot respond with error '" + errorInformation.toDebugStr() + "', response is already committed";
-            LOGGER.warn( pwmRequest.getSessionLabel(), ExceptionUtils.getStackTrace( new Throwable( msg ) ) );
+            LOGGER.warn( pwmRequest.getLabel(), ExceptionUtils.getStackTrace( new Throwable( msg ) ) );
             return;
         }
 

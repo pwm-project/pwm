@@ -20,22 +20,37 @@
 
 package password.pwm.util.java;
 
+import lombok.Value;
+
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Thread safe rotating int incrementer with configurable floor and ceiling values.
  */
+@Value
 public class AtomicLoopLongIncrementer
 {
     private final AtomicLong incrementer;
     private final long ceiling;
     private final long floor;
 
-    public AtomicLoopLongIncrementer( final long initialValue, final long ceiling )
+    public AtomicLoopLongIncrementer()
     {
+        this( 0, 0, Long.MAX_VALUE );
+    }
+
+    private AtomicLoopLongIncrementer( final long initial, final long floor, final long ceiling )
+    {
+        if ( floor > ceiling )
+        {
+            throw new IllegalArgumentException( "floor must be less than ceiling" );
+        }
+
+        JavaHelper.rangeCheck( initial, ceiling, floor );
+
         this.ceiling = ceiling;
-        this.floor = 0;
-        incrementer = new AtomicLong( JavaHelper.rangeCheck( floor, ceiling, initialValue ) );
+        this.floor = floor;
+        this.incrementer = new AtomicLong( initial );
     }
 
     public long get()
@@ -43,7 +58,7 @@ public class AtomicLoopLongIncrementer
         return incrementer.get();
     }
 
-    public long incrementAndGet( )
+    public long next( )
     {
         return incrementer.getAndUpdate( operand ->
         {
@@ -54,5 +69,28 @@ public class AtomicLoopLongIncrementer
             }
             return operand;
         } );
+    }
+
+    public static AtomicLoopLongIncrementerBuilder builder()
+    {
+        return new AtomicLoopLongIncrementerBuilder();
+    }
+
+    public static class AtomicLoopLongIncrementerBuilder
+    {
+        private long initial = 0;
+        private long floor = 0;
+        private long ceiling = Long.MAX_VALUE;
+
+        public AtomicLoopLongIncrementerBuilder initial( final long initial )
+        {
+            this.initial = initial;
+            return this;
+        }
+
+        public AtomicLoopLongIncrementer build()
+        {
+            return new AtomicLoopLongIncrementer( initial, floor, ceiling );
+        }
     }
 }

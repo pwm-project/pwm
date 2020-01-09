@@ -670,7 +670,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>( ConfigEditorServlet.generateSettingData(
                 pwmRequest.getPwmApplication(),
                 storedConfiguration,
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 pwmRequest.getLocale()
         )
         );

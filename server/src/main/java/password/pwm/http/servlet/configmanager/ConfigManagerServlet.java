@@ -231,7 +231,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             final String msg = LocaleHelper.getLocalizedMessage( Admin.Notice_TrialRestrictConfig, pwmRequest );
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_TRIAL_VIOLATION, msg );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmSession, errorInfo );
+            LOGGER.debug( pwmRequest, errorInfo );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }
@@ -244,7 +244,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                     "You must be authenticated with admin privileges before restricting the configuration"
             );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmSession, errorInfo );
+            LOGGER.debug( pwmRequest, errorInfo );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }
@@ -260,7 +260,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                         }
                 );
                 final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-                LOGGER.debug( pwmSession, errorInfo );
+                LOGGER.debug( pwmRequest, errorInfo );
                 pwmRequest.outputJsonResult( restResultBean );
                 return;
             }
@@ -275,7 +275,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInfo = e.getErrorInformation();
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmSession, errorInfo );
+            LOGGER.debug( pwmRequest, errorInfo );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }
@@ -283,12 +283,12 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmSession, errorInfo );
+            LOGGER.debug( pwmRequest, errorInfo );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }
         final HashMap<String, String> resultData = new HashMap<>();
-        LOGGER.info( pwmSession, () -> "Configuration Locked" );
+        LOGGER.info( pwmRequest, () -> "Configuration Locked" );
         pwmRequest.outputJsonResult( RestResultBean.withData( resultData ) );
     }
 
@@ -317,7 +317,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             contextManager.getConfigReader().saveConfiguration(
                     storedConfiguration,
                     contextManager.getPwmApplication(),
-                    pwmRequest.getSessionLabel()
+                    pwmRequest.getLabel()
             );
 
             contextManager.requestPwmApplicationRestart();
@@ -344,7 +344,6 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     private void doDownloadConfig( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmResponse resp = pwmRequest.getPwmResponse();
 
         try
@@ -358,14 +357,14 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmSession, "unable to download configuration: " + e.getMessage() );
+            LOGGER.error( pwmRequest, "unable to download configuration: " + e.getMessage() );
         }
     }
 
     private void doGenerateSupportZip( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel() );
+        final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmRequest.getPwmApplication(), pwmRequest.getLabel() );
         final PwmResponse resp = pwmRequest.getPwmResponse();
         resp.setHeader( HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip" );
         resp.setContentType( HttpContentType.zip );

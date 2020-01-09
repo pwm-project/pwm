@@ -33,7 +33,7 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmSession;
+import password.pwm.http.PwmRequest;
 import password.pwm.util.logging.PwmLogger;
 
 /**
@@ -99,11 +99,12 @@ public class LdapOtpOperator extends AbstractOtpOperator
 
     @Override
     public void writeOtpUserConfiguration(
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final UserIdentity userIdentity,
             final String userGuid,
             final OTPUserRecord otpConfig
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
         final LdapProfile ldapProfile = config.getLdapProfiles().get( userIdentity.getLdapProfileID() );
@@ -127,9 +128,9 @@ public class LdapOtpOperator extends AbstractOtpOperator
             {
                 value = encryptAttributeValue( value );
             }
-            final ChaiUser theUser = pwmSession == null
+            final ChaiUser theUser = pwmRequest == null
                     ? pwmApplication.getProxiedChaiUser( userIdentity )
-                    : pwmSession.getSessionManager().getActor( pwmApplication, userIdentity );
+                    : pwmRequest.getPwmSession().getSessionManager().getActor( pwmApplication, userIdentity );
             theUser.writeStringAttribute( ldapStorageAttribute, value );
             LOGGER.info( () -> "saved OTP secret for user to chai-ldap format" );
         }
@@ -155,7 +156,7 @@ public class LdapOtpOperator extends AbstractOtpOperator
 
     @Override
     public void clearOtpUserConfiguration(
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final UserIdentity userIdentity,
             final ChaiUser chaiUser,
             final String userGuid

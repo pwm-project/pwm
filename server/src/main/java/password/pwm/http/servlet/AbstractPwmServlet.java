@@ -98,7 +98,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                     {
                         final ErrorInformation errorInformation = e.getErrorInformation();
                         final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( req );
-                        LOGGER.error( pwmSession, errorInformation.toDebugStr() );
+                        LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
                         pwmRequest.respondWithError( errorInformation, false );
                         return;
                     }
@@ -114,7 +114,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 {
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE,
                             "incorrect request method " + method.toString() + " on request to " + pwmRequest.getURLwithQueryString() );
-                    LOGGER.error( pwmRequest.getPwmSession(), errorInformation.toDebugStr() );
+                    LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
                     pwmRequest.respondWithError( errorInformation, false );
                     return;
                 }
@@ -146,7 +146,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
 
             final PwmUnrecoverableException pue = convertToPwmUnrecoverableException( e, pwmRequest );
 
-            if ( processUnrecoverableException( req, resp, pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), pue ) )
+            if ( processUnrecoverableException( req, resp, pwmRequest.getPwmApplication(), pwmRequest, pue ) )
             {
                 return;
             }
@@ -220,7 +220,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             final HttpServletRequest req,
             final HttpServletResponse resp,
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final PwmUnrecoverableException e
     )
             throws IOException
@@ -228,7 +228,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         switch ( e.getError() )
         {
             case ERROR_DIRECTORY_UNAVAILABLE:
-                LOGGER.fatal( pwmSession, e.getErrorInformation().toDebugStr() );
+                LOGGER.fatal( pwmRequest.getLabel(), e.getErrorInformation().toDebugStr() );
                 try
                 {
                     pwmApplication.getStatisticsManager().incrementValue( Statistic.LDAP_UNAVAILABLE_COUNT );
@@ -246,7 +246,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 //store the original requested url
                 try
                 {
-                    LOGGER.debug( pwmSession, () -> "user is authenticated without a password, redirecting to login page" );
+                    LOGGER.debug( pwmRequest, () -> "user is authenticated without a password, redirecting to login page" );
                     LoginServlet.redirectToLoginServlet( PwmRequest.forRequest( req, resp ) );
                     return true;
                 }
@@ -259,11 +259,11 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
 
             case ERROR_INTERNAL:
             default:
-                LOGGER.fatal( pwmSession, "unexpected error: " + e.getErrorInformation().toDebugStr() );
+                LOGGER.fatal( pwmRequest.getLabel(), "unexpected error: " + e.getErrorInformation().toDebugStr() );
                 try
                 {
                     // try to update stats
-                    if ( pwmSession != null )
+                    if ( pwmApplication != null )
                     {
                         pwmApplication.getStatisticsManager().incrementValue( Statistic.PWM_UNKNOWN_ERRORS );
                     }

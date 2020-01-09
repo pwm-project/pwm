@@ -45,6 +45,7 @@ import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.command.CommandServlet;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.Validator;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
@@ -66,18 +67,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class PwmRequest extends PwmHttpRequestWrapper
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmRequest.class );
 
     private final PwmResponse pwmResponse;
     private final PwmURL pwmURL;
     private final PwmRequestID pwmRequestID;
 
-    private transient PwmApplication pwmApplication;
-    private transient PwmSession pwmSession;
+    private final transient PwmApplication pwmApplication;
+    private final transient PwmSession pwmSession;
+    private final transient Supplier<SessionLabel> sessionLabelLazySupplier = new LazySupplier<>( this::makeSessionLabel );
 
     private final Set<PwmRequestFlag> flags = new HashSet<>();
 
@@ -124,9 +126,16 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return pwmSession;
     }
 
-    public SessionLabel getSessionLabel( )
+    public SessionLabel getLabel( )
     {
-        return pwmSession.getLabel();
+        return sessionLabelLazySupplier.get();
+    }
+
+    private SessionLabel makeSessionLabel( )
+    {
+        return getPwmSession().getLabel().toBuilder()
+                .requestID( pwmRequestID.toString() )
+                .build();
     }
 
     public PwmResponse getPwmResponse( )
@@ -324,10 +333,10 @@ public class PwmRequest extends PwmHttpRequestWrapper
             return false;
         }
 
-        String aftPath = uri.substring( uri.indexOf( servletPath ) + servletPath.length(), uri.length() );
+        String aftPath = uri.substring( uri.indexOf( servletPath ) + servletPath.length() );
         if ( aftPath.startsWith( "/" ) )
         {
-            aftPath = aftPath.substring( 1, aftPath.length() );
+            aftPath = aftPath.substring( 1 );
         }
 
         if ( aftPath.contains( "?" ) )
@@ -356,7 +365,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         redirectURL.append( "&" );
         redirectURL.append( PwmConstants.PARAM_TOKEN ).append( "=" ).append( tokenValue );
 
-        LOGGER.debug( pwmSession, () -> "detected long servlet url, redirecting user to " + redirectURL );
+        LOGGER.debug( this, () -> "detected long servlet url, redirecting user to " + redirectURL );
         sendRedirect( redirectURL.toString() );
         return true;
     }
@@ -382,7 +391,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
         {
             final String debugTxt = debugHttpRequestToString( extraText, false );
-            LOGGER.trace( this.getSessionLabel(), () -> debugTxt );
+            LOGGER.trace( this.getLabel(), () -> debugTxt );
         }
     }
 
@@ -458,14 +467,19 @@ public class PwmRequest extends PwmHttpRequestWrapper
     {
         final LocalSessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
         String redirectURL = ssBean.getForwardURL();
-        if ( redirectURL == null || redirectURL.length() < 1 )
+        if ( StringUtil.isEmpty( redirectURL ) )
         {
             redirectURL = this.getConfig().readSettingAsString( PwmSetting.URL_FORWARD );
         }
 
-        if ( redirectURL == null || redirectURL.length() < 1 )
+        if ( StringUtil.isEmpty( redirectURL ) )
         {
             redirectURL = this.getContextPath();
+        }
+
+        if ( StringUtil.isEmpty( redirectURL ) )
+        {
+            redirectURL = "/";
         }
 
         return redirectURL;
@@ -507,7 +521,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     public String toString( )
     {
         return this.getClass().getSimpleName() + " "
-                + ( this.getSessionLabel() == null ? "" : getSessionLabel().toString() )
+                + ( this.getLabel() == null ? "" : getLabel().toString() )
                 + " " + getURLwithoutQueryString();
 
     }
@@ -571,7 +585,11 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public CommonValues commonValues()
     {
-        return new CommonValues( pwmApplication, this.getSessionLabel(), this.getLocale(), pwmRequestID );
+        return new CommonValues( pwmApplication, this.getLabel(), this.getLocale(), pwmRequestID );
     }
 
+    public String getPwmRequestID()
+    {
+        return pwmRequestID.toString();
+    }
 }

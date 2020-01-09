@@ -35,7 +35,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmSession;
+import password.pwm.http.PwmRequest;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
@@ -95,7 +95,7 @@ public class DbOtpOperator extends AbstractOtpOperator
 
     @Override
     public void writeOtpUserConfiguration(
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final UserIdentity theUser,
             final String userGUID,
             final OTPUserRecord otpConfig
@@ -109,19 +109,19 @@ public class DbOtpOperator extends AbstractOtpOperator
                     "cannot save OTP secret to remote database, user " + theUser + " does not have a guid" ) );
         }
 
-        LOGGER.trace( pwmSession, () -> "attempting to save OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
+        LOGGER.trace( pwmRequest, () -> "attempting to save OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
 
         try
         {
             String value = composeOtpAttribute( otpConfig );
             if ( getPwmApplication().getConfig().readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
             {
-                LOGGER.debug( pwmSession, () -> "encrypting OTP secret for storage" );
+                LOGGER.debug( pwmRequest, () -> "encrypting OTP secret for storage" );
                 value = encryptAttributeValue( value );
             }
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
             databaseAccessor.put( DatabaseTable.OTP, userGUID, value );
-            LOGGER.debug( pwmSession, () -> "saved OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
+            LOGGER.debug( pwmRequest, () -> "saved OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
         }
         catch ( final PwmOperationalException ex )
         {
@@ -134,7 +134,7 @@ public class DbOtpOperator extends AbstractOtpOperator
 
     @Override
     public void clearOtpUserConfiguration(
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final UserIdentity theUser,
             final ChaiUser chaiUser,
             final String userGUID

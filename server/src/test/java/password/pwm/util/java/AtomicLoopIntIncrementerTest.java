@@ -29,7 +29,7 @@ public class AtomicLoopIntIncrementerTest
     @Test
     public void testIncrementer()
     {
-        final AtomicLoopIntIncrementer atomicLoopIntIncrementer = new AtomicLoopIntIncrementer( 5 );
+        final AtomicLoopIntIncrementer atomicLoopIntIncrementer = AtomicLoopIntIncrementer.builder().ceiling( 5 ).build();
         for ( int i = 0; i < 5; i++ )
         {
             final int next = atomicLoopIntIncrementer.next();

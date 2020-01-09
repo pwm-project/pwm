@@ -150,8 +150,8 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             else
             {
                 LOGGER.trace( pwmRequest, () -> "configuration password is not correct" );
-                pwmApplication.getIntruderManager().convenience().markAddressAndSession( pwmRequest.getPwmSession() );
-                pwmApplication.getIntruderManager().mark( RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmRequest.getSessionLabel() );
+                pwmApplication.getIntruderManager().convenience().markAddressAndSession( pwmRequest );
+                pwmApplication.getIntruderManager().mark( RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmRequest.getLabel() );
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_PASSWORD_ONLY_BAD );
                 updateLoginHistory( pwmRequest, pwmRequest.getUserInfoIfLoggedIn(), false );
                 setLastError( pwmRequest, errorInformation );

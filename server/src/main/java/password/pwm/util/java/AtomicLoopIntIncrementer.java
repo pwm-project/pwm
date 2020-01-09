@@ -22,25 +22,33 @@ package password.pwm.util.java;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+
 /**
  * Thread safe rotating int incrementer with configurable floor and ceiling values.
  */
 public class AtomicLoopIntIncrementer
 {
-    private final AtomicInteger incrementer = new AtomicInteger( 0 );
+    private final AtomicInteger incrementer;
     private final int ceiling;
     private final int floor;
 
     public AtomicLoopIntIncrementer()
     {
-        this.ceiling = Integer.MAX_VALUE;
-        this.floor = 0;
+        this( 0, 0, Integer.MAX_VALUE );
     }
 
-    public AtomicLoopIntIncrementer( final int ceiling )
+    private AtomicLoopIntIncrementer( final int initial, final int floor, final int ceiling )
     {
+        if ( floor > ceiling )
+        {
+            throw new IllegalArgumentException( "floor must be less than ceiling" );
+        }
+
+        JavaHelper.rangeCheck( initial, ceiling, floor );
+
         this.ceiling = ceiling;
-        this.floor = 0;
+        this.floor = floor;
+        this.incrementer = new AtomicInteger( initial );
     }
 
     public int next( )
@@ -54,5 +62,35 @@ public class AtomicLoopIntIncrementer
             }
             return operand;
         } );
+    }
+
+
+    public static AtomicLoopIntIncrementerBuilder builder()
+    {
+        return new AtomicLoopIntIncrementerBuilder();
+    }
+
+    public static class AtomicLoopIntIncrementerBuilder
+    {
+        private int initial = 0;
+        private int floor = 0;
+        private int ceiling = Integer.MAX_VALUE;
+
+        public AtomicLoopIntIncrementerBuilder initial( final int initial )
+        {
+            this.initial = initial;
+            return this;
+        }
+
+        public AtomicLoopIntIncrementerBuilder ceiling( final int ceiling )
+        {
+            this.ceiling = ceiling;
+            return this;
+        }
+
+        public AtomicLoopIntIncrementer build()
+        {
+            return new AtomicLoopIntIncrementer( initial, floor, ceiling );
+        }
     }
 }

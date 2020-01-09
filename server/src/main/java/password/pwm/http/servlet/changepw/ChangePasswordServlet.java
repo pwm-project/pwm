@@ -237,7 +237,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             final AuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createUserAuditRecord(
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     "ChangePassword"
             );
             pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
@@ -278,7 +278,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             if ( !passed )
             {
                 pwmRequest.getPwmApplication().getIntruderManager().convenience().markUserIdentity(
-                        userInfo.getUserIdentity(), pwmRequest.getSessionLabel() );
+                        userInfo.getUserIdentity(), pwmRequest.getLabel() );
                 LOGGER.debug( pwmRequest, () -> "failed password validation check: currentPassword value is incorrect" );
                 setLastError( pwmRequest, new ErrorInformation( PwmError.ERROR_BAD_CURRENT_PASSWORD ) );
                 return ProcessStatus.Continue;
@@ -294,15 +294,15 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             final Map<FormConfiguration, String> formValues = FormUtility.readFormValuesFromRequest(
                     pwmRequest, formItem, ssBean.getLocale() );
 
-            ChangePasswordServletUtil.validateParamsAgainstLDAP( formValues, pwmRequest.getPwmSession(),
+            ChangePasswordServletUtil.validateParamsAgainstLDAP( formValues, pwmRequest,
                     pwmRequest.getPwmSession().getSessionManager().getActor( pwmRequest.getPwmApplication() ) );
 
             cpb.setFormPassed( true );
         }
         catch ( final PwmOperationalException e )
         {
-            pwmRequest.getPwmApplication().getIntruderManager().convenience().markAddressAndSession( pwmRequest.getPwmSession() );
-            pwmRequest.getPwmApplication().getIntruderManager().convenience().markUserIdentity( userInfo.getUserIdentity(), pwmRequest.getSessionLabel() );
+            pwmRequest.getPwmApplication().getIntruderManager().convenience().markAddressAndSession( pwmRequest );
+            pwmRequest.getPwmApplication().getIntruderManager().convenience().markUserIdentity( userInfo.getUserIdentity(), pwmRequest.getLabel() );
             LOGGER.debug( pwmRequest, e.getErrorInformation() );
             setLastError( pwmRequest, e.getErrorInformation() );
             return ProcessStatus.Continue;
@@ -326,7 +326,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             final PasswordChangeProgressChecker checker = new PasswordChangeProgressChecker(
                     pwmRequest.getPwmApplication(),
                     pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     pwmRequest.getLocale()
             );
             passwordChangeProgress = checker.figureProgress( progressTracker );
@@ -349,7 +349,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             final PasswordChangeProgressChecker checker = new PasswordChangeProgressChecker(
                     pwmRequest.getPwmApplication(),
                     pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     pwmRequest.getLocale()
             );
             final PasswordChangeProgressChecker.PasswordChangeProgress passwordChangeProgress = checker.figureProgress( progressTracker );
@@ -427,7 +427,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     private ProcessStatus processRandomPasswordAction( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
         final PasswordData passwordData = RandomPasswordGenerator.createRandomPassword(
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy(),
                 pwmRequest.getPwmApplication() );
 
@@ -472,7 +472,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             return;
         }
 
-        if ( ChangePasswordServletUtil.determineIfCurrentPasswordRequired( pwmApplication, pwmSession ) && !changePasswordBean.isCurrentPasswordPassed() )
+        if ( ChangePasswordServletUtil.determineIfCurrentPasswordRequired( pwmRequest ) && !changePasswordBean.isCurrentPasswordPassed() )
         {
             forwardToFormPage( pwmRequest );
             return;
@@ -516,7 +516,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     }
 
     @Override
-    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
+    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
@@ -535,7 +536,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
         }
 
-        if ( ChangePasswordServletUtil.determineIfCurrentPasswordRequired( pwmApplication, pwmSession ) )
+        if ( ChangePasswordServletUtil.determineIfCurrentPasswordRequired( pwmRequest ) )
         {
             changePasswordBean.setCurrentPasswordRequired( true );
         }
@@ -546,7 +547,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        ChangePasswordServletUtil.checkMinimumLifetime( pwmApplication, pwmSession, changePasswordBean, pwmSession.getUserInfo() );
+        ChangePasswordServletUtil.checkMinimumLifetime( pwmRequest, changePasswordBean, pwmSession.getUserInfo() );
 
         return ProcessStatus.Continue;
     }

@@ -64,7 +64,7 @@ public abstract class AbstractWordlistBucket implements WordlistBucket
                 {
                     if ( !StringUtil.isEmpty( word ) )
                     {
-                        final long nextLong = valueIncrementer.incrementAndGet();
+                        final long nextLong = valueIncrementer.next();
                         final String nextKey = seedlistLongToKey( nextLong );
                         returnSet.put( nextKey, word );
                     }
@@ -79,7 +79,7 @@ public abstract class AbstractWordlistBucket implements WordlistBucket
                 {
                     if ( !StringUtil.isEmpty( word ) )
                     {
-                        valueIncrementer.incrementAndGet();
+                        valueIncrementer.next();
                         returnSet.put( word, "" );
                     }
                 }
@@ -98,7 +98,7 @@ public abstract class AbstractWordlistBucket implements WordlistBucket
             throws PwmUnrecoverableException
     {
         final WordlistStatus initialStatus = abstractWordlist.readWordlistStatus();
-        final AtomicLoopLongIncrementer valueIncrementer = new AtomicLoopLongIncrementer( initialStatus.getValueCount(), Long.MAX_VALUE );
+        final AtomicLoopLongIncrementer valueIncrementer = AtomicLoopLongIncrementer.builder().initial( initialStatus.getValueCount() ).build();
         this.putValues( getWriteTxnForValue( words, valueIncrementer ) );
 
         if ( initialStatus.getValueCount() != valueIncrementer.get() )

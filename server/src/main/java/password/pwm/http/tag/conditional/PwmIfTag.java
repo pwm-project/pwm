@@ -27,7 +27,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
-import password.pwm.http.PwmSession;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -85,7 +84,6 @@ public class PwmIfTag extends BodyTagSupport
 
                     final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(),
                             ( HttpServletResponse ) pageContext.getResponse() );
-                    final PwmSession pwmSession = pwmRequest.getPwmSession();
 
                     final PwmIfTest testEnum = test;
                     if ( testEnum != null )
@@ -103,7 +101,7 @@ public class PwmIfTag extends BodyTagSupport
                     else
                     {
                         final String errorMsg = "unknown test name '" + test + "' in pwm:If jsp tag!";
-                        LOGGER.warn( pwmSession, errorMsg );
+                        LOGGER.warn( pwmRequest, errorMsg );
                     }
                 }
                 catch ( final PwmUnrecoverableException e )

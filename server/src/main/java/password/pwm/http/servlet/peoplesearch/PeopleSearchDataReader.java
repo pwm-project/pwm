@@ -571,7 +571,7 @@ class PeopleSearchDataReader
                         }
                         else
                         {
-                            bean.setValues( Collections.<String>emptyList() );
+                            bean.setValues( Collections.emptyList() );
                         }
                     }
                 }
@@ -592,12 +592,12 @@ class PeopleSearchDataReader
         final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity ).getChaiProvider();
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 locale,
                 userIdentity,
                 chaiProvider
         );
-        return MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null );
+        return MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
     }
 
     void checkIfUserIdentityViewable(
@@ -615,7 +615,7 @@ class PeopleSearchDataReader
                 filterString = filterString.replace( "**", "*" );
             }
 
-            return LdapPermissionTester.testQueryMatch( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userIdentity, filterString );
+            return LdapPermissionTester.testQueryMatch( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userIdentity, filterString );
         };
 
         final boolean result = storeDataInCache( CacheIdentifier.checkIfViewable, userIdentity.toDelimitedKey(), Boolean.class, cacheLoader );
@@ -817,13 +817,13 @@ class PeopleSearchDataReader
             final List<FormConfiguration> searchForm = peopleSearchConfiguration.getResultForm();
             final int maxResults = peopleSearchConfiguration.getResultLimit();
             final Locale locale = pwmRequest.getLocale();
-            results = userSearchEngine.performMultiUserSearchFromForm( locale, searchConfiguration, maxResults, searchForm, pwmRequest.getSessionLabel() );
+            results = userSearchEngine.performMultiUserSearchFromForm( locale, searchConfiguration, maxResults, searchForm, pwmRequest.getLabel() );
             sizeExceeded = results.isSizeExceeded();
         }
         catch ( final PwmOperationalException e )
         {
             final ErrorInformation errorInformation = e.getErrorInformation();
-            LOGGER.error( pwmRequest.getSessionLabel(), errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest.getLabel(), errorInformation.toDebugStr() );
             throw new PwmUnrecoverableException( errorInformation );
         }
 

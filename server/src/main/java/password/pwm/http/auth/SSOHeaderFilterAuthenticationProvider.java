@@ -25,7 +25,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
@@ -43,7 +42,6 @@ public class SSOHeaderFilterAuthenticationProvider implements PwmHttpFilterAuthe
     {
         {
             final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-            final PwmSession pwmSession = pwmRequest.getPwmSession();
 
             final String headerName = pwmApplication.getConfig().readSettingAsString( PwmSetting.SSO_AUTH_HEADER_NAME );
             if ( headerName == null || headerName.length() < 1 )
@@ -61,7 +59,7 @@ public class SSOHeaderFilterAuthenticationProvider implements PwmHttpFilterAuthe
             LOGGER.debug( pwmRequest, () -> "SSO Authentication header present in request, will search for user value of '" + headerValue + "'" );
             final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
                     pwmApplication,
-                    pwmSession,
+                    pwmRequest,
                     PwmAuthenticationSource.SSO_HEADER
             );
 

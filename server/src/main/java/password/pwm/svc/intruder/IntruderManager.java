@@ -547,14 +547,14 @@ public class IntruderManager implements PwmService
         {
         }
 
-        public void markAddressAndSession( final PwmSession pwmSession )
+        public void markAddressAndSession( final PwmRequest pwmRequest )
                 throws PwmUnrecoverableException
         {
-            if ( pwmSession != null )
+            if ( pwmRequest != null )
             {
-                final String subject = pwmSession.getSessionStateBean().getSrcAddress();
-                pwmSession.getSessionStateBean().incrementIntruderAttempts();
-                mark( RecordType.ADDRESS, subject, pwmSession.getLabel() );
+                final String subject = pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress();
+                pwmRequest.getPwmSession().getSessionStateBean().incrementIntruderAttempts();
+                mark( RecordType.ADDRESS, subject, pwmRequest.getLabel() );
             }
         }
 
@@ -595,13 +595,13 @@ public class IntruderManager implements PwmService
             }
         }
 
-        public void markUserIdentity( final UserIdentity userIdentity, final PwmSession pwmSession )
+        public void markUserIdentity( final UserIdentity userIdentity, final PwmRequest pwmRequest )
                 throws PwmUnrecoverableException
         {
             if ( userIdentity != null )
             {
                 final String subject = userIdentity.toDelimitedKey();
-                mark( RecordType.USER_ID, subject, pwmSession.getLabel() );
+                mark( RecordType.USER_ID, subject, pwmRequest.getLabel() );
             }
         }
 

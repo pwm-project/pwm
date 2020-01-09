@@ -73,7 +73,7 @@ public class LocalDBLogger implements PwmService
     private volatile STATUS status = STATUS.NEW;
     private boolean hasShownReadError = false;
 
-    private static final String STORAGE_FORMAT_VERSION = "3";
+    private static final String STORAGE_FORMAT_VERSION = "4";
 
     public LocalDBLogger(
             final PwmApplication pwmApplication,
@@ -156,7 +156,7 @@ public class LocalDBLogger implements PwmService
             loopEvent = readEvent( localDBListQueue.getLast() );
             if ( loopEvent != null )
             {
-                final Instant tailDate = loopEvent.getDate();
+                final Instant tailDate = loopEvent.getTimestamp();
                 if ( tailDate != null )
                 {
                     return tailDate;
@@ -312,7 +312,7 @@ public class LocalDBLogger implements PwmService
         }
         if ( pattern != null )
         {
-            final Matcher matcher = pattern.matcher( event.getActor() == null ? "" : event.getActor() );
+            final Matcher matcher = pattern.matcher( event.getUsername() == null ? "" : event.getUsername() );
             if ( !matcher.find() )
             {
                 eventMatchesParams = false;
@@ -320,7 +320,7 @@ public class LocalDBLogger implements PwmService
         }
         else if ( eventMatchesParams && ( searchParameters.getUsername() != null && searchParameters.getUsername().length() > 1 ) )
         {
-            final String eventUsername = event.getActor();
+            final String eventUsername = event.getUsername();
             if ( eventUsername == null || !eventUsername.equalsIgnoreCase( searchParameters.getUsername() ) )
             {
                 eventMatchesParams = false;
@@ -356,14 +356,14 @@ public class LocalDBLogger implements PwmService
         {
             if ( searchParameters.getEventType() == EventType.System )
             {
-                if ( event.getActor() != null && event.getActor().length() > 0 )
+                if ( event.getUsername() != null && event.getUsername().length() > 0 )
                 {
                     eventMatchesParams = false;
                 }
             }
             else if ( searchParameters.getEventType() == EventType.User )
             {
-                if ( event.getActor() == null || event.getActor().length() < 1 )
+                if ( event.getUsername() == null || event.getUsername().length() < 1 )
                 {
                     eventMatchesParams = false;
                 }

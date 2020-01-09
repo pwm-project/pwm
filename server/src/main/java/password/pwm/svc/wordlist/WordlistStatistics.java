@@ -35,15 +35,15 @@ class WordlistStatistics
 {
     private MovingAverage wordCheckTimeMS = new MovingAverage( TimeDuration.of( 5, TimeDuration.Unit.MINUTES ) );
     private MovingAverage chunksPerWordCheck = new MovingAverage( TimeDuration.of( 1, TimeDuration.Unit.DAYS ) );
-    private AtomicLoopLongIncrementer wordChecks = new AtomicLoopLongIncrementer( 0, Long.MAX_VALUE );
+    private AtomicLoopLongIncrementer wordChecks = new AtomicLoopLongIncrementer();
     private Map<WordType, AtomicLoopLongIncrementer> wordTypeHits = new HashMap<>(  );
-    private AtomicLoopLongIncrementer misses = new AtomicLoopLongIncrementer( 0, Long.MAX_VALUE );
+    private AtomicLoopLongIncrementer misses = new AtomicLoopLongIncrementer();
 
     WordlistStatistics()
     {
         for ( final WordType wordType : WordType.values() )
         {
-            wordTypeHits.put( wordType, new AtomicLoopLongIncrementer( 0, Long.MAX_VALUE ) );
+            wordTypeHits.put( wordType, new AtomicLoopLongIncrementer() );
         }
     }
 

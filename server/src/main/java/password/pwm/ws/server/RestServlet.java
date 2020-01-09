@@ -98,13 +98,11 @@ public abstract class RestServlet extends HttpServlet
         final SessionLabel sessionLabel;
         try
         {
-            sessionLabel = new SessionLabel(
-                    "rest-" + REQUEST_COUNTER.next(),
-                    null,
-                    null,
-                    RequestInitializationFilter.readUserNetworkAddress( req, pwmApplication.getConfig() ),
-                    RequestInitializationFilter.readUserHostname( req, pwmApplication.getConfig() )
-            );
+            sessionLabel =  SessionLabel.builder()
+                    .sessionID( "rest-" + REQUEST_COUNTER.next() )
+                    .sourceAddress( RequestInitializationFilter.readUserNetworkAddress( req, pwmApplication.getConfig() ) )
+                    .sourceHostname( RequestInitializationFilter.readUserHostname( req, pwmApplication.getConfig() ) )
+                    .build();
         }
         catch ( final PwmUnrecoverableException e )
         {

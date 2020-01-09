@@ -280,7 +280,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                     .setMacroMachine( macroMachine )
                     .createActionExecutor();
 
-            actionExecutor.executeAction( action, pwmRequest.getSessionLabel() );
+            actionExecutor.executeAction( action, pwmRequest.getLabel() );
 
             // mark the event log
             {
@@ -328,7 +328,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
 
         final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmApplication );
-        LOGGER.info( pwmSession, () -> "received deleteUser request by " + pwmSession.getUserInfo().getUserIdentity().toString() + " for user " + userIdentity.toString() );
+        LOGGER.info( pwmRequest, () -> "received deleteUser request by " + pwmSession.getUserInfo().getUserIdentity().toString() + " for user " + userIdentity.toString() );
 
         // check if user should be seen by actor
         HelpdeskServletUtil.checkIfUserIdentityViewable( pwmRequest, helpdeskProfile, userIdentity );
@@ -339,14 +339,14 @@ public class HelpdeskServlet extends ControlledPwmServlet
         {
             final UserInfo deletedUserInfo = UserInfoFactory.newUserInfoUsingProxy(
                     pwmApplication,
-                    pwmSession.getLabel(),
+                    pwmRequest.getLabel(),
                     userIdentity,
                     pwmRequest.getLocale() );
             userID = deletedUserInfo.getUsername();
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( pwmSession, "unable to read username of deleted user while creating audit record" );
+            LOGGER.warn( pwmRequest, "unable to read username of deleted user while creating audit record" );
         }
 
         // execute user delete operation
@@ -388,7 +388,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             pwmApplication.getAuditManager().submit( auditRecord );
         }
 
-        LOGGER.info( pwmSession, () -> "user " + userIdentity + " has been deleted" );
+        LOGGER.info( pwmRequest, () -> "user " + userIdentity + " has been deleted" );
 
         final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
         pwmRequest.outputJsonResult( restResultBean );
@@ -555,7 +555,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final boolean sizeExceeded;
         {
             final Locale locale = pwmRequest.getLocale();
-            results = userSearchEngine.performMultiUserSearchFromForm( locale, searchConfiguration, maxResults, searchForm, pwmRequest.getSessionLabel() );
+            results = userSearchEngine.performMultiUserSearchFromForm( locale, searchConfiguration, maxResults, searchForm, pwmRequest.getLabel() );
             sizeExceeded = results.isSizeExceeded();
         }
 
@@ -611,8 +611,8 @@ public class HelpdeskServlet extends ControlledPwmServlet
                         pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                         null,
                         userIdentity,
-                        pwmRequest.getSessionLabel().getSrcAddress(),
-                        pwmRequest.getSessionLabel().getSrcHostname()
+                        pwmRequest.getLabel().getSourceAddress(),
+                        pwmRequest.getLabel().getSourceHostname()
                 );
                 pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
             }
@@ -669,11 +669,11 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
 
         final String code = helpdeskVerificationRequestBean.getCode();
-        final OTPUserRecord otpUserRecord = pwmRequest.getPwmApplication().getOtpService().readOTPUserConfiguration( pwmRequest.getSessionLabel(), userIdentity );
+        final OTPUserRecord otpUserRecord = pwmRequest.getPwmApplication().getOtpService().readOTPUserConfiguration( pwmRequest.getLabel(), userIdentity );
         try
         {
             final boolean passed = pwmRequest.getPwmApplication().getOtpService().validateToken(
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     userIdentity,
                     otpUserRecord,
                     code,
@@ -739,7 +739,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final UserIdentity userIdentity = UserIdentity.fromKey( bodyParams.get( PwmConstants.PARAM_USERKEY ), pwmRequest.getPwmApplication() );
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 pwmRequest.getLocale(),
                 userIdentity,
                 getChaiUser( pwmRequest, helpdeskProfile, userIdentity ).getChaiProvider()
@@ -751,7 +751,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         {
             final List<TokenDestinationItem> items = TokenUtil.figureAvailableTokenDestinations(
                     pwmRequest.getPwmApplication(),
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     pwmRequest.getLocale(),
                     userInfo,
                     MessageSendMethod.CHOICE_SMS_EMAIL  );
@@ -776,7 +776,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             return ProcessStatus.Halt;
         }
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null );
+        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
         final String configuredTokenString = config.readAppProperty( AppProperty.HELPDESK_TOKEN_VALUE );
         final String tokenKey = macroMachine.expandMacros( configuredTokenString );
         final EmailItemBean emailItemBean = config.readSettingAsEmail( PwmSetting.EMAIL_HELPDESK_TOKEN, pwmRequest.getLocale() );
@@ -796,7 +796,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                             .tokenDestinationItem( tokenDestinationItem )
                             .smsMessage( smsMessage )
                             .tokenKey( tokenKey )
-                            .sessionLabel( pwmRequest.getSessionLabel() )
+                            .sessionLabel( pwmRequest.getLabel() )
                             .build()
             );
         }
@@ -934,7 +934,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
             final OtpService service = pwmRequest.getPwmApplication().getOtpService();
             final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
-            service.clearOTPUserConfiguration( pwmRequest.getPwmSession(), userIdentity, chaiUser );
+            service.clearOTPUserConfiguration( pwmRequest, userIdentity, chaiUser );
             {
                 // mark the event log
                 final HelpdeskAuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createHelpdeskAuditRecord(
@@ -942,8 +942,8 @@ public class HelpdeskServlet extends ControlledPwmServlet
                         pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                         null,
                         userIdentity,
-                        pwmRequest.getSessionLabel().getSrcAddress(),
-                        pwmRequest.getSessionLabel().getSrcHostname()
+                        pwmRequest.getLabel().getSourceAddress(),
+                        pwmRequest.getLabel().getSourceHostname()
                 );
                 pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
             }
@@ -1163,13 +1163,13 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
         final String userGUID = LdapOperationsHelper.readLdapGuidValue(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getPwmSession().getLabel(),
+                pwmRequest.getLabel(),
                 userIdentity,
                 true );
 
         final CrService crService = pwmRequest.getPwmApplication().getCrService();
         crService.clearResponses(
-                pwmRequest.getPwmSession().getLabel(),
+                pwmRequest.getLabel(),
                 userIdentity,
                 chaiUser,
                 userGUID
@@ -1177,7 +1177,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
         // mark the event log
         {
-            final HelpdeskAuditRecord auditRecord = new AuditRecordFactory( pwmRequest.getPwmApplication(), pwmRequest.getPwmSession() ).createHelpdeskAuditRecord(
+            final HelpdeskAuditRecord auditRecord = new AuditRecordFactory( pwmRequest.getPwmApplication(), pwmRequest ).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_CLEAR_RESPONSES,
                     pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                     null,
@@ -1209,7 +1209,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final ChaiUser chaiUser = getChaiUser( pwmRequest, getHelpdeskProfile( pwmRequest ), userIdentity );
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 pwmRequest.getLocale(),
                 userIdentity,
                 chaiUser.getChaiProvider()
@@ -1257,7 +1257,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 pwmRequest.getLocale(),
                 userIdentity,
                 chaiUser.getChaiProvider()
@@ -1285,13 +1285,13 @@ public class HelpdeskServlet extends ControlledPwmServlet
             }
             final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
                     pwmRequest.getPwmApplication(),
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     userIdentity,
                     chaiUser,
                     pwmRequest.getLocale()
             );
             newPassword = RandomPasswordGenerator.createRandomPassword(
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     passwordPolicy,
                     pwmRequest.getPwmApplication()
             );
@@ -1312,7 +1312,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         try
         {
             PasswordUtility.helpdeskSetUserPassword(
-                    pwmRequest.getPwmSession(),
+                    pwmRequest,
                     chaiUser,
                     userInfo,
                     pwmRequest.getPwmApplication(),
@@ -1343,7 +1343,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 pwmRequest.getLocale(),
                 userIdentity,
                 chaiUser.getChaiProvider()
@@ -1355,7 +1355,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         randomConfigBuilder.passwordPolicy( userInfo.getPasswordPolicy() );
 
         final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = randomConfigBuilder.build();
-        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getPwmSession().getLabel(), randomConfig, pwmRequest.getPwmApplication() );
+        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), randomConfig, pwmRequest.getPwmApplication() );
         final RestRandomPasswordServer.JsonOutput jsonOutput = new RestRandomPasswordServer.JsonOutput();
         jsonOutput.setPassword( randomPassword.getStringValue() );
 

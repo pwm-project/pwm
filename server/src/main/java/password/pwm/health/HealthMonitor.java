@@ -29,20 +29,26 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.configmanager.DebugItemGenerator;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
+import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -107,6 +113,16 @@ public class HealthMonitor implements PwmService
         executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
         supportZipWriterService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
         scheduleNextZipOutput();
+
+        {
+            final int threadDumpIntervalSeconds = JavaHelper.silentParseInt( pwmApplication.getConfig().readAppProperty(
+                    AppProperty.LOGGING_EXTRA_PERIODIC_THREAD_DUMP_INTERVAL ), 0 );
+            if ( threadDumpIntervalSeconds > 0 )
+            {
+                final TimeDuration interval =  TimeDuration.of( threadDumpIntervalSeconds, TimeDuration.Unit.SECONDS );
+                pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ThreadDumpLogger(), executorService, TimeDuration.SECOND, interval );
+            }
+        }
 
         status = STATUS.OPEN;
     }
@@ -379,6 +395,46 @@ public class HealthMonitor implements PwmService
             }
 
             Files.move( newSupportFile.toPath(), supportFile.toPath() );
+        }
+    }
+
+    private static class ThreadDumpLogger implements Runnable
+    {
+        private static final PwmLogger LOGGER = PwmLogger.forClass( ThreadDumpLogger.class );
+        private static final AtomicLoopIntIncrementer COUNTER = new AtomicLoopIntIncrementer();
+
+        @Override
+        public void run()
+        {
+            if ( !LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+            {
+                return;
+            }
+
+            final int count = COUNTER.next();
+            output( "---BEGIN OUTPUT THREAD DUMP #" + count + "---" );
+
+            {
+                final Map<String, String> debugValues = new LinkedHashMap<>();
+                debugValues.put( "Memory Free", Long.toString( Runtime.getRuntime().freeMemory() ) );
+                debugValues.put( "Memory Allocated", Long.toString( Runtime.getRuntime().totalMemory() ) );
+                debugValues.put( "Memory Max", Long.toString( Runtime.getRuntime().maxMemory() ) );
+                debugValues.put( "Thread Count", Integer.toString( Thread.activeCount() ) );
+                output( "Thread Data #: " + StringUtil.mapToString( debugValues ) );
+            }
+
+            final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads( true, true );
+            for ( final ThreadInfo threadInfo : threads )
+            {
+                output( JavaHelper.threadInfoToString( threadInfo ) );
+            }
+
+            output( "---END OUTPUT THREAD DUMP #" + count + "---" );
+        }
+
+        private void output( final CharSequence output )
+        {
+            LOGGER.trace( () -> output );
         }
     }
 }

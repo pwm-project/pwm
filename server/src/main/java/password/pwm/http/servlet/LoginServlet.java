@@ -240,7 +240,7 @@ public class LoginServlet extends ControlledPwmServlet
 
         final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getPwmSession(),
+                pwmRequest,
                 PwmAuthenticationSource.LOGIN_FORM
         );
 

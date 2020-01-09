@@ -122,18 +122,18 @@ public class HelpdeskDetailInfoBean implements Serializable
 
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 actorLocale,
                 userIdentity,
                 theUser.getChaiProvider()
         );
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null );
+        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
 
         try
         {
             final List<AccountInformationBean.ActivityRecord> userHistory = AccountInformationBean.makeAuditInfo(
                     pwmRequest.getPwmApplication(),
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     userInfo,
                     pwmRequest.getLocale() );
             builder.userHistory( userHistory );
@@ -145,7 +145,7 @@ public class HelpdeskDetailInfoBean implements Serializable
 
         builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
 
-        builder.profileData( getProfileData( helpdeskProfile, userInfo, pwmRequest.getSessionLabel(), pwmRequest.getLocale() ) );
+        builder.profileData( getProfileData( helpdeskProfile, userInfo, pwmRequest.getLabel(), pwmRequest.getLocale() ) );
 
         builder.passwordPolicyRules( makePasswordPolicyRules( userInfo, pwmRequest.getLocale(), pwmRequest.getConfig() ) );
 

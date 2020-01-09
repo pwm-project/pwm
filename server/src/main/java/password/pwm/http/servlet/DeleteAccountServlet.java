@@ -180,7 +180,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
             final AuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createUserAuditRecord(
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     ProfileDefinition.DeleteAccount.toString()
             );
             pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
@@ -215,7 +215,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
 
                 try
                 {
-                    actionExecutor.executeActions( actions, pwmRequest.getSessionLabel() );
+                    actionExecutor.executeActions( actions, pwmRequest.getLabel() );
                 }
                 catch ( final PwmOperationalException e )
                 {

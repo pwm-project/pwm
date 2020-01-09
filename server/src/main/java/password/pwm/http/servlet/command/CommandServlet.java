@@ -150,7 +150,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
             final boolean forceLogoutOnChange = config.readSettingAsBoolean( PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE );
             if ( forceLogoutOnChange && pwmSession.getSessionStateBean().isPasswordModified() )
             {
-                LOGGER.trace( pwmSession, () -> "logging out user; password has been modified" );
+                LOGGER.trace( pwmRequest, () -> "logging out user; password has been modified" );
                 pwmRequest.sendRedirect( PwmServletDefinition.Logout );
                 return ProcessStatus.Halt;
             }
@@ -304,12 +304,10 @@ public abstract class CommandServlet extends ControlledPwmServlet
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-
         if ( !pwmRequest.isAuthenticated() )
         {
             final String action = pwmRequest.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST );
-            LOGGER.info( pwmSession, () -> "authentication required for " + action );
+            LOGGER.info( pwmRequest, () -> "authentication required for " + action );
             pwmRequest.respondWithError( PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo() );
             return false;
         }

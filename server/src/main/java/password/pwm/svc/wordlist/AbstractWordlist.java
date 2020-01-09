@@ -193,7 +193,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     private boolean realBucketCheck( final String word, final WordType wordType )
             throws PwmUnrecoverableException
     {
-        getStatistics().getWordChecks().incrementAndGet();
+        getStatistics().getWordChecks().next();
 
         final Instant startTime = Instant.now();
         final boolean isContainsWord = wordlistBucket.containsWord( word );
@@ -208,11 +208,11 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         if ( isContainsWord )
         {
-            getStatistics().getWordTypeHits().get( wordType ).incrementAndGet();
+            getStatistics().getWordTypeHits().get( wordType ).next();
         }
         else
         {
-            getStatistics().getMisses().incrementAndGet();
+            getStatistics().getMisses().next();
         }
 
         return isContainsWord;

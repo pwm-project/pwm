@@ -286,7 +286,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             final AuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createUserAuditRecord(
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     "UpdateProfile"
             );
             pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
@@ -383,7 +383,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( pwmSession, e.getMessage() );
+            LOGGER.error( pwmRequest, e.getMessage() );
             setLastError( pwmRequest, e.getErrorInformation() );
             UpdateProfileUtil.forwardToForm( pwmRequest, updateProfileProfile, updateProfileBean );
             return;
@@ -409,7 +409,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             final ChaiUser theUser = pwmSession.getSessionManager().getActor( pwmApplication );
             UpdateProfileUtil.doProfileUpdate(
                     pwmRequest.getPwmApplication(),
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     pwmRequest.getLocale(),
                     pwmSession.getUserInfo(),
                     pwmSession.getSessionManager().getMacroMachine( pwmApplication ),
@@ -419,10 +419,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             );
 
             // re-populate the uiBean because we have changed some values.
-            pwmSession.reloadUserInfoBean( pwmApplication );
-
-            // clear cached read attributes.
-            pwmRequest.getPwmSession().reloadUserInfoBean( pwmApplication );
+            pwmSession.reloadUserInfoBean( pwmRequest );
 
             // mark the event log
             pwmApplication.getAuditManager().submit( AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfo(), pwmSession );
@@ -435,13 +432,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( pwmSession, e.getMessage() );
+            LOGGER.error( pwmRequest, e.getMessage() );
             setLastError( pwmRequest, e.getErrorInformation() );
         }
         catch ( final ChaiException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UPDATE_ATTRS_FAILURE, e.toString() );
-            LOGGER.error( pwmSession, errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
             setLastError( pwmRequest, errorInformation );
         }
 

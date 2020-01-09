@@ -20,6 +20,7 @@
 
 package password.pwm.config.value;
 
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -116,7 +117,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
             try
             {
                 final String b64Value = X509Utils.certificateToBase64( value );
-                final String splitValue = StringUtil.insertRepeatedLineBreaks( b64Value, 80 );
+                final String splitValue = StringUtil.insertRepeatedLineBreaks( b64Value, PwmConstants.XML_OUTPUT_LINE_WRAP_LENGTH );
                 valueElement.addText( splitValue );
             }
             catch ( final CertificateEncodingException e )

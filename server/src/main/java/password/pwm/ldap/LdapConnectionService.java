@@ -78,7 +78,7 @@ public class LdapConnectionService implements PwmService
 
         final int connectionsPerProfile = maxSlotsPerProfile( pwmApplication );
         LOGGER.trace( () -> "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
-        slotIncrementer = new AtomicLoopIntIncrementer( connectionsPerProfile );
+        slotIncrementer = AtomicLoopIntIncrementer.builder().ceiling( connectionsPerProfile ).build();
 
         for ( final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values() )
         {

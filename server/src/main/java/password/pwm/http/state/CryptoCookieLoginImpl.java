@@ -179,7 +179,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
                 LOGGER.debug( pwmRequest, () -> "triggering authentication because request contains an authenticated session but local session is unauthenticated" );
                 final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
                         pwmRequest.getPwmApplication(),
-                        pwmRequest.getPwmSession(),
+                        pwmRequest,
                         remoteLoginCookie.getAuthSource()
                 );
                 try
