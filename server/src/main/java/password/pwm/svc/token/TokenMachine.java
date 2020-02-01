@@ -24,12 +24,14 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 
+import java.util.Optional;
+
 interface TokenMachine
 {
     String generateToken( SessionLabel sessionLabel, TokenPayload tokenPayload )
             throws PwmUnrecoverableException, PwmOperationalException;
 
-    TokenPayload retrieveToken( TokenKey tokenKey )
+    Optional<TokenPayload> retrieveToken( SessionLabel sessionLabel, TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException;
 
     void storeToken( TokenKey tokenKey, TokenPayload tokenPayload )

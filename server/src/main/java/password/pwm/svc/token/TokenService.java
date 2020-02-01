@@ -75,6 +75,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 
@@ -289,16 +290,16 @@ public class TokenService implements PwmService
 
         try
         {
-            final TokenPayload storedToken = tokenMachine.retrieveToken( tokenMachine.keyFromKey( tokenKey ) );
-            if ( storedToken != null )
+            final Optional<TokenPayload> storedToken = tokenMachine.retrieveToken( sessionLabel, tokenMachine.keyFromKey( tokenKey ) );
+            if ( storedToken.isPresent() )
             {
 
-                if ( testIfTokenIsExpired( sessionLabel, storedToken ) )
+                if ( testIfTokenIsExpired( sessionLabel, storedToken.get() ) )
                 {
                     throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_TOKEN_EXPIRED ) );
                 }
 
-                return storedToken;
+                return storedToken.get();
             }
         }
         catch ( final PwmException e )
@@ -446,8 +447,8 @@ public class TokenService implements PwmService
         {
             tokenKey = makeRandomCode( configuration );
             LOGGER.trace( sessionLabel, () -> "generated new token random code, checking for uniqueness" );
-            final TokenPayload existingPayload = machine.retrieveToken( tokenMachine.keyFromKey( tokenKey ) );
-            if ( existingPayload != null )
+            final Optional<TokenPayload> existingPayload = machine.retrieveToken( sessionLabel, tokenMachine.keyFromKey( tokenKey ) );
+            if ( existingPayload.isPresent() )
             {
                 tokenKey = null;
             }

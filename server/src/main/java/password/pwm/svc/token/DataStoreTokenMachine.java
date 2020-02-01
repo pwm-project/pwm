@@ -33,6 +33,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
+import java.util.Optional;
 
 public class DataStoreTokenMachine implements TokenMachine
 {
@@ -92,7 +93,7 @@ public class DataStoreTokenMachine implements TokenMachine
                 final TokenKey loopKey = keyFromStoredHash( storedHash );
 
                 // retrieving token tests validity and causes purging
-                retrieveToken( loopKey );
+                retrieveToken( null, loopKey );
             }
         }
         catch ( final Exception e )
@@ -135,7 +136,7 @@ public class DataStoreTokenMachine implements TokenMachine
         return tokenService.makeUniqueTokenForMachine( sessionLabel, this );
     }
 
-    public TokenPayload retrieveToken( final TokenKey tokenKey )
+    public Optional<TokenPayload> retrieveToken( final SessionLabel sessionLabel, final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String storedHash = tokenKey.getStoredHash();
@@ -150,23 +151,24 @@ public class DataStoreTokenMachine implements TokenMachine
             }
             catch ( final PwmException e )
             {
-                LOGGER.trace( () -> "error while trying to decrypted stored token payload for key '" + storedHash + "', will purge record, error: " + e.getMessage() );
+                LOGGER.trace( sessionLabel, () -> "error while trying to decrypted stored token payload for key '" + storedHash
+                        + "', will purge record, error: " + e.getMessage() );
                 dataStore.remove( storedHash );
-                return null;
+                return Optional.empty();
             }
 
             if ( testIfTokenNeedsPurging( tokenPayload ) )
             {
-                LOGGER.trace( () -> "stored token key '" + storedHash + "', has an outdated issue/expire date and will be purged" );
+                LOGGER.trace( sessionLabel, () -> "stored token key '" + storedHash + "', has an outdated issue/expire date and will be purged" );
                 dataStore.remove( storedHash );
             }
             else
             {
-                return tokenPayload;
+                return Optional.of( tokenPayload );
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public void storeToken( final TokenKey tokenKey, final TokenPayload tokenPayload ) throws PwmOperationalException, PwmUnrecoverableException

@@ -38,6 +38,7 @@ import password.pwm.ldap.search.UserSearchEngine;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 class LdapTokenMachine implements TokenMachine
 {
@@ -65,7 +66,7 @@ class LdapTokenMachine implements TokenMachine
         return tokenService.makeUniqueTokenForMachine( sessionLabel, this );
     }
 
-    public TokenPayload retrieveToken( final TokenKey tokenKey )
+    public Optional<TokenPayload> retrieveToken( final SessionLabel sessionLabel, final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String searchFilter;
@@ -88,12 +89,12 @@ class LdapTokenMachine implements TokenMachine
             final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                     .filter( searchFilter )
                     .build();
-            final UserIdentity user = userSearchEngine.performSingleUserSearch( searchConfiguration, null );
+            final UserIdentity user = userSearchEngine.performSingleUserSearch( searchConfiguration, sessionLabel );
             if ( user == null )
             {
-                return null;
+                return Optional.empty();
             }
-            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, null, user, null );
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, sessionLabel, user, null );
             final String tokenAttributeValue = userInfo.readStringAttribute( tokenAttribute );
             if ( tokenAttribute != null && tokenAttributeValue.length() > 0 )
             {
@@ -104,14 +105,14 @@ class LdapTokenMachine implements TokenMachine
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
                     throw new PwmOperationalException( errorInformation );
                 }
-                return tokenService.fromEncryptedString( splitString[ 1 ] );
+                return Optional.of( tokenService.fromEncryptedString( splitString[ 1 ] ) );
             }
         }
         catch ( final PwmOperationalException e )
         {
             if ( e.getError() == PwmError.ERROR_CANT_MATCH_USER )
             {
-                return null;
+                return Optional.empty();
             }
             throw e;
         }
@@ -121,7 +122,7 @@ class LdapTokenMachine implements TokenMachine
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
             throw new PwmOperationalException( errorInformation );
         }
-        return null;
+        return Optional.empty();
     }
 
     public void storeToken( final TokenKey tokenKey, final TokenPayload tokenPayload )
@@ -147,10 +148,10 @@ class LdapTokenMachine implements TokenMachine
     public void removeToken( final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final TokenPayload payload = retrieveToken( tokenKey );
-        if ( payload != null )
+        final Optional<TokenPayload> payload = retrieveToken( null, tokenKey );
+        if ( payload.isPresent() )
         {
-            final UserIdentity userIdentity = payload.getUserIdentity();
+            final UserIdentity userIdentity = payload.get().getUserIdentity();
             try
             {
                 final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );

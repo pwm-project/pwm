@@ -24,6 +24,8 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 
+import java.util.Optional;
+
 class CryptoTokenMachine implements TokenMachine
 {
 
@@ -35,6 +37,7 @@ class CryptoTokenMachine implements TokenMachine
         this.tokenService = tokenService;
     }
 
+    @Override
     public String generateToken(
             final SessionLabel sessionLabel,
             final TokenPayload tokenPayload
@@ -50,14 +53,15 @@ class CryptoTokenMachine implements TokenMachine
         return returnString.toString();
     }
 
-    public TokenPayload retrieveToken( final TokenKey tokenKey )
+    @Override
+    public Optional<TokenPayload> retrieveToken( final SessionLabel sessionLabel, final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         if ( tokenKey == null || tokenKey.getStoredHash().length() < 1 )
         {
-            return null;
+            return Optional.empty();
         }
-        return tokenService.fromEncryptedString( tokenKey.getStoredHash() );
+        return Optional.of( tokenService.fromEncryptedString( tokenKey.getStoredHash() ) );
     }
 
     public void storeToken( final TokenKey tokenKey, final TokenPayload tokenPayload ) throws PwmOperationalException, PwmUnrecoverableException
