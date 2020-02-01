@@ -273,7 +273,7 @@ public class PasswordUtility
         try
         {
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmApplication, userInfo.getPasswordPolicy() );
-            pwmPasswordRuleValidator.testPassword( newPassword, null, userInfo, pwmSession.getSessionManager().getActor( pwmApplication ) );
+            pwmPasswordRuleValidator.testPassword( newPassword, null, userInfo, pwmSession.getSessionManager().getActor( ) );
         }
         catch ( final PwmDataValidationException e )
         {
@@ -288,7 +288,7 @@ public class PasswordUtility
         boolean setPasswordWithoutOld = false;
         if ( oldPassword == null )
         {
-            if ( pwmSession.getSessionManager().getActor( pwmApplication ).getChaiProvider().getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY )
+            if ( pwmSession.getSessionManager().getActor( ).getChaiProvider().getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY )
             {
                 setPasswordWithoutOld = true;
             }
@@ -316,7 +316,7 @@ public class PasswordUtility
         pwmSession.getLoginInfoBean().setUserCurrentPassword( newPassword );
 
         //close any outstanding ldap connections (since they cache the old password)
-        pwmSession.getSessionManager().updateUserPassword( pwmApplication, userInfo.getUserIdentity(), newPassword );
+        pwmSession.getSessionManager().updateUserPassword( userInfo.getUserIdentity(), newPassword );
 
         // clear the "requires new password flag"
         pwmSession.getLoginInfoBean().getLoginFlags().remove( LoginInfoBean.LoginFlag.forcePwChange );
@@ -328,7 +328,7 @@ public class PasswordUtility
         pwmSession.reloadUserInfoBean( pwmRequest );
 
         // create a proxy user object for pwm to update/read the user.
-        final ChaiUser proxiedUser = pwmSession.getSessionManager().getActor( pwmApplication );
+        final ChaiUser proxiedUser = pwmSession.getSessionManager().getActor();
 
         // update statistics
         {
@@ -498,7 +498,7 @@ public class PasswordUtility
             throw new PwmOperationalException( errorInformation );
         }
 
-        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( pwmApplication );
+        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( );
         if ( helpdeskProfile == null )
         {
             final String errorMsg = "attempt to helpdeskSetUserPassword, but user does not have helpdesk permission";
@@ -704,7 +704,7 @@ public class PasswordUtility
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
                         .setExpandPwmMacros( true )
-                        .setMacroMachine( pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication ) )
+                        .setMacroMachine( pwmRequest.getPwmSession().getSessionManager().getMacroMachine( ) )
                         .createActionExecutor();
                 actionExecutor.executeActions( configValues, pwmRequest.getLabel() );
             }

@@ -59,13 +59,14 @@ public class SessionManager
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( SessionManager.class );
 
-    private ChaiProvider chaiProvider;
+    private volatile ChaiProvider chaiProvider;
 
+    private final PwmApplication pwmApplication;
     private final PwmSession pwmSession;
 
-
-    public SessionManager( final PwmSession pwmSession )
+    public SessionManager( final PwmApplication pwmApplication, final PwmSession pwmSession )
     {
+        this.pwmApplication = pwmApplication;
         this.pwmSession = pwmSession;
     }
 
@@ -96,7 +97,7 @@ public class SessionManager
         this.chaiProvider = chaiProvider;
     }
 
-    public void updateUserPassword( final PwmApplication pwmApplication, final UserIdentity userIdentity, final PasswordData userPassword )
+    public void updateUserPassword( final UserIdentity userIdentity, final PasswordData userPassword )
             throws PwmUnrecoverableException
     {
         this.closeConnections();
@@ -141,7 +142,7 @@ public class SessionManager
         }
     }
 
-    public ChaiUser getActor( final PwmApplication pwmApplication )
+    public ChaiUser getActor( )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
 
@@ -160,12 +161,7 @@ public class SessionManager
         return this.getChaiProvider().getEntryFactory().newChaiUser( userDN.getUserDN() );
     }
 
-    public boolean hasActiveLdapConnection( )
-    {
-        return this.chaiProvider != null && this.chaiProvider.isConnected();
-    }
-
-    public ChaiUser getActor( final PwmApplication pwmApplication, final UserIdentity userIdentity )
+    public ChaiUser getActor( final UserIdentity userIdentity )
             throws PwmUnrecoverableException
     {
         try
@@ -246,7 +242,7 @@ public class SessionManager
         return status == Permission.PermissionStatus.GRANTED;
     }
 
-    public MacroMachine getMacroMachine( final PwmApplication pwmApplication )
+    public MacroMachine getMacroMachine( )
             throws PwmUnrecoverableException
     {
         final UserInfo userInfoBean = pwmSession.isAuthenticated()
@@ -269,27 +265,27 @@ public class SessionManager
         return null;
     }
 
-    public HelpdeskProfile getHelpdeskProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public HelpdeskProfile getHelpdeskProfile() throws PwmUnrecoverableException
     {
         return ( HelpdeskProfile ) getProfile( pwmApplication, ProfileDefinition.Helpdesk );
     }
 
-    public SetupOtpProfile getSetupOTPProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public SetupOtpProfile getSetupOTPProfile() throws PwmUnrecoverableException
     {
         return ( SetupOtpProfile ) getProfile( pwmApplication, ProfileDefinition.SetupOTPProfile );
     }
 
-    public UpdateProfileProfile getUpdateAttributeProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public UpdateProfileProfile getUpdateAttributeProfile() throws PwmUnrecoverableException
     {
         return ( UpdateProfileProfile ) getProfile( pwmApplication, ProfileDefinition.UpdateAttributes );
     }
 
-    public PeopleSearchProfile getPeopleSearchProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public PeopleSearchProfile getPeopleSearchProfile() throws PwmUnrecoverableException
     {
         return ( PeopleSearchProfile ) getProfile( pwmApplication, ProfileDefinition.PeopleSearch );
     }
 
-    public DeleteAccountProfile getSelfDeleteProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public DeleteAccountProfile getSelfDeleteProfile() throws PwmUnrecoverableException
     {
         return ( DeleteAccountProfile ) getProfile( pwmApplication, ProfileDefinition.DeleteAccount );
     }

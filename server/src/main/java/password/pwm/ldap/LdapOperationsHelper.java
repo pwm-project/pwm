@@ -105,7 +105,7 @@ public class LdapOperationsHelper
         {
             final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
             final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
-            addUserObjectClass( sessionLabel, theUser, newObjClasses );
+            addUserObjectClass( sessionLabel, userIdentity, theUser, newObjClasses );
         }
         catch ( final ChaiUnavailableException e )
         {
@@ -115,6 +115,7 @@ public class LdapOperationsHelper
 
     private static void addUserObjectClass(
             final SessionLabel sessionLabel,
+            final UserIdentity userIdentity,
             final ChaiUser theUser,
             final Set<String> newObjClasses
     )
@@ -131,19 +132,18 @@ public class LdapOperationsHelper
                 auxClass = newObjClass;
                 theUser.addAttribute( ChaiConstant.ATTR_LDAP_OBJECTCLASS, auxClass );
                 final String finalAuxClass = auxClass;
-                LOGGER.info( sessionLabel, () -> "added objectclass '" + finalAuxClass + "' to user " + theUser.getEntryDN() );
+                LOGGER.info( sessionLabel, () -> "added objectclass '" + finalAuxClass + "' to user " + userIdentity.toDisplayString() );
             }
         }
         catch ( final ChaiOperationException e )
         {
-            final StringBuilder errorMsg = new StringBuilder();
+            final String finalAuxClass = auxClass;
+            LOGGER.error( sessionLabel, () -> "error adding objectclass '" + finalAuxClass + "' to user, error "
+                    + userIdentity.toDisplayString()
+                    + ": "
+                    + e.getMessage()
+            );
 
-            errorMsg.append( "error adding objectclass '" ).append( auxClass ).append( "' to user " );
-            errorMsg.append( theUser.getEntryDN() );
-            errorMsg.append( ": " );
-            errorMsg.append( e.toString() );
-
-            LOGGER.error( sessionLabel, errorMsg.toString() );
         }
     }
 

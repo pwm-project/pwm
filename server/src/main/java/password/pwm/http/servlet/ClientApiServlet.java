@@ -355,7 +355,7 @@ public class ClientApiServlet extends ControlledPwmServlet
                     PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,
                     pwmSession.getSessionStateBean().getLocale()
             );
-            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( pwmApplication );
+            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( );
             passwordGuideText = macroMachine.expandMacros( passwordGuideText );
             settingMap.put( "passwordGuideText", passwordGuideText );
         }
@@ -431,7 +431,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         final ResourceBundle bundle = ResourceBundle.getBundle( displayClass.getName() );
         try
         {
-            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( pwmApplication );
+            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( );
             for ( final String key : new TreeSet<>( Collections.list( bundle.getKeys() ) ) )
             {
                 String displayValue = LocaleHelper.getLocalizedMessage( userLocale, key, config, displayClass );

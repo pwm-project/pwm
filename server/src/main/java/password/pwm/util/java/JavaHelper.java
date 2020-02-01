@@ -163,6 +163,12 @@ public class JavaHelper
         return Collections.unmodifiableList( returnList );
     }
 
+    public static <E extends Enum<E>> Map<String, String> enumMapToStringMap( final Map<E, String> inputMap )
+    {
+        return Collections.unmodifiableMap( inputMap.entrySet().stream()
+                .collect( Collectors.toMap( entry -> entry.getKey().name(), Map.Entry::getValue, ( a, b ) -> b, LinkedHashMap::new ) ) );
+    }
+
     public static <E extends Enum<E>> E readEnumFromString( final Class<E> enumClass, final E defaultValue, final String input )
     {
         return readEnumFromString( enumClass, input ).orElse( defaultValue );

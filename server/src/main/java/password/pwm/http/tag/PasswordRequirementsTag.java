@@ -552,7 +552,7 @@ public class PasswordRequirementsTag extends TagSupport
             final Configuration config = pwmApplication.getConfig();
             final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
-            pwmSession.getSessionManager().getMacroMachine( pwmApplication );
+            pwmSession.getSessionManager().getMacroMachine( );
 
             final PwmPasswordPolicy passwordPolicy;
             if ( getForm() != null && getForm().equalsIgnoreCase( "newuser" ) )
@@ -572,7 +572,7 @@ public class PasswordRequirementsTag extends TagSupport
             }
             else
             {
-                final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( pwmApplication );
+                final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( );
 
                 final String pre = prepend != null && prepend.length() > 0 ? prepend : "";
                 final String sep = separator != null && separator.length() > 0 ? separator : "<br/>";

@@ -74,6 +74,7 @@ public enum HealthMessage
     LDAP_VendorsNotSame( HealthStatus.CONFIG, HealthTopic.LDAP ),
     LDAP_OK( HealthStatus.GOOD, HealthTopic.LDAP ),
     LDAP_RecentlyUnreachable( HealthStatus.CAUTION, HealthTopic.LDAP ),
+    LDAP_SearchFailure( HealthStatus.WARN, HealthTopic.LDAP ),
     CryptoTokenWithNewUserVerification( HealthStatus.CAUTION, HealthTopic.Configuration ),
     TokenServiceError( HealthStatus.WARN, HealthTopic.TokenService ),
     Java_HighThreads( HealthStatus.CAUTION, HealthTopic.Platform ),

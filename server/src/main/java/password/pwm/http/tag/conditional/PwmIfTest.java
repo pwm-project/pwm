@@ -476,7 +476,7 @@ public enum PwmIfTest
             if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
             {
                 final Optional<PeopleSearchProfile> peopleSearchProfile = pwmRequest.isAuthenticated()
-                        ? Optional.ofNullable( pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile( pwmRequest.getPwmApplication() ) )
+                        ? Optional.ofNullable( pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile( ) )
                         : pwmRequest.getConfig().getPublicPeopleSearchProfile();
 
                 if ( peopleSearchProfile.isPresent() )
@@ -515,7 +515,7 @@ public enum PwmIfTest
                 return false;
             }
 
-            final SetupOtpProfile setupOtpProfile = pwmRequest.getPwmSession().getSessionManager().getSetupOTPProfile( pwmRequest.getPwmApplication() );
+            final SetupOtpProfile setupOtpProfile = pwmRequest.getPwmSession().getSessionManager().getSetupOTPProfile( );
             return setupOtpProfile != null && setupOtpProfile.readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP );
         }
     }

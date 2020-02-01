@@ -59,15 +59,16 @@ public class PwmSession implements Serializable
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSession.class );
 
-    private final LocalSessionStateBean sessionStateBean;
+    private final transient PwmApplication pwmApplication;
+    private final transient LocalSessionStateBean sessionStateBean = new LocalSessionStateBean();
+    private final transient UserSessionDataCacheBean userSessionDataCacheBean = new UserSessionDataCacheBean();
 
     private LoginInfoBean loginInfoBean;
     private transient UserInfo userInfo;
-    private UserSessionDataCacheBean userSessionDataCacheBean;
 
     private static final Object CREATION_LOCK = new Object();
 
-    private transient SessionManager sessionManager;
+    private final SessionManager sessionManager;
 
     public static PwmSession createPwmSession( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
@@ -87,7 +88,7 @@ public class PwmSession implements Serializable
             throw new IllegalStateException( "PwmApplication must be available during session creation" );
         }
 
-        sessionStateBean = new LocalSessionStateBean();
+        this.pwmApplication = pwmApplication;
         this.sessionStateBean.setSessionID( pwmApplication.getSessionTrackService().generateNewSessionID() );
 
         this.sessionStateBean.setSessionLastAccessedTime( Instant.now() );
@@ -98,6 +99,7 @@ public class PwmSession implements Serializable
         }
 
         pwmApplication.getSessionTrackService().addSessionData( this );
+        this.sessionManager = new SessionManager( pwmApplication, this );
 
         LOGGER.trace( () -> "created new session" );
     }
@@ -105,10 +107,6 @@ public class PwmSession implements Serializable
 
     public SessionManager getSessionManager( )
     {
-        if ( sessionManager == null )
-        {
-            sessionManager = new SessionManager( this );
-        }
         return sessionManager;
     }
 
@@ -188,10 +186,6 @@ public class PwmSession implements Serializable
 
     public UserSessionDataCacheBean getUserSessionDataCacheBean( )
     {
-        if ( userSessionDataCacheBean == null )
-        {
-            userSessionDataCacheBean = new UserSessionDataCacheBean();
-        }
         return userSessionDataCacheBean;
     }
 
@@ -279,7 +273,7 @@ public class PwmSession implements Serializable
 
         userInfo = null;
         loginInfoBean = null;
-        userSessionDataCacheBean = null;
+        userSessionDataCacheBean.clearPermissions();
     }
 
     public TimeDuration getIdleTime( )

@@ -53,12 +53,14 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.rest.bean.HealthData;
@@ -150,6 +152,8 @@ public class LDAPHealthChecker implements HealthChecker
                 returnRecords.addAll( checkLdapDNSyntaxValues( pwmApplication ) );
 
                 returnRecords.addAll( checkNewUserPasswordTemplateSetting( pwmApplication, config ) );
+
+     //           returnRecords.addAll( checkUserSearching( pwmApplication ) );
             }
         }
 
@@ -960,6 +964,49 @@ public class LDAPHealthChecker implements HealthChecker
         return Collections.emptyList();
     }
 
+    private static List<HealthRecord> checkUserSearching(
+            final PwmApplication pwmApplication
+    )
+    {
+        final TimeDuration warnDuration = TimeDuration.of(
+                JavaHelper.silentParseLong( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_LDAP_USER_SEARCH_WARN_MS ), 10_1000 ),
+                TimeDuration.Unit.MILLISECONDS );
+
+        final Instant startTime = Instant.now();
+
+
+        try
+        {
+            final String healthUsername = MacroMachine.forStatic().expandMacros( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_LDAP_USER_SEARCH_TERM ) );
+
+            final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                    .enableValueEscaping( false )
+                    .searchTimeout( warnDuration.asMillis() )
+                    .username( healthUsername )
+                    .build();
+
+            pwmApplication.getUserSearchEngine().performMultiUserSearch( searchConfiguration, 1, Collections.singletonList( "cn" ), SessionLabel.HEALTH_SESSION_LABEL );
+        }
+        catch ( final Exception e )
+        {
+            return Collections.singletonList(
+                    HealthRecord.forMessage( HealthMessage.LDAP_SearchFailure,
+                            e.getMessage()
+                    ) );
+        }
+
+        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
+
+        if ( timeDuration.isLongerThan( warnDuration ) )
+        {
+            return Collections.singletonList(
+                    HealthRecord.forMessage( HealthMessage.LDAP_SearchFailure,
+                            "user search time of " + timeDuration.asLongString() + " exceeded ideal of " + warnDuration.asLongString(  )
+                    ) );
+        }
+
+        return Collections.emptyList();
+    }
 
     private static List<HealthRecord> checkUserPermission(
             final PwmApplication pwmApplication,

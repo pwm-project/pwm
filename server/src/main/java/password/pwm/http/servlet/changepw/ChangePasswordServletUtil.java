@@ -161,7 +161,7 @@ public class ChangePasswordServletUtil
                 configuredEmailSetting,
                 pwmRequest.getPwmSession().getUserInfo(),
 
-                pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication ) );
+                pwmRequest.getPwmSession().getSessionManager().getMacroMachine( ) );
     }
 
     static void checkMinimumLifetime(

@@ -316,7 +316,7 @@ class NewUserUtils
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
                         .setExpandPwmMacros( true )
-                        .setMacroMachine( pwmSession.getSessionManager().getMacroMachine( pwmApplication ) )
+                        .setMacroMachine( pwmSession.getSessionManager().getMacroMachine( ) )
                         .createActionExecutor();
 
                 actionExecutor.executeActions( actions, pwmRequest.getLabel() );
@@ -476,7 +476,7 @@ class NewUserUtils
         pwmRequest.getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmSession.getUserInfo(),
-                pwmSession.getSessionManager().getMacroMachine( pwmRequest.getPwmApplication() )
+                pwmSession.getSessionManager().getMacroMachine( )
         );
     }
 

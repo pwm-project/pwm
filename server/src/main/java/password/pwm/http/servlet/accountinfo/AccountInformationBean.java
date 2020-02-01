@@ -103,7 +103,7 @@ public class AccountInformationBean implements Serializable
             throws PwmUnrecoverableException
     {
         final PwmPasswordPolicy pwmPasswordPolicy = pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy();
-        final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmRequest.getPwmApplication() );
+        final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
         final List<String> rules = PasswordRequirementsTag.getPasswordRequirementsStrings( pwmPasswordPolicy, pwmRequest.getConfig(), pwmRequest.getLocale(), macroMachine );
         return Collections.unmodifiableList( rules );
     }

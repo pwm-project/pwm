@@ -51,6 +51,11 @@ public class AtomicLoopIntIncrementer
         this.incrementer = new AtomicInteger( initial );
     }
 
+    public int get()
+    {
+        return incrementer.get();
+    }
+
     public int next( )
     {
         return incrementer.getAndUpdate( operand ->

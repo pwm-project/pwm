@@ -130,7 +130,7 @@ public class LdapOtpOperator extends AbstractOtpOperator
             }
             final ChaiUser theUser = pwmRequest == null
                     ? pwmApplication.getProxiedChaiUser( userIdentity )
-                    : pwmRequest.getPwmSession().getSessionManager().getActor( pwmApplication, userIdentity );
+                    : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
             theUser.writeStringAttribute( ldapStorageAttribute, value );
             LOGGER.info( () -> "saved OTP secret for user to chai-ldap format" );
         }

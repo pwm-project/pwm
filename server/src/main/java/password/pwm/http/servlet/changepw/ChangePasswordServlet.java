@@ -189,7 +189,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         // check the password meets the requirements
         try
         {
-            final ChaiUser theUser = pwmRequest.getPwmSession().getSessionManager().getActor( pwmRequest.getPwmApplication() );
+            final ChaiUser theUser = pwmRequest.getPwmSession().getSessionManager().getActor( );
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmRequest.getPwmApplication(), userInfo.getPasswordPolicy() );
             final PasswordData oldPassword = pwmRequest.getPwmSession().getLoginInfoBean().getUserCurrentPassword();
             pwmPasswordRuleValidator.testPassword( password1, oldPassword, userInfo, theUser );
@@ -295,7 +295,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                     pwmRequest, formItem, ssBean.getLocale() );
 
             ChangePasswordServletUtil.validateParamsAgainstLDAP( formValues, pwmRequest,
-                    pwmRequest.getPwmSession().getSessionManager().getActor( pwmRequest.getPwmApplication() ) );
+                    pwmRequest.getPwmSession().getSessionManager().getActor( ) );
 
             cpb.setFormPassed( true );
         }
@@ -378,7 +378,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, ChangePasswordBean.class );
             if ( completeMessage != null && !completeMessage.isEmpty() )
             {
-                final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmRequest.getPwmApplication() );
+                final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
                 final String expandedText = macroMachine.expandMacros( completeMessage );
                 pwmRequest.setAttribute( PwmRequestAttribute.CompleteText, expandedText );
                 pwmRequest.forwardToJsp( JspUrl.PASSWORD_COMPLETE );
@@ -407,7 +407,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
                 pwmRequest.getPwmApplication(),
                 pwmRequest.getLocale(),
-                pwmRequest.getPwmSession().getSessionManager().getActor( pwmRequest.getPwmApplication() ),
+                pwmRequest.getPwmSession().getSessionManager().getActor(),
                 userInfo,
                 pwmRequest.getPwmSession().getLoginInfoBean(),
                 PasswordData.forStringValue( jsonInput.getPassword1() ),
@@ -465,7 +465,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         final String agreementMsg = pwmApplication.getConfig().readSettingAsLocalizedString( PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, pwmRequest.getLocale() );
         if ( agreementMsg != null && agreementMsg.length() > 0 && !changePasswordBean.isAgreementPassed() )
         {
-            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( pwmApplication );
+            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine();
             final String expandedText = macroMachine.expandMacros( agreementMsg );
             pwmRequest.setAttribute( PwmRequestAttribute.AgreementText, expandedText );
             pwmRequest.forwardToJsp( JspUrl.PASSWORD_AGREEMENT );
@@ -557,7 +557,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         final String passwordPolicyChangeMessage = pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy().getRuleHelper().getChangeMessage();
         if ( passwordPolicyChangeMessage.length() > 1 )
         {
-            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmRequest.getPwmApplication() );
+            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
             macroMachine.expandMacros( passwordPolicyChangeMessage );
             pwmRequest.setAttribute( PwmRequestAttribute.ChangePassword_PasswordPolicyChangeMessage, passwordPolicyChangeMessage );
         }

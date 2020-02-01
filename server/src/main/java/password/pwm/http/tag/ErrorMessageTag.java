@@ -87,7 +87,7 @@ public class ErrorMessageTag extends PwmAbstractTag
 
                 outputMsg = outputMsg.replace( "\n", "<br/>" );
 
-                final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication );
+                final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
                 outputMsg = macroMachine.expandMacros( outputMsg );
 
                 pageContext.getOut().write( outputMsg );

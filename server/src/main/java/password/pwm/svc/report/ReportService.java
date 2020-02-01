@@ -529,13 +529,25 @@ public class ReportService implements PwmService
                                 TimeDuration.of( avgTracker.avgAsLong(), TimeDuration.Unit.MILLISECONDS ).pause();
                             }
                         }
+                        catch ( final PwmUnrecoverableException e )
+                        {
+
+                        }
                         catch ( final Exception e )
                         {
                             String errorMsg = "error while updating report cache for " + userIdentity.toString() + ", cause: ";
-                            errorMsg += e instanceof PwmException ? ( ( PwmException ) e ).getErrorInformation().toDebugStr() : e.getMessage();
-                            final ErrorInformation errorInformation;
-                            errorInformation = new ErrorInformation( PwmError.ERROR_REPORTING_ERROR, errorMsg );
-                            LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, errorInformation.toDebugStr(), e );
+                            errorMsg += e instanceof PwmException
+                                    ? ( ( PwmException ) e ).getErrorInformation().toDebugStr()
+                                    : e.getMessage();
+                            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REPORTING_ERROR, errorMsg );
+                            if ( e instanceof PwmException )
+                            {
+                                LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, errorInformation.toDebugStr() );
+                            }
+                            else
+                            {
+                                LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, errorInformation.toDebugStr(), e );
+                            }
                             reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
                                     .lastError( errorInformation )
                                     .errors( reportStatusInfo.getErrors() + 1 )

@@ -989,7 +989,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final MacroMachine macroMachine;
             if ( pwmRequest.isAuthenticated() )
             {
-                macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmRequest.getPwmApplication() );
+                macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
             }
             else
             {

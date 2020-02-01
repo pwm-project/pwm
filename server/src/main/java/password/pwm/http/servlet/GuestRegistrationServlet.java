@@ -231,7 +231,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             FormUtility.validateFormValues( config, formValues, ssBean.getLocale() );
 
             //read current values from user.
-            final ChaiUser theGuest = pwmSession.getSessionManager().getActor( pwmApplication, guestRegistrationBean.getUpdateUserIdentity() );
+            final ChaiUser theGuest = pwmSession.getSessionManager().getActor( guestRegistrationBean.getUpdateUserIdentity() );
 
             // check unique fields against ldap
             FormUtility.validateFormValueUniqueness(
@@ -244,7 +244,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             final Instant expirationDate = readExpirationFromRequest( pwmRequest );
 
             // Update user attributes
-            LdapOperationsHelper.writeFormValuesToLdap( theGuest, formValues, pwmSession.getSessionManager().getMacroMachine( pwmApplication ), false );
+            LdapOperationsHelper.writeFormValuesToLdap( theGuest, formValues, pwmSession.getSessionManager().getMacroMachine( ), false );
 
             // Write expirationDate
             if ( expirationDate != null )

@@ -114,8 +114,7 @@ public enum PwmValue
             {
                 try
                 {
-                    final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(
-                            pwmRequest.getPwmApplication() );
+                    final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
                     outputURL = macroMachine.expandMacros( outputURL );
                 }
                 catch ( final PwmUnrecoverableException e )
@@ -158,8 +157,7 @@ public enum PwmValue
             {
                 try
                 {
-                    final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(
-                            pwmRequest.getPwmApplication() );
+                    final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
                     final String expandedScript = macroMachine.expandMacros( customScript );
                     return expandedScript;
                 }

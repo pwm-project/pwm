@@ -173,6 +173,7 @@ public class PwmHttpClient implements AutoCloseable
             clientBuilder.setSSLContext( sslContext );
             clientBuilder.setSSLSocketFactory( sslConnectionFactory );
             clientBuilder.setConnectionManager( ccm );
+            clientBuilder.setConnectionManagerShared( true );
         }
         catch ( final Exception e )
         {

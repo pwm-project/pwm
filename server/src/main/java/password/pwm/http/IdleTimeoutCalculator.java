@@ -194,7 +194,7 @@ public class IdleTimeoutCalculator
         {
             if ( config.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE ) )
             {
-                final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile( pwmApplication );
+                final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile( );
                 if ( helpdeskProfile != null )
                 {
                     final long helpdeskIdleTimeout = helpdeskProfile.readSettingAsLong( PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS );
@@ -214,7 +214,7 @@ public class IdleTimeoutCalculator
                         && pwmURL.isPrivateUrl()
                 )
         {
-            final PeopleSearchProfile peopleSearchProfile = pwmSession.getSessionManager().getPeopleSearchProfile( pwmApplication );
+            final PeopleSearchProfile peopleSearchProfile = pwmSession.getSessionManager().getPeopleSearchProfile( );
             if ( peopleSearchProfile != null )
             {
                 final long peopleSearchIdleTimeout = peopleSearchProfile.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );

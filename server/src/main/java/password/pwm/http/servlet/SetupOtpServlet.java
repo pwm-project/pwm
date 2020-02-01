@@ -117,7 +117,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
 
     public static SetupOtpProfile getSetupOtpProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmSession().getSessionManager().getSetupOTPProfile( pwmRequest.getPwmApplication() );
+        return pwmRequest.getPwmSession().getSessionManager().getSetupOTPProfile( );
     }
 
     @Override
@@ -328,7 +328,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
         final UserIdentity theUser = pwmSession.getUserInfo().getUserIdentity();
         try
         {
-            service.clearOTPUserConfiguration( pwmRequest, theUser, pwmSession.getSessionManager().getActor( pwmApplication ) );
+            service.clearOTPUserConfiguration( pwmRequest, theUser, pwmSession.getSessionManager().getActor( ) );
         }
         catch ( final PwmOperationalException e )
         {
@@ -440,7 +440,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                 final Configuration config = pwmApplication.getConfig();
                 final SetupOtpProfile setupOtpProfile = getSetupOtpProfile( pwmRequest );
                 final String identifierConfigValue = setupOtpProfile.readSettingAsString( PwmSetting.OTP_SECRET_IDENTIFIER );
-                final String identifier = pwmSession.getSessionManager().getMacroMachine( pwmApplication ).expandMacros( identifierConfigValue );
+                final String identifier = pwmSession.getSessionManager().getMacroMachine( ).expandMacros( identifierConfigValue );
                 final OTPUserRecord otpUserRecord = new OTPUserRecord();
                 final List<String> rawRecoveryCodes = pwmApplication.getOtpService().initializeUserRecord(
                         setupOtpProfile,

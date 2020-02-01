@@ -336,7 +336,7 @@ public class AuditService implements PwmService
     public void submit( final AuditEvent auditEvent, final UserInfo userInfo, final PwmSession pwmSession )
             throws PwmUnrecoverableException
     {
-        final AuditRecordFactory auditRecordFactory = new AuditRecordFactory( pwmApplication, pwmSession.getSessionManager().getMacroMachine( pwmApplication ) );
+        final AuditRecordFactory auditRecordFactory = new AuditRecordFactory( pwmApplication, pwmSession.getSessionManager().getMacroMachine( ) );
         final UserAuditRecord auditRecord = auditRecordFactory.createUserAuditRecord( auditEvent, userInfo, pwmSession );
         submit( auditRecord );
     }

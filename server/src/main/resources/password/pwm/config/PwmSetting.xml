@@ -579,7 +579,7 @@
             <value><![CDATA[@LDAP:DN@]]></value>
         </default>
     </setting>
-    <setting hidden="true" key="ldap.search.timeoutSeconds" level="2">
+    <setting hidden="false" key="ldap.search.timeoutSeconds" level="2">
         <default>
             <value>30</value>
         </default>

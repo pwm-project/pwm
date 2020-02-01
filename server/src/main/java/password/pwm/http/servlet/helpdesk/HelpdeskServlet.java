@@ -169,7 +169,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
     private HelpdeskProfile getHelpdeskProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( pwmRequest.getPwmApplication() );
+        return pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( );
     }
 
     @Override
@@ -201,7 +201,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( pwmApplication );
+        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( );
         if ( helpdeskProfile == null )
         {
             pwmRequest.respondWithError( PwmError.ERROR_UNAUTHORIZED.toInfo() );
@@ -273,7 +273,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
             final ChaiUser chaiUser = useProxy
                     ? pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity )
-                    : pwmRequest.getPwmSession().getSessionManager().getActor( pwmRequest.getPwmApplication(), userIdentity );
+                    : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
             final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userIdentity );
             final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmRequest.getPwmApplication(), chaiUser )
                     .setExpandPwmMacros( true )
@@ -973,7 +973,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final boolean useProxy = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY );
         return useProxy
                 ? pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity )
-                : pwmRequest.getPwmSession().getSessionManager().getActor( pwmRequest.getPwmApplication(), userIdentity );
+                : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
     }
 
 
@@ -1144,7 +1144,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( pwmRequest.getPwmApplication() );
+        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( );
         HelpdeskServletUtil.checkIfUserIdentityViewable( pwmRequest, helpdeskProfile, userIdentity );
 
         {
@@ -1246,7 +1246,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
     @ActionHandler( action = "setPassword" )
     private ProcessStatus processSetPasswordAction( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( pwmRequest.getPwmApplication() );
+        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( );
 
         final RestSetPasswordServer.JsonInputData jsonInput = JsonUtil.deserialize(
                 pwmRequest.readRequestBodyAsString(),

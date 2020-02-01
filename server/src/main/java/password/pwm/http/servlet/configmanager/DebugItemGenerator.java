@@ -42,6 +42,7 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.servlet.admin.AppDashboardData;
 import password.pwm.http.servlet.admin.UserDebugDataBean;
 import password.pwm.http.servlet.admin.UserDebugDataReader;
+import password.pwm.ldap.LdapConnectionService;
 import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.cache.CacheService;
@@ -119,6 +120,7 @@ public class DebugItemGenerator
             ClusterInfoDebugGenerator.class,
             CacheServiceDebugItemGenerator.class,
             RootFileSystemDebugItemGenerator.class,
+            LdapConnectionsDebugItemGenerator.class,
             StatisticsDataDebugItemGenerator.class,
             StatisticsEpsDataDebugItemGenerator.class
     ) );
@@ -802,6 +804,25 @@ public class DebugItemGenerator
             final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
             final StatisticsManager statsManager = pwmApplication.getStatisticsManager();
             statsManager.outputStatsToCsv( outputStream, LOCALE, true );
+        }
+    }
+
+    static class LdapConnectionsDebugItemGenerator implements Generator
+    {
+        @Override
+        public String getFilename()
+        {
+            return "ldap-connections.json";
+        }
+
+        @Override
+        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        {
+            final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+            final List<LdapConnectionService.ConnectionInfo> connectionInfos = pwmApplication.getLdapConnectionService().getConnectionInfos();
+            final Writer writer = new OutputStreamWriter( outputStream, PwmConstants.DEFAULT_CHARSET );
+            writer.write( JsonUtil.serializeCollection( connectionInfos, JsonUtil.Flag.PrettyPrint ) );
+            writer.flush();
         }
     }
 

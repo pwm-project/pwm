@@ -154,9 +154,8 @@ class ActivateUserUtils
     )
             throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final String searchFilter = figureLdapSearchFilter( pwmRequest );
-        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxyChaiProvider( userIdentity.getLdapProfileID() );
         final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
 
         for ( final Map.Entry<FormConfiguration, String> entry : formValues.entrySet() )
@@ -251,7 +250,7 @@ class ActivateUserUtils
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmSession.getUserInfo(),
-                pwmSession.getSessionManager().getMacroMachine( pwmApplication )
+                pwmSession.getSessionManager().getMacroMachine( )
         );
         return true;
     }
@@ -289,7 +288,7 @@ class ActivateUserUtils
                 toSmsNumber,
                 message,
                 pwmRequest.getLabel(),
-                pwmSession.getSessionManager().getMacroMachine( pwmApplication )
+                pwmSession.getSessionManager().getMacroMachine( )
         );
         return true;
     }

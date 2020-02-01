@@ -60,13 +60,13 @@ public class AuditRecordFactory
     public AuditRecordFactory( final PwmApplication pwmApplication, final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
-        this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication );
+        this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
     }
 
     public AuditRecordFactory( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmRequest.getPwmApplication();
-        this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication );
+        this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
     }
 
     public HelpdeskAuditRecord createHelpdeskAuditRecord(

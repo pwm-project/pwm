@@ -73,7 +73,6 @@ public class PasswordData implements Serializable
         catch ( final Exception e )
         {
             LOGGER.fatal( "can't initialize PasswordData handler: " + e.getMessage(), e );
-            e.printStackTrace();
             if ( e instanceof PwmException )
             {
                 newInitializationError = ( ( PwmException ) e ).getErrorInformation();

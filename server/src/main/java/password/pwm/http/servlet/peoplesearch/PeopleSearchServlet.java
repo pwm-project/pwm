@@ -331,7 +331,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
         if ( pwmRequest.isAuthenticated() )
         {
-            return pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile( pwmRequest.getPwmApplication() );
+            return pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile();
         }
 
         throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "unable to load peoplesearch profile for authenticated user" );
