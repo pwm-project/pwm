@@ -105,7 +105,7 @@ class ActivateUserUtils
         {
             {
                 // execute configured actions
-                LOGGER.debug( pwmSession.getLabel(), () -> "executing configured pre-actions to user " + theUser.getEntryDN() );
+                LOGGER.debug( pwmRequest, () -> "executing configured pre-actions to user " + theUser.getEntryDN() );
                 final List<ActionConfiguration> configValues = activateUserProfile.readSettingAsAction( PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES );
                 if ( !JavaHelper.isEmpty( configValues ) )
                 {
@@ -116,12 +116,12 @@ class ActivateUserUtils
                             .setMacroMachine( macroMachine )
                             .createActionExecutor();
 
-                    actionExecutor.executeActions( configValues, pwmRequest.getSessionLabel() );
+                    actionExecutor.executeActions( configValues, pwmRequest.getLabel() );
                 }
             }
 
             //authenticate the pwm session
-            final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmApplication, pwmSession, PwmAuthenticationSource.USER_ACTIVATION );
+            final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmApplication, pwmRequest, PwmAuthenticationSource.USER_ACTIVATION );
             sessionAuthenticator.authUserWithUnknownPassword( userIdentity, AuthenticationType.AUTH_FROM_PUBLIC_MODULE );
 
             //ensure a change password is triggered
@@ -142,7 +142,7 @@ class ActivateUserUtils
         catch ( final ImpossiblePasswordPolicyException e )
         {
             final ErrorInformation info = new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected ImpossiblePasswordPolicyException error while activating user" );
-            LOGGER.warn( pwmSession, info, e );
+            LOGGER.warn( pwmRequest.getLabel(), info, e );
             throw new PwmOperationalException( info );
         }
     }
@@ -155,7 +155,6 @@ class ActivateUserUtils
             throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final String searchFilter = figureLdapSearchFilter( pwmRequest );
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
         final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
@@ -167,7 +166,7 @@ class ActivateUserUtils
             final String tokenizedAttrName = "%" + attrName + "%";
             if ( searchFilter.contains( tokenizedAttrName ) )
             {
-                LOGGER.trace( pwmSession, () -> "skipping validation of ldap value for '" + attrName + "' because it is in search filter" );
+                LOGGER.trace( pwmRequest, () -> "skipping validation of ldap value for '" + attrName + "' because it is in search filter" );
             }
             else
             {
@@ -182,14 +181,14 @@ class ActivateUserUtils
                                         attrName,
                                 }
                         );
-                        LOGGER.debug( pwmSession, errorInfo );
+                        LOGGER.debug( pwmRequest, errorInfo );
                         throw new PwmDataValidationException( errorInfo );
                     }
-                    LOGGER.trace( pwmSession, () -> "successful validation of ldap value for '" + attrName + "'" );
+                    LOGGER.trace( pwmRequest, () -> "successful validation of ldap value for '" + attrName + "'" );
                 }
                 catch ( final ChaiOperationException e )
                 {
-                    LOGGER.error( pwmSession.getLabel(), "error during param validation of '" + attrName + "', error: " + e.getMessage() );
+                    LOGGER.error( pwmRequest, "error during param validation of '" + attrName + "', error: " + e.getMessage() );
                     throw new PwmDataValidationException( new ErrorInformation(
                             PwmError.ERROR_ACTIVATION_VALIDATIONFAIL,
                             "ldap error testing value for '" + attrName + "'", new String[]
@@ -227,7 +226,7 @@ class ActivateUserUtils
         }
         if ( !success )
         {
-            LOGGER.warn( pwmSession, "skipping send activation message for '" + userInfo.getUserIdentity() + "' no email or SMS number configured" );
+            LOGGER.warn( pwmRequest, "skipping send activation message for '" + userInfo.getUserIdentity() + "' no email or SMS number configured" );
         }
     }
 
@@ -245,7 +244,7 @@ class ActivateUserUtils
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmSession, () -> "skipping send activation email for '" + userInfo.getUserIdentity() + "' no email configured" );
+            LOGGER.debug( pwmRequest, () -> "skipping send activation email for '" + userInfo.getUserIdentity() + "' no email configured" );
             return false;
         }
 
@@ -276,20 +275,20 @@ class ActivateUserUtils
         }
         catch ( final Exception e )
         {
-            LOGGER.debug( pwmSession, () -> "error reading SMS attribute from user '" + pwmSession.getUserInfo().getUserIdentity() + "': " + e.getMessage() );
+            LOGGER.debug( pwmRequest, () -> "error reading SMS attribute from user '" + pwmSession.getUserInfo().getUserIdentity() + "': " + e.getMessage() );
             return false;
         }
 
         if ( toSmsNumber == null || toSmsNumber.length() < 1 )
         {
-            LOGGER.debug( pwmSession, () -> "skipping send activation SMS for '" + pwmSession.getUserInfo().getUserIdentity() + "' no SMS number configured" );
+            LOGGER.debug( pwmRequest, () -> "skipping send activation SMS for '" + pwmSession.getUserInfo().getUserIdentity() + "' no SMS number configured" );
             return false;
         }
 
         pwmApplication.sendSmsUsingQueue(
                 toSmsNumber,
                 message,
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 pwmSession.getSessionManager().getMacroMachine( pwmApplication )
         );
         return true;

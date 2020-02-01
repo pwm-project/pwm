@@ -40,7 +40,7 @@ public class StatisticsBundle
     {
         for ( final Statistic statistic : Statistic.values() )
         {
-            incrementerMap.put( statistic, new AtomicLoopLongIncrementer( 0, Long.MAX_VALUE ) );
+            incrementerMap.put( statistic, new AtomicLoopLongIncrementer() );
         }
         for ( final AvgStatistic avgStatistic : AvgStatistic.values() )
         {
@@ -83,7 +83,7 @@ public class StatisticsBundle
             if ( !StringUtil.isEmpty( value ) )
             {
                 final long longValue = JavaHelper.silentParseLong( value, 0 );
-                final AtomicLoopLongIncrementer incrementer = new AtomicLoopLongIncrementer( longValue, Long.MAX_VALUE );
+                final AtomicLoopLongIncrementer incrementer = AtomicLoopLongIncrementer.builder().initial( longValue ).build();
                 bundle.incrementerMap.put( loopStat, incrementer );
             }
         }
@@ -103,7 +103,7 @@ public class StatisticsBundle
 
     void incrementValue( final Statistic statistic )
     {
-        incrementerMap.get( statistic ).incrementAndGet();
+        incrementerMap.get( statistic ).next();
     }
 
     void updateAverageValue( final AvgStatistic statistic, final long timeDuration )

@@ -74,7 +74,7 @@ public class HelpdeskVerificationOptionsBean implements Serializable
         final ChaiUser theUser = HelpdeskServlet.getChaiUser( pwmRequest, helpdeskProfile, targetUser );
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 pwmRequest.getLocale(),
                 targetUser,
                 theUser.getChaiProvider() );
@@ -110,7 +110,7 @@ public class HelpdeskVerificationOptionsBean implements Serializable
                 {
                     returnList.addAll( TokenUtil.figureAvailableTokenDestinations(
                             pwmRequest.getPwmApplication(),
-                            pwmRequest.getSessionLabel(),
+                            pwmRequest.getLabel(),
                             pwmRequest.getLocale(),
                             userInfo,
                             testSetting

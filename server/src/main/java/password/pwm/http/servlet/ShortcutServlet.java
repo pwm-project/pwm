@@ -89,7 +89,6 @@ public class ShortcutServlet extends AbstractPwmServlet
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
         if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.SHORTCUT_ENABLE ) )
@@ -101,13 +100,13 @@ public class ShortcutServlet extends AbstractPwmServlet
         final ShortcutsBean shortcutsBean = pwmApplication.getSessionStateService().getBean( pwmRequest, ShortcutsBean.class );
         if ( shortcutsBean.getVisibleItems() == null )
         {
-            LOGGER.debug( pwmSession, () -> "building visible shortcut list for user" );
+            LOGGER.debug( pwmRequest, () -> "building visible shortcut list for user" );
             final Map<String, ShortcutItem> visibleItems = figureVisibleShortcuts( pwmRequest );
             shortcutsBean.setVisibleItems( visibleItems );
         }
         else
         {
-            LOGGER.trace( pwmSession, () -> "using cashed shortcut values" );
+            LOGGER.trace( pwmRequest, () -> "using cashed shortcut values" );
         }
 
         final ShortcutAction action = readProcessAction( pwmRequest );
@@ -185,7 +184,7 @@ public class ShortcutServlet extends AbstractPwmServlet
             {
                 final boolean queryMatch = LdapPermissionTester.testQueryMatch(
                         pwmRequest.getPwmApplication(),
-                        pwmRequest.getSessionLabel(),
+                        pwmRequest.getLabel(),
                         pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                         item.getLdapQuery()
                 );
@@ -217,14 +216,14 @@ public class ShortcutServlet extends AbstractPwmServlet
             final ShortcutItem item = visibleItems.get( link );
 
             pwmApplication.getStatisticsManager().incrementValue( Statistic.SHORTCUTS_SELECTED );
-            LOGGER.trace( pwmSession, () -> "shortcut link selected: " + link + ", setting link for 'forwardURL' to " + item.getShortcutURI() );
+            LOGGER.trace( pwmRequest, () -> "shortcut link selected: " + link + ", setting link for 'forwardURL' to " + item.getShortcutURI() );
             pwmSession.getSessionStateBean().setForwardURL( item.getShortcutURI().toString() );
 
             pwmRequest.sendRedirectToContinue();
             return;
         }
 
-        LOGGER.error( pwmSession, "unknown/unexpected link requested to " + link );
+        LOGGER.error( pwmRequest, "unknown/unexpected link requested to " + link );
         pwmRequest.forwardToJsp( JspUrl.SHORTCUT );
     }
 }

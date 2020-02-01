@@ -68,14 +68,14 @@ public class BasicFilterAuthenticationProvider implements PwmHttpFilterAuthentic
             final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
             //user isn't already authenticated and has an auth header, so try to auth them.
-            LOGGER.debug( pwmSession, () -> "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.getUsername() + ")" );
+            LOGGER.debug( pwmRequest, () -> "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.getUsername() + ")" );
             final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
                     pwmApplication,
-                    pwmSession,
+                    pwmRequest,
                     PwmAuthenticationSource.BASIC_AUTH
             );
             final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
-            final UserIdentity userIdentity = userSearchEngine.resolveUsername( basicAuthInfo.getUsername(), null, null, pwmSession.getLabel() );
+            final UserIdentity userIdentity = userSearchEngine.resolveUsername( basicAuthInfo.getUsername(), null, null, pwmRequest.getLabel() );
             sessionAuthenticator.authenticateUser( userIdentity, basicAuthInfo.getPassword() );
             pwmSession.getLoginInfoBean().setBasicAuth( basicAuthInfo );
 

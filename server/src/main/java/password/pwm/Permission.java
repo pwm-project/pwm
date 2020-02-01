@@ -21,7 +21,6 @@
 package password.pwm;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.util.logging.PwmLogger;
 
 /**
  * @author Jason D. Rivard
@@ -39,10 +38,7 @@ public enum Permission
     WEBSERVICE( PwmSetting.WEBSERVICES_QUERY_MATCH ),
     WEBSERVICE_THIRDPARTY( PwmSetting.WEBSERVICES_THIRDPARTY_QUERY_MATCH ),;
 
-
-    private static final PwmLogger LOGGER = PwmLogger.forClass( Permission.class );
-
-    private PwmSetting pwmSetting;
+    private final PwmSetting pwmSetting;
 
     Permission( final PwmSetting pwmSetting )
     {

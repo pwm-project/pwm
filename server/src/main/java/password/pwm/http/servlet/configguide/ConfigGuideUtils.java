@@ -42,12 +42,12 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
-import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
 import password.pwm.util.LDAPPermissionCalculator;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.Percent;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
@@ -217,7 +217,6 @@ public class ConfigGuideUtils
             throws PwmUnrecoverableException, IOException, ServletException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
         if ( pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING )
@@ -240,12 +239,12 @@ public class ConfigGuideUtils
                 {
                     final StoredConfiguration storedConfig = StoredConfigurationFactory.fromXml( uploadedFile );
                     final List<String> configErrors = StoredConfigurationUtil.validateValues( storedConfig );
-                    if ( configErrors != null && !configErrors.isEmpty() )
+                    if ( !JavaHelper.isEmpty( configErrors ) )
                     {
                         throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, configErrors.get( 0 ) ) );
                     }
                     ConfigGuideUtils.writeConfig( ContextManager.getContextManager( req.getSession() ), storedConfig );
-                    LOGGER.trace( pwmSession, () -> "read config from file: " + storedConfig.toString() );
+                    LOGGER.trace( pwmRequest, () -> "read config from file: " + storedConfig.toString() );
                     final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
                     pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
                     req.getSession().invalidate();
@@ -254,7 +253,7 @@ public class ConfigGuideUtils
                 {
                     final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
                     pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
-                    LOGGER.error( pwmSession, e.getErrorInformation().toDebugStr() );
+                    LOGGER.error( pwmRequest, e.getErrorInformation().toDebugStr() );
                 }
             }
             else
@@ -262,7 +261,7 @@ public class ConfigGuideUtils
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file: no file present in upload" );
                 final RestResultBean restResultBean = RestResultBean.fromError( errorInformation, pwmRequest );
                 pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
-                LOGGER.error( pwmSession, errorInformation.toDebugStr() );
+                LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
             }
         }
     }

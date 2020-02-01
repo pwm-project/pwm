@@ -107,7 +107,7 @@ public class EmailService implements PwmService
             return;
         }
 
-        serverIncrementer = new AtomicLoopIntIncrementer( servers.size() - 1 );
+        serverIncrementer = AtomicLoopIntIncrementer.builder().ceiling( servers.size() - 1 ).build();
 
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {

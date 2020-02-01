@@ -232,6 +232,7 @@ public enum AppProperty
     LDAP_SEARCH_PARALLEL_THREAD_MAX                 ( "ldap.search.parallel.threadMax" ),
     LDAP_ORACLE_POST_TEMPPW_USE_CURRENT_TIME        ( "ldap.oracle.postTempPasswordUseCurrentTime" ),
     LOGGING_PATTERN                                 ( "logging.pattern" ),
+    LOGGING_EXTRA_PERIODIC_THREAD_DUMP_INTERVAL     ( "logging.extra.periodicThreadDumpIntervalSeconds" ),
     LOGGING_FILE_MAX_SIZE                           ( "logging.file.maxSize" ),
     LOGGING_FILE_MAX_ROLLOVER                       ( "logging.file.maxRollover" ),
     LOGGING_FILE_PATH                               ( "logging.file.path" ),

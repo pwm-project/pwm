@@ -130,13 +130,13 @@ public class SessionManager
         {
             try
             {
-                LOGGER.debug( pwmSession, () -> "closing user ldap connection" );
+                LOGGER.debug( pwmSession.getLabel(), () -> "closing user ldap connection" );
                 chaiProvider.close();
                 chaiProvider = null;
             }
             catch ( final Exception e )
             {
-                LOGGER.error( pwmSession, "error while closing user connection: " + e.getMessage() );
+                LOGGER.error( pwmSession.getLabel(), "error while closing user connection: " + e.getMessage() );
             }
         }
     }
@@ -195,7 +195,7 @@ public class SessionManager
             this.pwmSession.getLoginInfoBean().setReqCounter(
                     this.pwmSession.getLoginInfoBean().getReqCounter() + 1 );
 
-            LOGGER.trace( pwmSession, () -> "incremented request counter to " + this.pwmSession.getLoginInfoBean().getReqCounter() );
+            LOGGER.trace( pwmSession.getLabel(), () -> "incremented request counter to " + this.pwmSession.getLoginInfoBean().getReqCounter() );
         }
     }
 
@@ -205,14 +205,14 @@ public class SessionManager
         final boolean devDebugMode = pwmApplication.getConfig().isDevDebugMode();
         if ( devDebugMode )
         {
-            LOGGER.trace( pwmSession, () -> String.format( "entering checkPermission(%s, %s, %s)", permission, pwmSession, pwmApplication ) );
+            LOGGER.trace( pwmSession.getLabel(), () -> String.format( "entering checkPermission(%s, %s, %s)", permission, pwmSession, pwmApplication ) );
         }
 
         if ( !pwmSession.isAuthenticated() )
         {
             if ( devDebugMode )
             {
-                LOGGER.trace( pwmSession, () -> "user is not authenticated, returning false for permission check" );
+                LOGGER.trace( pwmSession.getLabel(), () -> "user is not authenticated, returning false for permission check" );
             }
             return false;
         }
@@ -222,7 +222,7 @@ public class SessionManager
         {
             if ( devDebugMode )
             {
-                LOGGER.debug( pwmSession,
+                LOGGER.debug( pwmSession.getLabel(),
                         () -> String.format( "checking permission %s for user %s", permission.toString(), pwmSession.getUserInfo().getUserIdentity().toDelimitedKey() ) );
             }
 
@@ -234,7 +234,7 @@ public class SessionManager
 
             {
                 final Permission.PermissionStatus finalStatus = status;
-                LOGGER.debug( pwmSession,
+                LOGGER.debug( pwmSession.getLabel(),
                         () -> String.format( "permission %s for user %s is %s",
                                 permission.toString(),
                                 pwmSession.isAuthenticated()

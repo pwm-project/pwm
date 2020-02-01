@@ -20,21 +20,21 @@
 
 package password.pwm.http.servlet;
 
-import password.pwm.util.java.AtomicLoopIntIncrementer;
+import password.pwm.util.java.AtomicLoopLongIncrementer;
 
 public class PwmRequestID
 {
-    private final int value;
-    private static final AtomicLoopIntIncrementer INCREMENTER = new AtomicLoopIntIncrementer( Integer.MAX_VALUE );
+    private final long value;
+    private static final AtomicLoopLongIncrementer INCREMENTER = new AtomicLoopLongIncrementer();
 
-    private PwmRequestID( final int value )
+    private PwmRequestID( final long value )
     {
         this.value = value;
     }
 
     private String value()
     {
-        return String.valueOf( value );
+        return Long.toString( value, 36 );
     }
 
     public String toString()

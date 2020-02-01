@@ -181,7 +181,7 @@ public class HelpdeskServletUtil
 
         final boolean match = LdapPermissionTester.testQueryMatch(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 userIdentity,
                 filterString
         );
@@ -230,8 +230,8 @@ public class HelpdeskServletUtil
                 pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                 null,
                 userIdentity,
-                pwmRequest.getSessionLabel().getSrcAddress(),
-                pwmRequest.getSessionLabel().getSrcHostname()
+                pwmRequest.getLabel().getSourceAddress(),
+                pwmRequest.getLabel().getSourceHostname()
         );
         pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
 
@@ -295,7 +295,7 @@ public class HelpdeskServletUtil
 
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 pwmRequest.getLocale(),
                 userIdentity,
                 chaiUser.getChaiProvider()
@@ -303,7 +303,7 @@ public class HelpdeskServletUtil
 
         final MacroMachine macroMachine = MacroMachine.forUser(
                 pwmApplication,
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 userInfo,
                 null
         );

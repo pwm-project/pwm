@@ -141,7 +141,7 @@ public class DatabaseService implements PwmService
             }
 
             LOGGER.debug( () -> "opening connection to database " + this.dbConfiguration.getConnectionString() );
-            slotIncrementer = new AtomicLoopIntIncrementer( dbConfiguration.getMaxConnections() );
+            slotIncrementer = AtomicLoopIntIncrementer.builder().ceiling( dbConfiguration.getMaxConnections() ).build();
 
             {
                 // make initial connection and establish schema

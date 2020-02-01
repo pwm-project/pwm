@@ -450,7 +450,7 @@ public class AdminServlet extends ControlledPwmServlet
             final UserDebugDataBean userDebugData = UserDebugDataReader.readUserDebugData(
                     pwmRequest.getPwmApplication(),
                     pwmRequest.getLocale(),
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     userIdentity
             );
             final String output = JsonUtil.serialize( userDebugData, JsonUtil.Flag.PrettyPrint );
@@ -554,7 +554,7 @@ public class AdminServlet extends ControlledPwmServlet
         final UserIdentity userIdentity;
         try
         {
-            userIdentity = userSearchEngine.resolveUsername( username, null, null, pwmRequest.getSessionLabel() );
+            userIdentity = userSearchEngine.resolveUsername( username, null, null, pwmRequest.getLabel() );
             final AdminBean adminBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, AdminBean.class );
             adminBean.setLastUserDebug( userIdentity );
         }
@@ -567,7 +567,7 @@ public class AdminServlet extends ControlledPwmServlet
         final UserDebugDataBean userDebugData = UserDebugDataReader.readUserDebugData(
                 pwmRequest.getPwmApplication(),
                 pwmRequest.getLocale(),
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 userIdentity
         );
         pwmRequest.setAttribute( PwmRequestAttribute.UserDebugData, userDebugData );

@@ -100,7 +100,7 @@ public class HttpEventManager implements
                     pwmApplication.getSessionTrackService().removeSessionData( pwmSession );
                 }
                 final String outputMsg = debugMsg;
-                LOGGER.trace( pwmSession, () -> outputMsg );
+                LOGGER.trace( pwmSession.getLabel(), () -> outputMsg );
             }
             else
             {

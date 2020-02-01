@@ -167,7 +167,7 @@ public class ClientApiServlet extends ControlledPwmServlet
 
         final AppData appData = makeAppData(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getPwmSession(),
+                pwmRequest,
                 pwmRequest.getHttpServletRequest(),
                 pwmRequest.getPwmResponse().getHttpServletResponse(),
                 pageUrl
@@ -194,7 +194,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         try
         {
             final LinkedHashMap<String, String> displayData = new LinkedHashMap<>( makeDisplayData( pwmRequest.getPwmApplication(),
-                    pwmRequest.getPwmSession(), bundleName ) );
+                    pwmRequest, bundleName ) );
             final RestResultBean restResultBean = RestResultBean.withData( displayData );
             pwmRequest.outputJsonResult( restResultBean );
         }
@@ -279,7 +279,7 @@ public class ClientApiServlet extends ControlledPwmServlet
 
     private AppData makeAppData(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final PwmRequest pwmSession,
             final HttpServletRequest request,
             final HttpServletResponse response,
             final String pageUrl
@@ -293,13 +293,14 @@ public class ClientApiServlet extends ControlledPwmServlet
 
     private static Map<String, Object> makeClientData(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final HttpServletRequest request,
             final HttpServletResponse response,
             final String pageUrl
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
 
         final Configuration config = pwmApplication.getConfig();
@@ -321,19 +322,19 @@ public class ClientApiServlet extends ControlledPwmServlet
             long idleSeconds = config.readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
             if ( pageUrl == null || pageUrl.isEmpty() )
             {
-                LOGGER.warn( pwmSession, "request to /client data did not include pageUrl" );
+                LOGGER.warn( pwmRequest, "request to /client data did not include pageUrl" );
             }
             else
             {
                 try
                 {
                     final PwmURL pwmURL = new PwmURL( new URI( pageUrl ), request.getContextPath() );
-                    final TimeDuration maxIdleTime = IdleTimeoutCalculator.idleTimeoutForRequest( pwmURL, pwmApplication, pwmSession );
+                    final TimeDuration maxIdleTime = IdleTimeoutCalculator.idleTimeoutForRequest( pwmRequest );
                     idleSeconds = maxIdleTime.as( TimeDuration.Unit.SECONDS );
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( pwmSession, "error determining idle timeout time for request: " + e.getMessage() );
+                    LOGGER.error( pwmRequest, "error determining idle timeout time for request: " + e.getMessage() );
                 }
             }
             settingMap.put( "MaxInactiveInterval", idleSeconds );
@@ -416,10 +417,11 @@ public class ClientApiServlet extends ControlledPwmServlet
 
     private Map<String, String> makeDisplayData(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final String bundleName
     )
     {
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         Class displayClass = LocaleHelper.classForShortName( bundleName );
         displayClass = displayClass == null ? Display.class : displayClass;
 
@@ -439,7 +441,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmSession, "error expanding macro display value: " + e.getMessage() );
+            LOGGER.error( pwmRequest, "error expanding macro display value: " + e.getMessage() );
         }
         return displayStrings;
     }

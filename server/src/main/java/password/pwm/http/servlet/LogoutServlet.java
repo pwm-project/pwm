@@ -140,7 +140,7 @@ public class LogoutServlet extends ControlledPwmServlet
             final String sessionLogoutURL = pwmSession.getSessionStateBean().getLogoutURL();
             if ( sessionLogoutURL != null && sessionLogoutURL.length() > 0 )
             {
-                LOGGER.trace( pwmSession, () -> "redirecting user to session parameter set logout url: " + sessionLogoutURL );
+                LOGGER.trace( pwmRequest, () -> "redirecting user to session parameter set logout url: " + sessionLogoutURL );
                 pwmRequest.sendRedirect( sessionLogoutURL );
                 pwmRequest.invalidateSession();
                 return;
@@ -172,7 +172,7 @@ public class LogoutServlet extends ControlledPwmServlet
 
                 final String logoutURL = PwmURL.appendAndEncodeUrlParameters( configuredLogoutURL, logoutUrlParameters );
 
-                LOGGER.trace( pwmSession, () -> "redirecting user to configured logout url:" + logoutURL );
+                LOGGER.trace( pwmRequest, () -> "redirecting user to configured logout url:" + logoutURL );
                 pwmRequest.sendRedirect( logoutURL );
                 pwmRequest.invalidateSession();
                 return;

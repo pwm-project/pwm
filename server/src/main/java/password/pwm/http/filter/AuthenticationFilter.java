@@ -169,7 +169,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         if ( pwmSession.getLoginInfoBean().getOauthExp() != null )
         {
             final OAuthSettings oauthSettings = OAuthSettings.forSSOAuthentication( pwmRequest.getConfig() );
-            final OAuthMachine oAuthMachine = new OAuthMachine( pwmRequest.getSessionLabel(), oauthSettings );
+            final OAuthMachine oAuthMachine = new OAuthMachine( pwmRequest.getLabel(), oauthSettings );
             if ( oAuthMachine.checkOAuthExpiration( pwmRequest ) )
             {
                 pwmRequest.respondWithError( new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, "oauth access token has expired" ) );
@@ -192,7 +192,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
             {
                 try
                 {
-                    LOGGER.debug( pwmSession, () -> "user is authenticated without a password, but module " + pwmServletDefinition.name()
+                    LOGGER.debug( pwmRequest, () -> "user is authenticated without a password, but module " + pwmServletDefinition.name()
                             +  " requires user connection, redirecting to login page" );
                     LoginServlet.redirectToLoginServlet( pwmRequest );
                     return;
@@ -243,7 +243,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         if ( pwmSession.isAuthenticated() )
         {
             pwmSession.getSessionStateBean().setSessionIdRecycleNeeded( true );
-            LOGGER.debug( pwmSession, () -> "session authenticated during request, issuing redirect to originally requested url: " + originalRequestedUrl );
+            LOGGER.debug( pwmRequest, () -> "session authenticated during request, issuing redirect to originally requested url: " + originalRequestedUrl );
             pwmRequest.sendRedirect( originalRequestedUrl );
             return;
         }
@@ -269,7 +269,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         }
 
         //user is not authenticated so forward to LoginPage.
-        LOGGER.trace( pwmSession, () -> "user requested resource requiring authentication (" + req.getRequestURI()
+        LOGGER.trace( pwmRequest, () -> "user requested resource requiring authentication (" + req.getRequestURI()
                         + "), but is not authenticated; redirecting to LoginServlet" );
 
         LoginServlet.redirectToLoginServlet( pwmRequest );

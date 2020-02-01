@@ -44,7 +44,7 @@ public class OAuthFilterAuthenticationProvider implements PwmHttpFilterAuthentic
         }
 
         final String originalURL = pwmRequest.getURLwithQueryString();
-        final OAuthMachine oAuthMachine = new OAuthMachine( pwmRequest.getSessionLabel(), oauthSettings );
+        final OAuthMachine oAuthMachine = new OAuthMachine( pwmRequest.getLabel(), oauthSettings );
         oAuthMachine.redirectUserToOAuthServer( pwmRequest, originalURL, null, null );
         redirected = true;
     }

@@ -211,7 +211,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
 
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
         intruderManager.convenience().checkUserIdentity( userIdentity );
-        intruderManager.check( RecordType.ADDRESS, sessionLabel.getSrcAddress() );
+        intruderManager.check( RecordType.ADDRESS, sessionLabel.getSourceAddress() );
 
         // verify user is not account disabled
         AuthenticationUtility.checkIfUserEligibleToAuthentication( pwmApplication, userIdentity );
@@ -366,8 +366,8 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                 AuditEvent.AUTHENTICATE,
                 this.userIdentity,
                 makeAuditLogMessage( authenticationResult.getAuthenticationType() ),
-                sessionLabel.getSrcAddress(),
-                sessionLabel.getSrcHostname()
+                sessionLabel.getSourceAddress(),
+                sessionLabel.getSourceHostname()
         );
         pwmApplication.getAuditManager().submit( auditRecord );
         pwmApplication.getSessionTrackService().addRecentLogin( userIdentity );

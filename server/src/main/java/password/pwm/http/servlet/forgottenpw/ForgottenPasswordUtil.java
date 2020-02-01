@@ -444,7 +444,7 @@ public class ForgottenPasswordUtil
         {
             final String errorMsg = "unable to unlock user " + theUser.getEntryDN() + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNLOCK_FAILURE, errorMsg );
-            LOGGER.error( pwmRequest.getPwmSession(), errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
             pwmRequest.respondWithError( errorInformation );
             return;
         }
@@ -453,7 +453,7 @@ public class ForgottenPasswordUtil
         {
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
                     pwmApplication,
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     userIdentity,
                     pwmRequest.getLocale()
             );
@@ -463,7 +463,7 @@ public class ForgottenPasswordUtil
 
             // create new password
             final PasswordData newPassword = RandomPasswordGenerator.createRandomPassword(
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     userInfo.getPasswordPolicy(),
                     pwmApplication
             );
@@ -494,7 +494,7 @@ public class ForgottenPasswordUtil
                 final AuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createUserAuditRecord(
                         AuditEvent.RECOVER_PASSWORD,
                         userIdentity,
-                        pwmRequest.getSessionLabel()
+                        pwmRequest.getLabel()
                 );
                 pwmApplication.getAuditManager().submit( auditRecord );
             }

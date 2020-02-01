@@ -228,7 +228,7 @@ public class UpdateProfileUtil
         final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
         final List<FormConfiguration> formFields = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
         final Map<FormConfiguration, String> formMap = new LinkedHashMap<>();
-        FormUtility.populateFormMapFromLdap( formFields, pwmRequest.getSessionLabel(), formMap, userInfo );
+        FormUtility.populateFormMapFromLdap( formFields, pwmRequest.getLabel(), formMap, userInfo );
         return FormUtility.asStringMap( formMap );
     }
 

@@ -85,7 +85,7 @@ public class PwmSessionWrapper
         if ( httpSession.getMaxInactiveInterval() != result.getIdleTimeout().as( TimeDuration.Unit.SECONDS ) )
         {
             httpSession.setMaxInactiveInterval( ( int ) result.getIdleTimeout().as( TimeDuration.Unit.SECONDS ) );
-            LOGGER.trace( pwmSession, () -> "setting java servlet session timeout to " + result.getIdleTimeout().asCompactString()
+            LOGGER.trace( pwmSession.getLabel(), () -> "setting java servlet session timeout to " + result.getIdleTimeout().asCompactString()
                     + " due to " + result.getReason() );
         }
     }

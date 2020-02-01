@@ -539,29 +539,19 @@ public class SmsQueueManager implements PwmService
                 final String message
         )
         {
-            final String gatewayUser = config.readSettingAsString( PwmSetting.SMS_GATEWAY_USER );
-            final PasswordData gatewayPass = config.readSettingAsPassword( PwmSetting.SMS_GATEWAY_PASSWORD );
+
             final SmsDataEncoding encoding = config.readSettingAsEnum( PwmSetting.SMS_REQUEST_CONTENT_ENCODING, SmsDataEncoding.class );
 
             String requestData = config.readSettingAsString( PwmSetting.SMS_REQUEST_DATA );
 
+            requestData = applyUserPassTokens( requestData );
+
             // Replace strings in requestData
             {
                 final String senderId = config.readSettingAsString( PwmSetting.SMS_SENDER_ID );
-                requestData = requestData.replace( TOKEN_USER, smsDataEncode( gatewayUser, encoding ) );
                 requestData = requestData.replace( TOKEN_SENDERID, smsDataEncode( senderId, encoding ) );
                 requestData = requestData.replace( TOKEN_MESSAGE, smsDataEncode( message, encoding ) );
                 requestData = requestData.replace( TOKEN_TO, smsDataEncode( formatSmsNumber( config, to ), encoding ) );
-            }
-
-            try
-            {
-                final String gatewayStrPass = gatewayPass == null ? null : gatewayPass.getStringValue();
-                requestData = requestData.replace( TOKEN_PASS, smsDataEncode( gatewayStrPass, encoding ) );
-            }
-            catch ( final PwmUnrecoverableException e )
-            {
-                LOGGER.error( "unable to read sms password while reading configuration" );
             }
 
             if ( requestData.contains( TOKEN_REQUESTID ) )
@@ -574,6 +564,30 @@ public class SmsQueueManager implements PwmService
             }
 
             return requestData;
+        }
+
+        private String applyUserPassTokens( final String input )
+        {
+            final SmsDataEncoding encoding = config.readSettingAsEnum( PwmSetting.SMS_REQUEST_CONTENT_ENCODING, SmsDataEncoding.class );
+
+            final String gatewayUser = config.readSettingAsString( PwmSetting.SMS_GATEWAY_USER );
+            final PasswordData gatewayPass = config.readSettingAsPassword( PwmSetting.SMS_GATEWAY_PASSWORD );
+
+            String modifiableText = input;
+            modifiableText = modifiableText.replace( TOKEN_USER, smsDataEncode( gatewayUser, encoding ) );
+            modifiableText = modifiableText.replace( TOKEN_USER, smsDataEncode( gatewayUser, encoding ) );
+
+            try
+            {
+                final String gatewayStrPass = gatewayPass == null ? null : gatewayPass.getStringValue();
+                modifiableText = modifiableText.replace( TOKEN_PASS, smsDataEncode( gatewayStrPass, encoding ) );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                LOGGER.error( "unable to read sms password while reading configuration: " + e.getMessage() );
+            }
+
+            return modifiableText;
         }
 
         private PwmHttpClientRequest makeRequest(
@@ -617,7 +631,8 @@ public class SmsQueueManager implements PwmService
                         {
                             final String headerName = matcher.group( 1 );
                             final String headerValue = matcher.group( 2 );
-                            headers.put( headerName, headerValue );
+                            final String tokenizedValue = applyUserPassTokens( headerValue );
+                            headers.put( headerName, tokenizedValue );
                         }
                         else
                         {

@@ -381,12 +381,12 @@ public enum PwmSetting
             "sms.gatewayURL", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY ),
     SMS_GATEWAY_CERTIFICATES(
             "sms.gatewayCertificates", PwmSettingSyntax.X509CERT, PwmSettingCategory.SMS_GATEWAY ),
+    SMS_GATEWAY_METHOD(
+            "sms.gatewayMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.SMS_GATEWAY ),
     SMS_GATEWAY_USER(
             "sms.gatewayUser", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY ),
     SMS_GATEWAY_PASSWORD(
             "sms.gatewayPassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.SMS_GATEWAY ),
-    SMS_GATEWAY_METHOD(
-            "sms.gatewayMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.SMS_GATEWAY ),
     SMS_GATEWAY_AUTHMETHOD(
             "sms.gatewayAuthMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.SMS_GATEWAY ),
     SMS_REQUEST_DATA(

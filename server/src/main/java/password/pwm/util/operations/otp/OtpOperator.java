@@ -28,7 +28,7 @@ package password.pwm.util.operations.otp;
 import com.novell.ldapchai.ChaiUser;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmSession;
+import password.pwm.http.PwmRequest;
 
 /**
  * @author mpieters
@@ -43,7 +43,7 @@ public interface OtpOperator
             throws PwmUnrecoverableException;
 
     void writeOtpUserConfiguration(
-            PwmSession pwmSession,
+            PwmRequest pwmRequest,
             UserIdentity theUser,
             String userGuid,
             OTPUserRecord otpConfig
@@ -51,7 +51,7 @@ public interface OtpOperator
             throws PwmUnrecoverableException;
 
     void clearOtpUserConfiguration(
-            PwmSession pwmSession,
+            PwmRequest pwmRequest,
             UserIdentity theUser,
             ChaiUser chaiUser,
             String userGuid

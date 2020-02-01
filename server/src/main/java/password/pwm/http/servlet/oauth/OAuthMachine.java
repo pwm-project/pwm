@@ -300,7 +300,7 @@ public class OAuthMachine
                     .maskBodyDebugOutput( true )
                     .build();
             final PwmHttpClient pwmHttpClient = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient( config );
-            pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, pwmRequest.getSessionLabel() );
+            pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, pwmRequest.getLabel() );
         }
         catch ( final PwmException e )
         {

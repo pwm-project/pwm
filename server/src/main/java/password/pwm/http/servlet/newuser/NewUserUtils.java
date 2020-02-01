@@ -137,7 +137,7 @@ class NewUserUtils
             passwordCheckInfoToException( passwordCheckInfo );
         }
 
-        NewUserUtils.LOGGER.debug( pwmSession, () -> "beginning createUser process for " + newUserDN );
+        NewUserUtils.LOGGER.debug( pwmRequest, () -> "beginning createUser process for " + newUserDN );
 
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
         final boolean promptForPassword = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD );
@@ -150,7 +150,7 @@ class NewUserUtils
         else
         {
             final PwmPasswordPolicy pwmPasswordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmApplication(), pwmRequest.getLocale() );
-            userPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getSessionLabel(), pwmPasswordPolicy, pwmRequest.getPwmApplication() );
+            userPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), pwmPasswordPolicy, pwmRequest.getPwmApplication() );
         }
 
         // set up the user creation attributes
@@ -172,7 +172,7 @@ class NewUserUtils
             // create the ldap entry
             chaiProvider.createEntry( newUserDN, createObjectClasses, createAttributes );
 
-            NewUserUtils.LOGGER.info( pwmSession, () -> "created user entry: " + newUserDN );
+            NewUserUtils.LOGGER.info( pwmRequest, () -> "created user entry: " + newUserDN );
         }
         catch ( final ChaiOperationException e )
         {
@@ -199,20 +199,20 @@ class NewUserUtils
 
         if ( useTempPw )
         {
-            NewUserUtils.LOGGER.trace( pwmSession, () -> "will use temporary password process for new user entry: " + newUserDN );
+            NewUserUtils.LOGGER.trace( pwmRequest, () -> "will use temporary password process for new user entry: " + newUserDN );
             final PasswordData temporaryPassword;
             {
                 final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = RandomPasswordGenerator.RandomGeneratorConfig.builder()
                         .passwordPolicy( newUserProfile.getNewUserPasswordPolicy( pwmApplication, pwmRequest.getLocale() ) )
                         .build();
-                temporaryPassword = RandomPasswordGenerator.createRandomPassword( pwmSession.getLabel(), randomGeneratorConfig, pwmApplication );
+                temporaryPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), randomGeneratorConfig, pwmApplication );
             }
             final ChaiUser proxiedUser = chaiProvider.getEntryFactory().newChaiUser( newUserDN );
             try
             {
                 //set password as admin
                 proxiedUser.setPassword( temporaryPassword.getStringValue() );
-                NewUserUtils.LOGGER.debug( pwmSession, () -> "set temporary password for new user entry: " + newUserDN );
+                NewUserUtils.LOGGER.debug( pwmRequest, () -> "set temporary password for new user entry: " + newUserDN );
             }
             catch ( final ChaiOperationException e )
             {
@@ -227,7 +227,7 @@ class NewUserUtils
             {
                 try
                 {
-                    NewUserUtils.LOGGER.debug( pwmSession, () ->
+                    NewUserUtils.LOGGER.debug( pwmRequest, () ->
                             "setting userAccountControl attribute to enable account " + theUser.getEntryDN() );
                     theUser.writeStringAttribute( "userAccountControl", "512" );
                 }
@@ -243,7 +243,7 @@ class NewUserUtils
             try
             {
                 // bind as user
-                NewUserUtils.LOGGER.debug( pwmSession, () ->
+                NewUserUtils.LOGGER.debug( pwmRequest, () ->
                         "attempting bind as user to then allow changing to requested password for new user entry: " + newUserDN );
                 final ChaiConfiguration chaiConfiguration = ChaiConfiguration.builder( chaiProvider.getChaiConfiguration() )
                         .setSetting( ChaiSetting.BIND_DN, newUserDN )
@@ -252,7 +252,7 @@ class NewUserUtils
                 final ChaiProvider bindAsProvider = pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfiguration );
                 final ChaiUser bindAsUser = bindAsProvider.getEntryFactory().newChaiUser( newUserDN );
                 bindAsUser.changePassword( temporaryPassword.getStringValue(), userPassword.getStringValue() );
-                NewUserUtils.LOGGER.debug( pwmSession, () -> "changed to user requested password for new user entry: " + newUserDN );
+                NewUserUtils.LOGGER.debug( pwmRequest, () -> "changed to user requested password for new user entry: " + newUserDN );
                 bindAsProvider.close();
             }
             catch ( final ChaiOperationException e )
@@ -269,7 +269,7 @@ class NewUserUtils
             {
                 //set password
                 theUser.setPassword( userPassword.getStringValue() );
-                NewUserUtils.LOGGER.debug( pwmSession, () -> "set user requested password for new user entry: " + newUserDN );
+                NewUserUtils.LOGGER.debug( pwmRequest, () -> "set user requested password for new user entry: " + newUserDN );
             }
             catch ( final ChaiOperationException e )
             {
@@ -296,14 +296,14 @@ class NewUserUtils
             }
         }
 
-        NewUserUtils.LOGGER.trace( pwmSession, () -> "new user ldap creation process complete, now authenticating user" );
+        NewUserUtils.LOGGER.trace( pwmRequest, () -> "new user ldap creation process complete, now authenticating user" );
 
         // write data to remote web service
         remoteWriteFormData( pwmRequest, newUserForm );
 
         // authenticate the user to pwm
         final UserIdentity userIdentity = new UserIdentity( newUserDN, pwmApplication.getConfig().getDefaultLdapProfile().getIdentifier() );
-        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmApplication, pwmSession, PwmAuthenticationSource.NEW_USER_REGISTRATION );
+        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmApplication, pwmRequest, PwmAuthenticationSource.NEW_USER_REGISTRATION );
         sessionAuthenticator.authenticateUser( userIdentity, userPassword );
 
         {
@@ -312,14 +312,14 @@ class NewUserUtils
                     PwmSetting.NEWUSER_WRITE_ATTRIBUTES );
             if ( actions != null && !actions.isEmpty() )
             {
-                NewUserUtils.LOGGER.debug( pwmSession, () -> "executing configured actions to user " + theUser.getEntryDN() );
+                NewUserUtils.LOGGER.debug( pwmRequest, () -> "executing configured actions to user " + theUser.getEntryDN() );
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
                         .setExpandPwmMacros( true )
                         .setMacroMachine( pwmSession.getSessionManager().getMacroMachine( pwmApplication ) )
                         .createActionExecutor();
 
-                actionExecutor.executeActions( actions, pwmSession.getLabel() );
+                actionExecutor.executeActions( actions, pwmRequest.getLabel() );
             }
         }
 
@@ -333,7 +333,7 @@ class NewUserUtils
         // increment the new user creation statistics
         pwmApplication.getStatisticsManager().incrementValue( Statistic.NEW_USERS );
 
-        NewUserUtils.LOGGER.debug( pwmSession, () -> "completed createUser process for " + newUserDN + " (" + TimeDuration.fromCurrent(
+        NewUserUtils.LOGGER.debug( pwmRequest, () -> "completed createUser process for " + newUserDN + " (" + TimeDuration.fromCurrent(
                 startTime ).asCompactString() + ")" );
     }
 
@@ -363,7 +363,7 @@ class NewUserUtils
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final MacroMachine macroMachine = createMacroMachineForNewUser( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), formValues, null );
+        final MacroMachine macroMachine = createMacroMachineForNewUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), formValues, null );
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
         final List<String> configuredNames = newUserProfile.readSettingAsStringArray( PwmSetting.NEWUSER_USERNAME_DEFINITION );
         final List<String> failedValues = new ArrayList<>();
@@ -444,7 +444,7 @@ class NewUserUtils
         try
         {
             final Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(
-                    searchConfiguration, 2, Collections.emptyList(), pwmRequest.getSessionLabel() );
+                    searchConfiguration, 2, Collections.emptyList(), pwmRequest.getLabel() );
             return results != null && !results.isEmpty();
         }
         catch ( final PwmOperationalException e )
@@ -468,7 +468,7 @@ class NewUserUtils
 
         if ( configuredEmailSetting == null )
         {
-            NewUserUtils.LOGGER.debug( pwmSession, () ->
+            NewUserUtils.LOGGER.debug( pwmRequest, () ->
                     "skipping send of new user email for '" + userInfo.getUserIdentity().getUserDN() + "' no email configured" );
             return;
         }
@@ -561,7 +561,7 @@ class NewUserUtils
     )
             throws PwmUnrecoverableException, PwmDataValidationException
     {
-        final RestFormDataClient restFormDataClient = new RestFormDataClient( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel() );
+        final RestFormDataClient restFormDataClient = new RestFormDataClient( pwmRequest.getPwmApplication(), pwmRequest.getLabel() );
         if ( !restFormDataClient.isEnabled() )
         {
             return;
@@ -687,7 +687,7 @@ class NewUserUtils
                     final Map<String, String> tokenPayloadMap = NewUserFormUtils.toTokenPayload( pwmRequest, newUserBean );
                     final MacroMachine macroMachine = createMacroMachineForNewUser(
                             pwmRequest.getPwmApplication(),
-                            pwmRequest.getSessionLabel(),
+                            pwmRequest.getLabel(),
                             newUserBean.getNewUserForm(),
                             tokenDestinationItem );
 

@@ -177,7 +177,10 @@ public class LocalDBLoggerExtendedTest
             final PwmLogEvent event = PwmLogEvent.createPwmLogEvent(
                     Instant.now(),
                     LocalDBLogger.class.getName(),
-                    description, "", "", null, null, PwmLogLevel.TRACE );
+                    description,
+                    null,
+                    null,
+                    PwmLogLevel.TRACE );
             events.add( event );
         }
 

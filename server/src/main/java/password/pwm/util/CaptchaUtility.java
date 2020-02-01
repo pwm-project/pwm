@@ -119,7 +119,7 @@ public class CaptchaUtility
 
         final String bodyText = "secret=" + StringUtil.urlEncode( privateKey.getStringValue() )
                 + "&"
-                + "remoteip=" + StringUtil.urlEncode( pwmRequest.getSessionLabel().getSrcAddress() )
+                + "remoteip=" + StringUtil.urlEncode( pwmRequest.getLabel().getSourceAddress() )
                 + "&"
                 + "response=" + StringUtil.urlEncode( recaptchaResponse );
 
@@ -134,7 +134,7 @@ public class CaptchaUtility
 
             LOGGER.debug( pwmRequest, () -> "sending reCaptcha verification request" );
             final PwmHttpClient client = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient();
-            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, pwmRequest.getSessionLabel()  );
+            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, pwmRequest.getLabel()  );
 
             if ( clientResponse.getStatusCode() != HttpServletResponse.SC_OK )
             {

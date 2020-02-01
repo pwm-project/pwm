@@ -548,7 +548,7 @@ public class RequestInitializationFilter implements Filter
         if ( localeCookieName.length() > 0 && localeCookie != null )
         {
             LOGGER.debug( pwmRequest, () -> "detected locale cookie in request, setting locale to " + localeCookie );
-            pwmRequest.getPwmSession().setLocale( pwmRequest.getPwmApplication(), localeCookie );
+            pwmRequest.getPwmSession().setLocale( pwmRequest, localeCookie );
         }
         else
         {
