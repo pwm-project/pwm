@@ -48,7 +48,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
@@ -461,7 +460,7 @@ public abstract class StoredConfigurationUtil
                         {
                             final Optional<String> hash1 = originalConfiguration.readStoredValue( reference ).map( StoredValue::valueHash );
                             final Optional<String> hash2 = modifiedConfiguration.readStoredValue( reference ).map( StoredValue::valueHash );
-                            return hash1.isPresent() && hash2.isPresent() && !Objects.equals( hash1.get(), hash2.get() );
+                            return !hash1.equals( hash2 );
                         }
                 ).collect( Collectors.toSet() );
 
