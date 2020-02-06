@@ -544,12 +544,24 @@ public abstract class X509Utils
     {
         for ( final X509Certificate certificate : certificates )
         {
-            final boolean[] keyUsages = certificate.getKeyUsage();
             if ( certIsRootCA( certificate ) )
             {
                 return Collections.singletonList( certificate );
             }
         }
+
+        if ( certificates.size() == 1 )
+        {
+            LOGGER.debug( () -> "ServerCertReader: treating single certificate as ROOT CA certificate: "
+                    + X509Utils.makeDebugText(  certificates.iterator().next() ) );
+            return Collections.unmodifiableList( certificates );
+        }
+
+        if ( !certificates.isEmpty() )
+        {
+            LOGGER.debug( () -> "ServerCertReader: no certificates in read certificate chain are detected as CA cert" );
+        }
+
         return Collections.emptyList();
     }
 
