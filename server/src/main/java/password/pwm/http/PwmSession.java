@@ -20,6 +20,7 @@
 
 package password.pwm.http;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -60,7 +61,11 @@ public class PwmSession implements Serializable
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSession.class );
 
     private final transient PwmApplication pwmApplication;
+
+    @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
     private final transient LocalSessionStateBean sessionStateBean = new LocalSessionStateBean();
+
+    @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
     private final transient UserSessionDataCacheBean userSessionDataCacheBean = new UserSessionDataCacheBean();
 
     private LoginInfoBean loginInfoBean;
@@ -68,7 +73,7 @@ public class PwmSession implements Serializable
 
     private static final Object CREATION_LOCK = new Object();
 
-    private final SessionManager sessionManager;
+    private final transient SessionManager sessionManager;
 
     public static PwmSession createPwmSession( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
