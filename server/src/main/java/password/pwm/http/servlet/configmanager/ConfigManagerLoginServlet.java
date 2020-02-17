@@ -184,7 +184,9 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         final String time = TimeDuration.of( persistentSeconds, TimeDuration.Unit.SECONDS ).asLongString( pwmRequest.getLocale() );
 
         final ConfigLoginHistory configLoginHistory = readConfigLoginHistory( pwmRequest );
+        final boolean persistentLoginEnabled = persistentLoginEnabled( pwmRequest );
 
+        pwmRequest.setAttribute( PwmRequestAttribute.ConfigEnablePersistentLogin, persistentLoginEnabled );
         pwmRequest.setAttribute( PwmRequestAttribute.ConfigLoginHistory, configLoginHistory );
         pwmRequest.setAttribute( PwmRequestAttribute.ConfigPasswordRememberTime, time );
         pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_LOGIN );
@@ -424,7 +426,8 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
     private static boolean persistentLoginEnabled(
             final PwmRequest pwmRequest
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         if ( PwmApplicationMode.RUNNING != pwmRequest.getPwmApplication().getApplicationMode() )
         {

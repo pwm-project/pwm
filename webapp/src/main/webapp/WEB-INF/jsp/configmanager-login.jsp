@@ -59,7 +59,7 @@
             <h1>Configuration Password</h1>
             <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" class="inputfield passwordfield" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" <pwm:autofocus/>/>
             </div>
-            <% if (!pwmRequest.getConfig().isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) { %>
+            <% if ( (Boolean)pwmRequest.getAttribute( PwmRequestAttribute.ConfigEnablePersistentLogin ) ) { %>
             <div class="checkboxWrapper">
                 <label>
                     <input type="checkbox" id="remember" name="remember"/>

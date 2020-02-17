@@ -62,6 +62,7 @@ public enum PwmRequestAttribute
     ConfigHasPassword,
     ConfigPasswordRememberTime,
     ConfigLoginHistory,
+    ConfigEnablePersistentLogin,
     ApplicationPath,
 
     ConfigHasCertificates,
