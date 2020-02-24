@@ -64,7 +64,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.secure.X509Utils;
+import password.pwm.util.secure.PwmTrustManager;
 
 import javax.net.ssl.X509TrustManager;
 import java.io.ByteArrayInputStream;
@@ -735,7 +735,7 @@ public class LdapOperationsHelper
         final List<X509Certificate> ldapServerCerts = ldapProfile.readSettingAsCertificate( PwmSetting.LDAP_SERVER_CERTS );
         if ( ldapServerCerts != null && ldapServerCerts.size() > 0 )
         {
-            final X509TrustManager tm = new X509Utils.CertMatchingTrustManager( config, ldapServerCerts );
+            final X509TrustManager tm = PwmTrustManager.createPwmTrustManager( config, ldapServerCerts );
             configBuilder.setTrustManager( new X509TrustManager[]
                     {
                             tm,

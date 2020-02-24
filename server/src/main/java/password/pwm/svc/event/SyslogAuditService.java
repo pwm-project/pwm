@@ -58,7 +58,7 @@ import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.localdb.WorkQueueProcessor;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.X509Utils;
+import password.pwm.util.secure.PwmTrustManager;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
@@ -365,7 +365,7 @@ public class SyslogAuditService
                     final SSLContext sc = SSLContext.getInstance( "SSL" );
                     sc.init( null, new X509TrustManager[]
                                     {
-                                            new X509Utils.CertMatchingTrustManager( configuration, certificates ),
+                                            PwmTrustManager.createPwmTrustManager( configuration, certificates ),
                                     },
                             new java.security.SecureRandom() );
                     return sc.getSocketFactory();

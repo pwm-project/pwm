@@ -79,9 +79,9 @@ public class HttpsServerCertificateManager
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpsServerCertificateManager.class );
 
-    private static boolean bouncyCastleInitialized;
+    private static volatile boolean bouncyCastleInitialized;
 
-    private static void initBouncyCastleProvider( )
+    private static synchronized void initBouncyCastleProvider( )
     {
         if ( !bouncyCastleInitialized )
         {
@@ -98,8 +98,7 @@ public class HttpsServerCertificateManager
     )
             throws PwmUnrecoverableException
     {
-        KeyStore keyStore = null;
-        keyStore = exportKey( pwmApplication.getConfig(), KeyStoreFormat.JKS, passwordData, alias );
+        KeyStore keyStore = exportKey( pwmApplication.getConfig(), KeyStoreFormat.JKS, passwordData, alias );
 
         if ( keyStore == null )
         {
@@ -371,9 +370,9 @@ public class HttpsServerCertificateManager
             final String effectiveAlias;
             {
                 final List<String> allAliases = new ArrayList<>();
-                for ( final Enumeration enu = keyStore.aliases(); enu.hasMoreElements(); )
+                for ( final Enumeration<String> aliasEnum = keyStore.aliases(); aliasEnum.hasMoreElements(); )
                 {
-                    final String value = ( String ) enu.nextElement();
+                    final String value = aliasEnum.nextElement();
                     allAliases.add( value );
                 }
                 effectiveAlias = allAliases.size() == 1 ? allAliases.iterator().next() : alias;

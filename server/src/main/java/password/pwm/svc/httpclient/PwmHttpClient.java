@@ -74,7 +74,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.X509Utils;
+import password.pwm.util.secure.CertificateReadingTrustManager;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -562,15 +562,16 @@ public class PwmHttpClient implements AutoCloseable
     }
 
     public List<X509Certificate> readServerCertificates()
+            throws PwmUnrecoverableException
     {
         final List<X509Certificate> returnList = new ArrayList<>(  );
         if ( trustManagers != null )
         {
             for ( final TrustManager trustManager : trustManagers )
             {
-                if ( trustManager instanceof X509Utils.CertReaderTrustManager )
+                if ( trustManager instanceof CertificateReadingTrustManager )
                 {
-                    returnList.addAll( ( (X509Utils.CertReaderTrustManager) trustManager ).getCertificates() );
+                    returnList.addAll( ( ( CertificateReadingTrustManager ) trustManager ).getCertificates() );
                 }
             }
         }

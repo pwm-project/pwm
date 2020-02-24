@@ -479,10 +479,12 @@ public class ClientApiServlet extends ControlledPwmServlet
     private void precheckPublicHealthAndStats( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        if (
-                pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING
-                        && pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.CONFIGURATION
-        )
+        if ( pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION )
+        {
+            return;
+        }
+
+        if ( pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE );
             throw new PwmUnrecoverableException( errorInformation );

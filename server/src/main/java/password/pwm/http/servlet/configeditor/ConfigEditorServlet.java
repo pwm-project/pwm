@@ -752,7 +752,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( configManagerBean.getStoredConfiguration() );
 
-
         final String key = pwmRequest.readParameterAsString( "key" );
         final PwmSetting setting = PwmSetting.forKey( key );
         final int maxFileSize = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.CONFIG_MAX_JDBC_JAR_SIZE ) );
@@ -788,6 +787,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                         alias
                 );
 
+                configManagerBean.setStoredConfiguration( modifier.newStoredConfiguration() );
                 pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
                 return ProcessStatus.Halt;
             }

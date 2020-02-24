@@ -27,6 +27,9 @@ import password.pwm.config.Configuration;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.secure.PwmTrustManager;
+import password.pwm.util.secure.CertificateReadingTrustManager;
+import password.pwm.util.secure.PromiscuousTrustManager;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.X509Utils;
 
@@ -84,20 +87,20 @@ class HttpTrustManagerHelper
             case promiscuous:
                 return new TrustManager[]
                         {
-                                new X509Utils.PromiscuousTrustManager( ),
+                                PromiscuousTrustManager.createPromiscuousTrustManager( ),
                         };
 
             case promiscuousCertReader:
                 return new TrustManager[]
                         {
-                                new X509Utils.CertReaderTrustManager( new X509Utils.PromiscuousTrustManager( ) ),
+                                CertificateReadingTrustManager.newCertReaderTrustManager( configuration ),
                         };
 
             case configuredCertificates:
             {
                 return new TrustManager[]
                         {
-                                new X509Utils.CertMatchingTrustManager( configuration, pwmHttpClientConfiguration.getCertificates() ),
+                                PwmTrustManager.createPwmTrustManager( configuration, pwmHttpClientConfiguration.getCertificates() ),
                         };
             }
 

@@ -30,6 +30,7 @@ import password.pwm.ldap.schema.SchemaOperationResult;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.secure.PwmTrustManager;
 import password.pwm.util.secure.X509Utils;
 
 import javax.net.ssl.X509TrustManager;
@@ -74,7 +75,7 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
                 out( "canceled" );
                 return;
             }
-            trustManager = new X509Utils.CertMatchingTrustManager( cliEnvironment.getConfig(), certificates );
+            trustManager = PwmTrustManager.createPwmTrustManager( cliEnvironment.getConfig(), certificates );
         }
         else
         {
