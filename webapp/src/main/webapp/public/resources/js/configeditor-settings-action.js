@@ -56,13 +56,16 @@ ActionHandler.ldapMethodOptions = [
     { label: "Remove (Remove specified value)", value: "remove" }
 ];
 
-ActionHandler.init = function(keyName) {
+ActionHandler.init = function(keyName, postInitFunction) {
     console.log('ActionHandler init for ' + keyName);
     var parentDiv = 'table_setting_' + keyName;
     PWM_CFGEDIT.clearDivElements(parentDiv, true);
     PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         PWM_VAR['clientSettingCache'][keyName] = resultValue;
         ActionHandler.redraw(keyName);
+        if ( postInitFunction ) {
+            postInitFunction();
+        }
     });
 };
 
@@ -180,12 +183,14 @@ ActionHandler.addRow = function(keyName) {
         instructions: 'Please enter a descriptive name for the action.',
         placeholder:'Name',
         completeFunction:function(newName){
-            var value = PWM_VAR['clientSettingCache'][keyName];
-            var currentSize = PWM_MAIN.JSLibrary.itemCount(value);
+            let value = PWM_VAR['clientSettingCache'][keyName];
+            let currentSize = PWM_MAIN.JSLibrary.itemCount(value);
             value[currentSize] = ActionHandler.defaultValue;
             value[currentSize].name = newName;
             ActionHandler.write(keyName,function(){
-                ActionHandler.init(keyName);
+                ActionHandler.init(keyName, function(){
+                    ActionHandler.showActionsDialog(keyName, currentSize);
+                });
             });
         }
     });
@@ -193,7 +198,7 @@ ActionHandler.addRow = function(keyName) {
 
 ActionHandler.showActionsDialog = function(keyName, iteration) {
     var value = PWM_VAR['clientSettingCache'][keyName][iteration];
-    var titleText = 'Actions';
+    var titleText = value['name'] + ' actions';
     var bodyText = '<table class="noborder">';
 
     if (!PWM_MAIN.JSLibrary.isEmpty(value['ldapActions'])) {
