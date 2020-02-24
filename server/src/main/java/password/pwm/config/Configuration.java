@@ -448,12 +448,12 @@ public class Configuration implements SettingReader
                 {
                     if ( e1.getCause() instanceof IllegalArgumentException )
                     {
-                        LOGGER.error( "illegal setting value for option '" + strValue + "' for setting key '" + setting.getKey() + "' is not recognized, will use default" );
+                        LOGGER.error( () -> "illegal setting value for option '" + strValue + "' for setting key '" + setting.getKey() + "' is not recognized, will use default" );
                     }
                 }
                 catch ( final Exception e1 )
                 {
-                    LOGGER.error( "unexpected error", e1 );
+                    LOGGER.error( () -> "unexpected error", e1 );
                 }
             }
 
@@ -479,12 +479,12 @@ public class Configuration implements SettingReader
                 {
                     if ( e1.getCause() instanceof IllegalArgumentException )
                     {
-                        LOGGER.error( "illegal setting value for option '" + strValue + "' is not recognized, will use default" );
+                        LOGGER.error( () -> "illegal setting value for option '" + strValue + "' is not recognized, will use default" );
                     }
                 }
                 catch ( final Exception e1 )
                 {
-                    LOGGER.error( "unexpected error", e1 );
+                    LOGGER.error( () -> "unexpected error", e1 );
                 }
             }
 
@@ -731,7 +731,7 @@ public class Configuration implements SettingReader
             {
                 final String errorMsg = "Security Key value is not configured, will generate temp value for use by runtime instance";
                 final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-                LOGGER.warn( errorInfo.toDebugStr() );
+                LOGGER.warn( () -> errorInfo.toDebugStr() );
                 if ( tempInstanceKey == null )
                 {
                     tempInstanceKey = new PwmSecurityKey( PwmRandom.getInstance().alphaNumericString( 1024 ) );
@@ -756,7 +756,7 @@ public class Configuration implements SettingReader
                 {
                     final String errorMsg = "unexpected error generating Security Key crypto: " + e.getMessage();
                     final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-                    LOGGER.error( errorInfo.toDebugStr(), e );
+                    LOGGER.error( () -> errorInfo.toDebugStr(), e );
                     throw new PwmUnrecoverableException( errorInfo );
                 }
             }
@@ -788,7 +788,7 @@ public class Configuration implements SettingReader
             }
             catch ( final IllegalArgumentException e )
             {
-                LOGGER.error( "unknown STORAGE_METHOD found: " + rawValue );
+                LOGGER.error( () -> "unknown STORAGE_METHOD found: " + rawValue );
             }
         }
         return storageMethods;
@@ -879,7 +879,7 @@ public class Configuration implements SettingReader
         {
             final String errorMsg = "unknown storage method specified: " + readSettingAsString( PwmSetting.TOKEN_STORAGEMETHOD );
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg );
-            LOGGER.warn( errorInformation.toDebugStr() );
+            LOGGER.warn( () -> errorInformation.toDebugStr() );
             return null;
         }
     }

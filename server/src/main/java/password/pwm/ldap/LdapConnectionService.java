@@ -153,7 +153,7 @@ public class LdapConnectionService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error closing ldap proxy connection: " + e.getMessage(), e );
+            LOGGER.error( () -> "error closing ldap proxy connection: " + e.getMessage(), e );
         }
 
         proxyChaiProviders.clear();
@@ -330,7 +330,8 @@ public class LdapConnectionService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "unexpected error loading cached lastLdapFailure statuses: " + e.getMessage() + ", input=" + lastLdapFailureStr );
+            final  String lastFailureStrFinal = lastLdapFailureStr;
+            LOGGER.error( () -> "unexpected error loading cached lastLdapFailure statuses: " + e.getMessage() + ", input=" + lastFailureStrFinal );
         }
         return Collections.emptyMap();
     }
@@ -344,7 +345,7 @@ public class LdapConnectionService implements PwmService
         if ( ( perProfile * profileCount ) >= maxConnections )
         {
             final int adjustedConnections = Math.min( 1, ( maxConnections / profileCount ) );
-            LOGGER.warn( "connections per profile (" + perProfile + ") multiplied by number of profiles ("
+            LOGGER.warn( () -> "connections per profile (" + perProfile + ") multiplied by number of profiles ("
                     + profileCount + ") exceeds max connections (" + maxConnections + "), will limit to " + adjustedConnections );
             return adjustedConnections;
         }

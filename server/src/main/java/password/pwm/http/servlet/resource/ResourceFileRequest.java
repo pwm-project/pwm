@@ -190,7 +190,8 @@ class ResourceFileRequest
 
         if ( !filename.startsWith( ResourceFileServlet.RESOURCE_PATH ) )
         {
-            LOGGER.warn( "illegal url request to " + filename );
+            final String filenameFinal = filename;
+            LOGGER.warn( () -> "illegal url request to " + filenameFinal );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal url request" ) );
         }
 
@@ -237,7 +238,8 @@ class ResourceFileRequest
                 }
                 if ( filename.startsWith( zipResources.get( path ).getName() ) )
                 {
-                    LOGGER.warn( "illegal url request to " + filename + " zip resource" );
+                    final String filenameFinal = filename;
+                    LOGGER.warn( () -> "illegal url request to " + filenameFinal + " zip resource" );
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal url request" ) );
                 }
             }
@@ -270,7 +272,7 @@ class ResourceFileRequest
 
         if ( fileSystemResource == null )
         {
-            LOGGER.warn( "attempt to access file outside of servlet path " + file.getAbsolutePath() );
+            LOGGER.warn( () -> "attempt to access file outside of servlet path " + file.getAbsolutePath() );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal file path request" ) );
         }
 

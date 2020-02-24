@@ -181,7 +181,7 @@ public class StatisticsManager implements PwmService
         }
         catch ( final LocalDBException e )
         {
-            LOGGER.error( "error retrieving stored stat for " + key + ": " + e.getMessage() );
+            LOGGER.error( () -> "error retrieving stored stat for " + key + ": " + e.getMessage() );
         }
 
         return null;
@@ -237,7 +237,7 @@ public class StatisticsManager implements PwmService
 
         if ( localDB == null )
         {
-            LOGGER.error( "LocalDB is not available, will remain closed" );
+            LOGGER.error( () -> "LocalDB is not available, will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
@@ -252,7 +252,7 @@ public class StatisticsManager implements PwmService
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.warn( "error loading saved stored cumulative statistics: " + e.getMessage() );
+                    LOGGER.warn( () -> "error loading saved stored cumulative statistics: " + e.getMessage() );
                 }
             }
         }
@@ -280,7 +280,7 @@ public class StatisticsManager implements PwmService
         }
         catch ( final IllegalStateException e )
         {
-            LOGGER.error( "unable to write to localDB, will remain closed, error: " + e.getMessage() );
+            LOGGER.error( () -> "unable to write to localDB, will remain closed, error: " + e.getMessage() );
             status = STATUS.CLOSED;
             return;
         }
@@ -311,7 +311,7 @@ public class StatisticsManager implements PwmService
             }
             catch ( final LocalDBException e )
             {
-                LOGGER.error( "error outputting pwm statistics: " + e.getMessage() );
+                LOGGER.error( () -> "error outputting pwm statistics: " + e.getMessage() );
             }
         }
     }
@@ -350,7 +350,7 @@ public class StatisticsManager implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "unexpected error closing: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error closing: " + e.getMessage() );
         }
 
         JavaHelper.closeAndWaitExecutor( executorService, TimeDuration.of( 3, TimeDuration.Unit.SECONDS ) );
@@ -467,14 +467,14 @@ public class StatisticsManager implements PwmService
     {
         if ( pwmApplication == null )
         {
-            LOGGER.error( "skipping requested statistic increment of " + statistic + " due to null pwmApplication" );
+            LOGGER.error( () -> "skipping requested statistic increment of " + statistic + " due to null pwmApplication" );
             return;
         }
 
         final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
         if ( statisticsManager == null )
         {
-            LOGGER.error( "skipping requested statistic increment of " + statistic + " due to null statisticsManager" );
+            LOGGER.error( () -> "skipping requested statistic increment of " + statistic + " due to null statisticsManager" );
             return;
         }
 

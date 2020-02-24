@@ -98,7 +98,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error while de-registering derby driver: " + e.getMessage() );
+            LOGGER.error( () -> "error while de-registering derby driver: " + e.getMessage() );
         }
 
         driver = null;
@@ -109,7 +109,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error while closing derby connection: " + e.getMessage() );
+            LOGGER.error( () -> "error while closing derby connection: " + e.getMessage() );
         }
     }
 
@@ -165,7 +165,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
             {
                 errorMsg = "error opening DB: " + e.getMessage();
             }
-            LOGGER.error( errorMsg, e );
+            LOGGER.error( () -> errorMsg, e );
             throw new LocalDBException( new ErrorInformation( PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg ) );
         }
     }
@@ -218,7 +218,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         }
         catch ( final SQLException ex )
         {
-            LOGGER.error( "error reclaiming space in table " + db.toString() + ": " + ex.getMessage() );
+            LOGGER.error( () -> "error reclaiming space in table " + db.toString() + ": " + ex.getMessage() );
         }
         finally
         {

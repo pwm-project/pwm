@@ -335,19 +335,19 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.INFO, null, message, exception );
     }
 
-    public void error( final CharSequence message )
+    public void error( final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.ERROR, null, message, null );
     }
 
-    public void error( final PwmRequest pwmRequest, final CharSequence message, final Throwable exception )
+    public void error( final PwmRequest pwmRequest, final Supplier<CharSequence> message, final Throwable exception )
     {
-        doPwmRequestLogEvent( PwmLogLevel.ERROR, pwmRequest, () -> message, exception );
+        doPwmRequestLogEvent( PwmLogLevel.ERROR, pwmRequest, message, exception );
     }
 
-    public void error( final PwmRequest pwmRequest, final CharSequence message )
+    public void error( final PwmRequest pwmRequest, final Supplier<CharSequence> message )
     {
-        doPwmRequestLogEvent( PwmLogLevel.ERROR, pwmRequest, () -> message, null );
+        doPwmRequestLogEvent( PwmLogLevel.ERROR, pwmRequest, message, null );
     }
 
     public void error( final PwmRequest pwmRequest, final ErrorInformation errorInformation )
@@ -358,11 +358,6 @@ public class PwmLogger
     public void error( final ErrorInformation errorInformation )
     {
         doPwmRequestLogEvent( PwmLogLevel.ERROR, null, () -> convertErrorInformation( errorInformation ), null );
-    }
-
-    public void error( final SessionLabel sessionLabel, final CharSequence message )
-    {
-        doLogEvent( PwmLogLevel.ERROR, sessionLabel, message, null );
     }
 
     public void error( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
@@ -380,29 +375,29 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.ERROR, sessionLabel, convertErrorInformation( errorInformation ), exception );
     }
 
-    public void error( final CharSequence message, final Throwable exception )
+    public void error( final Supplier<CharSequence> message, final Throwable exception )
     {
         doLogEvent( PwmLogLevel.ERROR, null, message, exception );
     }
 
-    public void error( final SessionLabel sessionLabel, final CharSequence message, final Throwable exception )
+    public void error( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final Throwable exception )
     {
         doLogEvent( PwmLogLevel.ERROR, sessionLabel, message, exception );
     }
 
-    public void warn( final CharSequence message )
+    public void warn( final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.WARN, null, message, null );
     }
 
-    public void warn( final PwmRequest pwmRequest, final CharSequence message )
+    public void warn( final PwmRequest pwmRequest, final Supplier<CharSequence> message )
     {
-        doPwmRequestLogEvent( PwmLogLevel.WARN, pwmRequest, () -> message, null );
+        doPwmRequestLogEvent( PwmLogLevel.WARN, pwmRequest, message, null );
     }
 
-    public void warn( final PwmRequest pwmRequest, final CharSequence message, final Throwable exception )
+    public void warn( final PwmRequest pwmRequest, final Supplier<CharSequence> message, final Throwable exception )
     {
-        doPwmRequestLogEvent( PwmLogLevel.WARN, pwmRequest, () -> message, exception );
+        doPwmRequestLogEvent( PwmLogLevel.WARN, pwmRequest, message, exception );
     }
 
     public void warn( final SessionLabel sessionLabel, final ErrorInformation errorInformation, final Throwable exception )
@@ -410,27 +405,27 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.ERROR, sessionLabel, convertErrorInformation( errorInformation ), exception );
     }
 
-    public void warn( final SessionLabel sessionLabel, final CharSequence message )
+    public void warn( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.WARN, sessionLabel, message, null );
     }
 
-    public void warn( final CharSequence message, final Throwable exception )
+    public void warn( final Supplier<CharSequence> message, final Throwable exception )
     {
         doLogEvent( PwmLogLevel.WARN, null, message, exception );
     }
 
-    public void fatal( final CharSequence message )
+    public void fatal( final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.FATAL, null, message, null );
     }
 
-    public void fatal( final SessionLabel sessionLabel, final CharSequence message )
+    public void fatal( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.FATAL, sessionLabel, message, null );
     }
 
-    public void fatal( final CharSequence message, final Throwable exception )
+    public void fatal( final Supplier<CharSequence> message, final Throwable exception )
     {
         doLogEvent( PwmLogLevel.FATAL, null, message, exception );
     }

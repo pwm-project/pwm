@@ -99,7 +99,7 @@ public class PwmLogManager
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error loading log4jconfig file '" + log4jConfigFile + "' error: " + e.getMessage() );
+                LOGGER.error( () -> "error loading log4jconfig file '" + log4jConfigFile + "' error: " + e.getMessage() );
             }
         }
 
@@ -237,7 +237,7 @@ public class PwmLogManager
         }
         catch ( final Exception e )
         {
-            LOGGER.warn( "unable to initialize localDBLogger: " + e.getMessage() );
+            LOGGER.warn( () -> "unable to initialize localDBLogger: " + e.getMessage() );
             return null;
         }
 
@@ -258,7 +258,7 @@ public class PwmLogManager
         }
         catch ( final Exception e )
         {
-            LOGGER.warn( "unable to initialize localDBLogger/extraAppender: " + e.getMessage() );
+            LOGGER.warn( () -> "unable to initialize localDBLogger/extraAppender: " + e.getMessage() );
         }
 
         return localDBLogger;

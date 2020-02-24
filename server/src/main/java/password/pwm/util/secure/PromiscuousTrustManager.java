@@ -65,7 +65,7 @@ public class PromiscuousTrustManager implements X509TrustManager
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( "error while decoding certificate: " + e.getMessage() );
+                    LOGGER.error( () -> "error while decoding certificate: " + e.getMessage() );
                     throw new IllegalStateException( e );
                 }
             }

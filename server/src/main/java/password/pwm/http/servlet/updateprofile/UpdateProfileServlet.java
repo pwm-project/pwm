@@ -320,7 +320,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.error( pwmRequest, e.getMessage() );
+            LOGGER.error( pwmRequest, () -> e.getMessage() );
             setLastError( pwmRequest, e.getErrorInformation() );
         }
 
@@ -383,7 +383,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( pwmRequest, e.getMessage() );
+            LOGGER.error( pwmRequest, () -> e.getMessage() );
             setLastError( pwmRequest, e.getErrorInformation() );
             UpdateProfileUtil.forwardToForm( pwmRequest, updateProfileProfile, updateProfileBean );
             return;
@@ -432,13 +432,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( pwmRequest, e.getMessage() );
+            LOGGER.error( pwmRequest, () -> e.getMessage() );
             setLastError( pwmRequest, e.getErrorInformation() );
         }
         catch ( final ChaiException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UPDATE_ATTRS_FAILURE, e.toString() );
-            LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
             setLastError( pwmRequest, errorInformation );
         }
 

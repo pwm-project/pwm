@@ -165,7 +165,8 @@ public class LocalDbAuditVault implements AuditVault
                     catch ( final IllegalArgumentException e )
                     {
                         errorMsg = "error de-serializing audit record: " + e.getMessage();
-                        LOGGER.error( errorMsg );
+                        final String errorMsgFinal = errorMsg;
+                        LOGGER.error( () -> errorMsgFinal );
                         return null;
                     }
                     final Class clazz = event.getType().getDataClass();

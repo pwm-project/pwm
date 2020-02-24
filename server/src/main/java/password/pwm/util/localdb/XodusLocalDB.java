@@ -122,7 +122,7 @@ public class XodusLocalDB implements LocalDBProvider
         if ( Files.exists( getDirtyFile().toPath() ) )
         {
             environmentConfig.setGcUtilizationFromScratch( true );
-            LOGGER.warn( "environment not closed cleanly, will re-calculate GC" );
+            LOGGER.warn( () -> "environment not closed cleanly, will re-calculate GC" );
         }
         else
         {
@@ -139,7 +139,7 @@ public class XodusLocalDB implements LocalDBProvider
         }
         catch ( final IOException e )
         {
-            LOGGER.error( "error creating openLock file: " + e.getMessage() );
+            LOGGER.error( () -> "error creating openLock file: " + e.getMessage() );
         }
 
         {
@@ -197,7 +197,7 @@ public class XodusLocalDB implements LocalDBProvider
         }
         catch ( final IOException e )
         {
-            LOGGER.error( "error creating openLock file: " + e.getMessage() );
+            LOGGER.error( () -> "error creating openLock file: " + e.getMessage() );
         }
 
         status = LocalDB.Status.CLOSED;
@@ -223,7 +223,7 @@ public class XodusLocalDB implements LocalDBProvider
             }
             catch ( final InvalidSettingException e )
             {
-                LOGGER.warn( "problem setting configured env settings: " + e.getMessage() );
+                LOGGER.warn( () -> "problem setting configured env settings: " + e.getMessage() );
             }
         }
 
@@ -657,7 +657,7 @@ public class XodusLocalDB implements LocalDBProvider
         }
         catch ( final IOException e )
         {
-            LOGGER.error( "error writing LocalDB readme file: " + e.getMessage() );
+            LOGGER.error( () -> "error writing LocalDB readme file: " + e.getMessage() );
         }
     }
 

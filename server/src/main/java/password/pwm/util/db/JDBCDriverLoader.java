@@ -81,7 +81,7 @@ public class JDBCDriverLoader
         }
         final String errorMsg = " unable to load database driver: " + JsonUtil.serializeCollection( errorMsgs );
         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
-        LOGGER.error( errorMsg );
+        LOGGER.error( () -> errorMsg );
         throw new DatabaseException( errorInformation );
     }
 

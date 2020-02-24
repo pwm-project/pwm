@@ -325,7 +325,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         catch ( final Exception e )
         {
             final String errorString = "error saving file: " + e.getMessage();
-            LOGGER.error( pwmRequest, errorString, e );
+            LOGGER.error( pwmRequest, () -> errorString, e );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                     {
                             errorString,
@@ -357,7 +357,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, "unable to download configuration: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "unable to download configuration: " + e.getMessage() );
         }
     }
 
@@ -374,7 +374,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, "error during zip debug building: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error during zip debug building: " + e.getMessage() );
         }
     }
 

@@ -197,7 +197,7 @@ public class JavaHelper
         }
         catch ( final Throwable e )
         {
-            LOGGER.warn( "unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName() + ", error: " + e.getMessage() );
+            LOGGER.warn( () -> "unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName() + ", error: " + e.getMessage() );
         }
 
         return Optional.empty();
@@ -261,7 +261,7 @@ public class JavaHelper
 
         final String errorMsg = "unhandled switch statement on parameter class=" + className + ", value=" + paramValue;
         final UnsupportedOperationException exception = new UnsupportedOperationException( errorMsg );
-        LOGGER.warn( errorMsg, exception );
+        LOGGER.warn( () -> errorMsg, exception );
         throw exception;
     }
 
@@ -356,7 +356,7 @@ public class JavaHelper
         }
         catch ( final InterruptedException e )
         {
-            LOGGER.warn( "unexpected error shutting down executor service " + executor.getClass().toString() + " error: " + e.getMessage() );
+            LOGGER.warn( () -> "unexpected error shutting down executor service " + executor.getClass().toString() + " error: " + e.getMessage() );
         }
     }
 

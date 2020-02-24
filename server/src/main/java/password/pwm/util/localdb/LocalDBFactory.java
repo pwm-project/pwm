@@ -91,7 +91,7 @@ public class LocalDBFactory
             final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
             if ( localDBUtility.readImportInprogressFlag() )
             {
-                LOGGER.error( "previous database import process did not complete successfully, clearing all data" );
+                LOGGER.error( () -> "previous database import process did not complete successfully, clearing all data" );
                 localDBUtility.cancelImportProcess();
             }
         }
@@ -130,7 +130,7 @@ public class LocalDBFactory
         catch ( final Throwable e )
         {
             final String errorMsg = "error creating new LocalDB instance: " + e.getClass().getName() + ":" + e.getMessage();
-            LOGGER.error( errorMsg, e );
+            LOGGER.error( () -> errorMsg, e );
             throw new LocalDBException( new ErrorInformation( PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg ) );
         }
 
@@ -159,7 +159,7 @@ public class LocalDBFactory
         catch ( final Exception e )
         {
             final String errorMsg = "error creating new LocalDB instance: " + e.getClass().getName() + ":" + e.getMessage();
-            LOGGER.error( errorMsg, e );
+            LOGGER.error( () -> errorMsg, e );
             throw new LocalDBException( new ErrorInformation( PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg ) );
         }
 

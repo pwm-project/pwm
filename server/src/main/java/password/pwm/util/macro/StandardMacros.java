@@ -227,7 +227,7 @@ public abstract class StandardMacros
 
             if ( pwmApplication == null )
             {
-                LOGGER.error( "could not replace value for '" + matchValue + "', pwmApplication is null" );
+                LOGGER.error( () -> "could not replace value for '" + matchValue + "', pwmApplication is null" );
                 return "";
             }
 
@@ -365,7 +365,7 @@ public abstract class StandardMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "error reading pwdExpirationTime during macro replacement: " + e.getMessage() );
+                LOGGER.error( () -> "error reading pwdExpirationTime during macro replacement: " + e.getMessage() );
                 return "";
             }
 
@@ -425,7 +425,7 @@ public abstract class StandardMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "error reading pwdExpirationTime during macro replacement: " + e.getMessage() );
+                LOGGER.error( () -> "error reading pwdExpirationTime during macro replacement: " + e.getMessage() );
                 return "";
             }
         }
@@ -449,7 +449,7 @@ public abstract class StandardMacros
 
             if ( userInfo == null )
             {
-                LOGGER.error( "could not replace value for '" + matchValue + "', userInfoBean is null" );
+                LOGGER.error( () -> "could not replace value for '" + matchValue + "', userInfoBean is null" );
                 return "";
             }
 
@@ -462,7 +462,7 @@ public abstract class StandardMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "error reading pwdExpirationTime during macro replacement: " + e.getMessage() );
+                LOGGER.error( () -> "error reading pwdExpirationTime during macro replacement: " + e.getMessage() );
                 return "";
             }
         }
@@ -495,7 +495,7 @@ public abstract class StandardMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "error reading username during macro replacement: " + e.getMessage() );
+                LOGGER.error( () -> "error reading username during macro replacement: " + e.getMessage() );
                 return "";
             }
         }
@@ -557,7 +557,7 @@ public abstract class StandardMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "error reading user email address during macro replacement: " + e.getMessage() );
+                LOGGER.error( () -> "error reading user email address during macro replacement: " + e.getMessage() );
                 return "";
             }
         }
@@ -590,7 +590,7 @@ public abstract class StandardMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "error decrypting in memory password during macro replacement: " + e.getMessage() );
+                LOGGER.error( () -> "error decrypting in memory password during macro replacement: " + e.getMessage() );
                 return "";
             }
         }
@@ -662,7 +662,7 @@ public abstract class StandardMacros
             }
             catch ( final MalformedURLException e )
             {
-                LOGGER.error( "unable to parse configured/detected site URL: " + e.getMessage() );
+                LOGGER.error( () -> "unable to parse configured/detected site URL: " + e.getMessage() );
             }
             return "";
         }
@@ -819,7 +819,7 @@ public abstract class StandardMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "error reading otp setup time during macro replacement: " + e.getMessage() );
+                LOGGER.error( () -> "error reading otp setup time during macro replacement: " + e.getMessage() );
             }
 
             return "";
@@ -847,7 +847,7 @@ public abstract class StandardMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "error reading response setup time macro replacement: " + e.getMessage() );
+                LOGGER.error( () -> "error reading response setup time macro replacement: " + e.getMessage() );
             }
             return "";
         }

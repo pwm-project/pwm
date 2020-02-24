@@ -70,7 +70,7 @@ public class TinyUrlShortener extends BasicUrlShortener
         }
         else
         {
-            LOGGER.error( "Failed to get shorter URL: " + httpResponse.getStatusPhrase() );
+            LOGGER.error( () -> "Failed to get shorter URL: " + httpResponse.getStatusPhrase() );
         }
         return input;
     }

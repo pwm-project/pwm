@@ -295,7 +295,7 @@ public class JsonUtil
             catch ( final IOException e )
             {
                 final String errorMsg = "io stream error while de-serializing byte array: " + e.getMessage();
-                LOGGER.error( errorMsg );
+                LOGGER.error( () -> errorMsg );
                 throw new JsonParseException( errorMsg, e );
             }
         }
@@ -309,7 +309,7 @@ public class JsonUtil
             catch ( final IOException e )
             {
                 final String errorMsg = "io stream error while serializing byte array: " + e.getMessage();
-                LOGGER.error( errorMsg );
+                LOGGER.error( () -> errorMsg );
                 throw new JsonParseException( errorMsg, e );
             }
         }
@@ -326,7 +326,7 @@ public class JsonUtil
             catch ( final PwmUnrecoverableException e )
             {
                 final String errorMsg = "error while deserializing password data: " + e.getMessage();
-                LOGGER.error( errorMsg );
+                LOGGER.error( () -> errorMsg );
                 throw new JsonParseException( errorMsg, e );
             }
         }
@@ -340,7 +340,7 @@ public class JsonUtil
             catch ( final PwmUnrecoverableException e )
             {
                 final String errorMsg = "error while serializing password data: " + e.getMessage();
-                LOGGER.error( errorMsg );
+                LOGGER.error( () -> errorMsg );
                 throw new JsonParseException( errorMsg, e );
             }
         }

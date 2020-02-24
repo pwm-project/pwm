@@ -151,7 +151,7 @@ public abstract class HttpAuthenticationUtilities
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( pwmRequest, "error while setting authentication record cookie: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error while setting authentication record cookie: " + e.getMessage() );
         }
     }
 

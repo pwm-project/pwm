@@ -58,7 +58,7 @@ public class PwmMacroTag extends TagSupport
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "error while processing PwmMacroTag: " + e.getMessage() );
+            LOGGER.error( () -> "error while processing PwmMacroTag: " + e.getMessage() );
         }
         catch ( final Exception e )
         {

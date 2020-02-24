@@ -91,7 +91,7 @@ public class SecureEngine
         {
             final String errorMsg = "unexpected error b64 encoding crypto result: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            LOGGER.error( errorInformation.toDebugStr() );
+            LOGGER.error( () -> errorInformation.toDebugStr() );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }
@@ -157,7 +157,7 @@ public class SecureEngine
         {
             final String errorMsg = "unexpected error performing simple crypt operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            LOGGER.error( errorInformation.toDebugStr() );
+            LOGGER.error( () -> errorInformation.toDebugStr() );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }

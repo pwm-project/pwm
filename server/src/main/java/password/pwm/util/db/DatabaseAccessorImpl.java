@@ -407,7 +407,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             catch ( final SQLException e )
             {
                 finished = true;
-                LOGGER.warn( "unexpected error during result set iteration: " + e.getMessage() );
+                LOGGER.warn( () -> "unexpected error during result set iteration: " + e.getMessage() );
             }
             databaseService.updateStats( DatabaseService.OperationType.READ );
         }
@@ -432,7 +432,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     }
                     catch ( final SQLException e )
                     {
-                        LOGGER.error( "error closing inner resultSet in iterator: " + e.getMessage() );
+                        LOGGER.error( () -> "error closing inner resultSet in iterator: " + e.getMessage() );
                     }
                 }
 
@@ -445,7 +445,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     }
                     catch ( final SQLException e )
                     {
-                        LOGGER.error( "error closing inner statement in iterator: " + e.getMessage() );
+                        LOGGER.error( () -> "error closing inner statement in iterator: " + e.getMessage() );
                     }
                 }
 
@@ -539,7 +539,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             {
                 if ( !outstandingIterators.isEmpty() )
                 {
-                    LOGGER.warn( "closing outstanding " + outstandingIterators.size() + " iterators" );
+                    LOGGER.warn( () -> "closing outstanding " + outstandingIterators.size() + " iterators" );
                 }
                 for ( final DBIterator iterator : new HashSet<>( outstandingIterators ) )
                 {
@@ -548,7 +548,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( "error while closing connection: " + e.getMessage() );
+                LOGGER.warn( () -> "error while closing connection: " + e.getMessage() );
             }
 
             try
@@ -557,7 +557,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             }
             catch ( final SQLException e )
             {
-                LOGGER.warn( "error while closing connection: " + e.getMessage() );
+                LOGGER.warn( () -> "error while closing connection: " + e.getMessage() );
             }
         }
         finally
@@ -624,7 +624,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         }
         catch ( final SQLException e )
         {
-            LOGGER.error( "error while checking database connection: " + e.getMessage() );
+            LOGGER.error( () -> "error while checking database connection: " + e.getMessage() );
         }
 
         return false;

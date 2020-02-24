@@ -234,7 +234,7 @@ public class RandomPasswordGenerator
                 final StringBuilder sb = new StringBuilder();
                 sb.append( "failed random password generation after " ).append( td.asCompactString() ).append( " after " ).append( tryCount ).append( " tries. " );
                 sb.append( "(errors=" ).append( errors.size() ).append( ", judgeLevel=" ).append( judgeLevel );
-                LOGGER.error( sessionLabel, sb.toString() );
+                LOGGER.error( sessionLabel, () -> sb.toString() );
             }
         }
 

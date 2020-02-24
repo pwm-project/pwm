@@ -593,7 +593,7 @@ public class UserSearchEngine implements PwmService
                 }
                 catch ( final ChaiOperationException e )
                 {
-                    LOGGER.error( "unexpected error reading canonical userDN for '" + userDN + "', error: " + e.getMessage() );
+                    LOGGER.error( () -> "unexpected error reading canonical userDN for '" + userDN + "', error: " + e.getMessage() );
                 }
             }
         }
@@ -700,7 +700,7 @@ public class UserSearchEngine implements PwmService
                 {
                     final String errorMsg = "unexpected interruption during search job execution: " + e.getMessage();
                     log( PwmLogLevel.WARN, params.getSessionLabel(), params.getSearchID(), params.getJobId(), errorMsg );
-                    LOGGER.error( params.getSessionLabel(), errorMsg, e );
+                    LOGGER.error( params.getSessionLabel(), () -> errorMsg, e );
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
                 }
                 catch ( final ExecutionException e )

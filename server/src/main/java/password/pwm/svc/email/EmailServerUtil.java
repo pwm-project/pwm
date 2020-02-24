@@ -120,7 +120,7 @@ public class EmailServerUtil
         }
         else
         {
-            LOGGER.warn( "discarding incompletely configured email address for smtp server profile " + id );
+            LOGGER.warn( () -> "discarding incompletely configured email address for smtp server profile " + id );
         }
 
         return Optional.empty();
@@ -226,7 +226,7 @@ public class EmailServerUtil
             }
             catch ( final UnsupportedEncodingException e )
             {
-                LOGGER.error( "unsupported encoding error while parsing internet address '" + input + "', error: " + e.getMessage() );
+                LOGGER.error( () -> "unsupported encoding error while parsing internet address '" + input + "', error: " + e.getMessage() );
             }
             return address;
         }

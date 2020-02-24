@@ -240,7 +240,7 @@ public class IdleTimeoutCalculator
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( pwmRequest, "error while figuring max idle timeout for session: " + e.getMessage() );
+                LOGGER.error( pwmRequest, () -> "error while figuring max idle timeout for session: " + e.getMessage() );
             }
         }
 

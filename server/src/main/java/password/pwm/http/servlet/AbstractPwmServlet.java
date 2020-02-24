@@ -98,7 +98,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                     {
                         final ErrorInformation errorInformation = e.getErrorInformation();
                         final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( req );
-                        LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+                        LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
                         pwmRequest.respondWithError( errorInformation, false );
                         return;
                     }
@@ -114,7 +114,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 {
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE,
                             "incorrect request method " + method.toString() + " on request to " + pwmRequest.getURLwithQueryString() );
-                    LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+                    LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
                     pwmRequest.respondWithError( errorInformation, false );
                     return;
                 }
@@ -134,7 +134,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 try
                 {
                     LOGGER.fatal(
-                            "exception occurred, but exception handler unable to load request instance; error=" + e.getMessage(),
+                            () -> "exception occurred, but exception handler unable to load request instance; error=" + e.getMessage(),
                             e );
                 }
                 catch ( final Exception e3 )
@@ -211,7 +211,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         }
         final String errorMsg = "unexpected error processing request: " + JavaHelper.readHostileExceptionMessage( e ) + " [" + stackTraceHash + "]";
 
-        LOGGER.error( pwmRequest, errorMsg, e );
+        LOGGER.error( pwmRequest, () -> errorMsg, e );
         return new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
     }
 
@@ -228,7 +228,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         switch ( e.getError() )
         {
             case ERROR_DIRECTORY_UNAVAILABLE:
-                LOGGER.fatal( pwmRequest.getLabel(), e.getErrorInformation().toDebugStr() );
+                LOGGER.fatal( pwmRequest.getLabel(), () -> e.getErrorInformation().toDebugStr() );
                 try
                 {
                     pwmApplication.getStatisticsManager().incrementValue( Statistic.LDAP_UNAVAILABLE_COUNT );
@@ -242,7 +242,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
 
             case ERROR_PASSWORD_REQUIRED:
                 LOGGER.warn(
-                        "attempt to access functionality requiring password authentication, but password not yet supplied by actor, forwarding to password Login page" );
+                        () -> "attempt to access functionality requiring password authentication, but password not yet supplied by actor, forwarding to password Login page" );
                 //store the original requested url
                 try
                 {
@@ -252,14 +252,14 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 }
                 catch ( final Throwable e1 )
                 {
-                    LOGGER.error( "error while marking pre-login url:" + e1.getMessage() );
+                    LOGGER.error( () -> "error while marking pre-login url:" + e1.getMessage() );
                 }
                 break;
 
 
             case ERROR_INTERNAL:
             default:
-                LOGGER.fatal( pwmRequest.getLabel(), "unexpected error: " + e.getErrorInformation().toDebugStr() );
+                LOGGER.fatal( pwmRequest.getLabel(), () -> "unexpected error: " + e.getErrorInformation().toDebugStr() );
                 try
                 {
                     // try to update stats

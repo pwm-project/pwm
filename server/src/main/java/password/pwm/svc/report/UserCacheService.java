@@ -70,7 +70,7 @@ public class UserCacheService implements PwmService
         }
         catch ( final LocalDBException e )
         {
-            LOGGER.error( "unable to store user status cache to localdb: " + e.getMessage() );
+            LOGGER.error( () -> "unable to store user status cache to localdb: " + e.getMessage() );
         }
 
         {
@@ -106,7 +106,7 @@ public class UserCacheService implements PwmService
         }
         catch ( final LocalDBException e )
         {
-            LOGGER.error( "unexpected error generating user status iterator: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error generating user status iterator: " + e.getMessage() );
             return null;
         }
     }
@@ -241,7 +241,7 @@ public class UserCacheService implements PwmService
                 }
                 catch ( final JsonSyntaxException e )
                 {
-                    LOGGER.error( "error reading record from cache store for key=" + key.getKey() + ", error: " + e.getMessage() );
+                    LOGGER.error( () -> "error reading record from cache store for key=" + key.getKey() + ", error: " + e.getMessage() );
                     localDB.remove( DB, key.getKey() );
                 }
             }

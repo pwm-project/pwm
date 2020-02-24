@@ -199,7 +199,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                 }
                 catch ( final Throwable e1 )
                 {
-                    LOGGER.error( "error while marking pre-login url:" + e1.getMessage() );
+                    LOGGER.error( () -> "error while marking pre-login url:" + e1.getMessage() );
                 }
             }
         }

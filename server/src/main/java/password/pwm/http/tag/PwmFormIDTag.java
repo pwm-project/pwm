@@ -87,7 +87,7 @@ public class PwmFormIDTag extends TagSupport
             {
                 /* ignore */
             }
-            LOGGER.error( "error during pwmFormIDTag output of pwmFormID: " + e.getMessage(), e );
+            LOGGER.error( () -> "error during pwmFormIDTag output of pwmFormID: " + e.getMessage(), e );
         }
         return EVAL_PAGE;
     }

@@ -137,7 +137,7 @@ public class SessionManager
             }
             catch ( final Exception e )
             {
-                LOGGER.error( pwmSession.getLabel(), "error while closing user connection: " + e.getMessage() );
+                LOGGER.error( pwmSession.getLabel(), () -> "error while closing user connection: " + e.getMessage() );
             }
         }
     }

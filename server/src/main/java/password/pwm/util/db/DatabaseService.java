@@ -179,7 +179,7 @@ public class DatabaseService implements PwmService
         catch ( final Throwable t )
         {
             final String errorMsg = "exception initializing database service: " + t.getMessage();
-            LOGGER.warn( errorMsg );
+            LOGGER.warn( () -> errorMsg );
             initialized = false;
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
             lastError = errorInformation;
@@ -415,7 +415,7 @@ public class DatabaseService implements PwmService
             }
             catch ( final SQLException e )
             {
-                LOGGER.error( "error reading jdbc meta data: " + e.getMessage() );
+                LOGGER.error( () -> "error reading jdbc meta data: " + e.getMessage() );
             }
         }
     }
@@ -443,7 +443,7 @@ public class DatabaseService implements PwmService
                 }
                 if ( !valid )
                 {
-                    LOGGER.warn( "database connection lost; will retry connect periodically" );
+                    LOGGER.warn( () -> "database connection lost; will retry connect periodically" );
                     initialized = false;
                 }
 

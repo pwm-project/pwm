@@ -204,7 +204,7 @@ public abstract class StoredConfigurationUtil
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( "unexpected error during validate value for "
+                    LOGGER.error( () -> "unexpected error during validate value for "
                             + pwmSetting.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) + ", error: "
                             + e.getMessage(), e );
                 }

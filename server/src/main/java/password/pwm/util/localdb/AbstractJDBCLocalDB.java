@@ -103,7 +103,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                 }
                 catch ( final SQLException ex )
                 {
-                    LOGGER.error( "error creating new table " + db.toString() + ": " + ex.getMessage() );
+                    LOGGER.error( () -> "error creating new table " + db.toString() + ": " + ex.getMessage() );
                 }
                 finally
                 {
@@ -129,7 +129,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                 }
                 catch ( final SQLException ex )
                 {
-                    LOGGER.error( "error creating new index " + indexName + ex.getMessage() );
+                    LOGGER.error( () -> "error creating new index " + indexName + ex.getMessage() );
                 }
                 finally
                 {
@@ -172,7 +172,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             }
             catch ( final SQLException e )
             {
-                LOGGER.error( "unexpected error during close statement object " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error during close statement object " + e.getMessage(), e );
             }
         }
     }
@@ -187,7 +187,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             }
             catch ( final SQLException e )
             {
-                LOGGER.error( "unexpected error during close resultSet object " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error during close resultSet object " + e.getMessage(), e );
             }
         }
     }

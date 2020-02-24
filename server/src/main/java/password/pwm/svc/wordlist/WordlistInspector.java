@@ -57,7 +57,7 @@ class WordlistInspector implements Runnable
         }
         catch ( final Exception e )
         {
-            getLogger().error( "unexpected error running population worker: " + e.getMessage(), e );
+            getLogger().error( () -> "unexpected error running population worker: " + e.getMessage(), e );
         }
     }
 
@@ -98,7 +98,7 @@ class WordlistInspector implements Runnable
             }
             catch ( final PwmUnrecoverableException e )
             {
-                getLogger().error( "error importing auto-import wordlist: " + e.getMessage() );
+                getLogger().error( () -> "error importing auto-import wordlist: " + e.getMessage() );
                 rootWordlist.setAutoImportError( e.getErrorInformation() );
             }
         }
@@ -321,7 +321,7 @@ class WordlistInspector implements Runnable
         boolean needsAutoImport = false;
         if ( remoteInfo == null )
         {
-            getLogger().warn( "can't read remote wordlist data from url " + rootWordlist.getConfiguration().getAutoImportUrl() );
+            getLogger().warn( () -> "can't read remote wordlist data from url " + rootWordlist.getConfiguration().getAutoImportUrl() );
         }
         else
         {

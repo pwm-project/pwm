@@ -368,7 +368,7 @@ public class PwmEnvironment
                     }
                     else
                     {
-                        LOGGER.warn( "unknown " + EnvironmentParameter.applicationFlags.toString() + " value: " + input );
+                        LOGGER.warn( () -> "unknown " + EnvironmentParameter.applicationFlags.toString() + " value: " + input );
                     }
                 }
                 return Collections.unmodifiableList( returnFlags );
@@ -388,7 +388,7 @@ public class PwmEnvironment
                 }
                 else
                 {
-                    LOGGER.warn( "unknown " + EnvironmentParameter.applicationFlags.toString() + " value: " + input );
+                    LOGGER.warn( () -> "unknown " + EnvironmentParameter.applicationFlags.toString() + " value: " + input );
                 }
             }
             return returnFlags;
@@ -408,7 +408,7 @@ public class PwmEnvironment
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( "error reading properties file '" + input + "' specified by environment setting "
+                LOGGER.warn( () -> "error reading properties file '" + input + "' specified by environment setting "
                         + EnvironmentParameter.applicationParamFile.toString() + ", error: " + e.getMessage() );
             }
 
@@ -425,14 +425,14 @@ public class PwmEnvironment
                     }
                     else
                     {
-                        LOGGER.warn( "unknown " + EnvironmentParameter.applicationParamFile.toString() + " value: " + input );
+                        LOGGER.warn( () -> "unknown " + EnvironmentParameter.applicationParamFile.toString() + " value: " + input );
                     }
                 }
                 return Collections.unmodifiableMap( returnParams );
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( "unable to parse jason value of " + EnvironmentParameter.applicationParamFile.toString() + ", error: " + e.getMessage() );
+                LOGGER.warn( () -> "unable to parse jason value of " + EnvironmentParameter.applicationParamFile.toString() + ", error: " + e.getMessage() );
             }
 
             return Collections.emptyMap();
@@ -628,7 +628,7 @@ public class PwmEnvironment
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( "unable to obtain file lock on file " + lockfile.getAbsolutePath() + " due to error: " + e.getMessage() );
+                    LOGGER.error( () -> "unable to obtain file lock on file " + lockfile.getAbsolutePath() + " due to error: " + e.getMessage() );
                 }
             }
         }
@@ -648,7 +648,7 @@ public class PwmEnvironment
             }
             catch ( final IOException e )
             {
-                LOGGER.error( "unable to write contents of application lock file: " + e.getMessage() );
+                LOGGER.error( () -> "unable to write contents of application lock file: " + e.getMessage() );
             }
             // do not close FileWriter, otherwise lock is released.
         }
@@ -663,7 +663,7 @@ public class PwmEnvironment
                 }
                 catch ( final IOException e )
                 {
-                    LOGGER.error( "error releasing file lock: " + e.getMessage() );
+                    LOGGER.error( () -> "error releasing file lock: " + e.getMessage() );
                 }
 
                 LOGGER.debug( () -> "released file lock on file " + lockfile.getAbsolutePath() );

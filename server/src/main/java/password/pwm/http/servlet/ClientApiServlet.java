@@ -322,7 +322,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             long idleSeconds = config.readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
             if ( pageUrl == null || pageUrl.isEmpty() )
             {
-                LOGGER.warn( pwmRequest, "request to /client data did not include pageUrl" );
+                LOGGER.warn( pwmRequest, () -> "request to /client data did not include pageUrl" );
             }
             else
             {
@@ -334,7 +334,7 @@ public class ClientApiServlet extends ControlledPwmServlet
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( pwmRequest, "error determining idle timeout time for request: " + e.getMessage() );
+                    LOGGER.error( pwmRequest, () -> "error determining idle timeout time for request: " + e.getMessage() );
                 }
             }
             settingMap.put( "MaxInactiveInterval", idleSeconds );
@@ -441,7 +441,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, "error expanding macro display value: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error expanding macro display value: " + e.getMessage() );
         }
         return displayStrings;
     }

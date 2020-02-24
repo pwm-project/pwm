@@ -405,7 +405,7 @@ public enum PwmPasswordRule
         }
         catch ( final Throwable t )
         {
-            LOGGER.fatal( "error initializing PwmPasswordRule class: " + t.getMessage(), t );
+            LOGGER.fatal( () -> "error initializing PwmPasswordRule class: " + t.getMessage(), t );
         }
     }
 

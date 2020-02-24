@@ -288,7 +288,7 @@ public class PwmScheduler
             }
             catch ( final Throwable t )
             {
-                LOGGER.error( "unexpected error running scheduled job: " + t.getMessage(), t );
+                LOGGER.error( () -> "unexpected error running scheduled job: " + t.getMessage(), t );
                 hasFailed = true;
             }
 

@@ -402,9 +402,9 @@ public class OAuthMachine
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( sessionLabel, "error while processing oauth token refresh: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "error while processing oauth token refresh: " + e.getMessage() );
         }
-        LOGGER.error( sessionLabel, "unable to refresh oauth token for user, unauthenticated session" );
+        LOGGER.error( sessionLabel, () -> "unable to refresh oauth token for user, unauthenticated session" );
         pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
         return true;
     }

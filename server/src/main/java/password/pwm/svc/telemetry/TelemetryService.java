@@ -201,7 +201,7 @@ public class TelemetryService implements PwmService
             catch ( final PwmException e )
             {
                 lastError = e.getErrorInformation();
-                LOGGER.error( SessionLabel.TELEMETRY_SESSION_LABEL, "error sending telemetry data: " + e.getMessage() );
+                LOGGER.error( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "error sending telemetry data: " + e.getMessage() );
             }
         }
 
@@ -232,7 +232,7 @@ public class TelemetryService implements PwmService
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "unexpected error during telemetry publish job: " + e.getMessage() );
+                LOGGER.error( () -> "unexpected error during telemetry publish job: " + e.getMessage() );
             }
         }
     }

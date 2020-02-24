@@ -109,7 +109,7 @@ public enum GuideStep
             }
             catch ( final ReflectiveOperationException e )
             {
-                LOGGER.error( "unexpected error during step visibility check: " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error during step visibility check: " + e.getMessage(), e );
             }
         }
 

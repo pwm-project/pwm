@@ -191,7 +191,7 @@ public class DbCrOperator implements CrOperator
                     "unexpected error saving responses for " + theUser.getEntryDN() + " in remote database: " + e.getMessage()
             );
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            LOGGER.error( errorInfo.toDebugStr() );
+            LOGGER.error( () -> errorInfo.toDebugStr() );
             pwmOE.initCause( e );
             throw pwmOE;
         }

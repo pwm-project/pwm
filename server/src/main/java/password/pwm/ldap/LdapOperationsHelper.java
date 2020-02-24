@@ -201,7 +201,7 @@ public class LdapOperationsHelper
                 errorMsg.append( e.getMessage() );
             }
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, errorMsg.toString() );
-            LOGGER.fatal( sessionLabel, "check ldap proxy settings: " + errorInformation.toDebugStr() );
+            LOGGER.fatal( sessionLabel, () -> "check ldap proxy settings: " + errorInformation.toDebugStr() );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }
@@ -499,7 +499,7 @@ public class LdapOperationsHelper
             {
                 throw new PwmUnrecoverableException( errorInformation );
             }
-            LOGGER.warn( errorMsg );
+            LOGGER.warn( () -> errorMsg );
             return null;
         }
 
@@ -531,7 +531,7 @@ public class LdapOperationsHelper
                     {
                         if ( e.getError() != PwmError.ERROR_CANT_MATCH_USER )
                         {
-                            LOGGER.warn( sessionLabel, "error while searching to verify new unique GUID value: " + e.getError() );
+                            LOGGER.warn( sessionLabel, () -> "error while searching to verify new unique GUID value: " + e.getError() );
                         }
                     }
                 }
@@ -583,7 +583,7 @@ public class LdapOperationsHelper
                 final String errorMsg = "unable to write GUID value to user attribute " + guidAttributeName + " : " + e.getMessage()
                         + ", cannot write GUID value to user " + userIdentity;
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-                LOGGER.error( errorInformation.toDebugStr() );
+                LOGGER.error( () -> errorInformation.toDebugStr() );
                 throw new PwmUnrecoverableException( errorInformation );
             }
             catch ( final ChaiUnavailableException e )
@@ -729,7 +729,7 @@ public class LdapOperationsHelper
         }
         catch ( final Exception e )
         {
-            LOGGER.warn( "unknown CR storage format type '" + storageMethodString + "' " );
+            LOGGER.warn( () -> "unknown CR storage format type '" + storageMethodString + "' " );
         }
 
         final List<X509Certificate> ldapServerCerts = ldapProfile.readSettingAsCertificate( PwmSetting.LDAP_SERVER_CERTS );
@@ -778,7 +778,7 @@ public class LdapOperationsHelper
                 final ChaiSetting theSetting = ChaiSetting.forKey( key );
                 if ( theSetting == null )
                 {
-                    LOGGER.warn( "ignoring unknown chai setting '" + key + "'" );
+                    LOGGER.warn( () -> "ignoring unknown chai setting '" + key + "'" );
                 }
                 else
                 {
@@ -917,7 +917,7 @@ public class LdapOperationsHelper
         }
         catch ( final Exception e )
         {
-            LOGGER.warn( "error reading password expiration time: " + e.getMessage() );
+            LOGGER.warn( () -> "error reading password expiration time: " + e.getMessage() );
         }
 
         return null;
@@ -1070,7 +1070,7 @@ public class LdapOperationsHelper
             }
             catch ( final ChaiException e )
             {
-                LOGGER.error( sessionLabel, "error writing language value to language attribute '" + languageAttr + "', error: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "error writing language value to language attribute '" + languageAttr + "', error: " + e.getMessage() );
             }
         }
     }

@@ -418,7 +418,7 @@ public class PwmHttpRequestWrapper
         }
         catch ( final UnsupportedEncodingException e )
         {
-            LOGGER.error( "error decoding request parameter: " + e.getMessage() );
+            LOGGER.error( () -> "error decoding request parameter: " + e.getMessage() );
         }
         return decodedValue;
     }

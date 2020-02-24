@@ -119,7 +119,7 @@ public class BasicAuthInfo implements Serializable
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error decoding auth header: " + e.getMessage() );
+            LOGGER.error( () -> "error decoding auth header: " + e.getMessage() );
             throw new IllegalArgumentException( "invalid basic authentication input string: " + e.getMessage(), e );
         }
     }

@@ -52,7 +52,7 @@ public class UserAgentUtils
         catch ( final IOException | ParseException e )
         {
             final String msg = "error loading user-agent parser: " + e.getMessage();
-            LOGGER.error( msg, e );
+            LOGGER.error( () -> msg, e );
         }
 
         return null;
@@ -92,7 +92,7 @@ public class UserAgentUtils
             }
             catch ( final NumberFormatException e )
             {
-                LOGGER.error( "error parsing user-agent major version" + e.getMessage(), e );
+                LOGGER.error( () -> "error parsing user-agent major version" + e.getMessage(), e );
             }
         }
 

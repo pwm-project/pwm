@@ -97,7 +97,7 @@ public class MacroMachine
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "unable to load macro class " + macroClass.getName() + ", error: " + e.getMessage() );
+                LOGGER.error( () -> "unable to load macro class " + macroClass.getName() + ", error: " + e.getMessage() );
             }
         }
 
@@ -192,7 +192,7 @@ public class MacroMachine
                             workingString = doReplace( workingString, pwmMacro, matcher, macroRequestInfo );
                             if ( workingString.equals( previousString ) )
                             {
-                                LOGGER.warn( sessionLabel, "macro replace was called but input string was not modified.  "
+                                LOGGER.warn( sessionLabel, () -> "macro replace was called but input string was not modified.  "
                                         + " macro=" + pwmMacro.getClass().getName() + ", pattern=" + pwmMacro.getRegExPattern().toString() );
                                 break;
                             }
@@ -260,7 +260,7 @@ public class MacroMachine
         }
         catch ( final Exception e )
         {
-            LOGGER.error( sessionLabel, "error while replacing macro '" + matchedStr + "', error: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "error while replacing macro '" + matchedStr + "', error: " + e.getMessage() );
         }
 
         if ( replaceStr == null )
@@ -276,7 +276,7 @@ public class MacroMachine
             }
             catch ( final Exception e )
             {
-                LOGGER.error( sessionLabel, "unexpected error while executing '" + matchedStr + "' during StringReplacer.replace(), error: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "unexpected error while executing '" + matchedStr + "' during StringReplacer.replace(), error: " + e.getMessage() );
             }
         }
 

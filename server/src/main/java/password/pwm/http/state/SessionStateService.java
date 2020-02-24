@@ -211,7 +211,7 @@ public class SessionStateService implements PwmService
         catch ( final Exception e )
         {
             final String errorMsg = "unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage();
-            LOGGER.error( errorMsg, e );
+            LOGGER.error( () -> errorMsg, e );
             throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, errorMsg );
         }
     }

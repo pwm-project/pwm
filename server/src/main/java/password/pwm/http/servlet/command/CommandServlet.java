@@ -109,7 +109,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error processing csp report: " + e.getMessage() + ", body=" + body );
+            LOGGER.error( () -> "error processing csp report: " + e.getMessage() + ", body=" + body );
         }
         return ProcessStatus.Halt;
     }

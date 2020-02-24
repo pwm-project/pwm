@@ -301,7 +301,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.error( pwmRequest, e.getErrorInformation().toDebugStr() );
+            LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
             final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
             pwmRequest.outputJsonResult( restResultBean );
             return ProcessStatus.Halt;
@@ -346,7 +346,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( pwmRequest, "unable to read username of deleted user while creating audit record" );
+            LOGGER.warn( pwmRequest, () -> "unable to read username of deleted user while creating audit record" );
         }
 
         // execute user delete operation
@@ -630,7 +630,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             final PwmError returnMsg = PwmError.forChaiError( e.getErrorCode() ) == null ? PwmError.ERROR_INTERNAL : PwmError.forChaiError( e.getErrorCode() );
             final ErrorInformation error = new ErrorInformation( returnMsg, e.getMessage() );
             pwmRequest.respondWithError( error );
-            LOGGER.warn( pwmRequest, "error resetting password for user '" + userIdentity.toDisplayString() + "'' " + error.toDebugStr() + ", " + e.getMessage() );
+            LOGGER.warn( pwmRequest, () -> "error resetting password for user '" + userIdentity.toDisplayString() + "'' " + error.toDebugStr() + ", " + e.getMessage() );
             return ProcessStatus.Halt;
         }
 
@@ -921,7 +921,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         {
             final String errorMsg = "clear otp request, but helpdesk clear otp button is not enabled";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
-            LOGGER.error( pwmRequest, errorMsg );
+            LOGGER.error( pwmRequest, () -> errorMsg );
             pwmRequest.respondWithError( errorInformation );
             return ProcessStatus.Halt;
         }
@@ -953,7 +953,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             final PwmError returnMsg = e.getError();
             final ErrorInformation error = new ErrorInformation( returnMsg, e.getMessage() );
             pwmRequest.respondWithError( error );
-            LOGGER.warn( pwmRequest, "error clearing OTP secret for user '" + userIdentity + "'' " + error.toDebugStr() + ", " + e.getMessage() );
+            LOGGER.warn( pwmRequest, () -> "error clearing OTP secret for user '" + userIdentity + "'' " + error.toDebugStr() + ", " + e.getMessage() );
             return ProcessStatus.Halt;
         }
 
@@ -1064,7 +1064,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                 }
                 catch ( final ChaiException e )
                 {
-                    LOGGER.error( pwmRequest, "error comparing ldap attribute during verification " + e.getMessage() );
+                    LOGGER.error( pwmRequest, () -> "error comparing ldap attribute during verification " + e.getMessage() );
                 }
             }
             if ( successCount == verificationForms.size() )
@@ -1321,7 +1321,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( "error during set password REST operation: " + e.getMessage() );
+            LOGGER.error( () -> "error during set password REST operation: " + e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( e.getErrorInformation(), pwmRequest ) );
             return ProcessStatus.Halt;
         }

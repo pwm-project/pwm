@@ -172,7 +172,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
             }
             catch ( final IllegalStateException e )
             {
-                LOGGER.error( "error reading template", e );
+                LOGGER.error( () -> "error reading template", e );
             }
         }
 

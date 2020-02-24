@@ -295,12 +295,12 @@ public class NewUserServlet extends ControlledPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.error( pwmRequest, "error during user creation: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error during user creation: " + e.getMessage() );
             if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_DELETE_ON_FAIL ) )
             {
                 NewUserUtils.deleteUserAccount( newUserDN, pwmRequest );
             }
-            LOGGER.error( pwmRequest, e.getErrorInformation().toDebugStr() );
+            LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
             pwmRequest.respondWithError( e.getErrorInformation() );
         }
     }
@@ -504,7 +504,7 @@ public class NewUserServlet extends ControlledPwmServlet
                     }
                     catch ( final PwmUnrecoverableException | PwmOperationalException e )
                     {
-                        LOGGER.error( pwmRequest, "while reading stored form data in token payload, form validation error occurred: " + e.getMessage() );
+                        LOGGER.error( pwmRequest, () -> "while reading stored form data in token payload, form validation error occurred: " + e.getMessage() );
                         errorInformation = e.getErrorInformation();
                     }
                 }

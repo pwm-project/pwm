@@ -78,7 +78,7 @@ public class PrivateKeyValue extends AbstractValue
                             }
                             catch ( final Exception e )
                             {
-                                LOGGER.error( "error reading certificate: " + e.getMessage(), e );
+                                LOGGER.error( () -> "error reading certificate: " + e.getMessage(), e );
                             }
 
                         }
@@ -100,12 +100,12 @@ public class PrivateKeyValue extends AbstractValue
                             }
                             else
                             {
-                                LOGGER.error( "error reading privateKey for setting: '" + pwmSetting.getKey() + "': missing 'value' element" );
+                                LOGGER.error( () -> "error reading privateKey for setting: '" + pwmSetting.getKey() + "': missing 'value' element" );
                             }
                         }
                         catch ( final Exception e )
                         {
-                            LOGGER.error( "error reading privateKey for setting: '" + pwmSetting.getKey() + "': " + e.getMessage(), e );
+                            LOGGER.error( () -> "error reading privateKey for setting: '" + pwmSetting.getKey() + "': " + e.getMessage(), e );
                         }
 
                         if ( !certificates.isEmpty() && privateKey != null )

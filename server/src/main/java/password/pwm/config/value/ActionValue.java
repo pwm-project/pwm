@@ -164,7 +164,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                                 }
                                 catch ( final PwmOperationalException e )
                                 {
-                                    LOGGER.warn( "error decoding stored pw value on setting '" + pwmSetting.getKey() + "': " + e.getMessage() );
+                                    LOGGER.warn( () -> "error decoding stored pw value on setting '" + pwmSetting.getKey() + "': " + e.getMessage() );
                                 }
                             }
 
@@ -205,7 +205,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                     }
                     catch ( final PwmOperationalException e )
                     {
-                        LOGGER.warn( "error encoding stored pw value: " + e.getMessage() );
+                        LOGGER.warn( () -> "error encoding stored pw value: " + e.getMessage() );
                     }
                 }
             }

@@ -113,7 +113,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
         }
         catch ( final Throwable t )
         {
-            LOGGER.fatal( "error initializing PwmPasswordPolicy class: " + t.getMessage(), t );
+            LOGGER.fatal( () -> "error initializing PwmPasswordPolicy class: " + t.getMessage(), t );
         }
         DEFAULT_POLICY = newDefaultPolicy;
     }

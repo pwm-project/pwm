@@ -306,7 +306,7 @@ public class StoredConfigurationFactory
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( "error parsing root last modified timestamp: " + e.getMessage() );
+                    LOGGER.error( () -> "error parsing root last modified timestamp: " + e.getMessage() );
                 }
             }
 
@@ -334,7 +334,7 @@ public class StoredConfigurationFactory
                 }
                 catch ( final IllegalStateException e )
                 {
-                    LOGGER.error( "error reading template", e );
+                    LOGGER.error( () -> "error reading template", e );
                 }
             }
             return null;

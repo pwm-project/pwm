@@ -159,7 +159,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         final String msg = "shutting down with " + queue.size() + " items remaining in work queue (" + timeDuration.asCompactString() + ")";
         if ( !queue.isEmpty() )
         {
-            logger.warn( msg );
+            logger.warn( () -> msg );
         }
         else
         {
@@ -221,13 +221,13 @@ public final class WorkQueueProcessor<W extends Serializable>
                 }
                 catch ( final Exception e )
                 {
-                    logger.error( "error submitting to work queue after executor returned retry status: " + e.getMessage() );
+                    logger.error( () -> "error submitting to work queue after executor returned retry status: " + e.getMessage() );
                 }
             }
         }
         catch ( final PwmOperationalException e )
         {
-            logger.error( "unexpected error while processing itemWrapper: " + e.getMessage(), e );
+            logger.error( () -> "unexpected error while processing itemWrapper: " + e.getMessage(), e );
         }
     }
 
@@ -317,7 +317,7 @@ public final class WorkQueueProcessor<W extends Serializable>
             }
             catch ( final Throwable t )
             {
-                logger.error( "unexpected error processing work item queue: " + JavaHelper.readHostileExceptionMessage( t ), t );
+                logger.error( () -> "unexpected error processing work item queue: " + JavaHelper.readHostileExceptionMessage( t ), t );
             }
 
             logger.trace( () -> "worker thread beginning shutdown..." );
@@ -336,7 +336,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                 }
                 catch ( final Throwable t )
                 {
-                    logger.error( "unexpected error processing work item queue: " + JavaHelper.readHostileExceptionMessage( t ), t );
+                    logger.error( () -> "unexpected error processing work item queue: " + JavaHelper.readHostileExceptionMessage( t ), t );
                 }
             }
 
@@ -408,14 +408,14 @@ public final class WorkQueueProcessor<W extends Serializable>
                 if ( TimeDuration.fromCurrent( itemWrapper.getDate() ).isLongerThan( settings.getRetryDiscardAge() ) )
                 {
                     removeQueueTop();
-                    logger.warn( "discarding queued item due to age, item=" + makeDebugText( itemWrapper ) );
+                    logger.warn( () -> "discarding queued item due to age, item=" + makeDebugText( itemWrapper ) );
                     return;
                 }
             }
             catch ( final Throwable e )
             {
                 removeQueueTop();
-                logger.warn( "discarding stored record due to parsing error: " + e.getMessage() + ", record=" + nextStrValue );
+                logger.warn( () -> "discarding stored record due to parsing error: " + e.getMessage() + ", record=" + nextStrValue );
                 return;
             }
 
@@ -427,7 +427,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                 if ( processResult == null )
                 {
                     removeQueueTop();
-                    logger.warn( "itemProcessor.process() returned null, removing; item=" + makeDebugText( itemWrapper ) );
+                    logger.warn( () -> "itemProcessor.process() returned null, removing; item=" + makeDebugText( itemWrapper ) );
                 }
                 else
                 {
@@ -436,7 +436,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                         case FAILED:
                         {
                             removeQueueTop();
-                            logger.error( "discarding item after process failure, item=" + makeDebugText( itemWrapper ) );
+                            logger.error( () -> "discarding item after process failure, item=" + makeDebugText( itemWrapper ) );
                         }
                         break;
 
@@ -468,7 +468,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                 if ( !shutdownFlag.get() )
                 {
                     removeQueueTop();
-                    logger.error( "unexpected error while processing work queue: " + e.getMessage() );
+                    logger.error( () -> "unexpected error while processing work queue: " + e.getMessage() );
                 }
             }
 

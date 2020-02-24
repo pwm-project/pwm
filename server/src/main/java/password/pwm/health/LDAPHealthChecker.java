@@ -356,7 +356,7 @@ public class LDAPHealthChecker implements HealthChecker
             catch ( final Exception e )
             {
                 final String msg = "error setting test user password: " + JavaHelper.readHostileExceptionMessage( e );
-                LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, msg, e );
+                LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, () -> msg, e );
                 returnRecords.add( HealthRecord.forMessage( HealthMessage.LDAP_TestUserUnexpected,
                         PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
                         msg
@@ -702,7 +702,7 @@ public class LDAPHealthChecker implements HealthChecker
         catch ( final Exception e )
         {
             errorReachingServer = true;
-            LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, "error during replica vendor sameness check: " + e.getMessage() );
+            LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, () -> "error during replica vendor sameness check: " + e.getMessage() );
         }
 
         final ArrayList<HealthRecord> healthRecords = new ArrayList<>();
@@ -725,7 +725,7 @@ public class LDAPHealthChecker implements HealthChecker
             // cache the error
             healthProperties.put( HealthMonitor.HealthMonitorFlag.LdapVendorSameCheck, healthRecords );
 
-            LOGGER.warn( SessionLabel.HEALTH_SESSION_LABEL, "multiple ldap vendors found: " + vendorMsg.toString() );
+            LOGGER.warn( SessionLabel.HEALTH_SESSION_LABEL, () -> "multiple ldap vendors found: " + vendorMsg.toString() );
         }
         else if ( discoveredVendors.size() == 1 )
         {
@@ -792,7 +792,7 @@ public class LDAPHealthChecker implements HealthChecker
                                 url
                         );
                         healthRecords.add( record );
-                        LOGGER.warn( record.toDebugString( PwmConstants.DEFAULT_LOCALE, pwmApplication.getConfig() ) );
+                        LOGGER.warn( () -> record.toDebugString( PwmConstants.DEFAULT_LOCALE, pwmApplication.getConfig() ) );
                     }
                 }
             }
@@ -801,7 +801,7 @@ public class LDAPHealthChecker implements HealthChecker
         {
             errorReachingServer = true;
             LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL,
-                    "error during ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") check: " + e.getMessage() );
+                    () ->  "error during ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") check: " + e.getMessage() );
         }
 
         if ( !errorReachingServer && pwmApplication.getHealthMonitor() != null )
@@ -832,7 +832,7 @@ public class LDAPHealthChecker implements HealthChecker
                         }
                         catch ( final PwmUnrecoverableException e )
                         {
-                            LOGGER.error( "error checking configured permission settings:" + e.getMessage() );
+                            LOGGER.error( () -> "error checking configured permission settings:" + e.getMessage() );
                         }
                     }
                 }
@@ -890,7 +890,7 @@ public class LDAPHealthChecker implements HealthChecker
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( "error while checking DN ldap syntax values: " + e.getMessage() );
+            LOGGER.warn( () -> "error while checking DN ldap syntax values: " + e.getMessage() );
         }
 
         return returnList;
@@ -957,7 +957,7 @@ public class LDAPHealthChecker implements HealthChecker
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "error checking new user password policy user settings:" + e.getMessage() );
+                LOGGER.error( () -> "error checking new user password policy user settings:" + e.getMessage() );
             }
         }
 
@@ -1118,7 +1118,7 @@ public class LDAPHealthChecker implements HealthChecker
         }
         catch ( final ChaiException e )
         {
-            LOGGER.error( "error while evaluating ldap DN '" + dnValue + "', error: " + e.getMessage() );
+            LOGGER.error( () -> "error while evaluating ldap DN '" + dnValue + "', error: " + e.getMessage() );
         }
         return Optional.empty();
     }

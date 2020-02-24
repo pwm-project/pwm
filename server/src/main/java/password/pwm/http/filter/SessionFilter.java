@@ -129,7 +129,7 @@ public class SessionFilter extends AbstractPwmFilter
             }
             else
             {
-                LOGGER.error( pwmRequest, "unhandled exception " + e.getMessage(), e );
+                LOGGER.error( pwmRequest, () -> "unhandled exception " + e.getMessage(), e );
             }
 
             throw new ServletException( e );
@@ -168,7 +168,7 @@ public class SessionFilter extends AbstractPwmFilter
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( pwmRequest, "error while reading login session state: " + e.getMessage() );
+            LOGGER.warn( pwmRequest, () -> "error while reading login session state: " + e.getMessage() );
         }
 
         // mark last url
@@ -184,7 +184,7 @@ public class SessionFilter extends AbstractPwmFilter
         // check the page leave notice
         if ( checkPageLeaveNotice( pwmSession, config ) )
         {
-            LOGGER.warn( "invalidating session due to dirty page leave time greater then configured timeout" );
+            LOGGER.warn( () -> "invalidating session due to dirty page leave time greater then configured timeout" );
             pwmRequest.invalidateSession();
             resp.sendRedirect( pwmRequest.getHttpServletRequest().getRequestURI() );
             return ProcessStatus.Halt;
@@ -546,7 +546,7 @@ public class SessionFilter extends AbstractPwmFilter
         }
         catch ( final IllegalArgumentException e )
         {
-            LOGGER.error( sessionLabel, "unable to parse requested redirect url '" + inputURL + "', error: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "unable to parse requested redirect url '" + inputURL + "', error: " + e.getMessage() );
             // dont put input uri in error response
             final String errorMsg = "unable to parse url: " + e.getMessage();
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_REDIRECT_ILLEGAL, errorMsg ) );

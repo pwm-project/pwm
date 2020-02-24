@@ -164,7 +164,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         if ( pwmApplication.getApplicationMode() != PwmApplicationMode.NEW )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "ConfigGuide unavailable unless in NEW mode" );
-            LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
             throw new PwmUnrecoverableException( errorInformation );
         }
 
@@ -196,7 +196,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error reading/testing ldap server certificates: " + e.getMessage() );
+                LOGGER.error( () -> "error reading/testing ldap server certificates: " + e.getMessage() );
             }
         }
 
@@ -456,7 +456,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             catch ( final IllegalArgumentException e )
             {
                 final String errorMsg = "unknown goto step request: " + requestedStep;
-                LOGGER.error( pwmRequest, errorMsg );
+                LOGGER.error( pwmRequest, () -> errorMsg );
             }
         }
 
@@ -498,7 +498,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             }
             catch ( final Exception e )
             {
-                LOGGER.error( pwmRequest, "error during save: " + e.getMessage(), e );
+                LOGGER.error( pwmRequest, () -> "error during save: " + e.getMessage(), e );
                 final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation(
                         PwmError.ERROR_INTERNAL,
                         "error during save: " + e.getMessage()
@@ -540,7 +540,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
-            LOGGER.error( pwmRequest, e.getMessage(), e );
+            LOGGER.error( pwmRequest, () -> e.getMessage(), e );
         }
 
         return ProcessStatus.Halt;
@@ -563,7 +563,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         {
             final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
             pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
-            LOGGER.error( pwmRequest, e.getErrorInformation().toDebugStr() );
+            LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
         }
 
         return ProcessStatus.Halt;
@@ -586,7 +586,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.error( "error during skip config guide: " + e.getMessage(), e );
+            LOGGER.error( () -> "error during skip config guide: " + e.getMessage(), e );
         }
 
         return ProcessStatus.Halt;
@@ -647,7 +647,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         catch ( final Exception e )
         {
             final String errorMsg = "error writing default value for setting " + setting.toString() + ", error: " + e.getMessage();
-            LOGGER.error( errorMsg, e );
+            LOGGER.error( () -> errorMsg, e );
             throw new IllegalStateException( errorMsg, e );
         }
         returnMap.put( "key", key );

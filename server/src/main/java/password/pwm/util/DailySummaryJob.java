@@ -64,7 +64,7 @@ public class DailySummaryJob implements Runnable
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error while generating daily alert statistics: " + e.getMessage() );
+            LOGGER.error( () -> "error while generating daily alert statistics: " + e.getMessage() );
         }
 
 

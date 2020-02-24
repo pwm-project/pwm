@@ -131,7 +131,7 @@ class ReportSettings implements Serializable
             }
             catch ( final NumberFormatException e )
             {
-                LOGGER.error( "error parsing reporting summary day value '" + splitDay + "', error: " + e.getMessage() );
+                LOGGER.error( () -> "error parsing reporting summary day value '" + splitDay + "', error: " + e.getMessage() );
             }
         }
         Collections.sort( returnValue );

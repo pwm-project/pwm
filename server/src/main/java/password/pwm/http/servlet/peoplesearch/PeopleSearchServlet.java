@@ -197,7 +197,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( pwmRequest, "error generating user detail object: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error generating user detail object: " + e.getMessage() );
             pwmRequest.respondWithError( e.getErrorInformation() );
         }
 

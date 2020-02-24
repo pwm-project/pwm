@@ -64,11 +64,11 @@ public class PwmScriptTag extends BodyTagSupport
         }
         catch ( final IOException e )
         {
-            LOGGER.error( "IO error while processing PwmScriptTag: " + e.getMessage() );
+            LOGGER.error( () -> "IO error while processing PwmScriptTag: " + e.getMessage() );
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "error while processing PwmScriptTag: " + e.getMessage() );
+            LOGGER.error( () -> "error while processing PwmScriptTag: " + e.getMessage() );
         }
         return SKIP_BODY;
     }

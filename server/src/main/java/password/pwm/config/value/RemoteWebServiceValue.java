@@ -131,7 +131,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
             }
             catch ( final PwmOperationalException e )
             {
-                LOGGER.warn( "error decoding stored pw value: " + e.getMessage() );
+                LOGGER.warn( () -> "error decoding stored pw value: " + e.getMessage() );
             }
 
             final RemoteWebServiceConfiguration clonedValue = value.toBuilder().password( encodedValue ).build();

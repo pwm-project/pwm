@@ -493,7 +493,7 @@ public class PasswordRequirementsTag extends TagSupport
         }
         catch ( final MissingResourceException e )
         {
-            LOGGER.error( "unable to display requirement tag for message '" + message.toString() + "': " + e.getMessage() );
+            LOGGER.error( () -> "unable to display requirement tag for message '" + message.toString() + "': " + e.getMessage() );
         }
         return "UNKNOWN MESSAGE STRING";
     }
@@ -506,7 +506,7 @@ public class PasswordRequirementsTag extends TagSupport
         }
         catch ( final MissingResourceException e )
         {
-            LOGGER.error( "unable to display requirement tag for message '" + message.toString() + "': " + e.getMessage() );
+            LOGGER.error( () -> "unable to display requirement tag for message '" + message.toString() + "': " + e.getMessage() );
         }
         return "UNKNOWN MESSAGE STRING";
     }
@@ -591,7 +591,7 @@ public class PasswordRequirementsTag extends TagSupport
         }
         catch ( final IOException | PwmException e )
         {
-            LOGGER.error( "unexpected error during password requirements generation: " + e.getMessage(), e );
+            LOGGER.error( () -> "unexpected error during password requirements generation: " + e.getMessage(), e );
             throw new JspTagException( e.getMessage() );
         }
         return EVAL_PAGE;

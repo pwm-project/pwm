@@ -74,7 +74,7 @@ public class ApplianceStatusChecker implements HealthChecker
         }
         catch ( final Exception e )
         {
-            LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, "error communicating with client " + e.getMessage() );
+            LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, () -> "error communicating with client " + e.getMessage() );
         }
 
         return healthRecords;

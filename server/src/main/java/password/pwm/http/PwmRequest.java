@@ -245,7 +245,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error reading file upload: " + e.getMessage() );
+            LOGGER.error( () -> "error reading file upload: " + e.getMessage() );
         }
         return null;
     }
@@ -288,7 +288,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error reading file upload: " + e.getMessage() );
+            LOGGER.error( () -> "error reading file upload: " + e.getMessage() );
         }
         return Collections.unmodifiableMap( returnObj );
     }
@@ -329,7 +329,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         final String servletPath = this.getHttpServletRequest().getServletPath();
         if ( !uri.contains( servletPath ) )
         {
-            LOGGER.error( "unexpected uri handler, uri '" + uri + "' does not contain servlet path '" + servletPath + "'" );
+            LOGGER.error( () -> "unexpected uri handler, uri '" + uri + "' does not contain servlet path '" + servletPath + "'" );
             return false;
         }
 

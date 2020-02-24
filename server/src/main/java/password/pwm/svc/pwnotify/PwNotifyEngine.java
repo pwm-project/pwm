@@ -358,7 +358,7 @@ public class PwNotifyEngine
             }
             catch ( final IOException e )
             {
-                LOGGER.warn( SessionLabel.PWNOTIFY_SESSION_LABEL, "unexpected IO error writing to debugWriter: " + e.getMessage() );
+                LOGGER.warn( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> "unexpected IO error writing to debugWriter: " + e.getMessage() );
             }
         }
 

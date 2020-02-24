@@ -180,7 +180,7 @@ public class DebugItemGenerator
             catch ( final Throwable e )
             {
                 final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
-                LOGGER.error( sessionLabel, errorMsg, e );
+                LOGGER.error( sessionLabel, () -> errorMsg, e );
                 debugGeneratorLogFile.appendLine( errorMsg );
                 final Writer stackTraceOutput = new StringWriter();
                 e.printStackTrace( new PrintWriter( stackTraceOutput ) );
@@ -202,7 +202,7 @@ public class DebugItemGenerator
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error generating " + debugFileName + ": " + e.getMessage() );
+            LOGGER.error( () -> "error generating " + debugFileName + ": " + e.getMessage() );
         }
 
         zipOutput.flush();
@@ -494,7 +494,7 @@ public class DebugItemGenerator
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( debugItemInput.getSessionLabel(), "unable to generate webInfPath fileMd5sums during zip debug building: " + e.getMessage() );
+                    LOGGER.error( debugItemInput.getSessionLabel(), () -> "unable to generate webInfPath fileMd5sums during zip debug building: " + e.getMessage() );
                 }
             }
 
@@ -506,7 +506,7 @@ public class DebugItemGenerator
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( debugItemInput.getSessionLabel(), "unable to generate appPath fileMd5sums during zip debug building: " + e.getMessage() );
+                    LOGGER.error( debugItemInput.getSessionLabel(), () -> "unable to generate appPath fileMd5sums during zip debug building: " + e.getMessage() );
                 }
             }
 

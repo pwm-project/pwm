@@ -139,7 +139,7 @@ public class LocaleHelper
             if ( bundle == null )
             {
                 final String errorMsg = "missing bundle for " + bundleClass.getName();
-                LOGGER.warn( errorMsg );
+                LOGGER.warn( () -> errorMsg );
                 return errorMsg;
             }
             try
@@ -151,7 +151,7 @@ public class LocaleHelper
                 final String errorMsg = "missing key '" + key + "' for " + bundleClass.getName();
                 if ( config != null && config.isDevDebugMode() )
                 {
-                    LOGGER.warn( errorMsg );
+                    LOGGER.warn( () -> errorMsg );
                 }
                 returnValue = key;
             }
@@ -177,7 +177,7 @@ public class LocaleHelper
     {
         if ( !PwmDisplayBundle.class.isAssignableFrom( bundleClass ) )
         {
-            LOGGER.warn( "attempt to resolve locale for non-DisplayBundleMarker class type " + bundleClass.toString() );
+            LOGGER.warn( () -> "attempt to resolve locale for non-DisplayBundleMarker class type " + bundleClass.toString() );
             return null;
         }
 

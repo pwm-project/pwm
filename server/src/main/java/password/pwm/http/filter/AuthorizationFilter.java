@@ -74,7 +74,7 @@ public class AuthorizationFilter extends AbstractPwmFilter
         }
         catch ( final Exception e )
         {
-            LOGGER.warn( pwmRequest, "error during authorization check: " + e.getMessage() );
+            LOGGER.warn( pwmRequest, () -> "error during authorization check: " + e.getMessage() );
         }
 
         try
@@ -87,7 +87,7 @@ public class AuthorizationFilter extends AbstractPwmFilter
         }
         catch ( final Exception e )
         {
-            LOGGER.warn( pwmRequest, "unexpected error executing filter chain: " + e.getMessage() );
+            LOGGER.warn( pwmRequest, () -> "unexpected error executing filter chain: " + e.getMessage() );
             return;
         }
 

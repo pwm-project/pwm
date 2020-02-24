@@ -1531,7 +1531,7 @@ public enum PwmSetting
                 }
                 catch ( final IllegalArgumentException e )
                 {
-                    LOGGER.error( "unknown flag for setting " + pwmSetting.getKey() + ", error: unknown flag value: " + value );
+                    LOGGER.error( () -> "unknown flag for setting " + pwmSetting.getKey() + ", error: unknown flag value: " + value );
                 }
 
             }
@@ -1701,7 +1701,7 @@ public enum PwmSetting
                 catch ( final PatternSyntaxException e )
                 {
                     final String errorMsg = "error compiling regex constraints for setting " + pwmSetting.toString() + ", error: " + e.getMessage();
-                    LOGGER.error( errorMsg, e );
+                    LOGGER.error( () -> errorMsg, e );
                     throw new IllegalStateException( errorMsg, e );
                 }
             }

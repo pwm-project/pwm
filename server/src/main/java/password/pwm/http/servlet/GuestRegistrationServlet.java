@@ -199,7 +199,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         }
         catch ( final IllegalArgumentException e )
         {
-            LOGGER.error( pwmRequest, "unknown page select request: " + requestedPage );
+            LOGGER.error( pwmRequest, () -> "unknown page select request: " + requestedPage );
         }
         this.forwardToJSP( pwmRequest, guestRegistrationBean );
     }
@@ -270,7 +270,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.error( pwmRequest, e.getErrorInformation().toDebugStr() );
+            LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
             setLastError( pwmRequest, e.getErrorInformation() );
         }
         catch ( final ChaiOperationException e )
@@ -392,7 +392,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.warn( pwmRequest, "error reading current attributes for user: " + e.getMessage() );
+                LOGGER.warn( pwmRequest, () -> "error reading current attributes for user: " + e.getMessage() );
             }
         }
         catch ( final PwmOperationalException e )
@@ -518,7 +518,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.error( pwmRequest, e.getErrorInformation().toDebugStr() );
+            LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
             setLastError( pwmRequest, e.getErrorInformation() );
             this.forwardToJSP( pwmRequest, guestRegistrationBean );
         }

@@ -372,7 +372,7 @@ public class MainClass
         {
             final String errorMsg = "unable to establish operating environment: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_ENVIRONMENT_ERROR, errorMsg );
-            LOGGER.error( errorInformation.toDebugStr(), e );
+            LOGGER.error( () -> errorInformation.toDebugStr(), e );
             out( "unable to establish operating environment: " + e.getMessage() );
             System.exit( -1 );
             return;

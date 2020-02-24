@@ -92,15 +92,10 @@ public class SetupOtpBean extends PwmSessionBean
             {
                 random = SecureRandom.getInstance( "SHA1PRNG", "SUN" );
             }
-            catch ( final NoSuchAlgorithmException ex )
+            catch ( final NoSuchAlgorithmException | NoSuchProviderException ex )
             {
                 random = new SecureRandom();
-                LOGGER.error( ex.getMessage(), ex );
-            }
-            catch ( final NoSuchProviderException ex )
-            {
-                random = new SecureRandom();
-                LOGGER.error( ex.getMessage(), ex );
+                LOGGER.error( () -> ex.getMessage(), ex );
             }
             random.setSeed( ( new Date() ).getTime() );
             challenge = random.nextLong() % ( 10 ^ 6 );

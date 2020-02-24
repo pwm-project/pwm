@@ -165,12 +165,12 @@ public class NMASCrOperator implements CrOperator
         {
             if ( forceRegistration )
             {
-                LOGGER.warn( "SASL provider '" + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + "' is already defined, however forcing registration due to app property "
+                LOGGER.warn( () -> "SASL provider '" + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + "' is already defined, however forcing registration due to app property "
                         + AppProperty.NMAS_FORCE_SASL_FACTORY_REGISTRATION.getKey() + " value" );
             }
             else
             {
-                LOGGER.warn( "SASL provider '" + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + "' is already defined, skipping SASL factory registration" );
+                LOGGER.warn( () -> "SASL provider '" + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + "' is already defined, skipping SASL factory registration" );
                 return;
             }
         }
@@ -197,7 +197,7 @@ public class NMASCrOperator implements CrOperator
         }
         catch ( final Throwable t )
         {
-            LOGGER.warn( "unable to create SASL provider, error: " + t.getMessage(), t );
+            LOGGER.warn( () -> "unable to create SASL provider, error: " + t.getMessage(), t );
         }
 
         if ( saslProvider != null )
@@ -208,7 +208,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( "error registering security provider" );
+                LOGGER.warn( () -> "error registering security provider" );
             }
         }
     }
@@ -224,7 +224,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( "error removing provider " + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + ", error: " + e.getMessage() );
+                LOGGER.warn( () -> "error removing provider " + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + ", error: " + e.getMessage() );
             }
         }
     }
@@ -577,7 +577,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error testing responses: " + e.getMessage() );
+                LOGGER.error( () -> "error testing responses: " + e.getMessage() );
             }
             if ( !passed )
             {
@@ -594,7 +594,7 @@ public class NMASCrOperator implements CrOperator
                 catch ( final PwmException e )
                 {
                     final String errorMsg = "error reading next challenges after testing responses: " + e.getMessage();
-                    LOGGER.error( "error reading next challenges after testing responses: " + e.getMessage() );
+                    LOGGER.error( () -> "error reading next challenges after testing responses: " + e.getMessage() );
                     final ChaiUnavailableException chaiUnavailableException = new ChaiUnavailableException( errorMsg, ChaiError.UNKNOWN );
                     chaiUnavailableException.initCause( e );
                     throw chaiUnavailableException;
@@ -602,7 +602,7 @@ public class NMASCrOperator implements CrOperator
                 catch ( final Exception e )
                 {
                     final String errorMsg = "error reading next challenges after testing responses: " + e.getMessage();
-                    LOGGER.error( "error reading next challenges after testing responses: " + e.getMessage() );
+                    LOGGER.error( () -> "error reading next challenges after testing responses: " + e.getMessage() );
                     throw new ChaiUnavailableException( errorMsg, ChaiError.UNKNOWN );
                 }
             }
@@ -705,7 +705,7 @@ public class NMASCrOperator implements CrOperator
                 }
                 catch ( final LDAPException e )
                 {
-                    LOGGER.error( "error closing ldap connection: " + e.getMessage(), e );
+                    LOGGER.error( () -> "error closing ldap connection: " + e.getMessage(), e );
                 }
                 this.ldapConnection = null;
             }
@@ -742,7 +742,7 @@ public class NMASCrOperator implements CrOperator
                         }
                         catch ( final com.novell.security.nmas.client.InvalidNMASCallbackException e )
                         {
-                            LOGGER.error( "error processing NMASCallback: " + e.getMessage(), e );
+                            LOGGER.error( () -> "error processing NMASCallback: " + e.getMessage(), e );
                         }
                     }
                     else if ( LCMUserPromptCallback.class.getName().equals( callbackClassname ) )
@@ -754,7 +754,7 @@ public class NMASCrOperator implements CrOperator
                         }
                         catch ( final LCMUserPromptException e )
                         {
-                            LOGGER.error( "error processing LCMUserPromptCallback: " + e.getMessage(), e );
+                            LOGGER.error( () -> "error processing LCMUserPromptCallback: " + e.getMessage(), e );
                         }
                     }
                     else
@@ -936,7 +936,7 @@ public class NMASCrOperator implements CrOperator
                 }
                 catch ( final NullPointerException e )
                 {
-                    LOGGER.error( "NullPointer error during CallBackHandler-NMASCR-bind; "
+                    LOGGER.error( () -> "NullPointer error during CallBackHandler-NMASCR-bind; "
                             + "this is usually the result of an ldap disconnection, thread=" + this.toDebugString() );
                     this.setLoginState( NMASThreadState.ABORTED );
                     return;
@@ -962,11 +962,11 @@ public class NMASCrOperator implements CrOperator
                 final String ldapErrorMessage = e.getLDAPErrorMessage();
                 if ( ldapErrorMessage != null )
                 {
-                    LOGGER.error( "NMASLoginMonitor: LDAP error (" + ldapErrorMessage + ")" );
+                    LOGGER.error( () -> "NMASLoginMonitor: LDAP error (" + ldapErrorMessage + ")" );
                 }
                 else
                 {
-                    LOGGER.error( "NMASLoginMonitor: LDAPException " + e.toString() );
+                    LOGGER.error( () -> "NMASLoginMonitor: LDAPException " + e.toString() );
                 }
                 setLoginState( NMASThreadState.COMPLETED );
                 final com.novell.security.nmas.client.NMASLoginResult localNMASLoginResult
@@ -1086,7 +1086,7 @@ public class NMASCrOperator implements CrOperator
                     }
                     catch ( final SecurityException e )
                     {
-                        LOGGER.warn( "error registering " + NMASCrPwmSaslProvider.class.getSimpleName() + " SASL Provider, error: " + e.getMessage(), e );
+                        LOGGER.warn( () -> "error registering " + NMASCrPwmSaslProvider.class.getSimpleName() + " SASL Provider, error: " + e.getMessage(), e );
                     }
 
                     return null;
@@ -1128,7 +1128,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( final Throwable t )
             {
-                LOGGER.error( "error creating backing sasl factory: " + t.getMessage(), t );
+                LOGGER.error( () -> "error creating backing sasl factory: " + t.getMessage(), t );
             }
             return null;
         }
@@ -1151,7 +1151,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( final Throwable t )
             {
-                LOGGER.error( "error creating backing sasl factory: " + t.getMessage(), t );
+                LOGGER.error( () -> "error creating backing sasl factory: " + t.getMessage(), t );
             }
             return new String[ 0 ];
         }

@@ -141,7 +141,7 @@ class RecordManagerImpl implements RecordManager
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( "unable to read read intruder record from storage: " + e.getMessage() );
+            LOGGER.error( () -> "unable to read read intruder record from storage: " + e.getMessage() );
         }
         return null;
     }
@@ -154,7 +154,7 @@ class RecordManagerImpl implements RecordManager
         }
         catch ( final PwmException e )
         {
-            LOGGER.warn( "unexpected error attempting to write intruder record " + JsonUtil.serialize( intruderRecord ) + ", error: " + e.getMessage() );
+            LOGGER.warn( () -> "unexpected error attempting to write intruder record " + JsonUtil.serialize( intruderRecord ) + ", error: " + e.getMessage() );
         }
     }
 

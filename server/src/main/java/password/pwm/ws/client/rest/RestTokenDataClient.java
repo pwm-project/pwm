@@ -119,7 +119,7 @@ public class RestTokenDataClient implements RestClient
             catch ( final Exception e )
             {
                 final String errorMsg = "error making token destination rest client call; error: " + e.getMessage();
-                LOGGER.error( sessionLabel, errorMsg );
+                LOGGER.error( sessionLabel, () -> errorMsg );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg ) );
             }
         }

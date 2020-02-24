@@ -211,7 +211,7 @@ public class PwmSession implements Serializable
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "unexpected error reading username: " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error reading username: " + e.getMessage(), e );
             }
         }
 
@@ -341,7 +341,7 @@ public class PwmSession implements Serializable
         }
         else
         {
-            LOGGER.error( pwmRequest, "ignoring unknown locale value set request for locale '" + localeString + "'" );
+            LOGGER.error( pwmRequest, () -> "ignoring unknown locale value set request for locale '" + localeString + "'" );
             ssBean.setLocale( PwmConstants.DEFAULT_LOCALE );
             return false;
         }

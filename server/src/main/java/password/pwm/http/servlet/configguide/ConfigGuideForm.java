@@ -248,7 +248,7 @@ public class ConfigGuideForm
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error calculating ldap hostname example: " + e.getMessage() );
+            LOGGER.error( () -> "error calculating ldap hostname example: " + e.getMessage() );
         }
         return "ldap.example.com";
     }

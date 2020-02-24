@@ -359,7 +359,7 @@ public class ContextManager implements Serializable
 
         try
         {
-            LOGGER.fatal( SESSION_LABEL, startupErrorInformation.getDetailedErrorMsg() );
+            LOGGER.fatal( SESSION_LABEL, () -> startupErrorInformation.getDetailedErrorMsg() );
         }
         catch ( final Exception e2 )
         {
@@ -381,7 +381,7 @@ public class ContextManager implements Serializable
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "unexpected error attempting to close application: " + e.getMessage() );
+                LOGGER.error( () -> "unexpected error attempting to close application: " + e.getMessage() );
             }
         }
         taskMaster.shutdown();
@@ -447,7 +447,7 @@ public class ContextManager implements Serializable
                     }
                     catch ( final Exception e )
                     {
-                        LOGGER.error( SESSION_LABEL, "error importing " + silentPropertiesFile.getAbsolutePath() + ", error: " + e.getMessage() );
+                        LOGGER.error( SESSION_LABEL, () -> "error importing " + silentPropertiesFile.getAbsolutePath() + ", error: " + e.getMessage() );
                     }
 
                     final String appendValue = success ? ".imported" : ".error";
@@ -461,7 +461,7 @@ public class ContextManager implements Serializable
                     }
                     catch ( final IOException e )
                     {
-                        LOGGER.error( SESSION_LABEL, "error renaming file " + source.toString() + " to " + dest.toString() + ", error: " + e.getMessage() );
+                        LOGGER.error( SESSION_LABEL, () -> "error renaming file " + source.toString() + " to " + dest.toString() + ", error: " + e.getMessage() );
                     }
                 }
             }
@@ -519,12 +519,12 @@ public class ContextManager implements Serializable
                     }
                     catch ( final Exception e )
                     {
-                        LOGGER.error( SESSION_LABEL, "unexpected error attempting to close application: " + e.getMessage() );
+                        LOGGER.error( SESSION_LABEL, () -> "unexpected error attempting to close application: " + e.getMessage() );
                     }
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.fatal( "unexpected error during shutdown: " + e.getMessage(), e );
+                    LOGGER.fatal( () -> "unexpected error during shutdown: " + e.getMessage(), e );
                 }
 
                 {
@@ -728,7 +728,7 @@ public class ContextManager implements Serializable
             }
             catch ( final Exception e )
             {
-                LOGGER.error( SESSION_LABEL, "error trying to auto-import certs: " + e.getMessage() );
+                LOGGER.error( SESSION_LABEL, () -> "error trying to auto-import certs: " + e.getMessage() );
             }
         }
 

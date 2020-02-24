@@ -67,7 +67,7 @@ public abstract class AbstractPwmFilter implements Filter
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "unexpected error processing filter chain during isInterested(): " + e.getMessage(), e );
+            LOGGER.error( () -> "unexpected error processing filter chain during isInterested(): " + e.getMessage(), e );
             resp.sendError( 500, "unexpected error processing filter chain during isInterested" );
             return;
         }
@@ -88,7 +88,7 @@ public abstract class AbstractPwmFilter implements Filter
                     return;
                 }
 
-                LOGGER.error( pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e );
+                LOGGER.error( pwmRequest, () -> "unexpected error processing filter chain: " + e.getMessage(), e );
             }
 
             try
@@ -98,7 +98,7 @@ public abstract class AbstractPwmFilter implements Filter
             }
             catch ( final PwmException e )
             {
-                LOGGER.error( pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e );
+                LOGGER.error( pwmRequest, () -> "unexpected error processing filter chain: " + e.getMessage(), e );
             }
             catch ( final  IOException e )
             {

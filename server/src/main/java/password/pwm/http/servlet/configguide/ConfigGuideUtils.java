@@ -156,7 +156,7 @@ public class ConfigGuideUtils
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "unable to create schema extender object: " + e.getMessage() );
+            LOGGER.error( () -> "unable to create schema extender object: " + e.getMessage() );
             return null;
         }
     }
@@ -253,7 +253,7 @@ public class ConfigGuideUtils
                 {
                     final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
                     pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
-                    LOGGER.error( pwmRequest, e.getErrorInformation().toDebugStr() );
+                    LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
                 }
             }
             else
@@ -261,7 +261,7 @@ public class ConfigGuideUtils
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file: no file present in upload" );
                 final RestResultBean restResultBean = RestResultBean.fromError( errorInformation, pwmRequest );
                 pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
-                LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+                LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
             }
         }
     }

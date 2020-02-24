@@ -302,7 +302,7 @@ class PeopleSearchDataReader
         }
         catch ( final Exception e )
         {
-            LOGGER.warn( pwmRequest, "error de-serializing configured app property json for detail links: " + e.getMessage() );
+            LOGGER.warn( pwmRequest, () -> "error de-serializing configured app property json for detail links: " + e.getMessage() );
             return Collections.emptyList();
         }
         final List<LinkReferenceBean> returnList = new ArrayList<>();
@@ -624,7 +624,7 @@ class PeopleSearchDataReader
             if ( !result )
             {
                 final String msg = "attempt to read data of out-of-scope userDN '" + userIdentity.toDisplayString() + "' by user " + userIdentity.toDisplayString();
-                LOGGER.warn( pwmRequest, msg );
+                LOGGER.warn( pwmRequest, () -> msg );
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, msg );
             }
         }
@@ -731,7 +731,7 @@ class PeopleSearchDataReader
         }
         catch ( final ChaiException e )
         {
-            LOGGER.error( "unexpected error during detail lookup of '" + userIdentity + "', error: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error during detail lookup of '" + userIdentity + "', error: " + e.getMessage() );
             throw PwmUnrecoverableException.fromChaiException( e );
         }
     }
@@ -823,7 +823,7 @@ class PeopleSearchDataReader
         catch ( final PwmOperationalException e )
         {
             final ErrorInformation errorInformation = e.getErrorInformation();
-            LOGGER.error( pwmRequest.getLabel(), errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest.getLabel(), () -> errorInformation.toDebugStr() );
             throw new PwmUnrecoverableException( errorInformation );
         }
 
@@ -992,7 +992,7 @@ class PeopleSearchDataReader
             }
             catch ( final Exception e )
             {
-                LOGGER.error( pwmRequest, "error exporting csv row data: " + e.getMessage() );
+                LOGGER.error( pwmRequest, () -> "error exporting csv row data: " + e.getMessage() );
             }
         }
 

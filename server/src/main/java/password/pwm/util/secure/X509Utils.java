@@ -128,7 +128,7 @@ public class X509Utils
             errorMsg.append( host ).append( ", port=" ).append( port );
             errorMsg.append( " error: " );
             errorMsg.append( e.getMessage() );
-            LOGGER.error( "ServerCertReader: " + errorMsg );
+            LOGGER.error( () -> "ServerCertReader: " + errorMsg );
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg.toString(), new String[]
                     {
                             errorMsg.toString(),
@@ -342,7 +342,7 @@ public class X509Utils
         }
         catch ( final PwmUnrecoverableException | CertificateEncodingException e )
         {
-            LOGGER.warn( "error generating hash for certificate: " + e.getMessage() );
+            LOGGER.warn( () -> "error generating hash for certificate: " + e.getMessage() );
         }
         return returnMap;
     }

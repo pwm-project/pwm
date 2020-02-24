@@ -225,7 +225,7 @@ class WordlistImporter implements Runnable
 
             if ( cancelFlag.getAsBoolean() )
             {
-                getLogger().warn( "pausing import" );
+                getLogger().warn( () -> "pausing import" );
             }
             else
             {
@@ -401,7 +401,7 @@ class WordlistImporter implements Runnable
             }
             catch ( final Exception e )
             {
-                getLogger().error( "error calculating import statistics: " + e.getMessage() );
+                getLogger().error( () -> "error calculating import statistics: " + e.getMessage() );
 
                 /* ignore - it's a long overflow if the estimate is off */
             }

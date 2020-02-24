@@ -84,7 +84,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "unable to satisfy request using standard mechanism, reverting to raw resource server" );
+            LOGGER.error( () -> "unable to satisfy request using standard mechanism, reverting to raw resource server" );
         }
 
         if ( pwmRequest != null )
@@ -95,7 +95,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( pwmRequest, "error during resource servlet request processing: " + e.getMessage() );
+                LOGGER.error( pwmRequest, () -> "error during resource servlet request processing: " + e.getMessage() );
             }
         }
         else
@@ -106,7 +106,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "error serving raw resource request: " + e.getMessage() );
+                LOGGER.error( () -> "error serving raw resource request: " + e.getMessage() );
             }
         }
     }
@@ -217,7 +217,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, "error fulfilling response for url '" + requestURI + "', error: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error fulfilling response for url '" + requestURI + "', error: " + e.getMessage() );
         }
     }
 

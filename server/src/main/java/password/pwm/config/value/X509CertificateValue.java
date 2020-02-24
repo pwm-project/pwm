@@ -70,7 +70,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
                     }
                     catch ( final Exception e )
                     {
-                        LOGGER.error( "error decoding certificate: " + e.getMessage() );
+                        LOGGER.error( () -> "error decoding certificate: " + e.getMessage() );
                     }
                 }
                 return new X509CertificateValue( certificates.toArray( new X509Certificate[ certificates.size() ] ) );
@@ -122,7 +122,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
             }
             catch ( final CertificateEncodingException e )
             {
-                LOGGER.error( "error encoding certificate: " + e.getMessage() );
+                LOGGER.error( () -> "error encoding certificate: " + e.getMessage() );
             }
             returnList.add( valueElement );
         }
@@ -162,7 +162,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
             }
             catch ( final PwmUnrecoverableException | CertificateEncodingException e )
             {
-                LOGGER.warn( "error generating hash for certificate: " + e.getMessage() );
+                LOGGER.warn( () -> "error generating hash for certificate: " + e.getMessage() );
             }
         }
         return sb.toString();

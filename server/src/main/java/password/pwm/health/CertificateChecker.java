@@ -61,7 +61,7 @@ public class CertificateChecker implements HealthChecker
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "error while checking action certificates: " + e.getMessage(), e );
+            LOGGER.error( () -> "error while checking action certificates: " + e.getMessage(), e );
         }
         return records;
     }

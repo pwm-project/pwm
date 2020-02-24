@@ -912,7 +912,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                 }
                 catch ( final ChaiOperationException e )
                 {
-                    LOGGER.error( pwmRequest, "error during param validation of '" + attrName + "', error: " + e.getMessage() );
+                    LOGGER.error( pwmRequest, () -> "error during param validation of '" + attrName + "', error: " + e.getMessage() );
                     throw new PwmDataValidationException( new ErrorInformation( PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", new String[]
                             {
                                     formConfiguration.getLabel( pwmRequest.getLocale() ),
@@ -1161,7 +1161,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         {
             final String errorMsg = "unable to unlock user " + userIdentity + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNLOCK_FAILURE, errorMsg );
-            LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
             pwmRequest.respondWithError( errorInformation, true );
         }
         finally
@@ -1196,7 +1196,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         {
             final String errorMsg = "unable to unlock user " + theUser.getEntryDN() + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNLOCK_FAILURE, errorMsg );
-            LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
         }
 
         try
@@ -1224,7 +1224,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         catch ( final PwmUnrecoverableException e )
         {
             LOGGER.warn( pwmRequest,
-                    "unexpected error authenticating during forgotten password recovery process user: " + e.getMessage() );
+                    () -> "unexpected error authenticating during forgotten password recovery process user: " + e.getMessage() );
             pwmRequest.respondWithError( e.getErrorInformation() );
         }
         finally
@@ -1296,7 +1296,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                     PwmError.ERROR_INTERNAL,
                     "unexpected error while re-loading user data due to locale change: " + e.getErrorInformation().toDebugStr()
             );
-            LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
             setLastError( pwmRequest, errorInformation );
         }
     }

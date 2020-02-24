@@ -118,7 +118,7 @@ public class SmsQueueManager implements PwmService
         this.pwmApplication = pwmApplication;
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            LOGGER.warn( "localdb is not open,  will remain closed" );
+            LOGGER.warn( () -> "localdb is not open,  will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
@@ -159,7 +159,7 @@ public class SmsQueueManager implements PwmService
             {
                 StatisticsManager.incrementStat( pwmApplication, Statistic.SMS_SEND_DISCARDS );
                 StatisticsManager.incrementStat( pwmApplication, Statistic.SMS_SEND_FAILURES );
-                LOGGER.error( "discarding sms message due to permanent failure: " + e.getErrorInformation().toDebugStr() );
+                LOGGER.error( () -> "discarding sms message due to permanent failure: " + e.getErrorInformation().toDebugStr() );
                 lastError = e.getErrorInformation();
                 return WorkQueueProcessor.ProcessResult.FAILED;
             }
@@ -199,7 +199,7 @@ public class SmsQueueManager implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error writing to LocalDB queue, discarding sms send request: " + e.getMessage() );
+            LOGGER.error( () -> "error writing to LocalDB queue, discarding sms send request: " + e.getMessage() );
         }
     }
 
@@ -584,7 +584,7 @@ public class SmsQueueManager implements PwmService
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "unable to read sms password while reading configuration: " + e.getMessage() );
+                LOGGER.error( () -> "unable to read sms password while reading configuration: " + e.getMessage() );
             }
 
             return modifiableText;
@@ -636,7 +636,7 @@ public class SmsQueueManager implements PwmService
                         }
                         else
                         {
-                            LOGGER.warn( "Cannot parse HTTP header: " + header );
+                            LOGGER.warn( () -> "Cannot parse HTTP header: " + header );
                         }
                     }
                 }

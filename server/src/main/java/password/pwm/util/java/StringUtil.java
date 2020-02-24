@@ -291,7 +291,7 @@ public abstract class StringUtil
         }
         catch ( final UnsupportedEncodingException e )
         {
-            LOGGER.error( "unexpected error during url encoding: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error during url encoding: " + e.getMessage() );
             return input;
         }
     }
@@ -304,7 +304,7 @@ public abstract class StringUtil
         }
         catch ( final UnsupportedEncodingException e )
         {
-            LOGGER.error( "unexpected error during url decoding: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error during url decoding: " + e.getMessage() );
             return input;
         }
     }

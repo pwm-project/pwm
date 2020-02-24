@@ -144,7 +144,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "unknown wordlist type: " + wordlistTypeParam );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
-            LOGGER.error( pwmRequest, "error during import: " + errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> "error during import: " + errorInformation.toDebugStr() );
             return;
         }
 
@@ -152,7 +152,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "no file found in upload" );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
-            LOGGER.error( pwmRequest, "error during import: " + errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> "error during import: " + errorInformation.toDebugStr() );
             return;
         }
 
@@ -184,7 +184,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "unknown wordlist type: " + wordlistTypeParam );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
-            LOGGER.error( pwmRequest, "error during clear: " + errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> "error during clear: " + errorInformation.toDebugStr() );
             return;
         }
 
@@ -194,7 +194,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error clearing wordlist " + wordlistType + ", error: " + e.getMessage() );
+            LOGGER.error( () -> "error clearing wordlist " + wordlistType + ", error: " + e.getMessage() );
         }
 
         pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );

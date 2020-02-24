@@ -168,7 +168,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( SessionLabel.PWNOTIFY_SESSION_LABEL, "error calculating next job execution time: " + e.getMessage() );
+            LOGGER.error( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> "error calculating next job execution time: " + e.getMessage() );
         }
     }
 
@@ -234,7 +234,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
         }
         catch ( final PwmUnrecoverableException e  )
         {
-            LOGGER.error( SessionLabel.PWNOTIFY_SESSION_LABEL, "error while generating health information: " + e.getMessage() );
+            LOGGER.error( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> "error while generating health information: " + e.getMessage() );
         }
 
         return returnRecords;
@@ -296,7 +296,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( SessionLabel.PWNOTIFY_SESSION_LABEL, "unexpected error running job: " + e.getMessage() );
+                    LOGGER.error( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> "unexpected error running job: " + e.getMessage() );
                 }
             }
         }

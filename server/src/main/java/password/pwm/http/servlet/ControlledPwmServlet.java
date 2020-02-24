@@ -94,7 +94,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error", e );
+            LOGGER.error( () -> "error", e );
         }
         return null;
     }
@@ -131,20 +131,20 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                 final String msg = "unexpected error during action handler for '"
                         + this.getClass().getName()
                         + ":" + action + "', error: " + cause.getMessage();
-                LOGGER.error( pwmRequest, msg, e.getCause() );
+                LOGGER.error( pwmRequest, () -> msg, e.getCause() );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
             }
-            LOGGER.error( "uncased invocation error: " + e.getMessage(), e );
+            LOGGER.error( () -> "uncased invocation error: " + e.getMessage(), e );
         }
         catch ( final Throwable e )
         {
             final String msg = "unexpected error invoking action handler for '" + action + "', error: " + e.getMessage();
-            LOGGER.error( msg, e );
+            LOGGER.error( () -> msg, e );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
 
         final String msg = "missing action handler for '" + action + "'";
-        LOGGER.error( msg );
+        LOGGER.error( () -> msg );
         throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
     }
 
@@ -164,7 +164,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                     if ( pwmRequest.getConfig().isDevDebugMode() )
                     {
                         final String msg = "processing complete, handler returned halt but response is not committed";
-                        LOGGER.error( pwmRequest, msg, new IllegalStateException( msg ) );
+                        LOGGER.error( pwmRequest, () -> msg, new IllegalStateException( msg ) );
                     }
                 }
                 return;

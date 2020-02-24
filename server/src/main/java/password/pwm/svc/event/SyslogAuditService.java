@@ -112,7 +112,7 @@ public class SyslogAuditService
         }
         catch ( final IllegalArgumentException e )
         {
-            LOGGER.error( "error parsing syslog configuration for  syslogConfigStrings ERROR: " + e.getMessage() );
+            LOGGER.error( () -> "error parsing syslog configuration for  syslogConfigStrings ERROR: " + e.getMessage() );
         }
 
         {
@@ -230,7 +230,7 @@ public class SyslogAuditService
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.warn( "unable to add syslog message to queue: " + e.getMessage() );
+            LOGGER.warn( () -> "unable to add syslog message to queue: " + e.getMessage() );
         }
     }
 
@@ -271,7 +271,7 @@ public class SyslogAuditService
                         }
                 );
                 lastError = errorInformation;
-                LOGGER.error( errorInformation.toDebugStr() );
+                LOGGER.error( () -> errorInformation.toDebugStr() );
             }
         }
         return WorkQueueProcessor.ProcessResult.RETRY;
@@ -372,7 +372,7 @@ public class SyslogAuditService
                 }
                 catch ( final NoSuchAlgorithmException | KeyManagementException e )
                 {
-                    LOGGER.error( "unexpected error loading syslog certificates: " + e.getMessage() );
+                    LOGGER.error( () -> "unexpected error loading syslog certificates: " + e.getMessage() );
                 }
             }
 

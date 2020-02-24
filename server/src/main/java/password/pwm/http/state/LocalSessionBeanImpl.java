@@ -49,7 +49,7 @@ class LocalSessionBeanImpl implements SessionBeanProvider
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage(), e );
             }
 
         }

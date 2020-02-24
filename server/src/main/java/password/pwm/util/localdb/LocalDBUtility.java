@@ -218,7 +218,7 @@ public class LocalDBUtility
         }
         catch ( final IOException e )
         {
-            LOGGER.error( "error writing to output appender while performing operation: " + e.getMessage() );
+            LOGGER.error( () -> "error writing to output appender while performing operation: " + e.getMessage() );
         }
     }
 
@@ -437,7 +437,7 @@ public class LocalDBUtility
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error while examining LocalDB: " + e.getMessage() );
+            LOGGER.error( () -> "error while examining LocalDB: " + e.getMessage() );
         }
         finally
         {

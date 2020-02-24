@@ -150,7 +150,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "unexpected error sending user to success page: " + e.toString() );
+            LOGGER.error( () -> "unexpected error sending user to success page: " + e.toString() );
         }
     }
 
@@ -179,7 +179,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         if ( isCommitted() )
         {
             final String msg = "cannot respond with error '" + errorInformation.toDebugStr() + "', response is already committed";
-            LOGGER.warn( pwmRequest.getLabel(), ExceptionUtils.getStackTrace( new Throwable( msg ) ) );
+            LOGGER.warn( pwmRequest.getLabel(), () -> ExceptionUtils.getStackTrace( new Throwable( msg ) ) );
             return;
         }
 
@@ -195,7 +195,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "unexpected error sending user to error page: " + e.toString() );
+                LOGGER.error( () -> "unexpected error sending user to error page: " + e.toString() );
             }
         }
         else

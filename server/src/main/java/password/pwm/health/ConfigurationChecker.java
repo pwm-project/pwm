@@ -125,7 +125,7 @@ public class ConfigurationChecker implements HealthChecker
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "unexpected error during health check operation for class " + clazz.toString() + ", error:" + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error during health check operation for class " + clazz.toString() + ", error:" + e.getMessage(), e );
             }
         }
         return records;
@@ -260,7 +260,7 @@ public class ConfigurationChecker implements HealthChecker
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "unexpected error examining password strength of configuration: " );
+                LOGGER.error( () -> "unexpected error examining password strength of configuration: " );
             }
 
             return Collections.unmodifiableList( records );
@@ -373,7 +373,7 @@ public class ConfigurationChecker implements HealthChecker
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( "unexpected error during password policy health check: " + e.getMessage(), e );
+                    LOGGER.error( () -> "unexpected error during password policy health check: " + e.getMessage(), e );
                 }
             }
             return records;

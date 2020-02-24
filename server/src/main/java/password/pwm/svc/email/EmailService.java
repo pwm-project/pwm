@@ -95,7 +95,7 @@ public class EmailService implements PwmService
         catch ( final PwmUnrecoverableException e )
         {
             startupError = e.getErrorInformation();
-            LOGGER.error( "unable to startup email service: " + e.getMessage() );
+            LOGGER.error( () -> "unable to startup email service: " + e.getMessage() );
             status = STATUS.CLOSED;
             return;
         }
@@ -111,7 +111,7 @@ public class EmailService implements PwmService
 
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            LOGGER.warn( "localdb is not open, EmailService will remain closed" );
+            LOGGER.warn( () -> "localdb is not open, EmailService will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
@@ -234,25 +234,25 @@ public class EmailService implements PwmService
 
         if ( emailItem.getFrom() == null || emailItem.getFrom().length() < 1 )
         {
-            LOGGER.error( "discarding email event (no from address): " + emailItem.toDebugString() );
+            LOGGER.error( () -> "discarding email event (no from address): " + emailItem.toDebugString() );
             return false;
         }
 
         if ( emailItem.getTo() == null || emailItem.getTo().length() < 1 )
         {
-            LOGGER.error( "discarding email event (no to address): " + emailItem.toDebugString() );
+            LOGGER.error( () -> "discarding email event (no to address): " + emailItem.toDebugString() );
             return false;
         }
 
         if ( emailItem.getSubject() == null || emailItem.getSubject().length() < 1 )
         {
-            LOGGER.error( "discarding email event (no subject): " + emailItem.toDebugString() );
+            LOGGER.error( () -> "discarding email event (no subject): " + emailItem.toDebugString() );
             return false;
         }
 
         if ( ( emailItem.getBodyPlain() == null || emailItem.getBodyPlain().length() < 1 ) && ( emailItem.getBodyHtml() == null || emailItem.getBodyHtml().length() < 1 ) )
         {
-            LOGGER.error( "discarding email event (no body): " + emailItem.toDebugString() );
+            LOGGER.error( () -> "discarding email event (no body): " + emailItem.toDebugString() );
             return false;
         }
 
@@ -308,7 +308,7 @@ public class EmailService implements PwmService
 
             if ( workingItemBean.getTo() == null || workingItemBean.getTo().length() < 1 )
             {
-                LOGGER.error( "no destination address available for email, skipping; email: " + emailItem.toDebugString() );
+                LOGGER.error( () -> "no destination address available for email, skipping; email: " + emailItem.toDebugString() );
             }
 
             if ( !determineIfItemCanBeDelivered( emailItem ) )
@@ -331,7 +331,7 @@ public class EmailService implements PwmService
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.warn( "unable to add email to queue: " + e.getMessage() );
+            LOGGER.warn( () -> "unable to add email to queue: " + e.getMessage() );
         }
     }
 
@@ -432,13 +432,13 @@ public class EmailService implements PwmService
 
             if ( EmailServerUtil.examineSendFailure( e, retryableStatusResponses ) )
             {
-                LOGGER.error( "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", will retry" );
+                LOGGER.error( () -> "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", will retry" );
                 StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_FAILURES );
                 return WorkQueueProcessor.ProcessResult.RETRY;
             }
             else
             {
-                LOGGER.error( "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", permanent failure, discarding message" );
+                LOGGER.error( () -> "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", permanent failure, discarding message" );
                 StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_DISCARDS );
                 return WorkQueueProcessor.ProcessResult.FAILED;
             }
@@ -472,7 +472,7 @@ public class EmailService implements PwmService
                 final String msg = "unable to connect to email server '" + server.toDebugString() + "', error: " + exceptionMsg;
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_UNREACHABLE, msg );
                 serverErrors.put( server, errorInformation );
-                LOGGER.warn( errorInformation.toDebugStr() );
+                LOGGER.warn( () -> errorInformation.toDebugStr() );
             }
         }
 

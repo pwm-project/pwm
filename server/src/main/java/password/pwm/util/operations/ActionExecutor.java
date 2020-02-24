@@ -250,7 +250,7 @@ public class ActionExecutor
             }
 
             final String errorMsg = "unexpected error during API execution: " + e.getMessage();
-            LOGGER.error( errorMsg );
+            LOGGER.error( () -> errorMsg );
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
     }

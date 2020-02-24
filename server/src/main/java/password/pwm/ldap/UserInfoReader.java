@@ -162,7 +162,7 @@ public class UserInfoReader implements UserInfo
         }
         catch ( final ChaiOperationException e )
         {
-            LOGGER.warn( sessionLabel, "error reading user's last ldap login time: " + e.getMessage() );
+            LOGGER.warn( sessionLabel, () -> "error reading user's last ldap login time: " + e.getMessage() );
         }
         catch ( final ChaiUnavailableException e )
         {
@@ -633,7 +633,7 @@ public class UserInfoReader implements UserInfo
         }
         catch ( final ChaiOperationException e )
         {
-            LOGGER.warn( sessionLabel, "error reading user's account expiration time: " + e.getMessage() );
+            LOGGER.warn( sessionLabel, () -> "error reading user's account expiration time: " + e.getMessage() );
         }
         catch ( final ChaiUnavailableException e )
         {
@@ -792,7 +792,7 @@ public class UserInfoReader implements UserInfo
             catch ( final ChaiOperationException e )
             {
                 final String msg = "ldap operational error while reading user data" + e.getMessage();
-                LOGGER.error( sessionLabel, msg );
+                LOGGER.error( sessionLabel, () -> msg );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, msg ) );
             }
             catch ( final ChaiUnavailableException e )
@@ -805,7 +805,7 @@ public class UserInfoReader implements UserInfo
                 final String msg = "ldap server did not return requested user entry "
                         + chaiUser.getEntryDN()
                         + " while attempting to read attribute data";
-                LOGGER.error( sessionLabel, msg );
+                LOGGER.error( sessionLabel, () -> msg );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, msg ) );
             }
 

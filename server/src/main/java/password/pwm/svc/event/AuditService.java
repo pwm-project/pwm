@@ -98,14 +98,14 @@ public class AuditService implements PwmService
         if ( pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
             this.status = STATUS.CLOSED;
-            LOGGER.warn( "unable to start - Application is in read-only mode" );
+            LOGGER.warn( () -> "unable to start - Application is in read-only mode" );
             return;
         }
 
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
             this.status = STATUS.CLOSED;
-            LOGGER.warn( "unable to start - LocalDB is not available" );
+            LOGGER.warn( () -> "unable to start - LocalDB is not available" );
             return;
         }
 
@@ -119,7 +119,7 @@ public class AuditService implements PwmService
             catch ( final Exception e )
             {
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SYSLOG_WRITE_ERROR, "startup error: " + e.getMessage() );
-                LOGGER.error( errorInformation.toDebugStr() );
+                LOGGER.error( () -> errorInformation.toDebugStr() );
             }
         }
         {
@@ -355,7 +355,7 @@ public class AuditService implements PwmService
 
         if ( auditRecord.getEventCode() == null )
         {
-            LOGGER.error( "discarding audit event, missing event type; event=" + jsonRecord );
+            LOGGER.error( () -> "discarding audit event, missing event type; event=" + jsonRecord );
             return;
         }
 
@@ -377,7 +377,7 @@ public class AuditService implements PwmService
             }
             catch ( final PwmOperationalException e )
             {
-                LOGGER.warn( "discarding audit event due to storage error: " + e.getMessage() );
+                LOGGER.warn( () -> "discarding audit event due to storage error: " + e.getMessage() );
             }
         }
 

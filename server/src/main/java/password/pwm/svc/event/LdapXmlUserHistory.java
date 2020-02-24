@@ -128,7 +128,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         {
             final String errorMsg = "error reading LDAP user event history for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-            LOGGER.error( errorInformation.toDebugStr(), e );
+            LOGGER.error( () -> errorInformation.toDebugStr(), e );
             throw new PwmUnrecoverableException( errorInformation, e );
         }
 
@@ -147,7 +147,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "ldap error writing user event log: " + e.getMessage() );
+            LOGGER.error( () -> "ldap error writing user event log: " + e.getMessage() );
             return;
         }
 
@@ -166,7 +166,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         }
         catch ( final ChaiOperationException e )
         {
-            LOGGER.error( "ldap error writing user event log: " + e.getMessage() );
+            LOGGER.error( () -> "ldap error writing user event log: " + e.getMessage() );
         }
     }
 
@@ -213,7 +213,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         }
         catch ( final ChaiOperationException e )
         {
-            LOGGER.error( "ldap error reading user event log: " + e.getMessage() );
+            LOGGER.error( () -> "ldap error reading user event log: " + e.getMessage() );
         }
         return new StoredHistory();
     }
@@ -307,7 +307,7 @@ class LdapXmlUserHistory implements UserHistoryStore
             }
             catch ( final JDOMException | IOException e )
             {
-                LOGGER.error( "error parsing user event history record: " + e.getMessage() );
+                LOGGER.error( () -> "error parsing user event history record: " + e.getMessage() );
             }
             return returnHistory;
         }

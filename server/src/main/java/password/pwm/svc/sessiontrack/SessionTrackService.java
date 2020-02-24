@@ -136,7 +136,7 @@ public class SessionTrackService implements PwmService
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( "error during session size calculation: " + e.getMessage() );
+                    LOGGER.error( () -> "error during session size calculation: " + e.getMessage() );
                 }
             }
             final Map<DebugKey, String> returnMap = new HashMap<>();
@@ -148,7 +148,7 @@ public class SessionTrackService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error during session debug generation: " + e.getMessage() );
+            LOGGER.error( () -> "error during session debug generation: " + e.getMessage() );
         }
         return Collections.emptyMap();
     }
@@ -280,7 +280,7 @@ public class SessionTrackService implements PwmService
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "unexpected error reading username: " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error reading username: " + e.getMessage(), e );
             }
         }
 

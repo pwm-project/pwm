@@ -75,12 +75,12 @@ public class PwmValueTag extends TagSupport
             }
             catch ( final IllegalArgumentException e )
             {
-                LOGGER.error( "can't output requested value name '" + getName() + "'" );
+                LOGGER.error( () -> "can't output requested value name '" + getName() + "'" );
             }
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "error while processing PwmValueTag: " + e.getMessage() );
+            LOGGER.error( () -> "error while processing PwmValueTag: " + e.getMessage() );
         }
         catch ( final Exception e )
         {
@@ -104,7 +104,7 @@ public class PwmValueTag extends TagSupport
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error executing value tag option '" + value.toString() + "', error: " + e.getMessage() );
+                LOGGER.error( () -> "error executing value tag option '" + value.toString() + "', error: " + e.getMessage() );
             }
         }
 

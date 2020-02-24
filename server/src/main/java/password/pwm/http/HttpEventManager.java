@@ -75,7 +75,7 @@ public class HttpEventManager implements
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( "error during sessionCreated event: " + e.getMessage() );
+            LOGGER.warn( () -> "error during sessionCreated event: " + e.getMessage() );
         }
     }
 
@@ -109,7 +109,7 @@ public class HttpEventManager implements
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( "error during httpSessionDestroyed: " + e.getMessage() );
+            LOGGER.warn( () -> "error during httpSessionDestroyed: " + e.getMessage() );
         }
     }
 
@@ -120,7 +120,7 @@ public class HttpEventManager implements
 
         if ( null != servletContextEvent.getServletContext().getAttribute( PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER ) )
         {
-            LOGGER.warn( "notice, previous servlet ContextManager exists" );
+            LOGGER.warn( () -> "notice, previous servlet ContextManager exists" );
         }
 
         try
@@ -131,12 +131,12 @@ public class HttpEventManager implements
         }
         catch ( final OutOfMemoryError e )
         {
-            LOGGER.fatal( "JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage(), e );
+            LOGGER.fatal( () -> "JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage(), e );
             throw e;
         }
         catch ( final Exception e )
         {
-            LOGGER.fatal( "error initializing context: " + e, e );
+            LOGGER.fatal( () -> "error initializing context: " + e, e );
             System.err.println( "error initializing context: " + e );
             System.out.println( "error initializing context: " + e );
             e.printStackTrace();
@@ -152,7 +152,7 @@ public class HttpEventManager implements
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "unable to destroy context: " + e.getMessage() );
+            LOGGER.error( () -> "unable to destroy context: " + e.getMessage() );
         }
     }
 
@@ -166,7 +166,7 @@ public class HttpEventManager implements
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "unable to passivate session: " + e.getMessage() );
+            LOGGER.error( () -> "unable to passivate session: " + e.getMessage() );
         }
     }
 
@@ -185,7 +185,7 @@ public class HttpEventManager implements
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "unable to activate (de-passivate) session: " + e.getMessage() );
+            LOGGER.error( () -> "unable to activate (de-passivate) session: " + e.getMessage() );
         }
     }
 

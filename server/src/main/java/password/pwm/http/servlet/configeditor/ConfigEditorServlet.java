@@ -294,7 +294,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         else if ( theSetting == null )
         {
             final String errorStr = "readSettingAsString request for unknown key: " + key;
-            LOGGER.warn( errorStr );
+            LOGGER.warn( () -> errorStr );
             pwmRequest.outputJsonResult( RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_INTERNAL, errorStr ) ) );
             return ProcessStatus.Halt;
         }
@@ -406,7 +406,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             catch ( final Exception e )
             {
                 final String errorMsg = "error writing default value for setting " + setting.toString() + ", error: " + e.getMessage();
-                LOGGER.error( errorMsg, e );
+                LOGGER.error( () -> errorMsg, e );
                 throw new IllegalStateException( errorMsg, e );
             }
             returnMap.put( "key", key );
@@ -554,7 +554,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( "error updating notesText: " + e.getMessage() );
+                    LOGGER.error( () -> "error updating notesText: " + e.getMessage() );
                 }
             }
             {
@@ -570,7 +570,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                     catch ( final IllegalArgumentException e )
                     {
                         modifer.writeConfigProperty( ConfigurationProperty.LDAP_TEMPLATE, PwmSettingTemplate.DEFAULT.toString() );
-                        LOGGER.error( "unknown template set request: " + requestedTemplate );
+                        LOGGER.error( () -> "unknown template set request: " + requestedTemplate );
                     }
                 }
             }
@@ -793,7 +793,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             }
             catch ( final PwmException e )
             {
-                LOGGER.error( pwmRequest, "error during https certificate upload: " + e.getMessage() );
+                LOGGER.error( pwmRequest, () -> "error during https certificate upload: " + e.getMessage() );
                 pwmRequest.respondWithError( e.getErrorInformation(), false );
                 return ProcessStatus.Halt;
             }

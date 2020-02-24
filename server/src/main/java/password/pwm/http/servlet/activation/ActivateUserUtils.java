@@ -187,7 +187,7 @@ class ActivateUserUtils
                 }
                 catch ( final ChaiOperationException e )
                 {
-                    LOGGER.error( pwmRequest, "error during param validation of '" + attrName + "', error: " + e.getMessage() );
+                    LOGGER.error( pwmRequest, () -> "error during param validation of '" + attrName + "', error: " + e.getMessage() );
                     throw new PwmDataValidationException( new ErrorInformation(
                             PwmError.ERROR_ACTIVATION_VALIDATIONFAIL,
                             "ldap error testing value for '" + attrName + "'", new String[]
@@ -225,7 +225,7 @@ class ActivateUserUtils
         }
         if ( !success )
         {
-            LOGGER.warn( pwmRequest, "skipping send activation message for '" + userInfo.getUserIdentity() + "' no email or SMS number configured" );
+            LOGGER.warn( pwmRequest, () -> "skipping send activation message for '" + userInfo.getUserIdentity() + "' no email or SMS number configured" );
         }
     }
 

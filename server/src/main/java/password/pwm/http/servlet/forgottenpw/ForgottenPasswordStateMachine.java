@@ -799,7 +799,7 @@ public class ForgottenPasswordStateMachine
                         }
                         catch ( final ChaiOperationException e )
                         {
-                            LOGGER.error( sessionLabel, "error during param validation of '" + attrName + "', error: " + e.getMessage() );
+                            LOGGER.error( sessionLabel, () -> "error during param validation of '" + attrName + "', error: " + e.getMessage() );
                             throw new PwmDataValidationException( new ErrorInformation(
                                     PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", new String[]
                                     {

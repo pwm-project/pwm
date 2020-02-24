@@ -98,7 +98,7 @@ public class DataStoreTokenMachine implements TokenMachine
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "unexpected error while cleaning expired stored tokens: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error while cleaning expired stored tokens: " + e.getMessage() );
         }
         {
             final long finalSize = size();
@@ -116,12 +116,12 @@ public class DataStoreTokenMachine implements TokenMachine
         final Instant issueDate = theToken.getIssueTime();
         if ( issueDate == null )
         {
-            LOGGER.error( "retrieved token has no issueDate, marking as purgable: " + JsonUtil.serialize( theToken ) );
+            LOGGER.error( () -> "retrieved token has no issueDate, marking as purgable: " + JsonUtil.serialize( theToken ) );
             return true;
         }
         if ( theToken.getExpiration() == null )
         {
-            LOGGER.error( "retrieved token has no expiration, marking as purgable: " + JsonUtil.serialize( theToken ) );
+            LOGGER.error( () -> "retrieved token has no expiration, marking as purgable: " + JsonUtil.serialize( theToken ) );
             return true;
         }
         return theToken.getExpiration().isBefore( Instant.now() );

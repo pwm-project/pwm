@@ -467,7 +467,7 @@ public class PwmURL
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( sessionLabel, "error while testing URL match for regex pattern: '" + loopFragment + "', error: " + e.getMessage() );
+                    LOGGER.error( sessionLabel, () -> "error while testing URL match for regex pattern: '" + loopFragment + "', error: " + e.getMessage() );
                 }
 
             }

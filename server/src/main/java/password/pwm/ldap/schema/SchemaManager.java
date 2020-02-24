@@ -80,7 +80,7 @@ public class SchemaManager
         catch ( final Exception e )
         {
             final String errorMsg = "error instantiating schema extender: " + e.getMessage();
-            LOGGER.error( errorMsg );
+            LOGGER.error( () -> errorMsg );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
 

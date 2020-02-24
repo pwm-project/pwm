@@ -131,7 +131,7 @@ public class FileValue extends AbstractValue implements StoredValue
                             }
                             catch ( final IOException e )
                             {
-                                LOGGER.error( "error reading file contents item: " + e.getMessage(), e );
+                                LOGGER.error( () -> "error reading file contents item: " + e.getMessage(), e );
                             }
                         }
                     }
@@ -169,7 +169,7 @@ public class FileValue extends AbstractValue implements StoredValue
             }
             catch ( final IOException e )
             {
-                LOGGER.error( "unexpected error writing setting to xml, IO error during base64 encoding: " + e.getMessage() );
+                LOGGER.error( () -> "unexpected error writing setting to xml, IO error during base64 encoding: " + e.getMessage() );
             }
             valueElement.addContent( fileContentElement );
 

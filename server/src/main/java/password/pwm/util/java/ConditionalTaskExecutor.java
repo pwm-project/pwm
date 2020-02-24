@@ -59,7 +59,7 @@ public class ConditionalTaskExecutor
                 }
                 catch ( final Throwable t )
                 {
-                    LOGGER.warn( "unexpected error executing conditional task: " + t.getMessage(), t );
+                    LOGGER.warn( () -> "unexpected error executing conditional task: " + t.getMessage(), t );
                 }
 
             }

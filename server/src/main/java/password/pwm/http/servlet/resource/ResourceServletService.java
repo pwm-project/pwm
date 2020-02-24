@@ -132,7 +132,7 @@ public class ResourceServletService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error during cache initialization, will remain closed; error: " + e.getMessage() );
+            LOGGER.error( () -> "error during cache initialization, will remain closed; error: " + e.getMessage() );
             status = STATUS.CLOSED;
             return;
         }
@@ -143,7 +143,7 @@ public class ResourceServletService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error during nonce generation, will remain closed; error: " + e.getMessage() );
+            LOGGER.error( () -> "error during nonce generation, will remain closed; error: " + e.getMessage() );
             status = STATUS.CLOSED;
         }
     }
@@ -203,7 +203,7 @@ public class ResourceServletService implements PwmService
 
         if ( !themeName.matches( pwmRequest.getConfig().readAppProperty( AppProperty.SECURITY_INPUT_THEME_MATCH_REGEX ) ) )
         {
-            LOGGER.warn( pwmRequest, "discarding suspicious theme name in request: " + themeName );
+            LOGGER.warn( pwmRequest, () -> "discarding suspicious theme name in request: " + themeName );
             return false;
         }
 
@@ -294,7 +294,7 @@ public class ResourceServletService implements PwmService
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "unable to generate resource path nonce: " + e.getMessage() );
+                LOGGER.error( () -> "unable to generate resource path nonce: " + e.getMessage() );
             }
         }
     }

@@ -68,7 +68,7 @@ class DataStoreRecordStore implements RecordStore
         }
         catch ( final PwmDataStoreException e )
         {
-            LOGGER.error( "error reading stored intruder record: " + e.getMessage() );
+            LOGGER.error( () -> "error reading stored intruder record: " + e.getMessage() );
             if ( e.getError() == PwmError.ERROR_DB_UNAVAILABLE )
             {
                 throw new PwmUnrecoverableException( e.getErrorInformation() );
@@ -87,7 +87,7 @@ class DataStoreRecordStore implements RecordStore
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error decoding IntruderRecord:" + e.getMessage() );
+            LOGGER.error( () -> "error decoding IntruderRecord:" + e.getMessage() );
         }
 
         //read failed, try to delete record
@@ -204,7 +204,7 @@ class DataStoreRecordStore implements RecordStore
             }
             catch ( final PwmException e )
             {
-                LOGGER.error( "unable to perform removal of identified stale records: " + e.getMessage() );
+                LOGGER.error( () -> "unable to perform removal of identified stale records: " + e.getMessage() );
             }
             recordsRemoved += recordsToRemove.size();
             recordsToRemove.clear();
@@ -241,7 +241,7 @@ class DataStoreRecordStore implements RecordStore
         }
         catch ( final PwmDataStoreException | PwmUnrecoverableException e )
         {
-            LOGGER.error( "unable to perform intruder table cleanup: " + e.getMessage() );
+            LOGGER.error( () -> "unable to perform intruder table cleanup: " + e.getMessage() );
         }
         return recordsToRemove;
     }

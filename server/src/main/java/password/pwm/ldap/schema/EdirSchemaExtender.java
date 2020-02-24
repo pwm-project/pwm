@@ -308,7 +308,7 @@ public class EdirSchemaExtender implements SchemaExtender
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error parsing schema attribute definition: " + e.getMessage() );
+                LOGGER.error( () -> "error parsing schema attribute definition: " + e.getMessage() );
             }
             if ( schemaParser != null )
             {
@@ -335,7 +335,7 @@ public class EdirSchemaExtender implements SchemaExtender
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error parsing schema objectclasses definition: " + e.getMessage() );
+                LOGGER.error( () -> "error parsing schema objectclasses definition: " + e.getMessage() );
             }
             if ( schemaParser != null )
             {

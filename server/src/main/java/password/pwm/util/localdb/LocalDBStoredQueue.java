@@ -713,7 +713,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             final String storedVersion = localDB.get( db, KEY_VERSION );
             if ( storedVersion == null || !VALUE_VERSION.equals( storedVersion ) )
             {
-                LOGGER.warn( "values in db " + db + " use an outdated format, the stored events will be purged!" );
+                LOGGER.warn( () -> "values in db " + db + " use an outdated format, the stored events will be purged!" );
                 return false;
             }
             return true;
@@ -1054,7 +1054,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                 }
                 catch ( final LocalDBException e )
                 {
-                    LOGGER.error( "error generating logMsg: " + e.getMessage() );
+                    LOGGER.error( () -> "error generating logMsg: " + e.getMessage() );
                 }
 
                 return sb.toString();
@@ -1089,7 +1089,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                             }
                             catch ( final Exception e )
                             {
-                                LOGGER.error( "unexpected error during output of debug message during stored queue repair operation: " + e.getMessage(), e );
+                                LOGGER.error( () -> "unexpected error during output of debug message during stored queue repair operation: " + e.getMessage(), e );
                             }
                         }
                     },
@@ -1124,12 +1124,14 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             {
                 if ( headTrim > 0 )
                 {
-                    LOGGER.warn( "trimmed " + headTrim + " from head position against database " + db );
+                    final int headTrimFinal = headTrim;
+                    LOGGER.warn( () -> "trimmed " + headTrimFinal + " from head position against database " + db );
                 }
 
                 if ( tailTrim > 0 )
                 {
-                    LOGGER.warn( "trimmed " + tailTrim + " from tail position against database " + db );
+                    final int tailTrimFinal = tailTrim;
+                    LOGGER.warn( () -> "trimmed " + tailTrimFinal + " from tail position against database " + db );
                 }
             }
 

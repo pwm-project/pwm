@@ -589,7 +589,7 @@ public class PasswordUtility
             }
             catch ( final ChaiOperationException e )
             {
-                LOGGER.warn( pwmRequest, "error while forcing password expiration for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage() );
+                LOGGER.warn( pwmRequest, () -> "error while forcing password expiration for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage() );
             }
         }
 
@@ -639,7 +639,7 @@ public class PasswordUtility
             }
             catch ( final ChaiUnavailableException e )
             {
-                LOGGER.error( sessionLabel, "unreachable server during replica password sync check" );
+                LOGGER.error( sessionLabel, () -> "unreachable server during replica password sync check" );
                 e.printStackTrace();
             }
             finally
@@ -653,7 +653,7 @@ public class PasswordUtility
                     catch ( final Exception e )
                     {
                         final String errorMsg = "error closing loopProvider to " + loopReplicaUrl + " while checking individual password sync status";
-                        LOGGER.error( sessionLabel, errorMsg );
+                        LOGGER.error( sessionLabel, () -> errorMsg );
                     }
                 }
             }
@@ -970,7 +970,7 @@ public class PasswordUtility
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( pwmSession, "unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage() );
+                LOGGER.error( pwmSession, () -> "unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage() );
             }
         }
 
@@ -1015,7 +1015,7 @@ public class PasswordUtility
         }
         catch ( final ChaiOperationException e )
         {
-            LOGGER.warn( "error reading password policy for user " + theUser.getEntryDN() + ", error: " + e.getMessage() );
+            LOGGER.warn( () -> "error reading password policy for user " + theUser.getEntryDN() + ", error: " + e.getMessage() );
         }
         return PwmPasswordPolicy.defaultPolicy();
     }
@@ -1273,7 +1273,7 @@ public class PasswordUtility
         }
         catch ( final ChaiOperationException e )
         {
-            LOGGER.error( sessionLabel, "unexpected error reading password last modified timestamp: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "unexpected error reading password last modified timestamp: " + e.getMessage() );
         }
 
         final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
@@ -1288,7 +1288,7 @@ public class PasswordUtility
             }
             catch ( final ChaiOperationException e )
             {
-                LOGGER.error( sessionLabel, "error parsing password last modified PWM password value for user " + theUser.getEntryDN() + "; error: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "error parsing password last modified PWM password value for user " + theUser.getEntryDN() + "; error: " + e.getMessage() );
             }
         }
 

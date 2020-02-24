@@ -156,7 +156,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( pwmRequest, "error writing cookie bean to response: " + e.getMessage(), e );
+            LOGGER.error( pwmRequest, () -> "error writing cookie bean to response: " + e.getMessage(), e );
         }
     }
 

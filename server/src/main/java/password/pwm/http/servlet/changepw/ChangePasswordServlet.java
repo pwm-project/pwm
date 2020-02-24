@@ -368,7 +368,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( pwmRequest, "unable to update average password sync time statistic: " + e.getMessage() );
+                    LOGGER.error( pwmRequest, () -> "unable to update average password sync time statistic: " + e.getMessage() );
                 }
             }
             cpb.setChangeProgressTracker( null );

@@ -69,7 +69,7 @@ public class ConfigEditorServletUtils
         catch ( final PwmException e )
         {
             pwmRequest.outputJsonResult( RestResultBean.fromError( e.getErrorInformation(), pwmRequest ) );
-            LOGGER.error( pwmRequest, "error during file upload: " + e.getErrorInformation().toDebugStr() );
+            LOGGER.error( pwmRequest, () -> "error during file upload: " + e.getErrorInformation().toDebugStr() );
             return null;
         }
         catch ( final Throwable e )
@@ -92,7 +92,7 @@ public class ConfigEditorServletUtils
 
         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "no file found in upload" );
         pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
-        LOGGER.error( pwmRequest, "error during file upload: " + errorInformation.toDebugStr() );
+        LOGGER.error( pwmRequest, () -> "error during file upload: " + errorInformation.toDebugStr() );
         return null;
     }
 
@@ -159,7 +159,7 @@ public class ConfigEditorServletUtils
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, "error generating health records: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error generating health records: " + e.getMessage() );
         }
 
         return HealthData.builder().build();

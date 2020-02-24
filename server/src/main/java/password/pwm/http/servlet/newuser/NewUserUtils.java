@@ -345,13 +345,13 @@ class NewUserUtils
     {
         try
         {
-            NewUserUtils.LOGGER.warn( pwmRequest, "deleting ldap user account " + userDN );
+            NewUserUtils.LOGGER.warn( pwmRequest, () -> "deleting ldap user account " + userDN );
             pwmRequest.getConfig().getDefaultLdapProfile().getProxyChaiProvider( pwmRequest.getPwmApplication() ).deleteEntry( userDN );
-            NewUserUtils.LOGGER.warn( pwmRequest, "ldap user account " + userDN + " has been deleted" );
+            NewUserUtils.LOGGER.warn( pwmRequest, () -> "ldap user account " + userDN + " has been deleted" );
         }
         catch ( final ChaiUnavailableException | ChaiOperationException e )
         {
-            NewUserUtils.LOGGER.error( pwmRequest, "error deleting ldap user account " + userDN + ", " + e.getMessage() );
+            NewUserUtils.LOGGER.error( pwmRequest, () -> "error deleting ldap user account " + userDN + ", " + e.getMessage() );
         }
 
         pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
@@ -423,8 +423,10 @@ class NewUserUtils
             NewUserUtils.LOGGER.debug( pwmRequest, () -> "generated entry name for new user is not unique, will try again" );
             attemptCount++;
         }
+
+        final int attemptCountFinal = attemptCount;
         NewUserUtils.LOGGER.error( pwmRequest,
-                "failed to generate new user DN after " + attemptCount + " attempts, failed values: " + JsonUtil.serializeCollection(
+                () -> "failed to generate new user DN after " + attemptCountFinal + " attempts, failed values: " + JsonUtil.serializeCollection(
                         failedValues ) );
         throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
                 "unable to generate a unique DN value" ) );
@@ -450,7 +452,7 @@ class NewUserUtils
         catch ( final PwmOperationalException e )
         {
             final String msg = "ldap error while searching for duplicate entry names: " + e.getMessage();
-            NewUserUtils.LOGGER.error( pwmRequest, msg );
+            NewUserUtils.LOGGER.error( pwmRequest, () -> msg );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE, msg ) );
         }
     }

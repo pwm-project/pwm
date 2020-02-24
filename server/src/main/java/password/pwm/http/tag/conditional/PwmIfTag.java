@@ -95,18 +95,18 @@ public class PwmIfTag extends BodyTagSupport
                         }
                         catch ( final ChaiUnavailableException e )
                         {
-                            LOGGER.error( "error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage() );
+                            LOGGER.error( () -> "error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage() );
                         }
                     }
                     else
                     {
                         final String errorMsg = "unknown test name '" + test + "' in pwm:If jsp tag!";
-                        LOGGER.warn( pwmRequest, errorMsg );
+                        LOGGER.warn( pwmRequest, () -> errorMsg );
                     }
                 }
                 catch ( final PwmUnrecoverableException e )
                 {
-                    LOGGER.error( "error executing PwmIfTag for test '" + test + "', error: " + e.getMessage() );
+                    LOGGER.error( () -> "error executing PwmIfTag for test '" + test + "', error: " + e.getMessage() );
                 }
             }
         }

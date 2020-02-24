@@ -62,7 +62,7 @@ public class PwmScriptRefTag extends TagSupport
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error during scriptRef output of pwmFormID: " + e.getMessage() );
+            LOGGER.error( () -> "error during scriptRef output of pwmFormID: " + e.getMessage() );
         }
         return EVAL_PAGE;
     }

@@ -194,7 +194,7 @@ public class FileSystemUtility
         }
         catch ( final IOException e )
         {
-            LOGGER.error( "error calculating disk size of '" + dir.getAbsolutePath() + "', error: " + e.getMessage(), e );
+            LOGGER.error( () -> "error calculating disk size of '" + dir.getAbsolutePath() + "', error: " + e.getMessage(), e );
         }
 
         return -1;
@@ -238,7 +238,7 @@ public class FileSystemUtility
                     LOGGER.debug( () -> "deleting old backup file: " + thisFile.getAbsolutePath() );
                     if ( !thisFile.delete() )
                     {
-                        LOGGER.error( "unable to delete old backup file: " + thisFile.getAbsolutePath() );
+                        LOGGER.error( () -> "unable to delete old backup file: " + thisFile.getAbsolutePath() );
                     }
                 }
             }
@@ -298,7 +298,7 @@ public class FileSystemUtility
             }
             catch ( final IOException e )
             {
-                LOGGER.warn( "error deleting temporary file '" + path.getAbsolutePath() + "', error: " + e.getMessage() );
+                LOGGER.warn( () -> "error deleting temporary file '" + path.getAbsolutePath() + "', error: " + e.getMessage() );
             }
         }
     }

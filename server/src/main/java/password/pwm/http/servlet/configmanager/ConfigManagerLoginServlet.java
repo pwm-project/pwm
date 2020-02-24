@@ -377,7 +377,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, "error examining persistent config login cookie: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error examining persistent config login cookie: " + e.getMessage() );
         }
     }
 

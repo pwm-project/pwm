@@ -52,7 +52,7 @@ public class CurrentUrlTag extends TagSupport
             {
                 /* ignore */
             }
-            LOGGER.error( "error during pwmFormIDTag output of pwmFormID: " + e.getMessage() );
+            LOGGER.error( () -> "error during pwmFormIDTag output of pwmFormID: " + e.getMessage() );
         }
         return EVAL_PAGE;
     }

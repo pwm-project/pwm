@@ -223,7 +223,7 @@ public class ShortcutServlet extends AbstractPwmServlet
             return;
         }
 
-        LOGGER.error( pwmRequest, "unknown/unexpected link requested to " + link );
+        LOGGER.error( pwmRequest, () -> "unknown/unexpected link requested to " + link );
         pwmRequest.forwardToJsp( JspUrl.SHORTCUT );
     }
 }

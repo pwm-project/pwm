@@ -105,7 +105,7 @@ public class PwmServiceManager
         catch ( final Exception e )
         {
             final String errorMsg = "unexpected error instantiating service class '" + serviceName + "', error: " + e.toString();
-            LOGGER.fatal( errorMsg, e );
+            LOGGER.fatal( () -> errorMsg, e );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR, errorMsg ) );
         }
 
@@ -118,7 +118,7 @@ public class PwmServiceManager
         }
         catch ( final PwmException e )
         {
-            LOGGER.warn( "error instantiating service class '" + serviceName + "', service will remain unavailable, error: " + e.getMessage() );
+            LOGGER.warn( () -> "error instantiating service class '" + serviceName + "', service will remain unavailable, error: " + e.getMessage() );
         }
         catch ( final Exception e )
         {
@@ -127,7 +127,8 @@ public class PwmServiceManager
             {
                 errorMsg += ", cause: " + e.getCause();
             }
-            LOGGER.fatal( errorMsg );
+            final String errorMsgFinal = errorMsg;
+            LOGGER.fatal( () -> errorMsgFinal );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR, errorMsg ) );
         }
         return newServiceInstance;
@@ -172,7 +173,7 @@ public class PwmServiceManager
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error closing " + loopService.getClass().getSimpleName() + ": " + e.getMessage(), e );
+            LOGGER.error( () -> "error closing " + loopService.getClass().getSimpleName() + ": " + e.getMessage(), e );
         }
     }
 

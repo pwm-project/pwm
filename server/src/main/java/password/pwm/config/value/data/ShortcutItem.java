@@ -63,7 +63,7 @@ public class ShortcutItem implements Serializable
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( "malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage() );
+                LOGGER.warn( () -> "malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage() );
             }
         }
         throw new IllegalArgumentException( "malformed ShortcutItem configuration value of '" + input + "'" );
@@ -86,7 +86,7 @@ public class ShortcutItem implements Serializable
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( "malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage() );
+                LOGGER.warn( () -> "malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage() );
             }
         }
         throw new IllegalArgumentException( "malformed ShortcutItem configuration value of '" + input + "'" );

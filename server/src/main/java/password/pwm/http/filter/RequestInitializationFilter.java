@@ -150,10 +150,10 @@ public class RequestInitializationFilter implements Filter
                     return;
                 }
 
-                LOGGER.error( "error while trying to detect application status: " + e.getMessage() );
+                LOGGER.error( () -> "error while trying to detect application status: " + e.getMessage() );
             }
 
-            LOGGER.error( "unable to satisfy incoming request, application is not available" );
+            LOGGER.error( () -> "unable to satisfy incoming request, application is not available" );
             resp.setStatus( 500 );
             final String url = JspUrl.APP_UNAVAILABLE.getPath();
             servletRequest.getServletContext().getRequestDispatcher( url ).forward( servletRequest, servletResponse );
@@ -185,7 +185,7 @@ public class RequestInitializationFilter implements Filter
         }
         catch ( final Throwable e )
         {
-            LOGGER.error( "can't load application: " + e.getMessage(), e );
+            LOGGER.error( () -> "can't load application: " + e.getMessage(), e );
             if ( !( new PwmURL( req ).isResourceURL() ) )
             {
                 respondWithUnavailableError( req, resp );
@@ -227,11 +227,11 @@ public class RequestInitializationFilter implements Filter
             final String logMsg = "can't init request: " + e.getMessage();
             if ( e instanceof PwmException && ( ( PwmException ) e ).getError() != PwmError.ERROR_INTERNAL )
             {
-                LOGGER.error( logMsg );
+                LOGGER.error( () -> logMsg );
             }
             else
             {
-                LOGGER.error( logMsg, e );
+                LOGGER.error( () -> logMsg, e );
             }
             if ( !( new PwmURL( req ).isResourceURL() ) )
             {
@@ -258,7 +258,7 @@ public class RequestInitializationFilter implements Filter
         }
         catch ( final PwmUnrecoverableException e2 )
         {
-            LOGGER.error( "error reading session context from servlet container: " + e2.getMessage() );
+            LOGGER.error( () -> "error reading session context from servlet container: " + e2.getMessage() );
         }
 
         req.setAttribute( PwmRequestAttribute.PwmErrorInfo.toString(), errorInformation );
@@ -488,7 +488,7 @@ public class RequestInitializationFilter implements Filter
             }
             else
             {
-                LOGGER.warn( "discarding bogus source network address '" + trimAddr + "'" );
+                LOGGER.warn( () -> "discarding bogus source network address '" + trimAddr + "'" );
             }
         }
 
@@ -692,12 +692,12 @@ public class RequestInitializationFilter implements Filter
                     }
                     catch ( final IPMatcher.IPMatcherException e )
                     {
-                        LOGGER.error( "error while attempting to match permitted address range '" + ipMatchString + "', error: " + e );
+                        LOGGER.error( () -> "error while attempting to match permitted address range '" + ipMatchString + "', error: " + e );
                     }
                 }
                 catch ( final IPMatcher.IPMatcherException e )
                 {
-                    LOGGER.error( "error parsing permitted address range '" + ipMatchString + "', error: " + e );
+                    LOGGER.error( () -> "error parsing permitted address range '" + ipMatchString + "', error: " + e );
                 }
             }
             if ( !match )

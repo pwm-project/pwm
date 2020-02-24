@@ -128,7 +128,7 @@ public abstract class RestServlet extends HttpServlet
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "error while trying to log HTTP request data " + e.getMessage(), e );
+            LOGGER.error( () -> "error while trying to log HTTP request data " + e.getMessage(), e );
         }
 
         if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING )
@@ -201,12 +201,12 @@ public abstract class RestServlet extends HttpServlet
                 {
                     throw ( PwmUnrecoverableException ) rootException;
                 }
-                LOGGER.error( restRequest.getSessionLabel(), "internal error executing rest request: " + e.getMessage(), e );
+                LOGGER.error( restRequest.getSessionLabel(), () -> "internal error executing rest request: " + e.getMessage(), e );
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, e.getMessage() );
             }
             catch ( final IllegalAccessException e )
             {
-                LOGGER.error( restRequest.getSessionLabel(), "internal error executing rest request: " + e.getMessage(), e );
+                LOGGER.error( restRequest.getSessionLabel(), () -> "internal error executing rest request: " + e.getMessage(), e );
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, e.getMessage() );
             }
         }

@@ -128,7 +128,7 @@ public class OtpService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( sessionLabel, "error checking otp secret: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "error checking otp secret: " + e.getMessage() );
         }
 
         if ( !otpCorrect && allowRecoveryCodes && otpUserRecord.getRecoveryCodes() != null && otpUserRecord.getRecoveryInfo() != null )
@@ -343,13 +343,13 @@ public class OtpService implements PwmService
                     }
                     catch ( final Exception e )
                     {
-                        LOGGER.error( sessionLabel, "unexpected error reading stored otp configuration from "
+                        LOGGER.error( sessionLabel, () -> "unexpected error reading stored otp configuration from "
                                 + location + " for user " + userIdentity + ", error: " + e.getMessage() );
                     }
                 }
                 else
                 {
-                    LOGGER.warn( sessionLabel, String.format( "storage location %s not implemented", location.toString() ) );
+                    LOGGER.warn( sessionLabel, () -> String.format( "storage location %s not implemented", location.toString() ) );
                 }
             }
         }
@@ -398,13 +398,13 @@ public class OtpService implements PwmService
                     }
                     catch ( final PwmUnrecoverableException e )
                     {
-                        LOGGER.error( pwmRequest, "error writing to " + otpSecretStorageLocation + ", error: " + e.getMessage() );
+                        LOGGER.error( pwmRequest, () -> "error writing to " + otpSecretStorageLocation + ", error: " + e.getMessage() );
                         errorMsgs.append( otpSecretStorageLocation ).append( " error: " ).append( e.getMessage() );
                     }
                 }
                 else
                 {
-                    LOGGER.warn( pwmRequest, String.format( "storage location %s not implemented", otpSecretStorageLocation.toString() ) );
+                    LOGGER.warn( pwmRequest, () -> String.format( "storage location %s not implemented", otpSecretStorageLocation.toString() ) );
                 }
             }
         }
@@ -458,13 +458,13 @@ public class OtpService implements PwmService
                     }
                     catch ( final PwmUnrecoverableException e )
                     {
-                        LOGGER.error( pwmRequest, "error clearing " + otpSecretStorageLocation + ", error: " + e.getMessage() );
+                        LOGGER.error( pwmRequest, () -> "error clearing " + otpSecretStorageLocation + ", error: " + e.getMessage() );
                         errorMsgs.append( otpSecretStorageLocation ).append( " error: " ).append( e.getMessage() );
                     }
                 }
                 else
                 {
-                    LOGGER.warn( pwmRequest, String.format( "Storage location %s not implemented", otpSecretStorageLocation.toString() ) );
+                    LOGGER.warn( pwmRequest, () -> String.format( "Storage location %s not implemented", otpSecretStorageLocation.toString() ) );
                 }
             }
         }

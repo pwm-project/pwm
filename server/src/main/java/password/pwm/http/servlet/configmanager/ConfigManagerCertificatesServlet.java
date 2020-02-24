@@ -208,7 +208,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
         }
         catch ( final CertificateEncodingException e )
         {
-            LOGGER.error( "unexpected error parsing certificate detail text: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error parsing certificate detail text: " + e.getMessage() );
         }
         return builder.build();
     }

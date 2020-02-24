@@ -415,7 +415,7 @@ public class AppDashboardData implements Serializable
         }
         catch ( final LocalDBException e )
         {
-            LOGGER.error( "error making localDB size bean: " + e.getMessage() );
+            LOGGER.error( () -> "error making localDB size bean: " + e.getMessage() );
         }
         return Collections.unmodifiableMap( returnData );
     }

@@ -99,7 +99,7 @@ public class ErrorMessageTag extends PwmAbstractTag
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error executing error message tag: " + e.getMessage(), e );
+            LOGGER.error( () -> "error executing error message tag: " + e.getMessage(), e );
             throw new JspTagException( e.getMessage() );
         }
         return EVAL_PAGE;

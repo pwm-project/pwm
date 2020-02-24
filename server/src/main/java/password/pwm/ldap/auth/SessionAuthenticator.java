@@ -149,7 +149,7 @@ public class SessionAuthenticator
             }
             catch ( final Exception e )
             {
-                LOGGER.error( pwmRequest, "error parsing app property " + AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES.getKey()
+                LOGGER.error( pwmRequest, () -> "error parsing app property " + AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES.getKey()
                         + ", error: " + e.getMessage() );
             }
         }
@@ -272,7 +272,7 @@ public class SessionAuthenticator
 
         if ( userIdentity == null || userIdentity.getUserDN() == null || userIdentity.getUserDN().length() < 1 )
         {
-            LOGGER.error( sessionLabel, "attempt to simulateBadPassword with null userDN" );
+            LOGGER.error( sessionLabel, () -> "attempt to simulateBadPassword with null userDN" );
             return;
         }
 
@@ -324,7 +324,7 @@ public class SessionAuthenticator
                 catch ( final Throwable e )
                 {
                     LOGGER.error( sessionLabel,
-                            "unexpected error closing invalid ldap connection after simulated bad-password failed login attempt: " + e.getMessage() );
+                            () -> "unexpected error closing invalid ldap connection after simulated bad-password failed login attempt: " + e.getMessage() );
                 }
             }
         }
@@ -338,7 +338,7 @@ public class SessionAuthenticator
     )
             throws PwmUnrecoverableException
     {
-        LOGGER.error( sessionLabel, "ldap error during search: " + exception.getMessage() );
+        LOGGER.error( sessionLabel, () -> "ldap error during search: " + exception.getMessage() );
 
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
         if ( intruderManager != null )

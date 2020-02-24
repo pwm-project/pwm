@@ -570,7 +570,7 @@ public class FormUtility
             }
 
             final ErrorInformation errorInformation = new ErrorInformation( error, "error reading current profile values: " + e.getMessage() );
-            LOGGER.error( sessionLabel, errorInformation.getDetailedErrorMsg() );
+            LOGGER.error( sessionLabel, () -> errorInformation.getDetailedErrorMsg() );
             throw new PwmUnrecoverableException( errorInformation );
         }
 

@@ -122,7 +122,7 @@ public class SharedHistoryManager implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.warn( "error checking global history list: " + e.getMessage() );
+            LOGGER.warn( () -> "error checking global history list: " + e.getMessage() );
         }
 
         //LOGGER.trace(pwmSession, "successfully checked word, result=" + result + ", duration=" + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString());
@@ -153,7 +153,7 @@ public class SharedHistoryManager implements PwmService
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error checking wordlist size: " + e.getMessage() );
+                LOGGER.error( () -> "error checking wordlist size: " + e.getMessage() );
                 return 0;
             }
         }
@@ -198,7 +198,7 @@ public class SharedHistoryManager implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error checking db version", e );
+            LOGGER.error( () -> "error checking db version", e );
             status = STATUS.CLOSED;
             return;
         }
@@ -220,7 +220,7 @@ public class SharedHistoryManager implements PwmService
         }
         catch ( final LocalDBException e )
         {
-            LOGGER.error( "unexpected error loading oldest-entry meta record, will remain closed: " + e.getMessage(), e );
+            LOGGER.error( () -> "unexpected error loading oldest-entry meta record, will remain closed: " + e.getMessage(), e );
             status = STATUS.CLOSED;
             return;
         }
@@ -235,7 +235,7 @@ public class SharedHistoryManager implements PwmService
         }
         catch ( final LocalDBException e )
         {
-            LOGGER.error( "unexpected error examining size of DB, will remain closed: " + e.getMessage(), e );
+            LOGGER.error( () -> "unexpected error examining size of DB, will remain closed: " + e.getMessage(), e );
             status = STATUS.CLOSED;
             return;
         }
@@ -304,7 +304,7 @@ public class SharedHistoryManager implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.warn( sessionLabel, "error adding word to global history list: " + e.getMessage() );
+            LOGGER.warn( sessionLabel, () -> "error adding word to global history list: " + e.getMessage() );
         }
     }
 
@@ -337,7 +337,7 @@ public class SharedHistoryManager implements PwmService
             }
             catch ( final LocalDBException e )
             {
-                LOGGER.error( "error during old record purge: " + e.getMessage() );
+                LOGGER.error( () -> "error during old record purge: " + e.getMessage() );
             }
         }
 
@@ -408,7 +408,7 @@ public class SharedHistoryManager implements PwmService
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.warn( "error returning LocalDB iterator: " + e.getMessage() );
+                    LOGGER.warn( () -> "error returning LocalDB iterator: " + e.getMessage() );
                 }
             }
 
@@ -465,7 +465,7 @@ public class SharedHistoryManager implements PwmService
             this.salt = localDB.get( META_DB, KEY_SALT );
             if ( salt == null || salt.length() < saltLength )
             {
-                LOGGER.warn( "stored global salt value is not present, creating new salt" );
+                LOGGER.warn( () -> "stored global salt value is not present, creating new salt" );
                 this.salt = PwmRandom.getInstance().alphaNumericString( saltLength );
                 localDB.put( META_DB, KEY_SALT, this.salt );
                 needsClearing = true;
@@ -481,7 +481,7 @@ public class SharedHistoryManager implements PwmService
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error during wordlist truncate", e );
+                LOGGER.error( () -> "error during wordlist truncate", e );
             }
         }
 
