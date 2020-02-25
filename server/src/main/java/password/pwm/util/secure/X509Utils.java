@@ -98,7 +98,10 @@ public class X509Utils
             throws PwmOperationalException
     {
         LOGGER.debug( () -> "ServerCertReader: beginning certificate read procedure to import certificates from host=" + host + ", port=" + port );
-        final CertificateReadingTrustManager certReaderTm = CertificateReadingTrustManager.newCertReaderTrustManager( configuration, readCertificateFlagsFromConfig( configuration ) );
+        final CertificateReadingTrustManager certReaderTm = CertificateReadingTrustManager.newCertReaderTrustManager(
+                configuration,
+                readCertificateFlagsFromConfig( configuration ) );
+
         try
         {
             // use custom trust manager to read the certificates

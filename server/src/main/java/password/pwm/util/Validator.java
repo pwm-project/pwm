@@ -142,7 +142,8 @@ public class Validator
                 final String newString = theString.replaceAll( testString, "" );
                 if ( !newString.equals( theString ) )
                 {
-                    LOGGER.warn( () -> "removing potentially malicious string values from input, converting '" + input + "' newValue=" + newString + "' pattern='" + testString + "'" );
+                    LOGGER.warn( () -> "removing potentially malicious string values from input, converting '"
+                            + input + "' newValue=" + newString + "' pattern='" + testString + "'" );
                     theString = newString;
                 }
             }
