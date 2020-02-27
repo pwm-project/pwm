@@ -1129,6 +1129,18 @@ GOOD
                             <td class="key">Accept Header</td>
                             <td>application/json</td>
                         </tr>
+                        <tr>
+                            <td class="key">Parameter username</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>username</td></tr>
+                                    <tr><td>Required</td><td>Optional</td></tr>
+                                    <tr><td>Location</td><td>query string</td></tr>
+                                    <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
+                                    <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+                                </table>
+                            </td>
+                        </tr>
                     </table>
                     <table style="max-width: 100%">
                         <tr>
