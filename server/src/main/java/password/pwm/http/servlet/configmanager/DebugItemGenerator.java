@@ -122,7 +122,8 @@ public class DebugItemGenerator
             RootFileSystemDebugItemGenerator.class,
             LdapConnectionsDebugItemGenerator.class,
             StatisticsDataDebugItemGenerator.class,
-            StatisticsEpsDataDebugItemGenerator.class
+            StatisticsEpsDataDebugItemGenerator.class,
+            BuildInformationDebugItemGenerator.class
     ) );
 
     private final PwmApplication pwmApplication;
@@ -868,6 +869,23 @@ public class DebugItemGenerator
                 }
             }
             csvPrinter.flush();
+        }
+    }
+
+    static class BuildInformationDebugItemGenerator implements Generator
+    {
+        @Override
+        public String getFilename( )
+        {
+            return "build.properties";
+        }
+
+        @Override
+        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        {
+            final Properties outputProps = new JavaHelper.SortedProperties();
+            outputProps.putAll( PwmConstants.BUILD_MANIFEST );
+            outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
         }
     }
 

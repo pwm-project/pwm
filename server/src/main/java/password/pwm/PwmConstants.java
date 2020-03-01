@@ -20,6 +20,7 @@
 
 package password.pwm;
 
+import com.novell.ldapchai.ChaiConstant;
 import org.apache.commons.csv.CSVFormat;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -34,8 +35,10 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
+import java.util.TreeMap;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -46,13 +49,14 @@ import java.util.jar.Manifest;
  */
 public abstract class PwmConstants
 {
+    public static final Map<String, String> BUILD_MANIFEST = readBuildManifest();
 
-    public static final String BUILD_TIME = readBuildInfoBundle( "Implementation-Build-Timestamp", "n/a" );
-    public static final String BUILD_NUMBER = readBuildInfoBundle( "Implementation-Build", "0" );
-    public static final String BUILD_REVISION = readBuildInfoBundle( "Implementation-Revision", "0" );
-    public static final String BUILD_JAVA_VENDOR = readBuildInfoBundle( "Implementation-Build-Java-Vendor" );
-    public static final String BUILD_JAVA_VERSION = readBuildInfoBundle( "Implementation-Build-Java-Version" );
-    public static final String BUILD_VERSION = readBuildInfoBundle( "Implementation-Version", "" );
+    public static final String BUILD_TIME = BUILD_MANIFEST.getOrDefault( "Implementation-Build-Timestamp", "n/a" );
+    public static final String BUILD_NUMBER = BUILD_MANIFEST.getOrDefault( "Implementation-Build", "0" );
+    public static final String BUILD_REVISION = BUILD_MANIFEST.getOrDefault( "Implementation-Revision", "0" );
+    public static final String BUILD_JAVA_VENDOR = BUILD_MANIFEST.getOrDefault( "Implementation-Build-Java-Vendor", "0" );
+    public static final String BUILD_JAVA_VERSION = BUILD_MANIFEST.getOrDefault( "Implementation-Build-Java-Version", "0" );
+    public static final String BUILD_VERSION = BUILD_MANIFEST.getOrDefault( "Implementation-Version", "0" );
 
     private static final String MISSING_VERSION_STRING = readPwmConstantsBundle( "missingVersionString" );
     public static final String SERVLET_VERSION;
@@ -238,35 +242,35 @@ public abstract class PwmConstants
         return ResourceBundle.getBundle( PwmConstants.class.getName() ).getString( key );
     }
 
-    private static String readBuildInfoBundle( final String key )
-    {
-        return readBuildInfoBundle( key, null );
-    }
-
-    private static String readBuildInfoBundle( final String key, final String defaultValue )
+    private static Map<String, String> readBuildManifest( )
     {
         final String interestedArchiveNonce = "F84576985F0A176014F751736F7C79B6D9BED842FC48377404FE24A36BF6C2AA";
-        final String manifestKeyName = "Implementation-Archive-Nonce";
+        final String manifestKeyName = "Archive-UID";
         final String manifestFileName = "META-INF/MANIFEST.MF";
 
+        final Map<String, String> returnMap = new TreeMap<>();
         try
         {
-            final Enumeration<URL> resources = PwmConstants.class.getClassLoader().getResources( manifestFileName );
+            final Enumeration<URL> resources = ChaiConstant.class.getClassLoader().getResources( manifestFileName );
             while ( resources.hasMoreElements() )
             {
                 try ( InputStream inputStream = resources.nextElement().openStream() )
                 {
                     final Manifest manifest = new Manifest( inputStream );
                     final Attributes attributes = manifest.getMainAttributes();
-                    final String archiveNonve = attributes.getValue( manifestKeyName );
+                    final String archiveNonce = attributes.getValue( manifestKeyName );
                     try
                     {
-                        if ( interestedArchiveNonce.equals( archiveNonve ) )
+                        if ( interestedArchiveNonce.equals( archiveNonce ) )
                         {
-                            final String value = attributes.getValue( key );
-                            if ( !StringUtil.isEmpty( value ) )
+                            for ( final Map.Entry<Object, Object> entry : attributes.entrySet() )
                             {
-                                return value;
+                                final Object keyObject = entry.getKey();
+                                final Object valueObject = entry.getValue();
+                                if ( keyObject != null && valueObject != null )
+                                {
+                                    returnMap.put( keyObject.toString(), valueObject.toString() );
+                                }
                             }
                         }
                     }
@@ -282,7 +286,7 @@ public abstract class PwmConstants
             System.out.println( t );
         }
 
-        return defaultValue;
+        return Collections.unmodifiableMap( returnMap );
     }
 
     public enum AcceptValue

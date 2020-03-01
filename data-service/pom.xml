@@ -22,7 +22,6 @@
 
     <properties>
         <skipTests>false</skipTests>
-        <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.root.basedir>${project.basedir}/..</project.root.basedir>

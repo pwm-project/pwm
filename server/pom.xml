@@ -43,7 +43,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M3</version>
+                <version>3.0.0-M4</version>
                 <executions>
                     <execution>
                         <id>default-test</id>
@@ -94,7 +94,6 @@
                                     <filtering>true</filtering>
                                     <directory>src/main/resources</directory>
                                     <includes>
-                                        <include>password/pwm/BuildInformation.properties</include>
                                         <include>password/pwm/PwmConstants.properties</include>
                                     </includes>
                                 </resource>
@@ -106,11 +105,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.0</version>
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Implementation-Archive-Nonce>F84576985F0A176014F751736F7C79B6D9BED842FC48377404FE24A36BF6C2AA</Implementation-Archive-Nonce>
+                            <Archive-Type>jar</Archive-Type>
+                            <Archive-UID>F84576985F0A176014F751736F7C79B6D9BED842FC48377404FE24A36BF6C2AA</Archive-UID>
                             <Implementation-Title>${project.name}</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>
                             <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
@@ -118,9 +118,14 @@
                             <Implementation-Build-Java-Vendor>${java.vendor}</Implementation-Build-Java-Vendor>
                             <Implementation-Build-Java-Version>${java.version}</Implementation-Build-Java-Version>
                             <Implementation-Build>${build.number}</Implementation-Build>
-                            <Implementation-Build-Timestamp>${timestamp.iso}</Implementation-Build-Timestamp>
                             <Implementation-Revision>${build.revision}</Implementation-Revision>
                             <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
+                            <SCM-Git-Branch>${git.branch}</SCM-Git-Branch>
+                            <SCM-Git-Commit-ID>${git.commit.id}</SCM-Git-Commit-ID>
+                            <SCM-Git-Commit-ID-Abbrev>${git.commit.id.abbrev}</SCM-Git-Commit-ID-Abbrev>
+                            <SCM-Git-Commit-ID-Description>${git.commit.id.describe}</SCM-Git-Commit-ID-Description>
+                            <SCM-Git-Commit-Timestamp>${git.commit.time}</SCM-Git-Commit-Timestamp>
+                            <SCM-Git-Commit-Dirty>${git.dirty}</SCM-Git-Commit-Dirty>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -128,7 +133,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.8.2</version>
+                <version>3.0.0-M1</version>
                 <executions>
                     <execution>
                         <phase>deploy</phase>
@@ -314,7 +319,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>
-            <version>0.43</version>
+            <version>0.44</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
