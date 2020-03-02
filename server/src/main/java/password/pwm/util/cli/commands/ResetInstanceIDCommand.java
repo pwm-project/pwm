@@ -20,6 +20,7 @@
 
 package password.pwm.util.cli.commands;
 
+import password.pwm.AppAttribute;
 import password.pwm.PwmApplication;
 import password.pwm.util.cli.CliParameters;
 
@@ -35,7 +36,7 @@ public class ResetInstanceIDCommand extends AbstractCliCommand
             return;
         }
 
-        pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.INSTANCE_ID, null );
+        pwmApplication.writeAppAttribute( AppAttribute.INSTANCE_ID, null );
         out( "instanceID has been cleared" );
     }
 

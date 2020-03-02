@@ -176,6 +176,7 @@ public enum AppProperty
     LOCALDB_LOGWRITER_BUFFER_SIZE                   ( "localdb.logWriter.bufferSize" ),
     LOCALDB_LOGWRITER_MAX_BUFFER_WAIT_MS            ( "localdb.logWriter.maxBufferWaitMs" ),
     LOCALDB_LOGWRITER_MAX_TRIM_SIZE                 ( "localdb.logWriter.maxTrimSize" ),
+    LOCALDB_RELOAD_WHEN_APP_RESTARTED               ( "localdb.reloadWhenAppRestarted" ),
     MACRO_RANDOM_CHAR_MAX_LENGTH                    ( "macro.randomChar.maxLength" ),
     MACRO_LDAP_ATTR_CHAR_MAX_LENGTH                 ( "macro.ldapAttr.maxLength" ),
 

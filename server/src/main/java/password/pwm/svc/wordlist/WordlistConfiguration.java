@@ -24,8 +24,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Value;
+import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
@@ -55,7 +55,7 @@ public class WordlistConfiguration implements Serializable
     private final String autoImportUrl;
     private final int minWordSize;
     private final int maxWordSize;
-    private final PwmApplication.AppAttribute metaDataAppAttribute;
+    private final AppAttribute metaDataAppAttribute;
     private final AppProperty builtInWordlistLocationProperty;
     private final LocalDB.DB db;
     private final PwmSetting wordlistFilenameSetting;
@@ -84,7 +84,7 @@ public class WordlistConfiguration implements Serializable
             {
                 return commonBuilder( configuration, type ).toBuilder()
                         .autoImportUrl( readAutoImportUrl( configuration, PwmSetting.SEEDLIST_FILENAME ) )
-                        .metaDataAppAttribute( PwmApplication.AppAttribute.SEEDLIST_METADATA )
+                        .metaDataAppAttribute( AppAttribute.SEEDLIST_METADATA )
                         .builtInWordlistLocationProperty( AppProperty.SEEDLIST_BUILTIN_PATH )
                         .db( LocalDB.DB.SEEDLIST_WORDS )
                         .wordlistFilenameSetting( PwmSetting.SEEDLIST_FILENAME )
@@ -97,7 +97,7 @@ public class WordlistConfiguration implements Serializable
                         .caseSensitive( configuration.readSettingAsBoolean( PwmSetting.WORDLIST_CASE_SENSITIVE )  )
                         .checkSize( (int) configuration.readSettingAsLong( PwmSetting.PASSWORD_WORDLIST_WORDSIZE ) )
                         .autoImportUrl( readAutoImportUrl( configuration, PwmSetting.WORDLIST_FILENAME ) )
-                        .metaDataAppAttribute( PwmApplication.AppAttribute.WORDLIST_METADATA )
+                        .metaDataAppAttribute( AppAttribute.WORDLIST_METADATA )
                         .builtInWordlistLocationProperty( AppProperty.WORDLIST_BUILTIN_PATH )
                         .db( LocalDB.DB.WORDLIST_WORDS )
                         .wordlistFilenameSetting( PwmSetting.WORDLIST_FILENAME )

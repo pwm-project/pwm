@@ -492,7 +492,7 @@ public class MainClass
                 .setConfigurationFile( configurationFile )
                 .setFlags( applicationFlags )
                 .createPwmEnvironment();
-        final PwmApplication pwmApplication = new PwmApplication( pwmEnvironment );
+        final PwmApplication pwmApplication = PwmApplication.createPwmApplication( pwmEnvironment );
         final PwmApplicationMode runningMode = pwmApplication.getApplicationMode();
 
         if ( runningMode != mode )

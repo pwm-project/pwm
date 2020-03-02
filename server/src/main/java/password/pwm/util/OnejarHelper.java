@@ -118,6 +118,6 @@ public class OnejarHelper
                 .setFlags( Collections.singleton( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
                 .setInternalRuntimeInstance( true )
                 .createPwmEnvironment();
-        return new PwmApplication( pwmEnvironment );
+        return PwmApplication.createPwmApplication( pwmEnvironment );
     }
 }

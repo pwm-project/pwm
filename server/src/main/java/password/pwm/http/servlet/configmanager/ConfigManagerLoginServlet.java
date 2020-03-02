@@ -23,6 +23,7 @@ package password.pwm.http.servlet.configmanager;
 import com.google.gson.annotations.SerializedName;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Value;
+import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -195,7 +196,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
     private static ConfigLoginHistory readConfigLoginHistory( final PwmRequest pwmRequest )
     {
-        final ConfigLoginHistory configLoginHistory = pwmRequest.getPwmApplication().readAppAttribute( PwmApplication.AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class );
+        final ConfigLoginHistory configLoginHistory = pwmRequest.getPwmApplication().readAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class );
         return configLoginHistory == null
                 ? new ConfigLoginHistory()
                 : configLoginHistory;
@@ -211,7 +212,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         );
         final int maxEvents = Integer.parseInt( pwmRequest.getPwmApplication().getConfig().readAppProperty( AppProperty.CONFIG_HISTORY_MAX_ITEMS ) );
         configLoginHistory.addEvent( event, maxEvents, successful );
-        pwmRequest.getPwmApplication().writeAppAttribute( PwmApplication.AppAttribute.CONFIG_LOGIN_HISTORY, configLoginHistory );
+        pwmRequest.getPwmApplication().writeAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, configLoginHistory );
     }
 
     @Value

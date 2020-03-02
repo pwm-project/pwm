@@ -118,40 +118,6 @@ public class PwmApplication
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmApplication.class );
     private static final String DEFAULT_INSTANCE_ID = "-1";
 
-    public enum AppAttribute
-    {
-        INSTANCE_ID( "context_instanceID" ),
-        INSTALL_DATE( "DB_KEY_INSTALL_DATE" ),
-        CONFIG_HASH( "configurationSettingHash" ),
-        LAST_LDAP_ERROR( "lastLdapError" ),
-        // TOKEN_COUNTER( "tokenCounter" ), deprecated
-        REPORT_STATUS( "reporting.status" ),
-        // REPORT_CLEAN_FLAG("reporting.cleanFlag"), deprecated
-        SMS_ITEM_COUNTER( "smsQueue.itemCount" ),
-        EMAIL_ITEM_COUNTER( "itemQueue.itemCount" ),
-        LOCALDB_IMPORT_STATUS( "localDB.import.status" ),
-        WORDLIST_METADATA( "wordlist.metadata" ),
-        SEEDLIST_METADATA( "seedlist.metadata" ),
-        HTTPS_SELF_CERT( "https.selfCert" ),
-        CONFIG_LOGIN_HISTORY( "config.loginHistory" ),
-        LOCALDB_LOGGER_STORAGE_FORMAT( "localdb.logger.storage.format" ),
-
-        TELEMETRY_LAST_PUBLISH_TIMESTAMP( "telemetry.lastPublish.timestamp" );
-
-        private final String key;
-
-        AppAttribute( final String key )
-        {
-            this.key = key;
-        }
-
-        public String getKey( )
-        {
-            return key;
-        }
-    }
-
-
     private String instanceID = DEFAULT_INSTANCE_ID;
     private String runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
 
@@ -169,11 +135,12 @@ public class PwmApplication
 
     private PwmScheduler pwmScheduler;
 
-    public PwmApplication( final PwmEnvironment pwmEnvironment )
+    private PwmApplication( final PwmEnvironment pwmEnvironment, final LocalDB localDB )
             throws PwmUnrecoverableException
     {
-        pwmEnvironment.verifyIfApplicationPathIsSetProperly();
+        this.localDB = localDB;
         this.pwmEnvironment = pwmEnvironment;
+        pwmEnvironment.verifyIfApplicationPathIsSetProperly();
 
         try
         {
@@ -184,6 +151,16 @@ public class PwmApplication
             LOGGER.fatal( () -> e.getMessage() );
             throw e;
         }
+    }
+
+    public static PwmApplication createPwmApplication( final PwmEnvironment pwmEnvironment ) throws PwmUnrecoverableException
+    {
+        return new PwmApplication( pwmEnvironment, null );
+    }
+
+    public static PwmApplication createPwmApplication( final PwmEnvironment pwmEnvironment, final LocalDB localDB ) throws PwmUnrecoverableException
+    {
+        return new PwmApplication( pwmEnvironment, localDB );
     }
 
     private void initialize( )
@@ -265,7 +242,10 @@ public class PwmApplication
             }
             else
             {
-                this.localDB = Initializer.initializeLocalDB( this );
+                if ( localDB == null )
+                {
+                    this.localDB = Initializer.initializeLocalDB( this, pwmEnvironment );
+                }
             }
         }
 
@@ -807,6 +787,11 @@ public class PwmApplication
 
     public void shutdown( )
     {
+        shutdown( true );
+    }
+
+    public void shutdown( final boolean leaveLocalDbOpen )
+    {
         pwmScheduler.shutdown();
 
         LOGGER.warn( () -> "shutting down" );
@@ -846,7 +831,11 @@ public class PwmApplication
             localDBLogger = null;
         }
 
-        if ( localDB != null )
+        if ( leaveLocalDbOpen )
+        {
+            LOGGER.trace( () -> "skipping close of LocalDB (restart request)" );
+        }
+        else if ( localDB != null )
         {
             try
             {
@@ -882,11 +871,10 @@ public class PwmApplication
 
     private static class Initializer
     {
-
-        public static LocalDB initializeLocalDB( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+        public static LocalDB initializeLocalDB( final PwmApplication pwmApplication, final PwmEnvironment pwmEnvironment ) throws PwmUnrecoverableException
         {
             final File databaseDirectory;
-            // see if META-INF isn't already there, then use WEB-INF.
+
             try
             {
                 final String localDBLocationSetting = pwmApplication.getConfig().readAppProperty( AppProperty.LOCALDB_LOCATION );
@@ -905,7 +893,7 @@ public class PwmApplication
             try
             {
                 final boolean readOnly = pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY;
-                return LocalDBFactory.getInstance( databaseDirectory, readOnly, pwmApplication, pwmApplication.getConfig() );
+                return LocalDBFactory.getInstance( databaseDirectory, readOnly, pwmEnvironment, pwmApplication.getConfig() );
             }
             catch ( final Exception e )
             {

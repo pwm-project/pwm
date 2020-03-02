@@ -20,6 +20,7 @@
 
 package password.pwm.svc.report;
 
+import password.pwm.AppAttribute;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.bean.SessionLabel;
@@ -168,7 +169,7 @@ public class ReportService implements PwmService
     {
         try
         {
-            pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.REPORT_STATUS, reportStatus.get() );
+            pwmApplication.writeAppAttribute( AppAttribute.REPORT_STATUS, reportStatus.get() );
         }
         catch ( final Exception e )
         {
@@ -658,7 +659,7 @@ public class ReportService implements PwmService
         {
             try
             {
-                final ReportStatusInfo localReportStatus = pwmApplication.readAppAttribute( PwmApplication.AppAttribute.REPORT_STATUS, ReportStatusInfo.class );
+                final ReportStatusInfo localReportStatus = pwmApplication.readAppAttribute( AppAttribute.REPORT_STATUS, ReportStatusInfo.class );
                 reportStatus.set( localReportStatus );
             }
             catch ( final Exception e )

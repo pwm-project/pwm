@@ -33,6 +33,7 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -209,7 +210,7 @@ public class HttpsServerCertificateManager
             final String cnName = makeSubjectName();
             final KeyStore keyStore = KeyStore.getInstance( "jks" );
             keyStore.load( null, password.getStringValue().toCharArray() );
-            StoredCertData storedCertData = pwmApplication.readAppAttribute( PwmApplication.AppAttribute.HTTPS_SELF_CERT, StoredCertData.class );
+            StoredCertData storedCertData = pwmApplication.readAppAttribute( AppAttribute.HTTPS_SELF_CERT, StoredCertData.class );
             if ( storedCertData != null )
             {
                 if ( !cnName.equals( storedCertData.getX509Certificate().getSubjectDN().getName() ) )
@@ -232,7 +233,7 @@ public class HttpsServerCertificateManager
             if ( storedCertData == null )
             {
                 storedCertData = makeSelfSignedCert( cnName );
-                pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.HTTPS_SELF_CERT, storedCertData );
+                pwmApplication.writeAppAttribute( AppAttribute.HTTPS_SELF_CERT, storedCertData );
             }
 
             keyStore.setKeyEntry(

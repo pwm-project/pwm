@@ -20,6 +20,7 @@
 
 package password.pwm.svc.wordlist;
 
+import password.pwm.AppAttribute;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -117,7 +118,7 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
     @Override
     public WordlistStatus readWordlistStatus()
     {
-        final PwmApplication.AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
+        final AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
         final WordlistStatus storedValue = pwmApplication.readAppAttribute( appAttribute, WordlistStatus.class );
         if ( storedValue != null )
         {
@@ -129,7 +130,7 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
     @Override
     public void writeWordlistStatus( final WordlistStatus wordlistStatus )
     {
-        final PwmApplication.AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
+        final AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
         pwmApplication.writeAppAttribute( appAttribute, wordlistStatus );
     }
 

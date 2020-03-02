@@ -23,7 +23,7 @@ package password.pwm.util.localdb;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.input.CountingInputStream;
-import password.pwm.PwmApplication;
+import password.pwm.AppAttribute;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -371,7 +371,7 @@ public class LocalDBUtility
                 throws LocalDBException
         {
             LOGGER.info( () -> "preparing LocalDB for import procedure" );
-            localDB.put( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey(), IN_PROGRESS_STATUS_VALUE );
+            localDB.put( LocalDB.DB.PWM_META, AppAttribute.LOCALDB_IMPORT_STATUS.getKey(), IN_PROGRESS_STATUS_VALUE );
             for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
             {
                 if ( loopDB != LocalDB.DB.PWM_META )
@@ -382,14 +382,14 @@ public class LocalDBUtility
 
             // save meta for last so flag is cleared last.
             localDB.truncate( LocalDB.DB.PWM_META );
-            localDB.put( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey(), IN_PROGRESS_STATUS_VALUE  );
+            localDB.put( LocalDB.DB.PWM_META, AppAttribute.LOCALDB_IMPORT_STATUS.getKey(), IN_PROGRESS_STATUS_VALUE  );
         }
 
         private void markImportComplete()
                 throws LocalDBException
         {
             LOGGER.info( () -> "marking LocalDB import procedure completed" );
-            localDB.remove( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey() );
+            localDB.remove( LocalDB.DB.PWM_META, AppAttribute.LOCALDB_IMPORT_STATUS.getKey() );
         }
 
         private String debugStatsString()
@@ -466,7 +466,7 @@ public class LocalDBUtility
             throws LocalDBException
     {
         return IN_PROGRESS_STATUS_VALUE.equals(
-                localDB.get( LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey() ) );
+                localDB.get( LocalDB.DB.PWM_META, AppAttribute.LOCALDB_IMPORT_STATUS.getKey() ) );
     }
 
     static boolean hasBooleanParameter( final LocalDBProvider.Parameter parameter, final Map<LocalDBProvider.Parameter, String> parameters )

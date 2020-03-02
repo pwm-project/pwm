@@ -462,7 +462,7 @@ public class TimeDuration implements Comparable, Serializable
             final BooleanSupplier interruptBoolean
     )
     {
-        final long interruptMs = JavaHelper.rangeCheck( 5, 1000, this.asMillis() / 100 );
+        final long interruptMs = this.asMillis() / 100;
         return pause( TimeDuration.of( interruptMs, Unit.MILLISECONDS ), interruptBoolean );
     }
 
@@ -473,7 +473,7 @@ public class TimeDuration implements Comparable, Serializable
     )
     {
         final long startTime = System.currentTimeMillis();
-        final long pauseTime = JavaHelper.rangeCheck( this.asMillis(), this.asMillis(), interruptCheckInterval.asMillis()  );
+        final long pauseTime = JavaHelper.rangeCheck( 5, 1000, interruptCheckInterval.asMillis() );
 
         while ( ( System.currentTimeMillis() - startTime ) < this.asMillis() && !interruptBoolean.getAsBoolean() )
         {

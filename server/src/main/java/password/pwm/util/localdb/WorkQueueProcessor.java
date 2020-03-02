@@ -60,7 +60,7 @@ import java.util.concurrent.locks.LockSupport;
 public final class WorkQueueProcessor<W extends Serializable>
 {
     private static final TimeDuration SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
-    private static final TimeDuration CLOSE_RETRY_CYCLE_INTERVAL = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
+    private static final TimeDuration CLOSE_RETRY_CYCLE_INTERVAL = TimeDuration.of( 5, TimeDuration.Unit.MILLISECONDS );
 
     private final Deque<String> queue;
     private final Settings settings;
@@ -350,10 +350,15 @@ public final class WorkQueueProcessor<W extends Serializable>
             logger.trace( () -> "shutdown flag set" );
             notifyWorkPending();
 
-            // rest until not running for up to 3 seconds....
+            // rest until not running for up to 10 seconds....
             if ( running.get() )
             {
-                TimeDuration.of( 3, TimeDuration.Unit.SECONDS ).pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> !running.get() );
+                logger.trace( () -> "running = " + running.get() );
+                final TimeDuration maxWaitTime = TimeDuration.of( 10, TimeDuration.Unit.SECONDS );
+                final Instant startTime = Instant.now();
+                maxWaitTime.of( 10, TimeDuration.Unit.SECONDS ).pause( CLOSE_RETRY_CYCLE_INTERVAL, () -> !running.get() );
+                final TimeDuration waitTime = TimeDuration.fromCurrent( startTime );
+                logger.trace( () -> "waited " + waitTime.asCompactString() + " workQueueSize=" + queue.size() + " running=" + running.get() );
             }
         }
 

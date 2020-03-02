@@ -28,6 +28,7 @@ import com.novell.ldapchai.provider.ProviderStatistics;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Value;
+import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.config.option.DataStorageMethod;
@@ -294,7 +295,7 @@ public class LdapConnectionService implements PwmService
     {
         lastLdapErrors.put( ldapProfile.getIdentifier(), errorInformation );
         final String jsonString = JsonUtil.serializeMap( lastLdapErrors );
-        pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.LAST_LDAP_ERROR, jsonString );
+        pwmApplication.writeAppAttribute( AppAttribute.LAST_LDAP_ERROR, jsonString );
     }
 
     public Map<String, ErrorInformation> getLastLdapFailure( )
@@ -317,7 +318,7 @@ public class LdapConnectionService implements PwmService
         String lastLdapFailureStr = null;
         try
         {
-            lastLdapFailureStr = pwmApplication.readAppAttribute( PwmApplication.AppAttribute.LAST_LDAP_ERROR, String.class );
+            lastLdapFailureStr = pwmApplication.readAppAttribute( AppAttribute.LAST_LDAP_ERROR, String.class );
             if ( lastLdapFailureStr != null && lastLdapFailureStr.length() > 0 )
             {
                 final Map<String, ErrorInformation> fromJson = JsonUtil.deserialize( lastLdapFailureStr, new TypeToken<Map<String, ErrorInformation>>()

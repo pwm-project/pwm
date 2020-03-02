@@ -23,6 +23,7 @@ package password.pwm.svc.telemetry;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import lombok.Builder;
 import lombok.Getter;
+import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
 import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
@@ -135,7 +136,7 @@ public class TelemetryService implements PwmService
         }
 
         {
-            final Instant storedLastPublishTimestamp = pwmApplication.readAppAttribute( PwmApplication.AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, Instant.class );
+            final Instant storedLastPublishTimestamp = pwmApplication.readAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, Instant.class );
             lastPublishTime = storedLastPublishTimestamp != null
                     ? storedLastPublishTimestamp
                     : pwmApplication.getInstallTime();
@@ -206,7 +207,7 @@ public class TelemetryService implements PwmService
         }
 
         lastPublishTime = Instant.now();
-        pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, lastPublishTime );
+        pwmApplication.writeAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, lastPublishTime );
         scheduleNextJob();
     }
 

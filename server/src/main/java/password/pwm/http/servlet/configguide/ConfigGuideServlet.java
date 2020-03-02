@@ -235,7 +235,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
         final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
         final Configuration tempConfiguration = new Configuration( storedConfiguration );
-        final PwmApplication tempApplication = new PwmApplication( pwmRequest.getPwmApplication()
+        final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmRequest.getPwmApplication()
                 .getPwmEnvironment()
                 .makeRuntimeInstance( tempConfiguration ) );
 

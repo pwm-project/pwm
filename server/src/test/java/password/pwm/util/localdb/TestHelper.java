@@ -75,6 +75,6 @@ public class TestHelper
                 .setApplicationMode( PwmApplicationMode.READ_ONLY )
                 .setInternalRuntimeInstance( true )
                 .createPwmEnvironment();
-        return new PwmApplication( pwmEnvironment );
+        return PwmApplication.createPwmApplication( pwmEnvironment );
     }
 }

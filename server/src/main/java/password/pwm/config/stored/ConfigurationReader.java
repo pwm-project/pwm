@@ -20,6 +20,7 @@
 
 package password.pwm.config.stored;
 
+import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -334,7 +335,7 @@ public class ConfigurationReader
         if ( pwmApplication != null )
         {
             final String actualChecksum = storedConfiguration.valueHash();
-            pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.CONFIG_HASH, actualChecksum );
+            pwmApplication.writeAppAttribute( AppAttribute.CONFIG_HASH, actualChecksum );
         }
 
         LOGGER.trace( () -> "renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath() );

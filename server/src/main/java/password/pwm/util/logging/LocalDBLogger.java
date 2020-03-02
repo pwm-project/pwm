@@ -20,6 +20,7 @@
 
 package password.pwm.util.logging;
 
+import password.pwm.AppAttribute;
 import password.pwm.PwmApplication;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
@@ -109,14 +110,14 @@ public class LocalDBLogger implements PwmService
 
         if ( pwmApplication != null )
         {
-            final String currentFormat = pwmApplication.readAppAttribute( PwmApplication.AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, String.class );
+            final String currentFormat = pwmApplication.readAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, String.class );
             if ( !STORAGE_FORMAT_VERSION.equals( currentFormat ) )
             {
                 LOGGER.warn( () -> "localdb logger is using outdated format, clearing existing records (existing='"
                         + currentFormat + "', current='" + STORAGE_FORMAT_VERSION + "')" );
 
                 localDBListQueue.clear();
-                pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, STORAGE_FORMAT_VERSION );
+                pwmApplication.writeAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, STORAGE_FORMAT_VERSION );
             }
         }
 

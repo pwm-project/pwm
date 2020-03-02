@@ -57,7 +57,7 @@ public class DatabaseStatusChecker implements HealthChecker
         try
         {
             final PwmEnvironment runtimeEnvironment = pwmApplication.getPwmEnvironment().makeRuntimeInstance( config );
-            runtimeInstance = new PwmApplication( runtimeEnvironment );
+            runtimeInstance = PwmApplication.createPwmApplication( runtimeEnvironment );
             final DatabaseAccessor accessor = runtimeInstance.getDatabaseService().getAccessor();
             accessor.get( DatabaseTable.PWM_META, "test" );
             return runtimeInstance.getDatabaseService().healthCheck();
