@@ -40,6 +40,7 @@ import password.pwm.util.secure.SecureService;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class UserCacheService implements PwmService
 {
@@ -114,7 +115,7 @@ public class UserCacheService implements PwmService
     public class UserStatusCacheBeanIterator<K extends StorageKey> implements ClosableIterator
     {
 
-        private LocalDB.LocalDBIterator<String> innerIterator;
+        private LocalDB.LocalDBIterator<Map.Entry<String, String>> innerIterator;
 
         private UserStatusCacheBeanIterator( ) throws LocalDBException
         {
@@ -128,7 +129,7 @@ public class UserCacheService implements PwmService
 
         public StorageKey next( )
         {
-            final String nextKey = innerIterator.next();
+            final String nextKey = innerIterator.next().getKey();
             return new StorageKey( nextKey );
         }
 

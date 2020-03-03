@@ -79,11 +79,11 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
     {
         final Map<String, StoredNodeData> returnList = new LinkedHashMap<>();
         final DatabaseAccessor databaseAccessor = getDatabaseAccessor();
-        try ( ClosableIterator<String> tableIterator = databaseAccessor.iterator( TABLE ) )
+        try ( ClosableIterator<Map.Entry<String, String>> tableIterator = databaseAccessor.iterator( TABLE ) )
         {
             while ( tableIterator.hasNext() )
             {
-                final String dbKey = tableIterator.next();
+                final String dbKey = tableIterator.next().getKey();
                 if ( dbKey.startsWith( KEY_PREFIX_NODE ) )
                 {
                     final String rawValueInDb = databaseAccessor.get( TABLE, dbKey );

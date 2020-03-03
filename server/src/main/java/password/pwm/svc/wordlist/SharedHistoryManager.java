@@ -43,6 +43,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 
@@ -369,14 +370,15 @@ public class SharedHistoryManager implements PwmService
             LOGGER.debug( () -> "beginning wordDB reduce operation, examining " + initialSize
                     + " words for entries older than " + TimeDuration.asCompactString( settings.maxAgeMs ) );
 
-            LocalDB.LocalDBIterator<String> keyIterator = null;
+            LocalDB.LocalDBIterator<Map.Entry<String, String>> keyIterator = null;
             try
             {
                 keyIterator = localDB.iterator( WORDS_DB );
                 while ( status == STATUS.OPEN && keyIterator.hasNext() )
                 {
-                    final String key = keyIterator.next();
-                    final String value = localDB.get( WORDS_DB, key );
+                    final Map.Entry<String, String> entry = keyIterator.next();
+                    final String key = entry.getKey();
+                    final String value = entry.getValue();
                     final long timeStamp = Long.parseLong( value );
                     final long entryAge = System.currentTimeMillis() - timeStamp;
 

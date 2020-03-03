@@ -36,6 +36,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Instant;
+import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -59,8 +60,8 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     protected File dbDirectory;
 
     // cache of dbIterators
-    private final Set<LocalDB.LocalDBIterator<String>> dbIterators = Collections.newSetFromMap(
-            new ConcurrentHashMap<LocalDB.LocalDBIterator<String>, Boolean>() );
+    private final Set<LocalDB.LocalDBIterator<Map.Entry<String, String>>> dbIterators = Collections.newSetFromMap(
+            new ConcurrentHashMap<>() );
 
     // sql db connection
     protected Connection dbConnection;
@@ -289,7 +290,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         this.status = LocalDB.Status.OPEN;
     }
 
-    public LocalDB.LocalDBIterator<String> iterator( final LocalDB.DB db )
+    public LocalDB.LocalDBIterator<Map.Entry<String, String>> iterator( final LocalDB.DB db )
             throws LocalDBException
     {
         try
@@ -521,7 +522,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             lock.writeLock().lock();
             try
             {
-                final Set<LocalDB.LocalDBIterator<String>> copiedIterators = new HashSet<>();
+                final Set<LocalDB.LocalDBIterator<Map.Entry<String, String>>> copiedIterators = new HashSet<>();
                 copiedIterators.addAll( dbIterators );
 
                 for ( final LocalDB.LocalDBIterator dbIterator : copiedIterators )
@@ -595,10 +596,9 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     ) throws LocalDBException;
 
 
-    private class DbIterator implements Closeable, LocalDB.LocalDBIterator<String>
+    private class DbIterator implements Closeable, LocalDB.LocalDBIterator<Map.Entry<String, String>>
     {
-        private String nextItem;
-        private String currentItem;
+        private Map.Entry<String, String> nextItem;
 
         private ResultSet resultSet;
         private final LocalDB.DB db;
@@ -630,7 +630,10 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             {
                 if ( resultSet.next() )
                 {
-                    nextItem = resultSet.getString( KEY_COLUMN );
+                    final String key = resultSet.getString( KEY_COLUMN );
+                    final String value = resultSet.getString( VALUE_COLUMN );
+
+                    nextItem = new AbstractMap.SimpleImmutableEntry<>( key, value );
                 }
                 else
                 {
@@ -660,26 +663,11 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             dbIterators.remove( this );
         }
 
-        public String next( )
+        public Map.Entry<String, String> next( )
         {
-            currentItem = nextItem;
+            final Map.Entry<String, String> currentItem = nextItem;
             fetchNext();
             return currentItem;
-        }
-
-        public void remove( )
-        {
-            if ( currentItem != null )
-            {
-                try
-                {
-                    AbstractJDBCLocalDB.this.remove( db, currentItem );
-                }
-                catch ( final LocalDBException e )
-                {
-                    throw new RuntimeException( e );
-                }
-            }
         }
     }
 

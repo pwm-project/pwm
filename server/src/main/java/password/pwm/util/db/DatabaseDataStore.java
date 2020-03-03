@@ -25,6 +25,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.DataStore;
 import password.pwm.util.java.ClosableIterator;
 
+import java.util.Map;
+
 public class DatabaseDataStore implements DataStore
 {
     private final DatabaseService databaseService;
@@ -50,7 +52,7 @@ public class DatabaseDataStore implements DataStore
         return databaseService.getAccessor().get( table, key );
     }
 
-    public ClosableIterator<String> iterator( ) throws PwmDataStoreException, PwmUnrecoverableException
+    public ClosableIterator<Map.Entry<String, String>> iterator( ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().iterator( table );
     }

@@ -24,6 +24,8 @@ import password.pwm.error.PwmDataStoreException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.ClosableIterator;
 
+import java.util.Map;
+
 public interface DataStore
 {
     enum Status
@@ -40,7 +42,7 @@ public interface DataStore
     String get( String key )
             throws PwmDataStoreException, PwmUnrecoverableException;
 
-    ClosableIterator<String> iterator( )
+    ClosableIterator<Map.Entry<String, String>> iterator( )
             throws PwmDataStoreException, PwmUnrecoverableException;
 
     Status status( );

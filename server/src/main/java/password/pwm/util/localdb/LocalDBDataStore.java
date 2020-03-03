@@ -52,7 +52,7 @@ public class LocalDBDataStore implements DataStore
         return localDB.get( db, key );
     }
 
-    public ClosableIterator<String> iterator( ) throws PwmDataStoreException
+    public ClosableIterator<Map.Entry<String, String>> iterator( ) throws PwmDataStoreException
     {
         return localDB.iterator( db );
     }

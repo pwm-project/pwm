@@ -39,7 +39,7 @@ public class MemoryLocalDB implements LocalDBProvider
 
     private Map<LocalDB.DB, Map<String, String>> maps = new ConcurrentHashMap<>();
 
-    private void opertationPreCheck( ) throws LocalDBException
+    private void operationPreCheck( ) throws LocalDBException
     {
         if ( state != LocalDB.Status.OPEN )
         {
@@ -70,7 +70,7 @@ public class MemoryLocalDB implements LocalDBProvider
     public boolean contains( final LocalDB.DB db, final String key )
             throws LocalDBException
     {
-        opertationPreCheck();
+        operationPreCheck();
         final Map<String, String> map = maps.get( db );
         return map.containsKey( key );
     }
@@ -78,7 +78,7 @@ public class MemoryLocalDB implements LocalDBProvider
     public String get( final LocalDB.DB db, final String key )
             throws LocalDBException
     {
-        opertationPreCheck();
+        operationPreCheck();
         final Map<String, String> map = maps.get( db );
         return map.get( key );
     }
@@ -107,16 +107,16 @@ public class MemoryLocalDB implements LocalDBProvider
         state = LocalDB.Status.OPEN;
     }
 
-    public LocalDB.LocalDBIterator<String> iterator( final LocalDB.DB db ) throws LocalDBException
+    public LocalDB.LocalDBIterator<Map.Entry<String, String>> iterator( final LocalDB.DB db ) throws LocalDBException
     {
-        return new DbIterator( db );
+        return new MapIterator( db );
     }
 
     @LocalDB.WriteOperation
     public void putAll( final LocalDB.DB db, final Map<String, String> keyValueMap )
             throws LocalDBException
     {
-        opertationPreCheck();
+        operationPreCheck();
 
         if ( keyValueMap != null )
         {
@@ -129,7 +129,7 @@ public class MemoryLocalDB implements LocalDBProvider
     public boolean put( final LocalDB.DB db, final String key, final String value )
             throws LocalDBException
     {
-        opertationPreCheck();
+        operationPreCheck();
 
         final Map<String, String> map = maps.get( db );
         return null != map.put( key, value );
@@ -139,7 +139,7 @@ public class MemoryLocalDB implements LocalDBProvider
     public boolean putIfAbsent( final LocalDB.DB db, final String key, final String value )
             throws LocalDBException
     {
-        opertationPreCheck();
+        operationPreCheck();
 
         final Map<String, String> map = maps.get( db );
         final String oldValue = map.putIfAbsent( key, value );
@@ -150,7 +150,7 @@ public class MemoryLocalDB implements LocalDBProvider
     public boolean remove( final LocalDB.DB db, final String key )
             throws LocalDBException
     {
-        opertationPreCheck();
+        operationPreCheck();
 
         final Map<String, String> map = maps.get( db );
         return null != map.remove( key );
@@ -159,7 +159,7 @@ public class MemoryLocalDB implements LocalDBProvider
     public long size( final LocalDB.DB db )
             throws LocalDBException
     {
-        opertationPreCheck();
+        operationPreCheck();
 
         final Map<String, String> map = maps.get( db );
         return map.size();
@@ -169,7 +169,7 @@ public class MemoryLocalDB implements LocalDBProvider
     public void truncate( final LocalDB.DB db )
             throws LocalDBException
     {
-        opertationPreCheck();
+        operationPreCheck();
 
         final Map<String, String> map = maps.get( db );
         map.clear();
@@ -177,7 +177,7 @@ public class MemoryLocalDB implements LocalDBProvider
 
     public void removeAll( final LocalDB.DB db, final Collection<String> keys ) throws LocalDBException
     {
-        opertationPreCheck();
+        operationPreCheck();
 
         maps.get( db ).keySet().removeAll( keys );
     }
@@ -194,13 +194,13 @@ public class MemoryLocalDB implements LocalDBProvider
     }
 
 
-    private class DbIterator implements LocalDB.LocalDBIterator<String>
+    private class MapIterator implements LocalDB.LocalDBIterator<Map.Entry<String, String>>
     {
-        private final Iterator<String> iterator;
+        private final Iterator<Map.Entry<String, String>> iterator;
 
-        private DbIterator( final LocalDB.DB db )
+        private MapIterator( final LocalDB.DB db )
         {
-            iterator = maps.get( db ).keySet().iterator();
+            iterator = maps.get( db ).entrySet().iterator();
         }
 
         public boolean hasNext( )
@@ -208,7 +208,7 @@ public class MemoryLocalDB implements LocalDBProvider
             return iterator.hasNext();
         }
 
-        public String next( )
+        public Map.Entry<String, String> next( )
         {
             return iterator.next();
         }

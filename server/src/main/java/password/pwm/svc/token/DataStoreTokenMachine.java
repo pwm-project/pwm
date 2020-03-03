@@ -33,6 +33,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 public class DataStoreTokenMachine implements TokenMachine
@@ -85,11 +86,11 @@ public class DataStoreTokenMachine implements TokenMachine
             final long finalSize = size();
             LOGGER.trace( () -> "beginning purge cycle; database size = " + finalSize );
         }
-        try ( ClosableIterator<String> keyIterator = dataStore.iterator() )
+        try ( ClosableIterator<Map.Entry<String, String>> keyIterator = dataStore.iterator() )
         {
             while ( tokenService.status() == PwmService.STATUS.OPEN && keyIterator.hasNext() )
             {
-                final String storedHash = keyIterator.next();
+                final String storedHash = keyIterator.next().getKey();
                 final TokenKey loopKey = keyFromStoredHash( storedHash );
 
                 // retrieving token tests validity and causes purging

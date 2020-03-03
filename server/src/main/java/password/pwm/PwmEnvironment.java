@@ -41,7 +41,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -638,7 +637,7 @@ public class PwmEnvironment
             try
             {
                 final Properties props = new Properties();
-                props.put( "timestamp", JavaHelper.toIsoDate( new Date() ) );
+                props.put( "timestamp", JavaHelper.toIsoDate( Instant.now() ) );
                 props.put( "applicationPath", PwmEnvironment.this.getApplicationPath() == null ? "n/a" : PwmEnvironment.this.getApplicationPath().getAbsolutePath() );
                 props.put( "configurationFile", PwmEnvironment.this.getConfigurationFile() == null ? "n/a" : PwmEnvironment.this.getConfigurationFile().getAbsolutePath() );
                 final String comment = PwmConstants.PWM_APP_NAME + " file lock";

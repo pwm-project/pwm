@@ -185,16 +185,20 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
         LocalDB localDB = null;
         try
         {
+            localDB = pwmApplication.getLocalDB();
             final File localDBLocation = pwmApplication.getLocalDB().getFileLocation();
             final Configuration configuration = pwmApplication.getConfig();
             contextManager.shutdown();
 
+            localDB.close();
             localDB = LocalDBFactory.getInstance( localDBLocation, false, null, configuration );
+
             final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
             LOGGER.info( pwmRequest, () -> "beginning LocalDB import" );
             localDBUtility.importLocalDB( inputStream,
                     LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getLabel() ) );
             LOGGER.info( pwmRequest, () -> "completed LocalDB import" );
+            localDB.close();
         }
         catch ( final Exception e )
         {

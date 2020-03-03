@@ -56,7 +56,7 @@ public interface LocalDBProvider
     void init( File dbDirectory, Map<String, String> initParameters, Map<Parameter, String> parameters )
             throws LocalDBException;
 
-    LocalDB.LocalDBIterator<String> iterator( LocalDB.DB db )
+    LocalDB.LocalDBIterator<Map.Entry<String, String>> iterator( LocalDB.DB db )
             throws LocalDBException;
 
     @LocalDB.WriteOperation

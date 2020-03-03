@@ -1037,13 +1037,14 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                     sb.append( "  tailPosition=" ).append( tailPosition ).append( ", headPosition=" ).append( headPosition ).append( ", db=" ).append( db );
                     sb.append( ", size=" ).append( internalSize() ).append( "\n" );
 
-                    try ( LocalDB.LocalDBIterator<String> keyIter = localDB.iterator( db ) )
+                    try ( LocalDB.LocalDBIterator<Map.Entry<String, String>> localDBIterator = localDB.iterator( db ) )
                     {
                         int rowCount = 0;
-                        while ( keyIter.hasNext() && rowCount < DEBUG_MAX_ROWS )
+                        while ( localDBIterator.hasNext() && rowCount < DEBUG_MAX_ROWS )
                         {
-                            final String key = keyIter.next();
-                            String value = localDB.get( db, key );
+                            final Map.Entry<String, String> entry = localDBIterator.next();
+                            final String key = entry.getKey();
+                            String value = entry.getValue();
                             value = value == null ? "" : value;
                             value = value.length() < DEBUG_MAX_WIDTH ? value : value.substring( 0, DEBUG_MAX_WIDTH ) + "...";
                             final String row = key + " " + value;
