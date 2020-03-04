@@ -48,6 +48,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -68,7 +69,7 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.cert.X509Certificate;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -293,9 +294,8 @@ public class HttpsServerCertificateManager
             final X500NameBuilder subjectName = new X500NameBuilder( BCStyle.INSTANCE );
             subjectName.addRDN( BCStyle.CN, cnValue );
 
-            final SimpleDateFormat formatter = new SimpleDateFormat( "yyyyMMddhhmmss" );
-            final String serNumStr = formatter.format( new Date( System.currentTimeMillis() ) );
-            final BigInteger serialNumber = new BigInteger( serNumStr );
+            final BigInteger serialNumber = makeSerialNumber();
+
 
             // 2 days in the past
             final Date notBefore = new Date( System.currentTimeMillis() - TimeUnit.DAYS.toMillis( 2 ) );
@@ -332,6 +332,13 @@ public class HttpsServerCertificateManager
             final ContentSigner sigGen = new JcaContentSignerBuilder( "SHA256WithRSAEncryption" ).setProvider( "BC" ).build( pair.getPrivate() );
 
             return new JcaX509CertificateConverter().setProvider( "BC" ).getCertificate( certGen.build( sigGen ) );
+        }
+
+        private static BigInteger makeSerialNumber()
+        {
+            final PwmDateFormat formatter = PwmDateFormat.newPwmDateFormat( "yyyyMMddhhmmss" );
+            final String serNumStr = formatter.format( Instant.now() );
+            return new BigInteger( serNumStr );
         }
 
         static KeyPair generateRSAKeyPair( final Configuration config )

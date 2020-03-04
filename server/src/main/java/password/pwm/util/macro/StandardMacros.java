@@ -29,20 +29,18 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -252,21 +250,14 @@ public abstract class StandardMacros
         {
             final List<String> parameters = splitMacroParameters( matchValue, "CurrentTime" );
 
-            final DateFormat dateFormat;
+            final String dateFormatStr;
             if ( parameters.size() > 0 && !parameters.get( 0 ).isEmpty() )
             {
-                try
-                {
-                    dateFormat = new SimpleDateFormat( parameters.get( 0 ) );
-                }
-                catch ( final IllegalArgumentException e )
-                {
-                    throw new MacroParseException( e.getMessage() );
-                }
+                dateFormatStr = parameters.get( 0 );
             }
             else
             {
-                dateFormat = new SimpleDateFormat( PwmConstants.DEFAULT_DATETIME_FORMAT_STR );
+                dateFormatStr = PwmConstants.DEFAULT_DATETIME_FORMAT_STR;
             }
 
             final TimeZone tz;
@@ -290,8 +281,15 @@ public abstract class StandardMacros
                 throw new MacroParseException( "too many parameters" );
             }
 
-            dateFormat.setTimeZone( tz );
-            return dateFormat.format( new Date() );
+            try
+            {
+                final PwmDateFormat pwmDateFormat = PwmDateFormat.newPwmDateFormat( parameters.get( 0 ), PwmConstants.DEFAULT_LOCALE, tz );
+                return pwmDateFormat.format( Instant.now() );
+            }
+            catch ( final IllegalArgumentException e )
+            {
+                throw new MacroParseException( e.getMessage() );
+            }
         }
     }
 
@@ -379,7 +377,7 @@ public abstract class StandardMacros
             {
                 try
                 {
-                    final DateFormat dateFormat = new SimpleDateFormat( datePattern );
+                    final PwmDateFormat dateFormat = PwmDateFormat.newPwmDateFormat( datePattern );
                     return dateFormat.format( pwdExpirationTime );
                 }
                 catch ( final IllegalArgumentException e )
@@ -599,8 +597,8 @@ public abstract class StandardMacros
         {
             return new MacroDefinitionFlag[]
                     {
-                    MacroDefinitionFlag.SensitiveValue,
-            };
+                            MacroDefinitionFlag.SensitiveValue,
+                    };
         }
     }
 

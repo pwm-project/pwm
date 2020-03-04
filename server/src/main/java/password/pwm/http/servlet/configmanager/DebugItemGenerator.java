@@ -408,11 +408,22 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
+            final Locale locale = PwmConstants.DEFAULT_LOCALE;
             final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
             final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
-            final String recordJson = JsonUtil.serializeCollection( records, JsonUtil.Flag.PrettyPrint );
+
+            final List<HealthDebugInfo> outputInfos = new ArrayList<>();
+            records.forEach( healthRecord -> outputInfos.add( new HealthDebugInfo( healthRecord, healthRecord.getDetail( locale,  debugItemInput.obfuscatedConfiguration ) ) ) );
+            final String recordJson = JsonUtil.serializeCollection( outputInfos, JsonUtil.Flag.PrettyPrint );
             outputStream.write( recordJson.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
+    }
+
+    @Value
+    private static class HealthDebugInfo
+    {
+        private final HealthRecord healthRecord;
+        private final String message;
     }
 
     static class ThreadDumpDebugItemGenerator implements Generator

@@ -45,8 +45,7 @@ import java.lang.management.ThreadInfo;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -327,14 +326,13 @@ public class JavaHelper
             return "";
         }
 
-        final DateFormat dateFormat = new SimpleDateFormat(
+        final PwmDateFormat dateFormat = PwmDateFormat.newPwmDateFormat(
                 PwmConstants.DEFAULT_DATETIME_FORMAT_STR,
-                PwmConstants.DEFAULT_LOCALE
+                PwmConstants.DEFAULT_LOCALE,
+                PwmConstants.DEFAULT_TIMEZONE
         );
 
-        dateFormat.setTimeZone( PwmConstants.DEFAULT_TIMEZONE );
-
-        return dateFormat.format( date );
+        return dateFormat.format( date.toInstant() );
     }
 
     public static Instant parseIsoToInstant( final String input )
