@@ -264,8 +264,8 @@ public abstract class StandardMacros
             if ( parameters.size() > 1 && !parameters.get( 1 ).isEmpty() )
             {
                 final String desiredTz = parameters.get( 1 );
-                final List<String> avalibleIDs = Arrays.asList( TimeZone.getAvailableIDs() );
-                if ( !avalibleIDs.contains( desiredTz ) )
+                final List<String> availableIDs = Arrays.asList( TimeZone.getAvailableIDs() );
+                if ( !availableIDs.contains( desiredTz ) )
                 {
                     throw new MacroParseException( "unknown timezone" );
                 }
@@ -283,7 +283,7 @@ public abstract class StandardMacros
 
             try
             {
-                final PwmDateFormat pwmDateFormat = PwmDateFormat.newPwmDateFormat( parameters.get( 0 ), PwmConstants.DEFAULT_LOCALE, tz );
+                final PwmDateFormat pwmDateFormat = PwmDateFormat.newPwmDateFormat( dateFormatStr, PwmConstants.DEFAULT_LOCALE, tz );
                 return pwmDateFormat.format( Instant.now() );
             }
             catch ( final IllegalArgumentException e )
