@@ -16,7 +16,6 @@
     <name>PWM Password Self Service: Executable Server JAR</name>
 
     <properties>
-        <project.root.basedir>${project.basedir}/..</project.root.basedir>
         <tomcat.version>9.0.31</tomcat.version>
     </properties>
 

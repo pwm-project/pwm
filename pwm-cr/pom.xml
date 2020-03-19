@@ -17,10 +17,6 @@
 
     <description>Library for managing challenge/response security policies, stored data, and validation</description>
 
-    <properties>
-        <project.root.basedir>${project.basedir}/..</project.root.basedir>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.google.code.gson</groupId>

@@ -109,7 +109,7 @@ public class LocalDbAuditVault implements AuditVault
 
     private static class IteratorWrapper implements Iterator<AuditRecord>
     {
-        private Iterator<String> innerIter;
+        private final Iterator<String> innerIter;
 
         private IteratorWrapper( final Iterator<String> innerIter )
         {

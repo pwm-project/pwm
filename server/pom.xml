@@ -15,7 +15,6 @@
     <name>PWM Password Self Service: Server JAR</name>
 
     <properties>
-        <project.root.basedir>${project.basedir}/..</project.root.basedir>
         <skipTests>false</skipTests>
         <skipExtendedTests>true</skipExtendedTests>
     </properties>

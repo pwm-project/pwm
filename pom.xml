@@ -34,7 +34,6 @@
         <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <project.root.basedir>${project.basedir}</project.root.basedir>
         <maven.javadoc.skip>true</maven.javadoc.skip>
 
         <skipTests>false</skipTests>
@@ -71,6 +70,27 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.commonjava.maven.plugins</groupId>
+                <artifactId>directory-maven-plugin</artifactId>
+                <version>0.3.1</version>
+                <executions>
+                    <execution>
+                        <id>project-root-directory</id>
+                        <goals>
+                            <goal>directory-of</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <property>project.root.basedir</property>
+                            <project>
+                                <groupId>org.pwm-project</groupId>
+                                <artifactId>pwm-parent</artifactId>
+                            </project>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
@@ -160,7 +180,8 @@
                                     <SCM-Git-Commit-ID-Abbrev>${git.commit.id.abbrev}</SCM-Git-Commit-ID-Abbrev>
                                     <SCM-Git-Commit-ID-Description>${git.commit.id.describe}</SCM-Git-Commit-ID-Description>
                                     <SCM-Git-Commit-Timestamp>${git.commit.time}</SCM-Git-Commit-Timestamp>
-                                    <SCM-Git-Commit-Dirty>${git.dirty}</SCM-Git-Commit-Dirty>                                </manifestEntries>
+                                    <SCM-Git-Commit-Dirty>${git.dirty}</SCM-Git-Commit-Dirty>
+                                </manifestEntries>
                             </archive>
                         </configuration>
                     </execution>
@@ -304,6 +325,27 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>net.nicoulaj.maven.plugins</groupId>
+                <artifactId>checksum-maven-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>artifacts</goal>
+                        </goals>
+                        <phase>verify</phase>
+                        <configuration>
+                            <algorithms>
+                                <algorithm>SHA-1</algorithm>
+                            </algorithms>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!-- put your configurations here -->
+                </configuration>
             </plugin>
             <plugin> <!-- checks owsp vulnerability database -->
                 <groupId>org.owasp</groupId>

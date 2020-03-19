@@ -14,10 +14,6 @@
 
     <name>PWM Password Self Service: Server WAR</name>
 
-    <properties>
-        <project.root.basedir>${project.basedir}/..</project.root.basedir>
-    </properties>
-
     <profiles>
         <profile>
             <id>enable-javadoc</id>

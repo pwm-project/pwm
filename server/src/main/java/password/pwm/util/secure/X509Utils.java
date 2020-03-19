@@ -130,7 +130,7 @@ public class X509Utils
             errorMsg.append( "unable to read server certificates from host=" );
             errorMsg.append( host ).append( ", port=" ).append( port );
             errorMsg.append( " error: " );
-            errorMsg.append( e.getMessage() );
+            errorMsg.append( JavaHelper.readHostileExceptionMessage( e ) );
             LOGGER.error( () -> "ServerCertReader: " + errorMsg );
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg.toString(), new String[]
                     {

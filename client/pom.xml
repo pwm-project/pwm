@@ -14,10 +14,6 @@
 
     <name>PWM Password Self Service: Angular Client JAR</name>
 
-    <properties>
-        <project.root.basedir>${project.basedir}/..</project.root.basedir>
-    </properties>
-
     <profiles>
         <profile>
             <id>skip-frontend</id>
