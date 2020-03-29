@@ -106,7 +106,8 @@ public class ClientApiServlet extends ControlledPwmServlet
         strings( HttpMethod.GET ),
         health( HttpMethod.GET ),
         ping( HttpMethod.GET ),
-        statistics( HttpMethod.GET ),;
+        statistics( HttpMethod.GET ),
+        cspReport( HttpMethod.POST ),;
 
 
         private final HttpMethod method;
@@ -446,7 +447,6 @@ public class ClientApiServlet extends ControlledPwmServlet
         return displayStrings;
     }
 
-
     @ActionHandler( action = "statistics" )
     private ProcessStatus restStatisticsHandler( final PwmRequest pwmRequest )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException
@@ -473,7 +473,20 @@ public class ClientApiServlet extends ControlledPwmServlet
         final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
+    }
 
+    @ActionHandler( action = "cspReport" )
+    private ProcessStatus restCspReportHandler( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException
+    {
+        if ( !Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.LOGGING_LOG_CSP_REPORT ) ) )
+        {
+            return ProcessStatus.Halt;
+        }
+
+        final String body = pwmRequest.readRequestBodyAsString();
+        LOGGER.trace( () -> body );
+        return ProcessStatus.Halt;
     }
 
     private void precheckPublicHealthAndStats( final PwmRequest pwmRequest )

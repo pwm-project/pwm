@@ -1613,7 +1613,7 @@
     </setting>
     <setting hidden="false" key="security.cspHeader" level="2">
         <default>
-            <value><![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.recaptcha.net/recaptcha/ https://www.gstatic.cn/recaptcha/  https://www.gstatic.com/recaptcha/ https://www.google.com/recaptcha/ 'self' 'unsafe-eval' 'nonce-%NONCE%'; frame-src https://www.recaptcha.net/recaptcha/ https://www.gstatic.cn/recaptcha/ https://www.gstatic.com/recaptcha/ https://www.google.com/recaptcha/ ; report-uri /sspr/public/command/cspReport]]></value>
+            <value><![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.recaptcha.net/recaptcha/ https://www.gstatic.cn/recaptcha/  https://www.gstatic.com/recaptcha/ https://www.google.com/recaptcha/ 'self' 'unsafe-eval' 'nonce-%NONCE%'; frame-src https://www.recaptcha.net/recaptcha/ https://www.gstatic.cn/recaptcha/ https://www.gstatic.com/recaptcha/ https://www.google.com/recaptcha/ ; report-uri @PwmContextPath@/public/api?processAction=cspReport]]></value>
         </default>
     </setting>
     <setting hidden="false" key="email.adminAlert.toAddress" level="1">
