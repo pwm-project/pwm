@@ -30,6 +30,8 @@ import java.util.Set;
 @Data
 public class ConfigManagerBean extends PwmSessionBean
 {
+    private static final long serialVersionUID = 1L;
+
     private transient StoredConfiguration storedConfiguration;
     private boolean passwordVerified;
     private boolean configUnlockedWarningShown;

@@ -21,7 +21,10 @@
 
 <FindBugsFilter>
     <Match>
-        <Bug pattern="SE_NO_SERIALVERSIONID,RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE,SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+    <Match>
+        <Bug pattern="SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"/>
     </Match>
     <Match>
         <!-- due to bug https://github.com/spotbugs/spotbugs/issues/493 in spotbugs 3.1.3 -->

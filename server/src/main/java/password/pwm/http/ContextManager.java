@@ -77,6 +77,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ContextManager implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private static final PwmLogger LOGGER = PwmLogger.forClass( ContextManager.class );
     private static final SessionLabel SESSION_LABEL = SessionLabel.CONTEXT_SESSION_LABEL;
 

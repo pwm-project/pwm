@@ -39,6 +39,8 @@ import java.util.Map;
 @Builder( toBuilder = true )
 public class SearchConfiguration implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private String filter;
     private String ldapProfile;
     private String username;

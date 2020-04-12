@@ -91,7 +91,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>3.2.2</version>
+                <version>3.2.3</version>
                 <configuration>
                     <archiveClasses>false</archiveClasses>
                     <packagingExcludes>**/*.jsp</packagingExcludes>
@@ -182,7 +182,7 @@
                 <!-- builds xml file of dependencies and licenses for use in about page -->
                 <groupId>com.github.jinnovations</groupId>
                 <artifactId>attribution-maven-plugin</artifactId>
-                <version>0.9.7</version>
+                <version>0.9.8</version>
                 <executions>
                     <execution>
                         <goals>

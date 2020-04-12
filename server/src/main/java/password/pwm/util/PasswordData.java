@@ -43,6 +43,8 @@ import java.util.Arrays;
  */
 public class PasswordData implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private static final PwmLogger LOGGER = PwmLogger.forClass( PasswordData.class );
 
     private final byte[] passwordData;

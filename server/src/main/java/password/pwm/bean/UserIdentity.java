@@ -40,6 +40,8 @@ import java.util.StringTokenizer;
 
 public class UserIdentity implements Serializable, Comparable
 {
+    private static final long serialVersionUID = 1L;
+
     private static final String CRYPO_HEADER = "ui_C-";
     private static final String DELIM_SEPARATOR = "|";
 

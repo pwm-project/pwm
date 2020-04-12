@@ -49,6 +49,8 @@ import java.util.Set;
 @EqualsAndHashCode( callSuper = false )
 public class ForgottenPasswordBean extends PwmSessionBean
 {
+    private static final long serialVersionUID = 1L;
+
     @SerializedName( "pr" )
     private String profile;
 
@@ -82,6 +84,8 @@ public class ForgottenPasswordBean extends PwmSessionBean
     @Data
     public static class Progress implements Serializable
     {
+        private static final long serialVersionUID = 1L;
+
         @SerializedName( "s" )
         private boolean tokenSent;
 

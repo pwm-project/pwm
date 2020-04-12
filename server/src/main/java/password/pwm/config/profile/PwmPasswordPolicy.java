@@ -54,6 +54,7 @@ import java.util.regex.Pattern;
  */
 public class PwmPasswordPolicy implements Profile, Serializable
 {
+    private static final long serialVersionUID = 1L;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmPasswordPolicy.class );
 
