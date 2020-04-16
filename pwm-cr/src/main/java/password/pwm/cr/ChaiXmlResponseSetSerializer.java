@@ -370,17 +370,13 @@ public class ChaiXmlResponseSetSerializer
             return;
         }
 
-        if ( storedChallengeItems != null )
+        for ( final StoredChallengeItem storedChallengeItem : storedChallengeItems )
         {
-            for ( final StoredChallengeItem storedChallengeItem : storedChallengeItems )
-            {
-                final StoredResponseItem storedResponseItem = storedChallengeItem.getAnswer();
-                final String responseElementName = elementNameForType( type );
-                final Element responseElement = challengeToXml( storedChallengeItem, storedResponseItem, responseElementName );
-                parentElement.addContent( responseElement );
-            }
+            final StoredResponseItem storedResponseItem = storedChallengeItem.getAnswer();
+            final String responseElementName = elementNameForType( type );
+            final Element responseElement = challengeToXml( storedChallengeItem, storedResponseItem, responseElementName );
+            parentElement.addContent( responseElement );
         }
-
     }
 
     private static Element challengeToXml(

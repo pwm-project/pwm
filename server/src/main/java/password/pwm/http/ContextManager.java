@@ -446,7 +446,13 @@ public class ContextManager implements Serializable
                     try
                     {
                         final PropertyConfigurationImporter importer = new PropertyConfigurationImporter();
-                        final StoredConfiguration storedConfiguration = importer.readConfiguration( new FileInputStream( silentPropertiesFile ) );
+
+                        final StoredConfiguration storedConfiguration;
+                        try ( InputStream fileInputStream = new FileInputStream( silentPropertiesFile ) )
+                        {
+                            storedConfiguration = importer.readConfiguration( fileInputStream );
+                        }
+
                         configReader.saveConfiguration( storedConfiguration, pwmApplication, SESSION_LABEL );
                         LOGGER.info( SESSION_LABEL, () -> "file " + silentPropertiesFile.getAbsolutePath() + " has been successfully imported and saved as configuration file" );
                         requestPwmApplicationRestart();

@@ -187,7 +187,11 @@ public class ArgumentParser
                 System.out.println( msg );
                 throw new IllegalStateException( msg );
             }
-            onejarConfig.war( new FileInputStream( inputWarFile ) );
+
+            try ( InputStream inputStream = new FileInputStream( inputWarFile ) )
+            {
+                onejarConfig.war( inputStream );
+            }
         }
         else
         {
