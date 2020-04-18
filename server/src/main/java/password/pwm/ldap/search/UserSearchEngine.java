@@ -181,7 +181,7 @@ public class UserSearchEngine implements PwmService
             //see if we need to do a contextless search.
             if ( checkIfStringIsDN( username, sessionLabel ) )
             {
-                return resolveUserDN( username );
+                return resolveUserDN( username, sessionLabel );
             }
             else
             {
@@ -206,10 +206,6 @@ public class UserSearchEngine implements PwmService
                     e.getErrorInformation().getDetailedErrorMsg(),
                     e.getErrorInformation().getFieldValues() )
             );
-        }
-        catch ( final ChaiUnavailableException e )
-        {
-            throw PwmUnrecoverableException.fromChaiException( e );
         }
     }
 
@@ -450,6 +446,8 @@ public class UserSearchEngine implements PwmService
                     .sessionLabel( sessionLabel )
                     .searchID( searchID )
                     .jobId( jobIncrementer.next() )
+                    .searchScope( searchConfiguration.getSearchScope() )
+                    .ignoreOperationalErrors( searchConfiguration.isIgnoreOperationalErrors() )
                     .build();
             final UserSearchJob userSearchJob = new UserSearchJob( pwmApplication, this, userSearchJobParameters );
             returnMap.add( userSearchJob );
@@ -574,30 +572,38 @@ public class UserSearchEngine implements PwmService
         return false;
     }
 
-
     private UserIdentity resolveUserDN(
-            final String userDN
+            final String userDN,
+            final SessionLabel sessionLabel
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+            throws PwmUnrecoverableException, PwmOperationalException
     {
-        final Collection<LdapProfile> ldapProfiles = pwmApplication.getConfig().getLdapProfiles().values();
-        for ( final LdapProfile ldapProfile : ldapProfiles )
+        LOGGER.trace( sessionLabel, () -> "finding profile for userDN " + userDN );
+        final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                .filter( "(objectClass=*)" )
+                .enableContextValidation( false )
+                .contexts( Collections.singletonList( userDN ) )
+                .searchScope( SearchConfiguration.SearchScope.base )
+                .ignoreOperationalErrors( true )
+                .build();
+        final Map<UserIdentity, Map<String, String>> results = performMultiUserSearch(
+                searchConfiguration,
+                1,
+                Collections.singleton( "objectClass" ),
+                sessionLabel );
+
+        if ( results.size() < 1 )
         {
-            final ChaiProvider provider = pwmApplication.getProxyChaiProvider( ldapProfile.getIdentifier() );
-            final ChaiUser user = provider.getEntryFactory().newChaiUser( userDN );
-            if ( user.exists() )
-            {
-                try
-                {
-                    return new UserIdentity( user.readCanonicalDN(), ldapProfile.getIdentifier() );
-                }
-                catch ( final ChaiOperationException e )
-                {
-                    LOGGER.error( () -> "unexpected error reading canonical userDN for '" + userDN + "', error: " + e.getMessage() );
-                }
-            }
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_CANT_MATCH_USER ) );
         }
-        throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_CANT_MATCH_USER ) );
+        else if ( results.size() > 1 )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_CANT_MATCH_USER, "duplicate DN matches discovered" ) );
+        }
+
+        final UserIdentity userIdentity = results.keySet().iterator().next();
+        validateSpecifiedContext( userIdentity.getLdapProfile( pwmApplication.getConfig() ), userIdentity.getUserDN() );
+        return userIdentity;
     }
 
     private Map<UserIdentity, Map<String, String>> executeSearchJobs(
@@ -671,7 +677,7 @@ public class UserSearchEngine implements PwmService
     }
 
     private Map<UserIdentity, Map<String, String>> aggregateJobResults(
-          final Collection<UserSearchJob> userSearchJobs
+            final Collection<UserSearchJob> userSearchJobs
     )
             throws PwmUnrecoverableException
     {
@@ -800,11 +806,12 @@ public class UserSearchEngine implements PwmService
             final int maxThreads = Integer.parseInt( configuration.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_THREAD_MAX ) );
             final int threads = Math.min( maxThreads, ( endPoints ) * factor );
             final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, UserSearchEngine.class ), true );
+            final int minThreads = JavaHelper.rangeCheck( 1, 10, endPoints );
 
-            LOGGER.trace( () -> "initialized with " + threads + " max threads" );
+            LOGGER.trace( () -> "initialized with threads min=" + minThreads + " max=" + threads );
 
             return new ThreadPoolExecutor(
-                    1,
+                    minThreads,
                     threads,
                     1,
                     TimeUnit.MINUTES,
