@@ -250,7 +250,7 @@ public class StoredConfigurationFactory
             }
             else
             {
-                profileSetting = pwmSetting.getCategory().getProfileSetting();
+                profileSetting = pwmSetting.getCategory().getProfileSetting().orElseThrow( IllegalStateException::new );
             }
 
             final StoredValue effectiveValue;

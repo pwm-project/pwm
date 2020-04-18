@@ -128,7 +128,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
 
                 if ( remoteLoginCookie.getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD && remoteLoginCookie.getUserCurrentPassword() == null )
                 {
-                    LOGGER.debug( () -> "remote session has authType " + AuthenticationType.AUTH_WITHOUT_PASSWORD.name()
+                    LOGGER.debug( pwmRequest, () -> "remote session has authType " + AuthenticationType.AUTH_WITHOUT_PASSWORD.name()
                             + " and does not contain password, thus ignoring authentication so SSO process can repeat" );
                     return;
                 }

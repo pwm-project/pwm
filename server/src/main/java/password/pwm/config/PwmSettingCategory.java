@@ -22,6 +22,7 @@ package password.pwm.config;
 
 import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.XmlElement;
 
 import java.util.ArrayList;
@@ -189,10 +190,10 @@ public enum PwmSettingCategory
 
     private final PwmSettingCategory parent;
 
-    private transient Supplier<PwmSetting> profileSetting;
-    private transient Supplier<Integer> level;
-    private transient Supplier<Boolean> hidden;
-    private transient Supplier<Boolean> isTopLevelProfile;
+    private transient Supplier<Optional<PwmSetting>> profileSetting = new LazySupplier<>( () -> XmlReader.readProfileSettingFromXml( this, true ) );
+    private transient Supplier<Integer> level = new LazySupplier<>( () -> XmlReader.readLevel( this ) );
+    private transient Supplier<Boolean> hidden = new LazySupplier<>( () -> XmlReader.readHidden( this ) );
+    private transient Supplier<Boolean> isTopLevelProfile = new LazySupplier<>( () -> XmlReader.readIsTopLevelProfile( this ) );
 
 
     PwmSettingCategory( final PwmSettingCategory parent )
@@ -210,28 +211,18 @@ public enum PwmSettingCategory
         return this.toString();
     }
 
-    public password.pwm.config.PwmSetting getProfileSetting( )
+    public Optional<PwmSetting> getProfileSetting( )
     {
-        if ( profileSetting == null )
-        {
-            final PwmSetting setting = readProfileSettingFromXml( true );
-            profileSetting = ( ) -> setting;
-        }
         return profileSetting.get();
     }
 
     public boolean hasProfiles( )
     {
-        return getProfileSetting() != null;
+        return getProfileSetting().isPresent();
     }
 
     public boolean isTopLevelProfile( )
     {
-        if ( isTopLevelProfile == null )
-        {
-            final boolean output = readProfileSettingFromXml( false ) != null;
-            isTopLevelProfile = ( ) -> output;
-        }
         return isTopLevelProfile.get();
     }
 
@@ -249,41 +240,12 @@ public enum PwmSettingCategory
 
     public int getLevel( )
     {
-        if ( level == null )
-        {
-            final XmlElement settingElement = PwmSettingXml.readCategoryXml( this );
-            final String levelAttribute = settingElement.getAttributeValue( "level" );
-            final int output = levelAttribute != null ? Integer.parseInt( levelAttribute ) : 0;
-            level = ( ) -> output;
-        }
         return level.get();
     }
 
+
     public boolean isHidden( )
     {
-        if ( hidden == null )
-        {
-            final XmlElement settingElement = PwmSettingXml.readCategoryXml( this );
-            final String hiddenElement = settingElement.getAttributeValue( "hidden" );
-            if ( hiddenElement != null && "true".equalsIgnoreCase( hiddenElement ) )
-            {
-                hidden = () -> true;
-            }
-            else
-            {
-                for ( final PwmSettingCategory parentCategory : getParents() )
-                {
-                    if ( parentCategory.isHidden() )
-                    {
-                        hidden = () -> true;
-                    }
-                }
-            }
-            if ( hidden == null )
-            {
-                hidden = () -> false;
-            }
-        }
         return hidden.get();
     }
 
@@ -315,34 +277,6 @@ public enum PwmSettingCategory
             }
         }
         return returnObj;
-    }
-
-    private password.pwm.config.PwmSetting readProfileSettingFromXml( final boolean nested )
-    {
-        PwmSettingCategory nextCategory = this;
-        while ( nextCategory != null )
-        {
-            final XmlElement categoryElement = PwmSettingXml.readCategoryXml( nextCategory );
-            final Optional<XmlElement> profileElement = categoryElement.getChild( "profile" );
-            if ( profileElement.isPresent() )
-            {
-                final String settingKey = profileElement.get().getAttributeValue( "setting" );
-                if ( settingKey != null )
-                {
-                    return password.pwm.config.PwmSetting.forKey( settingKey );
-                }
-            }
-            if ( nested )
-            {
-                nextCategory = nextCategory.getParent();
-            }
-            else
-            {
-                nextCategory = null;
-            }
-        }
-
-        return null;
     }
 
     public List<PwmSetting> getSettings( )
@@ -463,5 +397,70 @@ public enum PwmSettingCategory
                 .filter( loopValue -> loopValue.getKey().equals( key ) )
                 .findFirst()
                 .orElse( null );
+    }
+
+    private static class XmlReader
+    {
+
+        private static Optional<PwmSetting> readProfileSettingFromXml( final PwmSettingCategory category, final boolean nested )
+        {
+            PwmSettingCategory nextCategory = category;
+            while ( nextCategory != null )
+            {
+                final XmlElement categoryElement = PwmSettingXml.readCategoryXml( nextCategory );
+                final Optional<XmlElement> profileElement = categoryElement.getChild( "profile" );
+                if ( profileElement.isPresent() )
+                {
+                    final String settingKey = profileElement.get().getAttributeValue( "setting" );
+                    if ( settingKey != null )
+                    {
+                        return Optional.of( PwmSetting.forKey( settingKey ) );
+                    }
+                }
+                if ( nested )
+                {
+                    nextCategory = nextCategory.getParent();
+                }
+                else
+                {
+                    nextCategory = null;
+                }
+            }
+
+            return Optional.empty();
+        }
+
+        private static int readLevel( final PwmSettingCategory category )
+        {
+            final XmlElement settingElement = PwmSettingXml.readCategoryXml( category );
+            final String levelAttribute = settingElement.getAttributeValue( "level" );
+            return levelAttribute != null ? Integer.parseInt( levelAttribute ) : 0;
+        }
+
+        private static boolean readHidden( final PwmSettingCategory category )
+        {
+            final XmlElement settingElement = PwmSettingXml.readCategoryXml( category );
+            final String hiddenElement = settingElement.getAttributeValue( "hidden" );
+            if ( hiddenElement != null && "true".equalsIgnoreCase( hiddenElement ) )
+            {
+                return true;
+            }
+            else
+            {
+                for ( final PwmSettingCategory parentCategory : category.getParents() )
+                {
+                    if ( parentCategory.isHidden() )
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private static boolean readIsTopLevelProfile( final PwmSettingCategory category )
+        {
+            return readProfileSettingFromXml( category, false ).isPresent();
+        }
     }
 }

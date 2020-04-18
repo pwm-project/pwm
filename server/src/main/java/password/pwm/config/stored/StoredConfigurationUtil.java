@@ -76,7 +76,7 @@ public abstract class StoredConfigurationUtil
         }
         else
         {
-            profileSetting = pwmSetting.getCategory().getProfileSetting();
+            profileSetting = pwmSetting.getCategory().getProfileSetting().orElseThrow( IllegalStateException::new );
         }
 
         return profilesForProfileSetting( profileSetting, storedConfiguration );
@@ -87,35 +87,20 @@ public abstract class StoredConfigurationUtil
             final StoredConfiguration storedConfiguration
     )
     {
-        final PwmSetting profileSetting = category.getProfileSetting();
+        final PwmSetting profileSetting = category.getProfileSetting().orElseThrow( IllegalStateException::new );
 
         return profilesForProfileSetting( profileSetting, storedConfiguration );
     }
 
     private static List<String> profilesForProfileSetting(
-            final PwmSetting pwmSetting,
+            final PwmSetting profileSetting,
             final StoredConfiguration storedConfiguration
     )
     {
-        if ( !pwmSetting.getCategory().hasProfiles() && pwmSetting.getSyntax() != PwmSettingSyntax.PROFILE )
-        {
-            throw new IllegalArgumentException( "cannot build profile list for non-profile setting " + pwmSetting.toString() );
-        }
-
-        final PwmSetting profileSetting;
-        if ( pwmSetting.getSyntax() == PwmSettingSyntax.PROFILE )
-        {
-            profileSetting = pwmSetting;
-        }
-        else
-        {
-            profileSetting = pwmSetting.getCategory().getProfileSetting();
-        }
-
         final Object nativeObject = storedConfiguration.readSetting( profileSetting, null ).toNativeObject();
         final List<String> settingValues = ( List<String> ) nativeObject;
         final LinkedList<String> profiles = new LinkedList<>( settingValues );
-        profiles.removeIf( profile -> StringUtil.isEmpty( profile ) );
+        profiles.removeIf( StringUtil::isEmpty );
         return Collections.unmodifiableList( profiles );
 
     }

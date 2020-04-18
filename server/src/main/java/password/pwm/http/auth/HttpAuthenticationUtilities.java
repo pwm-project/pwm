@@ -88,6 +88,11 @@ public abstract class HttpAuthenticationUtilities
                             return ProcessStatus.Halt;
                         }
 
+                        if ( pwmRequest.isAuthenticated() )
+                        {
+                            return ProcessStatus.Continue;
+                        }
+
                     }
                     catch ( final Exception e )
                     {
@@ -96,13 +101,13 @@ public abstract class HttpAuthenticationUtilities
                         {
                             final String errorMsg = "error during " + authenticationMethod + " authentication attempt: " + e.getMessage();
                             errorInformation = new ErrorInformation( ( ( PwmException ) e ).getError(), errorMsg );
+                            LOGGER.error( pwmRequest, errorInformation );
                         }
                         else
                         {
                             errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
-
+                            LOGGER.error( pwmRequest.getLabel(), errorInformation, e );
                         }
-                        LOGGER.error( pwmRequest, errorInformation );
                         pwmRequest.respondWithError( errorInformation );
                         return ProcessStatus.Halt;
                     }

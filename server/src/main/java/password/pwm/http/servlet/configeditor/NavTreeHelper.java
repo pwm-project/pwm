@@ -106,11 +106,14 @@ class NavTreeHelper
 
         if ( category.hasProfiles() )
         {
-            final List<String> profileIDs = storedConfiguration.profilesForSetting( category.getProfileSetting() );
+            final List<String> profileIDs = storedConfiguration.profilesForSetting(
+                    category.getProfileSetting().orElseThrow( IllegalStateException::new ) );
+
             if ( profileIDs == null || profileIDs.isEmpty() )
             {
                 return true;
             }
+
             for ( final String profileID : profileIDs )
             {
                 for ( final PwmSetting setting : category.getSettings() )
@@ -199,7 +202,8 @@ class NavTreeHelper
                         final String editItemName = LocaleHelper.getLocalizedMessage( locale, Config.Label_ProfileListEditMenuItem, null );
                         profileEditorInfo.setName( editItemName );
                         profileEditorInfo.setType( NavTreeHelper.NavItemType.profileDefinition );
-                        profileEditorInfo.setProfileSetting( loopCategory.getProfileSetting().getKey() );
+                        final PwmSetting profileSetting = loopCategory.getProfileSetting().orElseThrow( IllegalStateException::new );
+                        profileEditorInfo.setProfileSetting( profileSetting.getKey() );
                         profileEditorInfo.setParent( loopCategory.getKey() );
                         navigationData.add( profileEditorInfo );
                     }

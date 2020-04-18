@@ -93,7 +93,7 @@ public class ProfileUtility
 
     public static List<String> profileIDsForCategory( final Configuration configuration, final PwmSettingCategory pwmSettingCategory )
     {
-        final PwmSetting profileSetting = pwmSettingCategory.getProfileSetting();
+        final PwmSetting profileSetting = pwmSettingCategory.getProfileSetting().orElseThrow( IllegalStateException::new );
         return configuration.readSettingAsStringArray( profileSetting );
     }
 

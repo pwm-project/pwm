@@ -100,6 +100,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -1061,7 +1062,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         {
             if ( loopCategory.hasProfiles() )
             {
-                if ( loopCategory.getProfileSetting() == setting )
+                final Optional<PwmSetting> profileSetting = loopCategory.getProfileSetting();
+                if ( profileSetting.isPresent() && profileSetting.get() == setting )
                 {
                     category = loopCategory;
                 }
@@ -1070,6 +1072,12 @@ public class ConfigEditorServlet extends ControlledPwmServlet
 
         final String sourceID = inputMap.get( "sourceID" );
         final String destinationID = inputMap.get( "destinationID" );
+
+        if ( category == null )
+        {
+            throw new IllegalStateException();
+        }
+
         try
         {
             modifier.copyProfileID( category, sourceID, destinationID, pwmRequest.getUserInfoIfLoggedIn() );
