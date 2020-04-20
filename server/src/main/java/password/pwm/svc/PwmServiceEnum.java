@@ -43,7 +43,7 @@ public enum PwmServiceEnum
     StatisticsManager( password.pwm.svc.stats.StatisticsManager.class, Flag.StartDuringRuntimeInstance ),
     WordlistManager( WordlistService.class, Flag.StartDuringRuntimeInstance ),
     SeedlistManager( SeedlistService.class ),
-    EmailQueueManager( EmailService.class ),
+    EmailQueueManager( EmailService.class, Flag.StartDuringRuntimeInstance ),
     SmsQueueManager( password.pwm.util.queue.SmsQueueManager.class ),
     UrlShortenerService( password.pwm.svc.shorturl.UrlShortenerService.class ),
     TokenService( password.pwm.svc.token.TokenService.class, Flag.StartDuringRuntimeInstance ),

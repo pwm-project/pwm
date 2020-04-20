@@ -87,7 +87,7 @@ public class EmailServerUtil
         return returnObj;
     }
 
-    private static Optional<EmailServer> makeEmailServer(
+    public static Optional<EmailServer> makeEmailServer(
             final Configuration configuration,
             final EmailServerProfile profile,
             final TrustManager[] trustManagers
@@ -105,7 +105,10 @@ public class EmailServerUtil
                 && port > 0
         )
         {
-            final Properties properties = makeJavaMailProps( configuration, profile, trustManagers );
+            final TrustManager[] effectiveTrustManagers = trustManagers == null
+                    ? trustManagerForProfile( configuration, profile )
+                    : trustManagers;
+            final Properties properties = makeJavaMailProps( configuration, profile, effectiveTrustManagers );
             final javax.mail.Session session = javax.mail.Session.getInstance( properties, null );
             return Optional.of( EmailServer.builder()
                     .id( id )
@@ -177,16 +180,20 @@ public class EmailServerUtil
 
             final MailSSLSocketFactory mailSSLSocketFactory = new MailSSLSocketFactory();
             mailSSLSocketFactory.setTrustManagers( trustManager );
-
-            properties.put( "mail.smtp.ssl.enable", true );
-            properties.put( "mail.smtp.ssl.checkserveridentity", true );
-            properties.put( "mail.smtp.socketFactory.fallback", false );
             properties.put( "mail.smtp.ssl.socketFactory", mailSSLSocketFactory );
-            properties.put( "mail.smtp.ssl.socketFactory.port", port );
 
-            final boolean useStartTls = smtpServerType == SmtpServerType.START_TLS;
-            properties.put( "mail.smtp.starttls.enable", useStartTls );
-            properties.put( "mail.smtp.starttls.required", useStartTls );
+            if ( smtpServerType == SmtpServerType.SMTPS )
+            {
+                properties.put( "mail.smtp.ssl.enable", true );
+                properties.put( "mail.smtp.ssl.checkserveridentity", true );
+                properties.put( "mail.smtp.socketFactory.fallback", false );
+                properties.put( "mail.smtp.ssl.socketFactory.port", port );
+            }
+            else if ( smtpServerType == SmtpServerType.START_TLS )
+            {
+                properties.put( "mail.smtp.starttls.enable", true );
+                properties.put( "mail.smtp.starttls.required", true );
+            }
         }
         catch ( final Exception e )
         {
@@ -413,5 +420,4 @@ public class EmailServerUtil
 
         return Collections.emptyList();
     }
-
 }
