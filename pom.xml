@@ -61,6 +61,12 @@
             </properties>
         </profile>
         <profile>
+            <id>skip-spotbugs</id>
+            <properties>
+                <spotbugs.skip>true</spotbugs.skip>
+            </properties>
+        </profile>
+        <profile>
             <id>enable-javadoc</id>
             <properties>
                 <maven.javadoc.skip>false</maven.javadoc.skip>
@@ -136,9 +142,6 @@
                                     <Implementation-URL>${project.organization.url}</Implementation-URL>
                                     <Implementation-Build-Java-Vendor>${java.vendor}</Implementation-Build-Java-Vendor>
                                     <Implementation-Build-Java-Version>${java.version}</Implementation-Build-Java-Version>
-                                    <Implementation-Build>${build.number}</Implementation-Build>
-                                    <Implementation-Revision>${build.revision}</Implementation-Revision>
-                                    <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
                                     <SCM-Git-Branch>${git.branch}</SCM-Git-Branch>
                                     <SCM-Git-Commit-ID>${git.commit.id}</SCM-Git-Commit-ID>
                                     <SCM-Git-Commit-ID-Abbrev>${git.commit.id.abbrev}</SCM-Git-Commit-ID-Abbrev>
@@ -313,6 +316,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <skip>${spotbugs.skip}</skip>
                     <fork>false</fork>
                     <excludeFilterFile>${project.root.basedir}/build/spotbugs-exclude.xml</excludeFilterFile>
                     <includeTests>false</includeTests>
@@ -320,7 +324,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>verify</phase>
+                        <phase>test</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
@@ -333,14 +337,17 @@
                 <version>1.8</version>
                 <executions>
                     <execution>
+                        <id>output-checksums</id>
                         <goals>
                             <goal>artifacts</goal>
                         </goals>
-                        <phase>verify</phase>
+                        <phase>package</phase>
                         <configuration>
                             <algorithms>
                                 <algorithm>SHA-1</algorithm>
+                                <algorithm>SHA-256</algorithm>
                             </algorithms>
+                            <failOnError>false</failOnError>
                         </configuration>
                     </execution>
                 </executions>

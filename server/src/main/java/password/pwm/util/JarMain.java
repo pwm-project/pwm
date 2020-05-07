@@ -23,6 +23,7 @@ package password.pwm.util;
 import password.pwm.PwmConstants;
 
 import javax.swing.JOptionPane;
+import java.util.Map;
 
 
 public class JarMain
@@ -47,10 +48,13 @@ public class JarMain
         sb.append( "\n" );
         sb.append( "Build Information: \n" );
 
-        sb.append( "build.time=" + PwmConstants.BUILD_TIME + "\n" );
-        sb.append( "build.number=" + PwmConstants.BUILD_NUMBER + "\n" );
-        sb.append( "build.java.version=" + PwmConstants.BUILD_JAVA_VERSION + "\n" );
-        sb.append( "build.java.vendor=" + PwmConstants.BUILD_JAVA_VENDOR + "\n" );
+        for ( final Map.Entry<String, String> entry : PwmConstants.BUILD_MANIFEST.entrySet() )
+        {
+            sb.append( entry.getKey() );
+            sb.append( "=" );
+            sb.append( entry.getValue() );
+            sb.append( "\n" );
+        }
 
         sb.append( "\n" );
         sb.append( "Reference URL: " + PwmConstants.PWM_URL_HOME + "\n" );
