@@ -313,7 +313,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                 {
                     sb.append( "\n    successStatus=" ).append( StringUtil.collectionToString( webAction.getSuccessStatus() ) );
                 }
-                if ( StringUtil.isEmpty( webAction.getBody() ) )
+                if ( !StringUtil.isEmpty( webAction.getBody() ) )
                 {
                     sb.append( "\n    body=" ).append( webAction.getBody() );
                 }
