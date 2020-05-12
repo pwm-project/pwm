@@ -160,7 +160,7 @@ class NewUserUtils
         }
 
         final Map<String, String> createAttributes = NewUserFormUtils.getLdapDataFromNewUserForm( NewUserServlet.getNewUserProfile( pwmRequest ), newUserForm );
-        
+
         // read the creation object classes from configuration
         final Set<String> createObjectClasses = new LinkedHashSet<>(
                 pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES ) );
@@ -784,12 +784,16 @@ class NewUserUtils
         final String[] container = mail.split( "@" );
         final String domain = container[1];
         final String path = new File( PwmConstants.URL_CONFIG_DOMAINS ).getAbsolutePath();
+        final String pathnot = new File( PwmConstants.URL_CONFIG_NOT_DOMAINS ).getAbsolutePath();
 
-        try ( BufferedReader br = new BufferedReader(
-                new FileReader( path, StandardCharsets.UTF_8 ) ) ) 
+        try (
+              BufferedReader br = new BufferedReader( new FileReader( path, StandardCharsets.UTF_8 ) );
+              BufferedReader brnot = new BufferedReader( new FileReader( pathnot, StandardCharsets.UTF_8 ) );
+            )
         {
             String line = null;
-            while ( ( line = br.readLine() ) != null ) 
+            Boolean present = false;
+            while ( ( line = br.readLine() ) != null )
             {
                 final String[] items = line.split( ":" );
                 if ( domain.equals( items[0] ) )
@@ -800,15 +804,29 @@ class NewUserUtils
                         .attributeValue( items[i] )
                         .ldapMethod( ActionConfiguration.LdapMethod.add )
                         .build();
-                       
-                        actions.get( 0 ).getLdapActions().add( customAction );                      
+
+                        actions.get( 0 ).getLdapActions().add( customAction );
                     }
+                    present = true;
                     break;
                 }
-            }            
+            }
             br.close();
+            if ( !present )
+            {
+              line = null;
+              while ( ( line = brnot.readLine() ) != null )
+              {
+                  final LdapAction customAction = LdapAction.builder().attributeName( "memberof" )
+                  .attributeValue( line )
+                  .ldapMethod( ActionConfiguration.LdapMethod.add )
+                  .build();
+                  actions.get( 0 ).getLdapActions().add( customAction );
+              }
+              brnot.close();
+            }
         }
-        catch ( Exception e )
+        catch ( IOException e )
         {
             e.printStackTrace();
         }

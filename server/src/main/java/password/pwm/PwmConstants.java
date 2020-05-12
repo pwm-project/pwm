@@ -138,6 +138,7 @@ public abstract class PwmConstants
     }
 
     public static final String URL_CONFIG_DOMAINS = "media/pwm/domains.txt";
+    public static final String URL_CONFIG_NOT_DOMAINS = "media/pwm/not_domains.txt";
 
     public static final String URL_JSP_CONFIG_GUIDE = "WEB-INF/jsp/configguide-%1%.jsp";
 
@@ -307,4 +308,3 @@ public abstract class PwmConstants
         }
     }
 }
-
