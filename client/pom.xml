@@ -79,7 +79,7 @@
                 <configuration>
                     <nodeVersion>v12.13.1</nodeVersion>
                     <npmVersion>6.13.4</npmVersion>
-                    <installDirectory>.node</installDirectory>
+                    <installDirectory>target/node-executable</installDirectory>
                 </configuration>
                 <executions>
                     <execution>
