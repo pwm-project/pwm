@@ -72,6 +72,10 @@ public class TomcatOnejarRunner
         }
         catch ( final Exception e )
         {
+            if ( e instanceof InvocationTargetException )
+            {
+                throw new OnejarException( "error generating keystore: " + e.getCause().getMessage() );
+            }
             throw new OnejarException( "error generating keystore: " + e.getMessage() );
         }
 
@@ -160,6 +164,7 @@ public class TomcatOnejarRunner
         connector.setScheme( "https" );
         connector.addUpgradeProtocol( new Http2Protocol() );
         connector.setAttribute( "SSLEnabled", "true" );
+       // connector.setAttribute( "truststoreType", "PKCS12" );
         connector.setAttribute( "keystoreFile", onejarConfig.getKeystoreFile().getAbsolutePath() );
         connector.setAttribute( "keystorePass", onejarConfig.getKeystorePass() );
         connector.setAttribute( "keyAlias", OnejarMain.KEYSTORE_ALIAS );
