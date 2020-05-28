@@ -1281,7 +1281,7 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
 
     var formDataString = JSON.stringify(formData) ;
 
-    if (CONSOLE_DEBUG) PWM_MAIN.log('FormValidator: sending form data to server... ' + formDataString);
+    //if (CONSOLE_DEBUG) PWM_MAIN.log('FormValidator: sending form data to server... ' + formDataString);
     var loadFunction = function(data) {
         PWM_VAR['validationInProgress'] = false;
         delete PWM_VAR['validationLastType'];
