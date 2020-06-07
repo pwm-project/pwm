@@ -79,6 +79,7 @@ public enum JspUrl
     UPDATE_ATTRIBUTES_CONFIRM( "updateprofile-confirm.jsp" ),
     NEW_USER( "newuser.jsp" ),
     NEW_USER_ENTER_CODE( "newuser-entercode.jsp" ),
+    NEW_USER_REMOTE( "newuser-remote.jsp" ),
     NEW_USER_TOKEN_SUCCESS( "newuser-tokensuccess.jsp" ),
     NEW_USER_WAIT( "newuser-wait.jsp" ),
     NEW_USER_PROFILE_CHOICE( "newuser-profilechoice.jsp" ),

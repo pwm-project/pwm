@@ -35,10 +35,10 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
+        <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
-        <h1 id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></h1>
+        <h1 id="page-content-title"><pwm:display key="Title_NewUser" displayIfMissing="true"/></h1>
         <%
             final List<VerificationMethodSystem.UserPrompt> prompts = (List<VerificationMethodSystem.UserPrompt>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ExternalResponsePrompts );
             final String instructions = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ExternalResponseInstructions );
@@ -59,14 +59,12 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
-                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordOptionalPageView))) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
-                <% } %>
-                <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
-                <input type="hidden" id="processAction" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.enterRemoteResponse%>"/>
+                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
+                <input type="hidden" id="processAction" name="processAction" value="<%=NewUserServlet.NewUserAction.enterRemoteResponse%>"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
@@ -77,7 +75,7 @@
     <script>
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.addEventHandler('button-goBack','click',function() {
-                PWM_MAIN.submitPostAction('<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
+                PWM_MAIN.submitPostAction('<%=PwmServletDefinition.NewUser.servletUrlName()%>', '<%=NewUserServlet.NewUserAction.checkProgress%>');
             });
         });
     </script>

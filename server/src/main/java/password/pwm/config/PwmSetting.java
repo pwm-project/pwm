@@ -854,7 +854,9 @@ public enum PwmSetting
     NEWUSER_EMAIL_VERIFICATION(
             "newUser.email.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_SMS_VERIFICATION(
-            "newUser.sms.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
+        "newUser.sms.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
+    NEWUSER_EXTERNAL_VERIFICATION(
+        "newUser.external.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_PASSWORD_POLICY_USER(
             "newUser.passwordPolicy.user", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_MINIMUM_WAIT_TIME(

@@ -20,44 +20,18 @@
 
 package password.pwm.bean;
 
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.bean.pub.PublicUserInfoBean;
 
 import java.io.Serializable;
 import java.util.Map;
 
+@Value
+@Builder
 public class RemoteVerificationRequestBean implements Serializable
 {
-    private String responseSessionID;
-    private PublicUserInfoBean userInfo;
-    private Map<String, String> userResponses;
-
-    public String getResponseSessionID( )
-    {
-        return responseSessionID;
-    }
-
-    public void setResponseSessionID( final String responseSessionID )
-    {
-        this.responseSessionID = responseSessionID;
-    }
-
-    public PublicUserInfoBean getUserInfo( )
-    {
-        return userInfo;
-    }
-
-    public void setUserInfo( final PublicUserInfoBean userInfo )
-    {
-        this.userInfo = userInfo;
-    }
-
-    public Map<String, String> getUserResponses( )
-    {
-        return userResponses;
-    }
-
-    public void setUserResponses( final Map<String, String> userResponses )
-    {
-        this.userResponses = userResponses;
-    }
+    private final String responseSessionID;
+    private final PublicUserInfoBean userInfo;
+    private final Map<String, String> userResponses;
 }

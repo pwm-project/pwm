@@ -2754,6 +2754,11 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="false" key="newUser.external.verification" level="1">
+    <default>
+        <value>false</value>
+    </default>
+</setting>
     <setting hidden="false" key="newUser.passwordPolicy.user" level="1" required="true">
         <default>
             <value><![CDATA[TESTUSER]]></value>

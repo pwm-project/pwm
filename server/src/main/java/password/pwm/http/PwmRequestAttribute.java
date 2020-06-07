@@ -77,8 +77,6 @@ public enum PwmRequestAttribute
 
     ForgottenPasswordChallengeSet,
     ForgottenPasswordOptionalPageView,
-    ForgottenPasswordPrompts,
-    ForgottenPasswordInstructions,
     ForgottenPasswordOtpRecord,
     ForgottenPasswordResendTokenEnabled,
     ForgottenPasswordInhibitPasswordReset,
@@ -100,6 +98,8 @@ public enum PwmRequestAttribute
     AppDashboardData,
 
     TokenDestItems,
+    ExternalResponsePrompts,
+    ExternalResponseInstructions,
 
     GoBackAction,;
 }

@@ -29,6 +29,7 @@ import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
@@ -47,10 +48,13 @@ import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.NewUserBean;
+import password.pwm.http.servlet.forgottenpw.RemoteVerificationMethod;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoBean;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
@@ -62,7 +66,6 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -72,6 +75,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.password.PasswordUtility;
+import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.client.rest.form.FormDataRequestBean;
 import password.pwm.ws.client.rest.form.FormDataResponseBean;
 import password.pwm.ws.client.rest.form.RestFormDataClient;
@@ -482,6 +486,27 @@ class NewUserUtils
         );
     }
 
+    static UserInfoBean createUserInfoBeanForNewUser(
+            final PwmApplication pwmApplication,
+            final NewUserForm newUserForm
+    )
+        throws PwmUnrecoverableException
+
+    {
+        final Map<String, String> formValues = newUserForm.getFormData();
+
+        final String emailAddressAttribute = pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString(
+            PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
+
+        final String usernameAttribute = pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString( PwmSetting.LDAP_USERNAME_ATTRIBUTE );
+
+        return UserInfoBean.builder()
+            .userEmailAddress( formValues.get( emailAddressAttribute ) )
+            .username( formValues.get( usernameAttribute ) )
+            .attributes( formValues )
+            .build();
+    }
+
     static MacroMachine createMacroMachineForNewUser(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
@@ -490,21 +515,10 @@ class NewUserUtils
     )
             throws PwmUnrecoverableException
     {
-        final Map<String, String> formValues = newUserForm.getFormData();
-
-        final String emailAddressAttribute = pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString(
-                PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
-
-        final String usernameAttribute = pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString( PwmSetting.LDAP_USERNAME_ATTRIBUTE );
-
         final LoginInfoBean stubLoginBean = new LoginInfoBean();
         stubLoginBean.setUserCurrentPassword( newUserForm.getNewUserPassword() );
 
-        final UserInfoBean stubUserBean = UserInfoBean.builder()
-                .userEmailAddress( formValues.get( emailAddressAttribute ) )
-                .username( formValues.get( usernameAttribute ) )
-                .attributes( formValues )
-                .build();
+        final UserInfoBean stubUserBean = createUserInfoBeanForNewUser( pwmApplication, newUserForm );
 
         final MacroMachine.StringReplacer stringReplacer = tokenDestinationItem == null
                 ? null
@@ -647,6 +661,59 @@ class NewUserUtils
         }
 
         return Collections.unmodifiableMap( workingMap );
+    }
+
+    static ProcessStatus checkForExternalResponsesVerificationProgress(
+            final PwmRequest pwmRequest,
+            final NewUserBean newUserBean,
+            final NewUserProfile newUserProfile
+    )
+            throws PwmUnrecoverableException, ServletException, IOException
+    {
+        if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_EXTERNAL_VERIFICATION ) )
+        {
+            if ( !newUserBean.isExternalResponsesPassed() )
+            {
+                final VerificationMethodSystem remoteMethod = readRemoteVerificationMethod( pwmRequest, newUserBean );
+
+                final List<VerificationMethodSystem.UserPrompt> prompts = remoteMethod.getCurrentPrompts();
+                final String displayInstructions = remoteMethod.getCurrentDisplayInstructions();
+
+                pwmRequest.setAttribute( PwmRequestAttribute.ExternalResponsePrompts, new ArrayList<>( prompts ) );
+                pwmRequest.setAttribute( PwmRequestAttribute.ExternalResponseInstructions, displayInstructions );
+                pwmRequest.forwardToJsp( JspUrl.NEW_USER_REMOTE );
+                return ProcessStatus.Halt;
+            }
+        }
+
+        return ProcessStatus.Continue;
+    }
+
+    static VerificationMethodSystem readRemoteVerificationMethod(
+            final PwmRequest pwmRequest,
+            final NewUserBean newUserBean
+    )
+            throws PwmUnrecoverableException
+    {
+        final UserInfo userInfo = createUserInfoBeanForNewUser( pwmRequest.getPwmApplication(), newUserBean.getNewUserForm() );
+
+        final VerificationMethodSystem remoteMethod;
+        if ( newUserBean.getRemoteRecoveryMethod() == null )
+        {
+            remoteMethod = new RemoteVerificationMethod();
+            remoteMethod.init(
+                    pwmRequest.getPwmApplication(),
+                    userInfo,
+                    pwmRequest.getLabel(),
+                    pwmRequest.getLocale()
+            );
+        }
+        else
+        {
+            remoteMethod = newUserBean.getRemoteRecoveryMethod();
+        }
+        newUserBean.setRemoteRecoveryMethod( remoteMethod );
+        return remoteMethod;
     }
 
     static ProcessStatus checkForTokenVerificationProgress(

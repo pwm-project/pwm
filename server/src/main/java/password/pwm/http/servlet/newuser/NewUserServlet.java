@@ -23,6 +23,7 @@ package password.pwm.http.servlet.newuser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -46,6 +47,7 @@ import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.http.servlet.forgottenpw.RemoteVerificationMethod;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoBean;
@@ -112,6 +114,7 @@ public class NewUserServlet extends ControlledPwmServlet
         processForm( HttpMethod.POST ),
         validate( HttpMethod.POST ),
         enterCode( HttpMethod.POST, HttpMethod.GET ),
+        enterRemoteResponse( HttpMethod.POST ),
         reset( HttpMethod.POST ),
         agree( HttpMethod.POST ),;
 
@@ -264,6 +267,10 @@ public class NewUserServlet extends ControlledPwmServlet
             return;
         }
 
+        if ( NewUserUtils.checkForExternalResponsesVerificationProgress( pwmRequest, newUserBean, newUserProfile ) == ProcessStatus.Halt )
+        {
+            return;
+        }
 
         final String newUserAgreementText = newUserProfile.readSettingAsLocalizedString( PwmSetting.NEWUSER_AGREEMENT_MESSAGE,
                 pwmSession.getSessionStateBean().getLocale() );
@@ -545,6 +552,40 @@ public class NewUserServlet extends ControlledPwmServlet
 
         return ProcessStatus.Continue;
     }
+
+    @ActionHandler( action = "enterRemoteResponse" )
+    private ProcessStatus processEnterRemoteResponse( final PwmRequest pwmRequest )
+        throws PwmUnrecoverableException, IOException, ServletException
+    {
+        final String prefix = "remote-";
+        final NewUserBean newUserBean = getNewUserBean( pwmRequest );
+        final VerificationMethodSystem remoteRecoveryMethod = NewUserUtils.readRemoteVerificationMethod( pwmRequest, newUserBean );
+
+        final Map<String, String> remoteResponses = RemoteVerificationMethod.readRemoteResponses( pwmRequest, prefix );
+
+        final ErrorInformation errorInformation = remoteRecoveryMethod.respondToPrompts( remoteResponses );
+
+        if ( remoteRecoveryMethod.getVerificationState() == VerificationMethodSystem.VerificationState.COMPLETE )
+        {
+            newUserBean.setExternalResponsesPassed( true );
+        }
+
+        if ( remoteRecoveryMethod.getVerificationState() == VerificationMethodSystem.VerificationState.FAILED )
+        {
+            newUserBean.setExternalResponsesPassed( false );
+            pwmRequest.respondWithError( errorInformation, true );
+            LOGGER.debug( pwmRequest, () -> "unsuccessful remote response verification input: " + errorInformation.toDebugStr() );
+            return ProcessStatus.Continue;
+        }
+
+        if ( errorInformation != null )
+        {
+            setLastError( pwmRequest, errorInformation );
+        }
+
+        return ProcessStatus.Continue;
+    }
+
 
     @ActionHandler( action = "profileChoice" )
     private ProcessStatus handleProfileChoiceRequest( final PwmRequest pwmRequest )

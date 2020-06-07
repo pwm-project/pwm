@@ -564,20 +564,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean( pwmRequest );
         final VerificationMethodSystem remoteRecoveryMethod = forgottenPasswordBean.getProgress().getRemoteRecoveryMethod();
 
-        final Map<String, String> remoteResponses = new LinkedHashMap<>();
-        {
-            final Map<String, String> inputMap = pwmRequest.readParametersAsMap();
-            for ( final Map.Entry<String, String> entry : inputMap.entrySet() )
-            {
-                final String name = entry.getKey();
-                if ( name != null && name.startsWith( prefix ) )
-                {
-                    final String strippedName = name.substring( prefix.length(), name.length() );
-                    final String value = entry.getValue();
-                    remoteResponses.put( strippedName, value );
-                }
-            }
-        }
+        final Map<String, String> remoteResponses = RemoteVerificationMethod.readRemoteResponses( pwmRequest, prefix );
 
         final ErrorInformation errorInformation = remoteRecoveryMethod.respondToPrompts( remoteResponses );
 
@@ -1402,8 +1389,8 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                 final List<VerificationMethodSystem.UserPrompt> prompts = remoteMethod.getCurrentPrompts();
                 final String displayInstructions = remoteMethod.getCurrentDisplayInstructions();
 
-                pwmRequest.setAttribute( PwmRequestAttribute.ForgottenPasswordPrompts, new ArrayList<>( prompts ) );
-                pwmRequest.setAttribute( PwmRequestAttribute.ForgottenPasswordInstructions, displayInstructions );
+                pwmRequest.setAttribute( PwmRequestAttribute.ExternalResponsePrompts, new ArrayList<>( prompts ) );
+                pwmRequest.setAttribute( PwmRequestAttribute.ExternalResponseInstructions, displayInstructions );
                 pwmRequest.forwardToJsp( JspUrl.RECOVER_PASSWORD_REMOTE );
             }
             break;
