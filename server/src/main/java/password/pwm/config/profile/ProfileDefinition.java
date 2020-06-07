@@ -23,6 +23,8 @@ package password.pwm.config.profile;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 
+import java.util.Optional;
+
 public enum ProfileDefinition
 {
     Helpdesk(
@@ -142,9 +144,9 @@ public enum ProfileDefinition
         return category;
     }
 
-    public PwmSetting getQueryMatch( )
+    public Optional<PwmSetting> getQueryMatch( )
     {
-        return queryMatch;
+        return Optional.ofNullable( queryMatch );
     }
 
     public Class<? extends Profile> getProfileImplClass()
@@ -152,8 +154,8 @@ public enum ProfileDefinition
         return profileImplClass;
     }
 
-    public Class<? extends Profile.ProfileFactory> getProfileFactoryClass()
+    public Optional<Class<? extends Profile.ProfileFactory>> getProfileFactoryClass()
     {
-        return profileFactoryClass;
+        return Optional.ofNullable( profileFactoryClass );
     }
 }

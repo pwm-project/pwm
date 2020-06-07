@@ -46,7 +46,6 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.FormMap;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
@@ -62,6 +61,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @WebServlet(
@@ -122,19 +122,7 @@ public class RestProfileServer extends RestServlet
     {
         final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 
-        final String updateProfileID = ProfileUtility.discoverProfileIDforUser(
-                restRequest.getPwmApplication(),
-                restRequest.getSessionLabel(),
-                targetUserIdentity.getUserIdentity(),
-                ProfileDefinition.UpdateAttributes
-        );
-
-        if ( StringUtil.isEmpty( updateProfileID ) )
-        {
-            throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
-        }
-
-        final UpdateProfileProfile updateProfileProfile = restRequest.getPwmApplication().getConfig().getUpdateAttributesProfile().get( updateProfileID );
+        final UpdateProfileProfile updateProfileProfile = getProfile( restRequest, targetUserIdentity );
 
         final Map<String, String> profileData = new HashMap<>();
         {
@@ -187,6 +175,24 @@ public class RestProfileServer extends RestServlet
         }
     }
 
+    private static UpdateProfileProfile getProfile( final RestRequest restRequest, final TargetUserIdentity targetUserIdentity )
+        throws PwmUnrecoverableException
+    {
+        final Optional<String> updateProfileID = ProfileUtility.discoverProfileIDForUser(
+            restRequest.getPwmApplication(),
+            restRequest.getSessionLabel(),
+            targetUserIdentity.getUserIdentity(),
+            ProfileDefinition.UpdateAttributes
+        );
+
+        if ( !updateProfileID.isPresent() )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
+        }
+
+        return restRequest.getPwmApplication().getConfig().getUpdateAttributesProfile().get( updateProfileID.get() );
+    }
+
     private static RestResultBean doPostProfileDataImpl(
             final RestRequest restRequest,
             final JsonProfileData jsonInput
@@ -201,19 +207,7 @@ public class RestProfileServer extends RestServlet
 
         final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 
-        final String updateProfileID = ProfileUtility.discoverProfileIDforUser(
-                restRequest.getPwmApplication(),
-                restRequest.getSessionLabel(),
-                targetUserIdentity.getUserIdentity(),
-                ProfileDefinition.UpdateAttributes
-        );
-
-        if ( StringUtil.isEmpty( updateProfileID ) )
-        {
-            throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
-        }
-
-        final UpdateProfileProfile updateProfileProfile = restRequest.getPwmApplication().getConfig().getUpdateAttributesProfile().get( updateProfileID );
+        final UpdateProfileProfile updateProfileProfile = getProfile( restRequest, targetUserIdentity );
 
         {
             final List<UserPermission> userPermission = updateProfileProfile.readSettingAsUserPermission( PwmSetting.UPDATE_PROFILE_QUERY_MATCH );
