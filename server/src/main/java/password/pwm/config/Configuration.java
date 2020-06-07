@@ -93,6 +93,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
@@ -1077,26 +1078,37 @@ public class Configuration implements SettingReader
         final Map<String, Profile> returnMap = new LinkedHashMap<>();
         for ( final String profileID : ProfileUtility.profileIDsForCategory( this, profileDefinition.getCategory() ) )
         {
-            final Profile newProfile = newProfileForID( profileDefinition, profileID );
-            returnMap.put( profileID, newProfile );
+            if ( profileDefinition.getProfileFactoryClass().isPresent() )
+            {
+                final Profile newProfile = newProfileForID( profileDefinition, profileID );
+                returnMap.put( profileID, newProfile );
+            }
         }
         return Collections.unmodifiableMap( returnMap );
     }
 
     private Profile newProfileForID( final ProfileDefinition profileDefinition, final String profileID )
     {
-        final Class<? extends Profile.ProfileFactory> profileFactoryClass = profileDefinition.getProfileFactoryClass();
+        Objects.requireNonNull( profileDefinition );
+        Objects.requireNonNull( profileID );
 
-        final Profile.ProfileFactory profileFactory;
-        try
+        final Optional<Class<? extends Profile.ProfileFactory>> optionalProfileFactoryClass = profileDefinition.getProfileFactoryClass();
+
+        if ( optionalProfileFactoryClass.isPresent() )
         {
-            profileFactory = profileFactoryClass.getDeclaredConstructor().newInstance();
+            final Profile.ProfileFactory profileFactory;
+            try
+            {
+                profileFactory = optionalProfileFactoryClass.get().getDeclaredConstructor().newInstance();
+                return profileFactory.makeFromStoredConfiguration( storedConfiguration, profileID );
+            }
+            catch ( final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
+            {
+                throw new IllegalStateException( "unable to create profile instance for " + profileDefinition );
+            }
         }
-        catch ( final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
-        {
-            throw new IllegalStateException( "unable to create profile instance for " + profileDefinition );
-        }
-        return profileFactory.makeFromStoredConfiguration( storedConfiguration, profileID );
+
+        throw new IllegalStateException( "unable to create profile instance for " + profileDefinition + " ( profile factory class not defined )" );
     }
 
     public StoredConfiguration getStoredConfiguration( )

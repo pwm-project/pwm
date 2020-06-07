@@ -650,10 +650,10 @@ public class UserInfoReader implements UserInfo
         {
             if ( profileDefinition.isAuthenticated() )
             {
-                final String profileID = ProfileUtility.discoverProfileIDforUser( pwmApplication, sessionLabel, userIdentity, profileDefinition );
-                returnMap.put( profileDefinition, profileID );
-                if ( profileID != null )
+                final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser( pwmApplication, sessionLabel, userIdentity, profileDefinition );
+                if ( profileID.isPresent() )
                 {
+                    returnMap.put( profileDefinition, profileID.get() );
                     LOGGER.debug( sessionLabel, () -> "assigned " + profileDefinition.toString() + " profileID \"" + profileID + "\" to " + userIdentity.toDisplayString() );
                 }
                 else

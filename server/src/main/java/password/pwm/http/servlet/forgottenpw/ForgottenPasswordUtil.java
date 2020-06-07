@@ -83,6 +83,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class ForgottenPasswordUtil
@@ -630,20 +631,20 @@ public class ForgottenPasswordUtil
     )
             throws PwmUnrecoverableException
     {
-        final String forgottenProfileID = ProfileUtility.discoverProfileIDforUser(
-                pwmApplication,
-                sessionLabel,
-                userIdentity,
-                ProfileDefinition.ForgottenPassword
+        final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser(
+            pwmApplication,
+            sessionLabel,
+            userIdentity,
+            ProfileDefinition.ForgottenPassword
         );
 
-        if ( StringUtil.isEmpty( forgottenProfileID ) )
+        if ( profileID.isPresent() )
         {
-            final String msg = "user does not have a forgotten password profile assigned";
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, msg );
+            return pwmApplication.getConfig().getForgottenPasswordProfiles().get( profileID.get() );
         }
 
-        return pwmApplication.getConfig().getForgottenPasswordProfiles().get( forgottenProfileID );
+        final String msg = "user does not have a forgotten password profile assigned";
+        throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, msg );
     }
 
     static ForgottenPasswordProfile forgottenPasswordProfile(
