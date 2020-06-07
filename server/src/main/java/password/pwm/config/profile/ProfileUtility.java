@@ -41,15 +41,14 @@ public class ProfileUtility
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ProfileUtility.class );
 
-    public static Optional<String> discoverProfileIDforUser(
+    public static Optional<String> discoverProfileIDForUser(
             final CommonValues commonValues,
             final UserIdentity userIdentity,
             final ProfileDefinition profileDefinition
     )
             throws PwmUnrecoverableException
     {
-        final String profileID = discoverProfileIDforUser( commonValues.getPwmApplication(), commonValues.getSessionLabel(), userIdentity, profileDefinition );
-        return Optional.ofNullable( profileID );
+        return discoverProfileIDForUser( commonValues.getPwmApplication(), commonValues.getSessionLabel(), userIdentity, profileDefinition );
     }
 
     public static <T extends Profile> T profileForUser(
@@ -60,7 +59,7 @@ public class ProfileUtility
     )
             throws PwmUnrecoverableException
     {
-        final Optional<String> profileID = discoverProfileIDforUser( commonValues, userIdentity, profileDefinition );
+        final Optional<String> profileID = discoverProfileIDForUser( commonValues, userIdentity, profileDefinition );
         if ( !profileID.isPresent() )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "profile of type " + profileDefinition + " is required but not assigned" );
@@ -70,7 +69,7 @@ public class ProfileUtility
     }
 
 
-    public static String discoverProfileIDforUser(
+    public static Optional<String> discoverProfileIDForUser(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
@@ -85,10 +84,10 @@ public class ProfileUtility
             final boolean match = LdapPermissionTester.testUserPermissions( pwmApplication, sessionLabel, userIdentity, queryMatches );
             if ( match )
             {
-                return profile.getIdentifier();
+                return Optional.of( profile.getIdentifier() );
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     public static List<String> profileIDsForCategory( final Configuration configuration, final PwmSettingCategory pwmSettingCategory )

@@ -630,20 +630,15 @@ public class ForgottenPasswordUtil
     )
             throws PwmUnrecoverableException
     {
-        final String forgottenProfileID = ProfileUtility.discoverProfileIDforUser(
-                pwmApplication,
-                sessionLabel,
-                userIdentity,
-                ProfileDefinition.ForgottenPassword
-        );
+        ProfileUtility.discoverProfileIDForUser(
+            pwmApplication,
+            sessionLabel,
+            userIdentity,
+            ProfileDefinition.ForgottenPassword
+        ).ifPresent( ( id ) ->  pwmApplication.getConfig().getForgottenPasswordProfiles().get( id ) );
 
-        if ( StringUtil.isEmpty( forgottenProfileID ) )
-        {
-            final String msg = "user does not have a forgotten password profile assigned";
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, msg );
-        }
-
-        return pwmApplication.getConfig().getForgottenPasswordProfiles().get( forgottenProfileID );
+        final String msg = "user does not have a forgotten password profile assigned";
+        throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, msg );
     }
 
     static ForgottenPasswordProfile forgottenPasswordProfile(
