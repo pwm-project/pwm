@@ -32,6 +32,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @WebServlet(
@@ -66,11 +68,7 @@ public class RestTestRemoteResponsesServlet extends HttpServlet
         final ResponseData responseData = ResponseData.builder()
             .displayInstructions( "remote responses test server instructions" )
             .verificationState( correct ? "COMPLETE" : "INPROGRESS" )
-            .userPrompts( new Prompt[]
-                {
-                    new Prompt( "prompt1", "id1" ),
-                    }
-            )
+            .userPrompts( Collections.singletonList( new Prompt( "prompt1", "id1" ) ) )
             .errorMessage(  correct ? "" : "incorrect response for 'id1'.  ( correct response is 'answer1' ) " )
             .build();
 
@@ -93,7 +91,7 @@ public class RestTestRemoteResponsesServlet extends HttpServlet
     {
         private final String displayInstructions;
         private final String verificationState;
-        private final Prompt[] userPrompts;
+        private final List<Prompt> userPrompts;
         private final String errorMessage;
 
     }

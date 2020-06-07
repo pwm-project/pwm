@@ -22,6 +22,7 @@ package password.pwm.http.bean;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import password.pwm.VerificationMethodSystem;
 import password.pwm.config.option.SessionBeanMode;
@@ -37,8 +38,11 @@ import java.util.Set;
 
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode( callSuper = false )
 public class NewUserBean extends PwmSessionBean
 {
+    private static final long serialVersionUID = 1L;
+
     @SerializedName( "p" )
     private String profileID;
 
