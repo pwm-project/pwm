@@ -601,7 +601,7 @@ public class PasswordUtility
             final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser( pwmApplication, sessionLabel, userIdentity, ProfileDefinition.ForgottenPassword );
             if ( profileID.isPresent() )
             {
-                final ForgottenPasswordProfile forgottenPasswordProfile = pwmApplication.getConfig().getForgottenPasswordProfiles().get( profileID );
+                final ForgottenPasswordProfile forgottenPasswordProfile = pwmApplication.getConfig().getForgottenPasswordProfiles().get( profileID.get() );
                 final MessageSendMethod messageSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_SENDNEWPW_METHOD, MessageSendMethod.class );
 
                 PasswordUtility.sendNewPassword(
