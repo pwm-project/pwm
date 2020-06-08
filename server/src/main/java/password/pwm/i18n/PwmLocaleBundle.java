@@ -93,7 +93,8 @@ public enum PwmLocaleBundle
         return Collections.unmodifiableSet( new HashSet<>( Arrays.asList(
                 this.getTheClass().getSimpleName(),
                 this.getTheClass().getName(),
-                "password.pwm." + this.getTheClass().getSimpleName()
+                "password.pwm." + this.getTheClass().getSimpleName(),
+                this.name()
         ) ) );
     }
 

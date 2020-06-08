@@ -50,10 +50,10 @@ public class ImportPropertyConfigCommand extends AbstractCliCommand
 
         final File inputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
 
-        try
+        try ( FileInputStream fileInputStream = new FileInputStream( inputFile ) )
         {
             final PropertyConfigurationImporter importer = new PropertyConfigurationImporter();
-            final StoredConfiguration storedConfiguration = importer.readConfiguration( new FileInputStream( inputFile ) );
+            final StoredConfiguration storedConfiguration = importer.readConfiguration( fileInputStream );
 
             try ( OutputStream outputStream = new FileOutputStream( configFile ) )
             {

@@ -780,6 +780,35 @@ PWM_CFGEDIT.smsHealthCheck = function() {
     });
 };
 
+PWM_CFGEDIT.emailHealthCheck = function() {
+    require(["dojo/dom-form"], function(domForm){
+        var dialogBody = '<p>' + PWM_CONFIG.showString('Warning_EmailTestData') + '</p><form id="emailCheckParametersForm"><table>';
+        dialogBody += '<tr><td>To</td><td><input name="to" type="text" value="test@example.com"/></td></tr>';
+        dialogBody += '<tr><td>From</td><td><input name="from" type="text" value="@DefaultEmailFromAddress@"/></td></tr>';
+        dialogBody += '<tr><td>Subject</td><td><input name="subject" type="text" value="Test Email"/></td></tr>';
+        dialogBody += '<tr><td>Body</td><td><input name="body" type="text" value="Test Email""/></td></tr>';
+        dialogBody += '</table></form>';
+        PWM_MAIN.showDialog({text:dialogBody,showCancel:true,title:'Test Email Connection',closeOnOk:false,okAction:function(){
+                var formElement = PWM_MAIN.getObject("emailCheckParametersForm");
+                var formData = domForm.toObject(formElement);
+                var url =  "editor?processAction=emailHealthCheck";
+                url = PWM_MAIN.addParamToUrl(url,'profile',PWM_CFGEDIT.readCurrentProfile());
+                PWM_MAIN.showWaitDialog({loadFunction:function(){
+                        var loadFunction = function(data) {
+                            if (data['error']) {
+                                PWM_MAIN.showErrorDialog(data);
+                            } else {
+                                var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
+                                var titleText = 'Email Send Message Status';
+                                PWM_MAIN.showDialog({text:bodyText,title:titleText,showCancel:true});
+                            }
+                        };
+                        PWM_MAIN.ajaxRequest(url,loadFunction,{content:formData});
+                    }});
+            }});
+    });
+};
+
 PWM_CFGEDIT.selectTemplate = function(newTemplate) {
     PWM_MAIN.showConfirmDialog({
         text: PWM_CONFIG.showString('Warning_ChangeTemplate'),
@@ -838,6 +867,10 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
             + '<button class="btn" id="button-test-SMS"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test SMS Settings</button>'
             + '</div>';
+    } else if (category === 'EMAIL_SERVERS') {
+        htmlSettingBody += '<div style="width: 100%; text-align: center">'
+            + '<button class="btn" id="button-test-EMAIL"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test Email Settings</button>'
+            + '</div>';
     }
 
     PWM_VAR['skippedSettingCount'] = 0;
@@ -866,6 +899,8 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
         PWM_MAIN.addEventHandler('button-test-DATABASE_SETTINGS', 'click', function(){PWM_CFGEDIT.databaseHealthCheck();});
     } else if (category === 'SMS_GATEWAY') {
         PWM_MAIN.addEventHandler('button-test-SMS', 'click', function(){PWM_CFGEDIT.smsHealthCheck();});
+    } else if (category === 'EMAIL_SERVERS') {
+        PWM_MAIN.addEventHandler('button-test-EMAIL', 'click', function(){PWM_CFGEDIT.emailHealthCheck();});
     } else if (category === 'HTTPS_SERVER') {
         PWM_MAIN.addEventHandler('button-test-HTTPS_SERVER', 'click', function(){PWM_CFGEDIT.httpsCertificateView();});
     }

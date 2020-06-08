@@ -77,6 +77,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ContextManager implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private static final PwmLogger LOGGER = PwmLogger.forClass( ContextManager.class );
     private static final SessionLabel SESSION_LABEL = SessionLabel.CONTEXT_SESSION_LABEL;
 
@@ -444,7 +446,13 @@ public class ContextManager implements Serializable
                     try
                     {
                         final PropertyConfigurationImporter importer = new PropertyConfigurationImporter();
-                        final StoredConfiguration storedConfiguration = importer.readConfiguration( new FileInputStream( silentPropertiesFile ) );
+
+                        final StoredConfiguration storedConfiguration;
+                        try ( InputStream fileInputStream = new FileInputStream( silentPropertiesFile ) )
+                        {
+                            storedConfiguration = importer.readConfiguration( fileInputStream );
+                        }
+
                         configReader.saveConfiguration( storedConfiguration, pwmApplication, SESSION_LABEL );
                         LOGGER.info( SESSION_LABEL, () -> "file " + silentPropertiesFile.getAbsolutePath() + " has been successfully imported and saved as configuration file" );
                         requestPwmApplicationRestart();

@@ -27,6 +27,7 @@ import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -86,14 +87,14 @@ public class StringValue extends AbstractValue implements StoredValue
     {
         if ( pwmSetting.isRequired() )
         {
-            if ( value == null || value.length() < 1 )
+            if ( StringUtil.isEmpty( value ) )
             {
                 return Collections.singletonList( "required value missing" );
             }
         }
 
         final Pattern pattern = pwmSetting.getRegExPattern();
-        if ( pattern != null && value != null )
+        if ( pattern != null )
         {
             final Matcher matcher = pattern.matcher( value );
             if ( value != null && value.length() > 0 && !matcher.matches() )

@@ -39,6 +39,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -195,7 +196,8 @@ public class StoredConfigurationModifier
         {
             final StoredConfiguration oldStoredConfiguration = new StoredConfigurationImpl( storedConfigData );
 
-            final List<String> existingProfiles = oldStoredConfiguration.profilesForSetting( category.getProfileSetting() );
+            final PwmSetting profileSetting = category.getProfileSetting().orElseThrow( IllegalStateException::new );
+            final List<String> existingProfiles = StoredConfigurationUtil.profilesForSetting( profileSetting, oldStoredConfiguration );
             if ( !existingProfiles.contains( sourceID ) )
             {
                 throw PwmUnrecoverableException.newException(
@@ -209,6 +211,8 @@ public class StoredConfigurationModifier
             }
 
             final Collection<PwmSettingCategory> interestedCategories = PwmSettingCategory.associatedProfileCategories( category );
+            final Map<StoredConfigItemKey, StoredValue> newValues = new LinkedHashMap<>();
+
             for ( final PwmSettingCategory interestedCategory : interestedCategories )
             {
                 for ( final PwmSetting pwmSetting : interestedCategory.getSettings() )
@@ -216,19 +220,25 @@ public class StoredConfigurationModifier
                     if ( !oldStoredConfiguration.isDefaultValue( pwmSetting, sourceID ) )
                     {
                         final StoredValue value = oldStoredConfiguration.readSetting( pwmSetting, sourceID );
-                        writeSetting( pwmSetting, destinationID, value, userIdentity );
+                        final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( pwmSetting, destinationID );
+                        newValues.put( key, value );
                     }
                 }
             }
-            final List<String> newProfileIDList = new ArrayList<>( existingProfiles );
-            newProfileIDList.add( destinationID );
 
-            final StoredValue value = new StringArrayValue( newProfileIDList );
-            final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( category.getProfileSetting(), null );
+            {
+                final List<String> newProfileIDList = new ArrayList<>( existingProfiles );
+                newProfileIDList.add( destinationID );
+                final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( profileSetting, null );
+                final StoredValue value = new StringArrayValue( newProfileIDList );
+                newValues.put( key, value );
+            }
+
+            final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( category.getProfileSetting().orElseThrow( IllegalStateException::new ), null );
             final ValueMetaData valueMetaData = new ValueMetaData( Instant.now(), userIdentity );
 
             return storedConfigData.toBuilder()
-                    .storedValue( key, value )
+                    .storedValues( newValues )
                     .metaData( key, valueMetaData )
                     .build();
 

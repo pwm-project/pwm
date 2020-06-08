@@ -57,6 +57,8 @@ import java.util.TreeMap;
 
 public class LDAPPermissionCalculator implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPPermissionCalculator.class );
 
     private final transient StoredConfiguration storedConfiguration;

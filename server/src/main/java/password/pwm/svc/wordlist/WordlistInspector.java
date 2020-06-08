@@ -321,7 +321,7 @@ class WordlistInspector implements Runnable
         boolean needsAutoImport = false;
         if ( remoteInfo == null )
         {
-            getLogger().warn( () -> "can't read remote wordlist data from url " + rootWordlist.getConfiguration().getAutoImportUrl() );
+            getLogger().warn( () -> "can not read remote wordlist data from url " + rootWordlist.getConfiguration().getAutoImportUrl() );
         }
         else
         {

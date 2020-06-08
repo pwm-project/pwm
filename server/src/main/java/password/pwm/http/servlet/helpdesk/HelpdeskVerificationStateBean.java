@@ -49,6 +49,8 @@ import java.util.TreeMap;
 
 class HelpdeskVerificationStateBean implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskVerificationStateBean.class );
     public static final String PARAMETER_VERIFICATION_STATE_KEY = "verificationState";
 

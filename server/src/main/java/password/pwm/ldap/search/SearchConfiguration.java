@@ -39,6 +39,8 @@ import java.util.Map;
 @Builder( toBuilder = true )
 public class SearchConfiguration implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private String filter;
     private String ldapProfile;
     private String username;
@@ -49,6 +51,9 @@ public class SearchConfiguration implements Serializable
     private long searchTimeout;
 
     @Builder.Default
+    private boolean ignoreOperationalErrors = false;
+
+    @Builder.Default
     private boolean enableValueEscaping = true;
 
     @Builder.Default
@@ -56,6 +61,27 @@ public class SearchConfiguration implements Serializable
 
     @Builder.Default
     private boolean enableSplitWhitespace = false;
+
+    @Builder.Default
+    private SearchScope searchScope = SearchScope.subtree;
+
+    public enum SearchScope
+    {
+        base( com.novell.ldapchai.provider.SearchScope.BASE ),
+        subtree( com.novell.ldapchai.provider.SearchScope.SUBTREE ),;
+
+        private final com.novell.ldapchai.provider.SearchScope chaiSearchScope;
+
+        SearchScope( final com.novell.ldapchai.provider.SearchScope chaiSearchScope )
+        {
+            this.chaiSearchScope = chaiSearchScope;
+        }
+
+        public com.novell.ldapchai.provider.SearchScope getChaiSearchScope()
+        {
+            return chaiSearchScope;
+        }
+    }
 
     void validate( )
     {

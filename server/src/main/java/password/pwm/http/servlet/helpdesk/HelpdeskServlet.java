@@ -208,6 +208,11 @@ public class HelpdeskServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
+        // verify the chaiProvider is available - ie, password is supplied, proxy available etc.
+        // we do this now so redirects can handle properly instead of during a later rest request.
+        final UserIdentity loggedInUser = pwmRequest.getPwmSession().getUserInfo().getUserIdentity();
+        getChaiUser( pwmRequest, helpdeskProfile, loggedInUser ).getChaiProvider();
+
         return ProcessStatus.Continue;
     }
 

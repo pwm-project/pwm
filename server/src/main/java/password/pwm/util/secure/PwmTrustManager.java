@@ -135,7 +135,11 @@ public class PwmTrustManager implements X509TrustManager
             {
                 try
                 {
-                    testCertificate.verify( rootCA.getPublicKey() );
+                    // first check certificate equality.  if certificate is same, we don't need to verify it signed itself
+                    if ( !testCertificate.equals( rootCA ) )
+                    {
+                        testCertificate.verify( rootCA.getPublicKey() );
+                    }
                     passed = true;
                 }
                 catch ( final NoSuchAlgorithmException | SignatureException | NoSuchProviderException | InvalidKeyException | CertificateException e )

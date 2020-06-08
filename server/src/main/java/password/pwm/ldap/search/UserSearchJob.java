@@ -69,6 +69,8 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
         searchHelper.setFilter( userSearchJobParameters.getSearchFilter() );
         searchHelper.setAttributes( userSearchJobParameters.getReturnAttributes() );
         searchHelper.setTimeLimit( ( int ) userSearchJobParameters.getTimeoutMs() );
+        searchHelper.setSearchScope( userSearchJobParameters.getSearchScope().getChaiSearchScope() );
+
 
         final String debugInfo;
         {
@@ -86,10 +88,10 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
                         + debugInfo );
 
         final Instant startTime = Instant.now();
-        final Map<String, Map<String, String>> results;
+        final Map<String, Map<String, String>> results = new LinkedHashMap<>();
         try
         {
-            results = userSearchJobParameters.getChaiProvider().search( userSearchJobParameters.getContext(), searchHelper );
+            results.putAll( userSearchJobParameters.getChaiProvider().search( userSearchJobParameters.getContext(), searchHelper ) );
         }
         catch ( final ChaiUnavailableException e )
         {
@@ -97,8 +99,11 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
         }
         catch ( final ChaiOperationException e )
         {
-            throw new PwmOperationalException( PwmError.forChaiError( e.getErrorCode() ), "ldap error during searchID="
-                    + userSearchJobParameters.getSearchID() + ", context=" + userSearchJobParameters.getContext() + ", error=" + e.getMessage() );
+            if ( !userSearchJobParameters.isIgnoreOperationalErrors() )
+            {
+                throw new PwmOperationalException( PwmError.forChaiError( e.getErrorCode() ), "ldap error during searchID="
+                        + userSearchJobParameters.getSearchID() + ", context=" + userSearchJobParameters.getContext() + ", error=" + e.getMessage() );
+            }
         }
 
         final TimeDuration searchDuration = TimeDuration.fromCurrent( startTime );

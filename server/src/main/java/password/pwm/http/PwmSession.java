@@ -58,6 +58,8 @@ import java.util.Map;
  */
 public class PwmSession implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSession.class );
 
     private final transient PwmApplication pwmApplication;

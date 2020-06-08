@@ -32,6 +32,8 @@ import java.util.Set;
 @Value
 public class RestAuthentication implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private RestAuthenticationType type;
     private String namedSecretName;
     private UserIdentity ldapIdentity;

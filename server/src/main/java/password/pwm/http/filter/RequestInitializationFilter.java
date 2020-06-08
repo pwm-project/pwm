@@ -357,7 +357,8 @@ public class RequestInitializationFilter implements Filter
             if ( contentPolicy != null && !contentPolicy.isEmpty() )
             {
                 final String nonce = pwmRequest.getCspNonce();
-                final String expandedPolicy = contentPolicy.replace( "%NONCE%", nonce );
+                final String replacedPolicy = contentPolicy.replace( "%NONCE%", nonce );
+                final String expandedPolicy = MacroMachine.forNonUserSpecific( pwmRequest.getPwmApplication(), null ).expandMacros( replacedPolicy );
                 resp.setHeader( HttpHeader.ContentSecurityPolicy, expandedPolicy );
             }
         }

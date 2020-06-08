@@ -25,6 +25,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
@@ -36,6 +37,7 @@ import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.StoredValue;
+import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigItemKey;
@@ -72,6 +74,9 @@ import password.pwm.i18n.Config;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.ldap.LdapBrowser;
+import password.pwm.svc.email.EmailServer;
+import password.pwm.svc.email.EmailServerUtil;
+import password.pwm.svc.email.EmailService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -86,6 +91,7 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestRandomPasswordServer;
 import password.pwm.ws.server.rest.bean.HealthData;
 
+import javax.mail.MessagingException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.ByteArrayInputStream;
@@ -100,6 +106,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -133,6 +140,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         ldapHealthCheck( HttpMethod.POST ),
         databaseHealthCheck( HttpMethod.POST ),
         smsHealthCheck( HttpMethod.POST ),
+        emailHealthCheck( HttpMethod.POST ),
         finishEditing( HttpMethod.POST ),
         executeSettingFunction( HttpMethod.POST ),
         setConfigurationPassword( HttpMethod.POST ),
@@ -743,6 +751,57 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    @ActionHandler( action = "emailHealthCheck" )
+    private ProcessStatus restEmailHealthCheck(
+            final PwmRequest pwmRequest
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        final Instant startTime = Instant.now();
+        final ConfigManagerBean configManagerBean = getBean( pwmRequest );
+        final String profileID = pwmRequest.readParameterAsString( "profile" );
+
+        LOGGER.debug( pwmRequest, () -> "beginning restEmailHealthCheck" );
+
+        final Map<String, String> params = pwmRequest.readBodyAsJsonStringMap();
+        final EmailItemBean testEmailItem = new EmailItemBean( params.get( "to" ), params.get( "from" ), params.get( "subject" ), params.get( "body" ), null );
+
+        final List<HealthRecord> returnRecords = new ArrayList<>();
+
+        final Configuration testConfiguration = new Configuration( configManagerBean.getStoredConfiguration() );
+
+        final EmailServerProfile emailServerProfile = testConfiguration.getEmailServerProfiles().get( profileID );
+        if ( emailServerProfile != null )
+        {
+            final Optional<EmailServer> emailServer = EmailServerUtil.makeEmailServer( testConfiguration, emailServerProfile, null );
+            if ( emailServer.isPresent() )
+            {
+                final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, pwmRequest.getUserInfoIfLoggedIn() );
+
+                try
+                {
+                    EmailService.sendEmailSynchronous( emailServer.get(), testConfiguration, testEmailItem, macroMachine );
+                    returnRecords.add( new HealthRecord( HealthStatus.INFO, HealthTopic.Email, "message sent" ) );
+                }
+                catch ( final MessagingException | PwmException e )
+                {
+                    returnRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Email, JavaHelper.readHostileExceptionMessage( e ) ) );
+                }
+            }
+        }
+
+        if ( returnRecords.isEmpty() )
+        {
+            returnRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Email, "smtp service is not configured." ) );
+        }
+
+        final HealthData healthData = HealthRecord.asHealthDataBean( testConfiguration, pwmRequest.getLocale(), returnRecords );
+        final RestResultBean restResultBean = RestResultBean.withData( healthData );
+        pwmRequest.outputJsonResult( restResultBean );
+        LOGGER.debug( pwmRequest, () -> "completed restEmailHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        return ProcessStatus.Halt;
+    }
+
     @ActionHandler( action = "uploadFile" )
     private ProcessStatus doUploadFile(
             final PwmRequest pwmRequest
@@ -1061,7 +1120,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         {
             if ( loopCategory.hasProfiles() )
             {
-                if ( loopCategory.getProfileSetting() == setting )
+                final Optional<PwmSetting> profileSetting = loopCategory.getProfileSetting();
+                if ( profileSetting.isPresent() && profileSetting.get() == setting )
                 {
                     category = loopCategory;
                 }
@@ -1070,6 +1130,12 @@ public class ConfigEditorServlet extends ControlledPwmServlet
 
         final String sourceID = inputMap.get( "sourceID" );
         final String destinationID = inputMap.get( "destinationID" );
+
+        if ( category == null )
+        {
+            throw new IllegalStateException();
+        }
+
         try
         {
             modifier.copyProfileID( category, sourceID, destinationID, pwmRequest.getUserInfoIfLoggedIn() );

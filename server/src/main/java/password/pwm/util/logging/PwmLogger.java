@@ -244,7 +244,6 @@ public class PwmLogger
         }
     }
 
-
     private static String convertErrorInformation( final ErrorInformation info )
     {
         return info.toDebugStr();

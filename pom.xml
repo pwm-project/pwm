@@ -30,7 +30,7 @@
         <build.revision>0</build.revision>  <!-- default in case not set on command line -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <pwm.minimum.maven.version>3.2</pwm.minimum.maven.version>
+        <pwm.minimum.maven.version>3.5</pwm.minimum.maven.version>
         <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -58,6 +58,12 @@
             <id>skip-checkstyle</id>
             <properties>
                 <checkstyle.skip>true</checkstyle.skip>
+            </properties>
+        </profile>
+        <profile>
+            <id>skip-spotbugs</id>
+            <properties>
+                <spotbugs.skip>true</spotbugs.skip>
             </properties>
         </profile>
         <profile>
@@ -120,7 +126,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.1.1</version>
+                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -136,9 +142,6 @@
                                     <Implementation-URL>${project.organization.url}</Implementation-URL>
                                     <Implementation-Build-Java-Vendor>${java.vendor}</Implementation-Build-Java-Vendor>
                                     <Implementation-Build-Java-Version>${java.version}</Implementation-Build-Java-Version>
-                                    <Implementation-Build>${build.number}</Implementation-Build>
-                                    <Implementation-Revision>${build.revision}</Implementation-Revision>
-                                    <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
                                     <SCM-Git-Branch>${git.branch}</SCM-Git-Branch>
                                     <SCM-Git-Commit-ID>${git.commit.id}</SCM-Git-Commit-ID>
                                     <SCM-Git-Commit-ID-Abbrev>${git.commit.id.abbrev}</SCM-Git-Commit-ID-Abbrev>
@@ -214,6 +217,7 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <showWarnings>true</showWarnings>
                 </configuration>
             </plugin>
             <plugin>
@@ -224,7 +228,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.30</version>
+                        <version>8.32</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -303,15 +307,16 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>3.1.12.2</version>
+                <version>4.0.0</version>
                 <dependencies>
                     <dependency>
                         <groupId>com.github.spotbugs</groupId>
                         <artifactId>spotbugs</artifactId>
-                        <version>4.0.0</version>
+                        <version>4.0.3</version>
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <skip>${spotbugs.skip}</skip>
                     <fork>false</fork>
                     <excludeFilterFile>${project.root.basedir}/build/spotbugs-exclude.xml</excludeFilterFile>
                     <includeTests>false</includeTests>
@@ -319,7 +324,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>verify</phase>
+                        <phase>test</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
@@ -332,14 +337,17 @@
                 <version>1.8</version>
                 <executions>
                     <execution>
+                        <id>output-checksums</id>
                         <goals>
                             <goal>artifacts</goal>
                         </goals>
-                        <phase>verify</phase>
+                        <phase>package</phase>
                         <configuration>
                             <algorithms>
                                 <algorithm>SHA-1</algorithm>
+                                <algorithm>SHA-256</algorithm>
                             </algorithms>
+                            <failOnError>false</failOnError>
                         </configuration>
                     </execution>
                 </executions>
@@ -350,7 +358,7 @@
             <plugin> <!-- checks owsp vulnerability database -->
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>5.3.0</version>
+                <version>5.3.2</version>
                 <executions>
                     <execution>
                         <goals>
@@ -373,7 +381,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.0.0</version>
+            <version>4.0.3</version>
             <scope>provided</scope>
         </dependency>
 
@@ -387,19 +395,19 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>3.3.0</version>
+            <version>3.3.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.15.0</version>
+            <version>3.16.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
-            <version>2.26.1</version>
+            <version>2.26.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>

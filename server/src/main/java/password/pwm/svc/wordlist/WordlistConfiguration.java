@@ -47,6 +47,8 @@ import java.util.function.Supplier;
 @Builder( toBuilder = true )
 public class WordlistConfiguration implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     static final int STREAM_BUFFER_SIZE = 1_1024_1024;
     static final PwmHashAlgorithm HASH_ALGORITHM = PwmHashAlgorithm.SHA256;
 

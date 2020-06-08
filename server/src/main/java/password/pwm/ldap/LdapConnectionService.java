@@ -75,7 +75,7 @@ public class LdapConnectionService implements PwmService
     private final ThreadLocal<ThreadLocalContainer> threadLocalProvider = new ThreadLocal<>();
     private final Set<ThreadLocalContainer> threadLocalContainers = Collections.synchronizedSet( Collections.newSetFromMap( new WeakHashMap<>() ) );
     private final ReentrantLock reentrantLock = new ReentrantLock();
-    private final ConditionalTaskExecutor debugLogger = ConditionalTaskExecutor.forPeriodicTask( this::logDebugInfo, TimeDuration.MINUTE );
+    private final ConditionalTaskExecutor debugLogger = ConditionalTaskExecutor.forPeriodicTask( this::conditionallyLogDebugInfo, TimeDuration.MINUTE );
     private final ChaiProviderFactory chaiProviderFactory = ChaiProviderFactory.newProviderFactory();
     private final Map<String, Map<Integer, ChaiProvider>> proxyChaiProviders = new HashMap<>();
 
@@ -375,6 +375,14 @@ public class LdapConnectionService implements PwmService
         }
 
         return chaiProviderFactory;
+    }
+
+    private void conditionallyLogDebugInfo()
+    {
+        if ( !chaiProviderFactory.activeProviders().isEmpty() )
+        {
+            logDebugInfo();
+        }
     }
 
     private void logDebugInfo()

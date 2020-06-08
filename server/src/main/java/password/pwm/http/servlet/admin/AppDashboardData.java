@@ -194,6 +194,12 @@ public class AppDashboardData implements Serializable
                 PwmConstants.SERVLET_VERSION
         ) );
         aboutData.add( new DisplayElement(
+                "appBuildTime",
+                DisplayElement.Type.timestamp,
+                l.forKey( "Field_AppBuildTime" ),
+                PwmConstants.BUILD_TIME
+        ) );
+        aboutData.add( new DisplayElement(
                 "currentTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_CurrentTime" ),

@@ -51,26 +51,14 @@ public abstract class PwmConstants
 {
     public static final Map<String, String> BUILD_MANIFEST = readBuildManifest();
 
-    public static final String BUILD_TIME = BUILD_MANIFEST.getOrDefault( "Implementation-Build-Timestamp", "n/a" );
-    public static final String BUILD_NUMBER = BUILD_MANIFEST.getOrDefault( "Implementation-Build", "0" );
-    public static final String BUILD_REVISION = BUILD_MANIFEST.getOrDefault( "Implementation-Revision", "0" );
+    public static final String BUILD_TIME = BUILD_MANIFEST.getOrDefault( "SCM-Git-Commit-Timestamp", "n/a" );
+    public static final String BUILD_NUMBER = BUILD_MANIFEST.getOrDefault( "SCM-Git-Commit-ID-Abbrev", "0" );
+    public static final String BUILD_REVISION = BUILD_MANIFEST.getOrDefault( "SCM-Git-Commit-ID", "0" );
     public static final String BUILD_JAVA_VENDOR = BUILD_MANIFEST.getOrDefault( "Implementation-Build-Java-Vendor", "0" );
     public static final String BUILD_JAVA_VERSION = BUILD_MANIFEST.getOrDefault( "Implementation-Build-Java-Version", "0" );
     public static final String BUILD_VERSION = BUILD_MANIFEST.getOrDefault( "Implementation-Version", "0" );
 
-    private static final String MISSING_VERSION_STRING = readPwmConstantsBundle( "missingVersionString" );
-    public static final String SERVLET_VERSION;
-
-    static
-    {
-        final String servletVersion = "v" + BUILD_VERSION
-                        + " b" + BUILD_NUMBER
-                        + " r" + BUILD_REVISION;
-
-        SERVLET_VERSION = servletVersion.isEmpty()
-                ? MISSING_VERSION_STRING
-                : servletVersion;
-    }
+    public static final String SERVLET_VERSION = "v" + BUILD_VERSION  + " b" + BUILD_NUMBER;
 
     public static final String CHAI_API_VERSION = com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION;
 

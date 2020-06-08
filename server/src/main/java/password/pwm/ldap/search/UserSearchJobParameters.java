@@ -42,4 +42,6 @@ public class UserSearchJobParameters
     private final SessionLabel sessionLabel;
     private final int searchID;
     private final int jobId;
+    private final SearchConfiguration.SearchScope searchScope;
+    private final boolean ignoreOperationalErrors;
 }

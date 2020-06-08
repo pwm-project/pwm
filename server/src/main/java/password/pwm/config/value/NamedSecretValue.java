@@ -52,6 +52,7 @@ import java.util.Optional;
 
 public class NamedSecretValue implements StoredValue
 {
+    private static final long serialVersionUID = 1L;
 
     private final transient LazySupplier<String> valueHashSupplier = new LazySupplier<>( () -> AbstractValue.valueHashComputer( NamedSecretValue.this ) );
 

@@ -225,38 +225,52 @@ public class EmailService implements PwmService
 
     private boolean determineIfItemCanBeDelivered( final EmailItemBean emailItem )
     {
-
         if ( servers.isEmpty() )
         {
-            LOGGER.debug( () -> "discarding email send event (no SMTP server address configured) " + emailItem.toDebugString() );
+            LOGGER.debug( () -> "discarding email send event, no email servers configured" );
             return false;
         }
 
-        if ( emailItem.getFrom() == null || emailItem.getFrom().length() < 1 )
+        try
         {
-            LOGGER.error( () -> "discarding email event (no from address): " + emailItem.toDebugString() );
-            return false;
+            validateEmailItem( emailItem );
+            return true;
         }
-
-        if ( emailItem.getTo() == null || emailItem.getTo().length() < 1 )
+        catch ( final PwmOperationalException e )
         {
-            LOGGER.error( () -> "discarding email event (no to address): " + emailItem.toDebugString() );
-            return false;
+            LOGGER.debug( () -> "discarding email send event: " + e.getMessage() );
         }
+        return false;
+    }
 
-        if ( emailItem.getSubject() == null || emailItem.getSubject().length() < 1 )
+    private static void validateEmailItem( final EmailItemBean emailItem )
+            throws PwmOperationalException
+    {
+
+
+        if ( StringUtil.isEmpty( emailItem.getFrom() ) )
         {
-            LOGGER.error( () -> "discarding email event (no subject): " + emailItem.toDebugString() );
-            return false;
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_EMAIL_SEND_FAILURE,
+                    "missing from address in email item" ) );
         }
 
-        if ( ( emailItem.getBodyPlain() == null || emailItem.getBodyPlain().length() < 1 ) && ( emailItem.getBodyHtml() == null || emailItem.getBodyHtml().length() < 1 ) )
+        if ( StringUtil.isEmpty( emailItem.getTo() ) )
         {
-            LOGGER.error( () -> "discarding email event (no body): " + emailItem.toDebugString() );
-            return false;
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_EMAIL_SEND_FAILURE,
+                    "missing to address in email item" ) );
         }
 
-        return true;
+        if ( StringUtil.isEmpty( emailItem.getSubject() ) )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_EMAIL_SEND_FAILURE,
+                    "missing subject in email item" ) );
+        }
+
+        if ( StringUtil.isEmpty( emailItem.getBodyPlain() ) && StringUtil.isEmpty( emailItem.getBodyHtml() ) )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_EMAIL_SEND_FAILURE,
+                    "missing body in email item" ) );
+        }
     }
 
     public void submitEmail(
@@ -306,7 +320,7 @@ public class EmailService implements PwmService
                 workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroMachine );
             }
 
-            if ( workingItemBean.getTo() == null || workingItemBean.getTo().length() < 1 )
+            if ( StringUtil.isEmpty( workingItemBean.getTo() ) )
             {
                 LOGGER.error( () -> "no destination address available for email, skipping; email: " + emailItem.toDebugString() );
             }
@@ -335,6 +349,36 @@ public class EmailService implements PwmService
         }
     }
 
+    public static void sendEmailSynchronous(
+            final EmailServer emailServer,
+            final Configuration configuration,
+            final EmailItemBean emailItem,
+            final MacroMachine macroMachine
+    )
+            throws PwmOperationalException, PwmUnrecoverableException, MessagingException
+
+    {
+        validateEmailItem( emailItem );
+        EmailItemBean workingItemBean = emailItem;
+        if ( macroMachine != null )
+        {
+            workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroMachine );
+        }
+        final Transport transport = EmailServerUtil.makeSmtpTransport( emailServer );
+        final List<Message> messages = EmailServerUtil.convertEmailItemToMessages(
+                workingItemBean,
+                configuration,
+                emailServer
+        );
+
+        for ( final Message message : messages )
+        {
+            message.saveChanges();
+            transport.sendMessage( message, message.getAllRecipients() );
+        }
+        transport.close();
+    }
+
     private final AtomicInteger newThreadLocalTransport = new AtomicInteger();
     private final AtomicInteger useExistingConnection = new AtomicInteger();
     private final AtomicInteger useExistingTransport = new AtomicInteger();
@@ -352,11 +396,36 @@ public class EmailService implements PwmService
 
     private WorkQueueProcessor.ProcessResult sendItem( final EmailItemBean emailItemBean )
     {
-        EmailConnection serverTransport = null;
-
-        // create a new MimeMessage object (using the Session created above)
         try
         {
+            executeEmailSend( emailItemBean );
+            return WorkQueueProcessor.ProcessResult.SUCCESS;
+        }
+        catch ( final MessagingException | PwmException e )
+        {
+            if ( EmailServerUtil.examineSendFailure( e, retryableStatusResponses ) )
+            {
+                LOGGER.error( () -> "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", will retry" );
+                StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_FAILURES );
+                return WorkQueueProcessor.ProcessResult.RETRY;
+            }
+            else
+            {
+                LOGGER.error( () -> "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", permanent failure, discarding message" );
+                StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_DISCARDS );
+                return WorkQueueProcessor.ProcessResult.FAILED;
+            }
+        }
+    }
+
+    private void executeEmailSend( final EmailItemBean emailItemBean )
+            throws PwmUnrecoverableException, MessagingException
+    {
+        EmailConnection serverTransport = null;
+
+        try
+        {
+            // create a new MimeMessage object (using the Session created above)
             if ( threadLocalTransport.get() == null )
             {
 
@@ -401,11 +470,10 @@ public class EmailService implements PwmService
 
             LOGGER.debug( () -> "sent email: " + emailItemBean.toDebugString() );
             StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_SUCCESSES );
-            return WorkQueueProcessor.ProcessResult.SUCCESS;
+
         }
         catch ( final MessagingException | PwmException e )
         {
-
             final ErrorInformation errorInformation;
             if ( e instanceof PwmException )
             {
@@ -429,19 +497,7 @@ public class EmailService implements PwmService
                 serverErrors.put( serverTransport.getEmailServer(), errorInformation );
             }
             LOGGER.error( errorInformation );
-
-            if ( EmailServerUtil.examineSendFailure( e, retryableStatusResponses ) )
-            {
-                LOGGER.error( () -> "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", will retry" );
-                StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_FAILURES );
-                return WorkQueueProcessor.ProcessResult.RETRY;
-            }
-            else
-            {
-                LOGGER.error( () -> "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", permanent failure, discarding message" );
-                StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_DISCARDS );
-                return WorkQueueProcessor.ProcessResult.FAILED;
-            }
+            throw e;
         }
     }
 
