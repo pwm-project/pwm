@@ -2687,6 +2687,11 @@
             <value>default</value>
         </default>
     </setting>
+    <setting hidden="false" key="newUser.ldapProfile" level="1" required="true">
+        <default>
+            <value/>
+        </default>
+    </setting>
     <setting hidden="false" key="newUser.createContext" level="1" required="true">
         <flag>ldapDNsyntax</flag>
         <default>

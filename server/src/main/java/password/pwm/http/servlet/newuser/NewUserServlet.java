@@ -280,6 +280,7 @@ public class NewUserServlet extends ControlledPwmServlet
             {
                 final MacroMachine macroMachine = NewUserUtils.createMacroMachineForNewUser(
                         pwmApplication,
+                        newUserProfile,
                         pwmRequest.getLabel(),
                         newUserBean.getNewUserForm(),
                         null

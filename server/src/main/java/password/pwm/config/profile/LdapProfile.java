@@ -31,6 +31,8 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.data.UserPermission;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
@@ -111,6 +113,7 @@ public class LdapProfile extends AbstractProfile implements Profile
 
     public ChaiProvider getProxyChaiProvider( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
+        verifyIsEnabled();
         return pwmApplication.getProxyChaiProvider( this.getIdentifier() );
     }
 
@@ -213,6 +216,21 @@ public class LdapProfile extends AbstractProfile implements Profile
         {
             return new LdapProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
         }
+    }
+
+    private void verifyIsEnabled()
+            throws PwmUnrecoverableException
+    {
+        if ( !isEnabled() )
+        {
+            final String msg = "ldap profile '" + getIdentifier() + "' is not enabled";
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, msg ) );
+        }
+    }
+
+    public boolean isEnabled()
+    {
+        return readSettingAsBoolean( PwmSetting.LDAP_PROFILE_ENABLED );
     }
 
     @Override

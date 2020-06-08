@@ -835,14 +835,22 @@ public enum PwmSetting
     // new user settings
     NEWUSER_ENABLE(
             "newUser.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_SETTINGS ),
+
     NEWUSER_PROFILE_LIST(
             "newUser.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+
+    NEWUSER_FORM(
+            "newUser.form", PwmSettingSyntax.FORM, PwmSettingCategory.NEWUSER_PROFILE ),
+    NEWUSER_LDAP_PROFILE(
+            "newUser.ldapProfile", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_CONTEXT(
             "newUser.createContext", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_AGREEMENT_MESSAGE(
             "display.newuser.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.NEWUSER_PROFILE ),
-    NEWUSER_FORM(
-            "newUser.form", PwmSettingSyntax.FORM, PwmSettingCategory.NEWUSER_PROFILE ),
+    NEWUSER_PROFILE_DISPLAY_NAME(
+            "newUser.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.NEWUSER_PROFILE ),
+    NEWUSER_PROFILE_DISPLAY_VISIBLE(
+            "newUser.profile.visible", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_WRITE_ATTRIBUTES(
             "newUser.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_DELETE_ON_FAIL(
@@ -854,17 +862,13 @@ public enum PwmSetting
     NEWUSER_EMAIL_VERIFICATION(
             "newUser.email.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_SMS_VERIFICATION(
-        "newUser.sms.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
+            "newUser.sms.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_EXTERNAL_VERIFICATION(
-        "newUser.external.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
+            "newUser.external.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_PASSWORD_POLICY_USER(
             "newUser.passwordPolicy.user", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_MINIMUM_WAIT_TIME(
             "newUser.minimumWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.NEWUSER_PROFILE ),
-    NEWUSER_PROFILE_DISPLAY_NAME(
-            "newUser.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.NEWUSER_PROFILE ),
-    NEWUSER_PROFILE_DISPLAY_VISIBLE(
-            "newUser.profile.visible", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_REDIRECT_URL(
             "newUser.redirectUrl", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE ),
     NEWUSER_PROMPT_FOR_PASSWORD(

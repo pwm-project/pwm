@@ -73,6 +73,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
@@ -97,6 +98,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 
 /**
  * @author Jason D. Rivard
@@ -106,6 +108,8 @@ public class Configuration implements SettingReader
     private static final PwmLogger LOGGER = PwmLogger.forClass( Configuration.class );
 
     private final StoredConfiguration storedConfiguration;
+
+    private final ConfigurationSuppliers configurationSuppliers = new ConfigurationSuppliers();
 
     private DataCache dataCache = new DataCache();
 
@@ -138,7 +142,7 @@ public class Configuration implements SettingReader
 
     public Map<String, LdapProfile> getLdapProfiles( )
     {
-        return getProfileMap( ProfileDefinition.LdapProfile, LdapProfile.class );
+        return configurationSuppliers.ldapProfilesSupplier.get();
     }
 
     public EmailItemBean readSettingAsEmail( final PwmSetting setting, final Locale locale )
@@ -797,14 +801,6 @@ public class Configuration implements SettingReader
 
     public LdapProfile getDefaultLdapProfile( ) throws PwmUnrecoverableException
     {
-        if ( getLdapProfiles().isEmpty() )
-        {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
-                    {
-                            "no ldap profiles are defined",
-                    }
-            ) );
-        }
         return getLdapProfiles().values().iterator().next();
     }
 
@@ -989,6 +985,22 @@ public class Configuration implements SettingReader
         final StoredValue readValue = storedConfiguration.readSetting( setting, null );
         dataCache.settings.put( setting, readValue );
         return readValue;
+    }
+
+    private class ConfigurationSuppliers
+    {
+        private final Supplier<Map<String, LdapProfile>> ldapProfilesSupplier = new LazySupplier<>( () ->
+        {
+            final Map<String, LdapProfile> map = new LinkedHashMap<>();
+            for ( final Map.Entry<String, LdapProfile> entry : getProfileMap( ProfileDefinition.LdapProfile, LdapProfile.class ).entrySet() )
+            {
+                if ( entry.getValue().isEnabled() )
+                {
+                    map.put( entry.getKey(), entry.getValue() );
+                }
+            }
+            return Collections.unmodifiableMap( map );
+        } );
     }
 
     private static class DataCache

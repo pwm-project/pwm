@@ -34,6 +34,7 @@ import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.password.PasswordUtility;
 
@@ -51,9 +52,12 @@ public class NewUserProfile extends AbstractProfile implements Profile
     private Instant newUserPasswordPolicyCacheTime;
     private final Map<Locale, PwmPasswordPolicy> newUserPasswordPolicyCache = new HashMap<>();
 
-    protected NewUserProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    private final StoredConfiguration storedConfiguration;
+
+    protected NewUserProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap, final StoredConfiguration storedConfiguration )
     {
         super( identifier, storedValueMap );
+        this.storedConfiguration = storedConfiguration;
     }
 
     @Override
@@ -117,7 +121,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
                 lookupDN = configuredNewUserPasswordDN;
             }
 
-            if ( lookupDN.isEmpty() )
+            if ( StringUtil.isEmpty( lookupDN ) )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation(
                         PwmError.ERROR_INVALID_CONFIG,
@@ -172,7 +176,29 @@ public class NewUserProfile extends AbstractProfile implements Profile
         @Override
         public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
         {
-            return new NewUserProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+            return new NewUserProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ), storedConfiguration );
         }
+    }
+
+    public LdapProfile getLdapProfile()
+            throws PwmUnrecoverableException
+    {
+        final Configuration configuration = new Configuration( storedConfiguration );
+        final String configuredProfile = readSettingAsString( PwmSetting.NEWUSER_LDAP_PROFILE );
+        if ( !StringUtil.isEmpty( configuredProfile ) )
+        {
+            final LdapProfile ldapProfile = configuration.getLdapProfiles().get( configuredProfile );
+            if ( ldapProfile == null )
+            {
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
+                        {
+                                "configured ldap profile for new user profile is invalid.  check setting "
+                                        + PwmSetting.NEWUSER_LDAP_PROFILE.toMenuLocationDebug( this.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
+                                }
+                ) );
+            }
+            return ldapProfile;
+        }
+        return new Configuration( storedConfiguration ).getDefaultLdapProfile();
     }
 }

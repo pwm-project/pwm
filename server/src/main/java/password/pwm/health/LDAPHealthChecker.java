@@ -924,7 +924,7 @@ public class LDAPHealthChecker implements HealthChecker
 
             try
             {
-                final LdapProfile ldapProfile = configuration.getDefaultLdapProfile();
+                final LdapProfile ldapProfile = newUserProfile.getLdapProfile();
                 if ( NewUserProfile.TEST_USER_CONFIG_VALUE.equals( policyUserStr ) )
                 {
                     final UserIdentity testUser = ldapProfile.getTestUser( pwmApplication );
