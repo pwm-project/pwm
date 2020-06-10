@@ -47,7 +47,7 @@ public class RestTestExternalTokenDestinationServlet extends HttpServlet
         System.out.println( "--External Token Destination--" );
         final InputStream inputStream = req.getInputStream();
         final String body = IOUtils.toString( inputStream );
-        final JsonObject jsonObject = new JsonParser().parse( body ).getAsJsonObject();
+        final JsonObject jsonObject = JsonParser.parseString( body ).getAsJsonObject();
         final String email = jsonObject.getAsJsonObject( "tokenDestination" ).get( "email" ).getAsString();
         final String sms = jsonObject.getAsJsonObject( "tokenDestination" ).get( "sms" ).getAsString();
         final String displayValue = "YourTokenDestination";

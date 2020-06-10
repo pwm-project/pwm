@@ -62,7 +62,7 @@ public class LogoutServlet extends ControlledPwmServlet
     private static final String PARAM_PASSWORD_MODIFIED = "passwordModified";
     private static final String PARAM_PUBLIC_ONLY = "publicOnly";
 
-    private enum LogoutAction implements ControlledPwmServlet.ProcessAction
+    private enum LogoutAction implements ProcessAction
     {
         showLogout,
         showTimeout,;

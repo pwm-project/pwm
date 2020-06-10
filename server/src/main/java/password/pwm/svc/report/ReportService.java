@@ -513,9 +513,9 @@ public class ReportService implements PwmService
                             final TimeDuration totalUpdateTime = TimeDuration.fromCurrent( startUpdateTime );
                             avgTracker.addSample( totalUpdateTime.asMillis() );
 
+                            updateTimeLock.lock();
                             try
                             {
-                                updateTimeLock.lock();
                                 final TimeDuration scaledTime = TimeDuration.of( totalUpdateTime.asMillis() / threadCount, TimeDuration.Unit.MILLISECONDS );
                                 reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
                                         .jobDuration( reportStatusInfo.getJobDuration().add( scaledTime ) )

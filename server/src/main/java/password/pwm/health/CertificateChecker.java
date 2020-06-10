@@ -146,7 +146,7 @@ public class CertificateChecker implements HealthChecker
                     return Collections.singletonList( record );
                 }
             }
-            return returnList;
+            return Collections.unmodifiableList( returnList );
         }
         return Collections.emptyList();
     }

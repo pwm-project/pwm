@@ -22,6 +22,7 @@ package password.pwm.util.localdb;
 
 import password.pwm.PwmApplication;
 import password.pwm.util.java.ConditionalTaskExecutor;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -127,6 +128,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public boolean isEmpty( )
     {
         try
@@ -139,6 +141,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public Object[] toArray( )
     {
         final List<Object> returnList = new ArrayList<>();
@@ -149,6 +152,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         return returnList.toArray();
     }
 
+    @Override
     public <T> T[] toArray( final T[] a )
     {
         int index = 0;
@@ -160,11 +164,13 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         return a;
     }
 
+    @Override
     public boolean containsAll( final Collection<?> c )
     {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean addAll( final Collection<? extends String> c )
     {
         try
@@ -186,11 +192,13 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public boolean removeAll( final Collection<?> c )
     {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean add( final String s )
     {
         try
@@ -204,11 +212,13 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public boolean retainAll( final Collection<?> c )
     {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public void clear( )
     {
         try
@@ -221,16 +231,19 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public boolean remove( final Object o )
     {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean contains( final Object o )
     {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public int size( )
     {
         try
@@ -243,6 +256,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public void addFirst( final String s )
     {
         try
@@ -255,6 +269,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public void addLast( final String s )
     {
         try
@@ -267,6 +282,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public boolean offerFirst( final String s )
     {
         try
@@ -280,6 +296,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public boolean offerLast( final String s )
     {
         try
@@ -293,6 +310,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public String removeFirst( )
     {
         final String value = pollFirst();
@@ -303,6 +321,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         return value;
     }
 
+    @Override
     public String removeLast( )
     {
         final String value = pollLast();
@@ -313,6 +332,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         return value;
     }
 
+    @Override
     public String pollFirst( )
     {
         try
@@ -330,6 +350,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public String pollLast( )
     {
         try
@@ -347,6 +368,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public String getFirst( )
     {
         final String value = peekFirst();
@@ -357,6 +379,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         return value;
     }
 
+    @Override
     public String getLast( )
     {
         final String value = peekLast();
@@ -367,6 +390,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         return value;
     }
 
+    @Override
     public String peekFirst( )
     {
         try
@@ -384,6 +408,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public String peekLast( )
     {
         try
@@ -401,21 +426,25 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public boolean removeFirstOccurrence( final Object o )
     {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean removeLastOccurrence( final Object o )
     {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public void push( final String s )
     {
         this.addFirst( s );
     }
 
+    @Override
     public String pop( )
     {
         final String value = this.removeFirst();
@@ -426,6 +455,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         return value;
     }
 
+    @Override
     public Iterator<String> descendingIterator( )
     {
         try
@@ -438,6 +468,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public Iterator<String> iterator( )
     {
         try
@@ -450,12 +481,14 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public boolean offer( final String s )
     {
         this.add( s );
         return true;
     }
 
+    @Override
     public String remove( )
     {
         return this.removeFirst();
@@ -473,11 +506,13 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    @Override
     public String element( )
     {
         return this.getFirst();
     }
 
+    @Override
     public String peek( )
     {
         return this.peekFirst();
@@ -506,11 +541,13 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             queueSizeAtCreate = internalQueue.size();
         }
 
+        @Override
         public boolean hasNext( )
         {
             return position != null;
         }
 
+        @Override
         public String next( )
         {
             if ( position == null )
@@ -655,9 +692,9 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         private InternalQueue( final LocalDB localDB, final LocalDB.DB db, final boolean developerDebug )
                 throws LocalDBException
         {
+            lock.writeLock().lock();
             try
             {
-                lock.writeLock().lock();
                 if ( localDB == null )
                 {
                     throw new NullPointerException( "LocalDB cannot be null" );
@@ -722,9 +759,9 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         public void clear( )
                 throws LocalDBException
         {
+            lock.writeLock().lock();
             try
             {
-                lock.writeLock().lock();
                 localDB.truncate( db );
 
                 headPosition = new Position( "0" );
@@ -746,9 +783,9 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         public int size( )
                 throws LocalDBException
         {
+            lock.readLock().lock();
             try
             {
-                lock.readLock().lock();
                 return internalSize();
             }
             finally
@@ -769,10 +806,9 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
 
         List<String> removeFirst( final int removalCount, final boolean returnValues ) throws LocalDBException
         {
+            lock.writeLock().lock();
             try
             {
-                lock.writeLock().lock();
-
                 debugOutput( "pre removeFirst()" );
 
                 if ( removalCount < 1 )
@@ -813,10 +849,9 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
 
         List<String> removeLast( final int removalCount, final boolean returnValues ) throws LocalDBException
         {
+            lock.writeLock().lock();
             try
             {
-                lock.writeLock().lock();
-
                 debugOutput( "pre removeLast()" );
 
                 if ( removalCount < 1 )
@@ -858,12 +893,11 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         void addFirst( final Collection<String> values )
                 throws LocalDBException
         {
+            lock.writeLock().lock();
             try
             {
-                lock.writeLock().lock();
                 debugOutput( "pre addFirst()" );
-
-                if ( values == null || values.isEmpty() )
+                if ( JavaHelper.isEmpty( values ) )
                 {
                     return;
                 }
@@ -903,11 +937,11 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
 
         void addLast( final Collection<String> values ) throws LocalDBException
         {
+            lock.writeLock().lock();
             try
             {
-                lock.writeLock().lock();
                 debugOutput( "pre addLast()" );
-                if ( values == null || values.isEmpty() )
+                if ( JavaHelper.isEmpty( values ) )
                 {
                     return;
                 }
@@ -947,9 +981,9 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         List<String> getFirst( final int count )
                 throws LocalDBException
         {
+            lock.readLock().lock();
             try
             {
-                lock.readLock().lock();
                 debugOutput( "pre getFirst()" );
 
                 int getCount = count;
@@ -985,10 +1019,9 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         List<String> getLast( final int count )
                 throws LocalDBException
         {
+            lock.readLock().lock();
             try
             {
-                lock.readLock().lock();
-
                 debugOutput( "pre getLast()" );
 
                 int getCount = count;

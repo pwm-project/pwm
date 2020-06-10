@@ -174,7 +174,7 @@ public class EmailService implements PwmService
             records.add( HealthRecord.forMessage( HealthMessage.Email_SendFailure, errorInformation.toDebugStr() ) );
         }
 
-        return records;
+        return Collections.unmodifiableList( records );
     }
 
     @Override

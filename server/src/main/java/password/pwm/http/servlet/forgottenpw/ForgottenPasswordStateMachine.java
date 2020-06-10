@@ -1097,7 +1097,7 @@ public class ForgottenPasswordStateMachine
 
 
         // add a bit of jitter to pretend like we're checking a data source
-        final long jitterMs = 300 + commonValues.getPwmApplication().getSecureService().pwmRandom().nextInt( 700 );
+        final long jitterMs = 300L + commonValues.getPwmApplication().getSecureService().pwmRandom().nextInt( 700 );
         TimeDuration.of( jitterMs, TimeDuration.Unit.MILLISECONDS ).pause();
 
         if ( userIdentity != null )

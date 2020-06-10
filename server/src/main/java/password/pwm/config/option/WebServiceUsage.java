@@ -24,7 +24,7 @@ import password.pwm.ws.server.RestAuthenticationType;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,11 +43,13 @@ public enum WebServiceUsage
     VerifyOtp( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
     VerifyResponses( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),;
 
-    private Set<RestAuthenticationType> type;
+    private final Set<RestAuthenticationType> type;
 
     WebServiceUsage( final RestAuthenticationType... type )
     {
-        this.type = type == null ? Collections.emptySet() : Collections.unmodifiableSet( new HashSet<>( Arrays.asList( type ) ) );
+        final EnumSet<RestAuthenticationType> typeSet = EnumSet.noneOf( RestAuthenticationType.class );
+        typeSet.addAll( Arrays.asList( type ) );
+        this.type = Collections.unmodifiableSet( typeSet );
     }
 
     public Set<RestAuthenticationType> getTypes()

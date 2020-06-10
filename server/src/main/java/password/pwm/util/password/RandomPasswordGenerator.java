@@ -22,7 +22,7 @@ package password.pwm.util.password;
 
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
@@ -622,7 +622,7 @@ public class RandomPasswordGenerator
         return newSeeds.isEmpty() ? DEFAULT_SEED_PHRASES : newSeeds;
     }
 
-    @Getter
+    @Value
     @Builder( toBuilder = true )
     public static class RandomGeneratorConfig
     {
@@ -651,8 +651,8 @@ public class RandomPasswordGenerator
         private int maximumLength = DEFAULT_MAXIMUM_LENGTH;
 
         /**
-         * @param minimumStrength The minimum length desired strength.  The algorithm will attempt to make
-         *         the returned value at least this strong, but it is not guaranteed.
+         * The minimum length desired strength.  The algorithm will attempt to make
+         * the returned value at least this strong, but it is not guaranteed.
          */
         @Builder.Default
         private int minimumStrength = DEFAULT_DESIRED_STRENGTH;

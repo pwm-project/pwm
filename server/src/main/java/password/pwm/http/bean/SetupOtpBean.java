@@ -98,7 +98,7 @@ public class SetupOtpBean extends PwmSessionBean
                 LOGGER.error( () -> ex.getMessage(), ex );
             }
             random.setSeed( ( new Date() ).getTime() );
-            challenge = random.nextLong() % ( 10 ^ 6 );
+            challenge = random.nextLong() % ( 1_000_000 );
         }
         return challenge;
     }

@@ -255,7 +255,7 @@ public class PwmScheduler
                 @Override
                 public boolean isDone()
                 {
-                    return hasFailed || innerFuture != null && innerFuture.isDone();
+                    return hasFailed || ( innerFuture != null && innerFuture.isDone() );
                 }
 
                 @Override

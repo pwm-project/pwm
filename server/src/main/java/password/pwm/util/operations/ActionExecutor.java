@@ -160,11 +160,8 @@ public class ActionExecutor
     {
         String url = webAction.getUrl();
         String body = webAction.getBody();
+
         final Map<String, String> headers = new LinkedHashMap<>();
-        if ( webAction.getHeaders() != null )
-        {
-            headers.putAll( webAction.getHeaders() );
-        }
 
         try
         {
@@ -180,13 +177,16 @@ public class ActionExecutor
                 url = macroMachine.expandMacros( url );
                 body = body == null ? "" : macroMachine.expandMacros( body );
 
-                for ( final Map.Entry<String, String> entry : headers.entrySet() )
+                if ( webAction.getHeaders() != null )
                 {
-                    final String headerName = entry.getKey();
-                    final String headerValue = entry.getValue();
-                    if ( headerValue != null )
+                    for ( final Map.Entry<String, String> entry : webAction.getHeaders().entrySet() )
                     {
-                        headers.put( headerName, macroMachine.expandMacros( headerValue ) );
+                        final String headerName = entry.getKey();
+                        final String headerValue = entry.getValue();
+                        if ( headerValue != null )
+                        {
+                            headers.put( headerName, macroMachine.expandMacros( headerValue ) );
+                        }
                     }
                 }
             }

@@ -21,6 +21,7 @@
 package password.pwm.http.bean;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.config.stored.StoredConfiguration;
 
@@ -28,6 +29,7 @@ import java.util.Collections;
 import java.util.Set;
 
 @Data
+@EqualsAndHashCode( callSuper = false )
 public class ConfigManagerBean extends PwmSessionBean
 {
     private static final long serialVersionUID = 1L;

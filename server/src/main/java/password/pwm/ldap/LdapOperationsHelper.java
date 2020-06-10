@@ -72,11 +72,11 @@ import java.io.IOException;
 import java.net.URLConnection;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
+import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -863,7 +863,7 @@ public class LdapOperationsHelper
             throws PwmUnrecoverableException, PwmOperationalException
     {
         final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
-        final Queue<UserIdentity> resultSet = new LinkedList<>();
+        final Queue<UserIdentity> resultSet = new ArrayDeque<>();
         final long searchTimeoutMs = JavaHelper.silentParseLong(
                 pwmApplication.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT ),
                 30_000 );

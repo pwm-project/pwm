@@ -45,8 +45,10 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.time.Instant;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.Deque;
 import java.util.List;
 
 /**
@@ -220,7 +222,7 @@ class LdapXmlUserHistory implements UserHistoryStore
 
     private static class StoredHistory
     {
-        private final LinkedList<StoredEvent> records = new LinkedList<>();
+        private final Deque<StoredEvent> records = new ArrayDeque<>();
 
         void addEvent( final StoredEvent storedEvent )
         {
@@ -237,7 +239,7 @@ class LdapXmlUserHistory implements UserHistoryStore
 
         List<UserAuditRecord> asAuditRecords( final UserInfo userInfoBean )
         {
-            final List<UserAuditRecord> returnList = new LinkedList<>();
+            final List<UserAuditRecord> returnList = new ArrayList<>();
             for ( final StoredEvent loopEvent : records )
             {
                 returnList.add( loopEvent.asAuditRecord( userInfoBean ) );

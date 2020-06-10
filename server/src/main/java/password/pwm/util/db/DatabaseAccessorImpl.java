@@ -421,9 +421,9 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     "iterator #" + counter + " close", table, null, null );
             traceBegin( debugInfo );
 
+            lock.lock();
             try
             {
-                lock.lock();
                 outstandingIterators.remove( this );
 
                 if ( resultSet != null )

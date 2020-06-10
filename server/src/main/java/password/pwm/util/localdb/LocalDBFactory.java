@@ -120,7 +120,7 @@ public class LocalDBFactory
         try
         {
             final Class c = Class.forName( className );
-            final Object impl = c.newInstance();
+            final Object impl = c.getDeclaredConstructor().newInstance();
             if ( !( impl instanceof LocalDBProvider ) )
             {
                 throw new Exception( "unable to createSharedHistoryManager new LocalDB, " + className + " is not instance of " + LocalDBProvider.class.getName() );

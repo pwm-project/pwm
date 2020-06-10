@@ -251,7 +251,7 @@ public class JDBCDriverLoader
 
                 //Create object of loaded class
                 final Class jdbcDriverClass = urlClassLoader.loadClass( jdbcClassName );
-                final Driver driver = ( Driver ) jdbcDriverClass.newInstance();
+                final Driver driver = ( Driver ) jdbcDriverClass.getDeclaredConstructor().newInstance();
 
                 LOGGER.debug( () -> "successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration" );
 
@@ -348,7 +348,7 @@ public class JDBCDriverLoader
             {
                 //Create object of loaded class
                 final Class jdbcDriverClass = urlClassLoader.loadClass( jdbcClassName );
-                final Driver driver = ( Driver ) jdbcDriverClass.newInstance();
+                final Driver driver = ( Driver ) jdbcDriverClass.getDeclaredConstructor().newInstance();
                 LOGGER.debug( () -> "successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration" );
                 return driver;
             }

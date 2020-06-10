@@ -231,7 +231,7 @@ public class AuditService implements PwmService
             healthRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Audit, lastError.toDebugStr() ) );
         }
 
-        return healthRecords;
+        return Collections.unmodifiableList( healthRecords );
     }
 
     public Iterator<AuditRecord> readVault( )

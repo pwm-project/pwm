@@ -95,7 +95,7 @@ public class ConfigurationChecker implements HealthChecker
 
         records.addAll( doHealthCheck( config, PwmConstants.DEFAULT_LOCALE ) );
 
-        return records;
+        return Collections.unmodifiableList( records );
     }
 
     public List<HealthRecord> doHealthCheck( final Configuration config, final Locale locale )

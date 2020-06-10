@@ -237,7 +237,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
             LOGGER.error( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> "error while generating health information: " + e.getMessage() );
         }
 
-        return returnRecords;
+        return Collections.unmodifiableList( returnRecords );
     }
 
     @Override

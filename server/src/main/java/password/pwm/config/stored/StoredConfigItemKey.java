@@ -32,7 +32,7 @@ import java.io.Serializable;
 import java.util.Locale;
 import java.util.Objects;
 
-public class StoredConfigItemKey implements Serializable, Comparable
+public class StoredConfigItemKey implements Serializable, Comparable<StoredConfigItemKey>
 {
     public enum RecordType
     {
@@ -224,11 +224,10 @@ public class StoredConfigItemKey implements Serializable, Comparable
     public String toString()
     {
         return getLabel( PwmConstants.DEFAULT_LOCALE );
-       // return getRecordType().name() + "-" + this.getRecordID() + "-" + this.getProfileID();
     }
 
     @Override
-    public int compareTo( final Object o )
+    public int compareTo( final StoredConfigItemKey o )
     {
         return getLabel( PwmConstants.DEFAULT_LOCALE ).compareTo( o.toString() );
     }

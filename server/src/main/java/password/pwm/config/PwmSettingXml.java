@@ -144,7 +144,7 @@ public class PwmSettingXml
                 definedTemplates.add( template );
             }
         }
-        return definedTemplates;
+        return Collections.unmodifiableSet( definedTemplates );
     }
 }
 

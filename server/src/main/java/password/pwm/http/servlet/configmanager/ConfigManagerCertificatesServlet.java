@@ -215,7 +215,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
 
     @Value
     @Builder
-    public static class CertificateDebugDataItem implements Serializable, Comparable
+    public static class CertificateDebugDataItem implements Serializable, Comparable<CertificateDebugDataItem>
     {
         private String menuLocation;
         private String subject;
@@ -226,14 +226,14 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
         private String detail;
 
         @Override
-        public int compareTo( final Object o )
+        public int compareTo( final CertificateDebugDataItem o )
         {
             if ( this == o || this.equals( o ) )
             {
                 return 0;
             }
 
-            return expirationDate.compareTo( ( ( CertificateDebugDataItem ) o ).getExpirationDate() );
+            return expirationDate.compareTo( o.getExpirationDate() );
         }
     }
 }

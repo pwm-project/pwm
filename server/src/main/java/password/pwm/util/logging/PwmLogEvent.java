@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Value
-public class PwmLogEvent implements Serializable, Comparable
+public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
 {
     private static final int MAX_MESSAGE_LENGTH = 50_000;
 
@@ -141,13 +141,9 @@ public class PwmLogEvent implements Serializable, Comparable
         return output.toString();
     }
 
-    public int compareTo( final Object o )
+    public int compareTo( final PwmLogEvent o )
     {
-        if ( !( o instanceof PwmLogEvent ) )
-        {
-            throw new IllegalArgumentException( "cannot compare with non PwmLogEvent" );
-        }
-        return this.getTimestamp().compareTo( ( ( PwmLogEvent ) o ).getTimestamp() );
+        return this.getTimestamp().compareTo( o.getTimestamp() );
     }
 
     String toEncodedString( )

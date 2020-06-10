@@ -45,7 +45,6 @@ import java.lang.management.ThreadInfo;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.ByteBuffer;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -519,7 +518,7 @@ public class JavaHelper
             return Optional.empty();
         }
 
-        if ( inputException.getClass().isInstance( exceptionType ) )
+        if ( inputException.getClass().isAssignableFrom( exceptionType ) )
         {
             return Optional.of( ( T ) inputException );
         }
@@ -527,7 +526,7 @@ public class JavaHelper
         Throwable nextException = inputException.getCause();
         while ( nextException != null )
         {
-            if ( nextException.getClass().isInstance( exceptionType ) )
+            if ( nextException.getClass().isAssignableFrom( exceptionType ) )
             {
                 return Optional.of( ( T ) inputException );
             }

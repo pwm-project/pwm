@@ -22,6 +22,7 @@ package password.pwm.bean;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
+import org.jetbrains.annotations.NotNull;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.profile.LdapProfile;
@@ -38,7 +39,7 @@ import password.pwm.util.java.TimeDuration;
 import java.io.Serializable;
 import java.util.StringTokenizer;
 
-public class UserIdentity implements Serializable, Comparable
+public class UserIdentity implements Serializable, Comparable<UserIdentity>
 {
     private static final long serialVersionUID = 1L;
 
@@ -239,7 +240,7 @@ public class UserIdentity implements Serializable, Comparable
     }
 
     @Override
-    public int compareTo( final Object o )
+    public int compareTo( @NotNull final UserIdentity o )
     {
         final String thisStr = ( ldapProfile == null ? "_" : ldapProfile ) + userDN;
         final UserIdentity otherIdentity = ( UserIdentity ) o;

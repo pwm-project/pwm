@@ -28,8 +28,6 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.SecureService;
 
-import javax.annotation.CheckReturnValue;
-import javax.annotation.meta.When;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -52,7 +50,7 @@ import java.util.function.BooleanSupplier;
  *
  * @author Jason D. Rivard
  */
-public class TimeDuration implements Comparable, Serializable
+public class TimeDuration implements Comparable<TimeDuration>, Serializable
 {
     public enum Unit
     {
@@ -287,10 +285,9 @@ public class TimeDuration implements Comparable, Serializable
         return this.compareTo( duration ) > 0;
     }
 
-    public int compareTo( final Object o )
+    public int compareTo( final TimeDuration o )
     {
-        final TimeDuration td = ( TimeDuration ) o;
-        final long otherMS = td.as( Unit.MILLISECONDS );
+        final long otherMS = o.as( Unit.MILLISECONDS );
         return Long.compare( ms, otherMS );
     }
 
@@ -434,40 +431,32 @@ public class TimeDuration implements Comparable, Serializable
 
     /**
      * Pause the calling thread the specified amount of time.
-     *
-     * @return time actually spent sleeping
      */
-    @CheckReturnValue( when = When.NEVER )
-    public TimeDuration pause( )
+    public void pause( )
     {
-        return pause( this, () -> false );
+        pause( this, () -> false );
     }
 
     /**
      * Pause the calling thread the specified amount of time.
-     *
-     * @return time actually spent sleeping
      */
-    @CheckReturnValue( when = When.NEVER )
-    public TimeDuration jitterPause( final SecureService secureService, final float factor )
+    public void jitterPause( final SecureService secureService, final float factor )
     {
         final PwmRandom pwmRandom = secureService.pwmRandom();
         final long jitterMs = (long) ( this.ms * factor );
         final long deviation = pwmRandom.nextBoolean() ? jitterMs + this.ms : jitterMs - this.ms;
-        return pause( TimeDuration.of( deviation, Unit.MILLISECONDS ), () -> false );
+        pause( TimeDuration.of( deviation, Unit.MILLISECONDS ), () -> false );
     }
 
-    @CheckReturnValue( when = When.NEVER )
-    public TimeDuration pause(
+    public void pause(
             final BooleanSupplier interruptBoolean
     )
     {
         final long interruptMs = this.asMillis() / 100;
-        return pause( TimeDuration.of( interruptMs, Unit.MILLISECONDS ), interruptBoolean );
+        pause( TimeDuration.of( interruptMs, Unit.MILLISECONDS ), interruptBoolean );
     }
 
-    @CheckReturnValue( when = When.NEVER )
-    public TimeDuration pause(
+    public void pause(
             final TimeDuration interruptCheckInterval,
             final BooleanSupplier interruptBoolean
     )
@@ -486,8 +475,6 @@ public class TimeDuration implements Comparable, Serializable
                 // ignore
             }
         }
-
-        return TimeDuration.fromCurrent( startTime );
     }
 
     public Duration asDuration()

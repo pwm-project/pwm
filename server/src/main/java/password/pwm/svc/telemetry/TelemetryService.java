@@ -163,7 +163,7 @@ public class TelemetryService implements PwmService
         {
             final String senderClass = settings.getSenderImplementation();
             final Class theClass = Class.forName( senderClass );
-            telemetrySender = ( TelemetrySender ) theClass.newInstance();
+            telemetrySender = ( TelemetrySender ) theClass.getDeclaredConstructor().newInstance();
         }
         catch ( final Exception e )
         {

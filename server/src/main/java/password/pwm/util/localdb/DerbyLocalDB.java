@@ -127,7 +127,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         try
         {
             //load driver.
-            driver = ( Driver ) Class.forName( driverClasspath ).newInstance();
+            driver = ( Driver ) Class.forName( driverClasspath ).getDeclaredConstructor().newInstance();
             final Connection connection = driver.connect( connectionURL, new Properties() );
             connection.setAutoCommit( false );
 

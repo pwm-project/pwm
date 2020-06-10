@@ -282,7 +282,7 @@ public abstract class PwmConstants
         json( "application/json" ),
         html( "text/html" ),;
 
-        private String headerValue;
+        private final String headerValue;
 
         AcceptValue( final String headerValue )
         {

@@ -85,8 +85,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter
     @Override
     boolean isInterested( final PwmApplicationMode mode, final PwmURL pwmURL )
     {
-        return !pwmURL.isRestService()
-                && !pwmURL.isRestService();
+        return !pwmURL.isRestService();
     }
 
     private static ProcessStatus checkConfigModes(

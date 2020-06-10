@@ -141,7 +141,9 @@ public class AuthenticationFilter extends AbstractPwmFilter
             final BasicAuthInfo originalBasicAuthInfo = pwmSession.getLoginInfoBean().getBasicAuth();
 
             //check to make sure basic auth info is same as currently known user in session.
-            if ( basicAuthInfo != null && originalBasicAuthInfo != null && !( originalBasicAuthInfo.equals( basicAuthInfo ) ) )
+            if ( basicAuthInfo != null
+                    && originalBasicAuthInfo != null
+                    && !originalBasicAuthInfo.equals( basicAuthInfo ) )
             {
                 // if we read here then user is using basic auth, and header has changed since last request
                 // this means something is screwy, so log out the session

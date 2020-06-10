@@ -686,7 +686,6 @@ public class UserSearchEngine implements PwmService
         for ( final UserSearchJob jobInfo : userSearchJobs )
         {
             final UserSearchJobParameters params = jobInfo.getUserSearchJobParameters();
-            final Instant startTime = Instant.now();
             if ( results.size() > jobInfo.getUserSearchJobParameters().getMaxResults() )
             {
                 final FutureTask<Map<UserIdentity, Map<String, String>>> futureTask = jobInfo.getFutureTask();

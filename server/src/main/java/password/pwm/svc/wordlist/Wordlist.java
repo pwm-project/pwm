@@ -45,7 +45,7 @@ public interface Wordlist extends PwmService
 
     ErrorInformation getAutoImportError( );
 
-    AbstractWordlist.Activity getActivity();
+    Wordlist.Activity getActivity();
 
     String getImportPercentComplete();
 

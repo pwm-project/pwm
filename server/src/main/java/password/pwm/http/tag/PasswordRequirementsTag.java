@@ -264,7 +264,7 @@ public class PasswordRequirementsTag extends TagSupport
                 {
                     returnValues.add( getLocalString( Message.Requirement_LastSpecial, maxValue, policyValues ) );
                 }
-                return returnValues;
+                return Collections.unmodifiableList( returnValues );
             }
         }
     }
