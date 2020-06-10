@@ -1213,7 +1213,7 @@ PWM_MAIN.messageDivFloatHandler = function() {
 };
 
 PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
-    var CONSOLE_DEBUG = true;
+    var CONSOLE_DEBUG = false;
 
     var serviceURL = validationProps['serviceURL'];
     var readDataFunction = validationProps['readDataFunction'];
