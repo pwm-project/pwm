@@ -22,8 +22,6 @@ package password.pwm.config.profile;
 
 import password.pwm.config.stored.StoredConfiguration;
 
-import java.util.Locale;
-
 public class SetupOtpProfile extends AbstractProfile
 {
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.SetupOTPProfile;

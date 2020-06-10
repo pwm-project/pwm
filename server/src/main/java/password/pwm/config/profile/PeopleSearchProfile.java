@@ -22,8 +22,6 @@ package password.pwm.config.profile;
 
 import password.pwm.config.stored.StoredConfiguration;
 
-import java.util.Locale;
-
 public class PeopleSearchProfile extends AbstractProfile
 {
 

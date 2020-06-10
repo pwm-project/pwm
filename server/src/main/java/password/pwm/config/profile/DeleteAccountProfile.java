@@ -22,8 +22,6 @@ package password.pwm.config.profile;
 
 import password.pwm.config.stored.StoredConfiguration;
 
-import java.util.Locale;
-
 public class DeleteAccountProfile extends AbstractProfile implements Profile
 {
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.DeleteAccount;
@@ -32,8 +30,6 @@ public class DeleteAccountProfile extends AbstractProfile implements Profile
     {
         super( identifier, storedConfiguration );
     }
-
-
 
     @Override
     public ProfileDefinition profileType( )
