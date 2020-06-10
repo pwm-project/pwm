@@ -20,27 +20,20 @@
 
 package password.pwm.config.profile;
 
-import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
 
 import java.util.Locale;
-import java.util.Map;
 
 public class DeleteAccountProfile extends AbstractProfile implements Profile
 {
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.DeleteAccount;
 
-    protected DeleteAccountProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    protected DeleteAccountProfile( final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedValueMap );
+        super( identifier, storedConfiguration );
     }
 
-    @Override
-    public String getDisplayName( final Locale locale )
-    {
-        return this.getIdentifier();
-    }
+
 
     @Override
     public ProfileDefinition profileType( )
@@ -53,7 +46,7 @@ public class DeleteAccountProfile extends AbstractProfile implements Profile
         @Override
         public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
         {
-            return new DeleteAccountProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+            return new DeleteAccountProfile( identifier, storedConfiguration );
         }
     }
 }

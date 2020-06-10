@@ -324,6 +324,17 @@ public class Configuration implements SettingReader
             return ( List<ActionConfiguration> ) storedValue.toNativeObject();
         }
 
+        public static List<X509Certificate> valueToX509Certificates( final PwmSetting setting, final StoredValue storedValue  )
+        {
+            if ( PwmSettingSyntax.X509CERT != setting.getSyntax() )
+            {
+                throw new IllegalArgumentException( "may not read X509CERT value for setting: " + setting.toString() );
+            }
+
+            final Object nativeObject = storedValue.toNativeObject();
+            final X509Certificate[] arrayCerts = ( X509Certificate[] ) nativeObject;
+            return arrayCerts == null ? Collections.emptyList() : Collections.unmodifiableList( Arrays.asList( arrayCerts ) );
+        }
 
         public static List<FormConfiguration> valueToForm( final StoredValue value )
         {
@@ -699,16 +710,7 @@ public class Configuration implements SettingReader
 
     public List<X509Certificate> readSettingAsCertificate( final PwmSetting setting )
     {
-        if ( PwmSettingSyntax.X509CERT != setting.getSyntax() )
-        {
-            throw new IllegalArgumentException( "may not read X509CERT value for setting: " + setting.toString() );
-        }
-        if ( readStoredValue( setting ) == null )
-        {
-            return Collections.emptyList();
-        }
-        final X509Certificate[] arrayCerts = ( X509Certificate[] ) readStoredValue( setting ).toNativeObject();
-        return arrayCerts == null ? Collections.emptyList() : Arrays.asList( arrayCerts );
+        return JavaTypeConverter.valueToX509Certificates( setting, readStoredValue( setting ) );
     }
 
     public PrivateKeyCertificate readSettingAsPrivateKey( final PwmSetting setting )

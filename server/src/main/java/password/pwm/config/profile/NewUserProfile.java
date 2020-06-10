@@ -29,7 +29,6 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -52,12 +51,9 @@ public class NewUserProfile extends AbstractProfile implements Profile
     private Instant newUserPasswordPolicyCacheTime;
     private final Map<Locale, PwmPasswordPolicy> newUserPasswordPolicyCache = new HashMap<>();
 
-    private final StoredConfiguration storedConfiguration;
-
-    protected NewUserProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap, final StoredConfiguration storedConfiguration )
+    protected NewUserProfile( final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedValueMap );
-        this.storedConfiguration = storedConfiguration;
+        super( identifier, storedConfiguration );
     }
 
     @Override
@@ -176,14 +172,14 @@ public class NewUserProfile extends AbstractProfile implements Profile
         @Override
         public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
         {
-            return new NewUserProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ), storedConfiguration );
+            return new NewUserProfile( identifier, storedConfiguration );
         }
     }
 
     public LdapProfile getLdapProfile()
             throws PwmUnrecoverableException
     {
-        final Configuration configuration = new Configuration( storedConfiguration );
+        final Configuration configuration = new Configuration( getStoredConfiguration() );
         final String configuredProfile = readSettingAsString( PwmSetting.NEWUSER_LDAP_PROFILE );
         if ( !StringUtil.isEmpty( configuredProfile ) )
         {
@@ -199,6 +195,6 @@ public class NewUserProfile extends AbstractProfile implements Profile
             }
             return ldapProfile;
         }
-        return new Configuration( storedConfiguration ).getDefaultLdapProfile();
+        return configuration.getDefaultLdapProfile();
     }
 }

@@ -22,27 +22,17 @@ package password.pwm.config.profile;
 
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.util.java.TimeDuration;
-
-import java.util.Locale;
-import java.util.Map;
 
 public class UpdateProfileProfile extends AbstractProfile implements Profile
 {
 
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.UpdateAttributes;
 
-    protected UpdateProfileProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    protected UpdateProfileProfile( final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedValueMap );
-    }
-
-    @Override
-    public String getDisplayName( final Locale locale )
-    {
-        return this.getIdentifier();
+        super( identifier, storedConfiguration );
     }
 
     @Override
@@ -78,7 +68,7 @@ public class UpdateProfileProfile extends AbstractProfile implements Profile
         @Override
         public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
         {
-            return new UpdateProfileProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+            return new UpdateProfileProfile( identifier, storedConfiguration );
         }
     }
 }

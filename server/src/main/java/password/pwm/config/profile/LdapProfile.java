@@ -28,7 +28,6 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
@@ -53,7 +52,7 @@ public class LdapProfile extends AbstractProfile implements Profile
 
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.LdapProfile;
 
-    protected LdapProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    protected LdapProfile( final String identifier, final StoredConfiguration storedValueMap )
     {
         super( identifier, storedValueMap );
     }
@@ -214,7 +213,7 @@ public class LdapProfile extends AbstractProfile implements Profile
         @Override
         public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
         {
-            return new LdapProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+            return new LdapProfile( identifier, storedConfiguration );
         }
     }
 

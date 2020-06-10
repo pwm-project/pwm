@@ -22,8 +22,6 @@ package password.pwm.config.profile;
 
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingCategory;
-import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.SettingReader;
 import password.pwm.config.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
@@ -36,27 +34,22 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.util.PasswordData;
 
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 public abstract class AbstractProfile implements Profile, SettingReader
 {
-
     private final String identifier;
-    final Map<PwmSetting, StoredValue> storedValueMap;
+    private final StoredConfiguration storedConfiguration;
 
-    AbstractProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    AbstractProfile( final String identifier, final StoredConfiguration storedConfiguration )
     {
         this.identifier = identifier;
-        this.storedValueMap = storedValueMap;
+        this.storedConfiguration = storedConfiguration;
     }
 
     @Override
@@ -65,39 +58,43 @@ public abstract class AbstractProfile implements Profile, SettingReader
         return identifier;
     }
 
+    public String getDisplayName( final Locale locale )
+    {
+        return getIdentifier();
+    }
+
     public List<UserPermission> readSettingAsUserPermission( final PwmSetting setting )
     {
-        final StoredValue value = storedValueMap.get( setting );
-        return Configuration.JavaTypeConverter.valueToUserPermissions( value );
+        return Configuration.JavaTypeConverter.valueToUserPermissions( storedConfiguration.readSetting( setting, identifier ) );
     }
 
     public String readSettingAsString( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToString( storedValueMap.get( setting ) );
+        return Configuration.JavaTypeConverter.valueToString( storedConfiguration.readSetting( setting, identifier ) );
     }
 
     @Override
     public List<String> readSettingAsStringArray( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToStringArray( storedValueMap.get( setting ) );
+        return Configuration.JavaTypeConverter.valueToStringArray( storedConfiguration.readSetting( setting, identifier ) );
     }
 
     @Override
-    public List<FormConfiguration> readSettingAsForm( final PwmSetting pwmSetting )
+    public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToForm( storedValueMap.get( pwmSetting ) );
+        return Configuration.JavaTypeConverter.valueToForm( storedConfiguration.readSetting( setting, identifier ) );
     }
 
     @Override
     public <E extends Enum<E>> Set<E> readSettingAsOptionList( final PwmSetting setting, final Class<E> enumClass )
     {
-        return Configuration.JavaTypeConverter.valueToOptionList( setting, storedValueMap.get( setting ), enumClass );
+        return Configuration.JavaTypeConverter.valueToOptionList( setting, storedConfiguration.readSetting( setting, identifier ), enumClass );
     }
 
     @Override
     public <E extends Enum<E>> E readSettingAsEnum( final PwmSetting setting, final Class<E> enumClass )
     {
-        final StoredValue value = storedValueMap.get( setting );
+        final StoredValue value = storedConfiguration.readSetting( setting, identifier );
         final E returnValue = Configuration.JavaTypeConverter.valueToEnum( setting, value, enumClass );
         if ( MessageSendMethod.class.equals( enumClass ) )
         {
@@ -109,46 +106,37 @@ public abstract class AbstractProfile implements Profile, SettingReader
 
     public List<ActionConfiguration> readSettingAsAction( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToAction( setting, storedValueMap.get( setting ) );
+        return Configuration.JavaTypeConverter.valueToAction( setting, storedConfiguration.readSetting( setting, identifier ) );
     }
 
     @Override
     public List<X509Certificate> readSettingAsCertificate( final PwmSetting setting )
     {
-        if ( PwmSettingSyntax.X509CERT != setting.getSyntax() )
-        {
-            throw new IllegalArgumentException( "may not read X509CERT value for setting: " + setting.toString() );
-        }
-        if ( storedValueMap.containsKey( setting ) )
-        {
-            final X509Certificate[] arrayCert = ( X509Certificate[] ) storedValueMap.get( setting ).toNativeObject();
-            return arrayCert == null ? Collections.emptyList() : Arrays.asList( arrayCert );
-        }
-        return Collections.emptyList();
+        return Configuration.JavaTypeConverter.valueToX509Certificates( setting, storedConfiguration.readSetting( setting, identifier ) );
     }
 
     @Override
     public boolean readSettingAsBoolean( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToBoolean( storedValueMap.get( setting ) );
+        return Configuration.JavaTypeConverter.valueToBoolean( storedConfiguration.readSetting( setting, identifier ) );
     }
 
     @Override
     public long readSettingAsLong( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToLong( storedValueMap.get( setting ) );
+        return Configuration.JavaTypeConverter.valueToLong( storedConfiguration.readSetting( setting, identifier ) );
     }
 
     @Override
     public String readSettingAsLocalizedString( final PwmSetting setting, final Locale locale )
     {
-        return Configuration.JavaTypeConverter.valueToLocalizedString( storedValueMap.get( setting ), locale );
+        return Configuration.JavaTypeConverter.valueToLocalizedString( storedConfiguration.readSetting( setting, identifier ), locale );
     }
 
     @Override
     public PasswordData readSettingAsPassword( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToPassword( storedValueMap.get( setting ) );
+        return Configuration.JavaTypeConverter.valueToPassword( storedConfiguration.readSetting( setting, identifier ) );
     }
 
     @Override
@@ -162,31 +150,15 @@ public abstract class AbstractProfile implements Profile, SettingReader
         return Collections.emptyList();
     }
 
-    static Map<PwmSetting, StoredValue> makeValueMap(
-            final StoredConfiguration storedConfiguration,
-            final String identifier,
-            final PwmSettingCategory pwmSettingCategory
-    )
+    protected StoredConfiguration getStoredConfiguration()
     {
-        final Map<PwmSetting, StoredValue> valueMap = new LinkedHashMap<>();
-        final List<PwmSettingCategory> categories = new ArrayList<>();
-        categories.add( pwmSettingCategory );
-        categories.addAll( pwmSettingCategory.getChildCategories() );
-        for ( final PwmSettingCategory category : categories )
-        {
-            for ( final PwmSetting setting : category.getSettings() )
-            {
-                final StoredValue value = storedConfiguration.readSetting( setting, identifier );
-                valueMap.put( setting, value );
-            }
-        }
-        return valueMap;
+        return storedConfiguration;
     }
 
     Set<IdentityVerificationMethod> readVerificationMethods( final PwmSetting pwmSetting, final VerificationMethodValue.EnabledState enabledState )
     {
         final Set<IdentityVerificationMethod> result = new LinkedHashSet<>();
-        final StoredValue configValue = storedValueMap.get( pwmSetting );
+        final StoredValue configValue = storedConfiguration.readSetting( pwmSetting, identifier );
         final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = ( VerificationMethodValue.VerificationMethodSettings ) configValue.toNativeObject();
 
         for ( final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.availableValues() )

@@ -26,8 +26,6 @@ import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.VerificationMethodValue;
 
-import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 public class ForgottenPasswordProfile extends AbstractProfile
@@ -38,15 +36,9 @@ public class ForgottenPasswordProfile extends AbstractProfile
     private Set<IdentityVerificationMethod> requiredRecoveryVerificationMethods;
     private Set<IdentityVerificationMethod> optionalRecoveryVerificationMethods;
 
-    public ForgottenPasswordProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    public ForgottenPasswordProfile( final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedValueMap );
-    }
-
-    @Override
-    public String getDisplayName( final Locale locale )
-    {
-        return null;
+        super( identifier, storedConfiguration );
     }
 
     @Override
@@ -80,7 +72,7 @@ public class ForgottenPasswordProfile extends AbstractProfile
 
     public int getMinOptionalRequired( )
     {
-        final StoredValue configValue = storedValueMap.get( PwmSetting.RECOVERY_VERIFICATION_METHODS );
+        final StoredValue configValue = getStoredConfiguration().readSetting( PwmSetting.RECOVERY_VERIFICATION_METHODS, getIdentifier() );
         final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = ( VerificationMethodValue.VerificationMethodSettings ) configValue.toNativeObject();
         return verificationMethodSettings.getMinOptionalRequired();
     }
@@ -90,7 +82,7 @@ public class ForgottenPasswordProfile extends AbstractProfile
         @Override
         public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
         {
-            return new ForgottenPasswordProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+            return new ForgottenPasswordProfile( identifier, storedConfiguration );
         }
     }
 }
