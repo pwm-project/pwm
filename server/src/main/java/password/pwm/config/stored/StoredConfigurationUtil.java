@@ -26,6 +26,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingSyntax;
+import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.StoredValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.error.ErrorInformation;
@@ -396,14 +397,37 @@ public abstract class StoredConfigurationUtil
             final Locale locale
     )
     {
-        final Map<String, String> outputMap = interestedItems.stream()
-                .filter( ( key ) -> key.getRecordType() != StoredConfigItemKey.RecordType.PROPERTY )
-                .filter( ( key ) -> storedConfiguration.readStoredValue( key ).isPresent() )
-                .collect( Collectors.toMap(
-                        key -> key.getLabel( locale ),
-                        key -> storedConfiguration.readStoredValue( key ).get().toDebugString( locale ) ) );
+        final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSet();
 
-        return Collections.unmodifiableMap( new TreeMap<>( outputMap ) );
+        final Map<String, String> output = new TreeMap<>();
+
+        for ( final StoredConfigItemKey key : interestedItems )
+        {
+            if ( !StoredConfigItemKey.RecordType.PROPERTY.equals( key.getRecordType() ) )
+            {
+                final Optional<StoredValue> storedValue = storedConfiguration.readStoredValue( key );
+
+                String debugOutput = null;
+                if ( storedValue.isPresent() )
+                {
+                    debugOutput = storedValue.get().toDebugString( locale );
+                }
+                else
+                {
+                    if ( StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() ) )
+                    {
+                        debugOutput = key.toPwmSetting().getDefaultValue( templateSet ).toDebugString( locale );
+                    }
+                }
+
+                if ( debugOutput != null )
+                {
+                    output.put( key.getLabel( locale ), debugOutput );
+                }
+            }
+        }
+
+        return Collections.unmodifiableMap( output );
     }
 
     public static Set<StoredConfigItemKey> allPossibleSettingKeysForConfiguration(
