@@ -27,6 +27,12 @@ import java.util.Optional;
 
 public enum ProfileDefinition
 {
+    ChangePassword(
+            Type.AUTHENTICATED,
+            ChangePasswordProfile.class,
+            ChangePasswordProfile.ChangePasswordProfileFactory.class,
+            PwmSettingCategory.CHANGE_PASSWORD_PROFILE,
+            PwmSetting.QUERY_MATCH_CHANGE_PASSWORD ),
     Helpdesk(
             Type.AUTHENTICATED,
             HelpdeskProfile.class,

@@ -35,7 +35,6 @@ import com.novell.ldapchai.util.ChaiUtility;
 import com.nulabinc.zxcvbn.Strength;
 import com.nulabinc.zxcvbn.Zxcvbn;
 import password.pwm.AppProperty;
-import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
@@ -49,6 +48,7 @@ import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.StrengthMeterType;
 import password.pwm.config.profile.AbstractProfile;
+import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
@@ -261,9 +261,16 @@ public class PasswordUtility
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final UserInfo userInfo = pwmSession.getUserInfo();
 
-        if ( !pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.CHANGE_PASSWORD ) )
+        if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.CHANGE_PASSWORD_ENABLE ) )
         {
             final String errorMsg = "attempt to setActorPassword, but user does not have password change permission";
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
+            throw new PwmOperationalException( errorInformation );
+        }
+
+        if ( pwmSession.getSessionManager().getChangePasswordProfile() == null )
+        {
+            final String errorMsg = "attempt to setActorPassword, but user does not have change password profile assigned";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
             throw new PwmOperationalException( errorInformation );
         }
@@ -339,8 +346,9 @@ public class PasswordUtility
         {
             // execute configured actions
             LOGGER.debug( pwmRequest, () -> "executing configured actions to user " + proxiedUser.getEntryDN() );
-            final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES );
-            if ( configValues != null && !configValues.isEmpty() )
+            final ChangePasswordProfile changePasswordProfile = pwmSession.getSessionManager().getChangePasswordProfile();
+            final List<ActionConfiguration> actionConfigurations = changePasswordProfile.readSettingAsAction( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES );
+            if ( !JavaHelper.isEmpty( actionConfigurations ) )
             {
                 final LoginInfoBean clonedLoginInfoBean = JsonUtil.cloneUsingJson( pwmSession.getLoginInfoBean(), LoginInfoBean.class );
                 clonedLoginInfoBean.setUserCurrentPassword( newPassword );
@@ -356,7 +364,7 @@ public class PasswordUtility
                         .setMacroMachine( macroMachine )
                         .setExpandPwmMacros( true )
                         .createActionExecutor();
-                actionExecutor.executeActions( configValues, pwmRequest.getLabel() );
+                actionExecutor.executeActions( actionConfigurations, pwmRequest.getLabel() );
             }
         }
 
@@ -492,6 +500,16 @@ public class PasswordUtility
         final SessionLabel sessionLabel = pwmRequest.getLabel();
         final UserIdentity userIdentity = userInfo.getUserIdentity();
 
+        final String changePasswordProfileID = userInfo.getProfileIDs().get( ProfileDefinition.ChangePassword );
+        final ChangePasswordProfile changePasswordProfile = pwmRequest.getConfig().getChangePasswordProfile().get( changePasswordProfileID );
+
+        if ( changePasswordProfile == null )
+        {
+            final String errorMsg = "attempt to helpdeskSetUserPassword, but user does not have a configured change password profile";
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NO_PROFILE_ASSIGNED, errorMsg );
+            throw new PwmOperationalException( errorInformation );
+        }
+
         if ( !pwmRequest.isAuthenticated() )
         {
             final String errorMsg = "attempt to helpdeskSetUserPassword, but user is not authenticated";
@@ -532,7 +550,7 @@ public class PasswordUtility
             // execute configured actions
             LOGGER.debug( sessionLabel, () -> "executing changepassword and helpdesk post password change writeAttributes to user " + userIdentity );
             final List<ActionConfiguration> actions = new ArrayList<>();
-            actions.addAll( pwmApplication.getConfig().readSettingAsAction( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES ) );
+            actions.addAll( changePasswordProfile.readSettingAsAction( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES ) );
             actions.addAll( helpdeskProfile.readSettingAsAction( PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES ) );
             if ( !actions.isEmpty() )
             {

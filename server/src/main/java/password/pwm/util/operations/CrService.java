@@ -37,6 +37,7 @@ import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
+import password.pwm.config.ConfigurationUtil;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.ChallengeProfile;
@@ -402,7 +403,7 @@ public class CrService implements PwmService
 
         LOGGER.trace( sessionLabel, () -> "beginning read of user response sequence" );
 
-        final List<DataStorageMethod> readPreferences = config.helper().getCrReadPreference();
+        final List<DataStorageMethod> readPreferences = ConfigurationUtil.getCrReadPreference( config );
 
         final String debugMsg = "will attempt to read the following storage methods: "
                 + JsonUtil.serializeCollection( readPreferences ) + " for response info for user " + theUser.getEntryDN();
@@ -451,7 +452,7 @@ public class CrService implements PwmService
 
         LOGGER.trace( sessionLabel, () -> "beginning read of user response sequence" );
 
-        final List<DataStorageMethod> readPreferences = config.helper().getCrReadPreference();
+        final List<DataStorageMethod> readPreferences = ConfigurationUtil.getCrReadPreference( config );
 
         LOGGER.debug( sessionLabel, () -> "will attempt to read the following storage methods: "
                 + JsonUtil.serializeCollection( readPreferences ) + " for user " + theUser.getEntryDN() );
@@ -502,7 +503,7 @@ public class CrService implements PwmService
         final Map<DataStorageMethod, String> errorMessages = new LinkedHashMap<>();
         final Configuration config = pwmApplication.getConfig();
 
-        final List<DataStorageMethod> writeMethods = config.helper().getCrWritePreference();
+        final List<DataStorageMethod> writeMethods = ConfigurationUtil.getCrWritePreference( config );
 
         for ( final DataStorageMethod loopWriteMethod : writeMethods )
         {
@@ -554,7 +555,7 @@ public class CrService implements PwmService
 
         LOGGER.trace( sessionLabel, () -> "beginning clear response operation for user " + theUser.getEntryDN() + " guid=" + userGUID );
 
-        final List<DataStorageMethod> writeMethods = config.helper().getCrWritePreference();
+        final List<DataStorageMethod> writeMethods = ConfigurationUtil.getCrWritePreference( config );
 
         for ( final DataStorageMethod loopWriteMethod : writeMethods )
         {
@@ -667,8 +668,8 @@ public class CrService implements PwmService
     public ServiceInfoBean serviceInfo( )
     {
         final LinkedHashSet<DataStorageMethod> usedStorageMethods = new LinkedHashSet<>();
-        usedStorageMethods.addAll( pwmApplication.getConfig().helper().getCrReadPreference() );
-        usedStorageMethods.addAll( pwmApplication.getConfig().helper().getCrWritePreference() );
-        return new ServiceInfoBean( Collections.unmodifiableList( new ArrayList( usedStorageMethods ) ) );
+        usedStorageMethods.addAll( ConfigurationUtil.getCrReadPreference( pwmApplication.getConfig() ) );
+        usedStorageMethods.addAll( ConfigurationUtil.getCrWritePreference( pwmApplication.getConfig() ) );
+        return new ServiceInfoBean( Collections.unmodifiableList( new ArrayList<>( usedStorageMethods ) ) );
     }
 }

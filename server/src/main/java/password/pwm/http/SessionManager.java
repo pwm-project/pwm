@@ -27,6 +27,7 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.config.profile.DeleteAccountProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.PeopleSearchProfile;
@@ -255,14 +256,15 @@ public class SessionManager
     {
         if ( profileDefinition.isAuthenticated() && !pwmSession.isAuthenticated() )
         {
-            return null;
+            throw new IllegalStateException( "can not read authenticated profile while session is unauthenticated" );
         }
+
         final String profileID = pwmSession.getUserInfo().getProfileIDs().get( profileDefinition );
         if ( profileID != null )
         {
             return pwmApplication.getConfig().profileMap( profileDefinition ).get( profileID );
         }
-        return null;
+        throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
     }
 
     public HelpdeskProfile getHelpdeskProfile() throws PwmUnrecoverableException
@@ -288,5 +290,10 @@ public class SessionManager
     public DeleteAccountProfile getSelfDeleteProfile() throws PwmUnrecoverableException
     {
         return ( DeleteAccountProfile ) getProfile( pwmApplication, ProfileDefinition.DeleteAccount );
+    }
+
+    public ChangePasswordProfile getChangePasswordProfile() throws PwmUnrecoverableException
+    {
+        return ( ChangePasswordProfile ) getProfile( pwmApplication, ProfileDefinition.ChangePassword );
     }
 }

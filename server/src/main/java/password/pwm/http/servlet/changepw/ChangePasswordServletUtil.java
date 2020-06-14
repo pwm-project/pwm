@@ -30,6 +30,7 @@ import password.pwm.bean.PasswordStatus;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.RequireCurrentPasswordMode;
+import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
@@ -61,7 +62,8 @@ public class ChangePasswordServletUtil
     )
             throws PwmUnrecoverableException
     {
-        final RequireCurrentPasswordMode currentSetting = pwmRequest.getConfig().readSettingAsEnum( PwmSetting.PASSWORD_REQUIRE_CURRENT, RequireCurrentPasswordMode.class );
+        final ChangePasswordProfile changePasswordProfile = ChangePasswordServlet.getProfile( pwmRequest );
+        final RequireCurrentPasswordMode currentSetting = changePasswordProfile.readSettingAsEnum( PwmSetting.PASSWORD_REQUIRE_CURRENT, RequireCurrentPasswordMode.class );
 
         if ( currentSetting == RequireCurrentPasswordMode.FALSE )
         {
@@ -222,6 +224,7 @@ public class ChangePasswordServletUtil
             final PasswordChangeProgressChecker.ProgressTracker tracker = new PasswordChangeProgressChecker.ProgressTracker();
             final PasswordChangeProgressChecker checker = new PasswordChangeProgressChecker(
                     pwmApplication,
+                    ChangePasswordServlet.getProfile( pwmRequest ),
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getLabel(),
                     pwmRequest.getLocale()

@@ -30,6 +30,8 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
+import password.pwm.config.profile.ChangePasswordProfile;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -40,12 +42,12 @@ import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.PwmURL;
 import password.pwm.i18n.Display;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -62,7 +64,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -329,7 +330,6 @@ public class ClientApiServlet extends ControlledPwmServlet
             {
                 try
                 {
-                    final PwmURL pwmURL = new PwmURL( new URI( pageUrl ), request.getContextPath() );
                     final TimeDuration maxIdleTime = IdleTimeoutCalculator.idleTimeoutForRequest( pwmRequest );
                     idleSeconds = maxIdleTime.as( TimeDuration.Unit.SECONDS );
                 }
@@ -351,14 +351,24 @@ public class ClientApiServlet extends ControlledPwmServlet
         settingMap.put( "url-resources", contextPath + "/public/resources" + pwmApplication.getResourceServletService().getResourceNonce() );
         settingMap.put( "url-restservice", contextPath + "/public/rest" );
 
+        if ( pwmRequest.isAuthenticated() )
         {
-            String passwordGuideText = pwmApplication.getConfig().readSettingAsLocalizedString(
-                    PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,
-                    pwmSession.getSessionStateBean().getLocale()
-            );
-            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( );
-            passwordGuideText = macroMachine.expandMacros( passwordGuideText );
-            settingMap.put( "passwordGuideText", passwordGuideText );
+            final String profileID = pwmSession.getUserInfo().getProfileIDs().get( ProfileDefinition.ChangePassword );
+            if ( !StringUtil.isEmpty( profileID ) )
+            {
+                final ChangePasswordProfile changePasswordProfile = pwmRequest.getConfig().getChangePasswordProfile().get( profileID );
+                final String configuredGuideText = changePasswordProfile.readSettingAsLocalizedString(
+                        PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,
+                        pwmSession.getSessionStateBean().getLocale()
+                );
+                if ( !StringUtil.isEmpty( configuredGuideText ) )
+                {
+                    final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine();
+                    final String expandedText = macroMachine.expandMacros( configuredGuideText );
+                    settingMap.put( "passwordGuideText", expandedText );
+                }
+
+            }
         }
 
         {

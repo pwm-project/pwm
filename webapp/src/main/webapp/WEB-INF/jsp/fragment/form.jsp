@@ -257,7 +257,7 @@
             <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" style="margin-left:5px"/>
         </td>
         <td class="noborder">
-            <% if (JspUtility.getPwmRequest( pageContext ).getConfig() != null && JspUtility.getPwmRequest( pageContext ).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
+            <pwm:if test="<%=PwmIfTest.showStrengthMeter%>">
             <div id="strengthBox" style="visibility:hidden;">
                 <div id="strengthLabel">
                     <pwm:display key="Display_StrengthMeter"/>
@@ -277,7 +277,7 @@
                     });
                 </script>
             </pwm:script>
-            <% } %>
+            </pwm:if>
         </td>
         <td class="noborder" style="width:10%">&nbsp;</td>
     </tr>

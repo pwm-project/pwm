@@ -134,6 +134,8 @@ public enum PwmSetting
             "display.homeButton", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES ),
     DISPLAY_IDLE_TIMEOUT(
             "display.idleTimeout", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES ),
+    PASSWORD_SHOW_STRENGTH_METER(
+            "password.showStrengthMeter", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES ),
     DISPLAY_CSS_CUSTOM_STYLE(
             "display.css.customStyleLocation", PwmSettingSyntax.STRING, PwmSettingCategory.UI_WEB ),
     DISPLAY_CSS_CUSTOM_MOBILE_STYLE(
@@ -148,40 +150,38 @@ public enum PwmSetting
             "display.custom.resourceBundle", PwmSettingSyntax.FILE, PwmSettingCategory.UI_WEB ),
 
     // change password
+    CHANGE_PASSWORD_PROFILE_LIST(
+            "changePassword.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+    CHANGE_PASSWORD_ENABLE(
+            "changePassword.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD_SETTINGS ),
     QUERY_MATCH_CHANGE_PASSWORD(
-            "password.allowChange.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.CHANGE_PASSWORD ),
+            "password.allowChange.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
     LOGOUT_AFTER_PASSWORD_CHANGE(
-            "logoutAfterPasswordChange", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD ),
+            "logoutAfterPasswordChange", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
     PASSWORD_REQUIRE_FORM(
-            "password.require.form", PwmSettingSyntax.FORM, PwmSettingCategory.CHANGE_PASSWORD ),
+            "password.require.form", PwmSettingSyntax.FORM, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
     PASSWORD_REQUIRE_CURRENT(
-            "password.change.requireCurrent", PwmSettingSyntax.SELECT, PwmSettingCategory.CHANGE_PASSWORD ),
+            "password.change.requireCurrent", PwmSettingSyntax.SELECT, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
     PASSWORD_CHANGE_AGREEMENT_MESSAGE(
-            "display.password.changeAgreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.CHANGE_PASSWORD ),
+            "display.password.changeAgreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
     PASSWORD_COMPLETE_MESSAGE(
-            "display.password.completeMessage", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.CHANGE_PASSWORD ),
+            "display.password.completeMessage", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
     DISPLAY_PASSWORD_GUIDE_TEXT(
-            "display.password.guideText", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.CHANGE_PASSWORD ),
-    PASSWORD_SYNC_ENABLE_REPLICA_CHECK(
-            "passwordSync.enableReplicaCheck", PwmSettingSyntax.SELECT, PwmSettingCategory.CHANGE_PASSWORD ),
+            "display.password.guideText", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
     PASSWORD_SYNC_MIN_WAIT_TIME(
-            "passwordSyncMinWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.CHANGE_PASSWORD ),
+            "passwordSyncMinWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
     PASSWORD_SYNC_MAX_WAIT_TIME(
-            "passwordSyncMaxWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.CHANGE_PASSWORD ),
+            "passwordSyncMaxWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
     PASSWORD_EXPIRE_PRE_TIME(
-            "expirePreTime", PwmSettingSyntax.DURATION, PwmSettingCategory.CHANGE_PASSWORD ),
+            "expirePreTime", PwmSettingSyntax.DURATION, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
     PASSWORD_EXPIRE_WARN_TIME(
-            "expireWarnTime", PwmSettingSyntax.DURATION, PwmSettingCategory.CHANGE_PASSWORD ),
+            "expireWarnTime", PwmSettingSyntax.DURATION, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
     EXPIRE_CHECK_DURING_AUTH(
-            "expireCheckDuringAuth", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD ),
+            "expireCheckDuringAuth", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
     CHANGE_PASSWORD_WRITE_ATTRIBUTES(
-            "changePassword.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.CHANGE_PASSWORD ),
+            "changePassword.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
     PASSWORD_SHOW_AUTOGEN(
-            "password.showAutoGen", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD ),
-    PASSWORD_SHOW_STRENGTH_METER(
-            "password.showStrengthMeter", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD ),
-    PASSWORD_STRENGTH_METER_TYPE(
-            "password.strengthMeter.type", PwmSettingSyntax.SELECT, PwmSettingCategory.CHANGE_PASSWORD ),
+            "password.showAutoGen", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD_PROFILE ),
 
     // account info
     ACCOUNT_INFORMATION_ENABLED(
@@ -309,6 +309,9 @@ public enum PwmSetting
             "ldap.ignoreUnreachableProfiles", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_GLOBAL ),
     LDAP_ENABLE_WIRE_TRACE(
             "ldap.wireTrace.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_GLOBAL ),
+    PASSWORD_SYNC_ENABLE_REPLICA_CHECK(
+            "passwordSync.enableReplicaCheck", PwmSettingSyntax.SELECT, PwmSettingCategory.LDAP_GLOBAL ),
+
 
     // New multiple email settings
     EMAIL_SERVERS(
@@ -688,6 +691,10 @@ public enum PwmSetting
             "events.alert.dailySummary.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LOGGING ),
     EVENTS_JAVA_LOG4JCONFIG_FILE(
             "events.java.log4jconfigFile", PwmSettingSyntax.STRING, PwmSettingCategory.LOGGING ),
+
+    PASSWORD_STRENGTH_METER_TYPE(
+            "password.strengthMeter.type", PwmSettingSyntax.SELECT, PwmSettingCategory.LOGGING ),
+
 
 
     // auditingsettings

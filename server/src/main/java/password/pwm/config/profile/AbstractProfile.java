@@ -65,36 +65,36 @@ public abstract class AbstractProfile implements Profile, SettingReader
 
     public List<UserPermission> readSettingAsUserPermission( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToUserPermissions( storedConfiguration.readSetting( setting, identifier ) );
+        return Configuration.JavaTypeConverter.valueToUserPermissions( readSetting( setting ) );
     }
 
     public String readSettingAsString( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToString( storedConfiguration.readSetting( setting, identifier ) );
+        return Configuration.JavaTypeConverter.valueToString( readSetting( setting ) );
     }
 
     @Override
     public List<String> readSettingAsStringArray( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToStringArray( storedConfiguration.readSetting( setting, identifier ) );
+        return Configuration.JavaTypeConverter.valueToStringArray( readSetting( setting ) );
     }
 
     @Override
     public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToForm( storedConfiguration.readSetting( setting, identifier ) );
+        return Configuration.JavaTypeConverter.valueToForm( readSetting( setting ) );
     }
 
     @Override
     public <E extends Enum<E>> Set<E> readSettingAsOptionList( final PwmSetting setting, final Class<E> enumClass )
     {
-        return Configuration.JavaTypeConverter.valueToOptionList( setting, storedConfiguration.readSetting( setting, identifier ), enumClass );
+        return Configuration.JavaTypeConverter.valueToOptionList( setting, readSetting( setting ), enumClass );
     }
 
     @Override
     public <E extends Enum<E>> E readSettingAsEnum( final PwmSetting setting, final Class<E> enumClass )
     {
-        final StoredValue value = storedConfiguration.readSetting( setting, identifier );
+        final StoredValue value = readSetting( setting );
         final E returnValue = Configuration.JavaTypeConverter.valueToEnum( setting, value, enumClass );
         if ( MessageSendMethod.class.equals( enumClass ) )
         {
@@ -106,37 +106,37 @@ public abstract class AbstractProfile implements Profile, SettingReader
 
     public List<ActionConfiguration> readSettingAsAction( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToAction( setting, storedConfiguration.readSetting( setting, identifier ) );
+        return Configuration.JavaTypeConverter.valueToAction( setting, readSetting( setting ) );
     }
 
     @Override
     public List<X509Certificate> readSettingAsCertificate( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToX509Certificates( setting, storedConfiguration.readSetting( setting, identifier ) );
+        return Configuration.JavaTypeConverter.valueToX509Certificates( setting, readSetting( setting ) );
     }
 
     @Override
     public boolean readSettingAsBoolean( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToBoolean( storedConfiguration.readSetting( setting, identifier ) );
+        return Configuration.JavaTypeConverter.valueToBoolean( readSetting( setting ) );
     }
 
     @Override
     public long readSettingAsLong( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToLong( storedConfiguration.readSetting( setting, identifier ) );
+        return Configuration.JavaTypeConverter.valueToLong( readSetting( setting ) );
     }
 
     @Override
     public String readSettingAsLocalizedString( final PwmSetting setting, final Locale locale )
     {
-        return Configuration.JavaTypeConverter.valueToLocalizedString( storedConfiguration.readSetting( setting, identifier ), locale );
+        return Configuration.JavaTypeConverter.valueToLocalizedString( readSetting( setting ), locale );
     }
 
     @Override
     public PasswordData readSettingAsPassword( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToPassword( storedConfiguration.readSetting( setting, identifier ) );
+        return Configuration.JavaTypeConverter.valueToPassword( readSetting( setting ) );
     }
 
     @Override
@@ -155,10 +155,10 @@ public abstract class AbstractProfile implements Profile, SettingReader
         return storedConfiguration;
     }
 
-    Set<IdentityVerificationMethod> readVerificationMethods( final PwmSetting pwmSetting, final VerificationMethodValue.EnabledState enabledState )
+    Set<IdentityVerificationMethod> readVerificationMethods( final PwmSetting setting, final VerificationMethodValue.EnabledState enabledState )
     {
         final Set<IdentityVerificationMethod> result = new LinkedHashSet<>();
-        final StoredValue configValue = storedConfiguration.readSetting( pwmSetting, identifier );
+        final StoredValue configValue = readSetting( setting );
         final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = ( VerificationMethodValue.VerificationMethodSettings ) configValue.toNativeObject();
 
         for ( final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.availableValues() )
@@ -172,6 +172,15 @@ public abstract class AbstractProfile implements Profile, SettingReader
             }
         }
         return result;
+    }
+
+    protected StoredValue readSetting( final PwmSetting setting )
+    {
+        if ( !setting.getCategory().hasProfiles() )
+        {
+            throw new IllegalStateException( "attempt to read non-profiled setting via profile" );
+        }
+        return storedConfiguration.readSetting( setting, getIdentifier() );
     }
 
 }

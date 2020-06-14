@@ -43,4 +43,37 @@ public class LazySupplier<T> implements Supplier<T>
         }
         return value;
     }
+
+    public interface CheckedSupplier<T, E extends Exception>
+    {
+        T call() throws E;
+    }
+
+    public static <T, E extends Exception> LazyCheckedSupplier<T, E> checked( final CheckedSupplier<T, E> lazySupplier )
+    {
+        return new LazyCheckedSupplier<>( lazySupplier );
+    }
+
+    private static class LazyCheckedSupplier<T, E extends Exception> implements CheckedSupplier<T, E>
+    {
+        private boolean supplied = false;
+        private T value;
+        private final CheckedSupplier<T, E> realCallable;
+
+        private LazyCheckedSupplier( final CheckedSupplier<T, E> realSupplier )
+        {
+            this.realCallable = realSupplier;
+        }
+
+        @Override
+        public T call() throws E
+        {
+            if ( !supplied )
+            {
+                value = realCallable.call();
+                supplied = true;
+            }
+            return value;
+        }
+    }
 }

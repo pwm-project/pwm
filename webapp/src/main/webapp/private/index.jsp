@@ -46,7 +46,7 @@
             <br/>
         </pwm:if>
         <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvailable%>">
-            <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.CHANGE_PASSWORD%>">
+            <pwm:if test="<%=PwmIfTest.changePasswordAvailable%>">
                 <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivateChangePassword.servletUrl()%>'/>">
                     <div class="tile">
                         <div class="tile-content">
@@ -157,7 +157,7 @@
             </pwm:if>
 
 
-            <pwm:if test="<%=PwmIfTest.DeleteAccountAvailable%>">
+            <pwm:if test="<%=PwmIfTest.deleteAccountAvailable%>">
                 <a id="button_Helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SelfDelete.servletUrl()%>'/>">
                     <div class="tile">
                         <div class="tile-content">

@@ -30,6 +30,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.PasswordSyncCheckMode;
+import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
@@ -61,6 +62,7 @@ public class PasswordChangeProgressChecker
 
     private final ProgressRecord completedReplicationRecord;
     private final PwmApplication pwmApplication;
+    private final ChangePasswordProfile changePasswordProfile;
     private final UserIdentity userIdentity;
     private final SessionLabel pwmSession;
     private final Locale locale;
@@ -69,12 +71,14 @@ public class PasswordChangeProgressChecker
 
     public PasswordChangeProgressChecker(
             final PwmApplication pwmApplication,
+            final ChangePasswordProfile changePasswordProfile,
             final UserIdentity userIdentity,
             final SessionLabel sessionLabel,
             final Locale locale
     )
     {
         this.pwmApplication = pwmApplication;
+        this.changePasswordProfile = changePasswordProfile;
         this.pwmSession = sessionLabel;
         this.userIdentity = userIdentity;
         this.locale = locale == null ? PwmConstants.DEFAULT_LOCALE : locale;
@@ -207,13 +211,15 @@ public class PasswordChangeProgressChecker
 
     public Instant maxCompletionTime( final ProgressTracker tracker )
     {
-        final TimeDuration maxWait = TimeDuration.of( pwmApplication.getConfig().readSettingAsLong( PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME ), TimeDuration.Unit.SECONDS );
+        final long maxWaitSeconds = changePasswordProfile.readSettingAsLong( PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME );
+        final TimeDuration maxWait = TimeDuration.of( maxWaitSeconds, TimeDuration.Unit.SECONDS );
         return Instant.ofEpochMilli( tracker.beginTime.toEpochMilli() + maxWait.asMillis() );
     }
 
     private Instant minCompletionTime( final ProgressTracker tracker )
     {
-        final TimeDuration minWait = TimeDuration.of( pwmApplication.getConfig().readSettingAsLong( PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME ), TimeDuration.Unit.SECONDS );
+        final long maxWaitSeconds = changePasswordProfile.readSettingAsLong( PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME );
+        final TimeDuration minWait = TimeDuration.of( maxWaitSeconds, TimeDuration.Unit.SECONDS );
         return Instant.ofEpochMilli( tracker.beginTime.toEpochMilli() + minWait.asMillis() );
     }
 

@@ -36,6 +36,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.ForceSetupPolicy;
 import password.pwm.config.profile.ChallengeProfile;
+import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.ProfileUtility;
@@ -44,7 +45,6 @@ import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -60,8 +60,8 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
-import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.PwmPasswordRuleValidator;
 
 import java.time.Instant;
@@ -214,7 +214,6 @@ public class UserInfoReader implements UserInfo
     @Override
     public PasswordStatus getPasswordStatus( ) throws PwmUnrecoverableException
     {
-        final Configuration config = pwmApplication.getConfig();
         final PasswordStatus.PasswordStatusBuilder passwordStatusBuilder = PasswordStatus.builder();
         final String userDN = chaiUser.getEntryDN();
         final PwmPasswordPolicy passwordPolicy = selfCachedReference.getPasswordPolicy();
@@ -281,34 +280,39 @@ public class UserInfoReader implements UserInfo
             final TimeDuration diff = TimeDuration.fromCurrent( ldapPasswordExpirationTime );
 
             // now check to see if the user's expire time is within the 'preExpireTime' setting.
-            final long preExpireMs = config.readSettingAsLong( PwmSetting.PASSWORD_EXPIRE_PRE_TIME ) * 1000;
-            if ( diff.asMillis() > 0 && diff.asMillis() < preExpireMs )
+            final Optional<ChangePasswordProfile> changePasswordProfile = readChangePasswordProfile();
+            if ( changePasswordProfile.isPresent() )
             {
-                LOGGER.debug( sessionLabel, () -> "user " + userDN + " password will expire within "
-                        + diff.asCompactString()
-                        + ", marking as pre-expired" );
-                preExpired = true;
-            }
-            else if ( ldapPasswordExpired )
-            {
-                preExpired = true;
-                LOGGER.debug( sessionLabel, () -> "user " + userDN + " password is expired, marking as pre-expired." );
-            }
-
-            // now check to see if the user's expire time is within the 'preWarnTime' setting.
-            final long preWarnMs = config.readSettingAsLong( PwmSetting.PASSWORD_EXPIRE_WARN_TIME ) * 1000;
-            // don't check if the 'preWarnTime' setting is zero or less than the expirePreTime
-            if ( !ldapPasswordExpired && !preExpired )
-            {
-                if ( !( preWarnMs == 0 || preWarnMs < preExpireMs ) )
+                final long preExpireMs = changePasswordProfile.get().readSettingAsLong( PwmSetting.PASSWORD_EXPIRE_PRE_TIME ) * 1000;
+                if ( diff.asMillis() > 0 && diff.asMillis() < preExpireMs )
                 {
-                    if ( diff.asMillis() > 0 && diff.asMillis() < preWarnMs )
+                    LOGGER.debug( sessionLabel, () -> "user " + userDN + " password will expire within "
+                            + diff.asCompactString()
+                            + ", marking as pre-expired" );
+                    preExpired = true;
+                }
+
+                else if ( ldapPasswordExpired )
+                {
+                    preExpired = true;
+                    LOGGER.debug( sessionLabel, () -> "user " + userDN + " password is expired, marking as pre-expired." );
+                }
+
+                // now check to see if the user's expire time is within the 'preWarnTime' setting.
+                final long preWarnMs = changePasswordProfile.get().readSettingAsLong( PwmSetting.PASSWORD_EXPIRE_WARN_TIME ) * 1000;
+                // don't check if the 'preWarnTime' setting is zero or less than the expirePreTime
+                if ( !ldapPasswordExpired && !preExpired )
+                {
+                    if ( !( preWarnMs == 0 || preWarnMs < preExpireMs ) )
                     {
-                        LOGGER.debug( sessionLabel,
-                                () -> "user " + userDN + " password will expire within "
-                                        + diff.asCompactString()
-                                        + ", marking as within warn period" );
-                        passwordStatusBuilder.warnPeriod( true );
+                        if ( diff.asMillis() > 0 && diff.asMillis() < preWarnMs )
+                        {
+                            LOGGER.debug( sessionLabel,
+                                    () -> "user " + userDN + " password will expire within "
+                                            + diff.asCompactString()
+                                            + ", marking as within warn period" );
+                            passwordStatusBuilder.warnPeriod( true );
+                        }
                     }
                 }
             }
@@ -325,16 +329,14 @@ public class UserInfoReader implements UserInfo
     @Override
     public boolean isRequiresNewPassword( ) throws PwmUnrecoverableException
     {
-        final PasswordStatus passwordStatus = selfCachedReference.getPasswordStatus();
-        final List<UserPermission> updateProfilePermission = pwmApplication.getConfig().readSettingAsUserPermission(
-                PwmSetting.QUERY_MATCH_CHANGE_PASSWORD );
-        if ( !LdapPermissionTester.testUserPermissions( pwmApplication, sessionLabel, userIdentity, updateProfilePermission ) )
+        final Optional<ChangePasswordProfile> changePasswordProfile = readChangePasswordProfile();
+        if ( !changePasswordProfile.isPresent() )
         {
-            LOGGER.debug( sessionLabel,
-                    () -> "checkPassword: " + userIdentity.toString() + " user does not have permission to change password" );
+            LOGGER.debug( sessionLabel, () -> "checkPassword: " + userIdentity.toString() + " change password module is not enabled or assigned" );
             return false;
         }
 
+        final PasswordStatus passwordStatus = selfCachedReference.getPasswordStatus();
         if ( passwordStatus.isExpired() )
         {
             LOGGER.debug( sessionLabel, () -> "checkPassword: password is expired, marking new password as required" );
@@ -881,5 +883,20 @@ public class UserInfoReader implements UserInfo
     public String toString()
     {
         return "UserInfoReader: " + this.getUserIdentity().toDisplayString();
+    }
+
+    private Optional<ChangePasswordProfile> readChangePasswordProfile()
+            throws PwmUnrecoverableException
+    {
+        final Configuration configuration = pwmApplication.getConfig();
+
+        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.CHANGE_PASSWORD_ENABLE ) )
+        {
+            return Optional.empty();
+        }
+
+        final Map<ProfileDefinition, String> profileIDs = selfCachedReference.getProfileIDs();
+        final String profileID = profileIDs.get( ProfileDefinition.ChangePassword );
+        return Optional.ofNullable( configuration.getChangePasswordProfile().get( profileID ) );
     }
 }

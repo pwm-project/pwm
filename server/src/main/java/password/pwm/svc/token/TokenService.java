@@ -99,7 +99,7 @@ public class TokenService implements PwmService
     private TokenMachine tokenMachine;
 
     private ServiceInfoBean serviceInfo = new ServiceInfoBean( Collections.emptyList() );
-    private STATUS status = STATUS.NEW;
+    private volatile STATUS status = STATUS.NEW;
 
     private ErrorInformation errorInformation = null;
 
@@ -322,11 +322,11 @@ public class TokenService implements PwmService
 
     public void close( )
     {
+        status = STATUS.CLOSED;
         if ( executorService != null )
         {
             executorService.shutdown();
         }
-        status = STATUS.CLOSED;
     }
 
     public List<HealthRecord> healthCheck( )
