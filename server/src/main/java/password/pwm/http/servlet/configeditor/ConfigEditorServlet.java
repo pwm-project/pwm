@@ -384,6 +384,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 ? pwmRequest.getPwmSession().getUserInfo().getUserIdentity()
                 : null;
 
+        final StoredConfiguration storedConfiguration;
         if ( key.startsWith( "localeBundle" ) )
         {
             final StringTokenizer st = new StringTokenizer( key, "-" );
@@ -397,6 +398,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             modifier.writeLocaleBundleMap( pwmLocaleBundle, keyName, outputMap );
             returnMap.put( "isDefault", outputMap.isEmpty() );
             returnMap.put( "key", key );
+            storedConfiguration = modifier.newStoredConfiguration();
         }
         else
         {
@@ -417,12 +419,13 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 LOGGER.error( () -> errorMsg, e );
                 throw new IllegalStateException( errorMsg, e );
             }
+            storedConfiguration = modifier.newStoredConfiguration();
             returnMap.put( "key", key );
             returnMap.put( "category", setting.getCategory().toString() );
             returnMap.put( "syntax", setting.getSyntax().toString() );
-            returnMap.put( "isDefault", configManagerBean.getStoredConfiguration().isDefaultValue( setting, profileID ) );
+            returnMap.put( "isDefault", storedConfiguration.isDefaultValue( setting, profileID ) );
         }
-        configManagerBean.setStoredConfiguration( modifier.newStoredConfiguration() );
+        configManagerBean.setStoredConfiguration( storedConfiguration );
         pwmRequest.outputJsonResult( RestResultBean.withData( returnMap ) );
         return ProcessStatus.Halt;
     }
