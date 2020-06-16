@@ -219,8 +219,10 @@ public class RestResultBean implements Serializable
     }
 
 
-    public String toJson( )
+    public String toJson( final boolean prettyPrintJson )
     {
-        return JsonUtil.serialize( this, JsonUtil.Flag.PrettyPrint ) + "\n";
+        return prettyPrintJson
+                ? JsonUtil.serialize( this, JsonUtil.Flag.PrettyPrint ) + "\n"
+                : JsonUtil.serialize( this );
     }
 }

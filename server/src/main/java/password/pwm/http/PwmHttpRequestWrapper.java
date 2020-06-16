@@ -563,5 +563,15 @@ public class PwmHttpRequestWrapper
             throw e;
         }
     }
+
+    public static boolean isPrettyPrintJsonParameterTrue( final HttpServletRequest request )
+    {
+        return Boolean.parseBoolean( request.getParameter( PwmConstants.PARAM_FORMAT_JSON_PRETTY ) );
+    }
+
+    public boolean isPrettyPrintJsonParameterTrue()
+    {
+        return isPrettyPrintJsonParameterTrue( this.getHttpServletRequest() );
+    }
 }
 

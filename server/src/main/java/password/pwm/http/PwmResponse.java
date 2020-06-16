@@ -218,7 +218,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
     {
         preCommitActions();
         final HttpServletResponse resp = this.getHttpServletResponse();
-        final String outputString = restResultBean.toJson();
+        final String outputString = restResultBean.toJson( pwmRequest.isPrettyPrintJsonParameterTrue() );
         resp.setContentType( HttpContentType.json.getHeaderValueWithEncoding() );
         resp.getWriter().print( outputString );
         resp.getWriter().close();
