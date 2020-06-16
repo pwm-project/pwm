@@ -74,13 +74,12 @@ public enum PwmIfTest
     showMaskedTokenSelection( new BooleanAppPropertyTest( AppProperty.TOKEN_MASK_SHOW_SELECTION ) ),
     clientFormShowRegexEnabled( new BooleanAppPropertyTest( AppProperty.CLIENT_FORM_CLIENT_REGEX_ENABLED ) ),
 
-    accountInfoEnabled( new BooleanPwmSettingTest( PwmSetting.ACCOUNT_INFORMATION_ENABLED ) ),
-
     forgottenPasswordEnabled( new BooleanPwmSettingTest( PwmSetting.FORGOTTEN_PASSWORD_ENABLE ) ),
     forgottenUsernameEnabled( new BooleanPwmSettingTest( PwmSetting.FORGOTTEN_USERNAME_ENABLE ) ),
     activateUserEnabled( new BooleanPwmSettingTest( PwmSetting.ACTIVATE_USER_ENABLE ) ),
     newUserRegistrationEnabled( new BooleanPwmSettingTest( PwmSetting.NEWUSER_ENABLE ) ),
 
+    accountInfoEnabled( new BooleanPwmSettingTest( PwmSetting.ACCOUNT_INFORMATION_ENABLED ), new ActorHasProfileTest( ProfileDefinition.AccountInformation ) ),
     changePasswordAvailable( new BooleanPwmSettingTest( PwmSetting.CHANGE_PASSWORD_ENABLE ), new ActorHasProfileTest( ProfileDefinition.ChangePassword ) ),
     updateProfileAvailable( new BooleanPwmSettingTest( PwmSetting.UPDATE_PROFILE_ENABLE ), new ActorHasProfileTest( ProfileDefinition.UpdateAttributes ) ),
     helpdeskAvailable( new BooleanPwmSettingTest( PwmSetting.HELPDESK_ENABLE ), new ActorHasProfileTest( ProfileDefinition.Helpdesk ) ),
@@ -428,7 +427,8 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmSession().getSessionManager().getProfile( pwmRequest.getPwmApplication(), profileDefinition ) != null;
+            final String profileID = pwmRequest.getPwmSession().getUserInfo().getProfileIDs().get( profileDefinition );
+            return !StringUtil.isEmpty( profileID );
         }
     }
 

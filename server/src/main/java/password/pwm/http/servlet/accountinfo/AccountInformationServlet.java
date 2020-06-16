@@ -23,6 +23,7 @@ package password.pwm.http.servlet.accountinfo;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.AccountInformationProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -83,8 +84,11 @@ public class AccountInformationServlet extends ControlledPwmServlet
     {
         try
         {
+            final AccountInformationProfile accountInformationProfile = pwmRequest.getPwmSession().getSessionManager().getAccountInfoProfile();
+
             final AccountInformationBean accountInformationBean = AccountInformationBean.makeUserAccountInfoBean(
                     pwmRequest,
+                    accountInformationProfile,
                     pwmRequest.getPwmSession().getUserInfo(),
                     pwmRequest.getLocale()
             );
@@ -101,8 +105,11 @@ public class AccountInformationServlet extends ControlledPwmServlet
     @ActionHandler( action = "read" )
     public ProcessStatus handleReadRequest( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException
     {
+        final AccountInformationProfile accountInformationProfile = pwmRequest.getPwmSession().getSessionManager().getAccountInfoProfile();
+
         final AccountInformationBean accountInformationBean = AccountInformationBean.makeUserAccountInfoBean(
                 pwmRequest,
+                accountInformationProfile,
                 pwmRequest.getPwmSession().getUserInfo(),
                 pwmRequest.getLocale()
         );
@@ -118,6 +125,9 @@ public class AccountInformationServlet extends ControlledPwmServlet
             pwmRequest.respondWithError( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE ) );
             return ProcessStatus.Halt;
         }
+
+        // check to make sure profile is assigned
+        pwmRequest.getPwmSession().getSessionManager().getAccountInfoProfile();
 
         return ProcessStatus.Continue;
     }

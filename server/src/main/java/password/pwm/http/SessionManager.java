@@ -27,6 +27,7 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.AccountInformationProfile;
 import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.config.profile.DeleteAccountProfile;
 import password.pwm.config.profile.HelpdeskProfile;
@@ -295,5 +296,10 @@ public class SessionManager
     public ChangePasswordProfile getChangePasswordProfile() throws PwmUnrecoverableException
     {
         return ( ChangePasswordProfile ) getProfile( pwmApplication, ProfileDefinition.ChangePassword );
+    }
+
+    public AccountInformationProfile getAccountInfoProfile() throws PwmUnrecoverableException
+    {
+        return ( AccountInformationProfile ) getProfile( pwmApplication, ProfileDefinition.AccountInformation );
     }
 }

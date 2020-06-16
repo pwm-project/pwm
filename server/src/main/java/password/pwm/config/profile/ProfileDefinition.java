@@ -33,6 +33,12 @@ public enum ProfileDefinition
             ChangePasswordProfile.ChangePasswordProfileFactory.class,
             PwmSettingCategory.CHANGE_PASSWORD_PROFILE,
             PwmSetting.QUERY_MATCH_CHANGE_PASSWORD ),
+    AccountInformation(
+            Type.AUTHENTICATED,
+            AccountInformationProfile.class,
+            AccountInformationProfile.AccountInformationProfileFactory.class,
+            PwmSettingCategory.ACCOUNT_INFO_PROFILE,
+            PwmSetting.ACCOUNT_INFORMATION_QUERY_MATCH ),
     Helpdesk(
             Type.AUTHENTICATED,
             HelpdeskProfile.class,

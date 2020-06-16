@@ -26,6 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ViewStatusFields;
+import password.pwm.config.profile.AccountInformationProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
@@ -69,6 +70,7 @@ public class AccountInformationBean implements Serializable
 
     static AccountInformationBean makeUserAccountInfoBean(
             final PwmRequest pwmRequest,
+            final AccountInformationProfile accountInformationProfile,
             final UserInfo userInfo,
             final Locale locale
 
@@ -79,15 +81,16 @@ public class AccountInformationBean implements Serializable
         final AccountInformationBeanBuilder builder = new AccountInformationBean.AccountInformationBeanBuilder();
 
         builder.accountInfo( ViewableUserInfoDisplayReader.makeDisplayData(
-                pwmRequest.getConfig().readSettingAsOptionList( PwmSetting.ACCOUNT_INFORMATION_VIEW_STATUS_VALUES, ViewStatusFields.class ),
+                accountInformationProfile.readSettingAsOptionList( PwmSetting.ACCOUNT_INFORMATION_VIEW_STATUS_VALUES, ViewStatusFields.class ),
                 pwmRequest.getConfig(),
                 userInfo,
                 pwmRequest.getPwmSession().getSessionStateBean(),
                 locale
         ) );
-        builder.formData( makeFormInfo( pwmRequest, locale ) );
+        builder.formData( makeFormInfo( pwmRequest, accountInformationProfile, locale ) );
         builder.auditData( makeAuditInfo(
                 pwmRequest.getPwmApplication(),
+                accountInformationProfile,
                 pwmRequest.getLabel(),
                 userInfo,
                 pwmRequest.getLocale()
@@ -110,13 +113,14 @@ public class AccountInformationBean implements Serializable
 
     public static List<ActivityRecord> makeAuditInfo(
             final PwmApplication pwmApplication,
+            final AccountInformationProfile accountInformationProfile,
             final SessionLabel sessionLabel,
             final UserInfo userInfo,
             final Locale locale
     )
     {
 
-        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.ACCOUNT_INFORMATION_HISTORY ) )
+        if ( !accountInformationProfile.readSettingAsBoolean( PwmSetting.ACCOUNT_INFORMATION_HISTORY ) )
         {
             return Collections.emptyList();
         }
@@ -145,13 +149,14 @@ public class AccountInformationBean implements Serializable
 
     private static List<DisplayElement> makeFormInfo(
             final PwmRequest pwmRequest,
+            final AccountInformationProfile accountInformationProfile,
             final Locale locale
     )
             throws PwmUnrecoverableException
     {
         final List<DisplayElement> returnData = new ArrayList<>();
 
-        final List<FormConfiguration> formConfiguration = pwmRequest.getConfig().readSettingAsForm( PwmSetting.ACCOUNT_INFORMATION_VIEW_FORM );
+        final List<FormConfiguration> formConfiguration = accountInformationProfile.readSettingAsForm( PwmSetting.ACCOUNT_INFORMATION_VIEW_FORM );
         if ( formConfiguration != null && !formConfiguration.isEmpty() )
         {
             final Map<FormConfiguration, List<String>> ldapValues = FormUtility.populateFormMapFromLdap(

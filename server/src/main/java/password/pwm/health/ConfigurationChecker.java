@@ -484,7 +484,7 @@ public class ConfigurationChecker implements HealthChecker
                 {
                     records.add( HealthRecord.forMessage( HealthMessage.Config_InvalidSendMethod,
                             method.toString(),
-                            PwmSetting.ACTIVATE_TOKEN_SEND_METHOD.toMenuLocationDebug( null, locale )
+                            PwmSetting.ACTIVATE_TOKEN_SEND_METHOD.toMenuLocationDebug( activationProfile.getIdentifier(), locale )
                     ) );
                 }
             }

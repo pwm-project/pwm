@@ -185,13 +185,17 @@ public enum PwmSetting
 
     // account info
     ACCOUNT_INFORMATION_ENABLED(
-            "display.accountInformation", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACCOUNT_INFO ),
+            "display.accountInformation", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACCOUNT_INFO_SETTINGS ),
+    ACCOUNT_INFORMATION_PROFILE_LIST(
+            "accountInfo.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+    ACCOUNT_INFORMATION_QUERY_MATCH(
+            "accountInfo.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.ACCOUNT_INFO_PROFILE ),
     ACCOUNT_INFORMATION_HISTORY(
-            "display.passwordHistory", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACCOUNT_INFO ),
+            "display.passwordHistory", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACCOUNT_INFO_PROFILE ),
     ACCOUNT_INFORMATION_VIEW_STATUS_VALUES(
-            "accountInfo.viewStatusValues", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.ACCOUNT_INFO ),
+            "accountInfo.viewStatusValues", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.ACCOUNT_INFO_PROFILE ),
     ACCOUNT_INFORMATION_VIEW_FORM(
-            "accountInfo.view.form", PwmSettingSyntax.FORM, PwmSettingCategory.ACCOUNT_INFO ),
+            "accountInfo.view.form", PwmSettingSyntax.FORM, PwmSettingCategory.ACCOUNT_INFO_PROFILE ),
 
 
     // delete info

@@ -28,7 +28,6 @@ import password.pwm.config.PwmSetting;
 public enum Permission
 {
     PWMADMIN( PwmSetting.QUERY_MATCH_PWM_ADMIN ),
-    ACTIVATE_USER( PwmSetting.ACTIVATE_USER_QUERY_MATCH ),
     SETUP_RESPONSE( PwmSetting.QUERY_MATCH_SETUP_RESPONSE ),
     SETUP_OTP_SECRET( PwmSetting.OTP_SETUP_USER_PERMISSION ),
     GUEST_REGISTRATION( PwmSetting.GUEST_ADMIN_GROUP ),

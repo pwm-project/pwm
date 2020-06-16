@@ -33,6 +33,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.ViewStatusFields;
+import password.pwm.config.profile.AccountInformationProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.value.data.FormConfiguration;
@@ -131,8 +132,12 @@ public class HelpdeskDetailInfoBean implements Serializable
 
         try
         {
+
+            final AccountInformationProfile accountInformationProfile = pwmRequest.getPwmSession().getSessionManager().getAccountInfoProfile();
+
             final List<AccountInformationBean.ActivityRecord> userHistory = AccountInformationBean.makeAuditInfo(
                     pwmRequest.getPwmApplication(),
+                    accountInformationProfile,
                     pwmRequest.getLabel(),
                     userInfo,
                     pwmRequest.getLocale() );
