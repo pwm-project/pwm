@@ -291,12 +291,12 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.64</version>
+            <version>1.65.01</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.64</version>
+            <version>1.65</version>
         </dependency>
         <dependency>
             <groupId>jaxen</groupId>
@@ -326,7 +326,7 @@
         <dependency>
             <groupId>com.blueconic</groupId>
             <artifactId>browscap-java</artifactId>
-            <version>1.2.16</version>
+            <version>1.2.17</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.xodus</groupId>

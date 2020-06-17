@@ -231,7 +231,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.32</version>
+                        <version>8.33</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -315,7 +315,7 @@
                     <dependency>
                         <groupId>com.github.spotbugs</groupId>
                         <artifactId>spotbugs</artifactId>
-                        <version>4.0.3</version>
+                        <version>4.0.4</version>
                     </dependency>
                 </dependencies>
                 <configuration>
@@ -384,7 +384,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.0.3</version>
+            <version>4.0.4</version>
             <scope>provided</scope>
         </dependency>
 
