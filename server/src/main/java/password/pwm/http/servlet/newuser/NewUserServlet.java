@@ -197,8 +197,6 @@ public class NewUserServlet extends ControlledPwmServlet
     protected void nextStep( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        TimeDuration.of( 8, TimeDuration.Unit.SECONDS ).pause();
-
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -238,7 +236,11 @@ public class NewUserServlet extends ControlledPwmServlet
 
 
         // try to read the new user policy to make sure it's readable, that way an exception is thrown here instead of by the jsp
-        newUserProfile.getNewUserPasswordPolicy( pwmApplication, pwmSession.getSessionStateBean().getLocale() );
+        {
+            final Instant startTime = Instant.now();
+            newUserProfile.getNewUserPasswordPolicy( pwmApplication, pwmSession.getSessionStateBean().getLocale() );
+            LOGGER.trace( () -> "read new user password policy in " + TimeDuration.compactFromCurrent( startTime ) );
+        }
 
         if ( !newUserBean.isFormPassed() )
         {
@@ -409,6 +411,7 @@ public class NewUserServlet extends ControlledPwmServlet
     )
             throws PwmDataValidationException, PwmUnrecoverableException, ChaiUnavailableException
     {
+        final Instant startTime = Instant.now();
         final Locale locale = pwmRequest.getLocale();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final NewUserProfile newUserProfile = getNewUserProfile( pwmRequest );
@@ -427,7 +430,7 @@ public class NewUserServlet extends ControlledPwmServlet
                 formValueData,
                 locale,
                 Collections.emptyList(),
-                validationFlags.toArray( new FormUtility.ValidationFlag[ validationFlags.size() ] )
+                validationFlags.toArray( new FormUtility.ValidationFlag[0] )
         );
 
         NewUserUtils.remoteVerifyFormData( pwmRequest, newUserForm );
@@ -439,9 +442,11 @@ public class NewUserServlet extends ControlledPwmServlet
 
         final boolean promptForPassword = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD );
 
+
+        final PasswordUtility.PasswordCheckInfo passwordCheckInfo;
         if ( promptForPassword )
         {
-            return PasswordUtility.checkEnteredPassword(
+            passwordCheckInfo =  PasswordUtility.checkEnteredPassword(
                     pwmApplication,
                     locale,
                     null,
@@ -451,8 +456,13 @@ public class NewUserServlet extends ControlledPwmServlet
                     newUserForm.getConfirmPassword()
             );
         }
+        else
+        {
+            passwordCheckInfo = new PasswordUtility.PasswordCheckInfo( null, true, 0, PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH, 0 );
+        }
 
-        return new PasswordUtility.PasswordCheckInfo( null, true, 0, PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH, 0 );
+        LOGGER.trace( () -> "competed form validation in " + TimeDuration.compactFromCurrent( startTime ) );
+        return passwordCheckInfo;
     }
 
     @ActionHandler( action = "enterCode" )
@@ -557,7 +567,7 @@ public class NewUserServlet extends ControlledPwmServlet
 
     @ActionHandler( action = "enterRemoteResponse" )
     private ProcessStatus processEnterRemoteResponse( final PwmRequest pwmRequest )
-        throws PwmUnrecoverableException, IOException, ServletException
+            throws PwmUnrecoverableException, IOException, ServletException
     {
         final String prefix = "remote-";
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
