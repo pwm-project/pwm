@@ -993,7 +993,7 @@ public class PasswordUtility
             }
         }
 
-        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_NO_PROFILE_ASSIGNED, "no challenge profile is configured" ) );
+        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_NO_PROFILE_ASSIGNED, "no password profile is assigned to user" ) );
     }
 
 
