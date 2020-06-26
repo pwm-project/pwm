@@ -22,6 +22,7 @@ package password.pwm.config.stored;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingSyntax;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.i18n.LocaleHelper;
@@ -230,5 +231,24 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     public int compareTo( final StoredConfigItemKey o )
     {
         return getLabel( PwmConstants.DEFAULT_LOCALE ).compareTo( o.toString() );
+    }
+
+    public PwmSettingSyntax getSyntax()
+    {
+        switch ( getRecordType() )
+        {
+            case SETTING:
+                return toPwmSetting().getSyntax();
+
+            case PROPERTY:
+                return PwmSettingSyntax.STRING;
+
+            case LOCALE_BUNDLE:
+                return PwmSettingSyntax.LOCALIZED_STRING_ARRAY;
+
+            default:
+                JavaHelper.unhandledSwitchStatement( getRecordType() );
+                throw new IllegalStateException();
+        }
     }
 }

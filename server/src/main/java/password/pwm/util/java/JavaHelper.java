@@ -30,6 +30,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -269,6 +270,21 @@ public class JavaHelper
         final int bufferSize = 4 * 1024;
         final byte[] buffer = new byte[ bufferSize ];
         return IOUtils.copyLarge( input, output, 0, -1, buffer );
+    }
+
+    public static String copy( final InputStream input )
+            throws IOException
+    {
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        JavaHelper.copy( input, byteArrayOutputStream );
+        return new String( byteArrayOutputStream.toByteArray(), PwmConstants.DEFAULT_CHARSET );
+    }
+
+    public static void copy( final String input, final OutputStream output )
+            throws IOException
+    {
+        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream( input.getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        JavaHelper.copy( byteArrayInputStream, output );
     }
 
     public static long copyWhilePredicate(

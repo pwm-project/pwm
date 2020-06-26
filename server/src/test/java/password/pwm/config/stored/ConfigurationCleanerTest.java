@@ -51,7 +51,7 @@ public class ConfigurationCleanerTest
 
         try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ); )
         {
-            final StoredConfiguration storedConfiguration = StoredConfigurationFactory.fromXml( xmlFile );
+            final StoredConfiguration storedConfiguration = StoredConfigurationFactory.input( xmlFile );
             configuration = new Configuration( storedConfiguration );
         }
     }

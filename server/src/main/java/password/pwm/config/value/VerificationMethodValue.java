@@ -24,7 +24,7 @@ import lombok.Value;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
@@ -38,6 +38,7 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -101,14 +102,22 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
     public VerificationMethodValue( final VerificationMethodSettings value )
     {
-        this.value = value;
+        this.value = normalizeSettings( normalizeSettings( value ) );
+    }
+
+    private static VerificationMethodSettings normalizeSettings( final VerificationMethodSettings input )
+    {
+        final Map<IdentityVerificationMethod, VerificationMethodValue.VerificationMethodSetting> tempMap = new HashMap<>( input.getMethodSettings() );
+
         for ( final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.availableValues() )
         {
-            if ( !value.methodSettings.containsKey( recoveryVerificationMethods ) )
+            if ( !tempMap.containsKey( recoveryVerificationMethods ) )
             {
-                value.methodSettings.put( recoveryVerificationMethods, new VerificationMethodSetting( EnabledState.disabled ) );
+                tempMap.put( recoveryVerificationMethods, new VerificationMethodSetting( EnabledState.disabled ) );
             }
         }
+
+        return new VerificationMethodSettings( tempMap, input.getMinOptionalRequired() );
     }
 
     public static StoredValueFactory factory( )
@@ -131,7 +140,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
             public VerificationMethodValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
-                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 if ( valueElement.isPresent() )
                 {
                     final String inputStr = valueElement.get().getText();

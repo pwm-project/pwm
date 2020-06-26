@@ -299,7 +299,7 @@ public class DebugItemGenerator
             final StoredConfigurationFactory.OutputSettings outputSettings = StoredConfigurationFactory.OutputSettings.builder()
                     .mode( StoredConfigurationFactory.OutputSettings.SecureOutputMode.STRIPPED )
                     .build();
-            StoredConfigurationFactory.toXml( storedConfiguration, byteArrayOutputStream, outputSettings );
+            StoredConfigurationFactory.output( storedConfiguration, byteArrayOutputStream, outputSettings );
             outputStream.write( byteArrayOutputStream.toByteArray() );        }
     }
 

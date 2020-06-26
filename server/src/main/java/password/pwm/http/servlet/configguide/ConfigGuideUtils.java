@@ -237,7 +237,7 @@ public class ConfigGuideUtils
             {
                 try
                 {
-                    final StoredConfiguration storedConfig = StoredConfigurationFactory.fromXml( uploadedFile );
+                    final StoredConfiguration storedConfig = StoredConfigurationFactory.input( uploadedFile );
                     final List<String> configErrors = StoredConfigurationUtil.validateValues( storedConfig );
                     if ( !JavaHelper.isEmpty( configErrors ) )
                     {

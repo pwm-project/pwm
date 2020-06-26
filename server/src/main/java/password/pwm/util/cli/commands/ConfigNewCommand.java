@@ -39,7 +39,7 @@ public class ConfigNewCommand extends AbstractCliCommand
 
         try ( FileOutputStream fileOutputStream = new FileOutputStream( outputFile, false ) )
         {
-            StoredConfigurationFactory.toXml( storedConfiguration, fileOutputStream );
+            StoredConfigurationFactory.output( storedConfiguration, fileOutputStream );
         }
         out( "success: created new configuration" );
     }

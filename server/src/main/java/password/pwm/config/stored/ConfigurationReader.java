@@ -131,27 +131,6 @@ public class ConfigurationReader
 
         final Instant startTime = Instant.now();
 
-        /*
-        try
-        {
-            final InputStream theFileData = Files.newInputStream( configFile.toPath() );
-            final StoredConfiguration storedConfiguration = StoredConfigurationFactory.fromXml( theFileData );
-
-            System.out.println( TimeDuration.compactFromCurrent( startTime ) );
-
-
-            //final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            final FileOutputStream fos = new FileOutputStream( new File( "/tmp/NEWCFG" ) );
-            StoredConfigurationFactory.toXml( storedConfiguration, fos );
-
-            //System.out.println( new String( baos.toByteArray(), "UTF-8" )  );
-        }
-        catch ( final Exception e )
-        {
-            e.printStackTrace(  );
-        }
-        */
-
         final InputStream theFileData;
         try
         {
@@ -172,9 +151,9 @@ public class ConfigurationReader
         final StoredConfiguration storedConfiguration;
         try
         {
-            storedConfiguration = StoredConfigurationFactory.fromXml( theFileData );
+            storedConfiguration = StoredConfigurationFactory.input( theFileData );
         }
-        catch ( final PwmUnrecoverableException e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unable to parse configuration file: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
@@ -328,7 +307,7 @@ public class ConfigurationReader
 
         try ( FileOutputStream fileOutputStream = new FileOutputStream( tempWriteFile, false ) )
         {
-            StoredConfigurationFactory.toXml( storedConfiguration, fileOutputStream );
+            StoredConfigurationFactory.output( storedConfiguration, fileOutputStream );
         }
 
         LOGGER.info( () -> "saved configuration in " + TimeDuration.compactFromCurrent( saveFileStartTime ) );
@@ -358,7 +337,7 @@ public class ConfigurationReader
             FileSystemUtility.rotateBackups( backupFile, backupRotations );
             try ( FileOutputStream fileOutputStream = new FileOutputStream( backupFile, false ) )
             {
-                StoredConfigurationFactory.toXml( storedConfiguration, fileOutputStream );
+                StoredConfigurationFactory.output( storedConfiguration, fileOutputStream );
             }
         }
     }

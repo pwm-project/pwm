@@ -352,7 +352,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             final OutputStream responseWriter = resp.getOutputStream();
             resp.setHeader( HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
             resp.setContentType( HttpContentType.xml );
-            StoredConfigurationFactory.toXml( storedConfiguration, responseWriter );
+            StoredConfigurationFactory.output( storedConfiguration, responseWriter );
             responseWriter.close();
         }
         catch ( final Exception e )

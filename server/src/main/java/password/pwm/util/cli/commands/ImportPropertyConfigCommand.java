@@ -57,7 +57,7 @@ public class ImportPropertyConfigCommand extends AbstractCliCommand
 
             try ( OutputStream outputStream = new FileOutputStream( configFile ) )
             {
-                StoredConfigurationFactory.toXml( storedConfiguration,  outputStream );
+                StoredConfigurationFactory.output( storedConfiguration,  outputStream );
                 out( "output configuration file " + configFile.getAbsolutePath() );
             }
         }

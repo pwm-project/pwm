@@ -29,20 +29,11 @@ import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.RecoveryMinLifetimeOption;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.config.value.OptionListValue;
-import password.pwm.config.value.StoredValueEncoder;
-import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
-import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.XmlDocument;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmSecurityKey;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -55,14 +46,7 @@ class ConfigurationCleaner
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigurationCleaner.class );
 
 
-    private static final List<PwmExceptionLoggingConsumer<XmlDocument>> XML_PRE_PROCESSORS = Collections.unmodifiableList( Arrays.asList(
-            new MigratePreValueXmlElements(),
-            new MigrateOldPropertyFormat(),
-            new AppPropertyOverrideMigration(),
-            new ProfileNonProfiledSettings(),
-            new MigrateDeprecatedProperties(),
-            new UpdatePropertiesWithoutType()
-    ) );
+
 
     private static final List<PwmExceptionLoggingConsumer<StoredConfigurationModifier>> STORED_CONFIG_POST_PROCESSORS = Collections.unmodifiableList( Arrays.asList(
             new UpdateDeprecatedAdComplexitySettings(),
@@ -70,13 +54,6 @@ class ConfigurationCleaner
             new UpdateDeprecatedPublicHealthSetting()
     ) );
 
-
-    static void preProcessXml(
-            final XmlDocument document
-    )
-    {
-        XML_PRE_PROCESSORS.forEach( ( c ) -> PwmExceptionLoggingConsumer.wrapConsumer( c ).accept( document ) );
-    }
 
 
     static void postProcessStoredConfig(
@@ -86,238 +63,7 @@ class ConfigurationCleaner
         STORED_CONFIG_POST_PROCESSORS.forEach( aClass -> PwmExceptionLoggingConsumer.wrapConsumer( aClass ).accept( storedConfiguration ) );
     }
 
-    private static class MigratePreValueXmlElements implements PwmExceptionLoggingConsumer<XmlDocument>
-    {
-        @Override
-        public void accept( final XmlDocument xmlDocument )
-        {
-            if ( readDocVersion( xmlDocument ) >= 4 )
-            {
-                return;
-            }
 
-            final List<XmlElement> settingElements = xmlDocument.evaluateXpathToElements( "//"
-                    + StoredConfigXmlConstants.XML_ELEMENT_SETTING );
-            for ( final XmlElement settingElement : settingElements )
-            {
-                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
-                final Optional<XmlElement> defaultElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_DEFAULT );
-                if ( valueElement.isPresent() && defaultElement.isPresent() )
-                {
-                    final String textValue = settingElement.getTextTrim();
-                    if ( !StringUtil.isEmpty( textValue ) )
-                    {
-                        final XmlElement newValueElement = XmlFactory.getFactory().newElement( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
-                        newValueElement.addText( textValue );
-                        settingElement.addContent( newValueElement );
-                        final String key = settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY );
-                        LOGGER.info( () -> "migrating pre-xml 'value' tag format to use value element for key: " + key );
-                    }
-                }
-            }
-        }
-    }
-
-    private static class MigrateOldPropertyFormat implements PwmExceptionLoggingConsumer<XmlDocument>
-    {
-        @Override
-        public void accept( final XmlDocument xmlDocument )
-        {
-            // read correct (new) //properties[@type="config"]
-            final String configPropertiesXpath = "//" + StoredConfigXmlConstants.XML_ELEMENT_PROPERTIES
-                    + "[@" + StoredConfigXmlConstants.XML_ATTRIBUTE_TYPE + "=\"" + StoredConfigXmlConstants.XML_ATTRIBUTE_VALUE_CONFIG + "\"]";
-            final Optional<XmlElement> configPropertiesElement = xmlDocument.evaluateXpathToElement( configPropertiesXpath );
-
-            // read list of old //properties[not (@type)]/property
-            final String nonAttributedPropertyXpath = "//" + StoredConfigXmlConstants.XML_ELEMENT_PROPERTIES
-                    + "[not (@" + StoredConfigXmlConstants.XML_ATTRIBUTE_TYPE + ")]/" + StoredConfigXmlConstants.XML_ELEMENT_PROPERTY;
-            final List<XmlElement> nonAttributedProperties = xmlDocument.evaluateXpathToElements( nonAttributedPropertyXpath );
-
-            if ( configPropertiesElement.isPresent() && nonAttributedProperties != null )
-            {
-                for ( final XmlElement element : nonAttributedProperties )
-                {
-                    element.detach();
-                    configPropertiesElement.get().addContent( element );
-                }
-            }
-
-            // remove old //properties[not (@type] element
-            final String oldPropertiesXpath = "//" + StoredConfigXmlConstants.XML_ELEMENT_PROPERTIES
-                    + "[not (@" + StoredConfigXmlConstants.XML_ATTRIBUTE_TYPE + ")]";
-            final List<XmlElement> oldPropertiesElements = xmlDocument.evaluateXpathToElements( oldPropertiesXpath );
-            if ( oldPropertiesElements != null )
-            {
-                for ( final XmlElement element : oldPropertiesElements )
-                {
-                    element.detach();
-                }
-            }
-        }
-    }
-
-    static class ProfileNonProfiledSettings implements PwmExceptionLoggingConsumer<XmlDocument>
-    {
-        @Override
-        public void accept( final XmlDocument xmlDocument )
-        {
-            final StoredConfigurationFactory.XmlInputDocumentReader reader = new StoredConfigurationFactory.XmlInputDocumentReader( xmlDocument );
-            for ( final PwmSetting setting : PwmSetting.values() )
-            {
-                if ( setting.getCategory().hasProfiles() )
-                {
-                    reader.xpathForSetting( setting, null ).ifPresent( existingSettingElement ->
-                    {
-                        final List<String> profileStringDefinitions = new ArrayList<>();
-                        {
-                            final List<String> configuredProfiles = reader.profilesForSetting( setting );
-                            if ( !JavaHelper.isEmpty( configuredProfiles ) )
-                            {
-                                profileStringDefinitions.addAll( configuredProfiles );
-                            }
-                        }
-
-                        if ( profileStringDefinitions.isEmpty() )
-                        {
-                            profileStringDefinitions.add( PwmConstants.PROFILE_ID_DEFAULT );
-                        }
-
-                        for ( final String destProfile : profileStringDefinitions )
-                        {
-                            LOGGER.info( () -> "moving setting " + setting.getKey() + " without profile attribute to profile \"" + destProfile + "\"." );
-                            {
-                                //existingSettingElement.detach();
-                                final XmlElement newSettingElement = existingSettingElement.copy();
-                                newSettingElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_PROFILE, destProfile );
-
-                                final XmlElement settingsElement = reader.xpathForSettings();
-                                settingsElement.addContent( newSettingElement );
-                            }
-                        }
-                    } );
-                }
-            }
-        }
-    }
-
-    private static class MigrateDeprecatedProperties implements PwmExceptionLoggingConsumer<XmlDocument>
-    {
-        @Override
-        public void accept( final XmlDocument xmlDocument ) throws PwmUnrecoverableException
-        {
-            {
-                final String xpathString = "//property[@key=\"" + ConfigurationProperty.LDAP_TEMPLATE.getKey() + "\"]";
-                final List<XmlElement> propertyElement = xmlDocument.evaluateXpathToElements( xpathString );
-                if ( propertyElement != null && !propertyElement.isEmpty() )
-                {
-                    final String value = propertyElement.get( 0 ).getText();
-                    propertyElement.get( 0 ).detach();
-                    attachStringSettingElement( xmlDocument, PwmSetting.TEMPLATE_LDAP, value );
-
-                }
-            }
-            {
-                final String xpathString = "//property[@key=\"" + ConfigurationProperty.NOTES.getKey() + "\"]";
-                final List<XmlElement> propertyElement = xmlDocument.evaluateXpathToElements( xpathString );
-                if ( propertyElement != null && !propertyElement.isEmpty() )
-                {
-                    final String value = propertyElement.get( 0 ).getText();
-                    propertyElement.get( 0 ).detach();
-                    attachStringSettingElement( xmlDocument, PwmSetting.NOTES, value );
-                }
-            }
-        }
-
-        private static void attachStringSettingElement(
-                final XmlDocument xmlDocument,
-                final PwmSetting pwmSetting,
-                final String stringValue
-        )
-                throws PwmUnrecoverableException
-        {
-            final StoredConfigurationFactory.XmlInputDocumentReader inputDocumentReader = new StoredConfigurationFactory.XmlInputDocumentReader( xmlDocument );
-
-            final PwmSecurityKey pwmSecurityKey = inputDocumentReader.getKey();
-
-            final XmlElement settingElement = StoredConfigurationFactory.XmlOutputHandler.makeSettingXmlElement(
-                    null,
-                    pwmSetting,
-                    null,
-                    new StringValue( stringValue ),
-                    XmlOutputProcessData.builder().storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN ).pwmSecurityKey( pwmSecurityKey ).build() );
-            final Optional<XmlElement> settingsElement = xmlDocument.getRootElement().getChild( StoredConfigXmlConstants.XML_ELEMENT_SETTING );
-            settingsElement.ifPresent( xmlElement -> xmlElement.addContent( settingElement ) );
-        }
-    }
-
-    private static class UpdatePropertiesWithoutType implements PwmExceptionLoggingConsumer<XmlDocument>
-    {
-        @Override
-        public void accept( final XmlDocument xmlDocument )
-        {
-            final String xpathString = "//properties[not(@type)]";
-            final List<XmlElement> propertiesElements = xmlDocument.evaluateXpathToElements( xpathString );
-            for ( final XmlElement propertiesElement : propertiesElements )
-            {
-                propertiesElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_TYPE, StoredConfigXmlConstants.XML_ATTRIBUTE_VALUE_CONFIG );
-            }
-        }
-    }
-
-    private static class AppPropertyOverrideMigration implements PwmExceptionLoggingConsumer<XmlDocument>
-    {
-        @Override
-        public void accept( final XmlDocument xmlDocument ) throws PwmUnrecoverableException
-        {
-            final StoredConfigurationFactory.XmlInputDocumentReader documentReader = new StoredConfigurationFactory.XmlInputDocumentReader( xmlDocument );
-            final List<XmlElement> appPropertiesElements = documentReader.xpathForAppProperties();
-            for ( final XmlElement element : appPropertiesElements )
-            {
-                final List<XmlElement> properties = element.getChildren();
-                for ( final XmlElement property : properties )
-                {
-                    final String key = property.getAttributeValue( "key" );
-                    final String value = property.getText();
-                    if ( key != null && !key.isEmpty() && value != null && !value.isEmpty() )
-                    {
-                        LOGGER.info( () -> "migrating app-property config element '" + key + "' to setting " + PwmSetting.APP_PROPERTY_OVERRIDES.getKey() );
-                        final String newValue = key + "=" + value;
-
-                        final List<String> existingValues = new ArrayList<>();
-                        {
-                            final Optional<StoredConfigData.ValueAndMetaCarrier> valueAndMetaTuple =  documentReader.readSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null );
-                            valueAndMetaTuple.ifPresent( ( t ) -> existingValues.addAll( ( List<String> ) t.getValue().toNativeObject() ) );
-                        }
-                        existingValues.add( newValue );
-                        rewriteAppPropertySettingElement( xmlDocument, existingValues );
-                    }
-                }
-                element.detach();
-            }
-        }
-
-        private static void rewriteAppPropertySettingElement( final XmlDocument xmlDocument, final List<String> newValues )
-                throws PwmUnrecoverableException
-        {
-            final StoredConfigurationFactory.XmlInputDocumentReader inputDocumentReader = new StoredConfigurationFactory.XmlInputDocumentReader( xmlDocument );
-
-            {
-                final Optional<XmlElement> existingAppPropertySetting = inputDocumentReader.xpathForSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null );
-                existingAppPropertySetting.ifPresent( XmlElement::detach );
-            }
-
-            final PwmSecurityKey pwmSecurityKey = inputDocumentReader.getKey();
-
-            final XmlElement settingElement = StoredConfigurationFactory.XmlOutputHandler.makeSettingXmlElement(
-                    null,
-                    PwmSetting.APP_PROPERTY_OVERRIDES,
-                    null,
-                    new StringArrayValue( newValues ),
-                    XmlOutputProcessData.builder().storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN ).pwmSecurityKey( pwmSecurityKey ).build() );
-            final Optional<XmlElement> settingsElement = xmlDocument.getRootElement().getChild( StoredConfigXmlConstants.XML_ELEMENT_SETTING );
-            settingsElement.ifPresent( ( s ) -> s.addContent( settingElement ) );
-        }
-    }
 
     private static class UpdateDeprecatedAdComplexitySettings implements PwmExceptionLoggingConsumer<StoredConfigurationModifier>
     {
@@ -407,9 +153,5 @@ class ConfigurationCleaner
         }
     }
 
-    private static int readDocVersion( final XmlDocument xmlDocument )
-    {
-        final String xmlVersionStr = xmlDocument.getRootElement().getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_XML_VERSION );
-        return JavaHelper.silentParseInt( xmlVersionStr, 0 );
-    }
+
 }
