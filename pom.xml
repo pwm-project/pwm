@@ -113,6 +113,7 @@
                 <configuration>
                     <dateFormat>yyyy-MM-dd'T'HH:mm:ss'Z'</dateFormat>
                     <dateFormatTimeZone>Zulu</dateFormatTimeZone>
+                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
                     <generateGitPropertiesFilename>${project.build.outputDirectory}/classes/git.json</generateGitPropertiesFilename>
                     <format>json</format>
@@ -231,7 +232,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.33</version>
+                        <version>8.34</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -315,7 +316,7 @@
                     <dependency>
                         <groupId>com.github.spotbugs</groupId>
                         <artifactId>spotbugs</artifactId>
-                        <version>4.0.4</version>
+                        <version>4.0.6</version>
                     </dependency>
                 </dependencies>
                 <configuration>
@@ -384,7 +385,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.0.4</version>
+            <version>4.0.6</version>
             <scope>provided</scope>
         </dependency>
 
@@ -410,7 +411,7 @@
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
-            <version>2.26.3</version>
+            <version>2.27.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
