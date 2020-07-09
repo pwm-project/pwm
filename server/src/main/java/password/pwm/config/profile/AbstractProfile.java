@@ -44,6 +44,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public abstract class AbstractProfile implements Profile, SettingReader
@@ -153,7 +154,12 @@ public abstract class AbstractProfile implements Profile, SettingReader
     @Override
     public List<UserPermission> getPermissionMatches( )
     {
-        return readSettingAsUserPermission( profileType().getQueryMatch() );
+        final Optional<PwmSetting> optionalQueryMatchSetting = profileType().getQueryMatch();
+        if ( optionalQueryMatchSetting.isPresent() )
+        {
+            return readSettingAsUserPermission( optionalQueryMatchSetting.get() );
+        }
+        return Collections.emptyList();
     }
 
     static Map<PwmSetting, StoredValue> makeValueMap(

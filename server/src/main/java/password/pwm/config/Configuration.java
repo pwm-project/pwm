@@ -73,6 +73,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
@@ -93,9 +94,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 
 /**
  * @author Jason D. Rivard
@@ -105,6 +108,8 @@ public class Configuration implements SettingReader
     private static final PwmLogger LOGGER = PwmLogger.forClass( Configuration.class );
 
     private final StoredConfiguration storedConfiguration;
+
+    private final ConfigurationSuppliers configurationSuppliers = new ConfigurationSuppliers();
 
     private DataCache dataCache = new DataCache();
 
@@ -137,7 +142,7 @@ public class Configuration implements SettingReader
 
     public Map<String, LdapProfile> getLdapProfiles( )
     {
-        return getProfileMap( ProfileDefinition.LdapProfile, LdapProfile.class );
+        return configurationSuppliers.ldapProfilesSupplier.get();
     }
 
     public EmailItemBean readSettingAsEmail( final PwmSetting setting, final Locale locale )
@@ -796,14 +801,6 @@ public class Configuration implements SettingReader
 
     public LdapProfile getDefaultLdapProfile( ) throws PwmUnrecoverableException
     {
-        if ( getLdapProfiles().isEmpty() )
-        {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
-                    {
-                            "no ldap profiles are defined",
-                    }
-            ) );
-        }
         return getLdapProfiles().values().iterator().next();
     }
 
@@ -990,6 +987,22 @@ public class Configuration implements SettingReader
         return readValue;
     }
 
+    private class ConfigurationSuppliers
+    {
+        private final Supplier<Map<String, LdapProfile>> ldapProfilesSupplier = new LazySupplier<>( () ->
+        {
+            final Map<String, LdapProfile> map = new LinkedHashMap<>();
+            for ( final Map.Entry<String, LdapProfile> entry : getProfileMap( ProfileDefinition.LdapProfile, LdapProfile.class ).entrySet() )
+            {
+                if ( entry.getValue().isEnabled() )
+                {
+                    map.put( entry.getKey(), entry.getValue() );
+                }
+            }
+            return Collections.unmodifiableMap( map );
+        } );
+    }
+
     private static class DataCache
     {
         private final Map<String, Map<Locale, PwmPasswordPolicy>> cachedPasswordPolicy = new LinkedHashMap<>();
@@ -1077,26 +1090,37 @@ public class Configuration implements SettingReader
         final Map<String, Profile> returnMap = new LinkedHashMap<>();
         for ( final String profileID : ProfileUtility.profileIDsForCategory( this, profileDefinition.getCategory() ) )
         {
-            final Profile newProfile = newProfileForID( profileDefinition, profileID );
-            returnMap.put( profileID, newProfile );
+            if ( profileDefinition.getProfileFactoryClass().isPresent() )
+            {
+                final Profile newProfile = newProfileForID( profileDefinition, profileID );
+                returnMap.put( profileID, newProfile );
+            }
         }
         return Collections.unmodifiableMap( returnMap );
     }
 
     private Profile newProfileForID( final ProfileDefinition profileDefinition, final String profileID )
     {
-        final Class<? extends Profile.ProfileFactory> profileFactoryClass = profileDefinition.getProfileFactoryClass();
+        Objects.requireNonNull( profileDefinition );
+        Objects.requireNonNull( profileID );
 
-        final Profile.ProfileFactory profileFactory;
-        try
+        final Optional<Class<? extends Profile.ProfileFactory>> optionalProfileFactoryClass = profileDefinition.getProfileFactoryClass();
+
+        if ( optionalProfileFactoryClass.isPresent() )
         {
-            profileFactory = profileFactoryClass.getDeclaredConstructor().newInstance();
+            final Profile.ProfileFactory profileFactory;
+            try
+            {
+                profileFactory = optionalProfileFactoryClass.get().getDeclaredConstructor().newInstance();
+                return profileFactory.makeFromStoredConfiguration( storedConfiguration, profileID );
+            }
+            catch ( final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
+            {
+                throw new IllegalStateException( "unable to create profile instance for " + profileDefinition );
+            }
         }
-        catch ( final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
-        {
-            throw new IllegalStateException( "unable to create profile instance for " + profileDefinition );
-        }
-        return profileFactory.makeFromStoredConfiguration( storedConfiguration, profileID );
+
+        throw new IllegalStateException( "unable to create profile instance for " + profileDefinition + " ( profile factory class not defined )" );
     }
 
     public StoredConfiguration getStoredConfiguration( )

@@ -138,7 +138,8 @@ public class ConfigurationChecker implements HealthChecker
             VerifyResponseLdapAttribute.class,
             VerifyDbConfiguredIfNeeded.class,
             VerifyIfDeprecatedSendMethodValuesUsed.class,
-            VerifyIfDeprecatedJsFormOptionUsed.class
+            VerifyIfDeprecatedJsFormOptionUsed.class,
+            VerifyNewUserLdapProfile.class
     ) );
 
     static class VerifyBasicConfigs implements ConfigHealthCheck
@@ -172,6 +173,11 @@ public class ConfigurationChecker implements HealthChecker
             if ( config.readSettingAsBoolean( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS ) )
             {
                 records.add( HealthRecord.forMessage( HealthMessage.Config_ShowDetailedErrors, PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.toMenuLocationDebug( null, locale ) ) );
+            }
+
+            if ( config.getLdapProfiles().isEmpty() )
+            {
+                records.add( HealthRecord.forMessage( HealthMessage.Config_NoLdapProfiles ) );
             }
 
             for ( final LdapProfile ldapProfile : config.getLdapProfiles().values() )
@@ -380,6 +386,31 @@ public class ConfigurationChecker implements HealthChecker
         }
     }
 
+    static class VerifyNewUserLdapProfile implements ConfigHealthCheck
+    {
+        @Override
+        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        {
+            final List<HealthRecord> records = new ArrayList<>();
+            for ( final NewUserProfile newUserProfile : config.getNewUserProfiles().values() )
+            {
+                final String configuredProfile = newUserProfile.readSettingAsString( PwmSetting.NEWUSER_LDAP_PROFILE );
+                if ( !StringUtil.isEmpty( configuredProfile ) )
+                {
+                    final LdapProfile ldapProfile = config.getLdapProfiles().get( configuredProfile );
+
+                    if ( ldapProfile == null )
+                    {
+                        records.add( HealthRecord.forMessage(
+                                HealthMessage.Config_InvalidLdapProfile,
+                                PwmSetting.NEWUSER_LDAP_PROFILE.toMenuLocationDebug( newUserProfile.getIdentifier(), locale ) ) );
+                    }
+                }
+            }
+            return Collections.unmodifiableList( records );
+        }
+    }
+
     static class VerifyIfDeprecatedJsFormOptionUsed implements ConfigHealthCheck
     {
         @Override
@@ -511,6 +542,7 @@ public class ConfigurationChecker implements HealthChecker
             return records;
         }
     }
+
 
     interface ConfigHealthCheck
     {

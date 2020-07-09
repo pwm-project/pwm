@@ -2687,6 +2687,11 @@
             <value>default</value>
         </default>
     </setting>
+    <setting hidden="false" key="newUser.ldapProfile" level="1" required="true">
+        <default>
+            <value/>
+        </default>
+    </setting>
     <setting hidden="false" key="newUser.createContext" level="1" required="true">
         <flag>ldapDNsyntax</flag>
         <default>
@@ -2754,6 +2759,11 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="false" key="newUser.external.verification" level="1">
+    <default>
+        <value>false</value>
+    </default>
+</setting>
     <setting hidden="false" key="newUser.passwordPolicy.user" level="1" required="true">
         <default>
             <value><![CDATA[TESTUSER]]></value>

@@ -342,7 +342,7 @@ class ActivateUserUtils
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final ActivateUserBean activateUserBean = pwmApplication.getSessionStateService().getBean( pwmRequest, ActivateUserBean.class );
 
-        final Optional<String> profileID = ProfileUtility.discoverProfileIDforUser( pwmRequest.commonValues(), userIdentity, ProfileDefinition.ActivateUser );
+        final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser( pwmRequest.commonValues(), userIdentity, ProfileDefinition.ActivateUser );
 
         if ( !profileID.isPresent() || !pwmApplication.getConfig().getUserActivationProfiles().containsKey( profileID.get() ) )
         {

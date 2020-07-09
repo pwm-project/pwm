@@ -99,6 +99,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Jason D. Rivard
@@ -597,20 +598,20 @@ public class PasswordUtility
         final boolean sendPassword = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_SEND_PASSWORD );
         if ( sendPassword )
         {
-            final MessageSendMethod messageSendMethod;
+            final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser( pwmApplication, sessionLabel, userIdentity, ProfileDefinition.ForgottenPassword );
+            if ( profileID.isPresent() )
             {
-                final String profileID = ProfileUtility.discoverProfileIDforUser( pwmApplication, sessionLabel, userIdentity, ProfileDefinition.ForgottenPassword );
-                final ForgottenPasswordProfile forgottenPasswordProfile = pwmApplication.getConfig().getForgottenPasswordProfiles().get( profileID );
-                messageSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_SENDNEWPW_METHOD, MessageSendMethod.class );
+                final ForgottenPasswordProfile forgottenPasswordProfile = pwmApplication.getConfig().getForgottenPasswordProfiles().get( profileID.get() );
+                final MessageSendMethod messageSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_SENDNEWPW_METHOD, MessageSendMethod.class );
 
-            }
-            PasswordUtility.sendNewPassword(
+                PasswordUtility.sendNewPassword(
                     userInfo,
                     pwmApplication,
                     newPassword,
                     pwmRequest.getLocale(),
                     messageSendMethod
-            );
+                );
+            }
         }
     }
 

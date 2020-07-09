@@ -43,6 +43,7 @@ import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.password.PasswordUtility;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -138,23 +139,23 @@ public class UserDebugDataReader
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
-    ) throws PwmUnrecoverableException
+    )
+        throws PwmUnrecoverableException
     {
-        final Map<ProfileDefinition, String> results = new TreeMap<>();
+        final Map<ProfileDefinition, String> results = new TreeMap<>( Comparator.comparing( Enum::name ) );
         for ( final ProfileDefinition profileDefinition : ProfileDefinition.values() )
         {
-            if ( profileDefinition.isAuthenticated() )
+            if ( profileDefinition.getQueryMatch().isPresent() && profileDefinition.getProfileFactoryClass().isPresent() )
             {
-                final String id = ProfileUtility.discoverProfileIDforUser(
+                ProfileUtility.discoverProfileIDForUser(
                         pwmApplication,
                         sessionLabel,
                         userIdentity,
                         profileDefinition
-                );
-
-                results.put( profileDefinition, id );
+                ).ifPresent( ( id ) -> results.put( profileDefinition, id ) );
             }
         }
+
         return Collections.unmodifiableMap( results );
     }
 
