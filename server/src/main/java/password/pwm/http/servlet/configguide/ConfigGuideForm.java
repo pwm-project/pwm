@@ -22,7 +22,7 @@ package password.pwm.http.servlet.configguide;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplate;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -132,7 +132,7 @@ public class ConfigGuideForm
 
         if ( configGuideBean.isUseConfiguredCerts() && !JavaHelper.isEmpty( configGuideBean.getLdapCertificates() ) )
         {
-            final StoredValue newStoredValue = new X509CertificateValue( configGuideBean.getLdapCertificates() );
+            final StoredValue newStoredValue = X509CertificateValue.fromX509( configGuideBean.getLdapCertificates() );
             storedConfiguration.writeSetting( PwmSetting.LDAP_SERVER_CERTS, LDAP_PROFILE_NAME, newStoredValue, null );
         }
 

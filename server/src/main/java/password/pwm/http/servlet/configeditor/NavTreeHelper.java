@@ -26,7 +26,7 @@ import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.i18n.Config;

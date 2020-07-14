@@ -55,7 +55,7 @@ public class SmtpCertImportFunction implements SettingUIFunction
         if ( !JavaHelper.isEmpty( certs ) )
         {
             final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
-            modifier.writeSetting( PwmSetting.EMAIL_SERVER_CERTS, profile, new X509CertificateValue( certs ), userIdentity );
+            modifier.writeSetting( PwmSetting.EMAIL_SERVER_CERTS, profile, X509CertificateValue.fromX509( certs ), userIdentity );
         }
 
         return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmRequest.getConfig() );

@@ -57,6 +57,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -65,6 +66,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -287,6 +290,50 @@ public class X509Utils
     public static String makeDebugText( final X509Certificate x509Certificate )
     {
         return "subject=" + x509Certificate.getSubjectDN().getName() + ", serial=" + x509Certificate.getSerialNumber();
+    }
+
+    public static List<X509Certificate> certificatesFromBase64s( final Collection<String> b64certificates )
+    {
+        final Function<String, X509Certificate> mapFunction = s ->
+        {
+            try
+            {
+                return certificateFromBase64( s );
+            }
+            catch ( final Exception e )
+            {
+                LOGGER.error( () -> "error decoding certificate from b64: " + e.getMessage() );
+            }
+            return null;
+        };
+
+        return b64certificates
+                .stream()
+                .map( mapFunction )
+                .filter( Objects::nonNull )
+                .collect( Collectors.toList() );
+    }
+
+    public static List<String> certificatesToBase64s( final Collection<X509Certificate> certificates )
+    {
+        final Function<X509Certificate, String> mapFunction = s ->
+        {
+            try
+            {
+                return certificateToBase64( s );
+            }
+            catch ( final Exception e )
+            {
+                LOGGER.error( () -> "error encoding certificate to b64: " + e.getMessage() );
+            }
+            return null;
+        };
+
+        return certificates
+                .stream()
+                .map( mapFunction )
+                .filter( Objects::nonNull )
+                .collect( Collectors.toList() );
     }
 
     enum CertDebugInfoKey

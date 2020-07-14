@@ -24,7 +24,6 @@ import com.google.gson.reflect.TypeToken;
 
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.i18n.LocaleHelper;

@@ -18,8 +18,9 @@
  * limitations under the License.
  */
 
-package password.pwm.config;
+package password.pwm.config.value;
 
+import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmException;
 import password.pwm.util.java.XmlElement;

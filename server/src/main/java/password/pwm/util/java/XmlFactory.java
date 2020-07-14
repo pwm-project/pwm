@@ -70,7 +70,7 @@ public interface XmlFactory
 
     static XmlFactory getFactory()
     {
-        return new XmlFactoryJDOM();
+        return new XmlFactoryW3c();
     }
 
     static XmlFactory getFactory( final FactoryType factoryType )

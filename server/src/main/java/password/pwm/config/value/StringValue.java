@@ -22,7 +22,6 @@ package password.pwm.config.value;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;

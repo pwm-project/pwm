@@ -36,7 +36,7 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.SettingUIFunction;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.stored.ConfigurationProperty;

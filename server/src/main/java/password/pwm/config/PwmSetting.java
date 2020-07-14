@@ -22,6 +22,7 @@ package password.pwm.config;
 
 import lombok.Value;
 import password.pwm.config.value.PasswordValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;

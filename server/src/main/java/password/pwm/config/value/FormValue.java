@@ -23,7 +23,6 @@ package password.pwm.config.value;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmOperationalException;

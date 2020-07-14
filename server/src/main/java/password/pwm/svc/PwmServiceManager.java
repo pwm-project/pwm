@@ -129,6 +129,7 @@ public class PwmServiceManager
             }
             final String errorMsgFinal = errorMsg;
             LOGGER.fatal( () -> errorMsgFinal );
+            e.printStackTrace();
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR, errorMsg ) );
         }
         return newServiceInstance;

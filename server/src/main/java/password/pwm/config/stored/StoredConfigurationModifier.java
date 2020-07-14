@@ -23,7 +23,7 @@ package password.pwm.config.stored;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;

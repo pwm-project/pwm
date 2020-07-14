@@ -24,12 +24,13 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.RecoveryMinLifetimeOption;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.config.value.OptionListValue;
 import password.pwm.config.value.StringValue;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
 import password.pwm.util.logging.PwmLogger;
@@ -77,7 +78,7 @@ class ConfigurationCleaner
             {
                 if ( !oldConfig.isDefaultValue( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) )
                 {
-                    final boolean ad2003Enabled = ( boolean ) oldConfig.readSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ).toNativeObject();
+                    final boolean ad2003Enabled = ValueTypeConverter.valueToBoolean( oldConfig.readSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) );
                     final StoredValue value;
                     if ( ad2003Enabled )
                     {
@@ -87,8 +88,11 @@ class ConfigurationCleaner
                     {
                         value = new StringValue( ADPolicyComplexity.NONE.toString() );
                     }
-                    LOGGER.info( () -> "converting deprecated non-default setting " + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
-                            + " to replacement setting " + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value=" + value.toNativeObject().toString() );
+                    LOGGER.info( () -> "converting deprecated non-default setting "
+                            + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
+                            + " to replacement setting "
+                            + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value="
+                            + ValueTypeConverter.valueToBoolean( value ) );
                     final Optional<ValueMetaData> valueMetaData = oldConfig.readMetaData(
                             StoredConfigItemKey.fromSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) );
                     final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
@@ -109,7 +113,7 @@ class ConfigurationCleaner
             {
                 if ( !oldConfig.isDefaultValue( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID ) )
                 {
-                    final boolean enforceEnabled = ( boolean ) oldConfig.readSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID ).toNativeObject();
+                    final boolean enforceEnabled = ValueTypeConverter.valueToBoolean( oldConfig.readSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID ) );
                     final StoredValue value = enforceEnabled
                             ? new StringValue( RecoveryMinLifetimeOption.NONE.name() )
                             : new StringValue( RecoveryMinLifetimeOption.ALLOW.name() );
@@ -120,7 +124,8 @@ class ConfigurationCleaner
                     LOGGER.info( () -> "converting deprecated non-default setting "
                             + PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) + "/" + profileID
                             + " to replacement setting " + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE )
-                            + ", value=" + value.toNativeObject().toString() );
+                            + ", value="
+                            + ValueTypeConverter.valueToBoolean( value ) );
                     modifier.writeSetting( PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS, profileID, value, newActor );
                 }
             }

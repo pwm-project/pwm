@@ -23,7 +23,7 @@ package password.pwm.config.stored;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.FileValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;

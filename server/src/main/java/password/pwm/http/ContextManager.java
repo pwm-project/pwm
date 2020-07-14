@@ -28,7 +28,7 @@ import password.pwm.PwmEnvironment;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
@@ -771,7 +771,7 @@ public class ContextManager implements Serializable
                         {
                             LOGGER.trace( SESSION_LABEL, () -> "imported cert: " + X509Utils.makeDebugText( cert ) );
                         }
-                        final StoredValue storedValue = new X509CertificateValue( certs );
+                        final StoredValue storedValue = X509CertificateValue.fromX509( certs );
 
                         modifiedConfig.writeSetting( PwmSetting.LDAP_SERVER_CERTS, ldapProfile.getIdentifier(), storedValue, null );
                     }

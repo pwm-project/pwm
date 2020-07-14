@@ -27,7 +27,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplateSet;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;

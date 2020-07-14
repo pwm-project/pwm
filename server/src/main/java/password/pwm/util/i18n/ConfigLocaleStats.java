@@ -25,7 +25,7 @@ import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplateSet;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.config.value.data.ChallengeItemConfiguration;
 import password.pwm.error.PwmOperationalException;

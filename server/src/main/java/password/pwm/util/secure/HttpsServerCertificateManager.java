@@ -24,7 +24,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.PrivateKeyValue;
 import password.pwm.error.ErrorInformation;

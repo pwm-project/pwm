@@ -25,6 +25,8 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.ActionValue;
+import password.pwm.config.value.StoredValue;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -55,8 +57,9 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
         {
         } );
 
-        final ActionValue actionValue = ( ActionValue ) modifier.newStoredConfiguration().readSetting( pwmSetting, profile );
-        final ActionConfiguration action = ( actionValue.toNativeObject() ).get( extraDataMap.get( KEY_ITERATION ) );
+        final StoredValue actionValue = modifier.newStoredConfiguration().readSetting( pwmSetting, profile );
+        final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( pwmSetting, actionValue );
+        final ActionConfiguration action = actionConfigurations.get( extraDataMap.get( KEY_ITERATION ) );
         final ActionConfiguration.WebAction webAction = action.getWebActions().get( extraDataMap.get( KEY_WEB_ACTION_ITERATION ) );
 
         final String uriString = webAction.getUrl();
@@ -97,8 +100,8 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
         {
         } );
 
-        final ActionValue actionValue = ( ActionValue ) storedConfiguration.newStoredConfiguration().readSetting( pwmSetting, profile );
-        final List<ActionConfiguration> actionConfigurations = actionValue.toNativeObject();
+        final StoredValue actionValue = storedConfiguration.newStoredConfiguration().readSetting( pwmSetting, profile );
+        final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( pwmSetting, actionValue );
         final ActionConfiguration action = actionConfigurations.get( extraDataMap.get( KEY_ITERATION ) );
         final ActionConfiguration.WebAction webAction = action.getWebActions().get( extraDataMap.get( KEY_WEB_ACTION_ITERATION ) );
 

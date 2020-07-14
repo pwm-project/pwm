@@ -47,7 +47,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -139,7 +139,7 @@ public class SessionTrackService implements PwmService
                     LOGGER.error( () -> "error during session size calculation: " + e.getMessage() );
                 }
             }
-            final Map<DebugKey, String> returnMap = new HashMap<>();
+            final Map<DebugKey, String> returnMap = new EnumMap<>( DebugKey.class );
             returnMap.put( DebugKey.HttpSessionCount, String.valueOf( sessionCounter ) );
             returnMap.put( DebugKey.HttpSessionTotalSize, String.valueOf( sizeTotal ) );
             returnMap.put( DebugKey.HttpSessionAvgSize,

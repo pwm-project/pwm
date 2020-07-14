@@ -24,21 +24,22 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StoredValueEncoder;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlDocument;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
-import password.pwm.util.localdb.TestHelper;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -53,7 +54,6 @@ public class PwmSettingTest
     @Test
     public void testDefaultValues() throws Exception
     {
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
         final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( "abcdefghijklmnopqrstuvwxyz" );
         final XmlOutputProcessData outputSettings = XmlOutputProcessData.builder()
                 .pwmSecurityKey( pwmSecurityKey )
@@ -71,6 +71,7 @@ public class PwmSettingTest
                 storedValue.toXmlValues( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE, outputSettings );
                 storedValue.validateValue( pwmSetting );
                 Assert.assertNotNull( storedValue.valueHash() );
+                JsonUtil.serialize( (Serializable) storedValue.toNativeObject() );
             }
         }
     }

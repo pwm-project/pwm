@@ -22,7 +22,6 @@ package password.pwm.config.value;
 
 import lombok.Value;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;

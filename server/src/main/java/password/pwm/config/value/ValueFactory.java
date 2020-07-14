@@ -21,7 +21,6 @@
 package password.pwm.config.value;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;

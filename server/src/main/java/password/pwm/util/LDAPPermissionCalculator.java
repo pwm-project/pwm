@@ -32,6 +32,7 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.UserPermission;
@@ -137,7 +138,7 @@ public class LDAPPermissionCalculator implements Serializable
             {
                 case STRING:
                 {
-                    final String attrName = ( String ) storedConfiguration.readSetting( pwmSetting, profile ).toNativeObject();
+                    final String attrName = ValueTypeConverter.valueToString( storedConfiguration.readSetting( pwmSetting, profile ) );
                     if ( attrName != null && !attrName.trim().isEmpty() )
                     {
                         permissionRecords.add( new PermissionRecord( attrName, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor() ) );
@@ -147,7 +148,7 @@ public class LDAPPermissionCalculator implements Serializable
 
                 case FORM:
                 {
-                    final List<FormConfiguration> formItems = ( List<FormConfiguration> ) storedConfiguration.readSetting( pwmSetting, profile ).toNativeObject();
+                    final List<FormConfiguration> formItems = ValueTypeConverter.valueToForm( storedConfiguration.readSetting( pwmSetting, profile ) );
                     if ( formItems != null )
                     {
                         for ( final FormConfiguration formConfiguration : formItems )
@@ -164,7 +165,7 @@ public class LDAPPermissionCalculator implements Serializable
 
                 case ACTION:
                 {
-                    final List<ActionConfiguration> actionItems = ( List<ActionConfiguration> ) storedConfiguration.readSetting( pwmSetting, profile ).toNativeObject();
+                    final List<ActionConfiguration> actionItems = ValueTypeConverter.valueToAction( pwmSetting, storedConfiguration.readSetting( pwmSetting, profile ) );
                     if ( actionItems != null )
                     {
                         for ( final ActionConfiguration actionConfiguration : actionItems )
@@ -184,7 +185,7 @@ public class LDAPPermissionCalculator implements Serializable
 
                 case STRING_ARRAY:
                 {
-                    final List<String> strings = ( List<String> ) storedConfiguration.readSetting( pwmSetting, profile ).toNativeObject();
+                    final List<String> strings = ValueTypeConverter.valueToStringArray( storedConfiguration.readSetting( pwmSetting, profile ) );
                     for ( final String attrName : strings )
                     {
                         if ( attrName != null && !attrName.trim().isEmpty() )
@@ -197,7 +198,7 @@ public class LDAPPermissionCalculator implements Serializable
 
                 case USER_PERMISSION:
                 {
-                    final List<UserPermission> userPermissions = ( List<UserPermission> ) storedConfiguration.readSetting( pwmSetting, profile ).toNativeObject();
+                    final List<UserPermission> userPermissions = ValueTypeConverter.valueToUserPermissions ( storedConfiguration.readSetting( pwmSetting, profile ) );
                     if ( configuration.getLdapProfiles() != null && !configuration.getLdapProfiles().isEmpty() )
                     {
                         for ( final LdapProfile ldapProfile : configuration.getLdapProfiles().values() )
@@ -243,12 +244,12 @@ public class LDAPPermissionCalculator implements Serializable
         {
             case PEOPLE_SEARCH:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.PEOPLE_SEARCH_ENABLE, null ).toNativeObject() )
+                if ( !ValueTypeConverter.valueToBoolean( storedConfiguration.readSetting( PwmSetting.PEOPLE_SEARCH_ENABLE, null ) ) )
                 {
                     return Collections.emptyList();
                 }
-                final boolean proxyOverride = ( Boolean ) storedConfiguration.readSetting( PwmSetting.PEOPLE_SEARCH_USE_PROXY, profile ).toNativeObject();
-                final boolean publicOverride = ( Boolean ) storedConfiguration.readSetting( PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC, profile ).toNativeObject();
+                final boolean proxyOverride = ValueTypeConverter.valueToBoolean( storedConfiguration.readSetting( PwmSetting.PEOPLE_SEARCH_USE_PROXY, profile ) );
+                final boolean publicOverride = ValueTypeConverter.valueToBoolean( storedConfiguration.readSetting( PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC, profile ) );
 
                 if ( proxyOverride || publicOverride )
                 {
@@ -270,7 +271,7 @@ public class LDAPPermissionCalculator implements Serializable
 
             case GUEST:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.GUEST_ENABLE, null ).toNativeObject() )
+                if ( !ValueTypeConverter.valueToBoolean( storedConfiguration.readSetting( PwmSetting.GUEST_ENABLE, null ) ) )
                 {
                     return Collections.emptyList();
                 }
@@ -281,7 +282,7 @@ public class LDAPPermissionCalculator implements Serializable
             case UPDATE_PROFILE:
             case UPDATE_SETTINGS:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.UPDATE_PROFILE_ENABLE, null ).toNativeObject() )
+                if ( !ValueTypeConverter.valueToBoolean( storedConfiguration.readSetting( PwmSetting.UPDATE_PROFILE_ENABLE, null ) ) )
                 {
                     return Collections.emptyList();
                 }
@@ -290,7 +291,7 @@ public class LDAPPermissionCalculator implements Serializable
 
             case FORGOTTEN_USERNAME:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.FORGOTTEN_USERNAME_ENABLE, null ).toNativeObject() )
+                if ( !ValueTypeConverter.valueToBoolean( storedConfiguration.readSetting( PwmSetting.FORGOTTEN_USERNAME_ENABLE, null ) ) )
                 {
                     return Collections.emptyList();
                 }
@@ -301,7 +302,7 @@ public class LDAPPermissionCalculator implements Serializable
             case NEWUSER_PROFILE:
             case NEWUSER_SETTINGS:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.NEWUSER_ENABLE, null ).toNativeObject() )
+                if ( !ValueTypeConverter.valueToBoolean( storedConfiguration.readSetting( PwmSetting.NEWUSER_ENABLE, null ) ) )
                 {
                     return Collections.emptyList();
                 }
@@ -310,7 +311,7 @@ public class LDAPPermissionCalculator implements Serializable
 
             case ACTIVATION:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.ACTIVATE_USER_ENABLE, null ).toNativeObject() )
+                if ( !ValueTypeConverter.valueToBoolean( storedConfiguration.readSetting( PwmSetting.ACTIVATE_USER_ENABLE, null ) ) )
                 {
                     return Collections.emptyList();
                 }
@@ -319,11 +320,11 @@ public class LDAPPermissionCalculator implements Serializable
 
             case HELPDESK_PROFILE:
             {
-                if ( !( Boolean ) storedConfiguration.readSetting( PwmSetting.HELPDESK_ENABLE, null ).toNativeObject() )
+                if ( !ValueTypeConverter.valueToBoolean( storedConfiguration.readSetting( PwmSetting.HELPDESK_ENABLE, null ) ) )
                 {
                     return Collections.emptyList();
                 }
-                if ( ( Boolean ) storedConfiguration.readSetting( PwmSetting.HELPDESK_USE_PROXY, profile ).toNativeObject() )
+                if ( ValueTypeConverter.valueToBoolean( storedConfiguration.readSetting( PwmSetting.HELPDESK_USE_PROXY, profile ) ) )
                 {
                     final Collection<LDAPPermissionInfo> configuredRecords = pwmSetting.getLDAPPermissionInfo();
                     final Collection<LDAPPermissionInfo> returnRecords = new ArrayList<>();

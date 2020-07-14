@@ -36,6 +36,7 @@ import password.pwm.config.value.OptionListValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.PrivateKeyValue;
 import password.pwm.config.value.RemoteWebServiceValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.UserPermissionValue;

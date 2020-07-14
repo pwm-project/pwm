@@ -62,7 +62,7 @@ public class LdapCertImportFunction implements SettingUIFunction
         }
 
         final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
-        modifier.writeSetting( setting, profile, new X509CertificateValue( resultCertificates ), userIdentity );
+        modifier.writeSetting( setting, profile, X509CertificateValue.fromX509( resultCertificates ), userIdentity );
         return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig() );
     }
 

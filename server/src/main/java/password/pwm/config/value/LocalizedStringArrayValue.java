@@ -22,7 +22,6 @@ package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;

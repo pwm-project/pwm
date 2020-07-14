@@ -23,10 +23,11 @@ package password.pwm.config.profile;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingReader;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.VerificationMethodValue;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
@@ -65,37 +66,37 @@ public abstract class AbstractProfile implements Profile, SettingReader
 
     public List<UserPermission> readSettingAsUserPermission( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToUserPermissions( readSetting( setting ) );
+        return ValueTypeConverter.valueToUserPermissions( readSetting( setting ) );
     }
 
     public String readSettingAsString( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToString( readSetting( setting ) );
+        return ValueTypeConverter.valueToString( readSetting( setting ) );
     }
 
     @Override
     public List<String> readSettingAsStringArray( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToStringArray( readSetting( setting ) );
+        return ValueTypeConverter.valueToStringArray( readSetting( setting ) );
     }
 
     @Override
     public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToForm( readSetting( setting ) );
+        return ValueTypeConverter.valueToForm( readSetting( setting ) );
     }
 
     @Override
     public <E extends Enum<E>> Set<E> readSettingAsOptionList( final PwmSetting setting, final Class<E> enumClass )
     {
-        return Configuration.JavaTypeConverter.valueToOptionList( setting, readSetting( setting ), enumClass );
+        return ValueTypeConverter.valueToOptionList( setting, readSetting( setting ), enumClass );
     }
 
     @Override
     public <E extends Enum<E>> E readSettingAsEnum( final PwmSetting setting, final Class<E> enumClass )
     {
         final StoredValue value = readSetting( setting );
-        final E returnValue = Configuration.JavaTypeConverter.valueToEnum( setting, value, enumClass );
+        final E returnValue = ValueTypeConverter.valueToEnum( setting, value, enumClass );
         if ( MessageSendMethod.class.equals( enumClass ) )
         {
             Configuration.deprecatedSettingException( setting, this.getIdentifier(), ( MessageSendMethod ) returnValue );
@@ -106,37 +107,37 @@ public abstract class AbstractProfile implements Profile, SettingReader
 
     public List<ActionConfiguration> readSettingAsAction( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToAction( setting, readSetting( setting ) );
+        return ValueTypeConverter.valueToAction( setting, readSetting( setting ) );
     }
 
     @Override
     public List<X509Certificate> readSettingAsCertificate( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToX509Certificates( setting, readSetting( setting ) );
+        return ValueTypeConverter.valueToX509Certificates( setting, readSetting( setting ) );
     }
 
     @Override
     public boolean readSettingAsBoolean( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToBoolean( readSetting( setting ) );
+        return ValueTypeConverter.valueToBoolean( readSetting( setting ) );
     }
 
     @Override
     public long readSettingAsLong( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToLong( readSetting( setting ) );
+        return ValueTypeConverter.valueToLong( readSetting( setting ) );
     }
 
     @Override
     public String readSettingAsLocalizedString( final PwmSetting setting, final Locale locale )
     {
-        return Configuration.JavaTypeConverter.valueToLocalizedString( readSetting( setting ), locale );
+        return ValueTypeConverter.valueToLocalizedString( readSetting( setting ), locale );
     }
 
     @Override
     public PasswordData readSettingAsPassword( final PwmSetting setting )
     {
-        return Configuration.JavaTypeConverter.valueToPassword( readSetting( setting ) );
+        return ValueTypeConverter.valueToPassword( readSetting( setting ) );
     }
 
     @Override

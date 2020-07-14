@@ -24,7 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.FileValue;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;

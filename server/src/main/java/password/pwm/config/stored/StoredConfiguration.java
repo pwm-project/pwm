@@ -22,7 +22,7 @@ package password.pwm.config.stored;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplateSet;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.secure.PwmSecurityKey;

@@ -27,7 +27,7 @@ import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.StoredValueEncoder;
 import password.pwm.config.value.StringArrayValue;

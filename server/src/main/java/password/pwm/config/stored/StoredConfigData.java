@@ -23,7 +23,7 @@ package password.pwm.config.stored;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 
 import java.time.Instant;
 import java.util.Collection;

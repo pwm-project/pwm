@@ -23,7 +23,6 @@ package password.pwm.config.value;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;

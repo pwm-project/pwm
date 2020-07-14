@@ -22,7 +22,6 @@ package password.pwm.config.value;
 
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.java.JsonUtil;
@@ -120,7 +119,7 @@ public class PrivateKeyValue extends AbstractValue
 
             public X509CertificateValue fromJson( final String input )
             {
-                return new X509CertificateValue( new X509Certificate[ 0 ] );
+                return new X509CertificateValue( Collections.emptyList() );
             }
         };
     }
@@ -171,7 +170,7 @@ public class PrivateKeyValue extends AbstractValue
                 }
                 {
                     final XmlElement keyElement = XmlFactory.getFactory().newElement( ELEMENT_NAME_KEY );
-                    final String b64EncodedKey = StringUtil.base64Encode( privateKeyCertificate.getKey().getEncoded() );
+                    final String b64EncodedKey = privateKeyCertificate.getPrivateKey();
                     final String encryptedKey = StoredValueEncoder.encode(
                             b64EncodedKey,
                             xmlOutputProcessData.getStoredValueEncoderMode(),

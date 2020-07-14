@@ -21,7 +21,7 @@
 package password.pwm.util;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -181,21 +181,21 @@ public class PropertyConfigurationImporter
             final Optional<Collection<X509Certificate>> optionalCert = readCertificate( PropertyKey.LDAP_SERVERCERTS );
             if ( optionalCert.isPresent( ) )
             {
-                storedConfiguration.writeSetting( PwmSetting.LDAP_SERVER_CERTS, LDAP_PROFILE, new X509CertificateValue( optionalCert.get( ) ), null );
+                storedConfiguration.writeSetting( PwmSetting.LDAP_SERVER_CERTS, LDAP_PROFILE, X509CertificateValue.fromX509( optionalCert.get( ) ), null );
             }
         }
         {
             final Optional<Collection<X509Certificate>> optionalCert = readCertificate( PropertyKey.AUDIT_SERVERCERTS );
             if ( optionalCert.isPresent( ) )
             {
-                storedConfiguration.writeSetting( PwmSetting.AUDIT_SYSLOG_CERTIFICATES, null, new X509CertificateValue( optionalCert.get( ) ), null );
+                storedConfiguration.writeSetting( PwmSetting.AUDIT_SYSLOG_CERTIFICATES, null, X509CertificateValue.fromX509( optionalCert.get( ) ), null );
             }
         }
         {
             final Optional<Collection<X509Certificate>> optionalCert = readCertificate( PropertyKey.OAUTH_IDSERVER_SERVERCERTS );
             if ( optionalCert.isPresent( ) )
             {
-                storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_CERTIFICATE, null, new X509CertificateValue( optionalCert.get( ) ), null );
+                storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_CERTIFICATE, null, X509CertificateValue.fromX509( optionalCert.get( ) ), null );
             }
         }
 
