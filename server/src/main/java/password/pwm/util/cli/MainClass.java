@@ -360,7 +360,7 @@ public class MainClass
             final String[] args
     )
     {
-        final List<String> argList = new LinkedList<>( Arrays.asList( args ) );
+        final List<String> argList = new ArrayList<>( Arrays.asList( args ) );
         argList.remove( 0 );
 
         final CliEnvironment cliEnvironment;

@@ -93,6 +93,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PwmHttpClient implements AutoCloseable
@@ -357,9 +358,9 @@ public class PwmHttpClient implements AutoCloseable
         final PwmHttpClientResponse.PwmHttpClientResponseBuilder httpClientResponseBuilder = PwmHttpClientResponse.builder();
         httpClientResponseBuilder.requestID( clientRequest.getRequestID() );
 
-        final HttpContentType httpContentType = contentTypeForEntity( httpResponse.getEntity() );
+        final Optional<HttpContentType> optionalHttpContentType = contentTypeForEntity( httpResponse.getEntity() );
 
-        if ( httpContentType != null && httpContentType.getDataType() ==  HttpEntityDataType.ByteArray )
+        if ( optionalHttpContentType.isPresent() && optionalHttpContentType.get().getDataType() ==  HttpEntityDataType.ByteArray )
         {
             httpClientResponseBuilder.binaryBody( readBinaryEntityBody( httpResponse.getEntity() ) );
             httpClientResponseBuilder.dataType( HttpEntityDataType.ByteArray );
@@ -378,7 +379,7 @@ public class PwmHttpClient implements AutoCloseable
 
         final PwmHttpClientResponse httpClientResponse = httpClientResponseBuilder
                 .statusCode( httpResponse.getStatusLine().getStatusCode() )
-                .contentType( httpContentType )
+                .contentType( optionalHttpContentType.orElse( HttpContentType.plain ) )
                 .statusPhrase( httpResponse.getStatusLine().getReasonPhrase() )
                 .headers( Collections.unmodifiableMap( responseHeaders ) )
                 .build();
@@ -517,7 +518,7 @@ public class PwmHttpClient implements AutoCloseable
         }
     }
 
-    private static HttpContentType contentTypeForEntity( final HttpEntity httpEntity )
+    private static Optional<HttpContentType> contentTypeForEntity( final HttpEntity httpEntity )
     {
         if ( httpEntity != null )
         {
@@ -537,7 +538,7 @@ public class PwmHttpClient implements AutoCloseable
                                 final HttpContentType httpContentType = HttpContentType.fromContentTypeHeader( name, null );
                                 if ( httpContentType != null )
                                 {
-                                    return httpContentType;
+                                    return Optional.of( httpContentType );
                                 }
                             }
                         }
@@ -546,7 +547,7 @@ public class PwmHttpClient implements AutoCloseable
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     private ImmutableByteArray readBinaryEntityBody( final HttpEntity httpEntity )

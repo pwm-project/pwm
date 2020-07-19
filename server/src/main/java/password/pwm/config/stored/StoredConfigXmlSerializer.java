@@ -27,12 +27,13 @@ import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.LocalizedStringValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StoredValueEncoder;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
@@ -58,7 +59,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -226,8 +226,8 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                 }
             }
 
-            final List<String> settingValues = ( List<String> ) effectiveValue.toNativeObject();
-            final LinkedList<String> profiles = new LinkedList<>( settingValues );
+            final List<String> settingValues = ValueTypeConverter.valueToStringArray( effectiveValue );
+            final List<String> profiles = new ArrayList<>( settingValues );
             profiles.removeIf( StringUtil::isEmpty );
             return Collections.unmodifiableList( profiles );
         }

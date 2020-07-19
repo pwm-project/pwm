@@ -28,6 +28,7 @@ import password.pwm.util.java.JsonUtil;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public enum AuditEvent
@@ -102,7 +103,7 @@ public enum AuditEvent
         return message;
     }
 
-    public static AuditEvent forKey( final String key )
+    public static Optional<AuditEvent> forKey( final String key )
     {
         for ( final AuditEvent loopEvent : AuditEvent.values() )
         {
@@ -112,12 +113,12 @@ public enum AuditEvent
                 final String resourceKey = message.getKey();
                 if ( resourceKey.equals( key ) )
                 {
-                    return loopEvent;
+                    return Optional.of( loopEvent );
                 }
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public String getLocalizedString( final Configuration config, final Locale locale )

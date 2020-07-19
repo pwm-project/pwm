@@ -23,42 +23,38 @@ package password.pwm.util.java;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
-import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class AverageTracker
 {
     private final int maxSamples;
-    private final Queue<BigInteger> samples = new LinkedList<>();
+    private final Queue<BigInteger> samples = new ConcurrentLinkedQueue<>();
 
     public AverageTracker( final int maxSamples )
     {
         this.maxSamples = maxSamples;
     }
 
-    public void addSample( final long input )
+    public synchronized void addSample( final long input )
     {
-        samples.add( new BigInteger( Long.toString( input ) ) );
+        samples.add( BigInteger.valueOf( input ) );
         while ( samples.size() > maxSamples )
         {
             samples.remove();
         }
     }
 
-    public BigDecimal avg( )
+    public synchronized BigDecimal avg( )
     {
         if ( samples.isEmpty() )
         {
-            throw new IllegalStateException( "unable to compute avg without samples" );
+            return BigDecimal.ZERO;
         }
 
-        BigInteger total = BigInteger.ZERO;
-        for ( final BigInteger sample : samples )
-        {
-            total = total.add( sample );
-        }
-        final BigDecimal maxAsBD = new BigDecimal( Integer.toString( maxSamples ) );
-        return new BigDecimal( total ).divide( maxAsBD, MathContext.DECIMAL32 );
+        final BigInteger total = samples.stream().reduce( BigInteger::add ).get();
+        final BigDecimal sampleSize = new BigDecimal( samples.size() );
+        return new BigDecimal( total ).divide( sampleSize, MathContext.DECIMAL128 );
     }
 
     public long avgAsLong( )

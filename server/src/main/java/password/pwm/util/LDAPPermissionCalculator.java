@@ -46,10 +46,9 @@ import password.pwm.util.queue.SmsQueueManager;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -347,7 +346,7 @@ public class LDAPPermissionCalculator implements Serializable
         {
             case CHALLENGE_USER_ATTRIBUTE:
             {
-                final Set<DataStorageMethod> storageMethods = new HashSet<>();
+                final Set<DataStorageMethod> storageMethods = EnumSet.noneOf( DataStorageMethod.class );
                 storageMethods.addAll( configuration.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE ) );
                 storageMethods.addAll( configuration.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE ) );
                 if ( !storageMethods.contains( DataStorageMethod.LDAP ) )
@@ -446,9 +445,10 @@ public class LDAPPermissionCalculator implements Serializable
     {
 
         final Set<PwmSettingTemplate> edirInterestedTemplates =
-                Collections.unmodifiableSet( new HashSet<>( Arrays.asList(
-                        PwmSettingTemplate.NOVL, PwmSettingTemplate.NOVL_IDM ) )
-                );
+                Collections.unmodifiableSet( EnumSet.of(
+                        PwmSettingTemplate.NOVL,
+                        PwmSettingTemplate.NOVL_IDM
+                ) );
 
         final List<PermissionRecord> permissionRecords = new ArrayList<>();
 

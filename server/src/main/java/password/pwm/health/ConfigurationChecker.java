@@ -27,6 +27,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
+import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
@@ -139,7 +140,8 @@ public class ConfigurationChecker implements HealthChecker
             VerifyDbConfiguredIfNeeded.class,
             VerifyIfDeprecatedSendMethodValuesUsed.class,
             VerifyIfDeprecatedJsFormOptionUsed.class,
-            VerifyNewUserLdapProfile.class
+            VerifyNewUserLdapProfile.class,
+            VerifyPasswordWaitTimes.class
     ) );
 
     static class VerifyBasicConfigs implements ConfigHealthCheck
@@ -543,6 +545,36 @@ public class ConfigurationChecker implements HealthChecker
         }
     }
 
+    static class VerifyPasswordWaitTimes implements ConfigHealthCheck
+    {
+        @Override
+        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        {
+            final List<HealthRecord> records = new ArrayList<>();
+
+            for ( final ChangePasswordProfile changePasswordProfile : config.getChangePasswordProfile().values() )
+            {
+                final long minValue = changePasswordProfile.readSettingAsLong( PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME );
+                final long maxValue = changePasswordProfile.readSettingAsLong( PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME );
+                if ( maxValue > 0 && minValue > maxValue )
+                {
+                    final String profileID = changePasswordProfile.getIdentifier();
+                    final String detailMsg = " (" + minValue + ")"
+                            + " > "
+                            + " (" + maxValue + ")";
+                    records.add( HealthRecord.forMessage(
+                            HealthMessage.Config_ValueConflict,
+                            PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME.toMenuLocationDebug( profileID, locale ),
+                            PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME.toMenuLocationDebug( profileID, locale ),
+                            detailMsg
+                    ) );
+                }
+            }
+
+
+            return records;
+        }
+    }
 
     interface ConfigHealthCheck
     {

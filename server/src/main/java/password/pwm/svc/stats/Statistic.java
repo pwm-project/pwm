@@ -29,6 +29,7 @@ import password.pwm.util.java.TimeDuration;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -197,21 +198,10 @@ public enum Statistic
         }
     }
 
-    public static Statistic forKey( final String key )
+    public static Optional<Statistic> forKey( final String key )
     {
-        if ( key == null )
-        {
-            return null;
-        }
-
-        for ( final Statistic stat : values() )
-        {
-            if ( stat.getKey().equals( key ) )
-            {
-                return stat;
-            }
-        }
-
-        return null;
+        return Arrays.stream( values() )
+                .filter( loopValue -> loopValue.getKey().equals( key ) )
+                .findFirst();
     }
 }

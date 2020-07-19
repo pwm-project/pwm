@@ -22,7 +22,7 @@ package password.pwm.util.db;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -33,10 +33,10 @@ import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-@Getter
+@Value
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class DBConfiguration implements Serializable
 {
@@ -47,7 +47,7 @@ public class DBConfiguration implements Serializable
     private final String columnTypeKey;
     private final String columnTypeValue;
     private final byte[] jdbcDriver;
-    private final List<JDBCDriverLoader.ClassLoaderStrategy> classLoaderStrategies;
+    private final Set<JDBCDriverLoader.ClassLoaderStrategy> classLoaderStrategies;
     private final int maxConnections;
     private final int connectionTimeout;
     private final int keyColumnLength;
@@ -83,7 +83,7 @@ public class DBConfiguration implements Serializable
         }
 
         final String strategyList = config.readAppProperty( AppProperty.DB_JDBC_LOAD_STRATEGY );
-        final List<JDBCDriverLoader.ClassLoaderStrategy> strategies = JavaHelper.readEnumListFromStringCollection(
+        final Set<JDBCDriverLoader.ClassLoaderStrategy> strategies = JavaHelper.readEnumSetFromStringCollection(
                 JDBCDriverLoader.ClassLoaderStrategy.class,
                 Arrays.asList( strategyList.split( "," ) )
         );

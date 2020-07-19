@@ -47,6 +47,7 @@ import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class JDBCDriverLoader
@@ -60,7 +61,7 @@ public class JDBCDriverLoader
     )
             throws DatabaseException
     {
-        final List<ClassLoaderStrategy> strategies = dbConfiguration.getClassLoaderStrategies();
+        final Set<ClassLoaderStrategy> strategies = dbConfiguration.getClassLoaderStrategies();
         LOGGER.trace( () -> "attempting to load jdbc driver using strategies: " + JsonUtil.serializeCollection( strategies ) );
         final List<String> errorMsgs = new ArrayList<>();
         for ( final ClassLoaderStrategy strategy : strategies )

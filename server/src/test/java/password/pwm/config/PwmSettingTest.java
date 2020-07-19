@@ -40,7 +40,6 @@ import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -61,9 +60,8 @@ public class PwmSettingTest
                 .build();
         for ( final PwmSetting pwmSetting : PwmSetting.values() )
         {
-            for ( final PwmSettingTemplate template : PwmSettingTemplate.values() )
+            for ( final PwmSettingTemplateSet templateSet : PwmSettingTemplateSet.allValues() )
             {
-                final PwmSettingTemplateSet templateSet = new PwmSettingTemplateSet( Collections.singleton( template ) );
                 final StoredValue storedValue = pwmSetting.getDefaultValue( templateSet );
                 storedValue.toNativeObject();
                 storedValue.toDebugString( PwmConstants.DEFAULT_LOCALE );
@@ -116,8 +114,8 @@ public class PwmSettingTest
         {
             final String key = result.getAttributeValue( "key" );
             Assert.assertFalse( StringUtil.isEmpty( key ) );
-            final PwmSetting pwmSetting = PwmSetting.forKey( key );
-            Assert.assertNotNull( "unknown PwmSetting.xml setting reference for key " + key );
+            final Optional<PwmSetting> pwmSetting = PwmSetting.forKey( key );
+            Assert.assertTrue( "unknown PwmSetting.xml setting reference for key " + key, pwmSetting.isPresent() );
         }
     }
 
@@ -194,24 +192,9 @@ public class PwmSettingTest
         final Set<String> seenKeys = new HashSet<>();
         for ( final PwmSetting pwmSetting : PwmSetting.values() )
         {
-            // duplicate key foud
-            Assert.assertTrue( !seenKeys.contains( pwmSetting.getKey() ) );
+            // duplicate key found
+            Assert.assertFalse( seenKeys.contains( pwmSetting.getKey() ) );
             seenKeys.add( pwmSetting.getKey() );
         }
-    }
-
-    @Test
-    public void testMinMaxValueRanges()
-    {
-        for ( final PwmSetting pwmSetting : PwmSetting.values() )
-        {
-            final long minValue = Long.parseLong( pwmSetting.getProperties().getOrDefault( PwmSettingProperty.Minimum, "0" ) );
-            final long maxValue = Long.parseLong( pwmSetting.getProperties().getOrDefault( PwmSettingProperty.Maximum, "0" ) );
-            if ( maxValue != 0 )
-            {
-                Assert.assertTrue( maxValue > minValue );
-            }
-        }
-
     }
 }

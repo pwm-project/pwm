@@ -29,15 +29,14 @@ import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
-import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -278,27 +277,8 @@ public final class ValueTypeConverter
             throw new IllegalArgumentException( "may not read SELECT enum value for setting: " + setting.toString() );
         }
 
-        if ( value != null )
-        {
-            final String strValue = ( String ) value.toNativeObject();
-            try
-            {
-                return ( E ) enumClass.getMethod( "valueOf", String.class ).invoke( null, strValue );
-            }
-            catch ( final InvocationTargetException e1 )
-            {
-                if ( e1.getCause() instanceof IllegalArgumentException )
-                {
-                    LOGGER.error( () -> "illegal setting value for option '" + strValue + "' for setting key '" + setting.getKey() + "' is not recognized, will use default" );
-                }
-            }
-            catch ( final Exception e1 )
-            {
-                LOGGER.error( () -> "unexpected error", e1 );
-            }
-        }
-
-        return null;
+        final String strValue = ( String ) value.toNativeObject();
+        return JavaHelper.readEnumFromString( enumClass, strValue ).orElse( null );
     }
 
     public static Map<FileValue.FileInformation, FileValue.FileContent> valueToFile( final PwmSetting setting, final StoredValue storedValue )
@@ -323,27 +303,7 @@ public final class ValueTypeConverter
             throw new IllegalArgumentException( "may not read optionlist value for setting: " + setting.toString() );
         }
 
-        final Set<E> returnSet = new LinkedHashSet<>();
         final Set<String> strValues = ( Set<String> ) value.toNativeObject();
-        for ( final String strValue : strValues )
-        {
-            try
-            {
-                returnSet.add( ( E ) enumClass.getMethod( "valueOf", String.class ).invoke( null, strValue ) );
-            }
-            catch ( final InvocationTargetException e1 )
-            {
-                if ( e1.getCause() instanceof IllegalArgumentException )
-                {
-                    LOGGER.error( () -> "illegal setting value for option '" + strValue + "' is not recognized, will use default" );
-                }
-            }
-            catch ( final Exception e1 )
-            {
-                LOGGER.error( () -> "unexpected error", e1 );
-            }
-        }
-
-        return Collections.unmodifiableSet( returnSet );
+        return JavaHelper.readEnumSetFromStringCollection( enumClass, strValues );
     }
 }

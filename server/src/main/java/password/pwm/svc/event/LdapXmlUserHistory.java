@@ -299,12 +299,14 @@ class LdapXmlUserHistory implements UserHistoryStore
                 {
                     final long timeStamp = hrElement.getAttribute( XML_ATTR_TIMESTAMP ).getLongValue();
                     final String transactionCode = hrElement.getAttribute( XML_ATTR_TRANSACTION ).getValue();
-                    final AuditEvent eventCode = AuditEvent.forKey( transactionCode );
-                    final String srcAddr = hrElement.getAttribute( XML_ATTR_SRC_IP ) != null ? hrElement.getAttribute( XML_ATTR_SRC_IP ).getValue() : "";
-                    final String srcHost = hrElement.getAttribute( XML_ATTR_SRC_HOST ) != null ? hrElement.getAttribute( XML_ATTR_SRC_HOST ).getValue() : "";
-                    final String message = hrElement.getText();
-                    final StoredEvent storedEvent = new StoredEvent( eventCode, timeStamp, message, srcAddr, srcHost );
-                    returnHistory.addEvent( storedEvent );
+                    AuditEvent.forKey( transactionCode ).ifPresent( ( eventCode ) ->
+                    {
+                        final String srcAddr = hrElement.getAttribute( XML_ATTR_SRC_IP ) != null ? hrElement.getAttribute( XML_ATTR_SRC_IP ).getValue() : "";
+                        final String srcHost = hrElement.getAttribute( XML_ATTR_SRC_HOST ) != null ? hrElement.getAttribute( XML_ATTR_SRC_HOST ).getValue() : "";
+                        final String message = hrElement.getText();
+                        final StoredEvent storedEvent = new StoredEvent( eventCode, timeStamp, message, srcAddr, srcHost );
+                        returnHistory.addEvent( storedEvent );
+                    } );
                 }
             }
             catch ( final JDOMException | IOException e )

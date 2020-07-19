@@ -21,8 +21,10 @@
 package password.pwm.config;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 public class PwmSettingTemplateSet implements Serializable
@@ -31,7 +33,7 @@ public class PwmSettingTemplateSet implements Serializable
 
     public PwmSettingTemplateSet( final Set<PwmSettingTemplate> templates )
     {
-        final Set<PwmSettingTemplate> workingSet = new HashSet<>();
+        final Set<PwmSettingTemplate> workingSet = EnumSet.noneOf( PwmSettingTemplate.class );
 
         if ( templates != null )
         {
@@ -44,7 +46,7 @@ public class PwmSettingTemplateSet implements Serializable
             }
         }
 
-        final Set<PwmSettingTemplate.Type> seenTypes = new HashSet<>();
+        final Set<PwmSettingTemplate.Type> seenTypes = EnumSet.noneOf( PwmSettingTemplate.Type.class );
         for ( final PwmSettingTemplate template : workingSet )
         {
             seenTypes.add( template.getType() );
@@ -69,5 +71,23 @@ public class PwmSettingTemplateSet implements Serializable
     public static PwmSettingTemplateSet getDefault( )
     {
         return new PwmSettingTemplateSet( null );
+    }
+
+    /**
+     * Get all possible templateSets, useful for testing.
+     * @return
+     */
+    public static List<PwmSettingTemplateSet> allValues()
+    {
+        final List<PwmSettingTemplateSet> templateSets = new ArrayList<>();
+
+        for ( final PwmSettingTemplate template : PwmSettingTemplate.values() )
+        {
+            final PwmSettingTemplateSet templateSet = new PwmSettingTemplateSet( Collections.singleton( template ) );
+            templateSets.add( templateSet );
+        }
+
+        templateSets.add( getDefault() );
+        return Collections.unmodifiableList( templateSets );
     }
 }

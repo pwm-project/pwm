@@ -27,8 +27,8 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplateSet;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.PasswordValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -45,7 +45,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -100,7 +99,7 @@ public abstract class StoredConfigurationUtil
     {
         final Object nativeObject = storedConfiguration.readSetting( profileSetting, null ).toNativeObject();
         final List<String> settingValues = ( List<String> ) nativeObject;
-        final LinkedList<String> profiles = new LinkedList<>( settingValues );
+        final List<String> profiles = new ArrayList<>( settingValues );
         profiles.removeIf( StringUtil::isEmpty );
         return Collections.unmodifiableList( profiles );
 

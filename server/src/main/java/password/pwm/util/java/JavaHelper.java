@@ -48,15 +48,14 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -148,9 +147,9 @@ public class JavaHelper
         return new String( chars );
     }
 
-    public static <E extends Enum<E>> List<E> readEnumListFromStringCollection( final Class<E> enumClass, final Collection<String> inputs )
+    public static <E extends Enum<E>> Set<E> readEnumSetFromStringCollection( final Class<E> enumClass, final Collection<String> inputs )
     {
-        final List<E> returnList = new ArrayList<E>();
+        final Set<E> returnList = EnumSet.noneOf( enumClass );
         for ( final String input : inputs )
         {
             final E item = readEnumFromString( enumClass, null, input );
@@ -159,7 +158,7 @@ public class JavaHelper
                 returnList.add( item );
             }
         }
-        return Collections.unmodifiableList( returnList );
+        return Collections.unmodifiableSet( returnList );
     }
 
     public static <E extends Enum<E>> Map<String, String> enumMapToStringMap( final Map<E, String> inputMap )
@@ -662,5 +661,12 @@ public class JavaHelper
     public static byte[] longToBytes( final long input )
     {
         return ByteBuffer.allocate( 8 ).putLong( input ).array();
+    }
+
+    public static <E extends Enum<E>> EnumSet<E> copiedEnumSet( final Collection<E> source, final Class<E> classOfT )
+    {
+        return source == null || source.isEmpty()
+                ? EnumSet.noneOf( classOfT )
+                : EnumSet.copyOf( source );
     }
 }

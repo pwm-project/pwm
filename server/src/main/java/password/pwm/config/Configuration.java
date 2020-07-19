@@ -155,6 +155,7 @@ public class Configuration implements SettingReader
     {
         final StoredValue value = readStoredValue( setting );
         final E returnValue = ValueTypeConverter.valueToEnum( setting, value, enumClass );
+
         if ( MessageSendMethod.class.equals( enumClass ) )
         {
             deprecatedSettingException( setting, null, ( MessageSendMethod ) returnValue );

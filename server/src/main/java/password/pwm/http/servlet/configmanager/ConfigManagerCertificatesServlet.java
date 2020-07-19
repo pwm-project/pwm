@@ -123,7 +123,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
         {
             if ( ref.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
             {
-                final PwmSetting pwmSetting = PwmSetting.forKey( ref.getRecordID() );
+                final PwmSetting pwmSetting = ref.toPwmSetting();
                 if ( pwmSetting.getSyntax() == PwmSettingSyntax.X509CERT )
                 {
                     final StoredValue storedValue = storedConfiguration.readSetting( pwmSetting, ref.getProfileID() );

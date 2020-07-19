@@ -601,7 +601,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
         final String key = pwmRequest.readParameterAsString( "key" );
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
-        final PwmSetting theSetting = PwmSetting.forKey( key );
+        final PwmSetting theSetting = PwmSetting.forKey( key )
+                .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
 
         final Object returnValue;
         returnValue = storedConfiguration.readSetting( theSetting, profileID ).toNativeObject();
@@ -623,7 +624,9 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final String profileID = "default";
         final String key = pwmRequest.readParameterAsString( "key" );
         final String bodyString = pwmRequest.readRequestBodyAsString();
-        final PwmSetting setting = PwmSetting.forKey( key );
+        final PwmSetting setting = PwmSetting.forKey( key )
+                .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
+
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
         final StoredConfiguration storedConfigurationImpl = ConfigGuideForm.generateStoredConfig( configGuideBean );
 

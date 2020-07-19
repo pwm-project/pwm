@@ -398,12 +398,11 @@ public enum PwmSettingCategory
         return Collections.unmodifiableCollection( returnValues );
     }
 
-    public static PwmSettingCategory forKey( final String key )
+    public static Optional<PwmSettingCategory> forKey( final String key )
     {
         return Arrays.stream( values() )
                 .filter( loopValue -> loopValue.getKey().equals( key ) )
-                .findFirst()
-                .orElse( null );
+                .findFirst();
     }
 
     private static class XmlReader
@@ -421,7 +420,7 @@ public enum PwmSettingCategory
                     final String settingKey = profileElement.get().getAttributeValue( "setting" );
                     if ( settingKey != null )
                     {
-                        return Optional.of( PwmSetting.forKey( settingKey ) );
+                        return PwmSetting.forKey( settingKey );
                     }
                 }
                 if ( nested )

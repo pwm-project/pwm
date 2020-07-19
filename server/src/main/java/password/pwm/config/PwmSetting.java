@@ -37,7 +37,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -1299,8 +1300,8 @@ public enum PwmSetting
     private final PwmSettingCategory category;
 
     // cached values read from XML file
-    private final Supplier<List<TemplateSetAssociation>> defaultValues = new LazySupplier<>( () -> PwmSettingReader.readDefaultValue( PwmSetting.this ) );
-    private final Supplier<List<TemplateSetAssociation>> examples = new LazySupplier<>( () -> PwmSettingReader.readExamples( PwmSetting.this ) );
+    private final Supplier<List<TemplateSetReference<StoredValue>>> defaultValues = new LazySupplier<>( () -> PwmSettingReader.readDefaultValue( PwmSetting.this ) );
+    private final Supplier<List<TemplateSetReference<String>>> examples = new LazySupplier<>( () -> PwmSettingReader.readExamples( PwmSetting.this ) );
     private final Supplier<Map<String, String>> options = new LazySupplier<>( () -> PwmSettingReader.readOptions( PwmSetting.this ) );
     private final Supplier<Collection<PwmSettingFlag>> flags = new LazySupplier<>( () -> PwmSettingReader.readFlags( PwmSetting.this ) );
     private final Supplier<Map<PwmSettingProperty, String>> properties = new LazySupplier<>( () -> PwmSettingReader.readProperties( PwmSetting.this ) );
@@ -1341,25 +1342,25 @@ public enum PwmSetting
         return syntax;
     }
 
-    private List<TemplateSetAssociation> getDefaultValue()
+    private List<TemplateSetReference<StoredValue>> getDefaultValue()
     {
         return defaultValues.get();
     }
 
     public StoredValue getDefaultValue( final PwmSettingTemplateSet templateSet )
     {
-        final List<TemplateSetAssociation> defaultValues = getDefaultValue();
-        return ( StoredValue ) associationForTempleSet( defaultValues, templateSet ).getObject();
+        final List<TemplateSetReference<StoredValue>> defaultValues = getDefaultValue();
+        return TemplateSetReference.referenceForTempleSet( defaultValues, templateSet );
     }
 
     public Map<String, String> getDefaultValueDebugStrings( final Locale locale )
     {
         final Map<String, String> returnObj = new LinkedHashMap<>();
-        for ( final TemplateSetAssociation templateSetAssociation : this.getDefaultValue() )
+        for ( final TemplateSetReference<StoredValue> templateSetReference : this.getDefaultValue() )
         {
             returnObj.put(
-                    StringUtil.join( templateSetAssociation.getSettingTemplates(), "," ),
-                    ( ( StoredValue ) templateSetAssociation.getObject() ).toDebugString( locale )
+                    StringUtil.join( templateSetReference.getSettingTemplates(), "," ),
+                    ( templateSetReference.getReference() ).toDebugString( locale )
             );
         }
         return Collections.unmodifiableMap( returnObj );
@@ -1397,7 +1398,7 @@ public enum PwmSetting
 
     public String getExample( final PwmSettingTemplateSet template )
     {
-        return ( String ) associationForTempleSet( examples.get(), template ).getObject();
+        return TemplateSetReference.referenceForTempleSet( examples.get(), template );
     }
 
     public boolean isRequired( )
@@ -1420,12 +1421,11 @@ public enum PwmSetting
         return pattern.get();
     }
 
-    public static PwmSetting forKey( final String key )
+    public static Optional<PwmSetting> forKey( final String key )
     {
         return Arrays.stream( values() )
                 .filter( loopValue -> loopValue.getKey().equals( key ) )
-                .findFirst()
-                .orElse( null );
+                .findFirst();
     }
 
     public String toMenuLocationDebug(
@@ -1482,10 +1482,42 @@ public enum PwmSetting
     }
 
     @Value
-    public static class TemplateSetAssociation
+    static class TemplateSetReference<T>
     {
-        private final Object object;
+        private final T reference;
         private final Set<PwmSettingTemplate> settingTemplates;
+
+        private static <T> T referenceForTempleSet(
+                final List<TemplateSetReference<T>> templateSetReferences,
+                final PwmSettingTemplateSet pwmSettingTemplate
+        )
+        {
+            if ( templateSetReferences == null || templateSetReferences.isEmpty() )
+            {
+                throw new IllegalStateException( "templateSetReferences can not be null" );
+            }
+
+            if ( templateSetReferences.size() == 1 )
+            {
+                return templateSetReferences.iterator().next().getReference();
+            }
+
+            for ( int matchCountExamSize = templateSetReferences.size(); matchCountExamSize > 0; matchCountExamSize-- )
+            {
+                for ( final TemplateSetReference<T> templateSetReference : templateSetReferences )
+                {
+                    final Set<PwmSettingTemplate> temporarySet = JavaHelper.copiedEnumSet( templateSetReference.getSettingTemplates(), PwmSettingTemplate.class );
+                    temporarySet.retainAll( pwmSettingTemplate.getTemplates() );
+                    final int matchCount = temporarySet.size();
+                    if ( matchCount == matchCountExamSize )
+                    {
+                        return templateSetReference.getReference();
+                    }
+                }
+            }
+
+            return templateSetReferences.iterator().next().getReference();
+        }
     }
 
     public static Set<PwmSetting> sortedByMenuLocation( final Locale locale )
@@ -1498,44 +1530,12 @@ public enum PwmSetting
         return Collections.unmodifiableSet( new LinkedHashSet<>( treeMap.values() ) );
     }
 
-    private static TemplateSetAssociation associationForTempleSet(
-            final List<TemplateSetAssociation> associationSets,
-            final PwmSettingTemplateSet pwmSettingTemplate
-    )
-    {
-        if ( associationSets == null || associationSets.isEmpty() )
-        {
-            return null;
-        }
-
-        if ( associationSets.size() == 1 )
-        {
-            return associationSets.iterator().next();
-        }
-
-        for ( int matchCountExamSize = associationSets.size(); matchCountExamSize > 0; matchCountExamSize-- )
-        {
-            for ( final TemplateSetAssociation associationSet : associationSets )
-            {
-                final Set<PwmSettingTemplate> temporarySet = new HashSet<>( associationSet.getSettingTemplates() );
-                temporarySet.retainAll( pwmSettingTemplate.getTemplates() );
-                final int matchCount = temporarySet.size();
-                if ( matchCount == matchCountExamSize )
-                {
-                    return associationSet;
-                }
-            }
-        }
-
-        return associationSets.iterator().next();
-    }
-
     static class PwmSettingReader
     {
 
         private static Collection<PwmSettingFlag> readFlags( final PwmSetting pwmSetting )
         {
-            final Collection<PwmSettingFlag> returnObj = new ArrayList<>();
+            final Collection<PwmSettingFlag> returnObj = EnumSet.noneOf( PwmSettingFlag.class );
             final XmlElement settingElement = PwmSettingXml.readSettingXml( pwmSetting );
             final List<XmlElement> flagElements = settingElement.getChildren( "flag" );
             for ( final XmlElement flagElement : flagElements )
@@ -1609,9 +1609,9 @@ public enum PwmSetting
             return Collections.unmodifiableList( returnObj );
         }
 
-        private static List<TemplateSetAssociation> readExamples( final PwmSetting pwmSetting )
+        private static List<TemplateSetReference<String>> readExamples( final PwmSetting pwmSetting )
         {
-            final List<TemplateSetAssociation> returnObj = new ArrayList<>();
+            final List<TemplateSetReference<String>> returnObj = new ArrayList<>();
             final MacroMachine macroMachine = MacroMachine.forStatic();
             final XmlElement settingElement = PwmSettingXml.readSettingXml( pwmSetting );
             final List<XmlElement> exampleElements = settingElement.getChildren( PwmSettingXml.XML_ELEMENT_EXAMPLE );
@@ -1619,18 +1619,18 @@ public enum PwmSetting
             {
                 final Set<PwmSettingTemplate> definedTemplates = PwmSettingXml.parseTemplateAttribute( exampleElement );
                 final String exampleString = macroMachine.expandMacros( exampleElement.getText() );
-                returnObj.add( new TemplateSetAssociation( exampleString, Collections.unmodifiableSet( definedTemplates ) ) );
+                returnObj.add( new TemplateSetReference<>( exampleString, Collections.unmodifiableSet( definedTemplates ) ) );
             }
             if ( returnObj.isEmpty() )
             {
-                returnObj.add( new TemplateSetAssociation( "", Collections.emptySet() ) );
+                returnObj.add( new TemplateSetReference<>( "", Collections.emptySet() ) );
             }
             return Collections.unmodifiableList( returnObj );
         }
 
         private static Map<PwmSettingProperty, String> readProperties( final PwmSetting pwmSetting )
         {
-            final Map<PwmSettingProperty, String> newProps = new LinkedHashMap<>();
+            final Map<PwmSettingProperty, String> newProps = new EnumMap<>( PwmSettingProperty.class );
             final XmlElement settingElement = PwmSettingXml.readSettingXml( pwmSetting );
             final Optional<XmlElement> propertiesElement = settingElement.getChild( PwmSettingXml.XML_ELEMENT_PROPERTIES );
             if ( propertiesElement.isPresent() )
@@ -1659,14 +1659,14 @@ public enum PwmSetting
             return Collections.unmodifiableMap( newProps );
         }
 
-        private static List<TemplateSetAssociation> readDefaultValue( final PwmSetting pwmSetting )
+        private static List<TemplateSetReference<StoredValue>> readDefaultValue( final PwmSetting pwmSetting )
         {
-            final List<TemplateSetAssociation> returnObj = new ArrayList<>();
+            final List<TemplateSetReference<StoredValue>> returnObj = new ArrayList<>();
             final XmlElement settingElement = PwmSettingXml.readSettingXml( pwmSetting );
             final List<XmlElement> defaultElements = settingElement.getChildren( PwmSettingXml.XML_ELEMENT_DEFAULT );
             if ( pwmSetting.getSyntax() == PwmSettingSyntax.PASSWORD )
             {
-                returnObj.add( new TemplateSetAssociation( new PasswordValue( null ), Collections.emptySet() ) );
+                returnObj.add( new TemplateSetReference<>( new PasswordValue( null ), Collections.emptySet() ) );
             }
             else
             {
@@ -1674,7 +1674,7 @@ public enum PwmSetting
                 {
                     final Set<PwmSettingTemplate> definedTemplates = PwmSettingXml.parseTemplateAttribute( defaultElement );
                     final StoredValue storedValue = ValueFactory.fromXmlValues( pwmSetting, defaultElement, null );
-                    returnObj.add( new TemplateSetAssociation( storedValue, definedTemplates ) );
+                    returnObj.add( new TemplateSetReference<>( storedValue, definedTemplates ) );
                 }
             }
             if ( returnObj.isEmpty() )

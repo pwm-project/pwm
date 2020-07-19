@@ -462,11 +462,19 @@
         <default>
             <value>15</value>
         </default>
+        <properties>
+            <property key="Minimum">0</property>
+            <property key="Maximum">300</property>
+        </properties>
     </setting>
     <setting hidden="false" key="passwordSyncMaxWaitTime" level="2" required="true">
         <default>
             <value>90</value>
         </default>
+        <properties>
+            <property key="Minimum">0</property>
+            <property key="Maximum">300</property>
+        </properties>
     </setting>
     <setting hidden="false" key="expirePreTime" level="1" required="true">
         <default>

@@ -35,6 +35,7 @@ import password.pwm.util.secure.SecureEngine;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 public abstract class InternalMacros
@@ -88,12 +89,12 @@ public abstract class InternalMacros
             {
                 throw new MacroParseException( "PwmSettingReference macro requires a setting key value" );
             }
-            final PwmSetting setting = PwmSetting.forKey( settingKeyStr );
-            if ( setting == null )
+            final Optional<PwmSetting> setting = PwmSetting.forKey( settingKeyStr );
+            if ( !setting.isPresent() )
             {
                 throw new MacroParseException( "PwmSettingReference macro has unknown key value '" + settingKeyStr + "'" );
             }
-            return setting.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
+            return setting.get().toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
         }
     }
 
@@ -114,11 +115,9 @@ public abstract class InternalMacros
             {
                 throw new MacroParseException( "PwmSettingCategoryReference macro requires a setting key value" );
             }
-            final PwmSettingCategory category = PwmSettingCategory.forKey( settingKeyStr );
-            if ( category == null )
-            {
-                throw new MacroParseException( "PwmSettingCategoryReference macro has unknown key value '" + settingKeyStr + "'" );
-            }
+            final PwmSettingCategory category = PwmSettingCategory.forKey( settingKeyStr )
+                    .orElseThrow( () -> new MacroParseException( "PwmSettingCategoryReference macro has unknown key value '" + settingKeyStr + "'" ) );
+
             return category.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
         }
     }

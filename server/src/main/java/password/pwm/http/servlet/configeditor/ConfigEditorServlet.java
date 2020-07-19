@@ -212,7 +212,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final String bodyString = pwmRequest.readRequestBodyAsString();
         final Map<String, String> requestMap = JsonUtil.deserializeStringMap( bodyString );
-        final PwmSetting pwmSetting = PwmSetting.forKey( requestMap.get( "setting" ) );
+        final PwmSetting pwmSetting = PwmSetting.forKey( requestMap.get( "setting" ) )
+                .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
         final String functionName = requestMap.get( "function" );
         final String profileID = pwmSetting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString( "profile" ) : null;
         final String extraData = requestMap.get( "extraData" );
@@ -257,7 +258,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final String key = pwmRequest.readParameterAsString( "key" );
         final Object returnValue;
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
-        final PwmSetting theSetting = PwmSetting.forKey( key );
+        final PwmSetting theSetting = PwmSetting.forKey( key )
+                .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
 
         if ( key.startsWith( "localeBundle" ) )
         {
@@ -378,7 +380,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( configManagerBean.getStoredConfiguration() );
         final String key = pwmRequest.readParameterAsString( "key" );
         final String bodyString = pwmRequest.readRequestBodyAsString();
-        final PwmSetting setting = PwmSetting.forKey( key );
+        final PwmSetting setting = PwmSetting.forKey( key )
+                .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
         final UserIdentity loggedInUser = pwmRequest.getPwmSession().isAuthenticated()
                 ? pwmRequest.getPwmSession().getUserInfo().getUserIdentity()
@@ -440,7 +443,9 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( configManagerBean.getStoredConfiguration() );
         final UserIdentity loggedInUser = pwmRequest.getUserInfoIfLoggedIn();
         final String key = pwmRequest.readParameterAsString( "key" );
-        final PwmSetting setting = PwmSetting.forKey( key );
+        final PwmSetting setting = PwmSetting.forKey( key )
+                .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
+
 
         if ( key.startsWith( "localeBundle" ) )
         {
@@ -815,7 +820,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( configManagerBean.getStoredConfiguration() );
 
         final String key = pwmRequest.readParameterAsString( "key" );
-        final PwmSetting setting = PwmSetting.forKey( key );
+        final PwmSetting setting = PwmSetting.forKey( key )
+                .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
         final int maxFileSize = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.CONFIG_MAX_JDBC_JAR_SIZE ) );
 
         if ( setting == PwmSetting.HTTPS_CERT )
@@ -1117,7 +1123,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
 
         final String settingKey = inputMap.get( "setting" );
-        final PwmSetting setting = PwmSetting.forKey( settingKey );
+        final PwmSetting setting = PwmSetting.forKey( settingKey )
+                .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
         PwmSettingCategory category = null;
         for ( final PwmSettingCategory loopCategory : PwmSettingCategory.values() )
         {

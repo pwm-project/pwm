@@ -110,22 +110,20 @@ public class SummaryBean
 
                 for ( final String settingKey : bean.getConfiguredSettings() )
                 {
-                    final PwmSetting setting = PwmSetting.forKey( settingKey );
-                    if ( setting != null )
+                    PwmSetting.forKey( settingKey ).ifPresent( ( setting ) ->
                     {
                         final String description = setting.toMenuLocationDebug( null, null );
                         incrementCounterMap( settingCount, description );
-                    }
+                    } );
                 }
 
                 for ( final String statKey : bean.getStatistics().keySet() )
                 {
-                    final Statistic statistic = Statistic.forKey( statKey );
-                    if ( statistic != null )
+                    Statistic.forKey( statKey ).ifPresent( ( statistic ->
                     {
                         final int count = Integer.parseInt( bean.getStatistics().get( statKey ) );
                         incrementCounterMap( statCount, statistic.getLabel( null ), count );
-                    }
+                    } ) );
                 }
             }
         }

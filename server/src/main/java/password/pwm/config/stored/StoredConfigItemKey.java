@@ -183,7 +183,8 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
             throw new IllegalStateException( "attempt to read pwmSetting key for non-setting ConfigItemKey" );
         }
 
-        return PwmSetting.forKey( this.recordID );
+        return PwmSetting.forKey( this.recordID ).orElseThrow( () -> new IllegalStateException(
+                "attempt to read ConfigItemKey with unknown setting key '" + getRecordID() + "'" ) );
     }
 
     public PwmLocaleBundle toLocaleBundle()
