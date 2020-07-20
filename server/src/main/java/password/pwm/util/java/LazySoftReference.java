@@ -23,6 +23,15 @@ package password.pwm.util.java;
 import java.lang.ref.SoftReference;
 import java.util.function.Supplier;
 
+/**
+ * A lazy soft reference holder.  This reference will be built lazy and held softly
+ * (according to the semantics of {@link SoftReference}).  This class is not thread
+ * safe, and the GC may delete the reference at any time, so the {@link Supplier}
+ * given to the constructor may be executed multiple times over the lifetime of
+ * the reference.
+ *
+ * @param <E> type of object to hold
+ */
 public class LazySoftReference<E>
 {
     private volatile SoftReference<E> reference = new SoftReference<>( null );
@@ -33,7 +42,7 @@ public class LazySoftReference<E>
         this.supplier = supplier;
     }
 
-    public synchronized E get()
+    public E get()
     {
         E localValue = reference.get();
         if ( localValue == null )

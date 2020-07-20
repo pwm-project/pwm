@@ -24,15 +24,16 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.RecoveryMinLifetimeOption;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.config.value.OptionListValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Arrays;
@@ -46,16 +47,13 @@ class ConfigurationCleaner
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigurationCleaner.class );
 
-
-
-
     private static final List<PwmExceptionLoggingConsumer<StoredConfigurationModifier>> STORED_CONFIG_POST_PROCESSORS = Collections.unmodifiableList( Arrays.asList(
             new UpdateDeprecatedAdComplexitySettings(),
             new UpdateDeprecatedMinPwdLifetimeSetting(),
-            new UpdateDeprecatedPublicHealthSetting()
+            new UpdateDeprecatedPublicHealthSetting(),
+            new ProfileNonProfiledSettings(),
+            new CheckForSuperfluousProfileSettings()
     ) );
-
-
 
     static void postProcessStoredConfig(
             final StoredConfigurationModifier storedConfiguration
@@ -63,8 +61,6 @@ class ConfigurationCleaner
     {
         STORED_CONFIG_POST_PROCESSORS.forEach( aClass -> PwmExceptionLoggingConsumer.wrapConsumer( aClass ).accept( storedConfiguration ) );
     }
-
-
 
     private static class UpdateDeprecatedAdComplexitySettings implements PwmExceptionLoggingConsumer<StoredConfigurationModifier>
     {
@@ -158,5 +154,94 @@ class ConfigurationCleaner
         }
     }
 
+    private static class ProfileNonProfiledSettings implements PwmExceptionLoggingConsumer<StoredConfigurationModifier>
+    {
+        @Override
+        public void accept( final StoredConfigurationModifier modifier )
+                throws PwmUnrecoverableException
+        {
+            final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
+            inputConfig.modifiedItems()
+                    .parallelStream()
+                    .filter( ( key ) -> StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() ) )
+                    .filter( ( key ) -> key.toPwmSetting().getCategory().hasProfiles() )
+                    .filter( ( key ) -> StringUtil.isEmpty( key.getProfileID() ) )
+                    .forEach( ( key ) -> convertSetting( inputConfig, modifier, key ) );
+        }
 
+        private void convertSetting(
+                final StoredConfiguration inputConfig,
+                final StoredConfigurationModifier modifier,
+                final StoredConfigItemKey key )
+        {
+            final PwmSetting pwmSetting = key.toPwmSetting();
+
+            final List<String> targetProfiles = inputConfig.profilesForSetting( pwmSetting );
+            final StoredValue value = inputConfig.readSetting( pwmSetting, null );
+            final Optional<ValueMetaData> valueMetaData = inputConfig.readMetaData( key );
+
+            for ( final String destProfile : targetProfiles )
+            {
+                LOGGER.info( () -> "moving setting " + key.toString() + " without profile attribute to profile \"" + destProfile + "\"." );
+                {
+                    try
+                    {
+                        modifier.writeSettingAndMetaData( pwmSetting, destProfile, value, valueMetaData.orElse( null ) );
+                    }
+                    catch ( final PwmUnrecoverableException e )
+                    {
+                        LOGGER.warn( () -> "error moving setting " + pwmSetting.getKey() + " without profile attribute to profile \"" + destProfile
+                                + "\", error: " + e.getMessage() );
+                    }
+                }
+            }
+
+            try
+            {
+                LOGGER.info( () -> "removing setting " + key.toString() + " without profile" );
+                modifier.deleteKey( key );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                LOGGER.warn( () -> "error deleting setting " + pwmSetting.getKey() + " after adding profile settings: " + e.getMessage() );
+            }
+        }
+    }
+
+    private static class CheckForSuperfluousProfileSettings implements PwmExceptionLoggingConsumer<StoredConfigurationModifier>
+    {
+        @Override
+        public void accept( final StoredConfigurationModifier modifier )
+                throws PwmUnrecoverableException
+        {
+            final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
+            inputConfig.modifiedItems()
+                    .stream()
+                    .filter( ( key ) -> StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() ) )
+                    .filter( ( key ) -> key.toPwmSetting().getCategory().hasProfiles() )
+                    .filter( ( key ) -> verifyProfileIsValid( key, inputConfig ) )
+                    .forEach( ( key ) -> removeSuperfluousProfile( key, modifier ) );
+        }
+
+        boolean verifyProfileIsValid( final StoredConfigItemKey key, final StoredConfiguration inputConfig )
+        {
+            final PwmSetting pwmSetting = key.toPwmSetting();
+            final String recordID = key.getProfileID();
+            final List<String> profiles = inputConfig.profilesForSetting( pwmSetting );
+            return !profiles.contains( recordID );
+        }
+
+        void removeSuperfluousProfile( final StoredConfigItemKey key, final StoredConfigurationModifier modifier )
+        {
+            try
+            {
+                LOGGER.info( () -> "removing setting " + key.toString() + " with non-existing profileID" );
+                modifier.deleteKey( key );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                LOGGER.warn( () -> "error deleting setting " + key.toString() + " with non-existing profileID: " + e.getMessage() );
+            }
+        }
+    }
 }

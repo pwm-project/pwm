@@ -22,6 +22,13 @@ package password.pwm.util.java;
 
 import java.util.function.Supplier;
 
+/**
+ * Supplier implementation that will cache the value.   Note this implementation
+ * is NOT thread safe, it is entirely possible that the underlying {@link Supplier}
+ * will be invoked multiple times.
+ *
+ * @param <T> the type of object being supplied.
+ */
 public class LazySupplier<T> implements Supplier<T>
 {
     private boolean supplied = false;

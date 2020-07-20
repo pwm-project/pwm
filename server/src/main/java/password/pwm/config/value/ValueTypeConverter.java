@@ -20,6 +20,7 @@
 
 package password.pwm.config.value;
 
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.value.data.ActionConfiguration;
@@ -30,6 +31,7 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.security.cert.X509Certificate;
@@ -41,6 +43,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class ValueTypeConverter
 {
@@ -305,5 +308,28 @@ public final class ValueTypeConverter
 
         final Set<String> strValues = ( Set<String> ) value.toNativeObject();
         return JavaHelper.readEnumSetFromStringCollection( enumClass, strValues );
+    }
+
+    public static List<String> valueToProfileID( final PwmSetting profileSetting, final StoredValue storedValue )
+    {
+        if ( PwmSettingSyntax.PROFILE != profileSetting.getSyntax() )
+        {
+            throw new IllegalArgumentException( "may not read profile value for setting: " + profileSetting.toString() );
+        }
+
+        final List<String> profiles = ValueTypeConverter.valueToStringArray( storedValue );
+
+        final List<String> returnSet = profiles
+                .stream()
+                .distinct()
+                .filter( ( profile ) -> !StringUtil.isEmpty( profile ) )
+                .collect( Collectors.toCollection( ArrayList::new ) );
+
+        if ( returnSet.isEmpty() )
+        {
+            returnSet.add( PwmConstants.PROFILE_ID_DEFAULT );
+        }
+
+        return Collections.unmodifiableList( returnSet );
     }
 }

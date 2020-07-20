@@ -49,6 +49,8 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public interface XmlFactory
 {
@@ -226,6 +228,9 @@ public interface XmlFactory
         public void outputDocument( final XmlDocument document, final OutputStream outputStream )
                 throws IOException
         {
+            final Lock lock = ( ( XmlDocument.XmlDocumentW3c ) document ).lock;
+
+            lock.lock();
             try
             {
                 final Transformer tr = TransformerFactory.newInstance().newTransformer();
@@ -238,9 +243,13 @@ public interface XmlFactory
             {
                 throw new IOException( "error loading xml transformer: " + e.getMessage() );
             }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
-        static List<XmlElement> nodeListToElementList( final NodeList nodeList )
+        static List<XmlElement> nodeListToElementList( final NodeList nodeList, final Lock lock )
         {
             final List<XmlElement> returnList = new ArrayList<>();
             if ( nodeList != null )
@@ -250,7 +259,7 @@ public interface XmlFactory
                     final Node node = nodeList.item( i );
                     if ( node.getNodeType() == Node.ELEMENT_NODE )
                     {
-                        returnList.add( new XmlElement.XmlElementW3c( ( org.w3c.dom.Element ) node ) );
+                        returnList.add( new XmlElement.XmlElementW3c( ( org.w3c.dom.Element ) node, lock ) );
                     }
                 }
                 return returnList;
@@ -274,8 +283,7 @@ public interface XmlFactory
             final DocumentBuilder documentBuilder = getBuilder();
             final org.w3c.dom.Document document = documentBuilder.newDocument();
             final org.w3c.dom.Element element = document.createElement( name );
-            return new XmlElement.XmlElementW3c( element );
+            return new XmlElement.XmlElementW3c( element, new ReentrantLock() );
         }
-
     }
 }

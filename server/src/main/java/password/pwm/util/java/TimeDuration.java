@@ -360,17 +360,17 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
             final StringBuilder sb = new StringBuilder();
             if ( sb.length() == 0 )
             {
-                if ( ms < 5000 )
+                if ( ms < 10_000 )
                 {
                     final BigDecimal msDecimal = new BigDecimal( ms ).movePointLeft( 3 );
 
                     final DecimalFormat formatter;
 
-                    if ( ms > 2000 )
+                    if ( ms > 5000 )
                     {
                         formatter = new DecimalFormat( "#.#" );
                     }
-                    else if ( ms > 1000 )
+                    else if ( ms > 2000 )
                     {
                         formatter = new DecimalFormat( "#.##" );
                     }
@@ -390,11 +390,15 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
             {
                 sb.append( fractionalTimeDetail.seconds );
             }
+
             sb.append( " " );
             sb.append( ms == 1000
                     ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Second, null )
                     : LocaleHelper.getLocalizedMessage( locale, Display.Display_Seconds, null )
             );
+
+
+
             segments.add( sb.toString() );
         }
 

@@ -56,14 +56,14 @@ class StoredConfigData
 
     static Map<StoredConfigItemKey, ValueMetaData> carrierAsMetaDataMap( final Collection<ValueAndMetaCarrier> input )
     {
-        return input.stream()
+        return input.parallelStream()
                 .filter( ( t ) -> t.getKey() != null && t.getMetaData() != null )
                 .collect( Collectors.toMap( StoredConfigData.ValueAndMetaCarrier::getKey, StoredConfigData.ValueAndMetaCarrier::getMetaData ) );
     }
 
     static Map<StoredConfigItemKey, StoredValue> carrierAsStoredValueMap( final Collection<ValueAndMetaCarrier> input )
     {
-        return input.stream()
+        return input.parallelStream()
                 .filter( ( t ) -> t.getKey() != null && t.getValue() != null )
                 .collect( Collectors.toMap( StoredConfigData.ValueAndMetaCarrier::getKey, StoredConfigData.ValueAndMetaCarrier::getValue ) );
     }

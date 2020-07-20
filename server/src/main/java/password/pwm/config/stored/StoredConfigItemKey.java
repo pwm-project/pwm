@@ -27,11 +27,13 @@ import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 public class StoredConfigItemKey implements Serializable, Comparable<StoredConfigItemKey>
 {
@@ -57,6 +59,10 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     private final RecordType recordType;
     private final String recordID;
     private final String profileID;
+
+    private final transient Supplier<String> toStringSupplier = new LazySupplier<>( () -> this.getLabel( PwmConstants.DEFAULT_LOCALE ) );
+
+    private static final long serialVersionUID = 1L;
 
     private StoredConfigItemKey( final RecordType recordType, final String recordID, final String profileID )
     {
@@ -217,21 +223,20 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     @Override
     public boolean equals( final Object anotherObject )
     {
-        return anotherObject != null
-                && anotherObject instanceof StoredConfigItemKey
+        return anotherObject instanceof StoredConfigItemKey
                 && toString().equals( anotherObject.toString() );
     }
 
     @Override
     public String toString()
     {
-        return getLabel( PwmConstants.DEFAULT_LOCALE );
+        return toStringSupplier.get();
     }
 
     @Override
     public int compareTo( final StoredConfigItemKey o )
     {
-        return getLabel( PwmConstants.DEFAULT_LOCALE ).compareTo( o.toString() );
+        return toString().compareTo( o.toString() );
     }
 
     public PwmSettingSyntax getSyntax()

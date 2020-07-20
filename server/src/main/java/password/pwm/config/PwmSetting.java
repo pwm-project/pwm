@@ -1310,6 +1310,7 @@ public enum PwmSetting
     private final Supplier<Boolean> hidden = new LazySupplier<>( () -> PwmSettingReader.readHidden( PwmSetting.this ) );
     private final Supplier<Integer> level = new LazySupplier<>( () -> PwmSettingReader.readLevel( PwmSetting.this ) );
     private final Supplier<Pattern> pattern = new LazySupplier<>( () -> PwmSettingReader.readPattern( PwmSetting.this ) );
+    private final Supplier<Pattern> defaultLocaleLabel = new LazySupplier<>( () -> PwmSettingReader.readPattern( PwmSetting.this ) );
 
     PwmSetting(
             final String key,
@@ -1724,6 +1725,12 @@ public enum PwmSetting
                 }
             }
             return Pattern.compile( ".*", Pattern.DOTALL );
+        }
+
+        private static String readLabel( final PwmSetting pwmSetting, final Locale locale )
+        {
+            final String propertyKey = password.pwm.i18n.PwmSetting.SETTING_LABEL_PREFIX + pwmSetting.getKey();
+            return LocaleHelper.getLocalizedMessage( locale, propertyKey, null, password.pwm.i18n.PwmSetting.class );
         }
     }
 }

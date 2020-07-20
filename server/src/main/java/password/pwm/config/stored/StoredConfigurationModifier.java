@@ -72,6 +72,17 @@ public class StoredConfigurationModifier
     )
             throws PwmUnrecoverableException
     {
+        writeSettingAndMetaData( setting, profileID, value, new ValueMetaData( Instant.now(), userIdentity ) );
+    }
+
+    void writeSettingAndMetaData(
+            final PwmSetting setting,
+            final String profileID,
+            final StoredValue value,
+            final ValueMetaData valueMetaData
+    )
+            throws PwmUnrecoverableException
+    {
         Objects.requireNonNull( setting );
         Objects.requireNonNull( value );
 
@@ -91,7 +102,7 @@ public class StoredConfigurationModifier
 
             return storedConfigData.toBuilder()
                     .storedValue( key, value )
-                    .metaData( key, new ValueMetaData( Instant.now(), userIdentity ) )
+                    .metaData( key, valueMetaData )
                     .build();
         } );
     }
@@ -155,6 +166,25 @@ public class StoredConfigurationModifier
                     .clearStoredValues()
                     .storedValues( existingStoredValues )
                     .metaData( key, new ValueMetaData( Instant.now(), userIdentity ) )
+                    .build();
+        } );
+    }
+
+    public void deleteKey( final StoredConfigItemKey key )
+            throws PwmUnrecoverableException
+    {
+        update( ( storedConfigData ) ->
+        {
+            final Map<StoredConfigItemKey, StoredValue> existingStoredValues = new HashMap<>( storedConfigData.getStoredValues() );
+            final Map<StoredConfigItemKey, ValueMetaData> existingMetaValues = new HashMap<>( storedConfigData.getMetaDatas() );
+
+            existingStoredValues.remove( key );
+            existingMetaValues.remove( key );
+
+            return storedConfigData.toBuilder()
+                    .clearStoredValues()
+                    .storedValues( existingStoredValues )
+                    .metaDatas( existingMetaValues )
                     .build();
         } );
     }
