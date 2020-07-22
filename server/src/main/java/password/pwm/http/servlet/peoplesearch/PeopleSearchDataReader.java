@@ -630,7 +630,7 @@ class PeopleSearchDataReader
         }
         finally
         {
-            LOGGER.trace( pwmRequest, () -> "completed checkIfUserViewable for " + userIdentity.toDisplayString() + " in " + TimeDuration.compactFromCurrent( startTime ) );
+            LOGGER.trace( pwmRequest, () -> "completed checkIfUserViewable for " + userIdentity.toDisplayString() + " in ", () -> TimeDuration.fromCurrent( startTime ) );
         }
     }
 

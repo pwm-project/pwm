@@ -229,10 +229,10 @@ public class SharedHistoryManager implements PwmService
         try
         {
             final long size = localDB.size( WORDS_DB );
-            LOGGER.info( () -> "open with " + size + " words ("
-                    + TimeDuration.compactFromCurrent( startTime ) + ")"
+            LOGGER.debug( () -> "open with " + size + " words"
                     + ", maxAgeMs=" + TimeDuration.of( maxAgeMs, TimeDuration.Unit.MILLISECONDS ).asCompactString()
-                    + ", oldestEntry=" + TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
+                    + ", oldestEntry=" + TimeDuration.fromCurrent( oldestEntry ).asCompactString(),
+                    () -> TimeDuration.fromCurrent( startTime ) );
         }
         catch ( final LocalDBException e )
         {
@@ -426,7 +426,7 @@ public class SharedHistoryManager implements PwmService
                 LOGGER.debug( () -> "completed wordDB reduce operation" + ", removed=" + finalRemove
                         + ", totalRemaining=" + size()
                         + ", oldestEntry=" + TimeDuration.asCompactString( oldestEntry )
-                        + " in " + TimeDuration.compactFromCurrent( startTime ) );
+                        + " in ", () -> TimeDuration.fromCurrent( startTime ) );
             }
         }
     }

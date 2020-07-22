@@ -34,6 +34,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MovingAverage;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -155,7 +156,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             pwmRequest.getPwmResponse().getHttpServletResponse().sendError( HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage() );
             try
             {
-                pwmRequest.debugHttpRequestToLog( "returning HTTP 500 status" );
+                pwmRequest.debugHttpRequestToLog( "returning HTTP 500 status", null );
             }
             catch ( final PwmUnrecoverableException e2 )
             {
@@ -169,7 +170,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             pwmRequest.getPwmResponse().getHttpServletResponse().sendError( HttpServletResponse.SC_NOT_FOUND );
             try
             {
-                pwmRequest.debugHttpRequestToLog( "returning HTTP 404 status" );
+                pwmRequest.debugHttpRequestToLog( "returning HTTP 404 status", null );
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -209,7 +210,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                 debugText = makeDebugText( fromCache, acceptsGzip, true );
             }
 
-            pwmRequest.debugHttpRequestToLog( debugText );
+            pwmRequest.debugHttpRequestToLog( debugText, () -> TimeDuration.fromCurrent( pwmRequest.getRequestStartTime() ) );
 
             final MovingAverage cacheHitRatio = resourceService.getCacheHitRatio();
             StatisticsManager.incrementStat( pwmApplication, Statistic.HTTP_RESOURCE_REQUESTS );
@@ -372,7 +373,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
             try
             {
-                pwmRequest.debugHttpRequestToLog( "returning HTTP 304 status" );
+                pwmRequest.debugHttpRequestToLog( "returning HTTP 304 status", null );
             }
             catch ( final PwmUnrecoverableException e2 )
             {

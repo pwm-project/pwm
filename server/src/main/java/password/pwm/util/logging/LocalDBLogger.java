@@ -140,8 +140,7 @@ public class LocalDBLogger implements PwmService
 
         cleanOnWriteFlag.set( eventQueue.size() >= this.settings.getMaxEvents() );
 
-        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.info( () -> "open in " + timeDuration.asCompactString() + ", " + debugStats() );
+        LOGGER.info( () -> "open, " + debugStats(), () -> TimeDuration.fromCurrent( startTime ) );
     }
 
 

@@ -47,6 +47,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.util.Validator;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -59,6 +60,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -82,6 +84,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     private final transient Supplier<SessionLabel> sessionLabelLazySupplier = new LazySupplier<>( this::makeSessionLabel );
 
     private final Set<PwmRequestFlag> flags = new HashSet<>();
+    private final Instant requestStartTime = Instant.now();
 
     public static PwmRequest forRequest(
             final HttpServletRequest request,
@@ -385,13 +388,13 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return pwmURL;
     }
 
-    public void debugHttpRequestToLog( final String extraText )
+    public void debugHttpRequestToLog( final String extraText, final Supplier<TimeDuration> timeDuration )
             throws PwmUnrecoverableException
     {
         if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
         {
             final String debugTxt = debugHttpRequestToString( extraText, false );
-            LOGGER.trace( this.getLabel(), () -> debugTxt );
+            LOGGER.trace( this.getLabel(), () -> debugTxt, timeDuration );
         }
     }
 
@@ -591,5 +594,10 @@ public class PwmRequest extends PwmHttpRequestWrapper
     public String getPwmRequestID()
     {
         return pwmRequestID.toString();
+    }
+
+    public Instant getRequestStartTime()
+    {
+        return requestStartTime;
     }
 }

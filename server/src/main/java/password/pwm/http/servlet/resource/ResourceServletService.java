@@ -182,7 +182,7 @@ public class ResourceServletService implements PwmService
 
         final Instant startTime = Instant.now();
         final String nonce = checksumAllResources( pwmApplication );
-        LOGGER.debug( () -> "completed generation of nonce '" + nonce + "' in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.debug( () -> "completed generation of nonce '" + nonce + "'", () ->  TimeDuration.fromCurrent( startTime ) );
 
         final String noncePrefix = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
         return "/" + noncePrefix + nonce;

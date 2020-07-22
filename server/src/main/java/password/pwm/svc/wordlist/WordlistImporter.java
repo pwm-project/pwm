@@ -319,7 +319,7 @@ class WordlistImporter implements Runnable
         final long wordlistSize = wordlistBucket.size();
 
         getLogger().info( () -> "population complete, added " + wordlistSize
-                + " total words in " + TimeDuration.compactFromCurrent( startTime ) );
+                + " total words in ", () -> TimeDuration.fromCurrent( startTime ) );
 
         completed = true;
         writeCurrentWordlistStatus();

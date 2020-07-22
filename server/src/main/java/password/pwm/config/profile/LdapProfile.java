@@ -39,6 +39,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -134,6 +135,8 @@ public class LdapProfile extends AbstractProfile implements Profile
     )
             throws PwmUnrecoverableException
     {
+        final Instant startTime = Instant.now();
+
         {
             final boolean doCanonicalDnResolve = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_RESOLVE_CANONICAL_DN ) );
             if ( !doCanonicalDnResolve )
@@ -172,7 +175,8 @@ public class LdapProfile extends AbstractProfile implements Profile
 
                 {
                     final String finalCanonical = canonicalValue;
-                    LOGGER.trace( () -> "read and cached canonical ldap DN value for input '" + dnValue + "' as '" + finalCanonical + "'" );
+                    LOGGER.trace( () -> "read and cached canonical ldap DN value for input '" + dnValue + "' as '" + finalCanonical + "'",
+                            () -> TimeDuration.fromCurrent( startTime ) );
                 }
             }
             catch ( final ChaiUnavailableException | ChaiOperationException e )

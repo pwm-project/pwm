@@ -53,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
+import java.util.function.Supplier;
 
 /**
  * A work item queue manager.   Items submitted to the queue will eventually be worked on by the client side @code {@link ItemProcessor}.
@@ -205,12 +206,13 @@ public final class WorkQueueProcessor<W extends Serializable>
 
     private void sendAndQueueIfNecessary( final ItemWrapper<W> itemWrapper )
     {
+        final Instant processStartTime = Instant.now();
         try
         {
             final ProcessResult processResult = itemProcessor.process( itemWrapper.getWorkItem() );
             if ( processResult == ProcessResult.SUCCESS )
             {
-                logAndStatUpdateForSuccess( itemWrapper );
+                logAndStatUpdateForSuccess( itemWrapper, () -> TimeDuration.fromCurrent( processStartTime ) );
             }
             else if ( processResult == ProcessResult.RETRY || processResult == ProcessResult.NOOP )
             {
@@ -400,6 +402,7 @@ public final class WorkQueueProcessor<W extends Serializable>
 
         void processNextItem( )
         {
+            final Instant processStartTime = Instant.now();
             final String nextStrValue = queue.peekFirst();
             if ( nextStrValue == null )
             {
@@ -455,7 +458,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                         case SUCCESS:
                         {
                             removeQueueTop();
-                            logAndStatUpdateForSuccess( itemWrapper );
+                            logAndStatUpdateForSuccess( itemWrapper, () -> TimeDuration.fromCurrent( processStartTime ) );
                         }
                         break;
 
@@ -575,14 +578,14 @@ public final class WorkQueueProcessor<W extends Serializable>
         private TimeDuration maxShutdownWaitTime = TimeDuration.of( 30, TimeDuration.Unit.SECONDS );
     }
 
-    private void logAndStatUpdateForSuccess( final ItemWrapper<W> itemWrapper )
+    private void logAndStatUpdateForSuccess( final ItemWrapper<W> itemWrapper, final Supplier<TimeDuration> processDuration )
             throws PwmOperationalException
     {
         final TimeDuration lagTime = TimeDuration.fromCurrent( itemWrapper.getDate() );
         avgLagTime.update( lagTime.asMillis() );
         sendRate.markEvents( 1 );
         logger.trace( () -> "successfully processed item=" + makeDebugText( itemWrapper ) + "; lagTime=" + lagTime.asCompactString()
-                + "; " + StringUtil.mapToString( debugInfo() ) );
+                + "; " + StringUtil.mapToString( debugInfo() ), processDuration );
     }
 
     public Map<String, String> debugInfo( )

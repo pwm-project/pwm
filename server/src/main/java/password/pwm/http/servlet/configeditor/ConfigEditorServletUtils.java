@@ -150,7 +150,7 @@ public class ConfigEditorServletUtils
                     pwmRequest.getLocale()
             );
 
-            LOGGER.debug( () -> "config health check done in " + TimeDuration.compactFromCurrent( startTime ) );
+            LOGGER.debug( () -> "config health check done in ", () -> TimeDuration.fromCurrent( startTime ) );
 
             return HealthData.builder()
                     .overall( "CONFIG" )

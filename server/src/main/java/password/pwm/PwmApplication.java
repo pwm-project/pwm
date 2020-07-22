@@ -385,7 +385,7 @@ public class PwmApplication
             pwmScheduler.scheduleDailyZuluZeroStartJob( new DailySummaryJob( this ), executorService, TimeDuration.ZERO );
         }
 
-        LOGGER.trace( () -> "completed post init tasks in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.trace( () -> "completed post init tasks", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     private static void outputKeystore( final PwmApplication pwmApplication ) throws Exception

@@ -190,9 +190,9 @@ public class DebugItemGenerator
         }
 
         {
-            final String msg = "completed in " + TimeDuration.compactFromCurrent( startTime );
+            final String msg = "completed";
             debugGeneratorLogFile.appendLine( msg );
-            LOGGER.trace( sessionLabel, () -> msg );
+            LOGGER.trace( sessionLabel, () -> msg, () ->  TimeDuration.fromCurrent( startTime ) );
         }
 
         try
@@ -574,7 +574,7 @@ public class DebugItemGenerator
             final Function<PwmLogEvent, String> logEventFormatter = PwmLogEvent::toLogString;
 
             outputLogs( debugItemInput.getPwmApplication(), outputStream, logEventFormatter );
-            LOGGER.trace( () ->  "debug log output completed in " + TimeDuration.compactFromCurrent( startTime ) );
+            LOGGER.trace( () ->  "debug log output completed in ", () -> TimeDuration.fromCurrent( startTime ) );
         }
     }
 
@@ -593,7 +593,7 @@ public class DebugItemGenerator
             final Function<PwmLogEvent, String> logEventFormatter = pwmLogEvent -> JsonUtil.serialize( pwmLogEvent );
 
             outputLogs( debugItemInput.getPwmApplication(), outputStream, logEventFormatter );
-            LOGGER.trace( () ->  "debug json output completed in " + TimeDuration.compactFromCurrent( startTime ) );
+            LOGGER.trace( () ->  "debug json output completed in ", () -> TimeDuration.fromCurrent( startTime ) );
         }
     }
 

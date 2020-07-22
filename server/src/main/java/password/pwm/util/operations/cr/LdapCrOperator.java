@@ -37,7 +37,10 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+
+import java.time.Instant;
 
 public class LdapCrOperator implements CrOperator
 {
@@ -132,6 +135,7 @@ public class LdapCrOperator implements CrOperator
     public void writeResponses( final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean )
             throws PwmUnrecoverableException
     {
+        final Instant startTime = Instant.now();
         final LdapProfile ldapProfile = userIdentity.getLdapProfile( config );
         final String ldapStorageAttribute = ldapProfile.readSettingAsString( PwmSetting.CHALLENGE_USER_ATTRIBUTE );
         if ( ldapStorageAttribute == null || ldapStorageAttribute.length() < 1 )
@@ -151,7 +155,7 @@ public class LdapCrOperator implements CrOperator
                     responseInfoBean.getCsIdentifier()
             );
             ChaiCrFactory.writeChaiResponseSet( responseSet, theUser );
-            LOGGER.info( () -> "saved responses for user to chai-ldap format" );
+            LOGGER.info( () -> "saved responses for user to chai-ldap format", () -> TimeDuration.fromCurrent( startTime ) );
         }
         catch ( final ChaiException e )
         {

@@ -174,7 +174,7 @@ public abstract class StoredConfigurationUtil
                 .collect( Collectors.toList() );
 
 
-        LOGGER.trace( () -> "StoredConfiguration validator completed in " + TimeDuration.compactFromCurrent( startTime ) );
+        LOGGER.trace( () -> "StoredConfiguration validator completed", () -> TimeDuration.fromCurrent( startTime ) );
         return Collections.unmodifiableList( errorStrings );
     }
 
@@ -452,7 +452,7 @@ public abstract class StoredConfigurationUtil
                         }
                 ).collect( Collectors.toSet() );
 
-        LOGGER.trace( () -> "generated changeLog items via compare in " + TimeDuration.compactFromCurrent( startTime ) );
+        LOGGER.trace( () -> "generated changeLog items via compare", () -> TimeDuration.fromCurrent( startTime ) );
 
         return Collections.unmodifiableSet( deltaReferences );
     }

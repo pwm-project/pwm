@@ -93,6 +93,8 @@ public class AuditService implements PwmService
         this.status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
+        final Instant startTime = Instant.now();
+
         settings = new AuditSettings( pwmApplication.getConfig() );
 
         if ( pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
@@ -119,7 +121,7 @@ public class AuditService implements PwmService
             catch ( final Exception e )
             {
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SYSLOG_WRITE_ERROR, "startup error: " + e.getMessage() );
-                LOGGER.error( () -> errorInformation.toDebugStr() );
+                LOGGER.error( errorInformation::toDebugStr );
             }
         }
         {
@@ -163,7 +165,7 @@ public class AuditService implements PwmService
                     status = STATUS.CLOSED;
                     return;
             }
-            LOGGER.info( () -> debugMsg );
+            LOGGER.debug( () -> debugMsg, () -> TimeDuration.fromCurrent( startTime ) );
             serviceInfo = new ServiceInfoBean( Collections.singletonList( storageMethodUsed ) );
         }
         {

@@ -956,7 +956,7 @@ public class PasswordUtility
                 throw new IllegalStateException( "unknown policy source defined: " + ppSource.name() );
         }
 
-        LOGGER.trace( pwmSession, () -> "readPasswordPolicyForUser completed in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.trace( pwmSession, () -> "readPasswordPolicyForUser completed", () -> TimeDuration.fromCurrent( startTime ) );
         return returnPolicy;
     }
 

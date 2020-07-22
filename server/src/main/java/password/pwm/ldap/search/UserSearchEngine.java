@@ -765,7 +765,7 @@ public class UserSearchEngine implements PwmService
     void log( final PwmLogLevel level, final SessionLabel sessionLabel, final int searchID, final int jobID, final String message )
     {
         final String idMsg = logIdString( searchID, jobID );
-        LOGGER.log( level, sessionLabel, idMsg + " " + message );
+        LOGGER.log( level, sessionLabel, () -> idMsg + " " + message );
     }
 
     private static String logIdString( final int searchID, final int jobID )

@@ -239,7 +239,7 @@ public class NewUserServlet extends ControlledPwmServlet
         {
             final Instant startTime = Instant.now();
             newUserProfile.getNewUserPasswordPolicy( pwmApplication, pwmSession.getSessionStateBean().getLocale() );
-            LOGGER.trace( () -> "read new user password policy in " + TimeDuration.compactFromCurrent( startTime ) );
+            LOGGER.trace( () -> "read new user password policy in ", () -> TimeDuration.fromCurrent( startTime ) );
         }
 
         if ( !newUserBean.isFormPassed() )
@@ -461,7 +461,7 @@ public class NewUserServlet extends ControlledPwmServlet
             passwordCheckInfo = new PasswordUtility.PasswordCheckInfo( null, true, 0, PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH, 0 );
         }
 
-        LOGGER.trace( () -> "competed form validation in " + TimeDuration.compactFromCurrent( startTime ) );
+        LOGGER.trace( () -> "competed form validation in ", () -> TimeDuration.fromCurrent( startTime ) );
         return passwordCheckInfo;
     }
 

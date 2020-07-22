@@ -157,7 +157,7 @@ public class PwmServiceManager
         }
         initialized = false;
 
-        LOGGER.trace( () -> "closed all services in " + TimeDuration.compactFromCurrent( startTime ) );
+        LOGGER.trace( () -> "closed all services in ", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     private void shutDownService( final Class<? extends PwmService> serviceClass )

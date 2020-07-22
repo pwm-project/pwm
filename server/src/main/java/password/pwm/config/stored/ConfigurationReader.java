@@ -177,8 +177,7 @@ public class ConfigurationReader
         }
 
         final String fileSize = StringUtil.formatDiskSize( configFile.length() );
-        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.debug( () -> "configuration reading/parsing of " + fileSize + " complete in " + timeDuration.asLongString() );
+        LOGGER.debug( () -> "configuration reading/parsing of " + fileSize + " complete", () -> TimeDuration.fromCurrent( startTime ) );
 
 
         final Optional<String> configIsEditable = storedConfiguration.readConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE );
@@ -306,7 +305,7 @@ public class ConfigurationReader
             StoredConfigurationFactory.output( storedConfiguration, fileOutputStream );
         }
 
-        LOGGER.info( () -> "saved configuration in " + TimeDuration.compactFromCurrent( saveFileStartTime ) );
+        LOGGER.info( () -> "saved configuration", () -> TimeDuration.fromCurrent( saveFileStartTime ) );
         if ( pwmApplication != null )
         {
             final String actualChecksum = storedConfiguration.valueHash();

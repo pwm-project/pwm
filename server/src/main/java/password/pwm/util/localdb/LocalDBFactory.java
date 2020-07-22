@@ -97,7 +97,7 @@ public class LocalDBFactory
         }
 
         final StringBuilder debugText = new StringBuilder();
-        debugText.append( "LocalDB open in " ).append( openTime.asCompactString() );
+        debugText.append( "LocalDB open" );
         if ( localDB.getFileLocation() != null )
         {
             debugText.append( ", db size: " ).append( StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( localDB.getFileLocation() ) ) );
@@ -108,7 +108,7 @@ public class LocalDBFactory
                 debugText.append( ", " ).append( StringUtil.formatDiskSize( freeSpace ) ).append( " free" );
             }
         }
-        LOGGER.info( () -> debugText );
+        LOGGER.info( () -> debugText, () -> openTime );
 
         return localDB;
     }

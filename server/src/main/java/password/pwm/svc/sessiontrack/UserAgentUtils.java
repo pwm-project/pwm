@@ -62,7 +62,7 @@ public class UserAgentUtils
     {
         final Instant startTime = Instant.now();
         CACHED_PARSER.get();
-        LOGGER.trace( () -> "loaded useragent parser in " + TimeDuration.compactFromCurrent( startTime ) );
+        LOGGER.trace( () -> "loaded useragent parser", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     public static void checkIfPreIE11( final PwmRequest pwmRequest ) throws PwmUnrecoverableException

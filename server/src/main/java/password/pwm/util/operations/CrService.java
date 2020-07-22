@@ -174,9 +174,8 @@ public class CrService implements PwmService
 
                         LOGGER.debug( sessionLabel, () -> "using ldap c/r policy for user " + theUser.getEntryDN() + ": "
                                 + finalReturnSet.toString() );
-                        LOGGER.trace( sessionLabel, () -> "readUserChallengeProfile completed in "
-                                + TimeDuration.fromCurrent( methodStartTime ).asCompactString() + ", result="
-                                + JsonUtil.serialize( challengeProfile ) );
+                        LOGGER.trace( sessionLabel, () -> "readUserChallengeProfile completed, result=" + JsonUtil.serialize( challengeProfile ),
+                                () -> TimeDuration.fromCurrent( methodStartTime ) );
 
                         return challengeProfile;
                     }
@@ -319,7 +318,7 @@ public class CrService implements PwmService
                                     new String[]
                                             {
                                                     loopChallenge.getChallengeText(),
-                                            }
+                                                    }
                             );
                             throw new PwmDataValidationException( errorInfo );
                         }
@@ -345,7 +344,7 @@ public class CrService implements PwmService
                                 new String[]
                                         {
                                                 text,
-                                        }
+                                                }
                         );
                         throw new PwmDataValidationException( errorInformation );
                     }

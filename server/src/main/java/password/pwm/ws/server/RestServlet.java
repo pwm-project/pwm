@@ -180,7 +180,7 @@ public abstract class RestServlet extends HttpServlet
 
         outputRestResultBean( restResultBean, req, resp );
         final boolean success = restResultBean != null && !restResultBean.isError();
-        LOGGER.trace( sessionLabel, () -> "completed rest invocation in " + TimeDuration.compactFromCurrent( startTime ) + " success=" + success );
+        LOGGER.trace( sessionLabel, () -> "completed rest invocation, success=" + success, () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     private RestResultBean invokeWebService( final RestRequest restRequest ) throws IOException, PwmUnrecoverableException

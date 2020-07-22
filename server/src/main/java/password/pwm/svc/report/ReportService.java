@@ -416,7 +416,7 @@ public class ReportService implements PwmService
                 transactionCalculator.recordLastTransactionDuration( TimeDuration.fromCurrent( loopStart ) );
             }
             LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL,
-                    () -> "completed transfer of ldap search results to work queue in " + TimeDuration.compactFromCurrent( startTime ) );
+                    () -> "completed transfer of ldap search results to work queue in ", () -> TimeDuration.fromCurrent( startTime ) );
         }
     }
 

@@ -557,7 +557,7 @@ public class ContextManager implements Serializable
 
                 {
                     final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                    LOGGER.info( SESSION_LABEL, () -> "application restart completed (" + timeDuration.asCompactString() + ")" );
+                    LOGGER.info( SESSION_LABEL, () -> "application restart completed", () -> timeDuration );
                 }
             }
             finally

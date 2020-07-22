@@ -180,7 +180,7 @@ public class HealthMonitor implements PwmService
             LOGGER.trace( () ->  "begin force immediate check" );
             final Future future = pwmApplication.getPwmScheduler().scheduleJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
             settings.getMaximumForceCheckWait().pause( future::isDone );
-            LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone() + ", " + TimeDuration.compactFromCurrent( startTime ) );
+            LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone(), () -> TimeDuration.fromCurrent( startTime ) );
         }
 
         pwmApplication.getPwmScheduler().scheduleJob( new UpdateJob(), executorService, settings.getNominalCheckInterval() );
@@ -231,7 +231,7 @@ public class HealthMonitor implements PwmService
         }
 
         final Instant startTime = Instant.now();
-        LOGGER.trace( () -> "beginning health check execution (" + counter + ")" );
+        LOGGER.trace( () -> "beginning health check execution #" + counter  );
         final List<HealthRecord> tempResults = new ArrayList<>();
         for ( final HealthChecker loopChecker : HEALTH_CHECKERS )
         {
@@ -271,7 +271,7 @@ public class HealthMonitor implements PwmService
         }
 
         healthData = new HealthData( Collections.unmodifiableSet( new TreeSet<>( tempResults ) ), Instant.now() );
-        LOGGER.trace( () -> "completed health check execution (" + counter + ") in " + TimeDuration.compactFromCurrent( startTime ) );
+        LOGGER.trace( () -> "completed health check execution #" + counter, () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     public ServiceInfoBean serviceInfo( )
@@ -305,7 +305,7 @@ public class HealthMonitor implements PwmService
             {
                 final Instant startTime = Instant.now();
                 doHealthChecks();
-                LOGGER.trace( () -> "completed health check dredge " + TimeDuration.compactFromCurrent( startTime ) );
+                LOGGER.trace( () -> "completed health check dredge ", () -> TimeDuration.fromCurrent( startTime ) );
             }
             catch ( final Throwable e )
             {
