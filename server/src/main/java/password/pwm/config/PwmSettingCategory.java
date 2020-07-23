@@ -3,37 +3,36 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config;
 
-import org.jdom2.Attribute;
-import org.jdom2.Element;
 import password.pwm.i18n.Config;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.XmlElement;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Supplier;
 
@@ -148,6 +147,8 @@ public enum PwmSettingCategory
     FORGOTTEN_USERNAME( MODULES_PUBLIC ),
 
     ACTIVATION( MODULES_PUBLIC ),
+    ACTIVATION_SETTINGS( ACTIVATION ),
+    ACTIVATION_PROFILE( ACTIVATION ),
 
     NEWUSER( MODULES_PUBLIC ),
     NEWUSER_SETTINGS( NEWUSER ),
@@ -159,7 +160,10 @@ public enum PwmSettingCategory
 
     GUEST( MODULES_PRIVATE ),
     SHORTCUT( MODULES_PRIVATE ),
+
     PEOPLE_SEARCH( MODULES_PRIVATE ),
+    PEOPLE_SEARCH_SETTINGS( PEOPLE_SEARCH ),
+    PEOPLE_SEARCH_PROFILE( PEOPLE_SEARCH ),
 
     HELPDESK( MODULES_PRIVATE ),
     HELPDESK_PROFILE( HELPDESK ),
@@ -247,9 +251,9 @@ public enum PwmSettingCategory
     {
         if ( level == null )
         {
-            final Element settingElement = PwmSettingXml.readCategoryXml( this );
-            final Attribute levelAttribute = settingElement.getAttribute( "level" );
-            final int output = levelAttribute != null ? Integer.parseInt( levelAttribute.getValue() ) : 0;
+            final XmlElement settingElement = PwmSettingXml.readCategoryXml( this );
+            final String levelAttribute = settingElement.getAttributeValue( "level" );
+            final int output = levelAttribute != null ? Integer.parseInt( levelAttribute ) : 0;
             level = ( ) -> output;
         }
         return level.get();
@@ -259,9 +263,9 @@ public enum PwmSettingCategory
     {
         if ( hidden == null )
         {
-            final Element settingElement = PwmSettingXml.readCategoryXml( this );
-            final Attribute hiddenElement = settingElement.getAttribute( "hidden" );
-            if ( hiddenElement != null && "true".equalsIgnoreCase( hiddenElement.getValue() ) )
+            final XmlElement settingElement = PwmSettingXml.readCategoryXml( this );
+            final String hiddenElement = settingElement.getAttributeValue( "hidden" );
+            if ( hiddenElement != null && "true".equalsIgnoreCase( hiddenElement ) )
             {
                 hidden = () -> true;
             }
@@ -318,11 +322,11 @@ public enum PwmSettingCategory
         PwmSettingCategory nextCategory = this;
         while ( nextCategory != null )
         {
-            final Element categoryElement = PwmSettingXml.readCategoryXml( nextCategory );
-            final Element profileElement = categoryElement.getChild( "profile" );
-            if ( profileElement != null )
+            final XmlElement categoryElement = PwmSettingXml.readCategoryXml( nextCategory );
+            final Optional<XmlElement> profileElement = categoryElement.getChild( "profile" );
+            if ( profileElement.isPresent() )
             {
-                final String settingKey = profileElement.getAttributeValue( "setting" );
+                final String settingKey = profileElement.get().getAttributeValue( "setting" );
                 if ( settingKey != null )
                 {
                     return password.pwm.config.PwmSetting.forKey( settingKey );
@@ -453,4 +457,11 @@ public enum PwmSettingCategory
         return Collections.unmodifiableCollection( returnValues );
     }
 
+    public static PwmSettingCategory forKey( final String key )
+    {
+        return Arrays.stream( values() )
+                .filter( loopValue -> loopValue.getKey().equals( key ) )
+                .findFirst()
+                .orElse( null );
+    }
 }

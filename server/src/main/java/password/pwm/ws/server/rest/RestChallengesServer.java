@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.ws.server.rest;
@@ -49,7 +47,7 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.operations.CrService;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
@@ -72,7 +70,7 @@ import java.util.Map;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/challenges"
         }
 )
-@RestWebServer( webService = WebServiceUsage.CheckPassword, requireAuthentication = true )
+@RestWebServer( webService = WebServiceUsage.CheckPassword )
 public class RestChallengesServer extends RestServlet
 {
 
@@ -236,7 +234,7 @@ public class RestChallengesServer extends RestServlet
             StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_CHALLENGES );
             return RestResultBean.withData( jsonData );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -293,7 +291,7 @@ public class RestChallengesServer extends RestServlet
 
             return RestResultBean.forSuccessMessage( restRequest, Message.Success_SetupResponse );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error reading json input: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -341,7 +339,7 @@ public class RestChallengesServer extends RestServlet
 
             return RestResultBean.forSuccessMessage( restRequest, Message.Success_Unknown );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error delete responses: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );

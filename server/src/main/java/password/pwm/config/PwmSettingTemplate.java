@@ -3,28 +3,25 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config;
 
-import org.jdom2.Attribute;
-import org.jdom2.Element;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.XmlElement;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -65,14 +62,14 @@ public enum PwmSettingTemplate
 
     public boolean isHidden( )
     {
-        final Element templateElement = readTemplateElement( this );
-        final Attribute requiredAttribute = templateElement.getAttribute( "hidden" );
-        return requiredAttribute != null && "true".equalsIgnoreCase( requiredAttribute.getValue() );
+        final XmlElement templateElement = readTemplateElement( this );
+        final String requiredAttribute = templateElement.getAttributeValue( "hidden" );
+        return requiredAttribute != null && "true".equalsIgnoreCase( requiredAttribute );
     }
 
-    private static Element readTemplateElement( final PwmSettingTemplate pwmSettingTemplate )
+    private static XmlElement readTemplateElement( final PwmSettingTemplate pwmSettingTemplate )
     {
-        final Element element = PwmSettingXml.readTemplateXml( pwmSettingTemplate );
+        final XmlElement element = PwmSettingXml.readTemplateXml( pwmSettingTemplate );
         if ( element == null )
         {
             throw new IllegalStateException( "missing PwmSetting.xml template element for " + pwmSettingTemplate );

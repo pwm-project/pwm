@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.helpdesk;
@@ -27,22 +25,16 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.HelpdeskProfile;
-import password.pwm.config.profile.LdapProfile;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmURL;
-import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.http.servlet.peoplesearch.PhotoDataReader;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -72,7 +64,7 @@ public class HelpdeskCardInfoBean implements Serializable
     {
         final HelpdeskCardInfoBean.HelpdeskCardInfoBeanBuilder builder = HelpdeskCardInfoBean.builder();
         final Instant startTime = Instant.now();
-        LOGGER.trace( pwmRequest, "beginning to assemble card data report for user " + userIdentity );
+        LOGGER.trace( pwmRequest, () -> "beginning to assemble card data report for user " + userIdentity );
         final Locale actorLocale = pwmRequest.getLocale();
         final ChaiUser theUser = HelpdeskServlet.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
 
@@ -83,25 +75,25 @@ public class HelpdeskCardInfoBean implements Serializable
 
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getSessionLabel(),
+                pwmRequest.getLabel(),
                 actorLocale,
                 userIdentity,
                 theUser.getChaiProvider()
         );
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfo, null );
 
         builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
 
-        builder.photoURL( figurePhotoURL( pwmRequest, helpdeskProfile, theUser, macroMachine, userIdentity ) );
+        final PhotoDataReader photoDataReader = HelpdeskServlet.photoDataReader( pwmRequest, helpdeskProfile, userIdentity );
+        builder.photoURL( photoDataReader.figurePhotoURL( ) );
 
-        builder.displayNames( figureDisplayNames( pwmRequest.getPwmApplication(), helpdeskProfile, pwmRequest.getSessionLabel(), userInfo ) );
+        builder.displayNames( figureDisplayNames( pwmRequest.getPwmApplication(), helpdeskProfile, pwmRequest.getLabel(), userInfo ) );
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
         final HelpdeskCardInfoBean helpdeskCardInfoBean = builder.build();
 
         if ( pwmRequest.getConfig().isDevDebugMode() )
         {
-            LOGGER.trace( pwmRequest, "completed assembly of card data report for user " + userIdentity
+            LOGGER.trace( pwmRequest, () -> "completed assembly of card data report for user " + userIdentity
                     + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize( helpdeskCardInfoBean ) );
         }
 
@@ -141,54 +133,5 @@ public class HelpdeskCardInfoBean implements Serializable
             }
         }
         return displayLabels;
-    }
-
-    private static String figurePhotoURL(
-            final PwmRequest pwmRequest,
-            final HelpdeskProfile helpdeskProfile,
-            final ChaiUser chaiUser,
-            final MacroMachine macroMachine,
-            final UserIdentity userIdentity
-    )
-            throws PwmUnrecoverableException
-    {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final boolean enabled = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE_PHOTOS );
-
-        if ( !enabled )
-        {
-            LOGGER.debug( pwmRequest, "detailed user data lookup for " + userIdentity.toString() + ", failed photo query filter, denying photo view" );
-            return null;
-        }
-
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile(  pwmApplication.getConfig() );
-
-        final String overrideURL = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO_URL_OVERRIDE );
-        try
-        {
-            if ( !StringUtil.isEmpty( overrideURL ) )
-            {
-                return macroMachine.expandMacros( overrideURL );
-            }
-
-            try
-            {
-                LdapOperationsHelper.readPhotoDataFromLdap( pwmApplication.getConfig(), chaiUser, userIdentity );
-            }
-            catch ( PwmOperationalException e )
-            {
-                LOGGER.debug( pwmRequest, "determined " + userIdentity + " does not have photo data available while generating detail data" );
-                return null;
-            }
-        }
-        catch ( ChaiUnavailableException e )
-        {
-            throw PwmUnrecoverableException.fromChaiException( e );
-        }
-
-        String returnUrl = pwmRequest.getContextPath() + PwmServletDefinition.Helpdesk.servletUrl();
-        returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_ACTION_REQUEST, HelpdeskServlet.HelpdeskAction.photo.name() );
-        returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_USERKEY,  userIdentity.toObfuscatedKey( pwmApplication ) );
-        return returnUrl;
     }
 }

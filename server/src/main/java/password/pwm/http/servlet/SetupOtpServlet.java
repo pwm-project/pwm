@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet;
@@ -119,7 +117,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
 
     public static SetupOtpProfile getSetupOtpProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmSession().getSessionManager().getSetupOTPProfile( pwmRequest.getPwmApplication() );
+        return pwmRequest.getPwmSession().getSessionManager().getSetupOTPProfile( );
     }
 
     @Override
@@ -144,14 +142,14 @@ public class SetupOtpServlet extends ControlledPwmServlet
         // check whether the setup can be stored
         if ( !canSetupOtpSecret( config ) )
         {
-            LOGGER.error( pwmSession, "OTP Secret cannot be setup" );
+            LOGGER.error( pwmRequest, () -> "OTP Secret cannot be setup" );
             pwmRequest.respondWithError( PwmError.ERROR_INVALID_CONFIG.toInfo() );
             return ProcessStatus.Halt;
         }
 
         if ( pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD )
         {
-            LOGGER.error( pwmSession, "OTP Secret requires a password login" );
+            LOGGER.error( pwmRequest, () -> "OTP Secret requires a password login" );
             throw new PwmUnrecoverableException( PwmError.ERROR_PASSWORD_REQUIRED );
         }
 
@@ -181,14 +179,14 @@ public class SetupOtpServlet extends ControlledPwmServlet
             try
             {
                 otpService.writeOTPUserConfiguration(
-                        pwmSession,
+                        pwmRequest,
                         theUser,
                         otpBean.getOtpUserRecord()
                 );
                 otpBean.setWritten( true );
 
                 // Update the current user info bean, so the user can check the code right away
-                pwmSession.reloadUserInfoBean( pwmApplication );
+                pwmSession.reloadUserInfoBean( pwmRequest );
 
                 // mark the event log
                 final UserAuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createUserAuditRecord(
@@ -204,7 +202,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                     pwmApplication.getStatisticsManager().incrementValue( Statistic.SETUP_OTP_SECRET );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final ErrorInformation errorInformation;
                 if ( e instanceof PwmException )
@@ -215,7 +213,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                 {
                     errorInformation = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp secret: " + e.getMessage() );
                 }
-                LOGGER.error( pwmSession, errorInformation.toDebugStr() );
+                LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
                 setLastError( pwmRequest, errorInformation );
             }
         }
@@ -294,7 +292,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
         try
         {
             final boolean passed = otpService.validateToken(
-                    pwmRequest.getSessionLabel(),
+                    pwmRequest.getLabel(),
                     pwmSession.getUserInfo().getUserIdentity(),
                     otpUserRecord,
                     code,
@@ -302,14 +300,14 @@ public class SetupOtpServlet extends ControlledPwmServlet
             );
             final RestResultBean restResultBean = RestResultBean.withData( passed );
 
-            LOGGER.trace( pwmSession, "returning result for restValidateCode: " + JsonUtil.serialize( restResultBean ) );
+            LOGGER.trace( pwmRequest, () -> "returning result for restValidateCode: " + JsonUtil.serialize( restResultBean ) );
             pwmRequest.outputJsonResult( restResultBean );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
 
             final String errorMsg = "error during otp code validation: " + e.getMessage();
-            LOGGER.error( pwmSession, errorMsg );
+            LOGGER.error( pwmRequest, () -> errorMsg );
             pwmRequest.outputJsonResult( RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ), pwmRequest ) );
         }
 
@@ -330,9 +328,9 @@ public class SetupOtpServlet extends ControlledPwmServlet
         final UserIdentity theUser = pwmSession.getUserInfo().getUserIdentity();
         try
         {
-            service.clearOTPUserConfiguration( pwmSession, theUser, pwmSession.getSessionManager().getActor( pwmApplication ) );
+            service.clearOTPUserConfiguration( pwmRequest, theUser, pwmSession.getSessionManager().getActor( ) );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             setLastError( pwmRequest, e.getErrorInformation() );
             LOGGER.error( pwmRequest, e.getErrorInformation() );
@@ -363,30 +361,30 @@ public class SetupOtpServlet extends ControlledPwmServlet
             {
                 if ( pwmRequest.getConfig().isDevDebugMode() )
                 {
-                    LOGGER.trace( pwmRequest, "testing against otp record: " + JsonUtil.serialize( otpBean.getOtpUserRecord() ) );
+                    LOGGER.trace( pwmRequest, () -> "testing against otp record: " + JsonUtil.serialize( otpBean.getOtpUserRecord() ) );
                 }
 
                 if ( otpService.validateToken(
-                        pwmRequest.getSessionLabel(),
+                        pwmRequest.getLabel(),
                         pwmSession.getUserInfo().getUserIdentity(),
                         otpBean.getOtpUserRecord(),
                         otpToken,
                         false
                 ) )
                 {
-                    LOGGER.debug( pwmRequest, "test OTP token returned true, valid OTP secret provided" );
+                    LOGGER.debug( pwmRequest, () -> "test OTP token returned true, valid OTP secret provided" );
                     otpBean.setConfirmed( true );
                     otpBean.setChallenge( null );
                 }
                 else
                 {
-                    LOGGER.debug( pwmRequest, "test OTP token returned false, incorrect OTP secret provided" );
+                    LOGGER.debug( pwmRequest, () -> "test OTP token returned false, incorrect OTP secret provided" );
                     setLastError( pwmRequest, new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT ) );
                 }
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
-                LOGGER.error( pwmRequest, "error validating otp token: " + e.getMessage() );
+                LOGGER.error( pwmRequest, () -> "error validating otp token: " + e.getMessage() );
                 setLastError( pwmRequest, e.getErrorInformation() );
             }
         }
@@ -419,9 +417,9 @@ public class SetupOtpServlet extends ControlledPwmServlet
             final OTPUserRecord existingUserRecord;
             try
             {
-                existingUserRecord = service.readOTPUserConfiguration( pwmRequest.getSessionLabel(), theUser );
+                existingUserRecord = service.readOTPUserConfiguration( pwmRequest.getLabel(), theUser );
             }
-            catch ( ChaiUnavailableException e )
+            catch ( final ChaiUnavailableException e )
             {
                 throw PwmUnrecoverableException.fromChaiException( e );
             }
@@ -429,7 +427,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             if ( existingUserRecord != null )
             {
                 otpBean.setHasPreExistingOtp( true );
-                LOGGER.trace( pwmSession, "user has existing otp record" );
+                LOGGER.trace( pwmRequest, () -> "user has existing otp record" );
                 return;
             }
         }
@@ -442,26 +440,26 @@ public class SetupOtpServlet extends ControlledPwmServlet
                 final Configuration config = pwmApplication.getConfig();
                 final SetupOtpProfile setupOtpProfile = getSetupOtpProfile( pwmRequest );
                 final String identifierConfigValue = setupOtpProfile.readSettingAsString( PwmSetting.OTP_SECRET_IDENTIFIER );
-                final String identifier = pwmSession.getSessionManager().getMacroMachine( pwmApplication ).expandMacros( identifierConfigValue );
+                final String identifier = pwmSession.getSessionManager().getMacroMachine( ).expandMacros( identifierConfigValue );
                 final OTPUserRecord otpUserRecord = new OTPUserRecord();
                 final List<String> rawRecoveryCodes = pwmApplication.getOtpService().initializeUserRecord(
                         setupOtpProfile,
                         otpUserRecord,
-                        pwmRequest.getSessionLabel(),
+                        pwmRequest.getLabel(),
                         identifier
                 );
                 otpBean.setOtpUserRecord( otpUserRecord );
                 otpBean.setRecoveryCodes( rawRecoveryCodes );
-                LOGGER.trace( pwmSession, "generated new otp record" );
+                LOGGER.trace( pwmRequest, () -> "generated new otp record" );
                 if ( config.isDevDebugMode() )
                 {
-                    LOGGER.trace( pwmRequest, "newly generated otp record: " + JsonUtil.serialize( otpUserRecord ) );
+                    LOGGER.trace( pwmRequest, () -> "newly generated otp record: " + JsonUtil.serialize( otpUserRecord ) );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final String errorMsg = "error setting up new OTP secret: " + e.getMessage();
-                LOGGER.error( pwmSession, errorMsg );
+                LOGGER.error( pwmRequest, () -> errorMsg );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
             }
         }
@@ -507,10 +505,10 @@ public class SetupOtpServlet extends ControlledPwmServlet
                     .stream()
                     .toByteArray();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "error generating qrcode image: " + e.getMessage() + ", payload length=" + qrCodeContent.length();
-            LOGGER.error( pwmRequest, errorMsg, e );
+            LOGGER.error( pwmRequest, () -> errorMsg, e );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
 
@@ -527,7 +525,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
 
             if ( policy == ForceSetupPolicy.FORCE_ALLOW_SKIP )
             {
-                LOGGER.trace( pwmRequest, "allowing setup skipping due to setting "
+                LOGGER.trace( pwmRequest, () -> "allowing setup skipping due to setting "
                         + PwmSetting.OTP_FORCE_SETUP.toMenuLocationDebug( setupOtpProfile.getIdentifier(), pwmRequest.getLocale() ) );
                 return true;
             }
@@ -537,7 +535,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             {
                 if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )
                 {
-                    LOGGER.trace( pwmRequest, "allowing OTP setup skipping due to user being admin and setting "
+                    LOGGER.trace( pwmRequest, () -> "allowing OTP setup skipping due to user being admin and setting "
                             + PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES.toMenuLocationDebug( null, pwmRequest.getLocale() ) );
                     return true;
                 }

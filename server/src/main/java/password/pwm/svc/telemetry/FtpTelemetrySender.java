@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.telemetry;
@@ -88,7 +86,7 @@ public class FtpTelemetrySender implements TelemetrySender
         // connect
         try
         {
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "establishing " + settings.getFtpMode() + " connection to " + settings.getHost() );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "establishing " + settings.getFtpMode() + " connection to " + settings.getHost() );
             ftpClient.connect( settings.getHost() );
 
             final int reply = ftpClient.getReplyCode();
@@ -99,9 +97,9 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "connected to " + settings.getHost() );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "connected to " + settings.getHost() );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             disconnectFtpClient( ftpClient );
             final String msg = "unable to connect to " + settings.getHost() + ", error: " + e.getMessage();
@@ -122,7 +120,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             disconnectFtpClient( ftpClient );
             final String msg = "unable to connect to " + settings.getHost() + ", error: " + e.getMessage();
@@ -142,9 +140,9 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "authenticated to " + settings.getHost() + " as " + settings.getUsername() );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "authenticated to " + settings.getHost() + " as " + settings.getUsername() );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             disconnectFtpClient( ftpClient );
             final String msg = "error authenticating as " + settings.getUsername() + " to " + settings.getHost() + ", error: " + e.getMessage();
@@ -159,7 +157,7 @@ public class FtpTelemetrySender implements TelemetrySender
             final byte[] fileBytes = dataToJsonZipFile( telemetryPublishBean );
             final ByteArrayInputStream fileStream = new ByteArrayInputStream( fileBytes );
 
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "preparing to transfer " + fileBytes.length + " bytes to file path " + filePath );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "preparing to transfer " + fileBytes.length + " bytes to file path " + filePath );
 
             final Instant startTime = Instant.now();
             ftpClient.storeFile( filePath, fileStream );
@@ -172,9 +170,9 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "completed transfer of " + fileBytes.length + " in " + TimeDuration.compactFromCurrent( startTime ) );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "completed transfer of " + fileBytes.length + " in " + TimeDuration.compactFromCurrent( startTime ) );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             disconnectFtpClient( ftpClient );
             final String msg = "error uploading file  to " + settings.getHost() + ", error: " + e.getMessage();
@@ -189,11 +187,11 @@ public class FtpTelemetrySender implements TelemetrySender
             try
             {
                 ftpClient.disconnect();
-                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "disconnected" );
+                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "disconnected" );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
-                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "error while disconnecting ftp client: " + e.getMessage() );
+                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "error while disconnecting ftp client: " + e.getMessage() );
             }
         }
     }

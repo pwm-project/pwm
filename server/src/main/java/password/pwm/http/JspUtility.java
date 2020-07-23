@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http;
@@ -26,9 +24,8 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.PwmSessionBean;
-import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -53,7 +50,7 @@ public abstract class JspUtility
         final PwmRequest pwmRequest = ( PwmRequest ) request.getAttribute( PwmRequestAttribute.PwmRequest.toString() );
         if ( pwmRequest == null )
         {
-            LOGGER.warn( "unable to load pwmRequest object during jsp execution" );
+            LOGGER.warn( () -> "unable to load pwmRequest object during jsp execution" );
         }
         return pwmRequest;
     }
@@ -65,9 +62,9 @@ public abstract class JspUtility
         {
             return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, theClass );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( "unable to load pwmRequest object during jsp execution: " + e.getMessage() );
+            LOGGER.warn( () -> "unable to load pwmRequest object during jsp execution: " + e.getMessage() );
         }
         return null;
     }
@@ -100,9 +97,9 @@ public abstract class JspUtility
                     ( HttpServletResponse ) pageContext.getResponse()
             );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( "unable to load pwmRequest object during jsp execution: " + e.getMessage() );
+            LOGGER.warn( () -> "unable to load pwmRequest object during jsp execution: " + e.getMessage() );
             return;
         }
         if ( pwmRequest != null )
@@ -136,9 +133,9 @@ public abstract class JspUtility
             {
                 return pwmRequest.getConfig().readSettingAsLong( pwmSetting );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
-                LOGGER.warn( pwmRequest, "error reading number setting " + pwmSetting.getKey() + ", error: " + e.getMessage() );
+                LOGGER.warn( pwmRequest, () -> "error reading number setting " + pwmSetting.getKey() + ", error: " + e.getMessage() );
             }
         }
         return defaultValue;
@@ -148,7 +145,7 @@ public abstract class JspUtility
     {
         final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
         final PwmLogger logger = PwmLogger.getLogger( "jsp:" + pageContext.getPage().getClass() );
-        logger.error( pwmRequest, message );
+        logger.error( pwmRequest, () -> message );
     }
 
     public static String getMessage( final PageContext pageContext, final PwmDisplayBundle key )
@@ -171,9 +168,7 @@ public abstract class JspUtility
     public static String friendlyWrite( final PageContext pageContext, final boolean value )
     {
         final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
-        return value
-                ? LocaleHelper.getLocalizedMessage( Display.Value_True, pwmRequest )
-                : LocaleHelper.getLocalizedMessage( Display.Value_False, pwmRequest );
+        return LocaleHelper.valueBoolean( pwmRequest.getLocale(), value );
     }
 
     public static String friendlyWrite( final PageContext pageContext, final long value )
@@ -185,12 +180,17 @@ public abstract class JspUtility
 
     public static String friendlyWrite( final PageContext pageContext, final String input )
     {
-        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
         if ( StringUtil.isEmpty( input ) )
         {
-            return LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest );
+            return friendlyWriteNotApplicable( pageContext );
         }
         return StringUtil.escapeHtml( input );
+    }
+
+    public static String friendlyWriteNotApplicable( final PageContext pageContext )
+    {
+        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
+        return LocaleHelper.valueNotApplicable( pwmRequest.getLocale() );
     }
 
     public static String friendlyWrite( final PageContext pageContext, final Instant instant )
@@ -198,7 +198,7 @@ public abstract class JspUtility
         final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
         if ( instant == null )
         {
-            return LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest );
+            return LocaleHelper.valueNotApplicable( pwmRequest.getLocale() );
         }
         return "<span class=\"timestamp\">" + instant.toString() + "</span>";
     }

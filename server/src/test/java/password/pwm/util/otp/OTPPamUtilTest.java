@@ -3,72 +3,80 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.otp;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import password.pwm.util.operations.otp.OTPPamUtil;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-
 /**
- *
  * @author mpieters
  */
-public class OTPPamUtilTest {
-    
-    public OTPPamUtilTest() {
+public class OTPPamUtilTest
+{
+
+    public OTPPamUtilTest()
+    {
     }
-    
+
     @BeforeClass
-    public static void setUpClass() {
+    public static void setUpClass()
+    {
     }
-    
+
     @AfterClass
-    public static void tearDownClass() {
+    public static void tearDownClass()
+    {
     }
-    
+
     @Before
-    public void setUp() {
+    public void setUp()
+    {
     }
-    
+
     @After
-    public void tearDown() {
+    public void tearDown()
+    {
     }
 
     /**
      * Test of splitLines method, of class OTPPamUtil.
      */
     @Test
-    public void testSplitLines() {
-        String text = "TUC2JMV7BLJVV6YX\r\n\" WINDOW_SIZE -1\r\n\" TOTP_AUTH\r\n72706699\r\n";
-        List<String> result = OTPPamUtil.splitLines(text);
-        assertEquals(4, result.size());
+    public void testSplitLines()
+    {
+        final String text = "TUC2JMV7BLJVV6YX\r\n\" WINDOW_SIZE -1\r\n\" TOTP_AUTH\r\n72706699\r\n";
+        final List<String> result = OTPPamUtil.splitLines( text );
+        Assert.assertEquals( 4, result.size() );
     }
 
     /**
      * Test of decomposePamData method, of class OTPPamUtil.
      */
     @Test
-    public void testDecomposePamData() {
+    public void testDecomposePamData()
+    {
         /*
         System.out.println("decomposePamData");
         // TOTP
@@ -92,8 +100,9 @@ public class OTPPamUtilTest {
      * Test of composePamData method, of class OTPPamUtil.
      */
     @Test
-    @SuppressWarnings("empty-statement")
-    public void testComposePamData() {
+    @SuppressWarnings( "empty-statement" )
+    public void testComposePamData()
+    {
         /*
         System.out.println("composePamData");
         // TOTP
@@ -117,5 +126,5 @@ public class OTPPamUtilTest {
         // HOTP
         */
     }
-    
+
 }

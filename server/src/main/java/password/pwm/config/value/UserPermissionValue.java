@@ -3,35 +3,35 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -41,13 +41,13 @@ import java.util.Locale;
 
 public class UserPermissionValue extends AbstractValue implements StoredValue
 {
-    final List<UserPermission> values;
+    private final List<UserPermission> values;
 
     private boolean needsXmlUpdate;
 
     public UserPermissionValue( final List<UserPermission> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyList() : Collections.unmodifiableList( values );
     }
 
     public static StoredValueFactory factory( )
@@ -58,14 +58,14 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
             {
                 if ( input == null )
                 {
-                    return new UserPermissionValue( Collections.<UserPermission>emptyList() );
+                    return new UserPermissionValue( Collections.emptyList() );
                 }
                 else
                 {
                     List<UserPermission> srcList = JsonUtil.deserialize( input, new TypeToken<List<UserPermission>>()
                     {
                     } );
-                    srcList = srcList == null ? Collections.<UserPermission>emptyList() : srcList;
+                    srcList = srcList == null ? Collections.emptyList() : srcList;
                     while ( srcList.contains( null ) )
                     {
                         srcList.remove( null );
@@ -74,16 +74,15 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                 }
             }
 
-            public UserPermissionValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
+            public UserPermissionValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
                 final boolean newType = "2".equals(
-                        settingElement.getAttributeValue( StoredConfigurationImpl.XML_ATTRIBUTE_SYNTAX_VERSION ) );
-                final List valueElements = settingElement.getChildren( "value" );
+                        settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION ) );
+                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final List<UserPermission> values = new ArrayList<>();
-                for ( final Object loopValue : valueElements )
+                for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final Element loopValueElement = ( Element ) loopValue;
                     final String value = loopValueElement.getText();
                     if ( value != null && !value.isEmpty() )
                     {
@@ -94,7 +93,10 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                         }
                         else
                         {
-                            values.add( new UserPermission( UserPermission.Type.ldapQuery, null, value, null ) );
+                            values.add( UserPermission.builder()
+                                    .type( UserPermission.Type.ldapQuery )
+                                    .ldapQuery( value )
+                                    .build() );
                         }
                     }
                 }
@@ -105,13 +107,13 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final UserPermission value : values )
         {
-            final Element valueElement = new Element( valueElementName );
-            valueElement.addContent( JsonUtil.serialize( value ) );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+            valueElement.addText( JsonUtil.serialize( value ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -131,7 +133,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
             {
                 validateLdapSearchFilter( userPermission.getLdapQuery() );
             }
-            catch ( IllegalArgumentException e )
+            catch ( final IllegalArgumentException e )
             {
                 returnObj.add( e.getMessage() + " for filter " + userPermission.getLdapQuery() );
             }

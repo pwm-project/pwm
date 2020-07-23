@@ -11,6 +11,8 @@ olcAttributeTypes: {3}( 1.3.6.1.4.1.35015.1.2.4 NAME 'pwmGUID' SYNTA
  X 1.3.6.1.4.1.1466.115.121.1.15 )
 olcAttributeTypes: {1}( 1.3.6.1.4.1.35015.1.2.6 NAME 'pwmOtpSecret'
  EQUALITY octetStringMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )
+olcAttributeTypes: {2}( 1.3.6.1.4.1.35015.1.2.7 NAME 'pwmData'
+ EQUALITY octetStringMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )
 olcObjectClasses: {0}( 1.3.6.1.4.1.591242.1.2010.04.16.1 NAME 'pwmUser' AUXILI
  ARY MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmOtpSecret $ pw
- mGUID ) )
+ mGUID $ pwmData ) )

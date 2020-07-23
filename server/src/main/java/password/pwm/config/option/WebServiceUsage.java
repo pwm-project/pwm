@@ -3,36 +3,64 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config.option;
 
+import password.pwm.ws.server.RestAuthenticationType;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public enum WebServiceUsage
 {
-    Challenges,
-    CheckPassword,
-    Health,
-    Profile,
-    RandomPassword,
-    SetPassword,
-    SigningForm,
-    Statistics,
-    Status,
-    VerifyOtp,
-    VerifyResponses,
+    Challenges( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    CheckPassword( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    ForgottenPassword( RestAuthenticationType.PUBLIC ),
+    Health( RestAuthenticationType.PUBLIC ),
+    Profile( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    RandomPassword( RestAuthenticationType.PUBLIC, RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    SetPassword( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    SigningForm( RestAuthenticationType.NAMED_SECRET ),
+    Statistics( RestAuthenticationType.PUBLIC, RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    Status( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    VerifyOtp( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),
+    VerifyResponses( RestAuthenticationType.NAMED_SECRET, RestAuthenticationType.LDAP ),;
+
+    private Set<RestAuthenticationType> type;
+
+    WebServiceUsage( final RestAuthenticationType... type )
+    {
+        this.type = type == null ? Collections.emptySet() : Collections.unmodifiableSet( new HashSet<>( Arrays.asList( type ) ) );
+    }
+
+    public Set<RestAuthenticationType> getTypes()
+    {
+        return type;
+    }
+
+    public static Set<WebServiceUsage> forType( final RestAuthenticationType type )
+    {
+        return Collections.unmodifiableSet(
+                Arrays.stream( WebServiceUsage.values() )
+                        .filter( webServiceUsage -> webServiceUsage.getTypes().contains( type ) )
+                        .collect( Collectors.toSet() )
+        );
+    }
 }

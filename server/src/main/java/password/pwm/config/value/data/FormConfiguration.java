@@ -3,29 +3,25 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config.value.data;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
@@ -35,7 +31,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 
@@ -53,15 +49,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-/**
- * @author Jason D. Rivard
- */
-@Getter
-@Builder
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
+@Value
+@Builder( toBuilder = true )
 public class FormConfiguration implements Serializable
 {
-
     public enum Type
     {
         text,
@@ -152,23 +143,23 @@ public class FormConfiguration implements Serializable
             throw new NullPointerException( "config can not be null" );
         }
 
-        final FormConfiguration formItem = new FormConfiguration();
+        final FormConfiguration.FormConfigurationBuilder builder = FormConfiguration.builder();
         final StringTokenizer st = new StringTokenizer( config, ":" );
 
         // attribute name
-        formItem.name = st.nextToken();
+        builder.name( st.nextToken() );
 
         // label
-        formItem.labels = Collections.singletonMap( "", st.nextToken() );
+        builder.labels( Collections.singletonMap( "", st.nextToken() ) );
 
         // type
         {
             final String typeStr = st.nextToken();
             try
             {
-                formItem.type = Type.valueOf( typeStr.toLowerCase() );
+                builder.type( Type.valueOf( typeStr.toLowerCase() ) );
             }
-            catch ( IllegalArgumentException e )
+            catch ( final IllegalArgumentException e )
             {
                 throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
                         "unknown type for form config: " + typeStr,
@@ -179,9 +170,9 @@ public class FormConfiguration implements Serializable
         //minimum length
         try
         {
-            formItem.minimumLength = Integer.parseInt( st.nextToken() );
+            builder.minimumLength( Integer.parseInt( st.nextToken() ) );
         }
-        catch ( NumberFormatException e )
+        catch ( final NumberFormatException e )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
                     "invalid minimum length type for form config: " + e.getMessage(),
@@ -191,9 +182,9 @@ public class FormConfiguration implements Serializable
         //maximum length
         try
         {
-            formItem.maximumLength = Integer.parseInt( st.nextToken() );
+            builder.maximumLength( Integer.parseInt( st.nextToken() ) );
         }
-        catch ( NumberFormatException e )
+        catch ( final NumberFormatException e )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
                     "invalid maximum length type for form config: " + e.getMessage(),
@@ -201,17 +192,17 @@ public class FormConfiguration implements Serializable
         }
 
         //required
-        formItem.required = Boolean.TRUE.toString().equalsIgnoreCase( st.nextToken() );
+        builder.required( Boolean.TRUE.toString().equalsIgnoreCase( st.nextToken() ) );
 
         //confirmation
-        formItem.confirmationRequired = Boolean.TRUE.toString().equalsIgnoreCase( st.nextToken() );
+        builder.confirmationRequired( Boolean.TRUE.toString().equalsIgnoreCase( st.nextToken() ) );
 
-        return formItem;
+        return builder.build();
     }
 
     public void validate( ) throws PwmOperationalException
     {
-        if ( this.getName() == null || this.getName().length() < 1 )
+        if ( StringUtil.isEmpty( this.getName() ) )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
                     " form field name is required",
@@ -238,7 +229,7 @@ public class FormConfiguration implements Serializable
             {
                 Pattern.compile( this.getRegex() );
             }
-            catch ( PatternSyntaxException e )
+            catch ( final PatternSyntaxException e )
             {
                 throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
                         " regular expression for '" + this.getName() + " ' is not valid: " + e.getMessage(),
@@ -255,12 +246,6 @@ public class FormConfiguration implements Serializable
                 } ) );
             }
         }
-    }
-
-    public FormConfiguration( )
-    {
-        labels = Collections.singletonMap( "", "" );
-        regexErrors = Collections.singletonMap( "", "" );
     }
 
     public String getLabel( final Locale locale )
@@ -343,7 +328,7 @@ public class FormConfiguration implements Serializable
                     {
                         new BigInteger( value );
                     }
-                    catch ( NumberFormatException e )
+                    catch ( final NumberFormatException e )
                     {
                         final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_NOT_A_NUMBER, null, new String[] {
                                 getLabel( locale ),

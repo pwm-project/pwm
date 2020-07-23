@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.updateprofile;
@@ -45,6 +43,7 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
@@ -167,7 +166,7 @@ public class UpdateProfileUtil
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( sessionLabel, "skipping send profile update email for '" + userInfo.getUserIdentity().toDisplayString() + "' no email configured" );
+            LOGGER.debug( sessionLabel, () -> "skipping send profile update email for '" + userInfo.getUserIdentity().toDisplayString() + "' no email configured" );
         }
     }
 
@@ -229,7 +228,7 @@ public class UpdateProfileUtil
         final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
         final List<FormConfiguration> formFields = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
         final Map<FormConfiguration, String> formMap = new LinkedHashMap<>();
-        FormUtility.populateFormMapFromLdap( formFields, pwmRequest.getSessionLabel(), formMap, userInfo );
+        FormUtility.populateFormMapFromLdap( formFields, pwmRequest.getLabel(), formMap, userInfo );
         return FormUtility.asStringMap( formMap );
     }
 
@@ -322,7 +321,7 @@ public class UpdateProfileUtil
                             : updateProfileProfile.getTokenDurationSMS( pwmRequest.getConfig() );
 
                     TokenUtil.initializeAndSendToken(
-                            pwmRequest,
+                            pwmRequest.commonValues(),
                             TokenUtil.TokenInitAndSendRequest.builder()
                                     .userInfo( pwmRequest.getPwmSession().getUserInfo() )
                                     .tokenDestinationItem( tokenDestinationItem )
@@ -364,32 +363,51 @@ public class UpdateProfileUtil
         verifyFormAttributes( pwmApplication, userInfo.getUserIdentity(), locale, formMap, false );
 
         // write values.
-        LOGGER.info( "updating profile for " + userInfo.getUserIdentity() );
+        LOGGER.info( () -> "updating profile for " + userInfo.getUserIdentity() );
 
         LdapOperationsHelper.writeFormValuesToLdap( theUser, formMap, macroMachine, false );
 
-        final UserIdentity userIdentity = userInfo.getUserIdentity();
+        postUpdateActionsAndEmail( pwmApplication, sessionLabel, locale, userInfo.getUserIdentity(), updateProfileProfile );
+
+        // success, so forward to success page
+        pwmApplication.getStatisticsManager().incrementValue( Statistic.UPDATE_ATTRIBUTES );
+    }
+
+    private static void postUpdateActionsAndEmail(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final Locale locale,
+            final UserIdentity userIdentity,
+            final UpdateProfileProfile updateProfileProfile
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+    {
+        // obtain new macro machine (with a new UserInfo) so old cached values won't be used for next op
+        final UserInfo reloadedUserInfo = UserInfoFactory.newUserInfo(
+                pwmApplication,
+                sessionLabel,
+                locale,
+                userIdentity,
+                pwmApplication.getProxiedChaiUser( userIdentity ).getChaiProvider() );
+        final MacroMachine reloadedMacroMachine = MacroMachine.forUser( pwmApplication, sessionLabel, reloadedUserInfo, null, null );
 
         {
             // execute configured actions
             final List<ActionConfiguration> actions = updateProfileProfile.readSettingAsAction( PwmSetting.UPDATE_PROFILE_WRITE_ATTRIBUTES );
             if ( actions != null && !actions.isEmpty() )
             {
-                LOGGER.debug( sessionLabel, "executing configured actions to user " + userIdentity );
+                LOGGER.debug( sessionLabel, () -> "executing configured actions to user " + reloadedUserInfo.getUserIdentity() );
 
-
-                final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
+                final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, reloadedUserInfo.getUserIdentity() )
                         .setExpandPwmMacros( true )
-                        .setMacroMachine( macroMachine )
+                        .setMacroMachine( reloadedMacroMachine )
                         .createActionExecutor();
 
                 actionExecutor.executeActions( actions, sessionLabel );
             }
         }
-        sendProfileUpdateEmailNotice( pwmApplication, macroMachine, userInfo, locale, sessionLabel );
 
-        // success, so forward to success page
-        pwmApplication.getStatisticsManager().incrementValue( Statistic.UPDATE_ATTRIBUTES );
+        sendProfileUpdateEmailNotice( pwmApplication, reloadedMacroMachine, reloadedUserInfo, locale, sessionLabel );
     }
 
     static TokenDestinationItem tokenDestinationItemForCurrentValidation(

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.event;
@@ -47,7 +45,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -100,14 +98,14 @@ public class AuditService implements PwmService
         if ( pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
             this.status = STATUS.CLOSED;
-            LOGGER.warn( "unable to start - Application is in read-only mode" );
+            LOGGER.warn( () -> "unable to start - Application is in read-only mode" );
             return;
         }
 
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
             this.status = STATUS.CLOSED;
-            LOGGER.warn( "unable to start - LocalDB is not available" );
+            LOGGER.warn( () -> "unable to start - LocalDB is not available" );
             return;
         }
 
@@ -118,10 +116,10 @@ public class AuditService implements PwmService
             {
                 syslogManager = new SyslogAuditService( pwmApplication );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SYSLOG_WRITE_ERROR, "startup error: " + e.getMessage() );
-                LOGGER.error( errorInformation.toDebugStr() );
+                LOGGER.error( () -> errorInformation.toDebugStr() );
             }
         }
         {
@@ -165,7 +163,7 @@ public class AuditService implements PwmService
                     status = STATUS.CLOSED;
                     return;
             }
-            LOGGER.info( debugMsg );
+            LOGGER.info( () -> debugMsg );
             serviceInfo = new ServiceInfoBean( Collections.singletonList( storageMethodUsed ) );
         }
         {
@@ -180,7 +178,7 @@ public class AuditService implements PwmService
             {
                 if ( maxRecords < 1 )
                 {
-                    LOGGER.debug( "localDB audit vault will remain closed due to max records setting" );
+                    LOGGER.debug( () -> "localDB audit vault will remain closed due to max records setting" );
                     pwmApplication.getLocalDB().truncate( LocalDB.DB.AUDIT_EVENTS );
                 }
                 else
@@ -191,7 +189,7 @@ public class AuditService implements PwmService
             }
             else
             {
-                LOGGER.debug( "localDB audit vault will remain closed due to application mode" );
+                LOGGER.debug( () -> "localDB audit vault will remain closed due to application mode" );
             }
         }
 
@@ -309,7 +307,12 @@ public class AuditService implements PwmService
             body = StringUtil.mapToString( mapRecord, "=", "\n" );
         }
 
-        final EmailItemBean emailItem = new EmailItemBean( toAddress, fromAddress, subject, body, null );
+        final EmailItemBean emailItem = EmailItemBean.builder()
+                .to( toAddress )
+                .from( fromAddress )
+                .subject( subject )
+                .bodyPlain( body )
+                .build();
         pwmApplication.getEmailQueue().submitEmail( emailItem, null, macroMachine );
     }
 
@@ -333,7 +336,7 @@ public class AuditService implements PwmService
     public void submit( final AuditEvent auditEvent, final UserInfo userInfo, final PwmSession pwmSession )
             throws PwmUnrecoverableException
     {
-        final AuditRecordFactory auditRecordFactory = new AuditRecordFactory( pwmApplication, pwmSession.getSessionManager().getMacroMachine( pwmApplication ) );
+        final AuditRecordFactory auditRecordFactory = new AuditRecordFactory( pwmApplication, pwmSession.getSessionManager().getMacroMachine( ) );
         final UserAuditRecord auditRecord = auditRecordFactory.createUserAuditRecord( auditEvent, userInfo, pwmSession );
         submit( auditRecord );
     }
@@ -346,24 +349,24 @@ public class AuditService implements PwmService
 
         if ( status != STATUS.OPEN )
         {
-            LOGGER.debug( "discarding audit event (AuditManager is not open); event=" + jsonRecord );
+            LOGGER.debug( () -> "discarding audit event (AuditManager is not open); event=" + jsonRecord );
             return;
         }
 
         if ( auditRecord.getEventCode() == null )
         {
-            LOGGER.error( "discarding audit event, missing event type; event=" + jsonRecord );
+            LOGGER.error( () -> "discarding audit event, missing event type; event=" + jsonRecord );
             return;
         }
 
         if ( !settings.getPermittedEvents().contains( auditRecord.getEventCode() ) )
         {
-            LOGGER.debug( "discarding event, " + auditRecord.getEventCode() + " are being ignored; event=" + jsonRecord );
+            LOGGER.debug( () -> "discarding event, " + auditRecord.getEventCode() + " are being ignored; event=" + jsonRecord );
             return;
         }
 
         // add to debug log
-        LOGGER.info( "audit event: " + jsonRecord );
+        LOGGER.info( () -> "audit event: " + jsonRecord );
 
         // add to audit db
         if ( auditVault != null )
@@ -372,9 +375,9 @@ public class AuditService implements PwmService
             {
                 auditVault.add( auditRecord );
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
-                LOGGER.warn( "discarding audit event due to storage error: " + e.getMessage() );
+                LOGGER.warn( () -> "discarding audit event due to storage error: " + e.getMessage() );
             }
         }
 
@@ -393,7 +396,7 @@ public class AuditService implements PwmService
                 }
                 else
                 {
-                    LOGGER.trace( "skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize( auditRecord ) );
+                    LOGGER.trace( () -> "skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize( auditRecord ) );
                 }
             }
         }
@@ -405,7 +408,7 @@ public class AuditService implements PwmService
             {
                 syslogManager.add( auditRecord );
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 lastError = e.getErrorInformation();
             }

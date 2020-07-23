@@ -3,26 +3,25 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.localdb;
 
 import password.pwm.util.java.ClosableIterator;
+import password.pwm.util.java.JavaHelper;
 
 import java.io.File;
 import java.io.Serializable;
@@ -118,35 +117,39 @@ public interface LocalDB
         /**
          * Used for various pwm operational data.
          */
-        PWM_META( true ),
-        SHAREDHISTORY_META( true ),
-        SHAREDHISTORY_WORDS( true ),
+        PWM_META( Flag.Backup ),
+        SHAREDHISTORY_META( Flag.Backup ),
+        SHAREDHISTORY_WORDS( Flag.Backup ),
         // WORDLIST_META(true), // @deprecated
-        WORDLIST_WORDS( true ),
+        WORDLIST_WORDS( Flag.Backup ),
         // SEEDLIST_META(true), // @deprecated
-        SEEDLIST_WORDS( true ),
-        PWM_STATS( true ),
-        EVENTLOG_EVENTS( true ),
-        EMAIL_QUEUE( true ),
-        SMS_QUEUE( true ),
-        RESPONSE_STORAGE( true ),
-        OTP_SECRET( true ),
-        TOKENS( true ),
-        INTRUDER( true ),
-        AUDIT_QUEUE( true ),
-        AUDIT_EVENTS( true ),
-        USER_CACHE( true ),
-        TEMP( false ),
-        SYSLOG_QUEUE( true ),
-        CACHE( false ),
-
-        REPORT_QUEUE( false ),;
+        SEEDLIST_WORDS( Flag.Backup ),
+        PWM_STATS( Flag.Backup ),
+        EVENTLOG_EVENTS( Flag.Backup ),
+        EMAIL_QUEUE( Flag.Backup ),
+        SMS_QUEUE( Flag.Backup ),
+        RESPONSE_STORAGE( Flag.Backup ),
+        OTP_SECRET( Flag.Backup ),
+        TOKENS( Flag.Backup ),
+        INTRUDER( Flag.Backup ),
+        AUDIT_QUEUE( Flag.Backup ),
+        AUDIT_EVENTS( Flag.Backup ),
+        USER_CACHE( Flag.Backup ),
+        TEMP(  ),
+        SYSLOG_QUEUE( Flag.Backup ),
+        CACHE(  ),
+        REPORT_QUEUE( ),;
 
         private final boolean backup;
 
-        DB( final boolean backup )
+        private enum Flag
         {
-            this.backup = backup;
+            Backup,
+        }
+
+        DB( final Flag... flag )
+        {
+            this.backup = JavaHelper.enumArrayContainsValue( flag, Flag.Backup );
         }
 
         public boolean isBackup( )

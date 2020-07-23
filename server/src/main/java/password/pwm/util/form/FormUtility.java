@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.form;
@@ -350,7 +348,7 @@ public class FormUtility
                 {
                     // since only one value searched, it must be that one value
                     final String attributeName = labelMap.values().iterator().next();
-                    LOGGER.trace( "found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity );
+                    LOGGER.trace( () -> "found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity );
                     final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
                             {
                                     attributeName,
@@ -370,7 +368,7 @@ public class FormUtility
                         final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
                         compareResult = theUser.compareStringAttribute( name, value );
                     }
-                    catch ( ChaiOperationException | ChaiUnavailableException e )
+                    catch ( final ChaiOperationException | ChaiUnavailableException e )
                     {
                         final PwmError error = PwmError.forChaiError( e.getErrorCode() );
                         throw new PwmUnrecoverableException( error.toInfo() );
@@ -379,7 +377,7 @@ public class FormUtility
                     if ( compareResult )
                     {
                         final String label = labelMap.get( name );
-                        LOGGER.trace( "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
+                        LOGGER.trace( () ->  "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
                         final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
                                 {
                                         label,
@@ -394,7 +392,7 @@ public class FormUtility
                 throw new PwmDataValidationException( error );
             }
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             if ( cacheService != null )
             {
@@ -522,7 +520,7 @@ public class FormUtility
     {
         final boolean includeNulls = JavaHelper.enumArrayContainsValue( flags, Flag.ReturnEmptyValues );
         final List<String> formFieldNames = FormConfiguration.convertToListOfNames( formFields );
-        LOGGER.trace( sessionLabel, "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection( formFieldNames ) );
+        LOGGER.trace( sessionLabel, () -> "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection( formFieldNames ) );
         final Map<String, List<String>> dataFromLdap = new LinkedHashMap<>();
         try
         {
@@ -559,7 +557,7 @@ public class FormUtility
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             PwmError error = null;
             if ( e instanceof ChaiException )
@@ -572,7 +570,7 @@ public class FormUtility
             }
 
             final ErrorInformation errorInformation = new ErrorInformation( error, "error reading current profile values: " + e.getMessage() );
-            LOGGER.error( sessionLabel, errorInformation.getDetailedErrorMsg() );
+            LOGGER.error( sessionLabel, () -> errorInformation.getDetailedErrorMsg() );
             throw new PwmUnrecoverableException( errorInformation );
         }
 
@@ -587,7 +585,7 @@ public class FormUtility
                 {
                     final String parsedValue = parseInputValueToFormValue( formItem, value );
                     values.add( parsedValue );
-                    LOGGER.trace( sessionLabel, "loaded value for form item '" + attrName + "' with value=" + value );
+                    LOGGER.trace( sessionLabel, () -> "loaded value for form item '" + attrName + "' with value=" + value );
                 }
 
                 returnMap.put( formItem, values );

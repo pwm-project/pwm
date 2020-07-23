@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.health;
@@ -29,9 +27,8 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.profile.LdapProfile;
-import password.pwm.config.stored.StoredConfigReference;
-import password.pwm.config.stored.StoredConfigurationImpl;
-import password.pwm.config.stored.StoredConfigurationUtil;
+import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.ActionValue;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -48,6 +45,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class CertificateChecker implements HealthChecker
 {
@@ -56,15 +54,14 @@ public class CertificateChecker implements HealthChecker
     @Override
     public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
     {
-        final List<HealthRecord> records = new ArrayList<>();
-        records.addAll( doHealthCheck( pwmApplication.getConfig() ) );
+        final List<HealthRecord> records = new ArrayList<>( doHealthCheck( pwmApplication.getConfig() ) );
         try
         {
             records.addAll( doActionHealthCheck( pwmApplication.getConfig() ) );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "error while checking action certificates: " + e.getMessage(), e );
+            LOGGER.error( () -> "error while checking action certificates: " + e.getMessage(), e );
         }
         return records;
     }
@@ -94,24 +91,24 @@ public class CertificateChecker implements HealthChecker
     private static List<HealthRecord> doActionHealthCheck( final Configuration configuration ) throws PwmUnrecoverableException
     {
 
-        final StoredConfigurationImpl storedConfiguration = configuration.getStoredConfiguration();
+        final StoredConfiguration storedConfiguration = configuration.getStoredConfiguration();
 
         final List<HealthRecord> returnList = new ArrayList<>();
-        final List<StoredConfigReference> modifiedReferences = StoredConfigurationUtil.modifiedSettings( storedConfiguration );
-        for ( final StoredConfigReference storedConfigReference : modifiedReferences )
+        final Set<StoredConfigItemKey> modifiedReferences = storedConfiguration.modifiedItems();
+        for ( final StoredConfigItemKey storedConfigItemKey : modifiedReferences )
         {
-            if ( storedConfigReference.getRecordType() == StoredConfigReference.RecordType.SETTING )
+            if ( storedConfigItemKey.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
             {
-                final PwmSetting pwmSetting = PwmSetting.forKey( storedConfigReference.getRecordID() );
+                final PwmSetting pwmSetting = PwmSetting.forKey( storedConfigItemKey.getRecordID() );
                 if ( pwmSetting != null && pwmSetting.getSyntax() == PwmSettingSyntax.ACTION )
                 {
-                    final ActionValue value = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, storedConfigReference.getProfileID() );
+                    final ActionValue value = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, storedConfigItemKey.getProfileID() );
                     for ( final ActionConfiguration actionConfiguration : value.toNativeObject() )
                     {
                         for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions()  )
                         {
                             final List<X509Certificate> certificates = webAction.getCertificates();
-                            returnList.addAll( doHealthCheck( configuration, pwmSetting, storedConfigReference.getProfileID(), certificates ) );
+                            returnList.addAll( doHealthCheck( configuration, pwmSetting, storedConfigItemKey.getProfileID(), certificates ) );
                         }
                     }
                 }
@@ -139,7 +136,7 @@ public class CertificateChecker implements HealthChecker
                     checkCertificate( certificate, warnDurationMs );
                     return Collections.emptyList();
                 }
-                catch ( PwmOperationalException e )
+                catch ( final PwmOperationalException e )
                 {
                     final String errorDetail = e.getErrorInformation().getDetailedErrorMsg();
                     final HealthRecord record = HealthRecord.forMessage( HealthMessage.Config_Certificate,
@@ -166,7 +163,7 @@ public class CertificateChecker implements HealthChecker
         {
             certificate.checkValidity();
         }
-        catch ( CertificateException e )
+        catch ( final CertificateException e )
         {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append( "certificate for subject " );

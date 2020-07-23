@@ -3,88 +3,63 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.cr;
 
+import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.bean.ChallengeBean;
+import lombok.Builder;
+import lombok.Value;
+
 import java.io.Serializable;
 
-public class CrChallengeItemBean implements Serializable
+@Value
+@Builder
+public class CrChallengeItemBean implements Serializable, Challenge
 {
-    public String challengeText;
-    public int minLength;
-    public int maxLength;
-    public boolean adminDefined;
-    public boolean required;
-    public int maxQuestionCharsInAnswer;
-    public boolean enforceWordlist;
+    private String challengeText;
+    private int minLength;
+    private int maxLength;
+    private boolean adminDefined;
+    private boolean required;
+    private int maxQuestionCharsInAnswer;
+    private boolean enforceWordlist;
 
-    public CrChallengeItemBean(
-            final String challengeText,
-            final int minLength,
-            final int maxLength,
-            final boolean adminDefined,
-            final boolean required,
-            final int maxQuestionCharsInAnswer,
-            final boolean enforceWordlist
-    )
+    @Override
+    public boolean isLocked()
     {
-        this.challengeText = challengeText;
-        this.minLength = minLength;
-        this.maxLength = maxLength;
-        this.adminDefined = adminDefined;
-        this.required = required;
-        this.maxQuestionCharsInAnswer = maxQuestionCharsInAnswer;
-        this.enforceWordlist = enforceWordlist;
+        return true;
     }
 
-    public String getChallengeText( )
+    @Override
+    public void lock()
     {
-        return challengeText;
+
     }
 
-    public int getMinLength( )
+    @Override
+    public void setChallengeText( final String challengeText )
     {
-        return minLength;
+        throw new IllegalStateException();
     }
 
-    public int getMaxLength( )
+    @Override
+    public ChallengeBean asChallengeBean()
     {
-        return maxLength;
-    }
-
-    public boolean isAdminDefined( )
-    {
-        return adminDefined;
-    }
-
-    public boolean isRequired( )
-    {
-        return required;
-    }
-
-    public int getMaxQuestionCharsInAnswer( )
-    {
-        return maxQuestionCharsInAnswer;
-    }
-
-    public boolean isEnforceWordlist( )
-    {
-        return enforceWordlist;
+        throw new IllegalStateException();
     }
 }

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.resource;
@@ -69,7 +67,7 @@ class ResourceServletConfiguration
 
     private ResourceServletConfiguration( final PwmApplication pwmApplication )
     {
-        LOGGER.trace( "initializing" );
+        LOGGER.trace( () -> "initializing" );
         final Configuration configuration = pwmApplication.getConfig();
         maxCacheItems = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_RESOURCES_MAX_CACHE_ITEMS ) );
         cacheExpireSeconds = Long.parseLong( configuration.readAppProperty( AppProperty.HTTP_RESOURCES_EXPIRATION_SECONDS ) );
@@ -101,16 +99,16 @@ class ResourceServletConfiguration
                         );
                         final ZipFile zipFile = new ZipFile( zipFileFile );
                         zipResources.put( ResourceFileServlet.RESOURCE_PATH + configuredZipFileResource.getUrl(), zipFile );
-                        LOGGER.debug( "registered resource-zip file " + configuredZipFileResource.getZipFile() + " at path " + zipFileFile.getAbsolutePath() );
+                        LOGGER.debug( () -> "registered resource-zip file " + configuredZipFileResource.getZipFile() + " at path " + zipFileFile.getAbsolutePath() );
                     }
-                    catch ( IOException e )
+                    catch ( final IOException e )
                     {
-                        LOGGER.warn( "unable to resource-zip file " + configuredZipFileResource + ", error: " + e.getMessage() );
+                        LOGGER.warn( () -> "unable to resource-zip file " + configuredZipFileResource + ", error: " + e.getMessage() );
                     }
                 }
                 else
                 {
-                    LOGGER.error( "can't register resource-zip file " + configuredZipFileResource.getZipFile() + " because WEB-INF path is unknown" );
+                    LOGGER.error( () -> "can't register resource-zip file " + configuredZipFileResource.getZipFile() + " because WEB-INF path is unknown" );
                 }
             }
         }
@@ -121,7 +119,7 @@ class ResourceServletConfiguration
             final Map.Entry<FileValue.FileInformation, FileValue.FileContent> entry = files.entrySet().iterator().next();
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileValue.FileContent fileContent = entry.getValue();
-            LOGGER.debug( "examining configured zip file resource for items name=" + fileInformation.getFilename() + ", size=" + fileContent.size() );
+            LOGGER.debug( () -> "examining configured zip file resource for items name=" + fileInformation.getFilename() + ", size=" + fileContent.size() );
 
             try
             {
@@ -129,9 +127,9 @@ class ResourceServletConfiguration
                 customFileBundle.clear();
                 customFileBundle.putAll( customFiles );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
-                LOGGER.error( "error assembling memory file map zip bundle: " + e.getMessage() );
+                LOGGER.error( () -> "error assembling memory file map zip bundle: " + e.getMessage() );
             }
         }
 
@@ -196,7 +194,7 @@ class ResourceServletConfiguration
     private static Map<String, FileResource> makeMemoryFileMapFromZipInput( final ImmutableByteArray content )
             throws IOException
     {
-        final ZipInputStream stream = new ZipInputStream( new ByteArrayInputStream( content.getBytes() ) );
+        final ZipInputStream stream = new ZipInputStream( new ByteArrayInputStream( content.copyOf() ) );
         final Map<String, FileResource> memoryMap = new HashMap<>();
 
         ZipEntry entry;
@@ -208,9 +206,12 @@ class ResourceServletConfiguration
                 final long lastModified = entry.getTime();
                 final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 IOUtils.copy( stream, byteArrayOutputStream );
-                final ImmutableByteArray contents = new ImmutableByteArray( byteArrayOutputStream.toByteArray() );
+                final ImmutableByteArray contents = ImmutableByteArray.of( byteArrayOutputStream.toByteArray() );
                 memoryMap.put( name, new MemoryFileResource( name, contents, lastModified ) );
-                LOGGER.trace( "discovered file in configured resource bundle: " + entry.getName() );
+                {
+                    final String finalEntry = entry.getName();
+                    LOGGER.trace( () -> "discovered file in configured resource bundle: " + finalEntry );
+                }
             }
         }
         return memoryMap;

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.operations;
@@ -36,10 +34,10 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
@@ -69,7 +67,7 @@ public class ActionExecutor
             final List<ActionConfiguration> configValues,
             final SessionLabel sessionLabel
     )
-            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         for ( final ActionConfiguration loopAction : configValues )
         {
@@ -81,9 +79,9 @@ public class ActionExecutor
             final ActionConfiguration actionConfiguration,
             final SessionLabel sessionLabel
     )
-            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
+            throws PwmOperationalException, PwmUnrecoverableException
     {
-        LOGGER.trace( sessionLabel, "preparing to execute action(s) for " + actionConfiguration.getName() );
+        LOGGER.trace( sessionLabel, () -> "preparing to execute action(s) for " + actionConfiguration.getName() );
 
         for ( final ActionConfiguration.LdapAction ldapAction : actionConfiguration.getLdapActions() )
         {
@@ -95,15 +93,15 @@ public class ActionExecutor
             executeWebserviceAction( sessionLabel, actionConfiguration, webAction );
         }
 
-        LOGGER.info( sessionLabel, "action " + actionConfiguration.getName() + " completed successfully" );
+        LOGGER.info( sessionLabel, () -> "action " + actionConfiguration.getName() + " completed successfully" );
     }
 
     private void executeLdapAction(
             final SessionLabel sessionLabel,
             final ActionConfiguration actionConfiguration,
             final ActionConfiguration.LdapAction ldapAction
-            )
-            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
+    )
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         String attributeName = ldapAction.getAttributeName();
         String attributeValue = ldapAction.getAttributeValue();
@@ -136,14 +134,21 @@ public class ActionExecutor
             attributeValue = macroMachine.expandMacros( attributeValue );
         }
 
-        writeLdapAttribute(
-                sessionLabel,
-                theUser,
-                attributeName,
-                attributeValue,
-                ldapAction.getLdapMethod(),
-                settings.getMacroMachine()
-        );
+        try
+        {
+            writeLdapAttribute(
+                    sessionLabel,
+                    theUser,
+                    attributeName,
+                    attributeValue,
+                    ldapAction.getLdapMethod(),
+                    settings.getMacroMachine()
+            );
+        }
+        catch ( final ChaiUnavailableException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
     }
 
     private void executeWebserviceAction(
@@ -195,23 +200,30 @@ public class ActionExecutor
 
             final HttpMethod method = HttpMethod.fromString( webAction.getMethod().toString() );
 
-            final PwmHttpClientRequest clientRequest = new PwmHttpClientRequest( method, url, body, headers );
+            final PwmHttpClientRequest clientRequest = PwmHttpClientRequest.builder()
+                    .method( method )
+                    .url( url )
+                    .body( body )
+                    .headers( headers )
+                    .build();
+
             final PwmHttpClient client;
             {
                 if ( webAction.getCertificates() != null )
                 {
                     final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
+                            .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
                             .certificates( webAction.getCertificates() )
                             .build();
 
-                    client = new PwmHttpClient( pwmApplication, sessionLabel, clientConfiguration );
+                    client = pwmApplication.getHttpClientService().getPwmHttpClient( clientConfiguration );
                 }
                 else
                 {
-                    client = new PwmHttpClient( pwmApplication, sessionLabel );
+                    client = pwmApplication.getHttpClientService().getPwmHttpClient( );
                 }
             }
-            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest );
+            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, sessionLabel );
 
             final List<Integer> successStatus = webAction.getSuccessStatus() == null
                     ? Collections.emptyList()
@@ -219,7 +231,7 @@ public class ActionExecutor
 
             if ( !successStatus.contains( clientResponse.getStatusCode() ) )
             {
-                LOGGER.trace( "response status code " + clientResponse.getStatusCode() + " is not one of the configured success status codes: "
+                LOGGER.trace( () -> "response status code " + clientResponse.getStatusCode() + " is not one of the configured success status codes: "
                         + StringUtil.collectionToString( successStatus ) );
 
                 throw new PwmOperationalException( new ErrorInformation(
@@ -230,7 +242,7 @@ public class ActionExecutor
             }
 
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             if ( e instanceof PwmOperationalException )
             {
@@ -238,7 +250,7 @@ public class ActionExecutor
             }
 
             final String errorMsg = "unexpected error during API execution: " + e.getMessage();
-            LOGGER.error( errorMsg );
+            LOGGER.error( () -> errorMsg );
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
     }
@@ -262,7 +274,7 @@ public class ActionExecutor
                 : attrValue;
 
 
-        LOGGER.trace( sessionLabel, "beginning ldap " + effectiveLdapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName );
+        LOGGER.trace( sessionLabel, () -> "beginning ldap " + effectiveLdapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName );
         switch ( effectiveLdapMethod )
         {
             case replace:
@@ -270,9 +282,9 @@ public class ActionExecutor
                 try
                 {
                     theUser.writeStringAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, "replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
+                    LOGGER.info( sessionLabel, () -> "replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -288,9 +300,9 @@ public class ActionExecutor
                 try
                 {
                     theUser.addAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, "added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
+                    LOGGER.info( sessionLabel, () -> "added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     final String errorMsg = "error adding '" + attrName + "' attribute value from user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -307,11 +319,11 @@ public class ActionExecutor
                 try
                 {
                     theUser.deleteAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
+                    LOGGER.info( sessionLabel, () -> "deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")" );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
-                    final String errorMsg = "error deletig '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                    final String errorMsg = "error deleting '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                     final PwmOperationalException newException = new PwmOperationalException( errorInformation );
                     newException.initCause( e );

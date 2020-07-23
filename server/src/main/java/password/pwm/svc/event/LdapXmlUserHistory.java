@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.event;
@@ -84,7 +82,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         {
             updateUserHistoryImpl( auditRecord );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
         }
@@ -114,7 +112,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         // quit if settings no good;
         if ( corAttribute == null || corAttribute.length() < 1 )
         {
-            LOGGER.debug( "no user event log attribute configured, skipping write of log data" );
+            LOGGER.debug( () -> "no user event log attribute configured, skipping write of log data" );
             return;
         }
 
@@ -126,11 +124,11 @@ class LdapXmlUserHistory implements UserHistoryStore
         {
             corList = ConfigObjectRecord.readRecordFromLDAP( theUser, corAttribute, corRecordIdentifer, null, null );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "error reading LDAP user event history for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-            LOGGER.error( errorInformation.toDebugStr(), e );
+            LOGGER.error( () -> errorInformation.toDebugStr(), e );
             throw new PwmUnrecoverableException( errorInformation, e );
         }
 
@@ -147,9 +145,9 @@ class LdapXmlUserHistory implements UserHistoryStore
 
             storedHistory = StoredHistory.fromXml( theCor.getPayload() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( "ldap error writing user event log: " + e.getMessage() );
+            LOGGER.error( () -> "ldap error writing user event log: " + e.getMessage() );
             return;
         }
 
@@ -166,9 +164,9 @@ class LdapXmlUserHistory implements UserHistoryStore
         {
             theCor.updatePayload( storedHistory.toXml() );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
-            LOGGER.error( "ldap error writing user event log: " + e.getMessage() );
+            LOGGER.error( () -> "ldap error writing user event log: " + e.getMessage() );
         }
     }
 
@@ -181,7 +179,7 @@ class LdapXmlUserHistory implements UserHistoryStore
             final StoredHistory storedHistory = readUserHistory( pwmApplication, userInfo.getUserIdentity(), theUser );
             return storedHistory.asAuditRecords( userInfo );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
         }
@@ -199,7 +197,7 @@ class LdapXmlUserHistory implements UserHistoryStore
 
         if ( corAttribute == null || corAttribute.length() < 1 )
         {
-            LOGGER.trace( "no user event log attribute configured, skipping read of log data" );
+            LOGGER.trace( () -> "no user event log attribute configured, skipping read of log data" );
             return new StoredHistory();
         }
 
@@ -213,9 +211,9 @@ class LdapXmlUserHistory implements UserHistoryStore
                 return StoredHistory.fromXml( theCor.getPayload() );
             }
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
-            LOGGER.error( "ldap error reading user event log: " + e.getMessage() );
+            LOGGER.error( () -> "ldap error reading user event log: " + e.getMessage() );
         }
         return new StoredHistory();
     }
@@ -307,9 +305,9 @@ class LdapXmlUserHistory implements UserHistoryStore
                     returnHistory.addEvent( storedEvent );
                 }
             }
-            catch ( JDOMException | IOException e )
+            catch ( final JDOMException | IOException e )
             {
-                LOGGER.error( "error parsing user event history record: " + e.getMessage() );
+                LOGGER.error( () -> "error parsing user event history record: " + e.getMessage() );
             }
             return returnHistory;
         }

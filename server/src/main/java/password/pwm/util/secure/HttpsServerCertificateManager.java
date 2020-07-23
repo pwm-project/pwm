@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.secure;
@@ -42,7 +40,7 @@ import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.PrivateKeyValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -81,9 +79,9 @@ public class HttpsServerCertificateManager
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpsServerCertificateManager.class );
 
-    private static boolean bouncyCastleInitialized;
+    private static volatile boolean bouncyCastleInitialized;
 
-    private static void initBouncyCastleProvider( )
+    private static synchronized void initBouncyCastleProvider( )
     {
         if ( !bouncyCastleInitialized )
         {
@@ -100,8 +98,7 @@ public class HttpsServerCertificateManager
     )
             throws PwmUnrecoverableException
     {
-        KeyStore keyStore = null;
-        keyStore = exportKey( pwmApplication.getConfig(), KeyStoreFormat.JKS, passwordData, alias );
+        KeyStore keyStore = exportKey( pwmApplication.getConfig(), KeyStoreFormat.JKS, passwordData, alias );
 
         if ( keyStore == null )
         {
@@ -143,7 +140,7 @@ public class HttpsServerCertificateManager
             );
             return keyStore;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "error generating keystore file;: " + e.getMessage() ) );
         }
@@ -159,7 +156,7 @@ public class HttpsServerCertificateManager
             final SelfCertGenerator selfCertGenerator = new SelfCertGenerator( configuration );
             return selfCertGenerator.makeSelfSignedCert( pwmApplication, password, alias );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, "unable to generate self signed certificate: " + e.getMessage() ) );
         }
@@ -217,17 +214,17 @@ public class HttpsServerCertificateManager
             {
                 if ( !cnName.equals( storedCertData.getX509Certificate().getSubjectDN().getName() ) )
                 {
-                    LOGGER.info( "replacing stored self cert, subject name does not match configured site url" );
+                    LOGGER.info( () -> "replacing stored self cert, subject name does not match configured site url" );
                     storedCertData = null;
                 }
                 else if ( storedCertData.getX509Certificate().getNotBefore().after( new Date() ) )
                 {
-                    LOGGER.info( "replacing stored self cert, not-before date is in the future" );
+                    LOGGER.info( () -> "replacing stored self cert, not-before date is in the future" );
                     storedCertData = null;
                 }
                 else if ( storedCertData.getX509Certificate().getNotAfter().before( new Date() ) )
                 {
-                    LOGGER.info( "replacing stored self cert, not-after date is in the past" );
+                    LOGGER.info( () -> "replacing stored self cert, not-after date is in the past" );
                     storedCertData = null;
                 }
             }
@@ -266,7 +263,7 @@ public class HttpsServerCertificateManager
                             cnName = uri.getHost();
                         }
                     }
-                    catch ( URISyntaxException e )
+                    catch ( final URISyntaxException e )
                     {
                         // disregard
                     }
@@ -281,7 +278,7 @@ public class HttpsServerCertificateManager
         {
             initBouncyCastleProvider();
 
-            LOGGER.debug( "creating self-signed certificate with cn of " + cnName );
+            LOGGER.debug( () -> "creating self-signed certificate with cn of " + cnName );
             final KeyPair keyPair = generateRSAKeyPair( config );
             final long futureSeconds = Long.parseLong( config.readAppProperty( AppProperty.SECURITY_HTTPSSERVER_SELF_FUTURESECONDS ) );
             final X509Certificate certificate = generateV3Certificate( keyPair, cnName, futureSeconds );
@@ -355,12 +352,13 @@ public class HttpsServerCertificateManager
     }
 
     public static void importKey(
-            final StoredConfiguration storedConfiguration,
+            final StoredConfigurationModifier storedConfiguration,
             final KeyStoreFormat keyStoreFormat,
             final InputStream inputStream,
             final PasswordData password,
             final String alias
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         final char[] charPassword = password == null ? new char[ 0 ] : password.getStringValue().toCharArray();
         final PrivateKeyCertificate privateKeyCertificate;
@@ -372,9 +370,9 @@ public class HttpsServerCertificateManager
             final String effectiveAlias;
             {
                 final List<String> allAliases = new ArrayList<>();
-                for ( final Enumeration enu = keyStore.aliases(); enu.hasMoreElements(); )
+                for ( final Enumeration<String> aliasEnum = keyStore.aliases(); aliasEnum.hasMoreElements(); )
                 {
-                    final String value = ( String ) enu.nextElement();
+                    final String value = aliasEnum.nextElement();
                     allAliases.add( value );
                 }
                 effectiveAlias = allAliases.size() == 1 ? allAliases.iterator().next() : alias;
@@ -398,10 +396,10 @@ public class HttpsServerCertificateManager
             final PrivateKey key = entry.getPrivateKey();
             final List<X509Certificate> certificates = Arrays.asList( ( X509Certificate[] ) entry.getCertificateChain() );
 
-            LOGGER.debug( "importing certificate chain: " + JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( certificates ) ) );
+            LOGGER.debug( () -> "importing certificate chain: " + JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( certificates ) ) );
             privateKeyCertificate = new PrivateKeyCertificate( certificates, key );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unable to load configured https certificate: " + e.getMessage();
             final String[] errorDetail = new String[]
@@ -412,7 +410,7 @@ public class HttpsServerCertificateManager
         }
 
         final StoredValue storedValue = new PrivateKeyValue( privateKeyCertificate );
-        storedConfiguration.writeSetting( PwmSetting.HTTPS_CERT, storedValue, null );
+        storedConfiguration.writeSetting( PwmSetting.HTTPS_CERT, null, storedValue, null );
     }
 
 }

@@ -3,33 +3,34 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
-import org.jdom2.Element;
+
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -42,11 +43,11 @@ import java.util.TreeMap;
 public class EmailValue extends AbstractValue implements StoredValue
 {
     //key is locale identifier
-    final Map<String, EmailItemBean> values;
+    private final Map<String, EmailItemBean> values;
 
     EmailValue( final Map<String, EmailItemBean> values )
     {
-        this.values = values;
+        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
     }
 
     public static StoredValueFactory factory( )
@@ -75,22 +76,21 @@ public class EmailValue extends AbstractValue implements StoredValue
 
             public EmailValue fromXmlElement(
                     final PwmSetting pwmSetting,
-                    final Element settingElement,
+                    final XmlElement settingElement,
                     final PwmSecurityKey input
             )
                     throws PwmOperationalException
             {
                 final Map<String, EmailItemBean> values = new TreeMap<>();
                 {
-                    final List valueElements = settingElement.getChildren( "value" );
-                    for ( final Object loopValue : valueElements )
+                    final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                    for ( final XmlElement loopValueElement : valueElements )
                     {
-                        final Element loopValueElement = ( Element ) loopValue;
                         final String value = loopValueElement.getText();
                         if ( value != null && value.length() > 0 )
                         {
-                            final String localeValue = loopValueElement.getAttribute(
-                                    "locale" ) == null ? "" : loopValueElement.getAttribute( "locale" ).getValue();
+                            final String localeValue = loopValueElement.getAttributeValue(
+                                    "locale" ) == null ? "" : loopValueElement.getAttributeValue( "locale" );
                             values.put( localeValue, JsonUtil.deserialize( value, EmailItemBean.class ) );
                         }
                     }
@@ -100,19 +100,19 @@ public class EmailValue extends AbstractValue implements StoredValue
         };
     }
 
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<Element> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<String, EmailItemBean> entry : values.entrySet() )
         {
             final String localeValue = entry.getKey();
             final EmailItemBean emailItemBean = entry.getValue();
-            final Element valueElement = new Element( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
             if ( localeValue.length() > 0 )
             {
                 valueElement.setAttribute( "locale", localeValue );
             }
-            valueElement.addContent( JsonUtil.serialize( emailItemBean ) );
+            valueElement.addText( JsonUtil.serialize( emailItemBean ) );
             returnList.add( valueElement );
         }
         return returnList;

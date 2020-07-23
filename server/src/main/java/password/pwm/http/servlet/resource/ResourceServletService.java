@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.resource;
@@ -33,15 +31,14 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.Percent;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.ChecksumOutputStream;
-import password.pwm.util.secure.PwmHashAlgorithm;
 
 import javax.servlet.ServletContext;
 import java.io.File;
@@ -63,7 +60,7 @@ public class ResourceServletService implements PwmService
 
     private ResourceServletConfiguration resourceServletConfiguration;
     private Cache<CacheKey, CacheEntry> cache;
-    private EventRateMeter.MovingAverage cacheHitRatio = new EventRateMeter.MovingAverage( 60 * 60 * 1000 );
+    private MovingAverage cacheHitRatio = new MovingAverage( 60 * 60 * 1000 );
     private String resourceNonce;
     private STATUS status = STATUS.NEW;
 
@@ -79,7 +76,7 @@ public class ResourceServletService implements PwmService
         return cache;
     }
 
-    public EventRateMeter.MovingAverage getCacheHitRatio( )
+    public MovingAverage getCacheHitRatio( )
     {
         return cacheHitRatio;
     }
@@ -133,9 +130,9 @@ public class ResourceServletService implements PwmService
 
             status = STATUS.OPEN;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( "error during cache initialization, will remain closed; error: " + e.getMessage() );
+            LOGGER.error( () -> "error during cache initialization, will remain closed; error: " + e.getMessage() );
             status = STATUS.CLOSED;
             return;
         }
@@ -144,9 +141,9 @@ public class ResourceServletService implements PwmService
         {
             resourceNonce = makeResourcePathNonce();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( "error during nonce generation, will remain closed; error: " + e.getMessage() );
+            LOGGER.error( () -> "error during nonce generation, will remain closed; error: " + e.getMessage() );
             status = STATUS.CLOSED;
         }
     }
@@ -175,9 +172,8 @@ public class ResourceServletService implements PwmService
     }
 
     private String makeResourcePathNonce( )
-            throws PwmUnrecoverableException, IOException
+            throws IOException
     {
-        final int nonceLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_PATH_NONCE_LENGTH ) );
         final boolean enablePathNonce = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE ) );
         if ( !enablePathNonce )
         {
@@ -185,57 +181,8 @@ public class ResourceServletService implements PwmService
         }
 
         final Instant startTime = Instant.now();
-        final ChecksumOutputStream checksumStream = new ChecksumOutputStream( PwmHashAlgorithm.SHA512, new NullOutputStream() );
-
-        if ( pwmApplication.getPwmEnvironment().getContextManager() != null )
-        {
-            try
-            {
-                final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
-                if ( webInfPath != null && webInfPath.exists() )
-                {
-                    final File basePath = webInfPath.getParentFile();
-                    if ( basePath != null && basePath.exists() )
-                    {
-                        final File resourcePath = new File( basePath.getAbsolutePath() + File.separator + "public" + File.separator + "resources" );
-                        if ( resourcePath.exists() )
-                        {
-                            for ( final FileSystemUtility.FileSummaryInformation fileSummaryInformation : FileSystemUtility.readFileInformation( resourcePath ) )
-                            {
-                                checksumStream.write( ( fileSummaryInformation.getSha1sum() ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
-                            }
-                        }
-                    }
-                }
-            }
-            catch ( Exception e )
-            {
-                LOGGER.error( "unable to generate resource path nonce: " + e.getMessage() );
-            }
-        }
-
-        for ( final FileResource fileResource : getResourceServletConfiguration().getCustomFileBundle().values() )
-        {
-            JavaHelper.copy( fileResource.getInputStream(), checksumStream );
-        }
-
-        if ( getResourceServletConfiguration().getZipResources() != null )
-        {
-            for ( final String key : getResourceServletConfiguration().getZipResources().keySet() )
-            {
-                final ZipFile zipFile = getResourceServletConfiguration().getZipResources().get( key );
-                checksumStream.write( key.getBytes( PwmConstants.DEFAULT_CHARSET ) );
-                for ( Enumeration<? extends ZipEntry> zipEnum = zipFile.entries(); zipEnum.hasMoreElements(); )
-                {
-                    final ZipEntry entry = zipEnum.nextElement();
-                    JavaHelper.copy( zipFile.getInputStream( entry ), checksumStream );
-                }
-            }
-        }
-
-        final byte[] checksumBytes = checksumStream.getInProgressChecksum();
-        final String nonce = StringUtil.truncate( JavaHelper.byteArrayToHexString( checksumBytes ).toLowerCase(), nonceLength );
-        LOGGER.debug( "completed generation of nonce '" + nonce + "' in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        final String nonce = checksumAllResources( pwmApplication );
+        LOGGER.debug( () -> "completed generation of nonce '" + nonce + "' in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
 
         final String noncePrefix = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
         return "/" + noncePrefix + nonce;
@@ -256,7 +203,7 @@ public class ResourceServletService implements PwmService
 
         if ( !themeName.matches( pwmRequest.getConfig().readAppProperty( AppProperty.SECURITY_INPUT_THEME_MATCH_REGEX ) ) )
         {
-            LOGGER.warn( pwmRequest, "discarding suspicious theme name in request: " + themeName );
+            LOGGER.warn( pwmRequest, () -> "discarding suspicious theme name in request: " + themeName );
             return false;
         }
 
@@ -271,15 +218,84 @@ public class ResourceServletService implements PwmService
         for ( final String testUrl : testUrls )
         {
             final String themePathUrl = ResourceFileServlet.RESOURCE_PATH + testUrl.replace( ResourceFileServlet.TOKEN_THEME, themeName );
-            final FileResource resolvedFile = ResourceFileServlet.resolveRequestedFile( servletContext, themePathUrl, getResourceServletConfiguration() );
+            final FileResource resolvedFile = ResourceFileRequest.resolveRequestedResource(
+                    pwmRequest.getConfig(),
+                    servletContext,
+                    themePathUrl,
+                    getResourceServletConfiguration() );
             if ( resolvedFile != null && resolvedFile.exists() )
             {
-                LOGGER.debug( pwmRequest, "check for theme validity of '" + themeName + "' returned true" );
+                LOGGER.debug( pwmRequest, () -> "check for theme validity of '" + themeName + "' returned true" );
                 return true;
             }
         }
 
-        LOGGER.debug( pwmRequest, "check for theme validity of '" + themeName + "' returned false" );
+        LOGGER.debug( pwmRequest, () -> "check for theme validity of '" + themeName + "' returned false" );
         return false;
+    }
+
+    private String checksumAllResources( final PwmApplication pwmApplication )
+            throws IOException
+    {
+        try ( ChecksumOutputStream checksumStream = new ChecksumOutputStream( new NullOutputStream() ) )
+        {
+            checksumResourceFilePath( pwmApplication, checksumStream );
+
+            for ( final FileResource fileResource : getResourceServletConfiguration().getCustomFileBundle().values() )
+            {
+                JavaHelper.copy( fileResource.getInputStream(), checksumStream );
+            }
+
+            if ( getResourceServletConfiguration().getZipResources() != null )
+            {
+                for ( final String key : getResourceServletConfiguration().getZipResources().keySet() )
+                {
+                    final ZipFile zipFile = getResourceServletConfiguration().getZipResources().get( key );
+                    checksumStream.write( key.getBytes( PwmConstants.DEFAULT_CHARSET ) );
+                    for ( Enumeration<? extends ZipEntry> zipEnum = zipFile.entries(); zipEnum.hasMoreElements(); )
+                    {
+                        final ZipEntry entry = zipEnum.nextElement();
+                        JavaHelper.copy( zipFile.getInputStream( entry ), checksumStream );
+                    }
+                }
+            }
+            return checksumStream.checksum();
+        }
+    }
+
+    private static void checksumResourceFilePath( final PwmApplication pwmApplication, final ChecksumOutputStream checksumStream )
+    {
+        if ( pwmApplication.getPwmEnvironment().getContextManager() != null )
+        {
+            try
+            {
+                final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                if ( webInfPath != null && webInfPath.exists() )
+                {
+                    final File basePath = webInfPath.getParentFile();
+                    if ( basePath != null && basePath.exists() )
+                    {
+                        final File resourcePath = new File( basePath.getAbsolutePath() + File.separator + "public" + File.separator + "resources" );
+                        if ( resourcePath.exists() )
+                        {
+                            try ( ClosableIterator<FileSystemUtility.FileSummaryInformation> iter =
+                                          FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) ) )
+                            {
+                                while ( iter.hasNext()  )
+                                {
+                                    final FileSystemUtility.FileSummaryInformation fileSummaryInformation = iter.next();
+                                    checksumStream.write( JavaHelper.longToBytes( fileSummaryInformation.getChecksum() ) );
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+            catch ( final Exception e )
+            {
+                LOGGER.error( () -> "unable to generate resource path nonce: " + e.getMessage() );
+            }
+        }
     }
 }

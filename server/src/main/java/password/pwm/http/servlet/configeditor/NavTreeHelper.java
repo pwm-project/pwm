@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.configeditor;
@@ -29,11 +27,11 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 
 import java.util.ArrayList;
@@ -49,13 +47,13 @@ class NavTreeHelper
     static Set<String> determineModifiedKeysSettings(
             final PwmLocaleBundle bundle,
             final Configuration config,
-            final StoredConfigurationImpl storedConfiguration
+            final StoredConfiguration storedConfiguration
     )
     {
         final Set<String> modifiedKeys = new TreeSet<>();
-        for ( final String key : bundle.getKeys() )
+        for ( final String key : bundle.getDisplayKeys() )
         {
-            final Map<String, String> storedBundle = storedConfiguration.readLocaleBundleMap( bundle.getTheClass().getName(), key );
+            final Map<String, String> storedBundle = storedConfiguration.readLocaleBundleMap( bundle, key );
             if ( !storedBundle.isEmpty() )
             {
                 for ( final Locale locale : config.getKnownLocales() )
@@ -79,7 +77,7 @@ class NavTreeHelper
     static boolean categoryMatcher(
             final PwmApplication pwmApplication,
             final PwmSettingCategory category,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfiguration storedConfiguration,
             final boolean modifiedOnly,
             final int minLevel,
             final String text
@@ -140,7 +138,7 @@ class NavTreeHelper
 
     static List<PwmSettingCategory> filteredCategories(
             final PwmApplication pwmApplication,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfiguration storedConfiguration,
             final Locale locale,
             final boolean modifiedSettingsOnly,
             final double level,
@@ -172,7 +170,7 @@ class NavTreeHelper
      */
     static List<NavTreeItem> makeSettingNavItems(
             final List<PwmSettingCategory> categories,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfiguration storedConfiguration,
             final Locale locale
     )
     {
@@ -279,7 +277,7 @@ class NavTreeHelper
     }
 
     private static boolean settingMatches(
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfiguration storedConfiguration,
             final PwmSetting setting,
             final String profileID,
             final boolean modifiedOnly,
@@ -315,7 +313,7 @@ class NavTreeHelper
             final StoredValue storedValue = storedConfiguration.readSetting( setting, profileID );
             for ( final String term : StringUtil.whitespaceSplit( text ) )
             {
-                if ( storedConfiguration.matchSetting( setting, storedValue, term, PwmConstants.DEFAULT_LOCALE ) )
+                if ( StoredConfigurationUtil.matchSetting( storedConfiguration, setting, storedValue, term, PwmConstants.DEFAULT_LOCALE ) )
                 {
                     return true;
                 }

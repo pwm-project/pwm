@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.db;
@@ -109,7 +107,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             {
                 exists = containsImpl( table, key );
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
                 processSqlException( debugInfo, e );
             }
@@ -224,7 +222,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     }
                 }
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
                 processSqlException( debugInfo, e );
             }
@@ -291,7 +289,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     }
                 }
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
                 processSqlException( debugInfo, e );
             }
@@ -324,9 +322,9 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             }
 
         }
-        catch ( SQLException e )
+        catch ( final SQLException e )
         {
-            LOGGER.debug( "error while checking connection validity: " + e.getMessage() );
+            LOGGER.debug( () -> "error while checking connection validity: " + e.getMessage() );
         }
 
         return true;
@@ -364,7 +362,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                 resultSet = statement.executeQuery();
                 connection.commit();
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
                 processSqlException( null, e );
             }
@@ -406,10 +404,10 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     close();
                 }
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
                 finished = true;
-                LOGGER.warn( "unexpected error during result set iteration: " + e.getMessage() );
+                LOGGER.warn( () -> "unexpected error during result set iteration: " + e.getMessage() );
             }
             databaseService.updateStats( DatabaseService.OperationType.READ );
         }
@@ -432,9 +430,9 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                         resultSet.close();
                         resultSet = null;
                     }
-                    catch ( SQLException e )
+                    catch ( final SQLException e )
                     {
-                        LOGGER.error( "error closing inner resultSet in iterator: " + e.getMessage() );
+                        LOGGER.error( () -> "error closing inner resultSet in iterator: " + e.getMessage() );
                     }
                 }
 
@@ -445,9 +443,9 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                         statement.close();
                         statement = null;
                     }
-                    catch ( SQLException e )
+                    catch ( final SQLException e )
                     {
-                        LOGGER.error( "error closing inner statement in iterator: " + e.getMessage() );
+                        LOGGER.error( () -> "error closing inner statement in iterator: " + e.getMessage() );
                     }
                 }
 
@@ -469,7 +467,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             return;
         }
 
-        LOGGER.trace( "accessor #" + accessorNumber + " begin operation: " + JsonUtil.serialize( debugInfo ) );
+        LOGGER.trace( () -> "accessor #" + accessorNumber + " begin operation: " + JsonUtil.serialize( debugInfo ) );
     }
 
     private void traceResult(
@@ -488,7 +486,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         {
             map.put( "result", String.valueOf( result ) );
         }
-        LOGGER.trace( "accessor #" + accessorNumber + " operation result: " + StringUtil.mapToString( map ) );
+        LOGGER.trace( () -> "accessor #" + accessorNumber + " operation result: " + StringUtil.mapToString( map ) );
     }
 
     private interface SqlFunction<T>
@@ -541,25 +539,25 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             {
                 if ( !outstandingIterators.isEmpty() )
                 {
-                    LOGGER.warn( "closing outstanding " + outstandingIterators.size() + " iterators" );
+                    LOGGER.warn( () -> "closing outstanding " + outstandingIterators.size() + " iterators" );
                 }
                 for ( final DBIterator iterator : new HashSet<>( outstandingIterators ) )
                 {
                     iterator.close();
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
-                LOGGER.warn( "error while closing connection: " + e.getMessage() );
+                LOGGER.warn( () -> "error while closing connection: " + e.getMessage() );
             }
 
             try
             {
                 connection.close();
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
-                LOGGER.warn( "error while closing connection: " + e.getMessage() );
+                LOGGER.warn( () -> "error while closing connection: " + e.getMessage() );
             }
         }
         finally
@@ -567,7 +565,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             lock.unlock();
         }
 
-        LOGGER.trace( "closed accessor #" + accessorNumber );
+        LOGGER.trace( () -> "closed accessor #" + accessorNumber );
     }
 
     private boolean containsImpl( final DatabaseTable table, final String key )
@@ -604,7 +602,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             }
             statement.executeUpdate();
         }
-        catch ( SQLException e )
+        catch ( final SQLException e )
         {
             processSqlException( debugInfo, e );
         }
@@ -624,9 +622,9 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         {
             return connection.isValid( 5000 );
         }
-        catch ( SQLException e )
+        catch ( final SQLException e )
         {
-            LOGGER.error( "error while checking database connection: " + e.getMessage() );
+            LOGGER.error( () -> "error while checking database connection: " + e.getMessage() );
         }
 
         return false;

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.ldap.auth;
@@ -41,6 +39,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.CommonValues;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
@@ -66,18 +66,18 @@ public class SessionAuthenticator
 
     private final PwmApplication pwmApplication;
     private final SessionLabel sessionLabel;
-    private final PwmSession pwmSession;
+    private final PwmRequest pwmRequest;
     private final PwmAuthenticationSource authenticationSource;
 
     public SessionAuthenticator(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final PwmAuthenticationSource authenticationSource
     )
     {
         this.pwmApplication = pwmApplication;
-        this.pwmSession = pwmSession;
-        this.sessionLabel = pwmSession.getLabel();
+        this.pwmRequest = pwmRequest;
+        this.sessionLabel = pwmRequest.getLabel();
         this.authenticationSource = authenticationSource;
     }
 
@@ -106,7 +106,7 @@ public class SessionAuthenticator
             final AuthenticationResult authResult = authEngine.authenticateUser( password );
             postAuthenticationSequence( userIdentity, authResult );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             postFailureSequence( e, username, userIdentity );
 
@@ -114,13 +114,13 @@ public class SessionAuthenticator
             {
                 if ( pwmApplication.determineIfDetailErrorMsgShown() )
                 {
-                    LOGGER.debug( pwmSession, "allowing error " + e.getError() + " to be returned though it is configured as a hidden type; "
+                    LOGGER.debug( pwmRequest, () -> "allowing error " + e.getError() + " to be returned though it is configured as a hidden type; "
                             + "app is currently permitting detailed error messages" );
                 }
                 else
                 {
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_WRONGPASSWORD );
-                    LOGGER.debug( pwmSession, "converting error from ldap " + e.getError() + " to " + PwmError.ERROR_WRONGPASSWORD
+                    LOGGER.debug( pwmRequest, () -> "converting error from ldap " + e.getError() + " to " + PwmError.ERROR_WRONGPASSWORD
                             + " due to app property " + AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES.getKey() );
                     throw new PwmOperationalException( errorInformation );
                 }
@@ -147,9 +147,9 @@ public class SessionAuthenticator
                     returnSet.add( pwmError );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
-                LOGGER.error( pwmSession, "error parsing app property " + AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES.getKey()
+                LOGGER.error( pwmRequest, () -> "error parsing app property " + AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES.getKey()
                         + ", error: " + e.getMessage() );
             }
         }
@@ -175,11 +175,11 @@ public class SessionAuthenticator
             final AuthenticationResult authResult = authEngine.authenticateUser( password );
             postAuthenticationSequence( userIdentity, authResult );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             postFailureSequence( e, null, userIdentity );
             throw e;
@@ -211,11 +211,11 @@ public class SessionAuthenticator
             final AuthenticationResult authResult = authEngine.authUsingUnknownPw();
             postAuthenticationSequence( userIdentity, authResult );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             postFailureSequence( e, username, userIdentity );
             throw e;
@@ -240,40 +240,48 @@ public class SessionAuthenticator
             final AuthenticationResult authResult = authEngine.authUsingUnknownPw();
             postAuthenticationSequence( userIdentity, authResult );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
     }
-
 
     public void simulateBadPassword(
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
+        final CommonValues commonValues = new CommonValues( pwmApplication, sessionLabel, null, null );
+        simulateBadPassword( commonValues, userIdentity );
+    }
+
+    public static void simulateBadPassword( final CommonValues commonValues, final UserIdentity userIdentity ) throws PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = commonValues.getPwmApplication();
+        final SessionLabel sessionLabel = commonValues.getSessionLabel();
+
         if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.SECURITY_SIMULATE_LDAP_BAD_PASSWORD ) )
         {
             return;
         }
         else
         {
-            LOGGER.trace( sessionLabel, "performing bad-password login attempt against ldap directory as a result of "
+            LOGGER.trace( sessionLabel, () -> "performing bad-password login attempt against ldap directory as a result of "
                     + "forgotten password recovery invalid attempt against " + userIdentity );
         }
 
         if ( userIdentity == null || userIdentity.getUserDN() == null || userIdentity.getUserDN().length() < 1 )
         {
-            LOGGER.error( sessionLabel, "attempt to simulateBadPassword with null userDN" );
+            LOGGER.error( sessionLabel, () -> "attempt to simulateBadPassword with null userDN" );
             return;
         }
 
-        LOGGER.trace( sessionLabel, "beginning simulateBadPassword process" );
+        LOGGER.trace( sessionLabel, () -> "beginning simulateBadPassword process" );
 
         final PasswordData bogusPassword = new PasswordData( PwmConstants.DEFAULT_BAD_PASSWORD_ATTEMPT );
 
         //try authenticating the user using a normal ldap BIND operation.
-        LOGGER.trace( sessionLabel, "attempting authentication using ldap BIND" );
+        LOGGER.trace( sessionLabel, () -> "attempting authentication using ldap BIND" );
 
         ChaiProvider provider = null;
         try
@@ -292,17 +300,17 @@ public class SessionAuthenticator
             //issue a read operation to trigger a bind.
             provider.readStringAttribute( userIdentity.getUserDN(), ChaiConstant.ATTR_LDAP_OBJECTCLASS );
 
-            LOGGER.debug( sessionLabel, "bad-password login attempt succeeded for " + userIdentity );
+            LOGGER.debug( sessionLabel, () -> "bad-password login attempt succeeded for " + userIdentity );
         }
-        catch ( ChaiException e )
+        catch ( final ChaiException e )
         {
             if ( e.getErrorCode() == ChaiError.PASSWORD_BADPASSWORD )
             {
-                LOGGER.trace( sessionLabel, "bad-password login simulation succeeded for; " + userIdentity + " result: " + e.getMessage() );
+                LOGGER.trace( sessionLabel, () -> "bad-password login simulation succeeded for; " + userIdentity + " result: " + e.getMessage() );
             }
             else
             {
-                LOGGER.debug( sessionLabel, "unexpected error during simulated bad-password login attempt for " + userIdentity + "; result: " + e.getMessage() );
+                LOGGER.debug( sessionLabel, () -> "unexpected error during simulated bad-password login attempt for " + userIdentity + "; result: " + e.getMessage() );
             }
         }
         finally
@@ -313,13 +321,14 @@ public class SessionAuthenticator
                 {
                     provider.close();
                 }
-                catch ( Throwable e )
+                catch ( final Throwable e )
                 {
                     LOGGER.error( sessionLabel,
-                            "unexpected error closing invalid ldap connection after simulated bad-password failed login attempt: " + e.getMessage() );
+                            () -> "unexpected error closing invalid ldap connection after simulated bad-password failed login attempt: " + e.getMessage() );
                 }
             }
         }
+
     }
 
     private void postFailureSequence(
@@ -329,16 +338,16 @@ public class SessionAuthenticator
     )
             throws PwmUnrecoverableException
     {
-        LOGGER.error( sessionLabel, "ldap error during search: " + exception.getMessage() );
+        LOGGER.error( sessionLabel, () -> "ldap error during search: " + exception.getMessage() );
 
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
         if ( intruderManager != null )
         {
-            intruderManager.convenience().markAddressAndSession( pwmSession );
+            intruderManager.convenience().markAddressAndSession( pwmRequest );
 
             if ( username != null )
             {
-                intruderManager.mark( RecordType.USERNAME, username, pwmSession.getLabel() );
+                intruderManager.mark( RecordType.USERNAME, username, pwmRequest.getLabel() );
             }
 
             if ( userIdentity != null )
@@ -352,11 +361,12 @@ public class SessionAuthenticator
             final UserIdentity userIdentity,
             final AuthenticationResult authenticationResult
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
-        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final LoginInfoBean loginInfoBean = pwmSession.getLoginInfoBean();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
+        final LoginInfoBean loginInfoBean = pwmRequest.getPwmSession().getLoginInfoBean();
 
         // auth succeed
         loginInfoBean.setAuthenticated( true );
@@ -372,7 +382,7 @@ public class SessionAuthenticator
             {
                 userInfoBean = UserInfoFactory.newUserInfo(
                         pwmApplication,
-                        pwmSession.getLabel(),
+                        pwmRequest.getLabel(),
                         ssBean.getLocale(),
                         userIdentity,
                         pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() )
@@ -382,7 +392,7 @@ public class SessionAuthenticator
             {
                 userInfoBean = UserInfoFactory.newUserInfoUsingProxy(
                         pwmApplication,
-                        pwmSession.getLabel(),
+                        pwmRequest.getLabel(),
                         userIdentity,
                         ssBean.getLocale(),
                         authenticationResult.getUserPassword()
@@ -426,8 +436,10 @@ public class SessionAuthenticator
         }
 
         //clear permission cache - needs rechecking after login
-        LOGGER.debug( pwmSession, "clearing permission cache" );
+        LOGGER.debug( pwmRequest, () -> "clearing permission cache" );
         pwmSession.getUserSessionDataCacheBean().clearPermissions();
 
+        // update the users ldap attribute.
+        LdapOperationsHelper.processAutoUpdateLanguageAttribute( pwmApplication, sessionLabel, ssBean.getLocale(), userIdentity );
     }
 }

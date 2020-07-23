@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config.profile;
@@ -30,9 +28,8 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.cache.CacheKey;
@@ -52,15 +49,11 @@ public class LdapProfile extends AbstractProfile implements Profile
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapProfile.class );
 
+    private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.LdapProfile;
+
     protected LdapProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
     {
         super( identifier, storedValueMap );
-    }
-
-    public static LdapProfile makeFromStoredConfiguration( final StoredConfigurationImpl storedConfiguration, final String profileID )
-    {
-        final Map<PwmSetting, StoredValue> valueMap = AbstractProfile.makeValueMap( storedConfiguration, profileID, PwmSettingCategory.LDAP_PROFILE );
-        return new LdapProfile( profileID, valueMap );
     }
 
     public Map<String, String> getSelectableContexts(
@@ -96,6 +89,12 @@ public class LdapProfile extends AbstractProfile implements Profile
         return Collections.unmodifiableList( canonicalValues );
     }
 
+    public List<String> getLdapUrls(
+    )
+    {
+        return readSettingAsStringArray( PwmSetting.LDAP_SERVER_URLS );
+    }
+
     @Override
     public String getDisplayName( final Locale locale )
     {
@@ -116,7 +115,7 @@ public class LdapProfile extends AbstractProfile implements Profile
     }
 
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         throw new UnsupportedOperationException();
     }
@@ -169,11 +168,14 @@ public class LdapProfile extends AbstractProfile implements Profile
                     pwmApplication.getCacheService().put( cacheKey, cachePolicy, canonicalValue );
                 }
 
-                LOGGER.trace( "read and cached canonical ldap DN value for input '" + dnValue + "' as '" + canonicalValue + "'" );
+                {
+                    final String finalCanonical = canonicalValue;
+                    LOGGER.trace( () -> "read and cached canonical ldap DN value for input '" + dnValue + "' as '" + finalCanonical + "'" );
+                }
             }
-            catch ( ChaiUnavailableException | ChaiOperationException e )
+            catch ( final ChaiUnavailableException | ChaiOperationException e )
             {
-                LOGGER.error( "error while reading canonicalDN for dn value '" + dnValue + "', error: " + e.getMessage() );
+                LOGGER.error( () -> "error while reading canonicalDN for dn value '" + dnValue + "', error: " + e.getMessage() );
                 return dnValue;
             }
         }
@@ -202,5 +204,20 @@ public class LdapProfile extends AbstractProfile implements Profile
         }
 
         return null;
+    }
+
+    public static class LdapProfileFactory implements ProfileFactory
+    {
+        @Override
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        {
+            return new LdapProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+        }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "LDAPProfile:" + this.getIdentifier();
     }
 }

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.sessiontrack;
@@ -38,10 +36,11 @@ import password.pwm.http.PwmSession;
 import password.pwm.i18n.Admin;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -61,7 +60,7 @@ public class SessionTrackService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SessionTrackService.class );
 
-    private final transient Map<PwmSession, Boolean> pwmSessions = new ConcurrentHashMap<>();
+    private final Map<PwmSession, String> pwmSessions = new ConcurrentHashMap<>();
 
     private final Cache<UserIdentity, Object> recentLoginCache = Caffeine.newBuilder()
             .maximumSize( 10 )
@@ -108,7 +107,7 @@ public class SessionTrackService implements PwmService
 
     public void addSessionData( final PwmSession pwmSession )
     {
-        pwmSessions.put( pwmSession, Boolean.FALSE );
+        pwmSessions.put( pwmSession, pwmSession.getSessionStateBean().getSessionID() );
     }
 
     public void removeSessionData( final PwmSession pwmSession )
@@ -118,10 +117,7 @@ public class SessionTrackService implements PwmService
 
     private Set<PwmSession> copyOfSessionSet( )
     {
-        final Set<PwmSession> newSet = new HashSet<>();
-        newSet.addAll( pwmSessions.keySet() );
-        return newSet;
-
+        return new HashSet<>( pwmSessions.keySet() );
     }
 
     public Map<DebugKey, String> getDebugData( )
@@ -138,9 +134,9 @@ public class SessionTrackService implements PwmService
                     sizeTotal += pwmSession.size();
                     sessionCounter++;
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
-                    LOGGER.error( "error during session size calculation: " + e.getMessage() );
+                    LOGGER.error( () -> "error during session size calculation: " + e.getMessage() );
                 }
             }
             final Map<DebugKey, String> returnMap = new HashMap<>();
@@ -150,9 +146,9 @@ public class SessionTrackService implements PwmService
                     sessionCounter < 1 ? "0" : String.valueOf( ( int ) ( sizeTotal / sessionCounter ) ) );
             return returnMap;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( "error during session debug generation: " + e.getMessage() );
+            LOGGER.error( () -> "error during session debug generation: " + e.getMessage() );
         }
         return Collections.emptyMap();
     }
@@ -263,7 +259,7 @@ public class SessionTrackService implements PwmService
         sessionStateInfoBean.setSrcAddress( loopSsBean.getSrcAddress() );
         sessionStateInfoBean.setSrcHost( loopSsBean.getSrcHostname() );
         sessionStateInfoBean.setLastUrl( loopSsBean.getLastRequestURL() );
-        sessionStateInfoBean.setIntruderAttempts( loopSsBean.getIntruderAttempts() );
+        sessionStateInfoBean.setIntruderAttempts( loopSsBean.getIntruderAttempts().get() );
 
         if ( loopSession.isAuthenticated() )
         {
@@ -282,9 +278,9 @@ public class SessionTrackService implements PwmService
                         ? loopUiBean.getUsername()
                         : "" );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "unexpected error reading username: " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error reading username: " + e.getMessage(), e );
             }
         }
 
@@ -306,5 +302,19 @@ public class SessionTrackService implements PwmService
         return Collections.unmodifiableList( new ArrayList<>( recentLoginCache.asMap().keySet() ) );
     }
 
+    public String generateNewSessionID()
+    {
+        final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
 
+        for ( int safetyCounter = 0; safetyCounter < 1000; safetyCounter++ )
+        {
+            final String newValue = pwmRandom.alphaNumericString( 5 );
+            if ( !pwmSessions.containsValue( newValue ) )
+            {
+                return newValue;
+            }
+        }
+
+        throw new IllegalStateException( "unable to generate unique sessionID value" );
+    }
 }

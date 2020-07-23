@@ -3,26 +3,25 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc;
 
 import password.pwm.svc.email.EmailService;
+import password.pwm.svc.node.NodeService;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.WordlistService;
@@ -36,12 +35,13 @@ public enum PwmServiceEnum
 {
     LocalDBService( password.pwm.util.localdb.LocalDBService.class, Flag.StartDuringRuntimeInstance ),
     SecureService( password.pwm.util.secure.SecureService.class, Flag.StartDuringRuntimeInstance ),
+    HttpClientService( password.pwm.svc.httpclient.HttpClientService.class, Flag.StartDuringRuntimeInstance ),
     LdapConnectionService( password.pwm.ldap.LdapConnectionService.class, Flag.StartDuringRuntimeInstance ),
     DatabaseService( password.pwm.util.db.DatabaseService.class, Flag.StartDuringRuntimeInstance ),
     SharedHistoryManager( password.pwm.svc.wordlist.SharedHistoryManager.class ),
     AuditService( password.pwm.svc.event.AuditService.class ),
     StatisticsManager( password.pwm.svc.stats.StatisticsManager.class, Flag.StartDuringRuntimeInstance ),
-    WordlistManager( WordlistService.class ),
+    WordlistManager( WordlistService.class, Flag.StartDuringRuntimeInstance ),
     SeedlistManager( SeedlistService.class ),
     EmailQueueManager( EmailService.class ),
     SmsQueueManager( password.pwm.util.queue.SmsQueueManager.class ),
@@ -57,8 +57,9 @@ public enum PwmServiceEnum
     SessionTrackService( password.pwm.svc.sessiontrack.SessionTrackService.class ),
     SessionStateSvc( password.pwm.http.state.SessionStateService.class ),
     UserSearchEngine( password.pwm.ldap.search.UserSearchEngine.class, Flag.StartDuringRuntimeInstance ),
+    PeopleSearchService( password.pwm.http.servlet.peoplesearch.PeopleSearchService.class ),
     TelemetryService( password.pwm.svc.telemetry.TelemetryService.class ),
-    ClusterService( password.pwm.svc.cluster.ClusterService.class ),
+    ClusterService( NodeService.class ),
     PwExpiryNotifyService( PwNotifyService.class ),;
 
     private final Class<? extends PwmService> clazz;

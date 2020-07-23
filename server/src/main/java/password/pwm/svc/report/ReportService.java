@@ -3,31 +3,25 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.report;
 
-import com.novell.ldapchai.exception.ChaiOperationException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
-import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -42,8 +36,10 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.util.EventRateMeter;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.TransactionSizeCalculator;
+import password.pwm.util.java.AverageTracker;
 import password.pwm.util.java.BlockingThreadPool;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
@@ -55,38 +51,38 @@ import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.logging.PwmLogger;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.MathContext;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 
 public class ReportService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ReportService.class );
 
-    private final AvgTracker avgTracker = new AvgTracker( 100 );
+    private final AverageTracker avgTracker = new AverageTracker( 100 );
 
     private PwmApplication pwmApplication;
     private STATUS status = STATUS.NEW;
-    private boolean cancelFlag = false;
-    private ReportStatusInfo reportStatus = new ReportStatusInfo( "" );
+    private volatile boolean cancelFlag = false;
     private ReportSummaryData summaryData = ReportSummaryData.newSummaryData( null );
     private ExecutorService executorService;
 
     private UserCacheService userCacheService;
-    private ReportSettings settings = new ReportSettings();
+    private ReportSettings settings = ReportSettings.builder().build();
 
     private Queue<String> dnQueue;
 
-    private final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
+    private final AtomicReference<ReportStatusInfo> reportStatus = new AtomicReference<>( ReportStatusInfo.builder().build() );
+    private final EventRateMeter processRateMeter = new EventRateMeter( TimeDuration.MINUTE );
 
 
     public ReportService( )
@@ -115,14 +111,14 @@ public class ReportService implements PwmService
 
         if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
-            LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, "application mode is read-only, will remain closed" );
+            LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, () -> "application mode is read-only, will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
 
         if ( pwmApplication.getLocalDB() == null || LocalDB.Status.OPEN != pwmApplication.getLocalDB().status() )
         {
-            LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, "LocalDB is not open, will remain closed" );
+            LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, () -> "LocalDB is not open, will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
@@ -132,9 +128,9 @@ public class ReportService implements PwmService
             userCacheService = new UserCacheService();
             userCacheService.init( pwmApplication );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "unable to init cache service" );
+            LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, () -> "unable to init cache service" );
             status = STATUS.CLOSED;
             return;
         }
@@ -144,10 +140,7 @@ public class ReportService implements PwmService
 
         dnQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.REPORT_QUEUE );
 
-        executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
-
-        final String startupMsg = "report service started";
-        LOGGER.debug( startupMsg );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         executorService.submit( new InitializationTask() );
 
@@ -157,6 +150,7 @@ public class ReportService implements PwmService
     @Override
     public void close( )
     {
+        status = STATUS.CLOSED;
         cancelFlag = true;
 
         JavaHelper.closeAndWaitExecutor( executorService, TimeDuration.SECONDS_10 );
@@ -166,20 +160,19 @@ public class ReportService implements PwmService
             userCacheService.close();
         }
 
-        status = STATUS.CLOSED;
         executorService = null;
-        saveTempData();
+        writeReportStatus();
     }
 
-    private void saveTempData( )
+    private void writeReportStatus( )
     {
         try
         {
-            pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.REPORT_STATUS, reportStatus );
+            pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.REPORT_STATUS, reportStatus.get() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "error writing cached report dredge info into memory: " + e.getMessage() );
+            LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, () -> "error writing cached report dredge info into memory: " + e.getMessage() );
         }
     }
 
@@ -202,13 +195,13 @@ public class ReportService implements PwmService
         {
             case Start:
             {
-                if ( reportStatus.getCurrentProcess() != ReportStatusInfo.ReportEngineProcess.ReadData
-                        && reportStatus.getCurrentProcess() != ReportStatusInfo.ReportEngineProcess.SearchLDAP
-                        )
+                final ReportStatusInfo localReportStatus = reportStatus.get();
+                if ( localReportStatus.getCurrentProcess() != ReportStatusInfo.ReportEngineProcess.ReadData
+                        && localReportStatus.getCurrentProcess() != ReportStatusInfo.ReportEngineProcess.SearchLDAP
+                )
                 {
                     executorService.execute( new ClearTask() );
                     executorService.execute( new ReadLDAPTask() );
-                    LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, "submitted new ldap dredge task to executorService" );
                 }
             }
             break;
@@ -232,14 +225,9 @@ public class ReportService implements PwmService
         }
     }
 
-    PwmApplication getPwmApplication( )
-    {
-        return pwmApplication;
-    }
-
     public BigDecimal getEventRate( )
     {
-        return eventRateMeter.readEventRate();
+        return processRateMeter.readEventRate();
     }
 
     public long getTotalRecords( )
@@ -249,38 +237,39 @@ public class ReportService implements PwmService
 
     private void clearWorkQueue( )
     {
-        reportStatus.setCount( 0 );
-        reportStatus.setJobDuration( TimeDuration.ZERO );
+        reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                .count( 0 )
+                .jobDuration( TimeDuration.ZERO )
+                .build() );
+
         dnQueue.clear();
     }
 
     private void resetJobStatus( )
     {
         cancelFlag = false;
-        eventRateMeter.reset();
+        processRateMeter.reset();
 
-        reportStatus.setLastError( null );
-        reportStatus.setErrors( 0 );
+        reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                .lastError( null )
+                .errors( 0 )
+                .finishDate( null )
+                .reportComplete( false )
+                .build() );
 
-        reportStatus.setFinishDate( null );
-
-        pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.REPORT_STATUS, null );
+        writeReportStatus();
     }
 
 
     public ReportStatusInfo getReportStatusInfo( )
     {
-        return reportStatus;
+        return reportStatus.get();
     }
 
 
-    public interface RecordIterator<K> extends ClosableIterator<UserCacheRecord>
+    public ClosableIterator<UserCacheRecord> iterator( )
     {
-    }
-
-    public RecordIterator<UserCacheRecord> iterator( )
-    {
-        return new RecordIterator<UserCacheRecord>()
+        return new ClosableIterator<UserCacheRecord>()
         {
             private UserCacheService.UserStatusCacheBeanIterator<UserCacheService.StorageKey> storageKeyIterator = userCacheService.iterator();
 
@@ -295,32 +284,18 @@ public class ReportService implements PwmService
             {
                 try
                 {
-                    UserCacheRecord returnBean = null;
-                    while ( returnBean == null && this.storageKeyIterator.hasNext() )
+                    while ( this.storageKeyIterator.hasNext() )
                     {
                         final UserCacheService.StorageKey key = this.storageKeyIterator.next();
-                        returnBean = userCacheService.readStorageKey( key );
+                        final UserCacheRecord returnBean = userCacheService.readStorageKey( key );
                         if ( returnBean != null )
                         {
-                            if ( returnBean.getCacheTimestamp() == null )
-                            {
-                                LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, "purging record due to missing cache timestamp: " + JsonUtil.serialize( returnBean ) );
-                                userCacheService.removeStorageKey( key );
-                            }
-                            else if ( TimeDuration.fromCurrent( returnBean.getCacheTimestamp() ).isLongerThan( settings.getMaxCacheAge() ) )
-                            {
-                                LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, "purging record due to old age timestamp: " + JsonUtil.serialize( returnBean ) );
-                                userCacheService.removeStorageKey( key );
-                            }
-                            else
-                            {
-                                return returnBean;
-                            }
+                            return returnBean;
                         }
 
                     }
                 }
-                catch ( LocalDBException e )
+                catch ( final LocalDBException e )
                 {
                     throw new IllegalStateException( "unexpected iterator traversal error while reading LocalDB: " + e.getMessage() );
                 }
@@ -352,100 +327,72 @@ public class ReportService implements PwmService
         return dnQueue.size();
     }
 
-    public static class AvgTracker
-    {
-        private final int maxSamples;
-        private final Queue<BigInteger> samples = new LinkedList<>();
-
-        public AvgTracker( final int maxSamples )
-        {
-            this.maxSamples = maxSamples;
-        }
-
-        public void addSample( final long input )
-        {
-            samples.add( new BigInteger( Long.toString( input ) ) );
-            while ( samples.size() > maxSamples )
-            {
-                samples.remove();
-            }
-        }
-
-        public BigDecimal avg( )
-        {
-            if ( samples.isEmpty() )
-            {
-                throw new IllegalStateException( "unable to compute avg without samples" );
-            }
-
-            BigInteger total = BigInteger.ZERO;
-            for ( final BigInteger sample : samples )
-            {
-                total = total.add( sample );
-            }
-            final BigDecimal maxAsBD = new BigDecimal( Integer.toString( maxSamples ) );
-            return new BigDecimal( total ).divide( maxAsBD, MathContext.DECIMAL32 );
-        }
-
-        public long avgAsLong( )
-        {
-            return avg().longValue();
-        }
-    }
-
     private class ReadLDAPTask implements Runnable
     {
         @Override
         public void run( )
         {
-            reportStatus.setCurrentProcess( ReportStatusInfo.ReportEngineProcess.SearchLDAP );
+            reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                    .currentProcess( ReportStatusInfo.ReportEngineProcess.SearchLDAP )
+                    .build() );
             try
             {
                 readUserListFromLdap();
                 executorService.execute( new ProcessWorkQueueTask() );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
+                boolean errorProcessed = false;
                 if ( e instanceof PwmException )
                 {
                     if ( ( ( PwmException ) e ).getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
                     {
                         if ( executorService != null )
                         {
-                            LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "directory unavailable error during background SearchLDAP, will retry; error: " + e.getMessage() );
-                            pwmApplication.scheduleFutureJob( new ReadLDAPTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
+                            LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL,
+                                    () -> "directory unavailable error during background SearchLDAP, will retry; error: " + e.getMessage() );
+                            pwmApplication.getPwmScheduler().scheduleJob( new ReadLDAPTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
+                            errorProcessed = true;
                         }
                     }
-                    else
-                    {
-                        LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "error during background ReadData: " + e.getMessage() );
-                    }
+                }
+
+                if ( !errorProcessed )
+                {
+                    LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, () -> "error during background ReadData: " + e.getMessage() );
                 }
             }
             finally
             {
-                reportStatus.setCurrentProcess( ReportStatusInfo.ReportEngineProcess.None );
+                resetCurrentProcess();
             }
         }
 
         private void readUserListFromLdap( )
-                throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+                throws PwmUnrecoverableException, PwmOperationalException
         {
             final Instant startTime = Instant.now();
-            LOGGER.trace( "beginning ldap search process" );
+            LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "beginning ldap search process" );
 
             resetJobStatus();
             clearWorkQueue();
 
-            final Iterator<UserIdentity> memQueue = LdapOperationsHelper.readAllUsersFromLdap(
+            final Iterator<UserIdentity> memQueue = LdapOperationsHelper.readUsersFromLdapForPermissions(
                     pwmApplication,
                     SessionLabel.REPORTING_SESSION_LABEL,
                     settings.getSearchFilter(),
                     settings.getMaxSearchSize()
             );
 
+            LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "completed ldap search process (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
 
-            LOGGER.trace( "completed ldap search process, transferring search results to work queue" );
+            writeUsersToLocalDBQueue( memQueue );
+        }
+
+        private void writeUsersToLocalDBQueue( final Iterator<UserIdentity> identityQueue )
+        {
+            final Instant startTime = Instant.now();
+            LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "transferring search results to work queue" );
 
             final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
                     TransactionSizeCalculator.Settings.builder()
@@ -455,19 +402,20 @@ public class ReportService implements PwmService
                             .build()
             );
 
-            while ( status == STATUS.OPEN && !cancelFlag && memQueue.hasNext() )
+            while ( !cancelFlag && identityQueue.hasNext() )
             {
                 final Instant loopStart = Instant.now();
                 final List<String> bufferList = new ArrayList<>();
                 final int loopCount = transactionCalculator.getTransactionSize();
-                for ( int i = 0; i < loopCount && memQueue.hasNext(); i++ )
+                while ( !cancelFlag && identityQueue.hasNext() && bufferList.size() < loopCount )
                 {
-                    bufferList.add( memQueue.next().toDelimitedKey() );
+                    bufferList.add( identityQueue.next().toDelimitedKey() );
                 }
                 dnQueue.addAll( bufferList );
                 transactionCalculator.recordLastTransactionDuration( TimeDuration.fromCurrent( loopStart ) );
             }
-            LOGGER.trace( "completed transfer of ldap search results to work queue in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+            LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL,
+                    () -> "completed transfer of ldap search results to work queue in " + TimeDuration.compactFromCurrent( startTime ) );
         }
     }
 
@@ -476,39 +424,45 @@ public class ReportService implements PwmService
         @Override
         public void run( )
         {
-            reportStatus.setCurrentProcess( ReportStatusInfo.ReportEngineProcess.ReadData );
+            reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                    .currentProcess( ReportStatusInfo.ReportEngineProcess.ReadData )
+                    .build() );
             try
             {
                 processWorkQueue();
-            }
-            catch ( Exception e )
-            {
-                if ( e instanceof PwmException )
+                if ( status == STATUS.OPEN )
                 {
-                    if ( ( ( PwmException ) e ).getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
+                    reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                            .reportComplete( true )
+                            .build() );
+                    writeReportStatus();
+                }
+            }
+            catch ( final PwmException e )
+            {
+                if ( e.getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
+                {
+                    if ( executorService != null )
                     {
-                        if ( executorService != null )
-                        {
-                            LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "directory unavailable error during background ReadData, will retry; error: " + e.getMessage() );
-                            pwmApplication.scheduleFutureJob( new ProcessWorkQueueTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
-                        }
+                        LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, () -> "directory unavailable error during background ReadData, will retry; error: " + e.getMessage() );
+                        pwmApplication.getPwmScheduler().scheduleJob( new ProcessWorkQueueTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                     }
-                    else
-                    {
-                        LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "error during background ReadData: " + e.getMessage() );
-                    }
+                }
+                else
+                {
+                    LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, () -> "error during background ReadData: " + e.getMessage() );
                 }
             }
             finally
             {
-                reportStatus.setCurrentProcess( ReportStatusInfo.ReportEngineProcess.None );
+                resetCurrentProcess();
             }
         }
 
         private void processWorkQueue( )
-                throws ChaiUnavailableException, ChaiOperationException, PwmOperationalException, PwmUnrecoverableException
+                throws PwmUnrecoverableException
         {
-            LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, "beginning process to updating user cache records from ldap" );
+            LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, () -> "beginning process to updating user cache records from ldap" );
             if ( status != STATUS.OPEN )
             {
                 return;
@@ -531,29 +485,30 @@ public class ReportService implements PwmService
 
             try
             {
-                LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, "about to begin ldap processing with thread count of " + threadCount );
+                LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "about to begin ldap processing with thread count of " + threadCount );
                 final BlockingThreadPool threadService = new BlockingThreadPool( threadCount, "reporting-thread" );
                 while ( status == STATUS.OPEN && !dnQueue.isEmpty() && !cancelFlag )
                 {
                     final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( dnQueue.poll() );
                     if ( pwmApplication.getConfig().isDevDebugMode() )
                     {
-                        LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, "submit " + Instant.now().toString()
+                        LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "submit " + Instant.now().toString()
                                 + " size=" + threadService.getQueue().size() );
                     }
                     threadService.blockingSubmit( ( ) ->
                     {
                         if ( pwmApplication.getConfig().isDevDebugMode() )
                         {
-                            LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, "start " + Instant.now().toString()
+                            LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "start " + Instant.now().toString()
                                     + " size=" + threadService.getQueue().size() );
                         }
                         try
                         {
                             final Instant startUpdateTime = Instant.now();
                             updateCachedRecordFromLdap( userIdentity );
-                            reportStatus.setCount( reportStatus.getCount() + 1 );
-                            eventRateMeter.markEvents( 1 );
+                            reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                                    .count( reportStatusInfo.getCount() + 1 )
+                                    .build() );
                             final TimeDuration totalUpdateTime = TimeDuration.fromCurrent( startUpdateTime );
                             avgTracker.addSample( totalUpdateTime.asMillis() );
 
@@ -561,7 +516,9 @@ public class ReportService implements PwmService
                             {
                                 updateTimeLock.lock();
                                 final TimeDuration scaledTime = TimeDuration.of( totalUpdateTime.asMillis() / threadCount, TimeDuration.Unit.MILLISECONDS );
-                                reportStatus.setJobDuration( reportStatus.getJobDuration().add( scaledTime ) );
+                                reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                                        .jobDuration( reportStatusInfo.getJobDuration().add( scaledTime ) )
+                                        .build() );
                             }
                             finally
                             {
@@ -570,29 +527,43 @@ public class ReportService implements PwmService
 
                             if ( pauseBetweenIterations )
                             {
-                                JavaHelper.pause( avgTracker.avgAsLong() );
+                                TimeDuration.of( avgTracker.avgAsLong(), TimeDuration.Unit.MILLISECONDS ).pause();
                             }
                         }
-                        catch ( Exception e )
+                        catch ( final PwmUnrecoverableException e )
+                        {
+
+                        }
+                        catch ( final Exception e )
                         {
                             String errorMsg = "error while updating report cache for " + userIdentity.toString() + ", cause: ";
-                            errorMsg += e instanceof PwmException ? ( ( PwmException ) e ).getErrorInformation().toDebugStr() : e.getMessage();
-                            final ErrorInformation errorInformation;
-                            errorInformation = new ErrorInformation( PwmError.ERROR_REPORTING_ERROR, errorMsg );
-                            LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, errorInformation.toDebugStr(), e );
-                            reportStatus.setLastError( errorInformation );
-                            reportStatus.setErrors( reportStatus.getErrors() + 1 );
+                            errorMsg += e instanceof PwmException
+                                    ? ( ( PwmException ) e ).getErrorInformation().toDebugStr()
+                                    : e.getMessage();
+                            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REPORTING_ERROR, errorMsg );
+                            if ( e instanceof PwmException )
+                            {
+                                LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, () -> errorInformation.toDebugStr() );
+                            }
+                            else
+                            {
+                                LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, () -> errorInformation.toDebugStr(), e );
+                            }
+                            reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                                    .lastError( errorInformation )
+                                    .errors( reportStatusInfo.getErrors() + 1 )
+                                    .build() );
                         }
                         if ( pwmApplication.getConfig().isDevDebugMode() )
                         {
-                            LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, "finish " + Instant.now().toString()
+                            LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "finish " + Instant.now().toString()
                                     + " size=" + threadService.getQueue().size() );
                         }
                     } );
                 }
                 if ( pwmApplication.getConfig().isDevDebugMode() )
                 {
-                    LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, "exit " + Instant.now().toString()
+                    LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "exit " + Instant.now().toString()
                             + " size=" + threadService.getQueue().size() );
                 }
 
@@ -600,104 +571,45 @@ public class ReportService implements PwmService
 
                 if ( cancelFlag )
                 {
-                    reportStatus.setLastError( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "report cancelled by operator" ) );
+
+                    final ErrorInformation errorInformation = new ErrorInformation(
+                            PwmError.ERROR_SERVICE_NOT_AVAILABLE, "report cancelled by operator" );
+                    reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                            .lastError( errorInformation )
+                            .build() );
                 }
             }
             finally
             {
-                reportStatus.setFinishDate( Instant.now() );
-                saveTempData();
+                reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                        .finishDate( Instant.now() )
+                        .build() );
+                writeReportStatus();
             }
-            LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, "update user cache process completed: " + JsonUtil.serialize( reportStatus ) );
+            LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, () -> "update user cache process completed: " + JsonUtil.serialize( reportStatus ) );
         }
 
 
         private void updateCachedRecordFromLdap( final UserIdentity userIdentity )
-                throws ChaiUnavailableException, PwmUnrecoverableException, LocalDBException
+                throws PwmUnrecoverableException, LocalDBException
         {
             if ( status != STATUS.OPEN )
             {
                 return;
             }
 
-            final UserCacheService.StorageKey storageKey = UserCacheService.StorageKey.fromUserIdentity( pwmApplication, userIdentity );
-            final UserCacheRecord userCacheRecord = userCacheService.readStorageKey( storageKey );
-
-            if ( userCacheRecord != null )
-            {
-                summaryData.remove( userCacheRecord );
-            }
-            final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
-            final UserInfo userInfo = UserInfoFactory.newUserInfo(
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxyForOfflineUser(
                     pwmApplication,
                     SessionLabel.REPORTING_SESSION_LABEL,
-                    PwmConstants.DEFAULT_LOCALE,
-                    userIdentity,
-                    chaiProvider
+                    userIdentity
             );
             final UserCacheRecord newUserCacheRecord = userCacheService.updateUserCache( userInfo );
 
             userCacheService.store( newUserCacheRecord );
             summaryData.update( newUserCacheRecord );
+            processRateMeter.markEvents( 1 );
 
-            LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, "stored cache for " + userIdentity );
-        }
-    }
-
-    private class RolloverTask implements Runnable
-    {
-        @Override
-        public void run( )
-        {
-            reportStatus.setCurrentProcess( ReportStatusInfo.ReportEngineProcess.RollOver );
-            try
-            {
-                summaryData = ReportSummaryData.newSummaryData( settings.getTrackDays() );
-                updateRestingCacheData();
-            }
-            finally
-            {
-                reportStatus.setCurrentProcess( ReportStatusInfo.ReportEngineProcess.None );
-            }
-        }
-
-        private void updateRestingCacheData( )
-        {
-            final Instant startTime = Instant.now();
-            int examinedRecords = 0;
-
-            try ( ClosableIterator<UserCacheRecord> iterator = iterator() )
-            {
-                final long totalRecords = userCacheService.size();
-                LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, "beginning cache review process of " + totalRecords + " records" );
-                Instant lastLogOutputTime = Instant.now();
-
-                while ( !cancelFlag && iterator.hasNext() && status == STATUS.OPEN )
-                {
-                    // (purge routine is embedded in next();
-                    final UserCacheRecord record = iterator.next();
-
-                    if ( summaryData != null && record != null )
-                    {
-                        summaryData.update( record );
-                    }
-
-                    examinedRecords++;
-
-                    if ( TimeDuration.fromCurrent( lastLogOutputTime ).isLongerThan( 30, TimeDuration.Unit.SECONDS ) )
-                    {
-                        final TimeDuration progressDuration = TimeDuration.fromCurrent( startTime );
-                        LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL,
-                                "cache review process in progress, examined " + examinedRecords
-                                        + " in " + progressDuration.asCompactString() );
-                        lastLogOutputTime = Instant.now();
-                    }
-                }
-                final TimeDuration totalTime = TimeDuration.fromCurrent( startTime );
-                LOGGER.info( SessionLabel.REPORTING_SESSION_LABEL,
-                        "completed cache review process of " + examinedRecords
-                                + " cached report records in " + totalTime.asCompactString() );
-            }
+            LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "stored cache for " + userIdentity );
         }
     }
 
@@ -706,8 +618,13 @@ public class ReportService implements PwmService
         @Override
         public void run( )
         {
-            executorService.execute( new ClearTask() );
-            executorService.execute( new ReadLDAPTask() );
+            checkForOutdatedStoreData();
+
+            if ( settings.isDailyJobEnabled() )
+            {
+                executorService.execute( new ClearTask() );
+                executorService.execute( new ReadLDAPTask() );
+            }
         }
     }
 
@@ -719,60 +636,68 @@ public class ReportService implements PwmService
             try
             {
                 initTempData();
+                LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, () -> "report service initialized: " + JsonUtil.serialize( reportStatus.get() ) );
             }
-            catch ( LocalDBException | PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "error during initialization: " + e.getMessage() );
+                LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, () -> "error during initialization: " + e.getMessage() );
                 status = STATUS.CLOSED;
                 return;
             }
 
-            final boolean reportingEnabled = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.REPORTING_ENABLE );
+            final boolean reportingEnabled = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB );
             if ( reportingEnabled )
             {
-                final Instant nextZuluZeroTime = JavaHelper.nextZuluZeroTime();
-                final long secondsUntilNextDredge = settings.getJobOffsetSeconds() + TimeDuration.fromCurrent( nextZuluZeroTime ).as( TimeDuration.Unit.SECONDS );
-                final TimeDuration initialDelay = TimeDuration.of( secondsUntilNextDredge, TimeDuration.Unit.SECONDS );
-                pwmApplication.scheduleFixedRateJob( new ProcessWorkQueueTask(), executorService, initialDelay, TimeDuration.DAY );
-                LOGGER.debug( "scheduled daily execution, next task will be at " + nextZuluZeroTime.toString() );
+                final TimeDuration jobOffset = TimeDuration.of( settings.getJobOffsetSeconds(), TimeDuration.Unit.SECONDS );
+                pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailyJobExecuteTask(), executorService, jobOffset );
             }
-            executorService.submit( new RolloverTask() );
-            executorService.submit( new ProcessWorkQueueTask() );
         }
 
-
         private void initTempData( )
-                throws LocalDBException, PwmUnrecoverableException
+                throws PwmUnrecoverableException
         {
             try
             {
-                reportStatus = pwmApplication.readAppAttribute( PwmApplication.AppAttribute.REPORT_STATUS, ReportStatusInfo.class );
+                final ReportStatusInfo localReportStatus = pwmApplication.readAppAttribute( PwmApplication.AppAttribute.REPORT_STATUS, ReportStatusInfo.class );
+                reportStatus.set( localReportStatus );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
-                LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "error loading cached report status info into memory: " + e.getMessage() );
+                LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, () -> "error loading cached report status info into memory: " + e.getMessage() );
             }
 
             boolean clearFlag = false;
-            if ( reportStatus == null )
+            if ( reportStatus.get() == null )
             {
                 clearFlag = true;
-                LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, "report service did not close cleanly, will clear data." );
+                LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, () -> "report service did not close cleanly, will clear data." );
             }
             else
             {
-                final String currentSettingCache = settings.getSettingsHash();
-                if ( reportStatus.getSettingsHash() != null && !reportStatus.getSettingsHash().equals( currentSettingCache ) )
+                if ( !Objects.equals( reportStatus.get().getSettingsHash(), settings.getSettingsHash() ) )
                 {
-                    LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "configuration has changed, will clear cached report data" );
+                    LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, () -> "configuration has changed, will clear cached report data" );
                     clearFlag = true;
                 }
             }
 
             if ( clearFlag )
             {
-                reportStatus = new ReportStatusInfo( settings.getSettingsHash() );
+                initReportStatus();
                 executeCommand( ReportCommand.Clear );
+            }
+
+            startNextTask();
+        }
+
+        private void startNextTask()
+        {
+            checkForOutdatedStoreData();
+
+            if ( !reportStatus.get().isReportComplete() && !dnQueue.isEmpty() )
+            {
+                LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "resuming report data processing" );
+                executorService.execute( new ProcessWorkQueueTask() );
             }
         }
     }
@@ -786,24 +711,56 @@ public class ReportService implements PwmService
             {
                 doClear();
             }
-            catch ( LocalDBException | PwmUnrecoverableException e )
+            catch ( final LocalDBException | PwmUnrecoverableException e )
             {
-                LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, "error during clear operation: " + e.getMessage() );
+                LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, () -> "error during clear operation: " + e.getMessage() );
+            }
+            finally
+            {
+                resetCurrentProcess();
             }
         }
 
         private void doClear( ) throws LocalDBException, PwmUnrecoverableException
         {
             final Instant startTime = Instant.now();
-            LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, "clearing cached report data" );
+            LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, () -> "clearing cached report data" );
             clearWorkQueue();
             if ( userCacheService != null )
             {
                 userCacheService.clear();
             }
             summaryData = ReportSummaryData.newSummaryData( settings.getTrackDays() );
-            reportStatus = new ReportStatusInfo( settings.getSettingsHash() );
-            LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, "finished clearing report " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+            initReportStatus();
+            LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, () -> "finished clearing report " + TimeDuration.compactFromCurrent( startTime ) );
+        }
+    }
+
+    private void initReportStatus()
+            throws PwmUnrecoverableException
+    {
+        final String settingsHash = settings.getSettingsHash();
+        reportStatus.set( ReportStatusInfo.builder()
+                .settingsHash( settingsHash )
+                .currentProcess( ReportStatusInfo.ReportEngineProcess.None )
+                .build() );
+        writeReportStatus();
+    }
+
+    private void resetCurrentProcess()
+    {
+        reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                .currentProcess( ReportStatusInfo.ReportEngineProcess.None )
+                .build() );
+        writeReportStatus();
+    }
+
+    private void checkForOutdatedStoreData()
+    {
+        final Instant lastFinishDate = reportStatus.get().getFinishDate();
+        if ( lastFinishDate != null && TimeDuration.fromCurrent( lastFinishDate ).isLongerThan( settings.getMaxCacheAge() ) )
+        {
+            executorService.execute( new ClearTask() );
         }
     }
 }

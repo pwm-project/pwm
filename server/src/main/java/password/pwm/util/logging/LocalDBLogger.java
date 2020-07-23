@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.logging;
@@ -28,6 +26,7 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmNumberFormat;
@@ -43,6 +42,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
@@ -73,19 +73,24 @@ public class LocalDBLogger implements PwmService
     private volatile STATUS status = STATUS.NEW;
     private boolean hasShownReadError = false;
 
-    private static final String STORAGE_FORMAT_VERSION = "3";
+    private static final String STORAGE_FORMAT_VERSION = "4";
 
-    public LocalDBLogger( final PwmApplication pwmApplication, final LocalDB localDB, final LocalDBLoggerSettings settings )
+    public LocalDBLogger(
+            final PwmApplication pwmApplication,
+            final LocalDB localDB,
+            final LocalDBLoggerSettings settings
+    )
             throws LocalDBException
     {
-        if ( localDB == null )
-        {
-            throw new NullPointerException( "localDB can not be null" );
-        }
+        Objects.requireNonNull( localDB, "localDB can not be null" );
 
         final Instant startTime = Instant.now();
         status = STATUS.OPENING;
-        this.settings = settings;
+
+        this.settings = settings == null
+                ? LocalDBLoggerSettings.builder().build().applyValueChecks()
+                : settings.applyValueChecks();
+
         this.localDB = localDB;
         this.localDBListQueue = LocalDBStoredQueue.createLocalDBStoredQueue(
                 pwmApplication,
@@ -93,26 +98,21 @@ public class LocalDBLogger implements PwmService
                 LocalDB.DB.EVENTLOG_EVENTS
         );
 
-        if ( settings.getMaxEvents() == 0 )
+        if ( this.settings.getMaxEvents() == 0 )
         {
-            LOGGER.info( "maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed" );
+            LOGGER.info( () -> "maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed" );
             localDBListQueue.clear();
             throw new IllegalArgumentException( "maxEvents=0, will remain closed" );
         }
 
-        if ( localDB == null )
-        {
-            throw new IllegalArgumentException( "LocalDB is not available" );
-        }
-
-        eventQueue = new ArrayBlockingQueue<>( settings.getMaxBufferSize(), true );
+        eventQueue = new ArrayBlockingQueue<>( this.settings.getMaxBufferSize(), true );
 
         if ( pwmApplication != null )
         {
             final String currentFormat = pwmApplication.readAppAttribute( PwmApplication.AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, String.class );
             if ( !STORAGE_FORMAT_VERSION.equals( currentFormat ) )
             {
-                LOGGER.warn( "localdb logger is using outdated format, clearing existing records (existing='"
+                LOGGER.warn( () -> "localdb logger is using outdated format, clearing existing records (existing='"
                         + currentFormat + "', current='" + STORAGE_FORMAT_VERSION + "')" );
 
                 localDBListQueue.clear();
@@ -123,24 +123,24 @@ public class LocalDBLogger implements PwmService
         status = STATUS.OPEN;
 
         cleanerService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-cleaner-",
+                PwmScheduler.makePwmThreadFactory(
+                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-cleaner-",
                         true
                 ) );
 
         writerService = Executors.newSingleThreadScheduledExecutor(
-                JavaHelper.makePwmThreadFactory(
-                        JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + "-writer-",
+                PwmScheduler.makePwmThreadFactory(
+                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-writer-",
                         true
                 ) );
 
         cleanerService.scheduleAtFixedRate( new CleanupTask(), 0, 1, TimeUnit.MINUTES );
         writerService.scheduleWithFixedDelay( new FlushTask(), 0, 103, TimeUnit.MILLISECONDS );
 
-        cleanOnWriteFlag.set( eventQueue.size() >= settings.getMaxEvents() );
+        cleanOnWriteFlag.set( eventQueue.size() >= this.settings.getMaxEvents() );
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.info( "open in " + timeDuration.asCompactString() + ", " + debugStats() );
+        LOGGER.info( () -> "open in " + timeDuration.asCompactString() + ", " + debugStats() );
     }
 
 
@@ -156,16 +156,16 @@ public class LocalDBLogger implements PwmService
             loopEvent = readEvent( localDBListQueue.getLast() );
             if ( loopEvent != null )
             {
-                final Instant tailDate = loopEvent.getDate();
+                final Instant tailDate = loopEvent.getTimestamp();
                 if ( tailDate != null )
                 {
                     return tailDate;
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( "unexpected error attempting to determine tail event timestamp: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error attempting to determine tail event timestamp: " + e.getMessage() );
         }
 
         return null;
@@ -188,7 +188,7 @@ public class LocalDBLogger implements PwmService
     {
         if ( status != STATUS.CLOSED )
         {
-            LOGGER.debug( "LocalDBLogger closing... (" + debugStats() + ")" );
+            LOGGER.debug( () -> "LocalDBLogger closing... (" + debugStats() + ")" );
             if ( cleanerService != null )
             {
                 cleanerService.shutdown();
@@ -198,7 +198,7 @@ public class LocalDBLogger implements PwmService
         }
         status = STATUS.CLOSED;
 
-        LOGGER.debug( "LocalDBLogger close completed (" + debugStats() + ")" );
+        LOGGER.debug( () -> "LocalDBLogger close completed (" + debugStats() + ")" );
     }
 
     public int getStoredEventCount( )
@@ -267,12 +267,12 @@ public class LocalDBLogger implements PwmService
         {
             return PwmLogEvent.fromEncodedString( value );
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             if ( !hasShownReadError )
             {
                 hasShownReadError = true;
-                LOGGER.error( "error reading localDBLogger event: " + e.getMessage() );
+                LOGGER.error( () -> "error reading localDBLogger event: " + e.getMessage() );
             }
         }
         return null;
@@ -306,13 +306,13 @@ public class LocalDBLogger implements PwmService
                 pattern = Pattern.compile( searchParameters.getUsername() );
             }
         }
-        catch ( PatternSyntaxException e )
+        catch ( final PatternSyntaxException e )
         {
-            LOGGER.trace( "invalid regex syntax for " + searchParameters.getUsername() + ", reverting to plaintext search" );
+            LOGGER.trace( () -> "invalid regex syntax for " + searchParameters.getUsername() + ", reverting to plaintext search" );
         }
         if ( pattern != null )
         {
-            final Matcher matcher = pattern.matcher( event.getActor() == null ? "" : event.getActor() );
+            final Matcher matcher = pattern.matcher( event.getUsername() == null ? "" : event.getUsername() );
             if ( !matcher.find() )
             {
                 eventMatchesParams = false;
@@ -320,7 +320,7 @@ public class LocalDBLogger implements PwmService
         }
         else if ( eventMatchesParams && ( searchParameters.getUsername() != null && searchParameters.getUsername().length() > 1 ) )
         {
-            final String eventUsername = event.getActor();
+            final String eventUsername = event.getUsername();
             if ( eventUsername == null || !eventUsername.equalsIgnoreCase( searchParameters.getUsername() ) )
             {
                 eventMatchesParams = false;
@@ -356,14 +356,14 @@ public class LocalDBLogger implements PwmService
         {
             if ( searchParameters.getEventType() == EventType.System )
             {
-                if ( event.getActor() != null && event.getActor().length() > 0 )
+                if ( event.getUsername() != null && event.getUsername().length() > 0 )
                 {
                     eventMatchesParams = false;
                 }
             }
             else if ( searchParameters.getEventType() == EventType.User )
             {
-                if ( event.getActor() == null || event.getActor().length() < 1 )
+                if ( event.getUsername() == null || event.getUsername().length() < 1 )
                 {
                     eventMatchesParams = false;
                 }
@@ -384,10 +384,10 @@ public class LocalDBLogger implements PwmService
                 {
                     if ( TimeDuration.fromCurrent( startTime ).isLongerThan( settings.getMaxBufferWaitTime() ) )
                     {
-                        LOGGER.warn( "discarded event after waiting max buffer wait time of " + settings.getMaxBufferWaitTime().asCompactString() );
+                        LOGGER.warn( () -> "discarded event after waiting max buffer wait time of " + settings.getMaxBufferWaitTime().asCompactString() );
                         return;
                     }
-                    JavaHelper.pause( 100 );
+                    TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS ).pause();
                 }
             }
         }
@@ -403,9 +403,9 @@ public class LocalDBLogger implements PwmService
             {
                 localBuffer.add( pwmLogEvent.toEncodedString() );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
-                LOGGER.warn( "error flushing events to localDB: " + e.getMessage(), e );
+                LOGGER.warn( () -> "error flushing events to localDB: " + e.getMessage(), e );
             }
         }
 
@@ -417,9 +417,9 @@ public class LocalDBLogger implements PwmService
             }
             localDBListQueue.addAll( localBuffer );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( "error writing to localDBLogger: " + e.getMessage(), e );
+            LOGGER.error( () -> "error writing to localDBLogger: " + e.getMessage(), e );
         }
     }
 
@@ -435,9 +435,9 @@ public class LocalDBLogger implements PwmService
                     flushEvents();
                 }
             }
-            catch ( Throwable t )
+            catch ( final Throwable t )
             {
-                LOGGER.fatal( "localDBLogger flush thread has failed: " + t.getMessage(), t );
+                LOGGER.fatal( () -> "localDBLogger flush thread has failed: " + t.getMessage(), t );
             }
         }
     }
@@ -463,9 +463,9 @@ public class LocalDBLogger implements PwmService
                     }
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
-                LOGGER.fatal( "unexpected error during LocalDBLogger log event cleanup: " + e.getMessage(), e );
+                LOGGER.fatal( () -> "unexpected error during LocalDBLogger log event cleanup: " + e.getMessage(), e );
             }
             cleanOnWriteFlag.set( localDBListQueue.size() >= settings.getMaxEvents() );
         }

@@ -3,26 +3,26 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.logging;
 
+import org.apache.log4j.Logger;
 import org.apache.log4j.RollingFileAppender;
+import org.apache.log4j.varia.NullAppender;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
@@ -30,7 +30,6 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -41,6 +40,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * @author Jason D. Rivard
@@ -117,36 +117,49 @@ public class PwmLogger
         return name;
     }
 
-    private void doPwmRequestLogEvent( final PwmLogLevel level, final PwmRequest pwmRequest, final Object message, final Throwable e )
+    private void doPwmRequestLogEvent( final PwmLogLevel level, final PwmRequest pwmRequest, final Supplier<CharSequence> message, final Throwable e )
     {
-        final PwmSession pwmSession = pwmRequest != null ? pwmRequest.getPwmSession() : null;
-        doPwmSessionLogEvent( level, pwmSession, message, e );
-    }
+        if ( !isEnabled( level ) )
+        {
+            return;
+        }
 
-    private void doPwmSessionLogEvent( final PwmLogLevel level, final PwmSession pwmSession, final Object message, final Throwable e )
-    {
-        final SessionLabel sessionLabel = pwmSession != null ? pwmSession.getLabel() : null;
-        Object cleanedMessage = message;
-        if ( pwmSession != null && message != null )
+        final SessionLabel sessionLabel = pwmRequest != null ? pwmRequest.getLabel() : null;
+
+        Supplier<CharSequence> cleanedMessage = message;
+
+        if ( pwmRequest != null && message != null )
         {
             try
             {
-                cleanedMessage = PwmLogger.removeUserDataFromString( pwmSession.getLoginInfoBean(), message.toString() );
+                final CharSequence cleanedString = PwmLogger.removeUserDataFromString( pwmRequest.getPwmSession().getLoginInfoBean(), message.get() );
+                cleanedMessage = () -> cleanedString;
             }
-            catch ( PwmUnrecoverableException e1 )
+            catch ( final PwmUnrecoverableException e1 )
             {
                 /* can't be logged */
             }
         }
+
         doLogEvent( level, sessionLabel, cleanedMessage, e );
     }
 
-    private void doLogEvent( final PwmLogLevel level, final SessionLabel sessionLabel, final Object message, final Throwable e )
+    private void doLogEvent( final PwmLogLevel level, final SessionLabel sessionLabel, final CharSequence message, final Throwable e )
     {
+        doLogEvent( level, sessionLabel, () -> message == null ? "" : message, e );
+    }
+
+    private void doLogEvent( final PwmLogLevel level, final SessionLabel sessionLabel, final Supplier<CharSequence> message, final Throwable e )
+    {
+        if ( !isEnabled( level ) )
+        {
+            return;
+        }
+
         final PwmLogLevel effectiveLevel = level == null ? PwmLogLevel.TRACE : level;
         final String topic = log4jLogger.getName();
-        final String effectiveMessage = message == null ? "" : message.toString();
-        final PwmLogEvent logEvent = PwmLogEvent.createPwmLogEvent( Instant.now(), topic, effectiveMessage, sessionLabel,
+        final CharSequence effectiveMessage = message == null ? "" : message.get();
+        final PwmLogEvent logEvent = PwmLogEvent.createPwmLogEvent( Instant.now(), topic, effectiveMessage.toString(), sessionLabel,
                 e, effectiveLevel );
         doLogEvent( logEvent );
     }
@@ -172,8 +185,8 @@ public class PwmLogger
                 {
                     final Map<String, String> messageInfo = new HashMap<>();
                     messageInfo.put( "level", logEvent.getLevel() == null ? "null" : logEvent.getLevel().toString() );
-                    messageInfo.put( "actor", logEvent.getActor() );
-                    messageInfo.put( "source", logEvent.getSource() );
+                    messageInfo.put( "actor", logEvent.getUsername() );
+                    messageInfo.put( "source", logEvent.getSourceAddress() );
                     messageInfo.put( "topic", logEvent.getTopic() );
                     messageInfo.put( "errorMessage", logEvent.getMessage() );
 
@@ -186,7 +199,7 @@ public class PwmLogger
                 }
             }
         }
-        catch ( Exception e2 )
+        catch ( final Exception e2 )
         {
             //nothing can be done about it now;
         }
@@ -242,57 +255,47 @@ public class PwmLogger
         doLogEvent( level, sessionLabel, message, null );
     }
 
-    public void trace( final CharSequence message )
+    public void log( final PwmLogLevel level, final SessionLabel sessionLabel, final Supplier<CharSequence> message )
+    {
+        doLogEvent( level, sessionLabel, message, null );
+    }
+
+    public void trace( final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.TRACE, null, message, null );
     }
 
-    public void trace( final PwmSession pwmSession, final CharSequence message )
-    {
-        doPwmSessionLogEvent( PwmLogLevel.TRACE, pwmSession, message, null );
-    }
-
-    public void trace( final PwmRequest pwmRequest, final CharSequence message )
+    public void trace( final PwmRequest pwmRequest, final Supplier<CharSequence> message )
     {
         doPwmRequestLogEvent( PwmLogLevel.TRACE, pwmRequest, message, null );
     }
 
-    public void trace( final SessionLabel sessionLabel, final CharSequence message )
+    public void trace( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.TRACE, sessionLabel, message, null );
     }
 
-    public void trace( final CharSequence message, final Throwable exception )
+    public void trace( final Supplier<CharSequence> message, final Throwable exception )
     {
         doLogEvent( PwmLogLevel.TRACE, null, message, exception );
     }
 
-    public void debug( final CharSequence message )
+    public void debug( final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.DEBUG, null, message, null );
     }
 
-    public void debug( final PwmSession pwmSession, final CharSequence message )
-    {
-        doPwmSessionLogEvent( PwmLogLevel.DEBUG, pwmSession, message, null );
-    }
-
-    public void debug( final PwmSession pwmSession, final ErrorInformation errorInformation )
-    {
-        doPwmSessionLogEvent( PwmLogLevel.DEBUG, pwmSession, convertErrorInformation( errorInformation ), null );
-    }
-
-    public void debug( final PwmRequest pwmRequest, final CharSequence message )
+    public void debug( final PwmRequest pwmRequest, final Supplier<CharSequence> message )
     {
         doPwmRequestLogEvent( PwmLogLevel.DEBUG, pwmRequest, message, null );
     }
 
     public void debug( final PwmRequest pwmRequest, final ErrorInformation errorInformation )
     {
-        doPwmRequestLogEvent( PwmLogLevel.DEBUG, pwmRequest, convertErrorInformation( errorInformation ), null );
+        doPwmRequestLogEvent( PwmLogLevel.DEBUG, pwmRequest, () -> convertErrorInformation( errorInformation ), null );
     }
 
-    public void debug( final SessionLabel sessionLabel, final CharSequence message )
+    public void debug( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.DEBUG, sessionLabel, message, null );
     }
@@ -302,82 +305,62 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.DEBUG, sessionLabel, convertErrorInformation( errorInformation ), null );
     }
 
-    public void debug( final CharSequence message, final Throwable exception )
+    public void debug( final Supplier<CharSequence> message, final Throwable exception )
     {
-        doPwmSessionLogEvent( PwmLogLevel.DEBUG, null, message, exception );
+        doPwmRequestLogEvent( PwmLogLevel.DEBUG, null, message, exception );
     }
 
-    public void debug( final PwmSession pwmSession, final CharSequence message, final Throwable e )
-    {
-        doPwmSessionLogEvent( PwmLogLevel.DEBUG, pwmSession, message, e );
-    }
-
-    public void info( final CharSequence message )
+    public void info( final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.INFO, null, message, null );
     }
 
-    public void info( final PwmSession pwmSession, final CharSequence message )
-    {
-        doPwmSessionLogEvent( PwmLogLevel.INFO, pwmSession, message, null );
-    }
-
-    public void info( final PwmRequest pwmRequest, final CharSequence message )
+    public void info( final PwmRequest pwmRequest, final Supplier<CharSequence> message )
     {
         doPwmRequestLogEvent( PwmLogLevel.INFO, pwmRequest, message, null );
     }
 
     public void info( final PwmRequest pwmRequest, final ErrorInformation errorInformation )
     {
-        doPwmRequestLogEvent( PwmLogLevel.INFO, pwmRequest, convertErrorInformation( errorInformation ), null );
+        doPwmRequestLogEvent( PwmLogLevel.INFO, pwmRequest, () -> convertErrorInformation( errorInformation ), null );
     }
 
-    public void info( final SessionLabel sessionLabel, final CharSequence message )
+    public void info( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.INFO, sessionLabel, message, null );
     }
 
-    public void info( final CharSequence message, final Throwable exception )
+    public void info( final Supplier<CharSequence> message, final Throwable exception )
     {
         doLogEvent( PwmLogLevel.INFO, null, message, exception );
     }
 
-    public void error( final CharSequence message )
+    public void error( final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.ERROR, null, message, null );
     }
 
-    public void error( final PwmSession pwmSession, final CharSequence message )
-    {
-        doPwmSessionLogEvent( PwmLogLevel.ERROR, pwmSession, message, null );
-    }
-
-    public void error( final PwmSession pwmSession, final ErrorInformation errorInformation )
-    {
-        doPwmSessionLogEvent( PwmLogLevel.ERROR, pwmSession, convertErrorInformation( errorInformation ), null );
-    }
-
-    public void error( final PwmRequest pwmRequest, final CharSequence message, final Throwable exception )
+    public void error( final PwmRequest pwmRequest, final Supplier<CharSequence> message, final Throwable exception )
     {
         doPwmRequestLogEvent( PwmLogLevel.ERROR, pwmRequest, message, exception );
     }
 
-    public void error( final PwmRequest pwmRequest, final CharSequence message )
+    public void error( final PwmRequest pwmRequest, final Supplier<CharSequence> message )
     {
         doPwmRequestLogEvent( PwmLogLevel.ERROR, pwmRequest, message, null );
     }
 
     public void error( final PwmRequest pwmRequest, final ErrorInformation errorInformation )
     {
-        doPwmRequestLogEvent( PwmLogLevel.ERROR, pwmRequest, convertErrorInformation( errorInformation ), null );
+        doPwmRequestLogEvent( PwmLogLevel.ERROR, pwmRequest, () -> convertErrorInformation( errorInformation ), null );
     }
 
     public void error( final ErrorInformation errorInformation )
     {
-        doPwmRequestLogEvent( PwmLogLevel.ERROR, null, convertErrorInformation( errorInformation ), null );
+        doPwmRequestLogEvent( PwmLogLevel.ERROR, null, () -> convertErrorInformation( errorInformation ), null );
     }
 
-    public void error( final SessionLabel sessionLabel, final CharSequence message )
+    public void error( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.ERROR, sessionLabel, message, null );
     }
@@ -392,77 +375,57 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.ERROR, sessionLabel, convertErrorInformation( errorInformation ), exception );
     }
 
-    public void error( final CharSequence message, final Throwable exception )
+    public void error( final Supplier<CharSequence> message, final Throwable exception )
     {
         doLogEvent( PwmLogLevel.ERROR, null, message, exception );
     }
 
-    public void error( final SessionLabel sessionLabel, final CharSequence message, final Throwable exception )
+    public void error( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final Throwable exception )
     {
         doLogEvent( PwmLogLevel.ERROR, sessionLabel, message, exception );
     }
 
-    public void error( final PwmSession pwmSession, final CharSequence message, final Throwable exception )
-    {
-        doPwmSessionLogEvent( PwmLogLevel.ERROR, pwmSession, message, exception );
-    }
-
-    public void warn( final CharSequence message )
+    public void warn( final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.WARN, null, message, null );
     }
 
-    public void warn( final PwmSession pwmSession, final CharSequence message )
-    {
-        doPwmSessionLogEvent( PwmLogLevel.WARN, pwmSession, message, null );
-    }
-
-    public void warn( final PwmRequest pwmRequest, final CharSequence message )
+    public void warn( final PwmRequest pwmRequest, final Supplier<CharSequence> message )
     {
         doPwmRequestLogEvent( PwmLogLevel.WARN, pwmRequest, message, null );
     }
 
-    public void warn( final SessionLabel sessionLabel, final CharSequence message )
+    public void warn( final PwmRequest pwmRequest, final Supplier<CharSequence> message, final Throwable exception )
+    {
+        doPwmRequestLogEvent( PwmLogLevel.WARN, pwmRequest, message, exception );
+    }
+
+    public void warn( final SessionLabel sessionLabel, final ErrorInformation errorInformation, final Throwable exception )
+    {
+        doLogEvent( PwmLogLevel.ERROR, sessionLabel, convertErrorInformation( errorInformation ), exception );
+    }
+
+    public void warn( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.WARN, sessionLabel, message, null );
     }
 
-    public void warn( final PwmSession pwmSession, final ErrorInformation message )
-    {
-        doPwmSessionLogEvent( PwmLogLevel.WARN, pwmSession, convertErrorInformation( message ), null );
-    }
-
-    public void warn( final CharSequence message, final Throwable exception )
+    public void warn( final Supplier<CharSequence> message, final Throwable exception )
     {
         doLogEvent( PwmLogLevel.WARN, null, message, exception );
     }
 
-    public void warn( final PwmSession pwmSession, final CharSequence message, final Throwable exception )
-    {
-        doPwmSessionLogEvent( PwmLogLevel.WARN, pwmSession, message, exception );
-    }
-
-    public void warn( final PwmSession pwmSession, final ErrorInformation errorInformation, final Throwable exception )
-    {
-        doPwmSessionLogEvent( PwmLogLevel.WARN, pwmSession, convertErrorInformation( errorInformation ), exception );
-    }
-
-    public void fatal( final CharSequence message )
+    public void fatal( final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.FATAL, null, message, null );
     }
 
-    public void fatal( final PwmSession pwmSession, final CharSequence message )
-    {
-        doPwmSessionLogEvent( PwmLogLevel.FATAL, pwmSession, message, null );
-    }
-
-    public void fatal( final SessionLabel sessionLabel, final CharSequence message )
+    public void fatal( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.FATAL, sessionLabel, message, null );
     }
 
-    public void fatal( final Object message, final Throwable exception )
+    public void fatal( final Supplier<CharSequence> message, final Throwable exception )
     {
         doLogEvent( PwmLogLevel.FATAL, null, message, exception );
     }
@@ -532,7 +495,7 @@ public class PwmLogger
         }
     }
 
-    public static String removeUserDataFromString( final LoginInfoBean loginInfoBean, final String input )
+    public static CharSequence removeUserDataFromString( final LoginInfoBean loginInfoBean, final CharSequence input )
             throws PwmUnrecoverableException
     {
         if ( input == null || loginInfoBean == null )
@@ -540,7 +503,7 @@ public class PwmLogger
             return input;
         }
 
-        String returnString = input;
+        String returnString = input.toString();
         if ( loginInfoBean.getUserCurrentPassword() != null )
         {
             final String pwdStringValue = loginInfoBean.getUserCurrentPassword().getStringValue();
@@ -551,6 +514,39 @@ public class PwmLogger
         }
 
         return returnString;
+    }
+
+    public boolean isEnabled( final PwmLogLevel pwmLogLevel )
+    {
+        /*
+        if ( minimumDbLogLevel != null )
+        {
+            final int compareValue = minimumDbLogLevel.compareTo( pwmLogLevel );
+            final boolean dbLogLevelHigher =  compareValue <= 0;
+            System.out.println( " dbLogLevelHigher=" + dbLogLevelHigher
+                    + ", compareValue=" + compareValue
+                    + " pwmLogLevel=" + pwmLogLevel
+                    + ", minDbLevel=" + minimumDbLogLevel );
+        }
+        */
+
+        return (
+                log4jLogger != null
+                        && log4jLogger.isEnabledFor( pwmLogLevel.getLog4jLevel() )
+        )
+                ||
+                (
+                        localDBLogger != null
+                                && minimumDbLogLevel != null
+                                && minimumDbLogLevel.compareTo( pwmLogLevel ) <= 0
+                );
+    }
+
+    public static void disableAllLogging()
+    {
+        Logger.getRootLogger().removeAllAppenders();
+        Logger.getRootLogger().addAppender( new NullAppender() );
+        PwmLogger.markInitialized();
     }
 }
 

@@ -3,39 +3,42 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.ldap.search;
 
 import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
+import password.pwm.PwmConstants;
 import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.config.value.data.UserPermission;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-@Builder
-@Getter
+@Value
+@Builder( toBuilder = true )
 public class SearchConfiguration implements Serializable
 {
-
     private String filter;
     private String ldapProfile;
     private String username;
@@ -58,8 +61,47 @@ public class SearchConfiguration implements Serializable
     {
         if ( this.username != null && this.formValues != null )
         {
-            throw new IllegalArgumentException( "username OR formValues cannot both be supplied" );
+            throw new IllegalArgumentException( "username OR formRows cannot both be supplied" );
         }
     }
 
+    public static SearchConfiguration fromPermission( final UserPermission userPermission ) throws PwmUnrecoverableException
+    {
+        final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
+
+        switch ( userPermission.getType() )
+        {
+            case ldapQuery:
+            {
+                builder.filter( userPermission.getLdapQuery() );
+                if ( userPermission.getLdapBase() != null && !userPermission.getLdapBase().isEmpty() )
+                {
+                    builder.enableContextValidation( false );
+                    builder.contexts( Collections.singletonList( userPermission.getLdapBase() ) );
+                }
+            }
+            break;
+
+            case ldapGroup:
+            {
+                builder.groupDN( userPermission.getLdapBase() );
+            }
+            break;
+
+            default:
+                throw new PwmUnrecoverableException( new ErrorInformation(
+                        PwmError.ERROR_INTERNAL,
+                        "unknown permission type: " + userPermission.getType() )
+                );
+        }
+
+        if ( userPermission.getLdapProfileID() != null
+                && !userPermission.getLdapProfileID().isEmpty()
+                && !userPermission.getLdapProfileID().equals( PwmConstants.PROFILE_ID_ALL ) )
+        {
+            builder.ldapProfile( userPermission.getLdapProfileID() );
+        }
+
+        return builder.build();
+    }
 }

@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.macro;
@@ -30,12 +28,15 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.CommonValues;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -94,9 +95,9 @@ public class MacroMachine
                 }
                 map.get( scope ).put( pattern, macroImplementation );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
-                LOGGER.error( "unable to load macro class " + macroClass.getName() + ", error: " + e.getMessage() );
+                LOGGER.error( () -> "unable to load macro class " + macroClass.getName() + ", error: " + e.getMessage() );
             }
         }
 
@@ -191,7 +192,7 @@ public class MacroMachine
                             workingString = doReplace( workingString, pwmMacro, matcher, macroRequestInfo );
                             if ( workingString.equals( previousString ) )
                             {
-                                LOGGER.warn( sessionLabel, "macro replace was called but input string was not modified.  "
+                                LOGGER.warn( sessionLabel, () -> "macro replace was called but input string was not modified.  "
                                         + " macro=" + pwmMacro.getClass().getName() + ", pattern=" + pwmMacro.getRegExPattern().toString() );
                                 break;
                             }
@@ -236,6 +237,7 @@ public class MacroMachine
             final MacroImplementation.MacroRequestInfo macroRequestInfo
     )
     {
+        final Instant startTime = Instant.now();
         final String matchedStr = matcher.group();
         final int startPos = matcher.start();
         final int endPos = matcher.end();
@@ -244,9 +246,9 @@ public class MacroMachine
         {
             replaceStr = macroImplementation.replaceValue( matchedStr, macroRequestInfo );
         }
-        catch ( MacroParseException e )
+        catch ( final MacroParseException e )
         {
-            LOGGER.debug( sessionLabel, "macro parse error replacing macro '" + matchedStr + "', error: " + e.getMessage() );
+            LOGGER.debug( sessionLabel, () -> "macro parse error replacing macro '" + matchedStr + "', error: " + e.getMessage() );
             if ( pwmApplication != null )
             {
                 replaceStr = "[" + e.getErrorInformation().toUserStr( PwmConstants.DEFAULT_LOCALE, macroRequestInfo.getPwmApplication().getConfig() ) + "]";
@@ -256,9 +258,9 @@ public class MacroMachine
                 replaceStr = "[" + e.getErrorInformation().toUserStr( PwmConstants.DEFAULT_LOCALE, null ) + "]";
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( sessionLabel, "error while replacing macro '" + matchedStr + "', error: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "error while replacing macro '" + matchedStr + "', error: " + e.getMessage() );
         }
 
         if ( replaceStr == null )
@@ -272,9 +274,9 @@ public class MacroMachine
             {
                 replaceStr = stringReplacer.replace( matchedStr, replaceStr );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
-                LOGGER.error( sessionLabel, "unexpected error while executing '" + matchedStr + "' during StringReplacer.replace(), error: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "unexpected error while executing '" + matchedStr + "' during StringReplacer.replace(), error: " + e.getMessage() );
             }
         }
 
@@ -284,8 +286,10 @@ public class MacroMachine
             final boolean debugOnlyLogging = JavaHelper.enumArrayContainsValue( macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.OnlyDebugLogging );
             if ( !debugOnlyLogging || ( pwmApplication != null && pwmApplication.getConfig().isDevDebugMode() ) )
             {
-                LOGGER.trace( sessionLabel, "replaced macro " + matchedStr + " with value: "
-                        + ( sensitive ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT : replaceStr ) );
+                final String finalReplaceStr = replaceStr;
+                LOGGER.trace( sessionLabel, () -> "replaced macro " + matchedStr + " with value: "
+                        + ( sensitive ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT : finalReplaceStr )
+                        + " (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
             }
         }
         return new StringBuilder( input ).replace( startPos, endPos, replaceStr ).toString();
@@ -302,12 +306,21 @@ public class MacroMachine
     }
 
     public static MacroMachine forUser(
+            final CommonValues commonValues,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        return forUser( commonValues.getPwmApplication(), commonValues.getLocale(), commonValues.getSessionLabel(), userIdentity );
+    }
+
+    public static MacroMachine forUser(
             final PwmRequest pwmRequest,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
-        return forUser( pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(), userIdentity );
+        return forUser( pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getLabel(), userIdentity );
     }
 
     public static MacroMachine forUser(
@@ -317,7 +330,7 @@ public class MacroMachine
     )
             throws PwmUnrecoverableException
     {
-        return forUser( pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(), userIdentity, stringReplacer );
+        return forUser( pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getLabel(), userIdentity, stringReplacer );
     }
 
     public static MacroMachine forUser(

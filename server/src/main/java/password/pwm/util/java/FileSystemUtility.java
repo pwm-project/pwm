@@ -3,128 +3,201 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.java;
 
+import lombok.Value;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmHashAlgorithm;
-import password.pwm.util.secure.SecureEngine;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.reflect.Method;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.zip.CRC32;
 
 public class FileSystemUtility
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( FileSystemUtility.class );
 
-    public static List<FileSummaryInformation> readFileInformation( final File rootFile )
-            throws PwmUnrecoverableException, IOException
-    {
-        return readFileInformation( rootFile, "" );
-    }
+    private static final int CRC_BUFFER_SIZE = 60 * 1024;
 
-    protected static List<FileSummaryInformation> readFileInformation(
-            final File rootFile,
-            final String relativePath
-    )
-            throws PwmUnrecoverableException, IOException
+    private static final AtomicLoopIntIncrementer OP_COUNTER = new AtomicLoopIntIncrementer();
+
+
+    public static ClosableIterator<FileSummaryInformation> readFileInformation( final List<File> rootFiles )
     {
-        final ArrayList<FileSummaryInformation> results = new ArrayList<>();
-        final File[] files = rootFile.listFiles();
-        if ( files != null )
+        final Instant startTime = Instant.now();
+        final int operation = OP_COUNTER.next();
+
+        final int cpus = Runtime.getRuntime().availableProcessors();
+        final BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(  );
+        final ExecutorService executor = new ThreadPoolExecutor( cpus, cpus, Long.MAX_VALUE, TimeUnit.MILLISECONDS, workQueue );
+        final TaskData taskData = new TaskData( executor );
+
+        for ( final File rootFile : rootFiles )
         {
-            for ( final File loopFile : files )
+            LOGGER.trace( () -> "begin file summary load for file '" + rootFile.getAbsolutePath() + ", operation=" + operation );
+            executor.execute( new RecursiveFileReaderTask( rootFile, taskData ) );
+        }
+
+        return new ConcurrentClosableIteratorWrapper<>( () ->
+        {
+            while ( taskData.getWorkInProgress().get() > 0 )
             {
-                final String path = relativePath + loopFile.getName();
-                if ( loopFile.isDirectory() )
+                final FileSummaryInformation next = taskData.getOutputQueue().poll();
+
+                if ( next == null )
                 {
-                    results.addAll( readFileInformation( loopFile, path + "/" ) );
+                    TimeDuration.of( 20, TimeDuration.Unit.MILLISECONDS ).pause();
                 }
                 else
                 {
-                    results.add( fileInformationForFile( loopFile ) );
+                    return Optional.of( next );
                 }
             }
-        }
-        return results;
+            return Optional.empty();
+        },
+                () ->
+        {
+            executor.shutdown();
+            final Map<String, String> debugInfo = new LinkedHashMap<>();
+            debugInfo.put( "bytes", StringUtil.formatDiskSizeforDebug( taskData.getByteCount().get() ) );
+            debugInfo.put( "files", Integer.toString( taskData.getFileCount().get() ) );
+            debugInfo.put( "duration", TimeDuration.compactFromCurrent( startTime ) );
+            LOGGER.trace( () -> "completed file summary load for operation '" + operation + ", " + StringUtil.mapToString( debugInfo ) );
+        } );
     }
 
-    public static FileSummaryInformation fileInformationForFile( final File file )
-            throws IOException, PwmUnrecoverableException
+    @Value
+    private static class TaskData
     {
-        if ( file == null || !file.exists() )
+        private final AtomicLong byteCount = new AtomicLong( 0 );
+        private final AtomicInteger fileCount = new AtomicInteger( 0 );
+        private final AtomicInteger workInProgress = new AtomicInteger( 0 );
+        private final Queue<FileSummaryInformation> outputQueue = new ConcurrentLinkedQueue<>();
+
+        private Executor executor;
+
+        TaskData( final Executor executor )
         {
-            return null;
+            this.executor = executor;
         }
-        return new FileSummaryInformation(
-                file.getName(),
-                file.getParentFile().getAbsolutePath(),
-                Instant.ofEpochMilli( file.lastModified() ),
-                file.length(),
-                SecureEngine.hash( file, PwmHashAlgorithm.SHA1 )
-        );
     }
 
-    public static long getFileDirectorySize( final File dir )
+    private static class RecursiveFileReaderTask implements Runnable
     {
-        long size = 0;
-        try
+        private final File theFile;
+        private final TaskData taskData;
+
+        RecursiveFileReaderTask( final File theFile, final TaskData taskData )
         {
-            if ( dir.isFile() )
+            Objects.requireNonNull( theFile );
+            Objects.requireNonNull( taskData );
+            this.theFile = theFile;
+            this.taskData = taskData;
+            this.taskData.getWorkInProgress().incrementAndGet();
+        }
+
+        @Override
+        public void run()
+        {
+            try
             {
-                size = dir.length();
-            }
-            else
-            {
-                final File[] subFiles = dir.listFiles();
-                if ( subFiles != null )
+                if ( theFile.isDirectory() )
                 {
-                    for ( final File file : subFiles )
+                    final File[] subFiles = theFile.listFiles();
+                    if ( subFiles != null )
                     {
-                        if ( file.isFile() )
+                        for ( final File file : subFiles )
                         {
-                            size += file.length();
+                            final RecursiveFileReaderTask newTask = new RecursiveFileReaderTask( file, taskData );
+                            taskData.getExecutor().execute( newTask );
                         }
-                        else
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        if ( theFile.exists() )
                         {
-                            size += getFileDirectorySize( file );
+                            final FileSummaryInformation fileSummaryInformation = new FileSummaryInformation(
+                                    theFile.getName(),
+                                    theFile.getParentFile().getAbsolutePath(),
+                                    Instant.ofEpochMilli( theFile.lastModified() ),
+                                    theFile.length(),
+                                    crc32( theFile )
+                            );
+                            taskData.getByteCount().addAndGet( fileSummaryInformation.getSize() );
+                            taskData.getFileCount().incrementAndGet();
+                            taskData.getOutputQueue().offer( fileSummaryInformation );
                         }
-
+                    }
+                    catch ( final Exception e )
+                    {
+                        LOGGER.debug( () -> "error executing file summary reader: " + e.getMessage() );
                     }
                 }
             }
+            finally
+            {
+                this.taskData.getWorkInProgress().decrementAndGet();
+            }
         }
-        catch ( NullPointerException e )
+    }
+
+
+    public static long getFileDirectorySize( final File dir )
+    {
+        try
         {
-            // file was deleted before file size could be read
+            return Files.walk( dir.toPath() )
+                    .filter( path -> path.toFile().isFile() )
+                    .mapToLong( path -> path.toFile().length() )
+                    .sum();
+        }
+        catch ( final IOException e )
+        {
+            LOGGER.error( () -> "error calculating disk size of '" + dir.getAbsolutePath() + "', error: " + e.getMessage(), e );
         }
 
-        return size;
+        return -1;
     }
 
     public static File figureFilepath( final String filename, final File suggestedPath )
@@ -144,21 +217,7 @@ public class FileSystemUtility
 
     public static long diskSpaceRemaining( final File file )
     {
-        try
-        {
-            final Method getFreeSpaceMethod = File.class.getMethod( "getFreeSpace" );
-            final Object rawResult = getFreeSpaceMethod.invoke( file );
-            return ( Long ) rawResult;
-        }
-        catch ( NoSuchMethodException e )
-        {
-            /* no error, pre java 1.6 doesn't have this method */
-        }
-        catch ( Exception e )
-        {
-            LOGGER.debug( "error reading file space remaining for " + file.toString() + ",: " + e.getMessage() );
-        }
-        return -1;
+        return file.getFreeSpace();
     }
 
     public static void rotateBackups( final File inputFile, final int maxRotate )
@@ -176,66 +235,33 @@ public class FileSystemUtility
             {
                 if ( thisFile.exists() )
                 {
-                    LOGGER.debug( "deleting old backup file: " + thisFile.getAbsolutePath() );
+                    LOGGER.debug( () -> "deleting old backup file: " + thisFile.getAbsolutePath() );
                     if ( !thisFile.delete() )
                     {
-                        LOGGER.error( "unable to delete old backup file: " + thisFile.getAbsolutePath() );
+                        LOGGER.error( () -> "unable to delete old backup file: " + thisFile.getAbsolutePath() );
                     }
                 }
             }
             else if ( i == 0 || youngerFile.exists() )
             {
                 final File destFile = new File( inputFile.getAbsolutePath() + "-" + ( i + 1 ) );
-                LOGGER.debug( "backup file " + thisFile.getAbsolutePath() + " renamed to " + destFile.getAbsolutePath() );
+                LOGGER.debug( () -> "backup file " + thisFile.getAbsolutePath() + " renamed to " + destFile.getAbsolutePath() );
                 if ( !thisFile.renameTo( destFile ) )
                 {
-                    LOGGER.debug( "unable to rename file " + thisFile.getAbsolutePath() + " to " + destFile.getAbsolutePath() );
+                    LOGGER.debug( () -> "unable to rename file " + thisFile.getAbsolutePath() + " to " + destFile.getAbsolutePath() );
                 }
             }
         }
     }
 
+    @Value
     public static class FileSummaryInformation implements Serializable
     {
         private final String filename;
         private final String filepath;
         private final Instant modified;
         private final long size;
-        private final String sha1sum;
-
-        public FileSummaryInformation( final String filename, final String filepath, final Instant modified, final long size, final String sha1sum )
-        {
-            this.filename = filename;
-            this.filepath = filepath;
-            this.modified = modified;
-            this.size = size;
-            this.sha1sum = sha1sum;
-        }
-
-        public String getFilename( )
-        {
-            return filename;
-        }
-
-        public String getFilepath( )
-        {
-            return filepath;
-        }
-
-        public Instant getModified( )
-        {
-            return modified;
-        }
-
-        public long getSize( )
-        {
-            return size;
-        }
-
-        public String getSha1sum( )
-        {
-            return sha1sum;
-        }
+        private final long checksum;
     }
 
     public static void deleteDirectoryContents( final File path ) throws IOException
@@ -243,7 +269,7 @@ public class FileSystemUtility
         deleteDirectoryContents( path, false );
     }
 
-    public static void deleteDirectoryContents( final File path, final boolean deleteThisLevel )
+    private static void deleteDirectoryContents( final File path, final boolean deleteThisLevel )
             throws IOException
     {
         if ( !path.exists() )
@@ -265,15 +291,53 @@ public class FileSystemUtility
 
         if ( deleteThisLevel )
         {
-            LOGGER.debug( "deleting temporary file " + path.getAbsolutePath() );
+            LOGGER.debug( () -> "deleting temporary file " + path.getAbsolutePath() );
             try
             {
                 Files.delete( path.toPath() );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
-                LOGGER.warn( "error deleting temporary file '" + path.getAbsolutePath() + "', error: " + e.getMessage() );
+                LOGGER.warn( () -> "error deleting temporary file '" + path.getAbsolutePath() + "', error: " + e.getMessage() );
             }
+        }
+    }
+
+    private static long crc32( final File file )
+            throws IOException
+    {
+        final CRC32 crc32 = new CRC32();
+        final FileChannel fileChannel = FileChannel.open( file.toPath() );
+        final int bufferSize = (int) Math.min( file.length(), CRC_BUFFER_SIZE );
+        final ByteBuffer byteBuffer = ByteBuffer.allocateDirect( bufferSize );
+
+        while ( fileChannel.read( byteBuffer ) > 0 )
+        {
+            // redundant cast to buffer to solve jdk8/9 inter-op issue
+            ( ( Buffer ) byteBuffer ).flip();
+
+            crc32.update( byteBuffer );
+
+            // redundant cast to buffer to solve jdk8/9 inter-op issue
+            ( ( Buffer ) byteBuffer ).clear();
+        }
+
+        return crc32.getValue();
+    }
+
+    public static void mkdirs( final File file )
+            throws PwmUnrecoverableException
+    {
+        if ( !file.exists() )
+        {
+            if ( !file.mkdirs() )
+            {
+                throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unable to create directory: " + file.getAbsolutePath() );
+            }
+        }
+        else if ( !file.isDirectory() )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unable to create directory, file already exists: " + file.getAbsolutePath() );
         }
     }
 }

@@ -3,28 +3,26 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config;
 
-import org.jdom2.Element;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.XmlElement;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
@@ -33,7 +31,7 @@ import java.util.Locale;
 
 public interface StoredValue extends Serializable
 {
-    List<Element> toXmlValues( String valueElementName, PwmSecurityKey pwmSecurityKey );
+    List<XmlElement> toXmlValues( String valueElementName, XmlOutputProcessData xmlOutputProcessData );
 
     Object toNativeObject( );
 
@@ -43,17 +41,15 @@ public interface StoredValue extends Serializable
 
     String toDebugString( Locale locale );
 
-    boolean requiresStoredUpdate( );
-
     int currentSyntaxVersion( );
 
     interface StoredValueFactory
     {
         StoredValue fromJson( String input );
 
-        StoredValue fromXmlElement( PwmSetting pwmSetting, Element settingElement, PwmSecurityKey key )
+        StoredValue fromXmlElement( PwmSetting pwmSetting, XmlElement settingElement, PwmSecurityKey key )
                 throws PwmException;
     }
 
-    String valueHash( ) throws PwmUnrecoverableException;
+    String valueHash();
 }

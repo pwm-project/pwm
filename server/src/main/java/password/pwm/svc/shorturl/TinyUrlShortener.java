@@ -3,32 +3,29 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.shorturl;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.util.EntityUtils;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.client.PwmHttpClient;
+import password.pwm.http.HttpMethod;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -51,31 +48,29 @@ public class TinyUrlShortener extends BasicUrlShortener
         this.configuration = configuration;
     }
 
-    public String shorten( final String input, final PwmApplication context ) throws PwmUnrecoverableException
+    public String shorten( final String input, final PwmApplication context )
+            throws PwmUnrecoverableException
     {
-        try
+        LOGGER.debug( () -> "Trying to shorten url: " + input );
+        final String encodedUrl = StringUtil.urlEncode( input );
+        final String callUrl = apiUrl + encodedUrl;
+        final PwmHttpClient pwmHttpClient = context.getHttpClientService().getPwmHttpClient(  );
+
+        final PwmHttpClientRequest request = PwmHttpClientRequest.builder()
+                .method( HttpMethod.GET )
+                .url( callUrl )
+                .build();
+        final PwmHttpClientResponse httpResponse = pwmHttpClient.makeRequest( request, null );
+        final int httpResponseCode = httpResponse.getStatusCode();
+        if ( httpResponseCode == 200 )
         {
-            LOGGER.debug( "Trying to shorten url: " + input );
-            final String encodedUrl = StringUtil.urlEncode( input );
-            final String callUrl = apiUrl + encodedUrl;
-            final HttpClient httpClient = PwmHttpClient.getHttpClient( context.getConfig() );
-            final HttpGet httpRequest = new HttpGet( callUrl );
-            final HttpResponse httpResponse = httpClient.execute( httpRequest );
-            final int httpResponseCode = httpResponse.getStatusLine().getStatusCode();
-            if ( httpResponseCode == 200 )
-            {
-                final String responseBody = EntityUtils.toString( httpResponse.getEntity() );
-                LOGGER.debug( "Result: " + responseBody );
-                return responseBody;
-            }
-            else
-            {
-                LOGGER.error( "Failed to get shorter URL: " + httpResponse.getStatusLine().getReasonPhrase() );
-            }
+            final String responseBody = httpResponse.getBody();
+            LOGGER.debug( () -> "Result: " + responseBody );
+            return responseBody;
         }
-        catch ( java.io.IOException e )
+        else
         {
-            LOGGER.error( "IOException: " + e.getMessage() );
+            LOGGER.error( () -> "Failed to get shorter URL: " + httpResponse.getStatusPhrase() );
         }
         return input;
     }

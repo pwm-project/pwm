@@ -3,28 +3,31 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2018 The PWM Project
+ ~ Copyright (c) 2009-2019 The PWM Project
  ~
- ~ This program is free software; you can redistribute it and/or modify
- ~ it under the terms of the GNU General Public License as published by
- ~ the Free Software Foundation; either version 2 of the License, or
- ~ (at your option) any later version.
+ ~ Licensed under the Apache License, Version 2.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
  ~
- ~ This program is distributed in the hope that it will be useful,
- ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
- ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- ~ GNU General Public License for more details.
+ ~     http://www.apache.org/licenses/LICENSE-2.0
  ~
- ~ You should have received a copy of the GNU General Public License
- ~ along with this program; if not, write to the Free Software
- ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
 --%>
+<%--
+       THIS FILE IS NOT INTENDED FOR END USER MODIFICATION.
+       See the README.TXT file in WEB-INF/jsp before making changes.
+--%>
+
 
 <%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.PwmLocaleBundle" %>
-<%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.ArrayList" %>
@@ -34,17 +37,15 @@
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="java.util.TreeMap" %>
 
 <%
-  final List<Map<String,String>> settingData = new ArrayList<Map<String,String>>();
-  final Map<String,Object> outputData = new HashMap<String,Object>();
+  final Map<String,String> outputData = new TreeMap<>();
   try {
     final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
     outputData.putAll((Map)pwmRequest.getAttribute(PwmRequestAttribute.ConfigurationSummaryOutput));
-
-    settingData.addAll((List<Map<String,String>>)outputData.get("settings"));
   } catch (PwmException e) {
-          /* noop */
+    /* noop */
   }
 %>
 <!DOCTYPE html>
@@ -62,109 +63,26 @@
 <div id="wrapper">
   <div style="padding:10px">
     <br/>
-    <div style="text-align: center; width: 100%">
-      <h1>
+    <h1>
       <pwm:display key="Title_ConfigurationSummary" bundle="Config"/>
-      </h1>
-      <div>
-        <%=PwmConstants.PWM_APP_NAME%> &nbsp; <%=PwmConstants.SERVLET_VERSION%>
-      </div>
-      <div>
-        Current Time: <span class="timestamp"><%=JavaHelper.toIsoDate(new Date())%></span>
-        <br/>
-        <br/>
-        <br/>
-        <span class="footnote">Only settings modified from their default value are shown.</span>
-      </div>
-
-      <br/>
-      <% for (final Map<String,String> record : settingData) { %>
-      <table style="width:800px">
-        <col class="key" style="width:100px">
-        <col style="max-width: 700px; overflow: auto">
-        <tr>
-          <td>
-            Setting
-          </td>
-          <td>
-            <b><%=record.get("label")%></b>
-          </td>
-        </tr>
-        <% if (record.containsKey("profile")) { %>
-        <tr>
-          <td>
-            Profile
-          </td>
-          <td>
-            <div>
-              <%=StringUtil.escapeHtml(record.get("profile"))%>
-            </div>
-          </td>
-        </tr>
-        <% } %>
-        <% if (record.containsKey("modifyTime")) { %>
-        <tr>
-          <td>
-            Modify Time
-          </td>
-          <td>
-            <div>
-              <span class="timestamp"><%=StringUtil.escapeHtml(record.get("modifyTime"))%></span>
-            </div>
-          </td>
-        </tr>
-        <% } %>
-        <% if (record.containsKey("modifyUser")) { %>
-        <tr>
-          <td>
-            Modified by
-          </td>
-          <td>
-            <div>
-              <%=StringUtil.escapeHtml(record.get("modifyUser"))%>
-            </div>
-          </td>
-        </tr>
-        <% } %>
-        <tr>
-          <td>
-            Value
-          </td>
-          <td>
-            <div>
-              <pre style="white-space: pre-wrap"><%=StringUtil.escapeHtml(record.get("value"))%></pre>
-            </div>
-          </td>
-        </tr>
-      </table>
-      <br/>
-      <br/>
-      <% } %>
-      <% final Configuration pwmConfig = JspUtility.getPwmRequest(pageContext).getConfig(); %>
-      <% final Map<PwmLocaleBundle,Map<String,List<Locale>>> modifiedKeys = LocaleHelper.getModifiedKeysInConfig(pwmConfig); %>
-      <% if (modifiedKeys != null && !modifiedKeys.isEmpty()) { %>
-      <% for (final Map.Entry<PwmLocaleBundle,Map<String,List<Locale>>> entry : modifiedKeys.entrySet()) { %>
-      <% final PwmLocaleBundle pwmLocaleBundle = entry.getKey(); %>
-      <% for (final Map.Entry<String,List<Locale>> innerEntry : entry.getValue().entrySet()) { %>
-      <% final String key = innerEntry.getKey(); %>
-      <table style="width: 800px">
-        <tr>
-          <td colspan="5"><%=pwmLocaleBundle.getTheClass().getSimpleName()%> - <%= key %></td>
-        </tr>
-        <% for (final Locale locale : innerEntry.getValue()) { %>
-        <tr>
-          <td class="key"><%=LocaleHelper.debugLabel(locale)%></td>
-          <td><%=LocaleHelper.getLocalizedMessage(locale,key,pwmConfig,pwmLocaleBundle.getTheClass())%></td>
-        </tr>
-        <% } %>
-      </table>
-      <br/>
-      <% } %>
-      <% } %>
-      <% } %>
+    </h1>
+    <div>
+      <%=PwmConstants.PWM_APP_NAME%> &nbsp; <%=PwmConstants.SERVLET_VERSION%>
     </div>
+    <div>
+      Current Time: <span class="timestamp"><%=JavaHelper.toIsoDate(new Date())%></span>
+      <br/>
+      <br/>
+      <br/>
+      <span class="footnote">Only settings modified from their default value are shown.</span>
+    </div>
+    <% for (final Map.Entry<String,String> record : outputData.entrySet()) { %>
+    <p>
+    <div><b><%=record.getKey()%></b></div>
+    <div><code class="pre-whitespace"><%=StringUtil.escapeHtml(record.getValue())%></code></div>
+    </p>
+    <% } %>
   </div>
-</div>
 <div class="push"></div>
 </div>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

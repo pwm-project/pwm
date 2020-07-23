@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.db;
@@ -59,9 +57,9 @@ class DatabaseUtil
             {
                 statement.close();
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
-                LOGGER.error( "unexpected error during close statement object " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error during close statement object " + e.getMessage(), e );
                 throw new DatabaseException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, "statement close failure: " + e.getMessage() ) );
             }
         }
@@ -75,9 +73,9 @@ class DatabaseUtil
             {
                 resultSet.close();
             }
-            catch ( SQLException e )
+            catch ( final SQLException e )
             {
-                LOGGER.error( "unexpected error during close resultSet object " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error during close resultSet object " + e.getMessage(), e );
                 throw new DatabaseException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, "resultset close failure: " + e.getMessage() ) );
             }
         }
@@ -90,9 +88,9 @@ class DatabaseUtil
         {
             connection.commit();
         }
-        catch ( SQLException e )
+        catch ( final SQLException e )
         {
-            LOGGER.warn( "database commit failed: " + e.getMessage() );
+            LOGGER.warn( () -> "database commit failed: " + e.getMessage() );
             throw new DatabaseException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, "commit failure: " + e.getMessage() ) );
         }
     }
@@ -118,13 +116,13 @@ class DatabaseUtil
         try
         {
             checkIfTableExists( connection, table );
-            LOGGER.trace( "table " + table + " appears to exist" );
+            LOGGER.trace( () -> "table " + table + " appears to exist" );
             tableExists = true;
         }
-        catch ( DatabaseException e )
+        catch ( final DatabaseException e )
         {
             // assume error was due to table missing;
-            LOGGER.trace( "error while checking for table: " + e.getMessage() + ", assuming due to table non-existence" );
+            LOGGER.trace( () -> "error while checking for table: " + e.getMessage() + ", assuming due to table non-existence" );
         }
 
         if ( !tableExists )
@@ -147,7 +145,7 @@ class DatabaseUtil
                     + "  " + DatabaseService.VALUE_COLUMN + " " + dbConfiguration.getColumnTypeValue() + " " + "\n"
                     + ")" + "\n";
 
-            LOGGER.trace( "attempting to execute the following sql statement:\n " + sqlString );
+            LOGGER.trace( () ->  "attempting to execute the following sql statement:\n " + sqlString );
 
             Statement statement = null;
             try
@@ -155,9 +153,9 @@ class DatabaseUtil
                 statement = connection.createStatement();
                 statement.execute( sqlString );
                 connection.commit();
-                LOGGER.debug( "created table " + table.toString() );
+                LOGGER.debug( () -> "created table " + table.toString() );
             }
-            catch ( SQLException ex )
+            catch ( final SQLException ex )
             {
                 final String errorMsg = "error creating new table " + table.toString() + ": " + ex.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
@@ -177,16 +175,16 @@ class DatabaseUtil
 
             Statement statement = null;
 
-            LOGGER.trace( "attempting to execute the following sql statement:\n " + sqlString );
+            LOGGER.trace( () -> "attempting to execute the following sql statement:\n " + sqlString );
 
             try
             {
                 statement = connection.createStatement();
                 statement.execute( sqlString );
                 connection.commit();
-                LOGGER.debug( "created index " + indexName );
+                LOGGER.debug( () -> "created index " + indexName );
             }
-            catch ( SQLException ex )
+            catch ( final SQLException ex )
             {
                 final String errorMsg = "error creating new index " + indexName + ": " + ex.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
@@ -196,7 +194,7 @@ class DatabaseUtil
                 }
                 else
                 {
-                    LOGGER.warn( errorInformation.toDebugStr() );
+                    LOGGER.warn( () -> errorInformation.toDebugStr() );
                 }
             }
             finally
@@ -220,7 +218,7 @@ class DatabaseUtil
         {
             resultSet = statement.executeQuery( sqlText );
         }
-        catch ( SQLException e )
+        catch ( final SQLException e )
         {
             rollbackTransaction( connection );
             throw DatabaseUtil.convertSqlException( debugInfo, e );
@@ -237,7 +235,7 @@ class DatabaseUtil
         {
             connection.rollback();
         }
-        catch ( SQLException e1 )
+        catch ( final SQLException e1 )
         {
             final String errorMsg = "error during transaction rollback: " + e1.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );

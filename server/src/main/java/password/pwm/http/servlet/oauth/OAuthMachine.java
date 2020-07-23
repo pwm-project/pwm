@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.oauth;
@@ -25,6 +23,7 @@ package password.pwm.http.servlet.oauth;
 import org.apache.http.HttpStatus;
 import password.pwm.AppProperty;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -37,10 +36,10 @@ import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.java.JavaHelper;
@@ -55,6 +54,7 @@ import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -65,14 +65,19 @@ public class OAuthMachine
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( OAuthMachine.class );
 
+    private final SessionLabel sessionLabel;
     private final OAuthSettings settings;
 
-    public OAuthMachine( final OAuthSettings settings )
+    public OAuthMachine(
+            final SessionLabel sessionLabel,
+            final OAuthSettings settings
+    )
     {
+        this.sessionLabel = sessionLabel;
         this.settings = settings;
     }
 
-    public static Optional<OAuthRequestState> readOAuthRequestState(
+    static Optional<OAuthRequestState> readOAuthRequestState(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException
@@ -85,7 +90,7 @@ public class OAuthMachine
             if ( oAuthState != null )
             {
                 final boolean sessionMatch = oAuthState.getSessionID().equals( pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey() );
-                LOGGER.trace( pwmRequest, "read state while parsing oauth consumer request with match=" + sessionMatch + ", " + JsonUtil.serialize( oAuthState ) );
+                LOGGER.trace( pwmRequest, () -> "read state while parsing oauth consumer request with match=" + sessionMatch + ", " + JsonUtil.serialize( oAuthState ) );
                 return Optional.of( new OAuthRequestState( oAuthState, sessionMatch ) );
             }
         }
@@ -103,7 +108,7 @@ public class OAuthMachine
             throws PwmUnrecoverableException, IOException
     {
 
-        LOGGER.trace( pwmRequest, "preparing to redirect user to oauth authentication service, setting nextUrl to " + nextUrl );
+        LOGGER.trace( sessionLabel, () -> "preparing to redirect user to oauth authentication service, setting nextUrl to " + nextUrl );
         pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress( true );
 
         final Configuration config = pwmRequest.getConfig();
@@ -116,6 +121,11 @@ public class OAuthMachine
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_RESPONSE_TYPE ), code );
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ), state );
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
+
+        if ( !StringUtil.isEmpty( settings.getScope() ) )
+        {
+            urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_SCOPE ), settings.getScope() );
+        }
 
         if ( userIdentity != null )
         {
@@ -132,9 +142,9 @@ public class OAuthMachine
         {
             pwmRequest.sendRedirect( redirectUrl );
             pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress( true );
-            LOGGER.debug( pwmRequest, "redirecting user to oauth id server, url: " + redirectUrl );
+            LOGGER.debug( sessionLabel, () -> "redirecting user to oauth id server, url: " + redirectUrl );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -159,29 +169,37 @@ public class OAuthMachine
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_GRANT_TYPE ), grantType );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), clientID );
+        requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_SECRET ), settings.getSecret().getStringValue() );
 
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "oauth code resolver", settings, requestUrl, requestParams );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "oauth code resolver", settings, requestUrl, requestParams, null );
 
-        final String resolveResponseBodyStr = restResults.getBody();
+        final OAuthResolveResults results = resolveResultsFromResponseBody( pwmRequest, restResults.getBody() );
 
-        final Map<String, String> resolveResultValues = JsonUtil.deserializeStringMap( resolveResponseBodyStr );
-        final OAuthResolveResults oAuthResolveResults = new OAuthResolveResults();
+        LOGGER.trace( sessionLabel, () -> "successfully received access token" );
 
-        oAuthResolveResults.setAccessToken( resolveResultValues.get( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ) ) );
-        oAuthResolveResults.setRefreshToken( resolveResultValues.get( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN ) ) );
-        oAuthResolveResults.setExpiresSeconds( 0 );
-        try
-        {
-            oAuthResolveResults.setExpiresSeconds( Integer.parseInt( resolveResultValues.get( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_EXPIRES ) ) ) );
-        }
-        catch ( Exception e )
-        {
-            LOGGER.warn( pwmRequest, "error parsing oauth expires value in code resolver response from server at " + requestUrl + ", error: " + e.getMessage() );
-        }
-
-        return oAuthResolveResults;
+        return results;
     }
 
+    private OAuthResolveResults resolveResultsFromResponseBody(
+            final PwmRequest pwmRequest,
+            final String resolveResponseBodyStr
+    )
+    {
+        final Configuration config = pwmRequest.getConfig();
+        final String oauthExpiresParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_EXPIRES );
+        final String oauthAccessTokenParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN );
+        final String refreshTokenParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN );
+
+        final long expireSeconds = JavaHelper.silentParseLong( readAttributeFromBodyMap( resolveResponseBodyStr, oauthExpiresParam ), 0 );
+        final String accessToken = readAttributeFromBodyMap( resolveResponseBodyStr, oauthAccessTokenParam );
+        final String refreshToken = readAttributeFromBodyMap( resolveResponseBodyStr, refreshTokenParam );
+
+        return OAuthResolveResults.builder()
+                .accessToken( accessToken )
+                .refreshToken( refreshToken  )
+                .expiresSeconds( expireSeconds )
+                .build();
+    }
 
     private OAuthResolveResults makeOAuthRefreshRequest(
             final PwmRequest pwmRequest,
@@ -197,43 +215,44 @@ public class OAuthMachine
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN ), refreshCode );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_GRANT_TYPE ), grantType );
 
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth refresh resolver", settings, requestUrl, requestParams );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth refresh resolver", settings, requestUrl, requestParams, null );
 
-        final String resolveResponseBodyStr = restResults.getBody();
-
-        final Map<String, String> resolveResultValues = JsonUtil.deserializeStringMap( resolveResponseBodyStr );
-        final OAuthResolveResults oAuthResolveResults = new OAuthResolveResults();
-
-        oAuthResolveResults.setAccessToken( resolveResultValues.get( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ) ) );
-        oAuthResolveResults.setRefreshToken( refreshCode );
-        oAuthResolveResults.setExpiresSeconds( 0 );
-        try
-        {
-            oAuthResolveResults.setExpiresSeconds( Integer.parseInt( resolveResultValues.get( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_EXPIRES ) ) ) );
-        }
-        catch ( Exception e )
-        {
-            LOGGER.warn( pwmRequest, "error parsing oauth expires value in resolve request: " + e.getMessage() );
-        }
-
-        return oAuthResolveResults;
+        return resolveResultsFromResponseBody( pwmRequest, restResults.getBody() );
     }
 
-    String makeOAuthGetAttributeRequest(
+    String makeOAuthGetUserInfoRequest(
             final PwmRequest pwmRequest,
             final String accessToken
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getConfig();
-        final String requestUrl = settings.getAttributesUrl();
-        final Map<String, String> requestParams = new HashMap<>();
-        requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
-        requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ATTRIBUTES ), settings.getDnAttributeName() );
+        final PwmHttpClientResponse restResults;
+        {
+            final Configuration config = pwmRequest.getConfig();
+            final String requestUrl = settings.getAttributesUrl();
+            final Map<String, String> requestParams = new HashMap<>();
+            requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
+            requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ATTRIBUTES ), settings.getDnAttributeName() );
+            restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken );
+        }
 
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth getattribute", settings, requestUrl, requestParams );
+        final String resultBody = restResults.getBody();
 
-        return restResults.getBody();
+        LOGGER.trace( sessionLabel, () -> "received attribute values from OAuth IdP for attributes: " );
+
+        final String oauthSuppliedUsername = readAttributeFromBodyMap( resultBody, settings.getDnAttributeName() );
+
+        if ( StringUtil.isEmpty( oauthSuppliedUsername ) )
+        {
+            final String msg = "OAuth server did not respond with an username value for configured attribute '" + settings.getDnAttributeName() + "'";
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, msg );
+            LOGGER.error( sessionLabel, errorInformation );
+            throw new PwmUnrecoverableException( errorInformation );
+        }
+
+        LOGGER.debug( sessionLabel, () -> "received user login id value from OAuth server: " + oauthSuppliedUsername );
+
+        return oauthSuppliedUsername;
     }
 
     private static PwmHttpClientResponse makeHttpRequest(
@@ -241,7 +260,8 @@ public class OAuthMachine
             final String debugText,
             final OAuthSettings settings,
             final String requestUrl,
-            final Map<String, String> requestParams
+            final Map<String, String> requestParams,
+            final String accessToken
     )
             throws PwmUnrecoverableException
     {
@@ -251,24 +271,38 @@ public class OAuthMachine
         final PwmHttpClientRequest pwmHttpClientRequest;
         {
             final Map<String, String> headers = new HashMap<>( );
-            headers.put( HttpHeader.Authorization.getHttpName(),
-                    new BasicAuthInfo( settings.getClientID(), settings.getSecret() ).toAuthHeader() );
-            headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValue() );
+            if ( StringUtil.isEmpty(  accessToken ) )
+            {
+                headers.put( HttpHeader.Authorization.getHttpName(),
+                        new BasicAuthInfo( settings.getClientID(), settings.getSecret() ).toAuthHeader() );
+            }
+            else
+            {
+                headers.put( HttpHeader.Authorization.getHttpName(),
+                        "Bearer " + accessToken );
+            }
+            headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValueWithEncoding() );
 
-            pwmHttpClientRequest = new PwmHttpClientRequest( HttpMethod.POST, requestUrl, requestBody, headers );
+            pwmHttpClientRequest = PwmHttpClientRequest.builder()
+                    .method( HttpMethod.POST )
+                    .url( requestUrl )
+                    .body( requestBody )
+                    .headers( headers )
+                    .build();
         }
 
         final PwmHttpClientResponse pwmHttpClientResponse;
         try
         {
             final PwmHttpClientConfiguration config = PwmHttpClientConfiguration.builder()
+                    .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
                     .certificates( JavaHelper.isEmpty( certs ) ? null : certs )
                     .maskBodyDebugOutput( true )
                     .build();
-            final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), config );
-            pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
+            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient( config );
+            pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, pwmRequest.getLabel() );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
             final String errorMsg = "error during " + debugText + " http request to oauth server, remote error: " + e.getErrorInformation().toDebugStr();
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg ) );
@@ -319,14 +353,14 @@ public class OAuthMachine
                             + pwmRequest.getContextPath()
                             + PwmServletDefinition.OAuthConsumer.servletUrl();
                 }
-                catch ( URISyntaxException e )
+                catch ( final URISyntaxException e )
                 {
                     throw new IllegalStateException( "unable to parse inbound request uri while generating oauth redirect: " + e.getMessage() );
                 }
             }
         }
 
-        LOGGER.trace( "calculated oauth self end point URI as '" + redirectUri + "' using method " + debugSource );
+        LOGGER.trace( pwmRequest, () -> "calculated oauth self end point URI as '" + redirectUri + "' using method " + debugSource );
         return redirectUri;
     }
 
@@ -348,7 +382,7 @@ public class OAuthMachine
             return false;
         }
 
-        LOGGER.trace( pwmRequest, "oauth access token has expired, attempting to refresh" );
+        LOGGER.trace( sessionLabel, () -> "oauth access token has expired, attempting to refresh" );
 
         try
         {
@@ -359,18 +393,18 @@ public class OAuthMachine
                 if ( resolveResults.getExpiresSeconds() > 0 )
                 {
                     final Instant accessTokenExpirationDate = Instant.ofEpochMilli( System.currentTimeMillis() + 1000 * resolveResults.getExpiresSeconds() );
-                    LOGGER.trace( pwmRequest, "noted oauth access token expiration at timestamp " + JavaHelper.toIsoDate( accessTokenExpirationDate ) );
+                    LOGGER.trace( sessionLabel, () -> "noted oauth access token expiration at timestamp " + JavaHelper.toIsoDate( accessTokenExpirationDate ) );
                     loginInfoBean.setOauthExp( accessTokenExpirationDate );
                     loginInfoBean.setOauthRefToken( resolveResults.getRefreshToken() );
                     return false;
                 }
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( pwmRequest, "error while processing oauth token refresh: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "error while processing oauth token refresh: " + e.getMessage() );
         }
-        LOGGER.error( pwmRequest, "unable to refresh oauth token for user, unauthenticated session" );
+        LOGGER.error( sessionLabel, () -> "unable to refresh oauth token for user, unauthenticated session" );
         pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
         return true;
     }
@@ -402,7 +436,7 @@ public class OAuthMachine
                 throw new IllegalStateException( "unexpected oAuthUseCase: " + oAuthUseCase );
         }
 
-        LOGGER.trace( pwmRequest, "issuing oauth state id="
+        LOGGER.trace( sessionLabel, () -> "issuing oauth state id="
                 + oAuthState.getStateID() + " with the next destination URL set to " + oAuthState.getNextUrl() );
 
 
@@ -429,7 +463,7 @@ public class OAuthMachine
 
         final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userIdentity );
         final String username = macroMachine.expandMacros( macroText );
-        LOGGER.debug( pwmRequest, "calculated username value for user as: " + username );
+        LOGGER.debug( sessionLabel, () -> "calculated username value for user as: " + username );
 
         final String grantUrl = settings.getLoginURL();
         final String signUrl = grantUrl.replace( "/grant", "/sign" );
@@ -446,13 +480,65 @@ public class OAuthMachine
             requestPayload.put( "data", JsonUtil.serializeCollection( listWrapper ) );
         }
 
-        LOGGER.debug( pwmRequest, "preparing to send username to OAuth /sign endpoint for future injection to /grant redirect" );
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth pre-inject username signing service", settings, signUrl, requestPayload );
+        LOGGER.debug( sessionLabel, () -> "preparing to send username to OAuth /sign endpoint for future injection to /grant redirect" );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth pre-inject username signing service", settings, signUrl, requestPayload, null );
 
         final String resultBody = restResults.getBody();
         final Map<String, String> resultBodyMap = JsonUtil.deserializeStringMap( resultBody );
         final String data = resultBodyMap.get( "data" );
-        LOGGER.debug( pwmRequest, "oauth /sign endpoint returned signed username data: " + data );
+        LOGGER.debug( sessionLabel, () -> "oauth /sign endpoint returned signed username data: " + data );
         return data;
+    }
+
+    public String readAttributeFromBodyMap(
+            final String bodyString,
+            final String attributeNames
+    )
+    {
+        try
+        {
+            final Map<String, Object> bodyMap = JsonUtil.deserializeMap( bodyString );
+            final List<String> attributeValues = StringUtil.splitAndTrim( attributeNames, "," );
+
+            for ( final String attribute : attributeValues )
+            {
+                final Object objValue = bodyMap.get( attribute );
+                if ( objValue != null )
+                {
+                    if ( objValue instanceof Double && JavaHelper.doubleContainsLongValue( (Double) objValue ) )
+                    {
+                        final long longValue = ( ( Double ) objValue ).longValue();
+                        return Long.toString( longValue );
+                    }
+
+                    final Object singleObjValue;
+                    if ( objValue instanceof Collection )
+                    {
+                        if ( ( ( Collection ) objValue ).isEmpty() )
+                        {
+                            return null;
+                        }
+
+                        singleObjValue = ( ( Collection ) objValue ).iterator().next();
+                    }
+                    else
+                    {
+                        singleObjValue = objValue;
+                    }
+
+                    final String strValue = singleObjValue.toString();
+                    if ( !StringUtil.isEmpty( strValue ) )
+                    {
+                        return strValue;
+                    }
+                }
+            }
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.debug( sessionLabel, () -> "unexpected error parsing json response: " + e.getMessage() );
+        }
+
+        return null;
     }
 }

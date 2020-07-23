@@ -3,28 +3,33 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2018 The PWM Project
+ ~ Copyright (c) 2009-2019 The PWM Project
  ~
- ~ This program is free software; you can redistribute it and/or modify
- ~ it under the terms of the GNU General Public License as published by
- ~ the Free Software Foundation; either version 2 of the License, or
- ~ (at your option) any later version.
+ ~ Licensed under the Apache License, Version 2.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
  ~
- ~ This program is distributed in the hope that it will be useful,
- ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
- ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- ~ GNU General Public License for more details.
+ ~     http://www.apache.org/licenses/LICENSE-2.0
  ~
- ~ You should have received a copy of the GNU General Public License
- ~ along with this program; if not, write to the Free Software
- ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
 --%>
+<%--
+       THIS FILE IS NOT INTENDED FOR END USER MODIFICATION.
+       See the README.TXT file in WEB-INF/jsp before making changes.
+--%>
+
 
 <%@ page import="password.pwm.http.filter.ConfigAccessFilter" %>
 <%@ page import="password.pwm.i18n.Config" %>
-<%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="password.pwm.http.servlet.configmanager.ConfigManagerServlet" %>
+<%@ page import="password.pwm.http.servlet.configmanager.ConfigManagerLoginServlet" %>
 
 <!DOCTYPE html>
 
@@ -54,7 +59,7 @@
             <h1>Configuration Password</h1>
             <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" class="inputfield passwordfield" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" <pwm:autofocus/>/>
             </div>
-            <% if (!pwmRequest.getConfig().isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) { %>
+            <% if ( (Boolean)pwmRequest.getAttribute( PwmRequestAttribute.ConfigEnablePersistentLogin ) ) { %>
             <div class="checkboxWrapper">
                 <label>
                     <input type="checkbox" id="remember" name="remember"/>
@@ -67,11 +72,12 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-sign-in"></span></pwm:if>
                     <pwm:display key="Button_Login"/>
                 </button>
+                <input type="hidden" name="processAction" value="<%=ConfigManagerLoginServlet.ConfigManagerLoginAction.login%>"/>
                 <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>" autofocus/>
             </div>
         </form>
-        <% final ConfigAccessFilter.ConfigLoginHistory configLoginHistory = (ConfigAccessFilter.ConfigLoginHistory)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ConfigLoginHistory); %>
+        <% final ConfigManagerLoginServlet.ConfigLoginHistory configLoginHistory = (ConfigManagerLoginServlet.ConfigLoginHistory)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ConfigLoginHistory); %>
         <% if (configLoginHistory != null && !configLoginHistory.successEvents().isEmpty()) { %>
         <h2 style="margin-top: 15px;">Previous Authentications</h2>
         <table>
@@ -80,7 +86,7 @@
                 <td class="title">Timestamp</td>
                 <td class="title">Network Address</td>
             </tr>
-            <% for (final ConfigAccessFilter.ConfigLoginEvent event : configLoginHistory.successEvents()) { %>
+            <% for (final ConfigManagerLoginServlet.ConfigLoginEvent event : configLoginHistory.successEvents()) { %>
             <tr>
                 <td><%=event.getUserIdentity()%></td>
                 <td><span  class="timestamp"><%=JavaHelper.toIsoDate(event.getDate())%></span></td>
@@ -98,7 +104,7 @@
                 <td class="title">Timestamp</td>
                 <td class="title">Network Address</td>
             </tr>
-            <% for (final ConfigAccessFilter.ConfigLoginEvent event : configLoginHistory.failedEvents()) { %>
+            <% for (final ConfigManagerLoginServlet.ConfigLoginEvent event : configLoginHistory.failedEvents()) { %>
             <tr>
                 <td><%=event.getUserIdentity()%></td>
                 <td><span  class="timestamp"><%=JavaHelper.toIsoDate(event.getDate())%></span></td>

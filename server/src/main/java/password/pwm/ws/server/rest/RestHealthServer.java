@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.ws.server.rest;
@@ -52,7 +50,7 @@ import java.util.Locale;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/health",
         }
 )
-@RestWebServer( webService = WebServiceUsage.Health, requireAuthentication = false )
+@RestWebServer( webService = WebServiceUsage.Health )
 public class RestHealthServer extends RestServlet
 {
     private static final String PARAM_IMMEDIATE_REFRESH = "refreshImmediate";
@@ -60,26 +58,19 @@ public class RestHealthServer extends RestServlet
     @Override
     public void preCheckRequest( final RestRequest restRequest ) throws PwmUnrecoverableException
     {
-        if ( !restRequest.getRestAuthentication().getUsages().contains( WebServiceUsage.Health ) )
-        {
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "public health service is not enabled" );
-        }
     }
 
     @RestMethodHandler( method = HttpMethod.GET, produces = HttpContentType.plain )
     private RestResultBean doPwmHealthPlainGet( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
-        final boolean requestImmediateParam = restRequest.readParameterAsBoolean( PARAM_IMMEDIATE_REFRESH );
-
         try
         {
-            final HealthMonitor.CheckTimeliness timeliness = determineDataTimeliness( requestImmediateParam );
-            final String resultString = restRequest.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus( timeliness ).toString() + "\n";
+            final String resultString = restRequest.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus().toString() + "\n";
             StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_HEALTH );
             return RestResultBean.withData( resultString );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
@@ -91,39 +82,25 @@ public class RestHealthServer extends RestServlet
     private RestResultBean doPwmHealthJsonGet( final RestRequest restRequest )
             throws PwmUnrecoverableException, IOException
     {
-        final boolean requestImmediateParam = restRequest.readParameterAsBoolean( PARAM_IMMEDIATE_REFRESH );
-
-        final HealthData jsonOutput = processGetHealthCheckData( restRequest.getPwmApplication(), restRequest.getLocale(), requestImmediateParam );
+        final HealthData jsonOutput = processGetHealthCheckData( restRequest.getPwmApplication(), restRequest.getLocale() );
         StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_HEALTH );
         return RestResultBean.withData( jsonOutput );
     }
 
-    private static HealthMonitor.CheckTimeliness determineDataTimeliness(
-            final boolean refreshImmediate
-    )
-            throws PwmUnrecoverableException
-    {
-        return refreshImmediate
-                ? HealthMonitor.CheckTimeliness.Immediate
-                : HealthMonitor.CheckTimeliness.CurrentButNotAncient;
-    }
-
     public static HealthData processGetHealthCheckData(
             final PwmApplication pwmApplication,
-            final Locale locale,
-            final boolean refreshImmediate
+            final Locale locale
     )
-            throws IOException, PwmUnrecoverableException
     {
         final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
-        final HealthMonitor.CheckTimeliness timeliness = determineDataTimeliness( refreshImmediate );
-        final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>( healthMonitor.getHealthRecords( timeliness ) );
+        final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>( healthMonitor.getHealthRecords() );
         final List<HealthRecord> healthRecordBeans = HealthRecord.fromHealthRecords( healthRecords, locale,
                 pwmApplication.getConfig() );
-        final HealthData healthData = new HealthData();
-        healthData.timestamp = healthMonitor.getLastHealthCheckTime();
-        healthData.overall = healthMonitor.getMostSevereHealthStatus( timeliness ).toString();
-        healthData.records = healthRecordBeans;
-        return healthData;
+        return HealthData.builder()
+                .timestamp( healthMonitor.getLastHealthCheckTime() )
+                .overall( healthMonitor.getMostSevereHealthStatus().toString() )
+                .records( healthRecordBeans )
+                .build();
+
     }
 }

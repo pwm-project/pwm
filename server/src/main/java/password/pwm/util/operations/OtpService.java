@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.operations;
@@ -42,7 +40,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
-import password.pwm.http.PwmSession;
+import password.pwm.http.PwmRequest;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
@@ -128,9 +126,9 @@ public class OtpService implements PwmService
                     throw new UnsupportedOperationException( "OTP type not supported: " + otpUserRecord.getType() );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( sessionLabel, "error checking otp secret: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "error checking otp secret: " + e.getMessage() );
         }
 
         if ( !otpCorrect && allowRecoveryCodes && otpUserRecord.getRecoveryCodes() != null && otpUserRecord.getRecoveryInfo() != null )
@@ -152,7 +150,7 @@ public class OtpService implements PwmService
                     {
                         pwmApplication.getOtpService().writeOTPUserConfiguration( null, userIdentity, otpUserRecord );
                     }
-                    catch ( ChaiUnavailableException e )
+                    catch ( final ChaiUnavailableException e )
                     {
                         throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, e.getMessage() ) );
                     }
@@ -217,7 +215,7 @@ public class OtpService implements PwmService
             final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
             if ( settings.getOtpStorageFormat().supportsHashedRecoveryCodes() )
             {
-                LOGGER.trace( sessionLabel, "hashing the recovery codes" );
+                LOGGER.trace( sessionLabel, () -> "hashing the recovery codes" );
                 final int saltCharLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.OTP_SALT_CHARLENGTH ) );
                 recoveryInfo.setSalt( pwmRandom.alphaNumericString( saltCharLength ) );
                 recoveryInfo.setHashCount( settings.getRecoveryHashIterations() );
@@ -225,7 +223,7 @@ public class OtpService implements PwmService
             }
             else
             {
-                LOGGER.trace( sessionLabel, "not hashing the recovery codes" );
+                LOGGER.trace( sessionLabel, () -> "not hashing the recovery codes" );
                 recoveryInfo.setSalt( null );
                 recoveryInfo.setHashCount( 0 );
                 recoveryInfo.setHashMethod( null );
@@ -276,7 +274,7 @@ public class OtpService implements PwmService
         {
             md = MessageDigest.getInstance( algorithm );
         }
-        catch ( NoSuchAlgorithmException e )
+        catch ( final NoSuchAlgorithmException e )
         {
             throw new IllegalStateException( "unable to load " + algorithm + " message digest algorithm: " + e.getMessage() );
         }
@@ -343,31 +341,34 @@ public class OtpService implements PwmService
                     {
                         otpConfig = operator.readOtpUserConfiguration( userIdentity, userGUID );
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
-                        LOGGER.error( sessionLabel, "unexpected error reading stored otp configuration from "
+                        LOGGER.error( sessionLabel, () -> "unexpected error reading stored otp configuration from "
                                 + location + " for user " + userIdentity + ", error: " + e.getMessage() );
                     }
                 }
                 else
                 {
-                    LOGGER.warn( sessionLabel, String.format( "storage location %s not implemented", location.toString() ) );
+                    LOGGER.warn( sessionLabel, () -> String.format( "storage location %s not implemented", location.toString() ) );
                 }
             }
         }
 
-        LOGGER.trace( sessionLabel, "readOTPUserConfiguration completed in "
-                + TimeDuration.fromCurrent( methodStartTime ).asCompactString()
-                + ( otpConfig == null
-                ? ", no otp record found"
-                : ", recordType=" + otpConfig.getType() + ", identifier=" + otpConfig.getIdentifier() + ", timestamp="
-                + JavaHelper.toIsoDate( otpConfig.getTimestamp() ) )
-        );
+        {
+            final OTPUserRecord finalOtpConfig = otpConfig;
+            LOGGER.trace( sessionLabel, () -> "readOTPUserConfiguration completed in "
+                    + TimeDuration.fromCurrent( methodStartTime ).asCompactString()
+                    + ( finalOtpConfig == null
+                    ? ", no otp record found"
+                    : ", recordType=" + finalOtpConfig.getType() + ", identifier=" + finalOtpConfig.getIdentifier() + ", timestamp="
+                    + JavaHelper.toIsoDate( finalOtpConfig.getTimestamp() ) )
+            );
+        }
         return otpConfig;
     }
 
     public void writeOTPUserConfiguration(
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final UserIdentity userIdentity,
             final OTPUserRecord otp
     )
@@ -379,7 +380,7 @@ public class OtpService implements PwmService
         final Configuration config = pwmApplication.getConfig();
         final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(
                 PwmSetting.OTP_SECRET_READ_PREFERENCE );
-        final String userGUID = readGuidIfNeeded( pwmApplication, pwmSession == null ? null : pwmSession.getLabel(), otpSecretStorageLocations, userIdentity );
+        final String userGUID = readGuidIfNeeded( pwmApplication, pwmRequest == null ? null : pwmRequest.getLabel(), otpSecretStorageLocations, userIdentity );
 
         final StringBuilder errorMsgs = new StringBuilder();
         if ( otpSecretStorageLocations != null )
@@ -392,18 +393,18 @@ public class OtpService implements PwmService
                 {
                     try
                     {
-                        operator.writeOtpUserConfiguration( pwmSession, userIdentity, userGUID, otp );
+                        operator.writeOtpUserConfiguration( pwmRequest, userIdentity, userGUID, otp );
                         successes++;
                     }
-                    catch ( PwmUnrecoverableException e )
+                    catch ( final PwmUnrecoverableException e )
                     {
-                        LOGGER.error( pwmSession, "error writing to " + otpSecretStorageLocation + ", error: " + e.getMessage() );
+                        LOGGER.error( pwmRequest, () -> "error writing to " + otpSecretStorageLocation + ", error: " + e.getMessage() );
                         errorMsgs.append( otpSecretStorageLocation ).append( " error: " ).append( e.getMessage() );
                     }
                 }
                 else
                 {
-                    LOGGER.warn( pwmSession, String.format( "storage location %s not implemented", otpSecretStorageLocation.toString() ) );
+                    LOGGER.warn( pwmRequest, () -> String.format( "storage location %s not implemented", otpSecretStorageLocation.toString() ) );
                 }
             }
         }
@@ -425,13 +426,13 @@ public class OtpService implements PwmService
     }
 
     public void clearOTPUserConfiguration(
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final UserIdentity userIdentity,
             final ChaiUser chaiUser
     )
             throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        LOGGER.trace( pwmSession, "beginning clear otp user configuration" );
+        LOGGER.trace( pwmRequest, () -> "beginning clear otp user configuration" );
 
         int attempts = 0;
         int successes = 0;
@@ -439,7 +440,7 @@ public class OtpService implements PwmService
         final Configuration config = pwmApplication.getConfig();
         final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations( PwmSetting.OTP_SECRET_READ_PREFERENCE );
 
-        final String userGUID = readGuidIfNeeded( pwmApplication, pwmSession.getLabel(), otpSecretStorageLocations, userIdentity );
+        final String userGUID = readGuidIfNeeded( pwmApplication, pwmRequest.getLabel(), otpSecretStorageLocations, userIdentity );
 
         final StringBuilder errorMsgs = new StringBuilder();
         if ( otpSecretStorageLocations != null )
@@ -452,18 +453,18 @@ public class OtpService implements PwmService
                 {
                     try
                     {
-                        operator.clearOtpUserConfiguration( pwmSession, userIdentity, chaiUser, userGUID );
+                        operator.clearOtpUserConfiguration( pwmRequest, userIdentity, chaiUser, userGUID );
                         successes++;
                     }
-                    catch ( PwmUnrecoverableException e )
+                    catch ( final PwmUnrecoverableException e )
                     {
-                        LOGGER.error( pwmSession, "error clearing " + otpSecretStorageLocation + ", error: " + e.getMessage() );
+                        LOGGER.error( pwmRequest, () -> "error clearing " + otpSecretStorageLocation + ", error: " + e.getMessage() );
                         errorMsgs.append( otpSecretStorageLocation ).append( " error: " ).append( e.getMessage() );
                     }
                 }
                 else
                 {
-                    LOGGER.warn( pwmSession, String.format( "Storage location %s not implemented", otpSecretStorageLocation.toString() ) );
+                    LOGGER.warn( pwmRequest, () -> String.format( "Storage location %s not implemented", otpSecretStorageLocation.toString() ) );
                 }
             }
         }

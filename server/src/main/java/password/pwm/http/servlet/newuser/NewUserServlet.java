@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.newuser;
@@ -44,6 +42,7 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.NewUserBean;
+import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
@@ -62,7 +61,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
 import password.pwm.ws.server.rest.RestFormSigningServer;
@@ -159,7 +158,7 @@ public class NewUserServlet extends ControlledPwmServlet
         if ( !StringUtil.isEmpty( signedFormData ) )
         {
             final Map<String, String> jsonForm = RestFormSigningServer.readSignedFormValue( pwmApplication, signedFormData );
-            LOGGER.trace( "detected signedForm parameter in request, will read and place in bean; keys=" + JsonUtil.serializeCollection( jsonForm.keySet() ) );
+            LOGGER.trace( () -> "detected signedForm parameter in request, will read and place in bean; keys=" + JsonUtil.serializeCollection( jsonForm.keySet() ) );
             newUserBean.setRemoteInputData( jsonForm );
         }
 
@@ -195,6 +194,8 @@ public class NewUserServlet extends ControlledPwmServlet
     protected void nextStep( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
+        TimeDuration.of( 8, TimeDuration.Unit.SECONDS ).pause();
+
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -213,12 +214,12 @@ public class NewUserServlet extends ControlledPwmServlet
             if ( visibleProfiles.size() == 1 )
             {
                 final String singleID = newUserProfileIDs.iterator().next();
-                LOGGER.trace( pwmRequest, "only one new user profile is defined, auto-selecting profile " + singleID );
+                LOGGER.trace( pwmRequest, () -> "only one new user profile is defined, auto-selecting profile " + singleID );
                 newUserBean.setProfileID( singleID );
             }
             else
             {
-                LOGGER.trace( pwmRequest, "new user profile not yet selected, redirecting to choice page" );
+                LOGGER.trace( pwmRequest, () -> "new user profile not yet selected, redirecting to choice page" );
                 pwmRequest.setAttribute( PwmRequestAttribute.NewUser_VisibleProfiles, visibleProfiles );
                 pwmRequest.forwardToJsp( JspUrl.NEW_USER_PROFILE_CHOICE );
                 return;
@@ -250,7 +251,7 @@ public class NewUserServlet extends ControlledPwmServlet
                 {
                     verifyForm( pwmRequest, newUserBean.getNewUserForm(), false );
                 }
-                catch ( PwmDataValidationException e )
+                catch ( final PwmDataValidationException e )
                 {
                     throw new PwmUnrecoverableException( e.getErrorInformation() );
                 }
@@ -272,7 +273,7 @@ public class NewUserServlet extends ControlledPwmServlet
             {
                 final MacroMachine macroMachine = NewUserUtils.createMacroMachineForNewUser(
                         pwmApplication,
-                        pwmRequest.getSessionLabel(),
+                        pwmRequest.getLabel(),
                         newUserBean.getNewUserForm(),
                         null
                 );
@@ -292,14 +293,14 @@ public class NewUserServlet extends ControlledPwmServlet
             newUserBean.setCreateStartTime( Instant.now() );
             forwardToWait( pwmRequest, newUserProfile );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
-            LOGGER.error( pwmRequest, "error during user creation: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error during user creation: " + e.getMessage() );
             if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_DELETE_ON_FAIL ) )
             {
                 NewUserUtils.deleteUserAccount( newUserDN, pwmRequest );
             }
-            LOGGER.error( pwmSession, e.getErrorInformation().toDebugStr() );
+            LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
             pwmRequest.respondWithError( e.getErrorInformation() );
         }
     }
@@ -334,7 +335,7 @@ public class NewUserServlet extends ControlledPwmServlet
                 final Collection<String> profileIDs = pwmRequest.getConfig().getNewUserProfiles().keySet();
                 if ( profileIDs.contains( requestedProfile ) )
                 {
-                    LOGGER.debug( pwmRequest, "detected profile on request uri: " + requestedProfile );
+                    LOGGER.debug( pwmRequest, () -> "detected profile on request uri: " + requestedProfile );
                     newUserBean.setProfileID( requestedProfile );
                     newUserBean.setUrlSpecifiedProfile( true );
                     pwmRequest.sendRedirect( PwmServletDefinition.NewUser );
@@ -343,7 +344,7 @@ public class NewUserServlet extends ControlledPwmServlet
                 else
                 {
                     final String errorMsg = "unknown requested new user profile";
-                    LOGGER.debug( pwmRequest, errorMsg + ": " + requestedProfile );
+                    LOGGER.debug( pwmRequest, () -> errorMsg + ": " + requestedProfile );
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE ) );
                 }
             }
@@ -382,10 +383,10 @@ public class NewUserServlet extends ControlledPwmServlet
             final RestResultBean restResultBean = RestResultBean.withData( jsonData );
             pwmRequest.outputJsonResult( restResultBean );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
-            LOGGER.debug( pwmRequest, "error while validating new user form: " + e.getMessage() );
+            LOGGER.debug( pwmRequest, () -> "error while validating new user form: " + e.getMessage() );
             pwmRequest.outputJsonResult( restResultBean );
         }
 
@@ -449,7 +450,6 @@ public class NewUserServlet extends ControlledPwmServlet
     private ProcessStatus handleEnterCodeRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
         final NewUserProfile newUserProfile = getNewUserProfile( pwmRequest );
         final String userEnteredCode = pwmRequest.readParameterAsString( PwmConstants.PARAM_TOKEN );
@@ -465,7 +465,7 @@ public class NewUserServlet extends ControlledPwmServlet
         try
         {
             tokenPayload = TokenUtil.checkEnteredCode(
-                    pwmRequest,
+                    pwmRequest.commonValues(),
                     userEnteredCode,
                     tokenDestinationItem,
                     null,
@@ -474,9 +474,9 @@ public class NewUserServlet extends ControlledPwmServlet
             );
 
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.debug( pwmRequest, "error while checking entered token: " );
+            LOGGER.debug( pwmRequest, () -> "error while checking entered token: " );
             errorInformation = e.getErrorInformation();
         }
 
@@ -502,9 +502,9 @@ public class NewUserServlet extends ControlledPwmServlet
                         newUserBean.getCompletedTokenFields().addAll( newUserTokenData.getCompletedTokenFields() );
                         newUserBean.setCurrentTokenField( newUserTokenData.getCurrentTokenField() );
                     }
-                    catch ( PwmUnrecoverableException | PwmOperationalException e )
+                    catch ( final PwmUnrecoverableException | PwmOperationalException e )
                     {
-                        LOGGER.error( pwmRequest, "while reading stored form data in token payload, form validation error occurred: " + e.getMessage() );
+                        LOGGER.error( pwmRequest, () -> "while reading stored form data in token payload, form validation error occurred: " + e.getMessage() );
                         errorInformation = e.getErrorInformation();
                     }
                 }
@@ -512,13 +512,13 @@ public class NewUserServlet extends ControlledPwmServlet
                 {
                     if ( newUserBean.getNewUserForm() == null || !newUserBean.getNewUserForm().isConsistentWith( newUserFormFromToken ) )
                     {
-                        LOGGER.debug( pwmRequest, "token value is valid, but form data does not match current session form data" );
+                        LOGGER.debug( pwmRequest, () -> "token value is valid, but form data does not match current session form data" );
                         final String errorMsg = "sms token does not match current session";
                         errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
                     }
                 }
             }
-            catch ( PwmOperationalException e )
+            catch ( final PwmOperationalException e )
             {
                 errorInformation = e.getErrorInformation();
             }
@@ -526,12 +526,12 @@ public class NewUserServlet extends ControlledPwmServlet
 
         if ( errorInformation != null )
         {
-            LOGGER.debug( pwmSession, errorInformation.toDebugStr() );
+            LOGGER.debug( pwmRequest, errorInformation );
             setLastError( pwmRequest, errorInformation );
             return ProcessStatus.Continue;
         }
 
-        LOGGER.debug( pwmRequest, "marking token as passed " + JsonUtil.serialize( tokenDestinationItem ) );
+        LOGGER.debug( pwmRequest, () -> "marking token as passed " + JsonUtil.serialize( tokenDestinationItem ) );
         newUserBean.getCompletedTokenFields().add( newUserBean.getCurrentTokenField() );
         newUserBean.setTokenSent( false );
         newUserBean.setCurrentTokenField( null );
@@ -596,7 +596,7 @@ public class NewUserServlet extends ControlledPwmServlet
             newUserBean.setNewUserForm( newUserForm );
             newUserBean.setFormPassed( true );
         }
-        catch ( PwmOperationalException e )
+        catch ( final PwmOperationalException e )
         {
             setLastError( pwmRequest, e.getErrorInformation() );
             forwardToFormPage( pwmRequest, newUserBean );
@@ -646,7 +646,7 @@ public class NewUserServlet extends ControlledPwmServlet
 
         final RestResultBean restResultBean = RestResultBean.withData( outputMap );
 
-        LOGGER.trace( pwmRequest, "returning result for restCheckProgress: " + JsonUtil.serialize( restResultBean ) );
+        LOGGER.trace( pwmRequest, () -> "returning result for restCheckProgress: " + JsonUtil.serialize( restResultBean ) );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -657,7 +657,7 @@ public class NewUserServlet extends ControlledPwmServlet
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        LOGGER.debug( pwmRequest, "user accepted new-user agreement" );
+        LOGGER.debug( pwmRequest, () -> "user accepted new-user agreement" );
 
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
         newUserBean.setAgreementPassed( true );
@@ -705,10 +705,29 @@ public class NewUserServlet extends ControlledPwmServlet
         // -- process complete -- \\
         pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, NewUserBean.class );
 
+        if ( pwmRequest.isAuthenticated() )
+        {
+            final PwmSession pwmSession = pwmRequest.getPwmSession();
+
+            if ( AuthenticationFilter.forceRequiredRedirects( pwmRequest ) == ProcessStatus.Halt )
+            {
+                return ProcessStatus.Halt;
+            }
+
+            // log the user out if the current profiles states so
+            final boolean forceLogoutOnChange = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_LOGOUT_AFTER_CREATION );
+            if ( forceLogoutOnChange )
+            {
+                LOGGER.trace( pwmRequest, () -> "logging out user; account created" );
+                pwmRequest.sendRedirect( PwmServletDefinition.Logout );
+                return ProcessStatus.Halt;
+            }
+        }
+
         final String configuredRedirectUrl = newUserProfile.readSettingAsString( PwmSetting.NEWUSER_REDIRECT_URL );
         if ( !StringUtil.isEmpty( configuredRedirectUrl ) && StringUtil.isEmpty( pwmRequest.getPwmSession().getSessionStateBean().getForwardURL() ) )
         {
-            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmRequest.getPwmApplication() );
+            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
             final String macroedUrl = macroMachine.expandMacros( configuredRedirectUrl );
             pwmRequest.sendRedirect( macroedUrl );
             return ProcessStatus.Halt;

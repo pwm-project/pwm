@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.intruder;
@@ -53,7 +51,8 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.DataStore;
 import password.pwm.util.DataStoreFactory;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.PwmScheduler;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.java.ClosableIterator;
@@ -105,7 +104,6 @@ public class IntruderManager implements PwmService
     }
 
     @Override
-    @SuppressWarnings( "checkstyle:MethodLength" )
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
@@ -115,7 +113,7 @@ public class IntruderManager implements PwmService
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "unable to start IntruderManager, LocalDB unavailable" );
-            LOGGER.error( errorInformation.toDebugStr() );
+            LOGGER.error( () -> errorInformation.toDebugStr() );
             startupError = errorInformation;
             status = STATUS.CLOSED;
             return;
@@ -123,7 +121,7 @@ public class IntruderManager implements PwmService
         if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.INTRUDER_ENABLE ) )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "intruder module not enabled" );
-            LOGGER.debug( errorInformation.toDebugStr() );
+            LOGGER.debug( () -> errorInformation.toDebugStr() );
             status = STATUS.CLOSED;
             return;
         }
@@ -165,13 +163,13 @@ public class IntruderManager implements PwmService
                     status = STATUS.CLOSED;
                     return;
             }
-            LOGGER.info( debugMsg );
+            LOGGER.info( () -> debugMsg );
             serviceInfo = new ServiceInfoBean( Collections.singletonList( storageMethodUsed ) );
         }
         final RecordStore recordStore;
         {
             recordStore = new DataStoreRecordStore( dataStore, this );
-            final String threadName = JavaHelper.makeThreadName( pwmApplication, this.getClass() ) + " timer";
+            final String threadName = PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + " timer";
             timer = new Timer( threadName, true );
             final long maxRecordAge = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_RETENTION_TIME_MS ) );
             final long cleanerRunFrequency = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_CLEANUP_FREQUENCY_MS ) );
@@ -184,9 +182,9 @@ public class IntruderManager implements PwmService
                     {
                         recordStore.cleanup( TimeDuration.of( maxRecordAge, TimeDuration.Unit.MILLISECONDS ) );
                     }
-                    catch ( Exception e )
+                    catch ( final Exception e )
                     {
-                        LOGGER.error( "error cleaning recordStore: " + e.getMessage(), e );
+                        LOGGER.error( () -> "error cleaning recordStore: " + e.getMessage(), e );
                     }
                 }
             }, 1000, cleanerRunFrequency );
@@ -194,71 +192,76 @@ public class IntruderManager implements PwmService
 
         try
         {
-            {
-                final IntruderSettings settings = new IntruderSettings();
-                settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_USER_MAX_ATTEMPTS ) );
-                settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_USER_RESET_TIME ), TimeDuration.Unit.SECONDS ) );
-                settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_USER_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
-                if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
-                {
-                    LOGGER.info( "intruder user checking will remain disabled due to configuration settings" );
-                }
-                else
-                {
-                    recordManagers.put( RecordType.USERNAME, new RecordManagerImpl( RecordType.USERNAME, recordStore, settings ) );
-                    recordManagers.put( RecordType.USER_ID, new RecordManagerImpl( RecordType.USER_ID, recordStore, settings ) );
-                }
-            }
-            {
-                final IntruderSettings settings = new IntruderSettings();
-                settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_MAX_ATTEMPTS ) );
-                settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_RESET_TIME ), TimeDuration.Unit.MILLISECONDS ) );
-                settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_CHECK_TIME ), TimeDuration.Unit.MILLISECONDS ) );
-                if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
-                {
-                    LOGGER.info( "intruder user checking will remain disabled due to configuration settings" );
-                }
-                else
-                {
-                    recordManagers.put( RecordType.ATTRIBUTE, new RecordManagerImpl( RecordType.ATTRIBUTE, recordStore, settings ) );
-                }
-            }
-            {
-                final IntruderSettings settings = new IntruderSettings();
-                settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_MAX_ATTEMPTS ) );
-                settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_RESET_TIME ), TimeDuration.Unit.SECONDS ) );
-                settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
-                if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
-                {
-                    LOGGER.info( "intruder user checking will remain disabled due to configuration settings" );
-                }
-                else
-                {
-                    recordManagers.put( RecordType.TOKEN_DEST, new RecordManagerImpl( RecordType.TOKEN_DEST, recordStore, settings ) );
-                }
-            }
-            {
-                final IntruderSettings settings = new IntruderSettings();
-                settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_MAX_ATTEMPTS ) );
-                settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_RESET_TIME ), TimeDuration.Unit.SECONDS ) );
-                settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
-                if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
-                {
-                    LOGGER.info( "intruder address checking will remain disabled due to configuration settings" );
-                }
-                else
-                {
-                    recordManagers.put( RecordType.ADDRESS, new RecordManagerImpl( RecordType.ADDRESS, recordStore, settings ) );
-                }
-            }
+            initializeRecordManagers( config, recordStore );
             status = STATUS.OPEN;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "unexpected error starting intruder manager: " + e.getMessage() );
-            LOGGER.error( errorInformation.toDebugStr() );
+            LOGGER.error( () -> errorInformation.toDebugStr() );
             startupError = errorInformation;
             close();
+        }
+    }
+
+    private void initializeRecordManagers( final Configuration config, final RecordStore recordStore )
+    {
+        {
+            final IntruderSettings settings = new IntruderSettings();
+            settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_USER_MAX_ATTEMPTS ) );
+            settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_USER_RESET_TIME ), TimeDuration.Unit.SECONDS ) );
+            settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_USER_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
+            if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
+            {
+                LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
+            }
+            else
+            {
+                recordManagers.put( RecordType.USERNAME, new RecordManagerImpl( RecordType.USERNAME, recordStore, settings ) );
+                recordManagers.put( RecordType.USER_ID, new RecordManagerImpl( RecordType.USER_ID, recordStore, settings ) );
+            }
+        }
+        {
+            final IntruderSettings settings = new IntruderSettings();
+            settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_MAX_ATTEMPTS ) );
+            settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_RESET_TIME ), TimeDuration.Unit.MILLISECONDS ) );
+            settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_CHECK_TIME ), TimeDuration.Unit.MILLISECONDS ) );
+            if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
+            {
+                LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
+            }
+            else
+            {
+                recordManagers.put( RecordType.ATTRIBUTE, new RecordManagerImpl( RecordType.ATTRIBUTE, recordStore, settings ) );
+            }
+        }
+        {
+            final IntruderSettings settings = new IntruderSettings();
+            settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_MAX_ATTEMPTS ) );
+            settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_RESET_TIME ), TimeDuration.Unit.SECONDS ) );
+            settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
+            if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
+            {
+                LOGGER.info( () -> "intruder user checking will remain disabled due to configuration settings" );
+            }
+            else
+            {
+                recordManagers.put( RecordType.TOKEN_DEST, new RecordManagerImpl( RecordType.TOKEN_DEST, recordStore, settings ) );
+            }
+        }
+        {
+            final IntruderSettings settings = new IntruderSettings();
+            settings.setCheckCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_MAX_ATTEMPTS ) );
+            settings.setResetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_RESET_TIME ), TimeDuration.Unit.SECONDS ) );
+            settings.setCheckDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_CHECK_TIME ), TimeDuration.Unit.SECONDS ) );
+            if ( settings.getCheckCount() == 0 || settings.getCheckDuration().asMillis() == 0 || settings.getResetDuration().asMillis() == 0 )
+            {
+                LOGGER.info( () -> "intruder address checking will remain disabled due to configuration settings" );
+            }
+            else
+            {
+                recordManagers.put( RecordType.ADDRESS, new RecordManagerImpl( RecordType.ADDRESS, recordStore, settings ) );
+            }
         }
     }
 
@@ -364,13 +367,13 @@ public class IntruderManager implements PwmService
                 final InetAddress inetAddress = InetAddress.getByName( subject );
                 if ( inetAddress.isAnyLocalAddress() || inetAddress.isLoopbackAddress() || inetAddress.isLinkLocalAddress() )
                 {
-                    LOGGER.debug( "disregarding local address intruder attempt from: " + subject );
+                    LOGGER.debug( () -> "disregarding local address intruder attempt from: " + subject );
                     return;
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
-                LOGGER.error( "error examining address: " + subject );
+                LOGGER.error( () -> "error examining address: " + subject );
             }
         }
 
@@ -402,7 +405,7 @@ public class IntruderManager implements PwmService
         {
             check( recordType, subject );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             if ( !manager.isAlerted( subject ) )
             {
@@ -444,7 +447,6 @@ public class IntruderManager implements PwmService
         delayPenalty( manager.readIntruderRecord( subject ), sessionLabel == null ? null : sessionLabel );
     }
 
-
     private void delayPenalty( final IntruderRecord intruderRecord, final SessionLabel sessionLabel )
     {
         int points = 0;
@@ -461,8 +463,13 @@ public class IntruderManager implements PwmService
             delayPenalty = delayPenalty > Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS ) )
                     ? Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS ) )
                     : delayPenalty;
-            LOGGER.trace( sessionLabel, "delaying response " + delayPenalty + "ms due to intruder record: " + JsonUtil.serialize( intruderRecord ) );
-            JavaHelper.pause( delayPenalty );
+
+            {
+                final long finalDelay = delayPenalty;
+                LOGGER.trace( sessionLabel, () -> "delaying response " + finalDelay + "ms due to intruder record: " + JsonUtil.serialize( intruderRecord ) );
+            }
+
+            TimeDuration.of( delayPenalty, TimeDuration.Unit.MILLISECONDS ).pause();
         }
     }
 
@@ -480,9 +487,9 @@ public class IntruderManager implements PwmService
                 final UserIdentity identity = UserIdentity.fromDelimitedKey( intruderRecord.getSubject() );
                 sendIntruderNoticeEmail( pwmApplication, sessionLabel, identity );
             }
-            catch ( PwmUnrecoverableException e )
+            catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "unable to send intruder mail, can't read userDN/ldapProfile from stored record: " + e.getMessage() );
+                LOGGER.error( () -> "unable to send intruder mail, can't read userDN/ldapProfile from stored record: " + e.getMessage() );
             }
         }
     }
@@ -511,7 +518,7 @@ public class IntruderManager implements PwmService
                         check( recordType, intruderRecord.getSubject() );
                         rowData.put( "status", "watching" );
                     }
-                    catch ( PwmException e )
+                    catch ( final PwmException e )
                     {
                         rowData.put( "status", "locked" );
                     }
@@ -540,14 +547,14 @@ public class IntruderManager implements PwmService
         {
         }
 
-        public void markAddressAndSession( final PwmSession pwmSession )
+        public void markAddressAndSession( final PwmRequest pwmRequest )
                 throws PwmUnrecoverableException
         {
-            if ( pwmSession != null )
+            if ( pwmRequest != null )
             {
-                final String subject = pwmSession.getSessionStateBean().getSrcAddress();
-                pwmSession.getSessionStateBean().incrementIntruderAttempts();
-                mark( RecordType.ADDRESS, subject, pwmSession.getLabel() );
+                final String subject = pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress();
+                pwmRequest.getPwmSession().getSessionStateBean().incrementIntruderAttempts();
+                mark( RecordType.ADDRESS, subject, pwmRequest.getLabel() );
             }
         }
 
@@ -559,7 +566,7 @@ public class IntruderManager implements PwmService
                 final String subject = pwmSession.getSessionStateBean().getSrcAddress();
                 check( RecordType.ADDRESS, subject );
                 final int maxAllowedAttempts = ( int ) pwmApplication.getConfig().readSettingAsLong( PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS );
-                if ( maxAllowedAttempts != 0 && pwmSession.getSessionStateBean().getIntruderAttempts() > maxAllowedAttempts )
+                if ( maxAllowedAttempts != 0 && pwmSession.getSessionStateBean().getIntruderAttempts().get() > maxAllowedAttempts )
                 {
                     throw new PwmUnrecoverableException( PwmError.ERROR_INTRUDER_SESSION );
                 }
@@ -574,6 +581,7 @@ public class IntruderManager implements PwmService
                 final String subject = pwmSession.getSessionStateBean().getSrcAddress();
                 clear( RecordType.ADDRESS, subject );
                 pwmSession.getSessionStateBean().clearIntruderAttempts();
+                pwmSession.getSessionStateBean().setSessionIdRecycleNeeded( true );
             }
         }
 
@@ -587,13 +595,13 @@ public class IntruderManager implements PwmService
             }
         }
 
-        public void markUserIdentity( final UserIdentity userIdentity, final PwmSession pwmSession )
+        public void markUserIdentity( final UserIdentity userIdentity, final PwmRequest pwmRequest )
                 throws PwmUnrecoverableException
         {
             if ( userIdentity != null )
             {
                 final String subject = userIdentity.toDelimitedKey();
-                mark( RecordType.USER_ID, subject, pwmSession.getLabel() );
+                mark( RecordType.USER_ID, subject, pwmRequest.getLabel() );
             }
         }
 
@@ -617,13 +625,13 @@ public class IntruderManager implements PwmService
             }
         }
 
-        public void markAttributes( final Map<FormConfiguration, String> formValues, final PwmSession pwmSession )
+        public void markAttributes( final Map<FormConfiguration, String> formValues, final SessionLabel sessionLabel )
                 throws PwmUnrecoverableException
         {
             final List<String> subjects = attributeFormToList( formValues );
             for ( final String subject : subjects )
             {
-                mark( RecordType.ATTRIBUTE, subject, pwmSession.getLabel() );
+                mark( RecordType.ATTRIBUTE, subject, sessionLabel );
             }
         }
 
@@ -699,9 +707,9 @@ public class IntruderManager implements PwmService
 
             pwmApplication.getEmailQueue().submitEmail( configuredEmailSetting, userInfo, macroMachine );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage() );
+            LOGGER.error( () -> "error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage() );
         }
 
     }

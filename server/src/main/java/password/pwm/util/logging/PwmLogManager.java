@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.logging;
@@ -35,6 +33,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -95,12 +94,12 @@ public class PwmLogManager
                     throw new Exception( "file not found: " + log4jConfigFile.getAbsolutePath() );
                 }
                 DOMConfigurator.configure( log4jConfigFile.getAbsolutePath() );
-                LOGGER.debug( "successfully initialized log4j using file " + log4jConfigFile.getAbsolutePath() );
+                LOGGER.debug( () -> "successfully initialized log4j using file " + log4jConfigFile.getAbsolutePath() );
                 return;
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
-                LOGGER.error( "error loading log4jconfig file '" + log4jConfigFile + "' error: " + e.getMessage() );
+                LOGGER.error( () -> "error loading log4jconfig file '" + log4jConfigFile + "' error: " + e.getMessage() );
             }
         }
 
@@ -112,6 +111,20 @@ public class PwmLogManager
 
         // disable jersey warnings.
         java.util.logging.Logger.getLogger( "org.glassfish.jersey" ).setLevel( java.util.logging.Level.SEVERE );
+    }
+
+
+    public static void preInitConsoleLogLevel( final String pwmLogLevel )
+    {
+        try
+        {
+            initConsoleLogger( new Configuration( StoredConfigurationFactory.newConfig() ), pwmLogLevel );
+        }
+        catch ( final Exception e )
+        {
+            final String msg = "error pre-initializing logger: " + e.getMessage();
+            System.err.println( msg );
+        }
     }
 
     private static void initConsoleLogger(
@@ -135,11 +148,11 @@ public class PwmLogManager
                     logger.addAppender( consoleAppender );
                 }
             }
-            LOGGER.debug( "successfully initialized default console log4j config at log level " + level.toString() );
+            LOGGER.debug( () -> "successfully initialized default console log4j config at log level " + level.toString() );
         }
         else
         {
-            LOGGER.debug( "skipping stdout log4j initialization due to blank setting for log level" );
+            LOGGER.debug( () -> "skipping stdout log4j initialization due to blank setting for log level" );
         }
     }
 
@@ -163,7 +176,7 @@ public class PwmLogManager
                 {
                     if ( logDirectory.mkdir() )
                     {
-                        LOGGER.info( "created directory " + logDirectory.getAbsoluteFile() );
+                        LOGGER.info( () -> "created directory " + logDirectory.getAbsoluteFile() );
                     }
                     else
                     {
@@ -175,6 +188,7 @@ public class PwmLogManager
                 final RollingFileAppender fileAppender = new RollingFileAppender( patternLayout, fileName, true );
                 final Level level = Level.toLevel( fileLogLevel );
                 fileAppender.setThreshold( level );
+                fileAppender.setEncoding( PwmConstants.DEFAULT_CHARSET.name() );
                 fileAppender.setMaxBackupIndex( Integer.parseInt( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_ROLLOVER ) ) );
                 fileAppender.setMaxFileSize( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_SIZE ) );
 
@@ -191,11 +205,11 @@ public class PwmLogManager
                         //}
                     }
                 }
-                LOGGER.debug( "successfully initialized default file log4j config at log level " + level.toString() );
+                LOGGER.debug( () -> "successfully initialized default file log4j config at log level " + level.toString() );
             }
-            catch ( IOException e )
+            catch ( final IOException e )
             {
-                LOGGER.debug( "error initializing RollingFileAppender: " + e.getMessage() );
+                LOGGER.debug( () -> "error initializing RollingFileAppender: " + e.getMessage() );
             }
         }
     }
@@ -206,7 +220,7 @@ public class PwmLogManager
 
         if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
-            LOGGER.trace( "skipping initialization of LocalDBLogger due to read-only mode" );
+            LOGGER.trace( () -> "skipping initialization of LocalDBLogger due to read-only mode" );
             return null;
         }
 
@@ -221,9 +235,9 @@ public class PwmLogManager
                 PwmLogger.setLocalDBLogger( localDBLogLevel, localDBLogger );
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.warn( "unable to initialize localDBLogger: " + e.getMessage() );
+            LOGGER.warn( () -> "unable to initialize localDBLogger: " + e.getMessage() );
             return null;
         }
 
@@ -242,9 +256,9 @@ public class PwmLogManager
                 }
             }
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.warn( "unable to initialize localDBLogger/extraAppender: " + e.getMessage() );
+            LOGGER.warn( () -> "unable to initialize localDBLogger/extraAppender: " + e.getMessage() );
         }
 
         return localDBLogger;
@@ -260,7 +274,7 @@ public class PwmLogManager
             final LocalDBLoggerSettings settings = LocalDBLoggerSettings.fromConfiguration( pwmApplication.getConfig() );
             return new LocalDBLogger( pwmApplication, pwmDB, settings );
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
             //nothing to do;
         }

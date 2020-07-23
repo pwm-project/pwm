@@ -46,7 +46,7 @@ Official project page is at [https://github.com/pwm-project/pwm/](https://github
   * Microsoft Active Directory
   * OpenLDAP
 
-[NetIQ SSPR](https://www.netiq.com/products/self-service-password-reset/) is a commercial, supported self service password reset product based on PWM.
+[NetIQ Self Service Password Reset](https://www.microfocus.com/en-us/products/netiq-self-service-password-reset/overview) is a commercial, supported self service password reset product based on PWM.
 
 # Build Information
 
@@ -71,38 +71,20 @@ A docker image is created in `docker/target` as jib-image.tar.  You can import t
 `docker load --input=jib-image.tar`
 
 Create docker container and run using:
+
 `docker run -d --name <container name> -p 8443:8443 pwm/pwm-webapp`
 
 This will expose the https port to 8443.  If you want the configuration to persist to you can also exposed configuration volume of `/config` using the docker `-v` option during the container
 creation and map it to a directory on the docker host or use a docker volume container.  
 The PWM docker container will place all of it's configuration and runtime data in the `/config` volume.
 
+# PWM Source Code License Update 2019
 
-# PWM Source Code License Update Plan for 2019
-
-* Current License: GPL v2.0
+* Previous License: GPL v2.0
 * New License: Apache 2.0
-* Notice Date: October 1, 2018
-* Update Date: February 1, 2019.
+* Update Date: June 17, 2019
 
-The existing project is licensed using GPL v2.0 License 
-(https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).  On or about the update date, 
-the codebase will be updated as Apache 2.0 License (https://www.apache.org/licenses/LICENSE-2.0).  
-This change is being made to allow commercial organizations a more friendly license structure.  
-
-This will not change the nature or availability of the PWM Project.  The development and open-source
-nature of PWM will continue as before.   Existing, published PWM source code will continue to be 
-available under the GPL v2.0 License, however all new development after the license date will only
-be published using the new license type.
-
-At the time of the license update, the existing source code will be branched and the code source
-will be archived and published under the existing GPL v2.0 license terms in perpetuity.  
-
-Process:
-* This notice is posted publicly
-* Known contributors are sent this notice using last known address
-* Any objections or concerns by contributors will be processed as appropriate
-* On or about the update date:
-  * The existing code is branched and the GPL version will remain available
-  * License headers and notices will be updated to the new license type
-  * New development and contributions will be done under the new license type
+This project is licensed using Apache 2.0 License (https://www.apache.org/licenses/LICENSE-2.0).  Previous versions 
+of this source code were licensed under GPL v2.0 License (https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
+New submissions to this code base are made under the Apache 2.0 License.  The GPL branch of the source code contains the 
+previously licensed GPL v2.0 code.

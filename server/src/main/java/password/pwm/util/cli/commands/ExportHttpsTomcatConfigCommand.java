@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.cli.commands;
@@ -27,10 +25,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TLSVersion;
-import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.cli.CliParameters;
-import password.pwm.util.java.StringUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,7 +36,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 
 public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
@@ -63,7 +57,7 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
                     fileOutputStream
             );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             out( "error during tomcat config file export: " + e.getMessage() );
         }
@@ -109,30 +103,6 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
         return cliParameters;
     }
 
-    /**
-     * Invoked (via reflection) by tomcatOneJar class in Onejar module.
-     * @param applicationPath application path containing configuration file.
-     * @return Properties with tomcat connector parameters.
-     * @throws PwmUnrecoverableException if problem loading config
-     */
-    public static Properties readAsProperties( final String applicationPath )
-            throws PwmUnrecoverableException
-    {
-        final File configFile = new File( applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
-        final ConfigurationReader reader = new ConfigurationReader( configFile );
-        final Configuration configuration = reader.getConfiguration();
-        final String sslProtocolSettingValue = TomcatConfigWriter.getTlsProtocolsValue( configuration );
-        final Properties newProps = new Properties();
-        newProps.setProperty( "sslEnabledProtocols",  sslProtocolSettingValue );
-        final String ciphers = configuration.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
-        if ( !StringUtil.isEmpty( ciphers ) )
-        {
-            newProps.setProperty( "ciphers", ciphers );
-        }
-        return newProps;
-    }
-
-
     public static class TomcatConfigWriter
     {
 
@@ -153,14 +123,14 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
             outputFile.write( fileContents.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
 
-        private static String getTlsProtocolsValue( final Configuration configuration )
+        public static String getTlsProtocolsValue( final Configuration configuration )
         {
             final Set<TLSVersion> tlsVersions = configuration.readSettingAsOptionList( PwmSetting.HTTPS_PROTOCOLS, TLSVersion.class );
             final StringBuilder output = new StringBuilder();
             for ( final Iterator<TLSVersion> versionIterator = tlsVersions.iterator(); versionIterator.hasNext(); )
             {
                 final TLSVersion tlsVersion = versionIterator.next();
-                output.append( tlsVersion.getTomcatValueName() );
+                output.append( "+" ).append( tlsVersion.getTomcatValueName() );
                 if ( versionIterator.hasNext() )
                 {
                     output.append( ", " );

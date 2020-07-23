@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.ws.server.rest;
@@ -36,10 +34,10 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
-import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
@@ -58,7 +56,7 @@ import java.util.List;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/randompassword",
         }
 )
-@RestWebServer( webService = WebServiceUsage.RandomPassword, requireAuthentication = false )
+@RestWebServer( webService = WebServiceUsage.RandomPassword )
 public class RestRandomPasswordServer extends RestServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestRandomPasswordServer.class );
@@ -95,7 +93,7 @@ public class RestRandomPasswordServer extends RestServlet
              && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
         {
             LOGGER.error( restRequest.getSessionLabel(),
-              "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
+                    () -> "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
             final String errorMessage = "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified.";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_PARAMETER_CONFLICT, errorMessage );
             return RestResultBean.fromError( restRequest, errorInformation );
@@ -115,12 +113,12 @@ public class RestRandomPasswordServer extends RestServlet
             final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
             return restResultBean;
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
-            LOGGER.error( restRequest.getSessionLabel(), "error executing rest-json random password request: " + e.getMessage(), e );
+            LOGGER.error( restRequest.getSessionLabel(), () -> "error executing rest-json random password request: " + e.getMessage(), e );
             return RestResultBean.fromError( restRequest, e.getErrorInformation() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
@@ -138,7 +136,7 @@ public class RestRandomPasswordServer extends RestServlet
              && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
         {
             LOGGER.error( restRequest.getSessionLabel(),
-              "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
+                    () -> "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
             final String errorMessage = "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified.";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_PARAMETER_CONFLICT, errorMessage );
             return RestResultBean.fromError( restRequest, errorInformation );
@@ -157,9 +155,9 @@ public class RestRandomPasswordServer extends RestServlet
             final JsonOutput jsonOutput = doOperation( restRequest, jsonInput );
             return RestResultBean.withData( jsonOutput.getPassword() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( restRequest.getSessionLabel(), "error executing rest-json random password request: " + e.getMessage(), e );
+            LOGGER.error( restRequest.getSessionLabel(), () -> "error executing rest-json random password request: " + e.getMessage(), e );
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
             return RestResultBean.fromError( restRequest, errorInformation );
@@ -178,14 +176,14 @@ public class RestRandomPasswordServer extends RestServlet
             final JsonOutput jsonOutput = doOperation( restRequest, jsonInput );
             return RestResultBean.withData( jsonOutput );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
-            LOGGER.error( restRequest.getSessionLabel(), "error executing rest-form random password request: " + e.getMessage(), e );
+            LOGGER.error( restRequest.getSessionLabel(), () -> "error executing rest-form random password request: " + e.getMessage(), e );
             return RestResultBean.fromError( restRequest, e.getErrorInformation() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( restRequest.getSessionLabel(), "error executing rest-form random password request: " + e.getMessage(), e );
+            LOGGER.error( restRequest.getSessionLabel(), () -> "error executing rest-form random password request: " + e.getMessage(), e );
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
             return RestResultBean.fromError( restRequest, errorInformation );

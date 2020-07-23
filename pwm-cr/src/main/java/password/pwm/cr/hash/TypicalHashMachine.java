@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.cr.hash;
@@ -32,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings( "checkstyle:MultipleStringLiterals" )
 public class TypicalHashMachine extends AbstractHashMachine implements ResponseHashMachineSpi
 {
 
@@ -108,7 +107,7 @@ public class TypicalHashMachine extends AbstractHashMachine implements ResponseH
         {
             md = MessageDigest.getInstance( algorithm );
         }
-        catch ( NoSuchAlgorithmException e )
+        catch ( final NoSuchAlgorithmException e )
         {
             throw new IllegalStateException( "unable to load " + algorithm + " message digest algorithm: " + e.getMessage() );
         }
@@ -119,7 +118,7 @@ public class TypicalHashMachine extends AbstractHashMachine implements ResponseH
         {
             hashedBytes = input.getBytes( "UTF-8" );
         }
-        catch ( UnsupportedEncodingException e )
+        catch ( final UnsupportedEncodingException e )
         {
             throw new IllegalStateException( "unsupported UTF8 byte encoding: " + e.getMessage() );
         }

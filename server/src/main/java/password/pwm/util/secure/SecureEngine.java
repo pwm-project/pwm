@@ -3,26 +3,23 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.secure;
 
-import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -39,7 +36,6 @@ import javax.crypto.spec.GCMParameterSpec;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
@@ -63,6 +59,7 @@ public class SecureEngine
     private static final PwmLogger LOGGER = PwmLogger.forClass( SecureEngine.class );
 
     private static final int HASH_BUFFER_SIZE = 1024 * 4;
+    private static final int HASH_FILE_BUFFER_SIZE = 1024 * 64;
 
     private static final NonceGenerator AES_GCM_NONCE_GENERATOR = new NonceGenerator( 8, 8 );
 
@@ -90,11 +87,11 @@ public class SecureEngine
                     ? StringUtil.base64Encode( encrypted, StringUtil.Base64Options.URL_SAFE, StringUtil.Base64Options.GZIP )
                     : StringUtil.base64Encode( encrypted );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error b64 encoding crypto result: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            LOGGER.error( errorInformation.toDebugStr() );
+            LOGGER.error( () -> errorInformation.toDebugStr() );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }
@@ -156,11 +153,11 @@ public class SecureEngine
             return output;
 
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error performing simple crypt operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            LOGGER.error( errorInformation.toDebugStr() );
+            LOGGER.error( () -> errorInformation.toDebugStr() );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }
@@ -186,7 +183,7 @@ public class SecureEngine
                     : StringUtil.base64Decode( value );
             return decryptBytes( decoded, key, blockAlgorithm );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMsg = "unexpected error performing simple decrypt operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
@@ -253,7 +250,7 @@ public class SecureEngine
             final byte[] decrypted = cipher.doFinal( workingValue );
             return new String( decrypted, PwmConstants.DEFAULT_CHARSET );
         }
-        catch ( GeneralSecurityException e )
+        catch ( final GeneralSecurityException e )
         {
             final String errorMsg = "unexpected error performing simple decrypt operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
@@ -278,15 +275,14 @@ public class SecureEngine
             final File file,
             final PwmHashAlgorithm hashAlgorithm
     )
-            throws IOException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
-        FileInputStream fileInputStream = null;
         try
         {
             final MessageDigest messageDigest = MessageDigest.getInstance( hashAlgorithm.getAlgName() );
-            fileInputStream = new FileInputStream( file );
-            final FileChannel fileChannel = fileInputStream.getChannel();
-            final ByteBuffer byteBuffer = ByteBuffer.allocateDirect( 1024 * 8 );
+            final int bufferSize = (int) Math.min( file.length(), HASH_FILE_BUFFER_SIZE );
+            final FileChannel fileChannel = FileChannel.open( file.toPath() );
+            final ByteBuffer byteBuffer = ByteBuffer.allocateDirect( bufferSize );
 
             while ( fileChannel.read( byteBuffer ) > 0 )
             {
@@ -302,15 +298,11 @@ public class SecureEngine
             return JavaHelper.byteArrayToHexString( messageDigest.digest() );
 
         }
-        catch ( NoSuchAlgorithmException | IOException e )
+        catch ( final NoSuchAlgorithmException | IOException e )
         {
             final String errorMsg = "unexpected error during file hash operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( fileInputStream );
         }
     }
 
@@ -336,7 +328,17 @@ public class SecureEngine
         return JavaHelper.byteArrayToHexString( computeHashToBytes( is, algorithm ) );
     }
 
-    private static byte[] computeHmacToBytes(
+    public static String hmac(
+            final HmacAlgorithm hmacAlgorithm,
+            final PwmSecurityKey pwmSecurityKey,
+            final String input
+    )
+            throws PwmUnrecoverableException
+    {
+        return JavaHelper.byteArrayToHexString( computeHmacToBytes( hmacAlgorithm, pwmSecurityKey, input.getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
+    }
+
+    public static byte[] computeHmacToBytes(
             final HmacAlgorithm hmacAlgorithm,
             final PwmSecurityKey pwmSecurityKey,
             final byte[] input
@@ -351,7 +353,7 @@ public class SecureEngine
             mac.init( secretKey );
             return mac.doFinal( input );
         }
-        catch ( GeneralSecurityException e )
+        catch ( final GeneralSecurityException e )
         {
             final String errorMsg = "error during hmac operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
@@ -374,7 +376,7 @@ public class SecureEngine
         {
             messageDigest = MessageDigest.getInstance( algorithm.getAlgName() );
         }
-        catch ( NoSuchAlgorithmException e )
+        catch ( final NoSuchAlgorithmException e )
         {
             final String errorMsg = "missing hash algorithm: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
@@ -398,7 +400,7 @@ public class SecureEngine
 
             return messageDigest.digest();
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             final String errorMsg = "unexpected error during hash operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );

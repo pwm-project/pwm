@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.stats;
@@ -30,9 +28,10 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
-import password.pwm.util.AlertHandler;
+import password.pwm.util.EventRateMeter;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -41,19 +40,14 @@ import password.pwm.util.logging.PwmLogger;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 
@@ -68,7 +62,6 @@ public class StatisticsManager implements PwmService
     private static final String DB_KEY_VERSION = "STATS_VERSION";
     private static final String DB_KEY_CUMULATIVE = "CUMULATIVE";
     private static final String DB_KEY_INITIAL_DAILY_KEY = "INITIAL_DAILY_KEY";
-    private static final String DB_KEY_PREFIX_DAILY = "DAILY_";
     private static final String DB_KEY_TEMP = "TEMP_KEY";
 
     private static final String DB_VALUE_VERSION = "1";
@@ -78,15 +71,15 @@ public class StatisticsManager implements PwmService
 
     private LocalDB localDB;
 
-    private DailyKey currentDailyKey = new DailyKey( new Date() );
-    private DailyKey initialDailyKey = new DailyKey( new Date() );
+    private DailyKey currentDailyKey = DailyKey.forToday();
+    private DailyKey initialDailyKey = DailyKey.forToday();
 
     private ExecutorService executorService;
 
     private final StatisticsBundle statsCurrent = new StatisticsBundle();
     private StatisticsBundle statsDaily = new StatisticsBundle();
     private StatisticsBundle statsCummulative = new StatisticsBundle();
-    private Map<String, EventRateMeter> epsMeterMap = new HashMap<>();
+    private Map<EpsKey, EventRateMeter> epsMeterMap = new HashMap<>();
 
     private PwmApplication pwmApplication;
 
@@ -104,16 +97,20 @@ public class StatisticsManager implements PwmService
 
     public StatisticsManager( )
     {
+        for ( final EpsKey epsKey : EpsKey.allKeys() )
+        {
+            epsMeterMap.put( epsKey, new EventRateMeter( epsKey.getEpsDuration().getTimeDuration() ) );
+        }
     }
 
-    public synchronized void incrementValue( final Statistic statistic )
+    public void incrementValue( final Statistic statistic )
     {
         statsCurrent.incrementValue( statistic );
         statsDaily.incrementValue( statistic );
         statsCummulative.incrementValue( statistic );
     }
 
-    public synchronized void updateAverageValue( final Statistic statistic, final long value )
+    public void updateAverageValue( final AvgStatistic statistic, final long value )
     {
         statsCurrent.updateAverageValue( statistic, value );
         statsDaily.updateAverageValue( statistic, value );
@@ -130,7 +127,7 @@ public class StatisticsManager implements PwmService
             final StatisticsBundle bundle = getStatBundleForKey( loopKey.toString() );
             if ( bundle != null )
             {
-                final String key = ( new SimpleDateFormat( "MMM dd" ) ).format( loopKey.calendar().getTime() );
+                final String key = loopKey.toString();
                 final String value = bundle.getStatistic( statistic );
                 returnMap.put( key, value );
             }
@@ -171,7 +168,7 @@ public class StatisticsManager implements PwmService
         {
             final String storedStat = localDB.get( LocalDB.DB.PWM_STATS, key );
             final StatisticsBundle returnBundle;
-            if ( storedStat != null && storedStat.length() > 0 )
+            if ( !StringUtil.isEmpty( storedStat ) )
             {
                 returnBundle = StatisticsBundle.input( storedStat );
             }
@@ -182,9 +179,9 @@ public class StatisticsManager implements PwmService
             cachedStoredStats.put( key, returnBundle );
             return returnBundle;
         }
-        catch ( LocalDBException e )
+        catch ( final LocalDBException e )
         {
-            LOGGER.error( "error retrieving stored stat for " + key + ": " + e.getMessage() );
+            LOGGER.error( () -> "error retrieving stored stat for " + key + ": " + e.getMessage() );
         }
 
         return null;
@@ -192,13 +189,9 @@ public class StatisticsManager implements PwmService
 
     public Map<DailyKey, String> getAvailableKeys( final Locale locale )
     {
-        final DateFormat dateFormatter = SimpleDateFormat.getDateInstance( SimpleDateFormat.DEFAULT, locale );
-        final Map<DailyKey, String> returnMap = new LinkedHashMap<DailyKey, String>();
+        final Map<DailyKey, String> returnMap = new LinkedHashMap<>();
 
-        // add current time;
-        returnMap.put( currentDailyKey, dateFormatter.format( new Date() ) );
-
-        // if now historical data then we're done
+        // if no historical data then we're done
         if ( currentDailyKey.equals( initialDailyKey ) )
         {
             return returnMap;
@@ -208,8 +201,7 @@ public class StatisticsManager implements PwmService
         int safetyCounter = 0;
         while ( !loopKey.equals( initialDailyKey ) && safetyCounter < 5000 )
         {
-            final Calendar c = loopKey.calendar();
-            final String display = dateFormatter.format( c.getTime() );
+            final String display = loopKey.toString();
             returnMap.put( loopKey, display );
             loopKey = loopKey.previous();
             safetyCounter++;
@@ -239,76 +231,44 @@ public class StatisticsManager implements PwmService
 
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        for ( final EpsStatistic type : EpsStatistic.values() )
-        {
-            for ( final Statistic.EpsDuration duration : Statistic.EpsDuration.values() )
-            {
-                epsMeterMap.put( type.toString() + duration.toString(), new EventRateMeter( duration.getTimeDuration() ) );
-            }
-        }
-
         status = STATUS.OPENING;
         this.localDB = pwmApplication.getLocalDB();
         this.pwmApplication = pwmApplication;
 
         if ( localDB == null )
         {
-            LOGGER.error( "LocalDB is not available, will remain closed" );
+            LOGGER.error( () -> "LocalDB is not available, will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
 
         {
-            final String storedCummulativeBundleStr = localDB.get( LocalDB.DB.PWM_STATS, DB_KEY_CUMULATIVE );
-            if ( storedCummulativeBundleStr != null && storedCummulativeBundleStr.length() > 0 )
+            final String storedCumulativeBundleSir = localDB.get( LocalDB.DB.PWM_STATS, DB_KEY_CUMULATIVE );
+            if ( !StringUtil.isEmpty( storedCumulativeBundleSir ) )
             {
                 try
                 {
-                    statsCummulative = StatisticsBundle.input( storedCummulativeBundleStr );
+                    statsCummulative = StatisticsBundle.input( storedCumulativeBundleSir );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
-                    LOGGER.warn( "error loading saved stored statistics: " + e.getMessage() );
+                    LOGGER.warn( () -> "error loading saved stored cumulative statistics: " + e.getMessage() );
                 }
             }
-        }
-
-        {
-            for ( final EpsStatistic loopEpsType : EpsStatistic.values() )
-            {
-                for ( final EpsStatistic loopEpsDuration : EpsStatistic.values() )
-                {
-                    final String key = "EPS-" + loopEpsType.toString() + loopEpsDuration.toString();
-                    final String storedValue = localDB.get( LocalDB.DB.PWM_STATS, key );
-                    if ( storedValue != null && storedValue.length() > 0 )
-                    {
-                        try
-                        {
-                            final EventRateMeter eventRateMeter = JsonUtil.deserialize( storedValue, EventRateMeter.class );
-                            epsMeterMap.put( loopEpsType.toString() + loopEpsDuration.toString(), eventRateMeter );
-                        }
-                        catch ( Exception e )
-                        {
-                            LOGGER.error( "unexpected error reading last EPS rate for " + loopEpsType + " from LocalDB: " + e.getMessage() );
-                        }
-                    }
-                }
-            }
-
         }
 
         {
             final String storedInitialString = localDB.get( LocalDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY );
-            if ( storedInitialString != null && storedInitialString.length() > 0 )
+            if ( !StringUtil.isEmpty( storedInitialString ) )
             {
                 initialDailyKey = new DailyKey( storedInitialString );
             }
         }
 
         {
-            currentDailyKey = new DailyKey( new Date() );
+            currentDailyKey = DailyKey.forToday();
             final String storedDailyStr = localDB.get( LocalDB.DB.PWM_STATS, currentDailyKey.toString() );
-            if ( storedDailyStr != null && storedDailyStr.length() > 0 )
+            if ( !StringUtil.isEmpty( storedDailyStr ) )
             {
                 statsDaily = StatisticsBundle.input( storedDailyStr );
             }
@@ -316,11 +276,11 @@ public class StatisticsManager implements PwmService
 
         try
         {
-            localDB.put( LocalDB.DB.PWM_STATS, DB_KEY_TEMP, JavaHelper.toIsoDate( new Date() ) );
+            localDB.put( LocalDB.DB.PWM_STATS, DB_KEY_TEMP, JavaHelper.toIsoDate( Instant.now() ) );
         }
-        catch ( IllegalStateException e )
+        catch ( final IllegalStateException e )
         {
-            LOGGER.error( "unable to write to localDB, will remain closed, error: " + e.getMessage() );
+            LOGGER.error( () -> "unable to write to localDB, will remain closed, error: " + e.getMessage() );
             status = STATUS.CLOSED;
             return;
         }
@@ -329,11 +289,10 @@ public class StatisticsManager implements PwmService
         localDB.put( LocalDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString() );
 
         {
-            // setup a timer to roll over at 0 Zula and one to write current stats every 10 seconds
-            executorService = JavaHelper.makeBackgroundExecutor( pwmApplication, this.getClass() );
-            pwmApplication.scheduleFixedRateJob( new FlushTask(), executorService, DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
-            final TimeDuration delayTillNextZulu = TimeDuration.fromCurrent( JavaHelper.nextZuluZeroTime() );
-            pwmApplication.scheduleFixedRateJob( new NightlyTask(), executorService, delayTillNextZulu, TimeDuration.DAY );
+            // setup a timer to roll over at 0 Zulu and one to write current stats regularly
+            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new FlushTask(), executorService, DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
+            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new NightlyTask(), executorService, TimeDuration.ZERO );
         }
 
         status = STATUS.OPEN;
@@ -341,54 +300,40 @@ public class StatisticsManager implements PwmService
 
     private void writeDbValues( )
     {
-        if ( localDB != null )
+        if ( localDB != null && status == STATUS.OPEN )
         {
             try
             {
-                localDB.put( LocalDB.DB.PWM_STATS, DB_KEY_CUMULATIVE, statsCummulative.output() );
-                localDB.put( LocalDB.DB.PWM_STATS, currentDailyKey.toString(), statsDaily.output() );
-
-                for ( final EpsStatistic loopEpsType : EpsStatistic.values() )
-                {
-                    for ( final Statistic.EpsDuration loopEpsDuration : Statistic.EpsDuration.values() )
-                    {
-                        final String key = "EPS-" + loopEpsType.toString();
-                        final String mapKey = loopEpsType.toString() + loopEpsDuration.toString();
-                        final String value = JsonUtil.serialize( this.epsMeterMap.get( mapKey ) );
-                        localDB.put( LocalDB.DB.PWM_STATS, key, value );
-                    }
-                }
+                final Map<String, String> dbData = new LinkedHashMap<>();
+                dbData.put( DB_KEY_CUMULATIVE, statsCummulative.output() );
+                dbData.put( currentDailyKey.toString(), statsDaily.output() );
+                localDB.putAll( LocalDB.DB.PWM_STATS, dbData );
             }
-            catch ( LocalDBException e )
+            catch ( final LocalDBException e )
             {
-                LOGGER.error( "error outputting pwm statistics: " + e.getMessage() );
+                LOGGER.error( () -> "error outputting pwm statistics: " + e.getMessage() );
             }
         }
+    }
 
+    public Map<String, String> dailyStatisticsAsLabelValueMap()
+    {
+        final Map<String, String> emailValues = new LinkedHashMap<>();
+        for ( final Statistic statistic : Statistic.values() )
+        {
+            final String key = statistic.getLabel( PwmConstants.DEFAULT_LOCALE );
+            final String value = statsDaily.getStatistic( statistic );
+            emailValues.put( key, value );
+        }
+
+        return Collections.unmodifiableMap( emailValues );
     }
 
     private void resetDailyStats( )
     {
-        try
-        {
-            final Map<String, String> emailValues = new LinkedHashMap<>();
-            for ( final Statistic statistic : Statistic.values() )
-            {
-                final String key = statistic.getLabel( PwmConstants.DEFAULT_LOCALE );
-                final String value = statsDaily.getStatistic( statistic );
-                emailValues.put( key, value );
-            }
-
-            AlertHandler.alertDailyStats( pwmApplication, emailValues );
-        }
-        catch ( Exception e )
-        {
-            LOGGER.error( "error while generating daily alert statistics: " + e.getMessage() );
-        }
-
-        currentDailyKey = new DailyKey( new Date() );
+        currentDailyKey = DailyKey.forToday();
         statsDaily = new StatisticsBundle();
-        LOGGER.debug( "reset daily statistics" );
+        LOGGER.debug( () -> "reset daily statistics" );
     }
 
     public STATUS status( )
@@ -403,9 +348,9 @@ public class StatisticsManager implements PwmService
         {
             writeDbValues();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( "unexpected error closing: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error closing: " + e.getMessage() );
         }
 
         JavaHelper.closeAndWaitExecutor( executorService, TimeDuration.of( 3, TimeDuration.Unit.SECONDS ) );
@@ -436,109 +381,26 @@ public class StatisticsManager implements PwmService
         }
     }
 
-
-    public static class DailyKey
-    {
-        int year;
-        int day;
-
-        public DailyKey( final Date date )
-        {
-            final Calendar calendar = Calendar.getInstance( TimeZone.getTimeZone( "Zulu" ) );
-            calendar.setTime( date );
-            year = calendar.get( Calendar.YEAR );
-            day = calendar.get( Calendar.DAY_OF_YEAR );
-        }
-
-        public DailyKey( final String value )
-        {
-            final String strippedValue = value.substring( DB_KEY_PREFIX_DAILY.length(), value.length() );
-            final String[] splitValue = strippedValue.split( "_" );
-            year = Integer.parseInt( splitValue[ 0 ] );
-            day = Integer.parseInt( splitValue[ 1 ] );
-        }
-
-        private DailyKey( )
-        {
-        }
-
-        @Override
-        public String toString( )
-        {
-            return DB_KEY_PREFIX_DAILY + String.valueOf( year ) + "_" + String.valueOf( day );
-        }
-
-        public DailyKey previous( )
-        {
-            final Calendar calendar = calendar();
-            calendar.add( Calendar.HOUR, -24 );
-            final DailyKey newKey = new DailyKey();
-            newKey.year = calendar.get( Calendar.YEAR );
-            newKey.day = calendar.get( Calendar.DAY_OF_YEAR );
-            return newKey;
-        }
-
-        public Calendar calendar( )
-        {
-            final Calendar calendar = Calendar.getInstance( TimeZone.getTimeZone( "Zulu" ) );
-            calendar.set( Calendar.YEAR, year );
-            calendar.set( Calendar.DAY_OF_YEAR, day );
-            return calendar;
-        }
-
-        @Override
-        public boolean equals( final Object o )
-        {
-            if ( this == o )
-            {
-                return true;
-            }
-            if ( o == null || getClass() != o.getClass() )
-            {
-                return false;
-            }
-
-            final DailyKey key = ( DailyKey ) o;
-
-            if ( day != key.day )
-            {
-                return false;
-            }
-            if ( year != key.year )
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        @Override
-        public int hashCode( )
-        {
-            int result = year;
-            result = 31 * result + day;
-            return result;
-        }
-    }
-
     public void updateEps( final EpsStatistic type, final int itemCount )
     {
         for ( final Statistic.EpsDuration duration : Statistic.EpsDuration.values() )
         {
-            epsMeterMap.get( type.toString() + duration.toString() ).markEvents( itemCount );
+            final EpsKey epsKey = new EpsKey( type, duration );
+            epsMeterMap.get( epsKey ).markEvents( itemCount );
         }
     }
 
     public BigDecimal readEps( final EpsStatistic type, final Statistic.EpsDuration duration )
     {
-        return epsMeterMap.get( type.toString() + duration.toString() ).readEventRate();
+        final EpsKey epsKey = new EpsKey( type, duration );
+        return epsMeterMap.get( epsKey ).readEventRate();
     }
 
 
     public int outputStatsToCsv( final OutputStream outputStream, final Locale locale, final boolean includeHeader )
             throws IOException
     {
-        LOGGER.trace( "beginning output stats to csv process" );
+        LOGGER.trace( () -> "beginning output stats to csv process" );
         final Instant startTime = Instant.now();
 
         final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
@@ -558,15 +420,15 @@ public class StatisticsManager implements PwmService
         }
 
         int counter = 0;
-        final Map<StatisticsManager.DailyKey, String> keys = statsManger.getAvailableKeys( PwmConstants.DEFAULT_LOCALE );
-        for ( final StatisticsManager.DailyKey loopKey : keys.keySet() )
+        final Map<DailyKey, String> keys = statsManger.getAvailableKeys( PwmConstants.DEFAULT_LOCALE );
+        for ( final DailyKey loopKey : keys.keySet() )
         {
             counter++;
             final StatisticsBundle bundle = statsManger.getStatBundleForKey( loopKey.toString() );
             final List<String> lineOutput = new ArrayList<>();
             lineOutput.add( loopKey.toString() );
-            lineOutput.add( String.valueOf( loopKey.year ) );
-            lineOutput.add( String.valueOf( loopKey.day ) );
+            lineOutput.add( String.valueOf( loopKey.getYear() ) );
+            lineOutput.add( String.valueOf( loopKey.getDay() ) );
             for ( final Statistic stat : Statistic.values() )
             {
                 lineOutput.add( bundle.getStatistic( stat ) );
@@ -575,21 +437,19 @@ public class StatisticsManager implements PwmService
         }
 
         csvPrinter.flush();
-        LOGGER.trace( "completed output stats to csv process; output " + counter + " records in " + TimeDuration.fromCurrent(
-                startTime ).asCompactString() );
+        {
+            final int finalCounter = counter;
+            LOGGER.trace( () -> "completed output stats to csv process; output " + finalCounter + " records in "
+                    + TimeDuration.compactFromCurrent( startTime ) );
+        }
         return counter;
     }
 
     public ServiceInfoBean serviceInfo( )
     {
-        if ( status() == STATUS.OPEN )
-        {
-            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ) );
-        }
-        else
-        {
-            return new ServiceInfoBean( Collections.<DataStorageMethod>emptyList() );
-        }
+        return status() == STATUS.OPEN
+                ? new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ) )
+                : new ServiceInfoBean( Collections.emptyList() );
     }
 
     public static void incrementStat(
@@ -607,21 +467,21 @@ public class StatisticsManager implements PwmService
     {
         if ( pwmApplication == null )
         {
-            LOGGER.error( "skipping requested statistic increment of " + statistic + " due to null pwmApplication" );
+            LOGGER.error( () -> "skipping requested statistic increment of " + statistic + " due to null pwmApplication" );
             return;
         }
 
         final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
         if ( statisticsManager == null )
         {
-            LOGGER.error( "skipping requested statistic increment of " + statistic + " due to null statisticsManager" );
+            LOGGER.error( () -> "skipping requested statistic increment of " + statistic + " due to null statisticsManager" );
             return;
         }
 
         if ( statisticsManager.status() != STATUS.OPEN )
         {
             LOGGER.trace(
-                    "skipping requested statistic increment of " + statistic + " due to StatisticsManager being closed" );
+                    () -> "skipping requested statistic increment of " + statistic + " due to StatisticsManager being closed" );
             return;
         }
 

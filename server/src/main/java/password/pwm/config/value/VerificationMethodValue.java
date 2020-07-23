@@ -3,52 +3,52 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config.value;
 
 import lombok.Value;
-import org.jdom2.CDATA;
-import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
+import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public class VerificationMethodValue extends AbstractValue implements StoredValue
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( VerificationMethodValue.class );
 
-    private VerificationMethodSettings value = new VerificationMethodSettings();
+    private final VerificationMethodSettings value;
 
 
     public enum EnabledState
@@ -60,16 +60,18 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
     public static class VerificationMethodSettings implements Serializable
     {
-        private Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings = new HashMap<>();
-        private int minOptionalRequired;
+        private final Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings;
+        private final int minOptionalRequired;
 
         public VerificationMethodSettings( )
         {
+            methodSettings = Collections.emptyMap();
+            minOptionalRequired = 0;
         }
 
         public VerificationMethodSettings( final Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings, final int minOptionalRequired )
         {
-            this.methodSettings = methodSettings;
+            this.methodSettings = methodSettings == null ? Collections.emptyMap() : Collections.unmodifiableMap( methodSettings );
             this.minOptionalRequired = minOptionalRequired;
         }
 
@@ -89,7 +91,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     @Value
     public static class VerificationMethodSetting implements Serializable
     {
-        private final EnabledState enabledState;
+        private EnabledState enabledState;
     }
 
     public VerificationMethodValue( )
@@ -126,22 +128,26 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
                 }
             }
 
-            public VerificationMethodValue fromXmlElement( final PwmSetting pwmSetting, final Element settingElement, final PwmSecurityKey key )
+            public VerificationMethodValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
-                final Element valueElement = settingElement.getChild( "value" );
-                final String inputStr = valueElement.getText();
-                final VerificationMethodSettings settings = JsonUtil.deserialize( inputStr, VerificationMethodSettings.class );
-                return new VerificationMethodValue( settings );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                if ( valueElement.isPresent() )
+                {
+                    final String inputStr = valueElement.get().getText();
+                    final VerificationMethodSettings settings = JsonUtil.deserialize( inputStr, VerificationMethodSettings.class );
+                    return new VerificationMethodValue( settings );
+                }
+                return  new VerificationMethodValue(  );
             }
         };
     }
 
     @Override
-    public List<Element> toXmlValues( final String valueElementName, final PwmSecurityKey pwmSecurityKey  )
+    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final Element valueElement = new Element( valueElementName );
-        valueElement.addContent( new CDATA( JsonUtil.serialize( value ) ) );
+        final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+        valueElement.addText( JsonUtil.serialize( value ) );
         return Collections.singletonList( valueElement );
     }
 

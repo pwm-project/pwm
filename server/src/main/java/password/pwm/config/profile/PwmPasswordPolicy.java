@@ -3,30 +3,28 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config.profile;
 
 import com.novell.ldapchai.ChaiPasswordPolicy;
 import com.novell.ldapchai.ChaiPasswordRule;
-import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
-import com.novell.ldapchai.util.PasswordRuleHelper;
 import com.novell.ldapchai.util.StringHelper;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.health.HealthMessage;
@@ -35,7 +33,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.password.PasswordRuleReaderHelper;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -47,8 +45,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 
 /**
@@ -61,7 +59,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
 
     private static final PwmPasswordPolicy DEFAULT_POLICY;
 
-    private final Map<String, String> policyMap = new HashMap<>();
+    private final Map<String, String> policyMap;
 
     private final transient ChaiPasswordPolicy chaiPasswordPolicy;
 
@@ -69,12 +67,26 @@ public class PwmPasswordPolicy implements Profile, Serializable
     private List<UserPermission> userPermissions;
     private String ruleText;
 
+    public static PwmPasswordPolicy createPwmPasswordPolicy( final Map<String, String> policyMap )
+    {
+        return createPwmPasswordPolicy( policyMap, null );
+    }
+
     public static PwmPasswordPolicy createPwmPasswordPolicy(
             final Map<String, String> policyMap,
             final ChaiPasswordPolicy chaiPasswordPolicy
     )
     {
-        return new PwmPasswordPolicy( policyMap, chaiPasswordPolicy );
+        return new PwmPasswordPolicy( policyMap, chaiPasswordPolicy, null );
+    }
+
+    public static PwmPasswordPolicy createPwmPasswordPolicy(
+            final Map<String, String> policyMap,
+            final ChaiPasswordPolicy chaiPasswordPolicy,
+            final PolicyMetaData policyMetaData
+    )
+    {
+        return new PwmPasswordPolicy( policyMap, chaiPasswordPolicy, policyMetaData );
     }
 
     public String getIdentifier( )
@@ -99,9 +111,9 @@ public class PwmPasswordPolicy implements Profile, Serializable
             }
             newDefaultPolicy = createPwmPasswordPolicy( defaultPolicyMap, null );
         }
-        catch ( Throwable t )
+        catch ( final Throwable t )
         {
-            LOGGER.fatal( "error initializing PwmPasswordPolicy class: " + t.getMessage(), t );
+            LOGGER.fatal( () -> "error initializing PwmPasswordPolicy class: " + t.getMessage(), t );
         }
         DEFAULT_POLICY = newDefaultPolicy;
     }
@@ -114,25 +126,35 @@ public class PwmPasswordPolicy implements Profile, Serializable
 
     private PwmPasswordPolicy(
             final Map<String, String> policyMap,
-            final ChaiPasswordPolicy chaiPasswordPolicy
+            final ChaiPasswordPolicy chaiPasswordPolicy,
+            final PolicyMetaData policyMetaData
     )
     {
+        final Map<String, String> effectivePolicyMap = new HashMap<>();
         if ( policyMap != null )
         {
-            this.policyMap.putAll( policyMap );
+            effectivePolicyMap.putAll( policyMap );
         }
         if ( chaiPasswordPolicy != null )
         {
             if ( Boolean.parseBoolean( chaiPasswordPolicy.getValue( ChaiPasswordRule.ADComplexity ) ) )
             {
-                this.policyMap.put( PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2003.toString() );
+                effectivePolicyMap.put( PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2003.toString() );
             }
             else if ( Boolean.parseBoolean( chaiPasswordPolicy.getValue( ChaiPasswordRule.ADComplexity2008 ) ) )
             {
-                this.policyMap.put( PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2008.toString() );
+                effectivePolicyMap.put( PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2008.toString() );
             }
         }
         this.chaiPasswordPolicy = chaiPasswordPolicy;
+        if ( policyMetaData != null )
+        {
+            this.ruleText = policyMetaData.getRuleText();
+            this.userPermissions = policyMetaData.getUserPermissions();
+            this.profileID = policyMetaData.getProfileID();
+        }
+
+        this.policyMap = Collections.unmodifiableMap( effectivePolicyMap );
     }
 
     @Override
@@ -146,9 +168,9 @@ public class PwmPasswordPolicy implements Profile, Serializable
         return chaiPasswordPolicy;
     }
 
-    public RuleHelper getRuleHelper( )
+    public PasswordRuleReaderHelper getRuleHelper( )
     {
-        return new RuleHelper( this );
+        return new PasswordRuleReaderHelper( this );
     }
 
     public String getValue( final PwmPasswordRule rule )
@@ -156,29 +178,16 @@ public class PwmPasswordPolicy implements Profile, Serializable
         return policyMap.get( rule.getKey() );
     }
 
-    public void setProfileID( final String profileID )
-    {
-        this.profileID = profileID;
-    }
+
 
     public List<UserPermission> getUserPermissions( )
     {
         return userPermissions;
     }
 
-    public void setUserPermissions( final List<UserPermission> userPermissions )
-    {
-        this.userPermissions = userPermissions;
-    }
-
     public String getRuleText( )
     {
         return ruleText;
-    }
-
-    public void setRuleText( final String ruleText )
-    {
-        this.ruleText = ruleText;
     }
 
     public PwmPasswordPolicy merge( final PwmPasswordPolicy otherPolicy )
@@ -234,6 +243,10 @@ public class PwmPasswordPolicy implements Profile, Serializable
                         newPasswordPolicies.put( ruleKey, mergeMin( minimumLifetimeLocalValue, minimumLifetimeOtherValue ) );
                         break;
 
+                    case ADComplexityLevel:
+                        newPasswordPolicies.put( ruleKey, mergeADComplexityLevel( policyMap.get( ruleKey ), otherPolicy.policyMap.get( ruleKey ) ) );
+                        break;
+
                     default:
                         final String localValueString = StringUtil.defaultString( policyMap.get( ruleKey ), rule.getDefaultValue() );
                         final String otherValueString = StringUtil.defaultString( otherPolicy.policyMap.get( ruleKey ), rule.getDefaultValue() );
@@ -273,8 +286,16 @@ public class PwmPasswordPolicy implements Profile, Serializable
         final ChaiPasswordPolicy backingPolicy = this.chaiPasswordPolicy != null ? chaiPasswordPolicy : otherPolicy.chaiPasswordPolicy;
         final PwmPasswordPolicy returnPolicy = createPwmPasswordPolicy( newPasswordPolicies, backingPolicy );
         final String newRuleText = ( ruleText != null && !ruleText.isEmpty() ) ? ruleText : otherPolicy.ruleText;
-        returnPolicy.setRuleText( newRuleText );
+        returnPolicy.ruleText = ( newRuleText );
         return returnPolicy;
+    }
+
+    private static String mergeADComplexityLevel( final String value1, final String value2 )
+    {
+        final TreeSet<ADPolicyComplexity> seenValues = new TreeSet<>();
+        seenValues.add( JavaHelper.readEnumFromString( ADPolicyComplexity.class, ADPolicyComplexity.NONE, value1 ) );
+        seenValues.add( JavaHelper.readEnumFromString( ADPolicyComplexity.class, ADPolicyComplexity.NONE, value2 ) );
+        return seenValues.last().name();
     }
 
     protected static String mergeMin( final String value1, final String value2 )
@@ -308,179 +329,13 @@ public class PwmPasswordPolicy implements Profile, Serializable
         return returnValue;
     }
 
-    public static PwmPasswordPolicy createPwmPasswordPolicy( final Map<String, String> policyMap )
-    {
-        return createPwmPasswordPolicy( policyMap, null );
-    }
-
-    public static class RuleHelper
-    {
-        public enum Flag
-        {
-            KeepThresholds
-        }
-
-        private final PwmPasswordPolicy passwordPolicy;
-        private final PasswordRuleHelper chaiRuleHelper;
-
-        public RuleHelper( final PwmPasswordPolicy passwordPolicy )
-        {
-            this.passwordPolicy = passwordPolicy;
-            chaiRuleHelper = DefaultChaiPasswordPolicy.createDefaultChaiPasswordPolicy( passwordPolicy.policyMap ).getRuleHelper();
-        }
-
-        public List<String> getDisallowedValues( )
-        {
-            return chaiRuleHelper.getDisallowedValues();
-        }
-
-        public List<String> getDisallowedAttributes( final Flag... flags )
-        {
-            final List<String> disallowedAttributes = chaiRuleHelper.getDisallowedAttributes();
-
-            if ( JavaHelper.enumArrayContainsValue( flags, Flag.KeepThresholds ) )
-            {
-                return disallowedAttributes;
-            }
-            else
-            {
-                // Strip off any thresholds from attribute (specified as: "attributeName:N", where N is a numeric value).
-                final List<String> strippedDisallowedAttributes = new ArrayList<String>();
-
-                if ( disallowedAttributes != null )
-                {
-                    for ( final String disallowedAttribute : disallowedAttributes )
-                    {
-                        if ( disallowedAttribute != null )
-                        {
-                            final int indexOfColon = disallowedAttribute.indexOf( ':' );
-                            if ( indexOfColon > 0 )
-                            {
-                                strippedDisallowedAttributes.add( disallowedAttribute.substring( 0, indexOfColon ) );
-                            }
-                            else
-                            {
-                                strippedDisallowedAttributes.add( disallowedAttribute );
-                            }
-                        }
-                    }
-                }
-
-                return strippedDisallowedAttributes;
-            }
-        }
-
-        public List<Pattern> getRegExMatch( final MacroMachine macroMachine )
-        {
-            return readRegExSetting( PwmPasswordRule.RegExMatch, macroMachine );
-        }
-
-        public List<Pattern> getRegExNoMatch( final MacroMachine macroMachine )
-        {
-            return readRegExSetting( PwmPasswordRule.RegExNoMatch, macroMachine );
-        }
-
-        public List<Pattern> getCharGroupValues( )
-        {
-            return readRegExSetting( PwmPasswordRule.CharGroupsValues, null );
-        }
-
-
-        public int readIntValue( final PwmPasswordRule rule )
-        {
-            if (
-                    ( rule.getRuleType() != ChaiPasswordRule.RuleType.MIN )
-                            && ( rule.getRuleType() != ChaiPasswordRule.RuleType.MAX )
-                            && ( rule.getRuleType() != ChaiPasswordRule.RuleType.NUMERIC )
-                    )
-            {
-                throw new IllegalArgumentException( "attempt to read non-numeric rule value as int for rule " + rule );
-            }
-
-            final String value = passwordPolicy.policyMap.get( rule.getKey() );
-            final int defaultValue = StringHelper.convertStrToInt( rule.getDefaultValue(), 0 );
-            return StringHelper.convertStrToInt( value, defaultValue );
-        }
-
-        public boolean readBooleanValue( final PwmPasswordRule rule )
-        {
-            if ( rule.getRuleType() != ChaiPasswordRule.RuleType.BOOLEAN )
-            {
-                throw new IllegalArgumentException( "attempt to read non-boolean rule value as boolean for rule " + rule );
-            }
-
-            final String value = passwordPolicy.policyMap.get( rule.getKey() );
-            return StringHelper.convertStrToBoolean( value );
-        }
-
-        private List<Pattern> readRegExSetting( final PwmPasswordRule rule, final MacroMachine macroMachine )
-        {
-            final String input = passwordPolicy.policyMap.get( rule.getKey() );
-
-            return readRegExSetting( rule, macroMachine, input );
-        }
-
-        List<Pattern> readRegExSetting( final PwmPasswordRule rule, final MacroMachine macroMachine, final String input )
-        {
-            if ( input == null )
-            {
-                return Collections.emptyList();
-            }
-
-            final String separator = ( rule == PwmPasswordRule.RegExMatch || rule == PwmPasswordRule.RegExNoMatch ) ? ";;;" : "\n";
-            final List<String> values = new ArrayList<>( StringHelper.tokenizeString( input, separator ) );
-            final List<Pattern> patterns = new ArrayList<>();
-
-            for ( final String value : values )
-            {
-                if ( value != null && value.length() > 0 )
-                {
-                    String valueToCompile = value;
-
-                    if ( macroMachine != null && readBooleanValue( PwmPasswordRule.AllowMacroInRegExSetting ) )
-                    {
-                        valueToCompile = macroMachine.expandMacros( value );
-                    }
-
-                    try
-                    {
-                        final Pattern loopPattern = Pattern.compile( valueToCompile );
-                        patterns.add( loopPattern );
-                    }
-                    catch ( PatternSyntaxException e )
-                    {
-                        LOGGER.warn( "reading password rule value '" + valueToCompile + "' for rule " + rule.getKey() + " is not a valid regular expression " + e.getMessage() );
-                    }
-                }
-            }
-
-            return patterns;
-        }
-
-        public String getChangeMessage( )
-        {
-            final String changeMessage = passwordPolicy.getValue( PwmPasswordRule.ChangeMessage );
-            return changeMessage == null ? "" : changeMessage;
-        }
-
-        public ADPolicyComplexity getADComplexityLevel( )
-        {
-            final String strLevel = passwordPolicy.getValue( PwmPasswordRule.ADComplexityLevel );
-            if ( strLevel == null || strLevel.isEmpty() )
-            {
-                return ADPolicyComplexity.NONE;
-            }
-            return ADPolicyComplexity.valueOf( strLevel );
-        }
-    }
-
     public Map<String, String> getPolicyMap( )
     {
         return Collections.unmodifiableMap( policyMap );
     }
 
     @Override
-    public ProfileType profileType( )
+    public ProfileDefinition profileType( )
     {
         throw new UnsupportedOperationException();
     }
@@ -493,7 +348,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
 
     public List<HealthRecord> health( final Locale locale )
     {
-        final RuleHelper ruleHelper = this.getRuleHelper();
+        final PasswordRuleReaderHelper ruleHelper = this.getRuleHelper();
         final List<HealthRecord> returnList = new ArrayList<>();
         final Map<PwmPasswordRule, PwmPasswordRule> rulePairs = new LinkedHashMap<>();
         rulePairs.put( PwmPasswordRule.MinimumLength, PwmPasswordRule.MaximumLength );
@@ -536,5 +391,14 @@ public class PwmPasswordPolicy implements Profile, Serializable
         }
 
         return Collections.unmodifiableList( returnList );
+    }
+
+    @Value
+    @Builder
+    public static class PolicyMetaData
+    {
+        private String profileID;
+        private List<UserPermission> userPermissions;
+        private String ruleText;
     }
 }

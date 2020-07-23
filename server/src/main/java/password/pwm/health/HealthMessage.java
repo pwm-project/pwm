@@ -3,27 +3,25 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.health;
 
 import password.pwm.i18n.Health;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 
 import java.util.Locale;
 
@@ -44,7 +42,7 @@ public enum HealthMessage
     LDAP_TestUserReadPwError( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_TestUserOK( HealthStatus.GOOD, HealthTopic.LDAP ),
     Email_SendFailure( HealthStatus.WARN, HealthTopic.Email ),
-    PwNotify_Failure( HealthStatus.WARN, HealthTopic.Email ),
+    PwNotify_Failure( HealthStatus.WARN, HealthTopic.Application ),
     MissingResource( HealthStatus.DEBUG, HealthTopic.Integrity ),
     BrokenMethod( HealthStatus.DEBUG, HealthTopic.Integrity ),
     Appliance_PendingUpdates( HealthStatus.CAUTION, HealthTopic.Appliance ),
@@ -76,6 +74,7 @@ public enum HealthMessage
     LDAP_VendorsNotSame( HealthStatus.CONFIG, HealthTopic.LDAP ),
     LDAP_OK( HealthStatus.GOOD, HealthTopic.LDAP ),
     LDAP_RecentlyUnreachable( HealthStatus.CAUTION, HealthTopic.LDAP ),
+    LDAP_SearchFailure( HealthStatus.WARN, HealthTopic.LDAP ),
     CryptoTokenWithNewUserVerification( HealthStatus.CAUTION, HealthTopic.Configuration ),
     TokenServiceError( HealthStatus.WARN, HealthTopic.TokenService ),
     Java_HighThreads( HealthStatus.CAUTION, HealthTopic.Platform ),
@@ -85,13 +84,17 @@ public enum HealthMessage
     LocalDB_BAD( HealthStatus.WARN, HealthTopic.LocalDB ),
     LocalDB_NEW( HealthStatus.WARN, HealthTopic.LocalDB ),
     LocalDB_CLOSED( HealthStatus.WARN, HealthTopic.LocalDB ),
+    LocalDB_LowDiskSpace( HealthStatus.WARN, HealthTopic.LocalDB ),
     LocalDBLogger_NOTOPEN( HealthStatus.CAUTION, HealthTopic.LocalDB ),
     LocalDBLogger_HighRecordCount( HealthStatus.CAUTION, HealthTopic.LocalDB ),
     LocalDBLogger_OldRecordPresent( HealthStatus.CAUTION, HealthTopic.LocalDB ),
+    NewUser_PwTemplateBad( HealthStatus.CAUTION, HealthTopic.Configuration ),
+    ServiceClosed( HealthStatus.CAUTION, HealthTopic.Application ),
     ServiceClosed_LocalDBUnavail( HealthStatus.CAUTION, HealthTopic.Application ),
     ServiceClosed_AppReadOnly( HealthStatus.CAUTION, HealthTopic.Application ),
     SMS_SendFailure( HealthStatus.WARN, HealthTopic.SMS ),
-    Wordlist_AutoImportFailure( HealthStatus.WARN, HealthTopic.Configuration ),;
+    Wordlist_AutoImportFailure( HealthStatus.WARN, HealthTopic.Configuration ),
+    Wordlist_ImportInProgress( HealthStatus.CAUTION, HealthTopic.Application ),;
 
     private final HealthStatus status;
     private final HealthTopic topic;

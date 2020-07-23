@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.onejar;
@@ -60,7 +58,7 @@ public class ArgumentParser
             {
                 commandLine = new DefaultParser().parse( Argument.asOptions(), args );
             }
-            catch ( ParseException e )
+            catch ( final ParseException e )
             {
                 throw new ArgumentParserException( "unable to parse command line: " + e.getMessage() );
             }
@@ -91,12 +89,18 @@ public class ArgumentParser
                 {
                     argumentMap = mapFromCommandLine( commandLine );
                 }
+
+                if ( argumentMap.containsKey( Argument.command ) && argumentMap.get( Argument.command ) == null )
+                {
+                    throw new ArgumentParserException( Argument.command.name() + " requires arguments" );
+                }
+
                 final OnejarConfig onejarConfig;
                 try
                 {
                     onejarConfig = makeTomcatConfig( argumentMap );
                 }
-                catch ( IOException e )
+                catch ( final IOException e )
                 {
                     throw new ArgumentParserException( "error while reading input: " + e.getMessage() );
                 }
@@ -114,7 +118,7 @@ public class ArgumentParser
         {
             props.load( is );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             throw new ArgumentParserException( "unable to read properties input file: " + e.getMessage() );
         }
@@ -135,7 +139,7 @@ public class ArgumentParser
         return Collections.unmodifiableMap( map );
     }
 
-    private Map<Argument, String> mapFromCommandLine( final CommandLine commandLine )
+    static Map<Argument, String> mapFromCommandLine( final CommandLine commandLine )
     {
         final Map<Argument, String> map = new HashMap<>();
         for ( final Option option : Argument.asOptionMap().values() )
@@ -145,8 +149,18 @@ public class ArgumentParser
                 if ( commandLine.hasOption( option.getOpt() ) )
                 {
                     final Argument argument = Argument.valueOf( option.getOpt() );
-                    final String value = commandLine.getOptionValue( option.getOpt() );
-                    map.put( argument, value );
+                    {
+                        final String[] values = commandLine.getOptionValues( option.getOpt() );
+                        if ( values != null )
+                        {
+                            final String joined = String.join( " ", values );
+                            map.put( argument, joined );
+                        }
+                        else
+                        {
+                            map.put( argument, null );
+                        }
+                    }
                 }
             }
         }
@@ -190,7 +204,7 @@ public class ArgumentParser
                     port = Integer.parseInt( argumentMap.get( Argument.port ) );
                     onejarConfig.port( port );
                 }
-                catch ( NumberFormatException e )
+                catch ( final NumberFormatException e )
                 {
                     final String msg = Argument.port.name() + " argument must be numeric";
                     System.out.println( msg );
@@ -207,14 +221,17 @@ public class ArgumentParser
         final String localAddress = argumentMap.getOrDefault( Argument.localAddress, Resource.defaultLocalAddress.getValue() );
         onejarConfig.localAddress( localAddress );
 
-        try
+        if ( !argumentMap.containsKey( Argument.command ) )
         {
-            final ServerSocket socket = new ServerSocket( port, 100, InetAddress.getByName( localAddress ) );
-            socket.close();
-        }
-        catch ( Exception e )
-        {
-            throw new ArgumentParserException( "port or address conflict: " + e.getMessage() );
+            try
+            {
+                final ServerSocket socket = new ServerSocket( port, 100, InetAddress.getByName( localAddress ) );
+                socket.close();
+            }
+            catch ( final Exception e )
+            {
+                throw new ArgumentParserException( "port or address conflict: " + e.getMessage() );
+            }
         }
 
         if ( argumentMap.containsKey( Argument.workPath ) )
@@ -223,7 +240,14 @@ public class ArgumentParser
         }
         else
         {
-            onejarConfig.workingPath( figureDefaultWorkPath( localAddress, context, port ) );
+            final boolean isCommandExec = argumentMap.containsKey( Argument.command );
+            onejarConfig.workingPath( figureDefaultWorkPath( localAddress, context, port, isCommandExec ) );
+        }
+
+        if ( argumentMap.containsKey( Argument.command ) )
+        {
+            final String value = argumentMap.get( Argument.command );
+            onejarConfig.execCommand( value );
         }
 
         return onejarConfig.build();
@@ -244,7 +268,8 @@ public class ArgumentParser
     }
 
 
-    private static File parseFileOption( final Map<Argument, String> argumentMap, final Argument argName ) throws ArgumentParserException
+    private static File parseFileOption( final Map<Argument, String> argumentMap, final Argument argName )
+            throws ArgumentParserException
     {
         if ( !argumentMap.containsKey( argName ) )
         {
@@ -265,7 +290,8 @@ public class ArgumentParser
     private static File figureDefaultWorkPath(
             final String localAddress,
             final String context,
-            final int port
+            final int port,
+            final boolean isCommandExec
     )
             throws ArgumentParserException, IOException
     {
@@ -283,7 +309,8 @@ public class ArgumentParser
                         + "-"
                         + escapeFilename( context )
                         + "-"
-                        + escapeFilename( Integer.toString( port ) );
+                        + escapeFilename( Integer.toString( port ) )
+                        + ( isCommandExec ? "-" + "cmd" : "" );
 
                 if ( localAddress != null && !localAddress.isEmpty() )
                 {

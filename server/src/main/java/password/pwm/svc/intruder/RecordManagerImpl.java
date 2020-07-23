@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.intruder;
@@ -90,7 +88,8 @@ class RecordManagerImpl implements RecordManager
         final TimeDuration age = TimeDuration.fromCurrent( record.getTimeStamp() );
         if ( age.isLongerThan( settings.getCheckDuration() ) )
         {
-            LOGGER.debug( "re-setting existing outdated record=" + JsonUtil.serialize( record ) + " (" + age.asCompactString() + ")" );
+            final IntruderRecord finalRecord = record;
+            LOGGER.debug( () -> "re-setting existing outdated record=" + JsonUtil.serialize( finalRecord ) + " (" + age.asCompactString() + ")" );
             record = new IntruderRecord( recordType, subject );
         }
 
@@ -140,9 +139,9 @@ class RecordManagerImpl implements RecordManager
         {
             return recordStore.read( makeKey( subject ) );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
-            LOGGER.error( "unable to read read intruder record from storage: " + e.getMessage() );
+            LOGGER.error( () -> "unable to read read intruder record from storage: " + e.getMessage() );
         }
         return null;
     }
@@ -153,9 +152,9 @@ class RecordManagerImpl implements RecordManager
         {
             recordStore.write( makeKey( intruderRecord.getSubject() ), intruderRecord );
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
-            LOGGER.warn( "unexpected error attempting to write intruder record " + JsonUtil.serialize( intruderRecord ) + ", error: " + e.getMessage() );
+            LOGGER.warn( () -> "unexpected error attempting to write intruder record " + JsonUtil.serialize( intruderRecord ) + ", error: " + e.getMessage() );
         }
     }
 
@@ -166,7 +165,7 @@ class RecordManagerImpl implements RecordManager
         {
             hash = SecureEngine.hash( subject, KEY_HASH_ALG );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "error generating md5sum for intruder record: " + e.getMessage() );
         }

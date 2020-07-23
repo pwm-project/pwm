@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet;
@@ -50,7 +48,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( AbstractPwmServlet.class );
 
-    private Map<String, Method> actionMethodCache;
+    private final Map<String, Method> actionMethodCache = createMethodCache();
 
     public String servletUriRemainder( final PwmRequest pwmRequest, final String command ) throws PwmUnrecoverableException
     {
@@ -94,9 +92,9 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             final Enum answer = JavaHelper.readEnumFromString( processStatusClass, null, inputParameter );
             return ( ProcessAction ) answer;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( "error", e );
+            LOGGER.error( () -> "error", e );
         }
         return null;
     }
@@ -114,14 +112,14 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         }
         try
         {
-            final Method interestedMethod = discoverMethodForAction( this.getClass(), action );
+            final Method interestedMethod = actionMethodCache.get( action.toString() );
             if ( interestedMethod != null )
             {
                 interestedMethod.setAccessible( true );
                 return ( ProcessStatus ) interestedMethod.invoke( this, pwmRequest );
             }
         }
-        catch ( InvocationTargetException e )
+        catch ( final InvocationTargetException e )
         {
             final Throwable cause = e.getCause();
             if ( cause != null )
@@ -133,20 +131,20 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                 final String msg = "unexpected error during action handler for '"
                         + this.getClass().getName()
                         + ":" + action + "', error: " + cause.getMessage();
-                LOGGER.error( pwmRequest, msg, e.getCause() );
+                LOGGER.error( pwmRequest, () -> msg, e.getCause() );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
             }
-            LOGGER.error( "uncased invocation error: " + e.getMessage(), e );
+            LOGGER.error( () -> "uncased invocation error: " + e.getMessage(), e );
         }
-        catch ( Throwable e )
+        catch ( final Throwable e )
         {
             final String msg = "unexpected error invoking action handler for '" + action + "', error: " + e.getMessage();
-            LOGGER.error( msg, e );
+            LOGGER.error( () -> msg, e );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
 
         final String msg = "missing action handler for '" + action + "'";
-        LOGGER.error( msg );
+        LOGGER.error( () -> msg );
         throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
     }
 
@@ -166,7 +164,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                     if ( pwmRequest.getConfig().isDevDebugMode() )
                     {
                         final String msg = "processing complete, handler returned halt but response is not committed";
-                        LOGGER.error( pwmRequest, msg, new IllegalStateException( msg ) );
+                        LOGGER.error( pwmRequest, () -> msg, new IllegalStateException( msg ) );
                     }
                 }
                 return;
@@ -176,7 +174,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             if ( enablePostRedirectGet )
             {
                 final String servletUrl = pwmRequest.getURL().determinePwmServletPath();
-                LOGGER.debug( pwmRequest, "this request is not idempotent, redirecting to self with no action" );
+                LOGGER.debug( pwmRequest, () -> "this request is not idempotent, redirecting to self with no action" );
                 sendOtherRedirect( pwmRequest, servletUrl );
                 return;
             }
@@ -213,25 +211,20 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         String action( );
     }
 
-    private Method discoverMethodForAction( final Class clazz, final ProcessAction action )
+    private Map<String, Method> createMethodCache()
     {
-        if ( actionMethodCache == null )
+        final Map<String, Method> map = new HashMap<>();
+        final Collection<Method> methods = JavaHelper.getAllMethodsForClass( this.getClass() );
+        for ( final Method method : methods )
         {
-            final Map<String, Method> map = new HashMap<>();
-            final Collection<Method> methods = JavaHelper.getAllMethodsForClass( clazz );
-            for ( Method method : methods )
+            if ( method.getAnnotation( ActionHandler.class ) != null )
             {
-                if ( method.getAnnotation( ActionHandler.class ) != null )
-                {
-                    final String actionName = method.getAnnotation( ActionHandler.class ).action();
-                    map.put( actionName, method );
+                final String actionName = method.getAnnotation( ActionHandler.class ).action();
+                map.put( actionName, method );
 
-                }
             }
-            actionMethodCache = Collections.unmodifiableMap( map );
         }
-
-        return actionMethodCache.get( action.toString() );
+        return Collections.unmodifiableMap( map );
     }
 }
 

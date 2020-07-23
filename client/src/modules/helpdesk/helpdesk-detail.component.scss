@@ -3,208 +3,108 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-help-desk-detail {
-  display: block;
-  height: 100%;
-  overflow: auto;
-  width: 100%;
-
-  #page-content-title {
-    margin-bottom: 0;
-  }
-
-  > .ias-header {
-    > .help-desk-icons {
-      margin-left: 15px;
-    }
-  }
-
-  > .help-desk-content {
-    display: flex;
-    flex-flow: row-reverse wrap;
-    justify-content: flex-end;
-
-    > .help-desk-buttons,
-    > .tabset-container {
-      margin-top: 15px;
-    }
-
-    > .help-desk-buttons {
-      > .ias-button {
-        display: block;
-        margin-bottom: 5px;
-        min-width: 170px;
-        width: 100%;
-
-        &:last-child {
-          margin-bottom: 0;
-        }
-      }
-    }
-
-    > .tabset-container {
-      width: 100%;
-
-      > .tab-panes {
-        > .ias-tab-pane {
-          table {
-            width: 100%;
-            display: block;
-            overflow: auto;
-          }
-        }
-      }
-    }
-  }
-
-  .details-table {
-    border: none;
-    border-collapse: collapse;
-
-    tr {
-      height: 25px;
-
-      td {
-        border: none;
-        font-size: 12px;
-        height: 19px;
-        text-align: left;
-
-        &:first-child {
-          color: #949494;
-          text-align: right;
-          padding: 3px 0;
-        }
-
-        &:last-child {
-          padding: 3px 15px;
-        }
-
-        ul {
-          list-style: none;
-          margin: 0;
-          padding: 0;
-
-          > li {
-            margin: 0;
-            padding: 0;
-          }
-        }
-      }
-    }
-  }
-}
-
-@media (min-width: 850px) {
+.ias-styles-root {
   help-desk-detail {
-    > .help-desk-content {
-      > .help-desk-buttons {
+    display: block;
+    height: 100%;
+    overflow: auto;
+    width: 100%;
+
+    #page-content-title {
+      margin-bottom: 0;
+    }
+
+    > .ias-header {
+      > .help-desk-icons {
         margin-left: 15px;
+      }
+    }
+
+    > .help-desk-content {
+      display: flex;
+      flex-flow: row-reverse wrap;
+      justify-content: flex-end;
+
+      > .help-desk-buttons,
+      > .tabset-container {
+        margin-top: 15px;
+      }
+
+      > .help-desk-buttons {
+        > .ias-button {
+          display: block;
+          margin-bottom: 5px;
+          min-width: 170px;
+          width: 100%;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
       }
 
       > .tabset-container {
-        max-width: 100%;
-        width: auto;
+        width: 100%;
 
         > .tab-panes {
           > .ias-tab-pane {
             table {
-              max-width: 800px;
+              width: 100%;
+              display: block;
+              overflow: auto;
             }
           }
         }
-      }
-    }
-  }
-}
-
-@media (min-width: 1050px) {
-  help-desk-detail {
-    display: flex;
-    flex-flow: column nowrap;
-
-    > .ias-header,
-    > .secondary-header {
-      flex-shrink: 0;
-    }
-
-    > .help-desk-content {
-      flex: 1 1px;
-      flex-wrap: nowrap;
-      height: 100%;
-      margin-top: 15px;
-      overflow: auto;
-
-      > .help-desk-buttons,
-      > .tabset-container {
-        margin-top: 0;
-      }
-
-      > .help-desk-buttons {
-        flex-shrink: 0;
-        height: 100%;
-        overflow: auto;
-        padding-right: 17px;
-      }
-
-      > .tabset-container {
-        display: flex;
-        flex-flow: column nowrap;
-        height: 100%;
-        overflow: auto;
-
-        > .ias-tabset {
-          flex-shrink: 0;
-        }
-
-        .tab-panes {
-          flex: 1 1px;
-          overflow: auto;
-
-          > .ias-tab-pane {
-            table {
-              height: 100%;
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-[dir="rtl"] {
-  help-desk-detail {
-    > .ias-header {
-      > .help-desk-icons {
-        margin-left: 0;
-        margin-right: 15px;
       }
     }
 
     .details-table {
+      border: none;
+      border-collapse: collapse;
+
       tr {
+        height: 25px;
+
         td {
-          text-align: right;
+          border: none;
+          font-size: 12px;
+          height: 19px;
+          text-align: left;
 
           &:first-child {
-            text-align: left;
+            color: #949494;
+            text-align: right;
+            padding: 3px 0;
+          }
+
+          &:last-child {
+            padding: 3px 15px;
+          }
+
+          > ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+
+            > li {
+              margin: 0;
+              padding: 0;
+            }
           }
         }
       }
@@ -215,8 +115,20 @@ help-desk-detail {
     help-desk-detail {
       > .help-desk-content {
         > .help-desk-buttons {
-          margin-left: 0;
-          margin-right: 15px;
+          margin-left: 15px;
+        }
+
+        > .tabset-container {
+          max-width: 100%;
+          width: auto;
+
+          > .tab-panes {
+            > .ias-tab-pane {
+              table {
+                max-width: 800px;
+              }
+            }
+          }
         }
       }
     }
@@ -224,40 +136,128 @@ help-desk-detail {
 
   @media (min-width: 1050px) {
     help-desk-detail {
-      > .help-desk-content {
-        > .help-desk-buttons {
-          padding-left: 17px;
-          padding-right: 0;
-        }
-      }
-    }
-  }
-}
+      display: flex;
+      flex-flow: column nowrap;
 
-// Unlike IE, Edge, and Firefox, Chrome and Safari do not need extra space for the button scrollbar when the buttons
-// extend below the bottom of the page
-@media (min-width: 1050px) {
-  [data-browsertype=webkit] {
-    help-desk-detail {
-      > .help-desk-content {
-        > .help-desk-buttons {
-          padding-right: 0;
-        }
+      > .ias-header,
+      > .secondary-header {
+        flex-shrink: 0;
       }
-    }
 
-    &[dir="rtl"] {
-      help-desk-detail {
-        > .help-desk-content {
-          > .help-desk-buttons {
-            padding-left: 0;
+      > .help-desk-content {
+        flex: 1 1px;
+        flex-wrap: nowrap;
+        height: 100%;
+        margin-top: 15px;
+        overflow: auto;
+
+        > .help-desk-buttons,
+        > .tabset-container {
+          margin-top: 0;
+        }
+
+        > .help-desk-buttons {
+          flex-shrink: 0;
+          height: 100%;
+          overflow: auto;
+          padding-right: 17px;
+        }
+
+        > .tabset-container {
+          display: flex;
+          flex-flow: column nowrap;
+          height: 100%;
+          overflow: auto;
+
+          > .ias-tabset {
+            flex-shrink: 0;
+          }
+
+          .tab-panes {
+            flex: 1 1px;
+            overflow: auto;
+
+            > .ias-tab-pane {
+              table {
+                height: 100%;
+              }
+            }
           }
         }
       }
     }
   }
-}
 
-.ias-tab-pane.ias-open {
-  display: block;   // Can remove once https://github.com/MicroFocus/ux-ias/issues/18 (2nd comment) is resolved
+  [dir="rtl"] {
+    help-desk-detail {
+      > .ias-header {
+        > .help-desk-icons {
+          margin-left: 0;
+          margin-right: 15px;
+        }
+      }
+
+      .details-table {
+        tr {
+          td {
+            text-align: right;
+
+            &:first-child {
+              text-align: left;
+            }
+          }
+        }
+      }
+    }
+
+    @media (min-width: 850px) {
+      help-desk-detail {
+        > .help-desk-content {
+          > .help-desk-buttons {
+            margin-left: 0;
+            margin-right: 15px;
+          }
+        }
+      }
+    }
+
+    @media (min-width: 1050px) {
+      help-desk-detail {
+        > .help-desk-content {
+          > .help-desk-buttons {
+            padding-left: 17px;
+            padding-right: 0;
+          }
+        }
+      }
+    }
+  }
+
+  // Unlike IE, Edge, and Firefox, Chrome and Safari do not need extra space for the button scrollbar when the buttons
+  // extend below the bottom of the page
+  @media (min-width: 1050px) {
+    [data-browsertype=webkit] {
+      help-desk-detail {
+        > .help-desk-content {
+          > .help-desk-buttons {
+            padding-right: 0;
+          }
+        }
+      }
+
+      &[dir="rtl"] {
+        help-desk-detail {
+          > .help-desk-content {
+            > .help-desk-buttons {
+              padding-left: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .ias-tab-pane.ias-open {
+    display: block; // Can remove once https://github.com/MicroFocus/ux-ias/issues/18 (2nd comment) is resolved
+  }
 }

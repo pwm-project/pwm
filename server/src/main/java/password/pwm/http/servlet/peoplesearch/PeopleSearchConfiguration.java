@@ -3,37 +3,32 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.peoplesearch;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
-import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmRequest;
-import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.util.java.TimeDuration;
 
 import java.util.Collections;
@@ -43,137 +38,176 @@ import java.util.Set;
 
 public class PeopleSearchConfiguration
 {
-    private final PwmRequest pwmRequest;
-    private final PwmApplication pwmApplication;
+    private final PeopleSearchProfile peopleSearchProfile;
+    private final Configuration configuration;
 
-
-    private PeopleSearchConfiguration( final PwmRequest pwmRequest )
-    {
-        this.pwmRequest = pwmRequest;
-        this.pwmApplication = pwmRequest.getPwmApplication();
-    }
-
-    public String getPhotoAttribute( final UserIdentity userIdentity )
-    {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
-        return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO );
-    }
-
-    String getPhotoUrlOverride( final UserIdentity userIdentity )
-    {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
-        return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO_URL_OVERRIDE );
-    }
-
-    boolean isPhotosEnabled( final UserIdentity actor, final SessionLabel sessionLabel )
+    PeopleSearchConfiguration( final Configuration configuration, final PeopleSearchProfile peopleSearchProfile )
             throws PwmUnrecoverableException
     {
-        if ( actor == null )
-        {
-            return false;
-        }
+        this.configuration = configuration;
+        this.peopleSearchProfile = peopleSearchProfile;
+    }
 
-        final List<UserPermission> permissions =  pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER );
-        return LdapPermissionTester.testUserPermissions( pwmApplication, sessionLabel, actor, permissions );
+    String getEmailAttribute( final UserIdentity userIdentity )
+    {
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
+        return ldapProfile.readSettingAsString( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
+    }
+
+    public boolean isPhotosEnabled( )
+    {
+        return peopleSearchProfile.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PHOTO );
     }
 
     public boolean isOrgChartEnabled()
     {
-        final Configuration config = pwmApplication.getConfig();
-        return config.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_ORGCHART );
+        return peopleSearchProfile.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_ORGCHART );
     }
 
     String getOrgChartParentAttr( final UserIdentity userIdentity )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_PARENT );
     }
 
     String getOrgChartChildAttr( final UserIdentity userIdentity  )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_CHILD );
     }
 
     String getOrgChartAssistantAttr( final UserIdentity userIdentity  )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_ASSISTANT );
     }
 
     String getOrgChartWorkforceIDAttr( final UserIdentity userIdentity  )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_WORKFORCEID );
     }
 
-    boolean isOrgChartShowChildCount( )
+    public boolean isOrgChartShowChildCount()
     {
-        return Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_ENABLE_CHILD_COUNT ) );
+        return Boolean.parseBoolean( configuration.readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_ENABLE_CHILD_COUNT ) );
     }
 
-    int getOrgChartMaxParents( )
+    public int getOrgChartMaxParents()
     {
-        return Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_MAX_PARENTS ) );
+        return Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_MAX_PARENTS ) );
     }
 
-    boolean isEnableExportCsv( )
+    public boolean isEnableExportCsv()
     {
-        return pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_EXPORT );
+        return peopleSearchProfile.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_EXPORT );
     }
 
-    int getExportCsvMaxDepth( )
+    public int getExportCsvMaxDepth()
     {
-        return Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_DEPTH ) );
+        return Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_DEPTH ) );
+    }
+
+    public boolean isEnableMailtoLinks()
+    {
+        return peopleSearchProfile.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_TEAM_MAILTO );
+    }
+
+    public int getMailtoLinksMaxDepth( )
+    {
+        return Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_DEPTH ) );
+    }
+
+    TimeDuration getMaxCacheTime()
+    {
+        final long seconds = peopleSearchProfile.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS );
+        return TimeDuration.of( seconds, TimeDuration.Unit.SECONDS );
     }
 
     TimeDuration getExportCsvMaxDuration( )
     {
-        final int seconds = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_SECONDS ) );
+        final int seconds = Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_SECONDS ) );
         return TimeDuration.of( seconds, TimeDuration.Unit.SECONDS );
     }
 
     int getExportCsvMaxThreads( )
     {
-        return Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_THREADS ) );
+        return Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_THREADS ) );
     }
 
     int getExportCsvMaxItems( )
     {
-        return Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_ITEMS ) );
+        return Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_ITEMS ) );
     }
 
-    List<FormConfiguration> getSearchForm()
+    public String getSearchFilter()
     {
-        return pwmRequest.getConfig().readSettingAsForm( PwmSetting.PEOPLE_SEARCH_SEARCH_FORM );
+        return peopleSearchProfile.readSettingAsString( PwmSetting.PEOPLE_SEARCH_SEARCH_FILTER );
+    }
+
+    public List<UserPermission> getSearchPhotoFilter()
+    {
+        return peopleSearchProfile.readSettingAsUserPermission( PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER );
+    }
+
+    public List<FormConfiguration> getSearchForm()
+    {
+        return peopleSearchProfile.readSettingAsForm( PwmSetting.PEOPLE_SEARCH_SEARCH_FORM );
+    }
+
+    public List<FormConfiguration> getSearchResultForm()
+    {
+        return peopleSearchProfile.readSettingAsForm( PwmSetting.PEOPLE_SEARCH_RESULT_FORM );
+    }
+
+    public List<FormConfiguration> getSearchDetailForm()
+    {
+        return peopleSearchProfile.readSettingAsForm( PwmSetting.PEOPLE_SEARCH_DETAIL_FORM );
+    }
+
+    public boolean isUseProxy()
+    {
+        return peopleSearchProfile.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_USE_PROXY );
+    }
+
+    public List<String> getLdapBase()
+    {
+        return peopleSearchProfile.readSettingAsStringArray( PwmSetting.PEOPLE_SEARCH_SEARCH_BASE );
+    }
+
+    public List<String> getDisplayNameCardLables()
+    {
+        return peopleSearchProfile.readSettingAsStringArray( PwmSetting.PEOPLE_SEARCH_DISPLAY_NAMES_CARD_LABELS );
+    }
+
+    public String getDisplayName()
+    {
+        return peopleSearchProfile.readSettingAsString( PwmSetting.PEOPLE_SEARCH_DISPLAY_NAME );
     }
 
     Set<String> getSearchAttributes()
     {
         final List<FormConfiguration> searchForm = getSearchForm();
-
         return Collections.unmodifiableSet( new LinkedHashSet<>( FormConfiguration.convertToListOfNames( searchForm ) ) );
     }
 
     List<FormConfiguration> getResultForm()
     {
-        return pwmRequest.getConfig().readSettingAsForm( PwmSetting.PEOPLE_SEARCH_RESULT_FORM );
+        return peopleSearchProfile.readSettingAsForm( PwmSetting.PEOPLE_SEARCH_RESULT_FORM );
     }
 
     int getResultLimit()
     {
-        return ( int ) pwmRequest.getConfig().readSettingAsLong( PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT );
+        return ( int ) peopleSearchProfile.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT );
     }
 
-    public static PeopleSearchConfiguration forRequest(
-            final PwmRequest pwmRequest
-    )
+    public boolean isEnablePrinting()
     {
-        return new PeopleSearchConfiguration( pwmRequest );
+        return peopleSearchProfile.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PRINTING );
     }
 
     public boolean isEnableAdvancedSearch()
     {
-        return pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_ADVANCED_SEARCH );
+        return peopleSearchProfile.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_ADVANCED_SEARCH );
     }
 }

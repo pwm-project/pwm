@@ -3,35 +3,32 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.config.function;
 
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.RemoteWebServiceValue;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
@@ -42,9 +39,10 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
 {
 
     @Override
-    String getUri( final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData ) throws PwmOperationalException
+    String getUri( final StoredConfigurationModifier modifier, final PwmSetting pwmSetting, final String profile, final String extraData )
+            throws PwmOperationalException, PwmUnrecoverableException
     {
-        final RemoteWebServiceValue actionValue = ( RemoteWebServiceValue ) storedConfiguration.readSetting( pwmSetting, profile );
+        final RemoteWebServiceValue actionValue = ( RemoteWebServiceValue ) modifier.newStoredConfiguration().readSetting( pwmSetting, profile );
         final String serviceName = actionNameFromExtraData( extraData );
         final RemoteWebServiceConfiguration action = actionValue.forName( serviceName );
         final String uriString = action.getUrl();
@@ -59,7 +57,7 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
         {
             URI.create( uriString );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR,
                     "Setting " + pwmSetting.toMenuLocationDebug( profile, null ) + " action " + serviceName + " has an invalid URL syntax" );
@@ -75,7 +73,7 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
 
     void store(
             final List<X509Certificate> certs,
-            final StoredConfigurationImpl storedConfiguration,
+            final StoredConfigurationModifier modifier,
             final PwmSetting pwmSetting,
             final String profile,
             final String extraData,
@@ -83,24 +81,25 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final RemoteWebServiceValue actionValue = ( RemoteWebServiceValue ) storedConfiguration.readSetting( pwmSetting, profile );
+        final RemoteWebServiceValue actionValue = ( RemoteWebServiceValue ) modifier.newStoredConfiguration().readSetting( pwmSetting, profile );
         final String actionName = actionNameFromExtraData( extraData );
         final List<RemoteWebServiceConfiguration> newList = new ArrayList<>();
         for ( final RemoteWebServiceConfiguration loopConfiguration : actionValue.toNativeObject() )
         {
             if ( actionName.equals( loopConfiguration.getName() ) )
             {
-                final RemoteWebServiceConfiguration newConfig = JsonUtil.cloneUsingJson( loopConfiguration, RemoteWebServiceConfiguration.class );
-                newConfig.setCertificates( certs );
+                final RemoteWebServiceConfiguration newConfig = loopConfiguration.toBuilder()
+                        .certificates( certs )
+                        .build();
                 newList.add( newConfig );
             }
             else
             {
-                newList.add( JsonUtil.cloneUsingJson( loopConfiguration, RemoteWebServiceConfiguration.class ) );
+                newList.add( loopConfiguration );
             }
         }
         final RemoteWebServiceValue newActionValue = new RemoteWebServiceValue( newList );
-        storedConfiguration.writeSetting( pwmSetting, profile, newActionValue, userIdentity );
+        modifier.writeSetting( pwmSetting, profile, newActionValue, userIdentity );
     }
 
 }

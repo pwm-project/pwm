@@ -3,29 +3,30 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http;
 
+import com.novell.ldapchai.util.StringHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.stats.EpsStatistic;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletContextEvent;
@@ -34,6 +35,9 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionActivationListener;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -67,11 +71,11 @@ public class HttpEventManager implements
                 pwmApplication.getStatisticsManager().updateEps( EpsStatistic.SESSIONS, 1 );
             }
 
-            LOGGER.trace( "new http session created" );
+            LOGGER.trace( () -> "new http session created" );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( "error during sessionCreated event: " + e.getMessage() );
+            LOGGER.warn( () -> "error during sessionCreated event: " + e.getMessage() );
         }
     }
 
@@ -82,26 +86,30 @@ public class HttpEventManager implements
         {
             if ( httpSession.getAttribute( PwmConstants.SESSION_ATTR_PWM_SESSION ) != null )
             {
+                String debugMsg = "destroyed session";
                 final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( httpSession );
                 if ( pwmSession != null )
                 {
+                    debugMsg += ": " + makeSessionDestroyedDebugMsg( pwmSession );
                     pwmSession.unauthenticateUser( null );
                 }
+
                 final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
                 if ( pwmApplication != null )
                 {
                     pwmApplication.getSessionTrackService().removeSessionData( pwmSession );
                 }
-                LOGGER.trace( pwmSession, "destroyed session" );
+                final String outputMsg = debugMsg;
+                LOGGER.trace( pwmSession.getLabel(), () -> outputMsg );
             }
             else
             {
-                LOGGER.trace( "invalidated uninitialized session" );
+                LOGGER.trace( () -> "invalidated uninitialized session" );
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( "error during httpSessionDestroyed: " + e.getMessage() );
+            LOGGER.warn( () -> "error during httpSessionDestroyed: " + e.getMessage() );
         }
     }
 
@@ -112,7 +120,7 @@ public class HttpEventManager implements
 
         if ( null != servletContextEvent.getServletContext().getAttribute( PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER ) )
         {
-            LOGGER.warn( "notice, previous servlet ContextManager exists" );
+            LOGGER.warn( () -> "notice, previous servlet ContextManager exists" );
         }
 
         try
@@ -121,14 +129,14 @@ public class HttpEventManager implements
             newContextManager.initialize();
             servletContextEvent.getServletContext().setAttribute( PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER, newContextManager );
         }
-        catch ( OutOfMemoryError e )
+        catch ( final OutOfMemoryError e )
         {
-            LOGGER.fatal( "JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage(), e );
+            LOGGER.fatal( () -> "JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage(), e );
             throw e;
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.fatal( "error initializing context: " + e, e );
+            LOGGER.fatal( () -> "error initializing context: " + e, e );
             System.err.println( "error initializing context: " + e );
             System.out.println( "error initializing context: " + e );
             e.printStackTrace();
@@ -142,9 +150,9 @@ public class HttpEventManager implements
             final ContextManager contextManager = ContextManager.getContextManager( servletContextEvent.getServletContext() );
             contextManager.shutdown();
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "unable to destroy context: " + e.getMessage() );
+            LOGGER.error( () -> "unable to destroy context: " + e.getMessage() );
         }
     }
 
@@ -154,11 +162,11 @@ public class HttpEventManager implements
         try
         {
             final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( event.getSession() );
-            LOGGER.trace( pwmSession.getLabel(), "passivating session" );
+            LOGGER.trace( pwmSession.getLabel(), () -> "passivating session" );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "unable to passivate session: " + e.getMessage() );
+            LOGGER.error( () -> "unable to passivate session: " + e.getMessage() );
         }
     }
 
@@ -168,17 +176,31 @@ public class HttpEventManager implements
         {
             final HttpSession httpSession = event.getSession();
             final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( httpSession );
-            LOGGER.trace( pwmSession.getLabel(), "activating (de-passivating) session" );
+            LOGGER.trace( pwmSession.getLabel(), () -> "activating (de-passivating) session" );
             final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
             if ( pwmApplication != null )
             {
                 pwmApplication.getSessionTrackService().addSessionData( pwmSession );
             }
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "unable to activate (de-passivate) session: " + e.getMessage() );
+            LOGGER.error( () -> "unable to activate (de-passivate) session: " + e.getMessage() );
         }
+    }
+
+    private static String makeSessionDestroyedDebugMsg( final PwmSession pwmSession )
+    {
+        final LocalSessionStateBean sessionStateBean = pwmSession.getSessionStateBean();
+        final Map<String, String> debugItems = new LinkedHashMap<>();
+        debugItems.put( "requests", sessionStateBean.getRequestCount().toString() );
+        final Instant startTime = sessionStateBean.getSessionCreationTime();
+        final Instant lastAccessedTime = sessionStateBean.getSessionLastAccessedTime();
+        final TimeDuration timeDuration = TimeDuration.between( startTime, lastAccessedTime );
+        debugItems.put( "firstToLastRequestInterval", timeDuration.asCompactString() );
+        final TimeDuration avgReqDuration = TimeDuration.of( sessionStateBean.getAvgRequestDuration().getLastMillis(), TimeDuration.Unit.MILLISECONDS );
+        debugItems.put( "avgRequestDuration", avgReqDuration.asCompactString() );
+        return StringHelper.stringMapToString( debugItems, "," );
     }
 }
 

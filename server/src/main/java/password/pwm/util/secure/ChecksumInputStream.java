@@ -3,53 +3,35 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.secure;
 
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.zip.CRC32;
 
 public class ChecksumInputStream extends InputStream
 {
-    private final MessageDigest messageDigest;
+    private final CRC32 crc32 = new CRC32();
     private final InputStream wrappedStream;
 
-    public ChecksumInputStream( final PwmHashAlgorithm hash, final InputStream wrappedStream ) throws PwmUnrecoverableException
+    public ChecksumInputStream( final InputStream wrappedStream )
     {
         this.wrappedStream = wrappedStream;
-
-        try
-        {
-            messageDigest = MessageDigest.getInstance( hash.getAlgName() );
-        }
-        catch ( NoSuchAlgorithmException e )
-        {
-            final String errorMsg = "missing hash algorithm: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
     }
 
     @Override
@@ -58,7 +40,7 @@ public class ChecksumInputStream extends InputStream
         final int value = wrappedStream.read();
         if ( value >= 0 )
         {
-            messageDigest.update( ( byte ) value );
+            crc32.update( ( byte ) value );
         }
         return value;
     }
@@ -69,7 +51,7 @@ public class ChecksumInputStream extends InputStream
         final int length = wrappedStream.read( b );
         if ( length > 0 )
         {
-            messageDigest.update( b, 0, length );
+            crc32.update( b, 0, length );
         }
         return length;
     }
@@ -80,7 +62,7 @@ public class ChecksumInputStream extends InputStream
         final int length = wrappedStream.read( b, off, len );
         if ( length > 0 )
         {
-            messageDigest.update( b, off, length );
+            crc32.update( b, off, length );
         }
         return length;
     }
@@ -121,12 +103,12 @@ public class ChecksumInputStream extends InputStream
         return false;
     }
 
-    public byte[] getInProgressChecksum( )
+    public String checksum( )
     {
-        return messageDigest.digest();
+        return ChecksumOutputStream.stringifyChecksum( crc32.getValue() );
     }
 
-    public byte[] closeAndFinalChecksum( ) throws IOException
+    public String readUntilEndAndChecksum( ) throws IOException
     {
         final byte[] buffer = new byte[ 1024 ];
 
@@ -135,6 +117,6 @@ public class ChecksumInputStream extends InputStream
             // read out the remainder of the stream contents
         }
 
-        return getInProgressChecksum();
+        return checksum();
     }
 }

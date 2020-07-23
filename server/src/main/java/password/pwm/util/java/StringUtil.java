@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.util.java;
@@ -42,7 +40,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class StringUtil
@@ -234,9 +234,7 @@ public abstract class StringUtil
 
     public static boolean nullSafeEquals( final String value1, final String value2 )
     {
-        return value1 == null
-                ? value2 == null
-                : value1.equals( value2 );
+        return Objects.equals( value1, value2 );
     }
 
     public enum Base64Options
@@ -291,9 +289,9 @@ public abstract class StringUtil
         {
             return URLEncoder.encode( input, PwmConstants.DEFAULT_CHARSET.toString() );
         }
-        catch ( UnsupportedEncodingException e )
+        catch ( final UnsupportedEncodingException e )
         {
-            LOGGER.error( "unexpected error during url encoding: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error during url encoding: " + e.getMessage() );
             return input;
         }
     }
@@ -304,9 +302,9 @@ public abstract class StringUtil
         {
             return URLDecoder.decode( input, PwmConstants.DEFAULT_CHARSET.toString() );
         }
-        catch ( UnsupportedEncodingException e )
+        catch ( final UnsupportedEncodingException e )
         {
-            LOGGER.error( "unexpected error during url decoding: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error during url decoding: " + e.getMessage() );
             return input;
         }
     }
@@ -508,14 +506,22 @@ public abstract class StringUtil
 
     public static String truncate( final String input, final int length )
     {
+        return truncate( input, length, null );
+    }
+
+    public static String truncate( final String input, final int length, final String appendIfTruncated )
+    {
         if ( input == null )
         {
             return "";
         }
 
-        return input.length() > length
-                ? input.substring( 0, length )
-                : input;
+        if ( input.length() > length )
+        {
+            return input.substring( 0, length ) + ( appendIfTruncated == null ? "" : appendIfTruncated );
+        }
+
+        return input;
     }
 
     public static int convertStrToInt( final String string, final int defaultValue )
@@ -529,9 +535,93 @@ public abstract class StringUtil
         {
             return Integer.parseInt( string );
         }
-        catch ( NumberFormatException e )
+        catch ( final NumberFormatException e )
         {
             return defaultValue;
         }
+    }
+
+    public static String stripAllWhitespace( final String input )
+    {
+        return stripAllChars( input, Character::isWhitespace );
+    }
+
+    public static String stripAllChars( final String input, final Predicate<Character> stripPredicate )
+    {
+        final StringBuilder sb = new StringBuilder( input );
+        int index = 0;
+        while ( index < sb.length() )
+        {
+            final char loopChar = sb.charAt( index );
+            if ( stripPredicate.test( loopChar ) )
+            {
+                sb.deleteCharAt( index );
+            }
+            else
+            {
+                index++;
+            }
+        }
+        return sb.toString();
+    }
+
+    public static String insertRepeatedLineBreaks( final String input, final int periodicity )
+    {
+        final String lineSeparator = System.lineSeparator();
+        return repeatedInsert( input, periodicity, lineSeparator );
+    }
+
+    public static String repeatedInsert( final String input, final int periodicity, final String insertValue )
+    {
+        if ( StringUtil.isEmpty( input ) )
+        {
+            return "";
+        }
+
+        if ( StringUtil.isEmpty( insertValue ) )
+        {
+            return input;
+        }
+
+        final int inputLength = input.length();
+        final StringBuilder output = new StringBuilder( inputLength + ( periodicity * insertValue.length() ) );
+
+        int index = 0;
+        while ( index < inputLength )
+        {
+            final int endIndex = Math.min( index + periodicity, inputLength );
+            output.append( input, index, endIndex );
+            output.append( insertValue );
+            index += periodicity;
+        }
+        return output.toString();
+    }
+
+    public static boolean caseIgnoreContains( final Collection<String> collection, final String value )
+    {
+        if ( value == null || collection == null )
+        {
+            return false;
+        }
+
+        if ( collection.contains( value ) )
+        {
+            return true;
+        }
+
+        final String lcaseValue = value.toLowerCase();
+        for ( final String item : collection )
+        {
+            if ( item != null )
+            {
+                final String lcaseItem = item.toLowerCase();
+                if ( lcaseItem.equalsIgnoreCase( lcaseValue ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

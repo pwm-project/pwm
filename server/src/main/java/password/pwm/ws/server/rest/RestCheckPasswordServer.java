@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.ws.server.rest;
@@ -44,7 +42,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
@@ -62,7 +60,7 @@ import java.time.Instant;
                 PwmConstants.URL_PREFIX_PUBLIC + PwmConstants.URL_PREFIX_REST + "/checkpassword"
         }
 )
-@RestWebServer( webService = WebServiceUsage.CheckPassword, requireAuthentication = true )
+@RestWebServer( webService = WebServiceUsage.CheckPassword )
 public class RestCheckPasswordServer extends RestServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestCheckPasswordServer.class );
@@ -211,19 +209,19 @@ public class RestCheckPasswordServer extends RestServlet
             final JsonOutput jsonOutput = JsonOutput.fromPasswordCheckInfo( passwordCheckInfo );
             final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
             final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.trace( restRequest.getSessionLabel(), "REST /checkpassword response (" + timeDuration.asCompactString() + "): " + JsonUtil.serialize( jsonOutput ) );
+            LOGGER.trace( restRequest.getSessionLabel(), () -> "REST /checkpassword response (" + timeDuration.asCompactString() + "): " + JsonUtil.serialize( jsonOutput ) );
             return restResultBean;
         }
-        catch ( PwmException e )
+        catch ( final PwmException e )
         {
-            LOGGER.debug( restRequest.getSessionLabel(), "REST /checkpassword error during execution: " + e.getMessage() );
+            LOGGER.debug( restRequest.getSessionLabel(), () -> "REST /checkpassword error during execution: " + e.getMessage() );
             return RestResultBean.fromError( restRequest, e.getErrorInformation() );
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
-            LOGGER.error( restRequest.getSessionLabel(), errorInformation.toDebugStr(), e );
+            LOGGER.error( restRequest.getSessionLabel(), () -> errorInformation.toDebugStr(), e );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }

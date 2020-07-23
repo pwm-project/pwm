@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.svc.telemetry;
@@ -32,12 +30,11 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.X509Utils;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -63,22 +60,23 @@ public class HttpTelemetrySender implements TelemetrySender
             throws PwmUnrecoverableException
     {
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
-                .trustManager( new X509Utils.PromiscuousTrustManager() )
+                .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
                 .build();
-        final PwmHttpClient pwmHttpClient = new PwmHttpClient( pwmApplication, SessionLabel.TELEMETRY_SESSION_LABEL, pwmHttpClientConfiguration );
+        final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
         final String body = JsonUtil.serialize( statsPublishBean );
         final Map<String, String> headers = new HashMap<>();
-        headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValue() );
+        headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
         headers.put( HttpHeader.Accept.getHttpName(), PwmConstants.AcceptValue.json.getHeaderValue() );
-        final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
-                HttpMethod.POST,
-                settings.getUrl(),
-                body,
-                headers
-        );
-        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "preparing to send telemetry data to '" + settings.getUrl() + ")" );
-        pwmHttpClient.makeRequest( pwmHttpClientRequest );
-        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, "sent telemetry data to '" + settings.getUrl() + ")" );
+        final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder()
+                .method( HttpMethod.POST )
+                .url( settings.getUrl() )
+                .body( body )
+                .headers( headers )
+                .build();
+
+        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "preparing to send telemetry data to '" + settings.getUrl() + ")" );
+        pwmHttpClient.makeRequest( pwmHttpClientRequest, SessionLabel.TELEMETRY_SESSION_LABEL );
+        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "sent telemetry data to '" + settings.getUrl() + ")" );
     }
 
     @Getter

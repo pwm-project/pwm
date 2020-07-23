@@ -3,26 +3,23 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.configmanager;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -43,7 +40,7 @@ import password.pwm.svc.wordlist.WordlistConfiguration;
 import password.pwm.svc.wordlist.WordlistSourceType;
 import password.pwm.svc.wordlist.WordlistStatus;
 import password.pwm.svc.wordlist.WordlistType;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -97,15 +94,16 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         {
             return ConfigManagerAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
         }
-        catch ( IllegalArgumentException e )
+        catch ( final IllegalArgumentException e )
         {
             return null;
         }
     }
 
     protected void processAction( final PwmRequest pwmRequest )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+            throws ServletException, IOException, PwmUnrecoverableException
     {
+        ConfigManagerServlet.verifyConfigAccess( pwmRequest );
 
         final ConfigManagerAction processAction = readProcessAction( pwmRequest );
         if ( processAction != null )
@@ -146,7 +144,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "unknown wordlist type: " + wordlistTypeParam );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
-            LOGGER.error( pwmRequest, "error during import: " + errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> "error during import: " + errorInformation.toDebugStr() );
             return;
         }
 
@@ -154,7 +152,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "no file found in upload" );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
-            LOGGER.error( pwmRequest, "error during import: " + errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> "error during import: " + errorInformation.toDebugStr() );
             return;
         }
 
@@ -164,11 +162,11 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         {
             wordlistType.forType( pwmApplication ).populate( inputStream );
         }
-        catch ( PwmUnrecoverableException e )
+        catch ( final PwmUnrecoverableException e )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmRequest, errorInfo.toDebugStr() );
+            LOGGER.debug( pwmRequest, errorInfo );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }
@@ -186,7 +184,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "unknown wordlist type: " + wordlistTypeParam );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
-            LOGGER.error( pwmRequest, "error during clear: " + errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> "error during clear: " + errorInformation.toDebugStr() );
             return;
         }
 
@@ -194,16 +192,16 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         {
             wordlistType.forType( pwmRequest.getPwmApplication() ).clear();
         }
-        catch ( Exception e )
+        catch ( final Exception e )
         {
-            LOGGER.error( "error clearing wordlist " + wordlistType + ", error: " + e.getMessage() );
+            LOGGER.error( () -> "error clearing wordlist " + wordlistType + ", error: " + e.getMessage() );
         }
 
         pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
     }
 
     void restReadWordlistData( final PwmRequest pwmRequest )
-            throws IOException
+            throws IOException, PwmUnrecoverableException
     {
         final LinkedHashMap<WordlistType, WordlistDataBean> outputData = new LinkedHashMap<>();
 
@@ -254,13 +252,13 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                                 "Population Timestamp",
                                 JavaHelper.toIsoDate( wordlistStatus.getStoreDate() ) ) );
                     }
-                    if ( wordlistStatus.getRemoteInfo() != null && !StringUtil.isEmpty( wordlistStatus.getRemoteInfo().getChecksum() ) )
+                    if ( wordlistStatus.getRemoteInfo() != null && !StringUtil.isEmpty( wordlistStatus.getRemoteInfo().getHash() ) )
                     {
                         presentableValues.add( new DisplayElement(
                                 wordlistType.name() + "_sha256Hash",
                                 DisplayElement.Type.string,
-                                "SHA-256 Checksum Hash",
-                                StringUtil.truncate( wordlistStatus.getRemoteInfo().getChecksum(), 32 ) + "..." ) );
+                                "SHA256 Checksum",
+                                wordlistStatus.getRemoteInfo().getHash() ) );
                     }
                 }
                 if ( wordlist.getAutoImportError() != null )
@@ -276,8 +274,26 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                             "Last Import Attempt",
                             JavaHelper.toIsoDate( wordlist.getAutoImportError().getDate() ) ) );
                 }
+
+                if ( activity == Wordlist.Activity.Importing )
+                {
+                    final String percentComplete = wordlist.getImportPercentComplete();
+                    if ( !StringUtil.isEmpty( percentComplete ) )
+                    {
+                        presentableValues.add( new DisplayElement(
+                                "percentComplete",
+                                DisplayElement.Type.string,
+                                "Percent Complete",
+                                percentComplete ) );
+
+                    }
+                }
+
                 builder.presentableData( Collections.unmodifiableList( presentableValues ) );
             }
+
+
+
 
             if ( wordlistStatus.isCompleted() )
             {

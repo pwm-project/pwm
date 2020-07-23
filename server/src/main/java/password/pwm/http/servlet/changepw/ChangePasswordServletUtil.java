@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.http.servlet.changepw;
@@ -48,7 +46,7 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.password.PasswordUtility;
 
 import java.util.Locale;
 import java.util.Map;
@@ -59,29 +57,29 @@ public class ChangePasswordServletUtil
     private static final PwmLogger LOGGER = PwmLogger.forClass( ChangePasswordServletUtil.class );
 
     static boolean determineIfCurrentPasswordRequired(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException
     {
-        final RequireCurrentPasswordMode currentSetting = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.PASSWORD_REQUIRE_CURRENT, RequireCurrentPasswordMode.class );
+        final RequireCurrentPasswordMode currentSetting = pwmRequest.getConfig().readSettingAsEnum( PwmSetting.PASSWORD_REQUIRE_CURRENT, RequireCurrentPasswordMode.class );
 
         if ( currentSetting == RequireCurrentPasswordMode.FALSE )
         {
             return false;
         }
 
-        if ( pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE )
+        final LoginInfoBean loginInfoBean = pwmRequest.getPwmSession().getLoginInfoBean();
+        if ( loginInfoBean.getType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE )
         {
-            LOGGER.debug( pwmSession, "skipping user current password requirement, authentication type is " + AuthenticationType.AUTH_FROM_PUBLIC_MODULE );
+            LOGGER.debug( pwmRequest, () -> "skipping user current password requirement, authentication type is " + AuthenticationType.AUTH_FROM_PUBLIC_MODULE );
             return false;
         }
 
         {
-            final PasswordData currentPassword = pwmSession.getLoginInfoBean().getUserCurrentPassword();
+            final PasswordData currentPassword = loginInfoBean.getUserCurrentPassword();
             if ( currentPassword == null )
             {
-                LOGGER.debug( pwmSession, "skipping user current password requirement, current password is not known to application" );
+                LOGGER.debug( pwmRequest, () -> "skipping user current password requirement, current password is not known to application" );
                 return false;
             }
         }
@@ -91,18 +89,19 @@ public class ChangePasswordServletUtil
             return true;
         }
 
-        final PasswordStatus passwordStatus = pwmSession.getUserInfo().getPasswordStatus();
+        final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
+        final PasswordStatus passwordStatus = userInfo.getPasswordStatus();
         return currentSetting == RequireCurrentPasswordMode.NOTEXPIRED
                 && !passwordStatus.isExpired()
                 && !passwordStatus.isPreExpired()
                 && !passwordStatus.isViolatesPolicy()
-                && !pwmSession.getUserInfo().isRequiresNewPassword();
+                && !userInfo.isRequiresNewPassword();
 
     }
 
     static void validateParamsAgainstLDAP(
             final Map<FormConfiguration, String> formValues,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final ChaiUser theUser
     )
             throws ChaiUnavailableException, PwmDataValidationException
@@ -122,14 +121,14 @@ public class ChangePasswordServletUtil
                                     attrName,
                             }
                     );
-                    LOGGER.debug( pwmSession, errorInfo.toDebugStr() );
+                    LOGGER.debug( pwmRequest, errorInfo );
                     throw new PwmDataValidationException( errorInfo );
                 }
-                LOGGER.trace( pwmSession, "successful validation of ldap value for '" + attrName + "'" );
+                LOGGER.trace( pwmRequest, () -> "successful validation of ldap value for '" + attrName + "'" );
             }
-            catch ( ChaiOperationException e )
+            catch ( final ChaiOperationException e )
             {
-                LOGGER.error( pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage() );
+                LOGGER.error( pwmRequest, () -> "error during param validation of '" + attrName + "', error: " + e.getMessage() );
                 throw new PwmDataValidationException( new ErrorInformation(
                         PwmError.ERROR_INCORRECT_RESPONSE,
                         "ldap error testing value for '" + attrName + "'",
@@ -143,31 +142,30 @@ public class ChangePasswordServletUtil
     }
 
     static void sendChangePasswordEmailNotice(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmApplication.getConfig();
-        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        final Configuration config = pwmRequest.getConfig();
+        final Locale locale = pwmRequest.getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_CHANGEPASSWORD, locale );
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( pwmSession, "skipping change password email for '" + pwmSession.getUserInfo().getUserIdentity() + "' no email configured" );
+            LOGGER.debug( pwmRequest, () -> "skipping change password email for '" + pwmRequest.getUserInfoIfLoggedIn() + "' no email configured" );
             return;
         }
 
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
-                pwmSession.getUserInfo(),
+                pwmRequest.getPwmSession().getUserInfo(),
 
-                pwmSession.getSessionManager().getMacroMachine( pwmApplication ) );
+                pwmRequest.getPwmSession().getSessionManager().getMacroMachine( ) );
     }
 
     static void checkMinimumLifetime(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final ChangePasswordBean changePasswordBean,
             final UserInfo userInfo
     )
@@ -181,11 +179,11 @@ public class ChangePasswordServletUtil
         if ( userInfo.isWithinPasswordMinimumLifetime() )
         {
             boolean allowChange = false;
-            if ( pwmSession.getLoginInfoBean().getAuthFlags().contains( AuthenticationType.AUTH_FROM_PUBLIC_MODULE ) )
+            if ( pwmRequest.getPwmSession().getLoginInfoBean().getAuthFlags().contains( AuthenticationType.AUTH_FROM_PUBLIC_MODULE ) )
             {
                 allowChange = ForgottenPasswordUtil.permitPwChangeDuringMinLifetime(
-                        pwmApplication,
-                        pwmSession.getLabel(),
+                        pwmRequest.getPwmApplication(),
+                        pwmRequest.getLabel(),
                         userInfo.getUserIdentity()
                 );
 
@@ -193,12 +191,12 @@ public class ChangePasswordServletUtil
 
             if ( allowChange )
             {
-                LOGGER.debug( pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check due to setting "
-                        + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( null, pwmSession.getSessionStateBean().getLocale() ) );
+                LOGGER.debug( pwmRequest, () -> "current password is too young, but skipping enforcement of minimum lifetime check due to setting "
+                        + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( null, pwmRequest.getLocale() ) );
             }
             else
             {
-                PasswordUtility.throwPasswordTooSoonException( userInfo, pwmSession.getLabel() );
+                PasswordUtility.throwPasswordTooSoonException( userInfo, pwmRequest.getLabel() );
             }
         }
 
@@ -217,23 +215,23 @@ public class ChangePasswordServletUtil
         final ChangePasswordBean cpb = pwmApplication.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
 
         // change password
-        PasswordUtility.setActorPassword( pwmSession, pwmApplication, newPassword );
+        PasswordUtility.setActorPassword( pwmRequest, pwmApplication, newPassword );
 
         //init values for progress screen
         {
             final PasswordChangeProgressChecker.ProgressTracker tracker = new PasswordChangeProgressChecker.ProgressTracker();
             final PasswordChangeProgressChecker checker = new PasswordChangeProgressChecker(
                     pwmApplication,
-                    pwmSession.getUserInfo().getUserIdentity(),
-                    pwmSession.getLabel(),
-                    pwmSession.getSessionStateBean().getLocale()
+                    pwmRequest.getUserInfoIfLoggedIn(),
+                    pwmRequest.getLabel(),
+                    pwmRequest.getLocale()
             );
             cpb.setChangeProgressTracker( tracker );
             cpb.setChangePasswordMaxCompletion( checker.maxCompletionTime( tracker ) );
         }
 
         // send user an email confirmation
-        ChangePasswordServletUtil.sendChangePasswordEmailNotice( pwmSession, pwmApplication );
+        ChangePasswordServletUtil.sendChangePasswordEmailNotice( pwmRequest );
 
         // send audit event
         pwmApplication.getAuditManager().submit( AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfo(), pwmSession );

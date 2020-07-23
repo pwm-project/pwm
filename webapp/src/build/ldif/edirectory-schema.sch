@@ -79,16 +79,29 @@ BEGIN
 	 ASN1ObjID 	{ 1 3 6 1 4 1 35015 1 2 6 } 
  }
 
+-- attributeTypes: (
+--   1.3.6.1.4.1.35015.1.2.67
+--   NAME 'pwmData'
+--   SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+--  )
+
+"pwmData" ATTRIBUTE ::=
+ {
+	 SyntaxID 	 SYN_OCTET_STRING,
+	 Flags 	{ DS_SYNC_IMMEDIATE },
+	 ASN1ObjID 	{ 1 3 6 1 4 1 35015 1 2 7 }
+ }
+
 -- objectClasses: ( 1.3.6.1.4.1.35015.1.1.1
 --   NAME 'pwmUser' 
 --   AUXILIARY 
---   MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID $ pwmToken $ pwmOtpSecret ) )
+--   MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID $ pwmToken $ pwmOtpSecret $ pwmData ) )
 
 "pwmUser" OBJECT-CLASS ::=
  { 
 	 Operation 	ADD, 
 	 Flags 	{DS_AUXILIARY_CLASS}, 
-	 MayContain 	{ "pwmLastPwdUpdate", "pwmEventLog", "pwmResponseSet", "pwmGUID", "pwmToken", "pwmOtpSecret" },
+	 MayContain 	{ "pwmLastPwdUpdate", "pwmEventLog", "pwmResponseSet", "pwmGUID", "pwmToken", "pwmOtpSecret", "pwmData" },
 	 ASN1ObjID 	{ 1 3 6 1 4 1 35015 1 1 1 } 
  }
 

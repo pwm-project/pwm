@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.ldap.schema;
@@ -60,7 +58,7 @@ public class EdirSchemaExtender implements SchemaExtender
         {
             schemaEntry = chaiProvider.getEntryFactory().newChaiEntry( LDAP_SCHEMA_DN );
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() ) );
         }
@@ -121,11 +119,11 @@ public class EdirSchemaExtender implements SchemaExtender
                 }
             }
         }
-        catch ( ChaiUnavailableException e )
+        catch ( final ChaiUnavailableException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() ) );
         }
-        catch ( ChaiOperationException e )
+        catch ( final ChaiOperationException e )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() ) );
         }
@@ -153,7 +151,7 @@ public class EdirSchemaExtender implements SchemaExtender
                     logActivity( "+ objectclass '" + name + "' has been modified" );
                     stateMap.put( name, SchemaDefinition.State.correct );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     logActivity( "error while updating objectclass definition '" + name + "', error: " + e.getMessage() );
                 }
@@ -172,7 +170,7 @@ public class EdirSchemaExtender implements SchemaExtender
                     logActivity( "+ objectclass '" + name + "' has been added" );
                     stateMap.put( name, SchemaDefinition.State.correct );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     logActivity( "error while updating objectclass definition '" + name + "', error: " + e.getMessage() );
                 }
@@ -199,7 +197,7 @@ public class EdirSchemaExtender implements SchemaExtender
                     logActivity( "+ attribute '" + name + "' has been modified" );
                     stateMap.put( name, SchemaDefinition.State.correct );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     logActivity( "error while updating attribute definition '" + name + "', error: " + e.getMessage() );
                 }
@@ -218,7 +216,7 @@ public class EdirSchemaExtender implements SchemaExtender
                     logActivity( "+ attribute '" + name + "' has been added" );
                     stateMap.put( name, SchemaDefinition.State.correct );
                 }
-                catch ( ChaiOperationException e )
+                catch ( final ChaiOperationException e )
                 {
                     logActivity( "error while adding attribute definition '" + name + "', error: " + e.getMessage() );
                 }
@@ -255,7 +253,7 @@ public class EdirSchemaExtender implements SchemaExtender
                 }
             }
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             e.printStackTrace();
         }
@@ -288,7 +286,7 @@ public class EdirSchemaExtender implements SchemaExtender
                 }
             }
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             e.printStackTrace();
         }
@@ -308,9 +306,9 @@ public class EdirSchemaExtender implements SchemaExtender
             {
                 schemaParser = new SchemaParser( key );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
-                LOGGER.error( "error parsing schema attribute definition: " + e.getMessage() );
+                LOGGER.error( () -> "error parsing schema attribute definition: " + e.getMessage() );
             }
             if ( schemaParser != null )
             {
@@ -335,9 +333,9 @@ public class EdirSchemaExtender implements SchemaExtender
             {
                 schemaParser = new SchemaParser( key );
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
-                LOGGER.error( "error parsing schema objectclasses definition: " + e.getMessage() );
+                LOGGER.error( () -> "error parsing schema objectclasses definition: " + e.getMessage() );
             }
             if ( schemaParser != null )
             {
@@ -352,7 +350,7 @@ public class EdirSchemaExtender implements SchemaExtender
 
     private void logActivity( final CharSequence charSequence )
     {
-        LOGGER.info( charSequence );
+        LOGGER.info( () -> charSequence );
         activityLog.append( charSequence ).append( "\n" );
     }
 

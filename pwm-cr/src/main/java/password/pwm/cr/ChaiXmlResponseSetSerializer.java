@@ -3,21 +3,19 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.cr;
@@ -144,7 +142,7 @@ public class ChaiXmlResponseSetSerializer
                     {
                         timestamp = CrUtils.parseDateString( timeStr );
                     }
-                    catch ( ParseException e )
+                    catch ( final ParseException e )
                     {
                         throw new IllegalArgumentException( "unexpected error attempting to parse timestamp: " + e.getMessage() );
                     }
@@ -175,14 +173,14 @@ public class ChaiXmlResponseSetSerializer
                                 break;
 
                             default:
-                                throw new IllegalStateException( "unknown response type '" + type + "'" );
+                                throw new IllegalStateException( "unknown response type '" + type + '\'' );
 
                         }
                     }
                 }
             }
         }
-        catch ( JDOMException | IOException | NullPointerException e )
+        catch ( final JDOMException | IOException | NullPointerException e )
         {
             throw new IllegalArgumentException( "error parsing stored response record: " + e.getMessage() );
         }
@@ -230,7 +228,7 @@ public class ChaiXmlResponseSetSerializer
                 return XML_NODE_HELPDESK_RESPONSE;
 
             default:
-                throw new IllegalArgumentException( "unknown type '" + type + "'" );
+                throw new IllegalArgumentException( "unknown type '" + type + '\'' );
         }
     }
 
@@ -276,12 +274,16 @@ public class ChaiXmlResponseSetSerializer
         final String salt = element.getAttribute( XML_ATTRIBUTE_SALT ) == null ? "" : element.getAttribute( XML_ATTRIBUTE_SALT ).getValue();
         final String hashCount = element.getAttribute( XML_ATTRIBUTE_HASH_COUNT ) == null ? "1" : element.getAttribute( XML_ATTRIBUTE_HASH_COUNT ).getValue();
         int saltCount = 1;
+
         try
         {
             saltCount = Integer.parseInt( hashCount );
         }
-        catch ( NumberFormatException e )
-        { /* noop */ }
+        catch ( final NumberFormatException e )
+        {
+            /* noop */
+        }
+
         final String formatStr = element.getAttributeValue( XML_ATTRIBUTE_CONTENT_FORMAT ) == null ? "" : element.getAttributeValue( XML_ATTRIBUTE_CONTENT_FORMAT );
 
         return StoredResponseItem.builder()
@@ -304,7 +306,7 @@ public class ChaiXmlResponseSetSerializer
             final byte[] hashedBytes = md.digest( questionText.getBytes( StandardCharsets.UTF_8 ) );
             return net.iharder.Base64.encodeBytes( hashedBytes, Base64.URL_SAFE );
         }
-        catch ( NoSuchAlgorithmException | IOException e )
+        catch ( final NoSuchAlgorithmException | IOException e )
         {
             throw new IllegalStateException( "unable to load SHA1 message digest algorithm: " + e.getMessage() );
         }

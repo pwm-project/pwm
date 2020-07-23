@@ -3,26 +3,25 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2018 The PWM Project
+ * Copyright (c) 2009-2019 The PWM Project
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package password.pwm.bean.pub;
 
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.config.Configuration;
 import password.pwm.config.profile.PwmPasswordRule;
@@ -39,7 +38,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-@Getter
+@Value
+@Builder
 public class PublicUserInfoBean implements Serializable
 {
     private String userDN;
@@ -52,6 +52,7 @@ public class PublicUserInfoBean implements Serializable
     private String userSmsNumber;
     private String userSmsNumber2;
     private String userSmsNumber3;
+    private String language;
     private Instant passwordExpirationTime;
     private Instant passwordLastModifiedTime;
     private Instant lastLoginTime;
@@ -75,11 +76,11 @@ public class PublicUserInfoBean implements Serializable
     )
             throws PwmUnrecoverableException
     {
-        final PublicUserInfoBean publicUserInfoBean = new PublicUserInfoBean();
+        final PublicUserInfoBean.PublicUserInfoBeanBuilder publicUserInfoBean = PublicUserInfoBean.builder();
         publicUserInfoBean.userDN = ( userInfoBean.getUserIdentity() == null ) ? "" : userInfoBean.getUserIdentity().getUserDN();
         publicUserInfoBean.ldapProfile = ( userInfoBean.getUserIdentity() == null ) ? "" : userInfoBean.getUserIdentity().getLdapProfileID();
         publicUserInfoBean.userID = userInfoBean.getUsername();
-        publicUserInfoBean.userGUID = publicUserInfoBean.getUserGUID();
+        publicUserInfoBean.userGUID = userInfoBean.getUserGuid();
         publicUserInfoBean.userEmailAddress = userInfoBean.getUserEmailAddress();
         publicUserInfoBean.userEmailAddress2 = userInfoBean.getUserEmailAddress2();
         publicUserInfoBean.userEmailAddress3 = userInfoBean.getUserEmailAddress3();
@@ -97,6 +98,7 @@ public class PublicUserInfoBean implements Serializable
         publicUserInfoBean.requiresUpdateProfile = userInfoBean.isRequiresUpdateProfile();
         publicUserInfoBean.requiresOtpConfig = userInfoBean.isRequiresOtpConfig();
         publicUserInfoBean.requiresInteraction = userInfoBean.isRequiresInteraction();
+        publicUserInfoBean.language = userInfoBean.getLanguage();
 
         publicUserInfoBean.passwordPolicy = new HashMap<>();
         for ( final PwmPasswordRule rule : PwmPasswordRule.values() )
@@ -116,6 +118,6 @@ public class PublicUserInfoBean implements Serializable
             publicUserInfoBean.attributes = Collections.unmodifiableMap( userInfoBean.getCachedAttributeValues() );
         }
 
-        return publicUserInfoBean;
+        return publicUserInfoBean.build();
     }
 }
