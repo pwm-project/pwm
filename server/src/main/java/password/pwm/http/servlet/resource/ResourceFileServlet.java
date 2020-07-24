@@ -51,6 +51,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.zip.GZIPOutputStream;
 
 @WebServlet(
@@ -218,7 +219,16 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, () -> "error fulfilling response for url '" + requestURI + "', error: " + e.getMessage() );
+            final Supplier<CharSequence> msg = () -> "error fulfilling response for url '" + requestURI + "', error: " + e.getMessage();
+            if ( e instanceof IOException )
+            {
+                LOGGER.trace( pwmRequest, msg );
+            }
+            else
+            {
+                LOGGER.error( pwmRequest, msg );
+            }
+
         }
     }
 
