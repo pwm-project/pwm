@@ -32,10 +32,13 @@ import password.pwm.config.option.SmtpServerType;
 import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMessage;
+import password.pwm.health.HealthRecord;
 import password.pwm.http.HttpContentType;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.PwmTrustManager;
@@ -54,6 +57,7 @@ import javax.net.ssl.TrustManager;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -365,6 +369,7 @@ public class EmailServerUtil
     static Transport makeSmtpTransport( final EmailServer server )
             throws MessagingException, PwmUnrecoverableException
     {
+        final Instant startTime = Instant.now();
         // Login to SMTP server first if both username and password is given
         final boolean authenticated = !StringUtil.isEmpty( server.getUsername() ) && server.getPassword() != null;
 
@@ -385,7 +390,8 @@ public class EmailServerUtil
             transport.connect();
         }
 
-        LOGGER.debug( () -> "connected to " + server.toDebugString() + " " + ( authenticated ? "(authenticated)" : "(unauthenticated)" ) );
+        LOGGER.debug( () -> "connected to " + server.toDebugString() + " " + ( authenticated ? "(authenticated)" : "(unauthenticated)" ),
+                () -> TimeDuration.fromCurrent( startTime ) );
 
         return transport;
     }
@@ -419,5 +425,25 @@ public class EmailServerUtil
         }
 
         return Collections.emptyList();
+    }
+
+    static List<HealthRecord> checkAllConfiguredServers( final List<EmailServer> emailServers )
+    {
+        final List<HealthRecord> records = new ArrayList<>();
+        for ( final EmailServer emailServer : emailServers )
+        {
+            try
+            {
+                final Transport transport = EmailServerUtil.makeSmtpTransport( emailServer );
+                transport.isConnected();
+                transport.close();
+            }
+            catch ( final Exception e )
+            {
+                records.add( HealthRecord.forMessage( HealthMessage.Email_ConnectFailure, emailServer.getId(), e.getMessage() ) );
+            }
+        }
+
+        return Collections.unmodifiableList( records );
     }
 }

@@ -67,7 +67,7 @@ class WordlistImporter implements Runnable
     private ErrorInformation exitError;
     private Instant startTime = Instant.now();
     private long bytesSkipped;
-    private Map<WordType, Long> seenWordTypes = new HashMap<>();
+    private final Map<WordType, Long> seenWordTypes = new HashMap<>();
     private boolean completed;
 
     private enum DebugKey

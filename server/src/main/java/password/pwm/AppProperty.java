@@ -303,6 +303,8 @@ public enum AppProperty
     QUEUE_EMAIL_RETRY_TIMEOUT_MS                    ( "queue.email.retryTimeoutMs" ),
     QUEUE_EMAIL_MAX_COUNT                           ( "queue.email.maxCount" ),
     QUEUE_EMAIL_MAX_THREADS                         ( "queue.email.maxThreads" ),
+    QUEUE_EMAIL_MAX_ITEMS_PER_CONNECTION            ( "queue.email.maxItemsPerConnection" ),
+    QUEUE_EMAIL_MAX_SECONDS_PER_CONNECTION          ( "queue.email.maxSecondsPerConnection" ),
     QUEUE_SMS_RETRY_TIMEOUT_MS                      ( "queue.sms.retryTimeoutMs" ),
     QUEUE_SMS_MAX_COUNT                             ( "queue.sms.maxCount" ),
     QUEUE_SYSLOG_RETRY_TIMEOUT_MS                   ( "queue.syslog.retryTimeoutMs" ),

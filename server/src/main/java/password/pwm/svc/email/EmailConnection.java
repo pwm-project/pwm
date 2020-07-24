@@ -20,13 +20,74 @@
 
 package password.pwm.svc.email;
 
-import lombok.Value;
+import password.pwm.util.java.AtomicLoopIntIncrementer;
+import password.pwm.util.logging.PwmLogger;
 
+import javax.mail.MessagingException;
 import javax.mail.Transport;
+import java.time.Instant;
 
-@Value
 class EmailConnection
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( EmailConnection.class );
+
     private final EmailServer emailServer;
     private final Transport transport;
+    private final AtomicLoopIntIncrementer sentItems = new AtomicLoopIntIncrementer( );
+    private final Instant startTime = Instant.now();
+    private final String id;
+
+    private static final AtomicLoopIntIncrementer ID_COUNTER = new AtomicLoopIntIncrementer();
+
+    EmailConnection( final EmailServer emailServer, final Transport transport )
+    {
+        this.emailServer = emailServer;
+        this.transport = transport;
+        this.id = String.valueOf( ID_COUNTER.next() );
+    }
+
+    public EmailServer getEmailServer()
+    {
+        return emailServer;
+    }
+
+    public int getSentItems()
+    {
+        return sentItems.get();
+    }
+
+    public Transport getTransport()
+    {
+        return transport;
+    }
+
+    public void incrementSentItems()
+    {
+        sentItems.next();
+    }
+
+    public Instant getStartTime()
+    {
+        return startTime;
+    }
+
+    public String getId()
+    {
+        return id;
+    }
+
+    public void close()
+    {
+        if ( getTransport() != null )
+        {
+            try
+            {
+                 getTransport().close();
+            }
+            catch ( final MessagingException e )
+            {
+               LOGGER.debug( () -> "error closing connection: " + e.getMessage() );
+            }
+        }
+    }
 }

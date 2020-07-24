@@ -33,6 +33,7 @@ import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.MovingAverage;
+import password.pwm.util.java.StatisticIntCounterMap;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -51,7 +52,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Supplier;
 
@@ -76,13 +76,18 @@ public final class WorkQueueProcessor<W extends Serializable>
 
     private ThreadPoolExecutor executorService;
 
-    private final MovingAverage avgLagTime = new MovingAverage( TimeDuration.HOUR );
-    private final EventRateMeter sendRate = new EventRateMeter( TimeDuration.HOUR );
+    private final MovingAverage avgLagTime = new MovingAverage( TimeDuration.MINUTE );
+    private final EventRateMeter sendRate = new EventRateMeter( TimeDuration.MINUTE );
 
-    private final AtomicInteger preQueueSubmit = new AtomicInteger( 0 );
-    private final AtomicInteger preQueueBypass = new AtomicInteger( 0 );
-    private final AtomicInteger preQueueFallback = new AtomicInteger( 0 );
-    private final AtomicInteger queueProcessItems = new AtomicInteger( 0 );
+    private final StatisticIntCounterMap<WorkQueueStat> workQueueStats = new StatisticIntCounterMap<>( WorkQueueStat.class );
+
+    enum WorkQueueStat
+    {
+        preQueueSubmit,
+        preQueueBypass,
+        preQueueFallback,
+        queueProcessItems,
+    }
 
     public enum ProcessResult
     {
@@ -124,9 +129,10 @@ public final class WorkQueueProcessor<W extends Serializable>
                     settings.getPreThreads(),
                     1,
                     TimeUnit.MINUTES,
-                    new ArrayBlockingQueue<>( settings.getPreThreads() ),
+                    new ArrayBlockingQueue<>( settings.getPreThreads() + 1 ),
                     threadFactory
             );
+            executorService.getActiveCount();
             executorService.allowCoreThreadTimeOut( true );
         }
     }
@@ -190,12 +196,12 @@ public final class WorkQueueProcessor<W extends Serializable>
             try
             {
                 executorService.execute( ( ) -> sendAndQueueIfNecessary( itemWrapper ) );
-                preQueueSubmit.incrementAndGet();
+                workQueueStats.increment( WorkQueueStat.preQueueSubmit );
             }
             catch ( final RejectedExecutionException e )
             {
                 submitToQueue( itemWrapper );
-                preQueueBypass.incrementAndGet();
+                workQueueStats.increment( WorkQueueStat.preQueueBypass );
             }
         }
         else
@@ -216,7 +222,7 @@ public final class WorkQueueProcessor<W extends Serializable>
             }
             else if ( processResult == ProcessResult.RETRY || processResult == ProcessResult.NOOP )
             {
-                preQueueFallback.incrementAndGet();
+                workQueueStats.increment( WorkQueueStat.preQueueFallback );
                 try
                 {
                     submitToQueue( itemWrapper );
@@ -430,7 +436,7 @@ public final class WorkQueueProcessor<W extends Serializable>
             final ProcessResult processResult;
             try
             {
-                queueProcessItems.incrementAndGet();
+                workQueueStats.increment( WorkQueueStat.queueProcessItems );
                 processResult = itemProcessor.process( itemWrapper.getWorkItem() );
                 if ( processResult == null )
                 {
@@ -593,14 +599,15 @@ public final class WorkQueueProcessor<W extends Serializable>
         final Map<String, String> output = new HashMap<>();
         output.put( "avgLagTime", TimeDuration.of( ( long ) avgLagTime.getAverage(), TimeDuration.Unit.MILLISECONDS ).asCompactString() );
         output.put( "sendRate", sendRate.readEventRate().setScale( 2, RoundingMode.DOWN ) + "/s" );
-        output.put( "preQueueSubmit", String.valueOf( preQueueSubmit.get() ) );
-        output.put( "preQueueBypass", String.valueOf( preQueueBypass.get() ) );
-        output.put( "preQueueFallback", String.valueOf( preQueueFallback.get() ) );
-        output.put( "queueProcessItems", String.valueOf( queueProcessItems.get() ) );
         if ( executorService != null )
         {
-            output.put( "activeThreads", String.valueOf( executorService.getActiveCount() ) );
+            output.put( "preQueueThreads", String.valueOf( executorService.getActiveCount() ) );
         }
+        if ( workerThread != null )
+        {
+            output.put( "postQueueThreads", workerThread.isRunning() ? "1" : "0" );
+        }
+        output.putAll( workQueueStats.debugStats() );
         return Collections.unmodifiableMap( output );
     }
 }
