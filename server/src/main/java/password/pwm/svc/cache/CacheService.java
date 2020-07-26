@@ -49,7 +49,7 @@ public class CacheService implements PwmService
 
     private MemoryCacheStore memoryCacheStore;
 
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
 
     private ConditionalTaskExecutor traceDebugOutputter;
 
@@ -85,7 +85,6 @@ public class CacheService implements PwmService
             return;
         }
 
-        status = STATUS.OPENING;
         final int maxMemItems = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_MEMORY_MAX_ITEMS ) );
         memoryCacheStore = new MemoryCacheStore( maxMemItems );
         this.traceDebugOutputter = new ConditionalTaskExecutor(
@@ -93,6 +92,14 @@ public class CacheService implements PwmService
                 new ConditionalTaskExecutor.TimeDurationPredicate( 1, TimeDuration.Unit.MINUTES )
         );
         status = STATUS.OPEN;
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     @Override

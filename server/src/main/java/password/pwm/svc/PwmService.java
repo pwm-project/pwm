@@ -42,15 +42,15 @@ public interface PwmService
 
     enum STATUS
     {
-        NEW,
-        OPENING,
         OPEN,
-        CLOSED
+        CLOSED,
     }
 
     STATUS status( );
 
     void init( PwmApplication pwmApplication ) throws PwmException;
+
+    void reInit( PwmApplication pwmApplication ) throws PwmException;
 
     void close( );
 

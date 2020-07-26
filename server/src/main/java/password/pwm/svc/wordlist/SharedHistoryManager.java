@@ -65,7 +65,7 @@ public class SharedHistoryManager implements PwmService
     private static final LocalDB.DB META_DB = LocalDB.DB.SHAREDHISTORY_META;
     private static final LocalDB.DB WORDS_DB = LocalDB.DB.SHAREDHISTORY_WORDS;
 
-    private volatile PwmService.STATUS status = STATUS.NEW;
+    private volatile PwmService.STATUS status = STATUS.CLOSED;
 
     private ExecutorService executorService;
 
@@ -87,6 +87,14 @@ public class SharedHistoryManager implements PwmService
             executorService.shutdown();
         }
         localDB = null;
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     public boolean containsWord( final String word )
@@ -190,7 +198,6 @@ public class SharedHistoryManager implements PwmService
 
     private void init( final PwmApplication pwmApplication, final long maxAgeMs )
     {
-        status = STATUS.OPENING;
         final Instant startTime = Instant.now();
 
         try

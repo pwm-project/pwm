@@ -102,7 +102,7 @@ public class SmsQueueManager implements PwmService
 
     private WorkQueueProcessor<SmsItemBean> workQueueProcessor;
     private PwmApplication pwmApplication;
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
     private ErrorInformation lastError;
 
     public SmsQueueManager( )
@@ -114,7 +114,6 @@ public class SmsQueueManager implements PwmService
     )
             throws PwmException
     {
-        status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
@@ -139,6 +138,14 @@ public class SmsQueueManager implements PwmService
         smsSendEngine = new SmsSendEngine( pwmApplication, pwmApplication.getConfig() );
 
         status = STATUS.OPEN;
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     private class SmsItemProcessor implements WorkQueueProcessor.ItemProcessor<SmsItemBean>

@@ -80,7 +80,7 @@ public class TelemetryService implements PwmService
     private ErrorInformation lastError;
     private TelemetrySender sender;
 
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
 
 
     @Override
@@ -92,7 +92,6 @@ public class TelemetryService implements PwmService
     @Override
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
         if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING )
@@ -148,6 +147,14 @@ public class TelemetryService implements PwmService
         scheduleNextJob();
 
         status = STATUS.OPEN;
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     private void initSender( ) throws PwmUnrecoverableException

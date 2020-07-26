@@ -68,7 +68,7 @@ public class AuditService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( AuditService.class );
 
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
     private AuditSettings settings;
     private ServiceInfoBean serviceInfo = new ServiceInfoBean( Collections.emptyList() );
 
@@ -90,7 +90,6 @@ public class AuditService implements PwmService
 
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        this.status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
         final Instant startTime = Instant.now();
@@ -196,6 +195,14 @@ public class AuditService implements PwmService
         }
 
         this.status = STATUS.OPEN;
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     @Override

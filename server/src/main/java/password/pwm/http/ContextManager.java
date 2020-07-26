@@ -28,12 +28,12 @@ import password.pwm.PwmEnvironment;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -46,7 +46,6 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.logging.PwmLogManager;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
 
@@ -266,21 +265,20 @@ public class ContextManager implements Serializable
         final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = parameterReader.readApplicationFlags();
         final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = parameterReader.readApplicationParams( applicationPath );
 
-        if ( applicationParams != null && applicationParams.containsKey( PwmEnvironment.ApplicationParameter.InitConsoleLogLevel ) )
-        {
-            final String logLevel = applicationParams.get( PwmEnvironment.ApplicationParameter.InitConsoleLogLevel );
-            PwmLogManager.preInitConsoleLogLevel( logLevel );
-        }
+        mode = PwmEnvironment.checkForTrial( mode );
 
         try
         {
-            final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder( configuration, applicationPath )
-                    .setApplicationMode( mode )
-                    .setConfigurationFile( configurationFile )
-                    .setContextManager( this )
-                    .setFlags( applicationFlags )
-                    .setParams( applicationParams )
-                    .createPwmEnvironment();
+            final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
+                    .config( configuration )
+                    .applicationPath( applicationPath )
+                    .applicationMode( mode )
+                    .configurationFile( configurationFile )
+                    .contextManager( this )
+                    .flags( applicationFlags )
+                    .parameters( applicationParams )
+                    .build();
+
             pwmApplication = PwmApplication.createPwmApplication( pwmEnvironment, preExistingLocalDB );
         }
         catch ( final Exception e )
@@ -491,7 +489,6 @@ public class ContextManager implements Serializable
 
         private void doRestart( )
         {
-            final boolean reloadLocalDB = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LOCALDB_RELOAD_WHEN_APP_RESTARTED ) );
             final Instant startTime = Instant.now();
 
             if ( restartInProgressFlag.get() )
@@ -507,53 +504,25 @@ public class ContextManager implements Serializable
                 return;
             }
 
-            final PwmApplication oldPwmApplication = pwmApplication;
-            final LocalDB oldLocalDB = reloadLocalDB
-                    ? null
-                    : pwmApplication.getLocalDB();
-
-            pwmApplication = null;
-
             try
             {
                 restartInProgressFlag.set( true );
-
-                waitForRequestsToComplete( oldPwmApplication );
+                waitForRequestsToComplete( pwmApplication );
 
                 {
                     final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
                     LOGGER.info( SESSION_LABEL, () -> "beginning application restart (" + timeDuration.asCompactString() + "), restart count=" + restartCount.incrementAndGet() );
                 }
 
-                final Instant shutdownStartTime = Instant.now();
                 try
                 {
-                    try
-                    {
-                        // prevent restart watcher from detecting in-progress restart in a loop
-                        taskMaster.shutdown();
-
-                        oldPwmApplication.shutdown( oldLocalDB != null );
-                    }
-                    catch ( final Exception e )
-                    {
-                        LOGGER.error( SESSION_LABEL, () -> "unexpected error attempting to close application: " + e.getMessage() );
-                    }
+                        newReInit();
                 }
                 catch ( final Exception e )
                 {
                     LOGGER.fatal( () -> "unexpected error during shutdown: " + e.getMessage(), e );
                 }
 
-                {
-                    final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                    final TimeDuration shutdownDuration = TimeDuration.fromCurrent( shutdownStartTime );
-                    LOGGER.info( SESSION_LABEL, () -> "application restart; shutdown completed, ("
-                            + shutdownDuration.asCompactString()
-                            + ") now starting new application instance ("
-                            + timeDuration.asCompactString() + ")" );
-                }
-                initialize( oldLocalDB );
 
                 {
                     final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
@@ -659,7 +628,7 @@ public class ContextManager implements Serializable
             );
         }
 
-        Collection<PwmEnvironment.ApplicationFlag> readApplicationFlags( )
+        Set<PwmEnvironment.ApplicationFlag> readApplicationFlags( )
         {
             final String contextAppFlagsValue = readEnvironmentParameter( PwmEnvironment.EnvironmentParameter.applicationFlags );
 
@@ -796,5 +765,14 @@ public class ContextManager implements Serializable
                         + ", no LDAP urls are configured" );
             }
         }
+    }
+
+    private void newReInit() throws PwmException
+    {
+        final File configurationFile = locateConfigurationFile( applicationPath, PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
+
+        configReader = new ConfigurationReader( configurationFile );
+        final Configuration configuration = configReader.getConfiguration();
+        pwmApplication.reInit( configuration );
     }
 }

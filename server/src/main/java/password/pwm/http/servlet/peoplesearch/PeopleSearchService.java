@@ -59,7 +59,14 @@ public class PeopleSearchService implements PwmService
                 new ArrayBlockingQueue<>( 5000 ),
                 threadFactory
         );
+    }
 
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     @Override

@@ -112,12 +112,15 @@ public class OnejarHelper
         final File configFile = new File( applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
         final ConfigurationReader configReader = new ConfigurationReader( configFile );
         final Configuration config = configReader.getConfiguration();
-        final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder( config, applicationPath )
-                .setApplicationMode( PwmApplicationMode.READ_ONLY )
-                .setConfigurationFile( configFile )
-                .setFlags( Collections.singleton( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
-                .setInternalRuntimeInstance( true )
-                .createPwmEnvironment();
+        final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
+                .config( config )
+                .applicationPath( applicationPath )
+                .applicationMode( PwmApplicationMode.READ_ONLY )
+                .configurationFile( configFile )
+                .flags( Collections.singleton( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
+                .internalRuntimeInstance( true )
+                .build();
+
         return PwmApplication.createPwmApplication( pwmEnvironment );
     }
 }

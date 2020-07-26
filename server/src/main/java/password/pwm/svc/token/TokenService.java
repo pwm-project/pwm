@@ -99,7 +99,7 @@ public class TokenService implements PwmService
     private TokenMachine tokenMachine;
 
     private ServiceInfoBean serviceInfo = new ServiceInfoBean( Collections.emptyList() );
-    private volatile STATUS status = STATUS.NEW;
+    private volatile STATUS status = STATUS.CLOSED;
 
     private ErrorInformation errorInformation = null;
 
@@ -133,7 +133,6 @@ public class TokenService implements PwmService
             throws PwmException
     {
         LOGGER.trace( () -> "opening" );
-        status = STATUS.OPENING;
 
         this.pwmApplication = pwmApplication;
         this.configuration = pwmApplication.getConfig();
@@ -207,6 +206,14 @@ public class TokenService implements PwmService
 
         status = STATUS.OPEN;
         LOGGER.debug( () -> "open" );
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     public boolean supportsName( )

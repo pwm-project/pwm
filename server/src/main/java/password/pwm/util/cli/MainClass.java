@@ -487,11 +487,14 @@ public class MainClass
             applicationFlags.addAll( flags );
         }
         applicationFlags.add( PwmEnvironment.ApplicationFlag.CommandLineInstance );
-        final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder( config, applicationPath )
-                .setApplicationMode( mode )
-                .setConfigurationFile( configurationFile )
-                .setFlags( applicationFlags )
-                .createPwmEnvironment();
+        final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
+                .config( config )
+                .applicationPath( applicationPath )
+                .applicationMode( mode )
+                .configurationFile( configurationFile )
+                .flags( applicationFlags )
+                .build();
+
         final PwmApplication pwmApplication = PwmApplication.createPwmApplication( pwmEnvironment );
         final PwmApplicationMode runningMode = pwmApplication.getApplicationMode();
 

@@ -77,7 +77,7 @@ public class DatabaseService implements PwmService
     private ErrorInformation lastError;
     private PwmApplication pwmApplication;
 
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
 
     private AtomicLoopIntIncrementer slotIncrementer;
     private final Map<Integer, DatabaseAccessorImpl> accessors = new ConcurrentHashMap<>();
@@ -125,7 +125,6 @@ public class DatabaseService implements PwmService
         }
 
         final Instant startTime = Instant.now();
-        status = STATUS.OPENING;
 
         try
         {
@@ -181,9 +180,16 @@ public class DatabaseService implements PwmService
             final String errorMsg = "exception initializing database service: " + t.getMessage();
             LOGGER.warn( () -> errorMsg );
             initialized = false;
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
-            lastError = errorInformation;
+            lastError = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
         }
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     @Override

@@ -259,7 +259,7 @@ PWM_CFGEDIT.saveConfiguration = function() {
                     PWM_MAIN.showErrorDialog(data);
                 } else {
                     console.log('save completed');
-                    PWM_MAIN.showWaitDialog({title:'Save complete, restarting application...',loadFunction:function(){
+                    PWM_MAIN.showWaitDialog({title:'Save complete, applying configuration...',loadFunction:function(){
                             PWM_CONFIG.waitForRestart({location:'/'});
                         }});
                 }

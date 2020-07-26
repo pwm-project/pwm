@@ -71,10 +71,13 @@ public class TestHelper
             throws PwmUnrecoverableException
     {
         Logger.getRootLogger().setLevel( Level.OFF );
-        final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder( configuration, tempFolder )
-                .setApplicationMode( PwmApplicationMode.READ_ONLY )
-                .setInternalRuntimeInstance( true )
-                .createPwmEnvironment();
+        final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
+                .config( configuration )
+                .applicationPath( tempFolder )
+                .applicationMode( PwmApplicationMode.READ_ONLY )
+                .internalRuntimeInstance( true )
+                .build();
+
         return PwmApplication.createPwmApplication( pwmEnvironment );
     }
 }

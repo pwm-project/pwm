@@ -46,6 +46,7 @@ import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StatisticIntCounterMap;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
@@ -71,18 +72,24 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+
 
 public class UserSearchEngine implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserSearchEngine.class );
 
-    private final AtomicInteger searchCounter = new AtomicInteger( 0 );
-    private final AtomicInteger foregroundJobCounter = new AtomicInteger( 0 );
-    private final AtomicInteger backgroundJobCounter = new AtomicInteger( 0 );
-    private final AtomicInteger rejectionJobCounter = new AtomicInteger( 0 );
-    private final AtomicInteger canceledJobCounter = new AtomicInteger( 0 );
-    private final AtomicInteger jobTimeoutCounter = new AtomicInteger( 0 );
+    private final StatisticIntCounterMap<SearchStatistic> counters = new StatisticIntCounterMap<>( SearchStatistic.class );
+    private final AtomicLoopIntIncrementer searchIdCounter = new AtomicLoopIntIncrementer();
+
+    enum SearchStatistic
+    {
+        searchCounter,
+        foregroundJobCounter,
+        backgroundJobCounter,
+        backgroundRejectionJobCounter,
+        backgroundCanceledJobCounter,
+        backgroundJobTimeoutCounter,
+    }
 
     private PwmApplication pwmApplication;
 
@@ -110,6 +117,15 @@ public class UserSearchEngine implements PwmService
         this.executor = createExecutor( pwmApplication );
         this.periodicDebugOutput();
     }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
+    }
+
 
     @Override
     public void close( )
@@ -322,7 +338,8 @@ public class UserSearchEngine implements PwmService
 
         final List<String> errors = new ArrayList<>();
 
-        final int searchID = searchCounter.getAndIncrement();
+        counters.increment( SearchStatistic.searchCounter );
+        final int searchID = searchIdCounter.next();
         final long profileRetryDelayMS = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PROFILE_RETRY_DELAY ) );
         final AtomicLoopIntIncrementer jobIncrementer = AtomicLoopIntIncrementer.builder().build();
 
@@ -643,12 +660,12 @@ public class UserSearchEngine implements PwmService
                 {
                     executor.submit( jobInfo.getFutureTask() );
                     submittedToExecutor = true;
-                    backgroundJobCounter.incrementAndGet();
+                    counters.increment( SearchStatistic.backgroundJobCounter );
                 }
                 catch ( final RejectedExecutionException e )
                 {
                     // executor is full, so revert to running locally
-                    rejectionJobCounter.incrementAndGet();
+                    counters.increment( SearchStatistic.backgroundRejectionJobCounter );
                 }
             }
 
@@ -657,7 +674,7 @@ public class UserSearchEngine implements PwmService
                 try
                 {
                     jobInfo.getFutureTask().run();
-                    foregroundJobCounter.incrementAndGet();
+                    counters.increment( SearchStatistic.foregroundJobCounter );
                 }
                 catch ( final Throwable t )
                 {
@@ -691,7 +708,7 @@ public class UserSearchEngine implements PwmService
                 final FutureTask<Map<UserIdentity, Map<String, String>>> futureTask = jobInfo.getFutureTask();
                 if ( !futureTask.isDone() )
                 {
-                    canceledJobCounter.incrementAndGet();
+                    counters.increment( SearchStatistic.backgroundCanceledJobCounter );
                 }
                 jobInfo.getFutureTask().cancel( false );
             }
@@ -734,9 +751,7 @@ public class UserSearchEngine implements PwmService
     private Map<String, String> debugProperties( )
     {
         final Map<String, String> properties = new TreeMap<>();
-        properties.put( "searchCount", this.searchCounter.toString() );
-        properties.put( "backgroundJobCounter", Integer.toString( this.backgroundJobCounter.get() ) );
-        properties.put( "foregroundJobCounter", Integer.toString( this.foregroundJobCounter.get() ) );
+        properties.putAll( counters.debugStats() );
         properties.put( "jvmThreadCount", Integer.toString( Thread.activeCount() ) );
         if ( executor == null )
         {
@@ -750,9 +765,6 @@ public class UserSearchEngine implements PwmService
             properties.put( "background-largestPoolSize", Integer.toString( executor.getLargestPoolSize() ) );
             properties.put( "background-poolSize", Integer.toString( executor.getPoolSize() ) );
             properties.put( "background-queue-size", Integer.toString( executor.getQueue().size() ) );
-            properties.put( "background-rejectionJobCounter", Integer.toString( rejectionJobCounter.get() ) );
-            properties.put( "background-canceledJobCounter", Integer.toString( canceledJobCounter.get() ) );
-            properties.put( "background-jobTimeoutCounter", Integer.toString( jobTimeoutCounter.get() ) );
         }
         return Collections.unmodifiableMap( properties );
     }

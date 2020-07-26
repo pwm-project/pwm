@@ -30,6 +30,7 @@ import password.pwm.util.java.JavaHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public enum PwmServiceEnum
 {
@@ -63,7 +64,7 @@ public enum PwmServiceEnum
     PwExpiryNotifyService( PwNotifyService.class ),;
 
     private final Class<? extends PwmService> clazz;
-    private final Flag[] flags;
+    private final Set<Flag> flags;
 
     private enum Flag
     {
@@ -73,12 +74,12 @@ public enum PwmServiceEnum
     PwmServiceEnum( final Class<? extends PwmService> clazz, final Flag... flags )
     {
         this.clazz = clazz;
-        this.flags = flags;
+        this.flags = JavaHelper.enumSetFromArray( flags );
     }
 
     public boolean isInternalRuntime( )
     {
-        return JavaHelper.enumArrayContainsValue( flags, Flag.StartDuringRuntimeInstance );
+        return this.flags.contains( Flag.StartDuringRuntimeInstance );
     }
 
     static List<Class<? extends PwmService>> allClasses( )
@@ -94,5 +95,10 @@ public enum PwmServiceEnum
     public Class<? extends PwmService> getPwmServiceClass( )
     {
         return clazz;
+    }
+
+    public String serviceName()
+    {
+        return "[" + getPwmServiceClass().getSimpleName() + "]";
     }
 }

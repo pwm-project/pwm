@@ -162,6 +162,14 @@ public class OtpService implements PwmService
         return otpCorrect;
     }
 
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
+    }
+
     private List<String> createRawRecoveryCodes( final int numRecoveryCodes, final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {

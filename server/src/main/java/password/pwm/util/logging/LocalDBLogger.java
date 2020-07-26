@@ -71,7 +71,7 @@ public class LocalDBLogger implements PwmService
     private final ScheduledExecutorService writerService;
     private final AtomicBoolean cleanOnWriteFlag = new AtomicBoolean( false );
 
-    private volatile STATUS status = STATUS.NEW;
+    private volatile STATUS status = STATUS.CLOSED;
     private boolean hasShownReadError = false;
 
     private static final String STORAGE_FORMAT_VERSION = "4";
@@ -86,7 +86,6 @@ public class LocalDBLogger implements PwmService
         Objects.requireNonNull( localDB, "localDB can not be null" );
 
         final Instant startTime = Instant.now();
-        status = STATUS.OPENING;
 
         this.settings = settings == null
                 ? LocalDBLoggerSettings.builder().build().applyValueChecks()
@@ -140,6 +139,7 @@ public class LocalDBLogger implements PwmService
 
         cleanOnWriteFlag.set( eventQueue.size() >= this.settings.getMaxEvents() );
 
+        status = STATUS.OPEN;
         LOGGER.info( () -> "open, " + debugStats(), () -> TimeDuration.fromCurrent( startTime ) );
     }
 
@@ -516,6 +516,11 @@ public class LocalDBLogger implements PwmService
     {
     }
 
+    @Override
+    public void reInit( final PwmApplication pwmApplication ) throws PwmException
+    {
+
+    }
 
     public String sizeToDebugString( )
     {

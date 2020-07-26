@@ -81,7 +81,7 @@ public class IntruderManager implements PwmService
     private static final PwmLogger LOGGER = PwmLogger.forClass( IntruderManager.class );
 
     private PwmApplication pwmApplication;
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
     private ErrorInformation startupError;
     private Timer timer;
 
@@ -109,7 +109,6 @@ public class IntruderManager implements PwmService
     {
         this.pwmApplication = pwmApplication;
         final Configuration config = pwmApplication.getConfig();
-        status = STATUS.OPENING;
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "unable to start IntruderManager, LocalDB unavailable" );
@@ -202,6 +201,14 @@ public class IntruderManager implements PwmService
             startupError = errorInformation;
             close();
         }
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     private void initializeRecordManagers( final Configuration config, final RecordStore recordStore )

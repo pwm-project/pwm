@@ -83,7 +83,7 @@ public class StatisticsManager implements PwmService
 
     private PwmApplication pwmApplication;
 
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
 
 
     private final Map<String, StatisticsBundle> cachedStoredStats = new LinkedHashMap<String, StatisticsBundle>()
@@ -231,7 +231,6 @@ public class StatisticsManager implements PwmService
 
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        status = STATUS.OPENING;
         this.localDB = pwmApplication.getLocalDB();
         this.pwmApplication = pwmApplication;
 
@@ -296,6 +295,14 @@ public class StatisticsManager implements PwmService
         }
 
         status = STATUS.OPEN;
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     private void writeDbValues( )

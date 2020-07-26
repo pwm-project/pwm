@@ -146,10 +146,16 @@ public class UserCacheService implements PwmService
 
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
         this.cacheStore = new CacheStoreWrapper( pwmApplication.getLocalDB() );
         status = STATUS.OPEN;
+    }
+
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     public void close( )

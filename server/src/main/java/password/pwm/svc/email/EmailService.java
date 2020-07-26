@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Jason D. Rivard
@@ -75,21 +76,21 @@ public class EmailService implements PwmService
     private final AtomicReference<ErrorInformation> lastSendError = new AtomicReference<>();
 
     private final ConditionalTaskExecutor statsLogger = ConditionalTaskExecutor.forPeriodicTask( this::logStats, TimeDuration.MINUTE );
+    private final ReentrantLock submitLock = new ReentrantLock();
 
-    private PwmService.STATUS status = STATUS.NEW;
+    private PwmService.STATUS status = STATUS.CLOSED;
 
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
-        status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
         this.emailServiceSettings = EmailServiceSettings.fromConfiguration( pwmApplication.getConfig() );
         LOGGER.trace( () -> "initializing with settings: " + JsonUtil.serialize( emailServiceSettings ) );
 
-        final List<EmailServer> servers = new ArrayList<>();
+        final List<EmailServer> servers;
         try
         {
-            servers.addAll( EmailServerUtil.makeEmailServersMap( pwmApplication.getConfig() ) );
+            servers = new ArrayList<>( EmailServerUtil.makeEmailServersMap( pwmApplication.getConfig() ) );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -108,7 +109,7 @@ public class EmailService implements PwmService
 
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            LOGGER.warn( () -> "localdb is not open, EmailService will remain closed" );
+            LOGGER.warn( () -> "localDB is not open, EmailService will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
@@ -130,6 +131,22 @@ public class EmailService implements PwmService
         status = STATUS.OPEN;
 
         statsLogger.conditionallyExecuteTask();
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        submitLock.lock();
+        try
+        {
+            close();
+            init( pwmApplication );
+        }
+        finally
+        {
+            submitLock.unlock();
+        }
     }
 
     public void close( )
@@ -352,46 +369,54 @@ public class EmailService implements PwmService
 
         checkIfServiceIsOpen();
 
-        final EmailItemBean finalBean;
-        {
-            EmailItemBean workingItemBean = emailItem;
-            if ( ( emailItem.getTo() == null || emailItem.getTo().isEmpty() ) && userInfo != null )
-            {
-                final String toAddress = userInfo.getUserEmailAddress();
-                workingItemBean = EmailServerUtil.newEmailToAddress( workingItemBean, toAddress );
-            }
-
-            if ( macroMachine != null )
-            {
-                workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroMachine );
-            }
-
-            if ( StringUtil.isEmpty( workingItemBean.getTo() ) )
-            {
-                LOGGER.error( () -> "no destination address available for email, skipping; email: " + emailItem.toDebugString() );
-            }
-
-            if ( !determineIfItemCanBeDelivered( emailItem ) )
-            {
-                return;
-            }
-            finalBean = workingItemBean;
-        }
-
+        submitLock.lock();
         try
         {
-            if ( immediate )
+            final EmailItemBean finalBean;
             {
-                workQueueProcessor.submitImmediate( finalBean );
+                EmailItemBean workingItemBean = emailItem;
+                if ( ( emailItem.getTo() == null || emailItem.getTo().isEmpty() ) && userInfo != null )
+                {
+                    final String toAddress = userInfo.getUserEmailAddress();
+                    workingItemBean = EmailServerUtil.newEmailToAddress( workingItemBean, toAddress );
+                }
+
+                if ( macroMachine != null )
+                {
+                    workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroMachine );
+                }
+
+                if ( StringUtil.isEmpty( workingItemBean.getTo() ) )
+                {
+                    LOGGER.error( () -> "no destination address available for email, skipping; email: " + emailItem.toDebugString() );
+                }
+
+                if ( !determineIfItemCanBeDelivered( emailItem ) )
+                {
+                    return;
+                }
+                finalBean = workingItemBean;
             }
-            else
+
+            try
             {
-                workQueueProcessor.submit( finalBean );
+                if ( immediate )
+                {
+                    workQueueProcessor.submitImmediate( finalBean );
+                }
+                else
+                {
+                    workQueueProcessor.submit( finalBean );
+                }
+            }
+            catch ( final PwmOperationalException e )
+            {
+                LOGGER.warn( () -> "unable to add email to queue: " + e.getMessage() );
             }
         }
-        catch ( final PwmOperationalException e )
+        finally
         {
-            LOGGER.warn( () -> "unable to add email to queue: " + e.getMessage() );
+            submitLock.unlock();
         }
 
         statsLogger.conditionallyExecuteTask();

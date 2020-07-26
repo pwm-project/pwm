@@ -77,6 +77,14 @@ public class HttpClientService implements PwmService
     }
 
     @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
+    }
+
+    @Override
     public void close()
     {
         for ( final PwmHttpClient pwmHttpClient : new HashSet<>( issuedClients.keySet() ) )

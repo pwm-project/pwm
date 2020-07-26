@@ -45,7 +45,7 @@ public class NodeService implements PwmService
     private static final PwmLogger LOGGER = PwmLogger.forClass( NodeService.class );
 
     private PwmApplication pwmApplication;
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
     private NodeMachine nodeMachine;
     private DataStorageMethod dataStore;
     private ErrorInformation startupError;
@@ -60,7 +60,6 @@ public class NodeService implements PwmService
     @Override
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
         final boolean serviceEnabled = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.CLUSTER_ENABLED );
@@ -120,6 +119,14 @@ public class NodeService implements PwmService
         }
 
         status = STATUS.CLOSED;
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     @Override

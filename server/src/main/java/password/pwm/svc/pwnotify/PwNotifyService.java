@@ -154,6 +154,14 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
         }
     }
 
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
+    }
+
     public Instant getNextExecutionTime( )
     {
         return nextExecutionTime;

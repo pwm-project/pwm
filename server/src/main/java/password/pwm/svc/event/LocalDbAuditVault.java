@@ -50,7 +50,7 @@ public class LocalDbAuditVault implements AuditVault
     private int maxBulkRemovals = 105;
 
     private ExecutorService executorService;
-    private volatile PwmService.STATUS status = PwmService.STATUS.NEW;
+    private volatile PwmService.STATUS status = PwmService.STATUS.CLOSED;
 
 
     public LocalDbAuditVault(

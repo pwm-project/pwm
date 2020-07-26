@@ -81,9 +81,9 @@ public class HealthMonitor implements PwmService
     private ExecutorService supportZipWriterService;
     private HealthMonitorSettings settings;
 
-    private Map<HealthMonitorFlag, Serializable> healthProperties = new ConcurrentHashMap<>();
+    private final Map<HealthMonitorFlag, Serializable> healthProperties = new ConcurrentHashMap<>();
 
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
     private PwmApplication pwmApplication;
     private volatile HealthData healthData = emptyHealthData();
 
@@ -99,7 +99,6 @@ public class HealthMonitor implements PwmService
 
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
         settings = HealthMonitorSettings.fromConfiguration( pwmApplication.getConfig() );
 
@@ -125,6 +124,14 @@ public class HealthMonitor implements PwmService
         }
 
         status = STATUS.OPEN;
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     public Instant getLastHealthCheckTime( )

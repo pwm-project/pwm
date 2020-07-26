@@ -63,7 +63,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     private ExecutorService executorService;
     private Set<WordType> wordTypesCache = null;
 
-    private volatile STATUS wlStatus = STATUS.NEW;
+    private volatile STATUS wlStatus = STATUS.CLOSED;
 
     private volatile ErrorInformation lastError;
     private volatile ErrorInformation autoImportError;
@@ -91,6 +91,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         if ( this.wordlistConfiguration.isTestMode() )
         {
             startTestInstance( type );
+            wlStatus = STATUS.OPEN;
             return;
         }
         else
@@ -126,6 +127,14 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         }
 
         getLogger().trace( () -> "opening with configuration: " + JsonUtil.serialize( wordlistConfiguration ) );
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     private void startTestInstance( final WordlistType wordlistType )

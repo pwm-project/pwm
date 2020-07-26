@@ -83,7 +83,7 @@ public class LdapConnectionService implements PwmService
     private ExecutorService executorService;
     private AtomicLoopIntIncrementer slotIncrementer;
 
-    private volatile STATUS status = STATUS.NEW;
+    private volatile STATUS status = STATUS.CLOSED;
 
     private boolean useThreadLocal;
     private final AtomicLoopIntIncrementer statCreatedProxies = new AtomicLoopIntIncrementer();
@@ -161,6 +161,13 @@ public class LdapConnectionService implements PwmService
 
         iterateThreadLocals( container -> container.getProviderMap().clear() );
         executorService.shutdown();
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication ) throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     public List<HealthRecord> healthCheck( )

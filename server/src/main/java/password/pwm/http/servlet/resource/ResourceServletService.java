@@ -60,9 +60,9 @@ public class ResourceServletService implements PwmService
 
     private ResourceServletConfiguration resourceServletConfiguration;
     private Cache<CacheKey, CacheEntry> cache;
-    private MovingAverage cacheHitRatio = new MovingAverage( 60 * 60 * 1000 );
+    private final MovingAverage cacheHitRatio = new MovingAverage( 60 * 60 * 1000 );
     private String resourceNonce;
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
 
     private PwmApplication pwmApplication;
 
@@ -81,6 +81,13 @@ public class ResourceServletService implements PwmService
         return cacheHitRatio;
     }
 
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
+    }
 
     public long bytesInCache( )
     {
@@ -119,7 +126,6 @@ public class ResourceServletService implements PwmService
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
         this.pwmApplication = pwmApplication;
-        status = STATUS.OPENING;
         try
         {
             this.resourceServletConfiguration = ResourceServletConfiguration.createResourceServletConfiguration( pwmApplication );

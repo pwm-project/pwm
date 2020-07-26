@@ -161,6 +161,13 @@ public class JavaHelper
         return Collections.unmodifiableSet( returnList );
     }
 
+    public static <E extends Enum<E>> Set<E> enumSetFromArray( final E[] arrayValues )
+    {
+        return arrayValues == null || arrayValues.length == 0
+                ? Collections.emptySet()
+                : Collections.unmodifiableSet( EnumSet.copyOf( Arrays.asList( arrayValues ) ) );
+    }
+
     public static <E extends Enum<E>> Map<String, String> enumMapToStringMap( final Map<E, String> inputMap )
     {
         return Collections.unmodifiableMap( inputMap.entrySet().stream()

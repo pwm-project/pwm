@@ -41,6 +41,7 @@ import password.pwm.http.state.SessionStateService;
 import password.pwm.ldap.LdapConnectionService;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.PwmService;
+import password.pwm.svc.PwmServiceEnum;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.email.EmailService;
@@ -114,7 +115,6 @@ import java.util.function.Supplier;
  */
 public class PwmApplication
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmApplication.class );
     private static final String DEFAULT_INSTANCE_ID = "-1";
 
@@ -129,9 +129,11 @@ public class PwmApplication
     private ErrorInformation lastLocalDBFailure;
     private final AtomicInteger inprogressRequests = new AtomicInteger( 0 );
 
-    private final PwmEnvironment pwmEnvironment;
+    private PwmEnvironment pwmEnvironment;
 
     private final PwmServiceManager pwmServiceManager = new PwmServiceManager( this );
+
+    private FileLocker fileLocker;
 
     private PwmScheduler pwmScheduler;
 
@@ -210,7 +212,8 @@ public class PwmApplication
         // get file lock
         if ( !pwmEnvironment.isInternalRuntimeInstance() )
         {
-            pwmEnvironment.waitForFileLock();
+            fileLocker = new FileLocker( pwmEnvironment );
+            fileLocker.waitForFileLock();
         }
 
         // clear temp dir
@@ -281,6 +284,15 @@ public class PwmApplication
 
             pwmScheduler.immediateExecuteInNewThread( this::postInitTasks );
         }
+    }
+
+    public void reInit( final Configuration config )
+            throws PwmException
+    {
+        fileLocker.releaseFileLock();
+        this.pwmEnvironment = pwmEnvironment.toBuilder().config( config ).build();
+        pwmServiceManager.reInitialize( this );
+        runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
     }
 
     private void postInitTasks( )
@@ -507,12 +519,12 @@ public class PwmApplication
 
     public SharedHistoryManager getSharedHistoryManager( )
     {
-        return ( SharedHistoryManager ) pwmServiceManager.getService( SharedHistoryManager.class );
+        return ( SharedHistoryManager ) pwmServiceManager.getService( PwmServiceEnum.SharedHistoryManager );
     }
 
     public IntruderManager getIntruderManager( )
     {
-        return ( IntruderManager ) pwmServiceManager.getService( IntruderManager.class );
+        return ( IntruderManager ) pwmServiceManager.getService( PwmServiceEnum.IntruderManager );
     }
 
     public ChaiUser getProxiedChaiUser( final UserIdentity userIdentity )
@@ -542,12 +554,12 @@ public class PwmApplication
 
     public HealthMonitor getHealthMonitor( )
     {
-        return ( HealthMonitor ) pwmServiceManager.getService( HealthMonitor.class );
+        return ( HealthMonitor ) pwmServiceManager.getService( PwmServiceEnum.HealthMonitor );
     }
 
     public HttpClientService getHttpClientService()
     {
-        return ( HttpClientService ) pwmServiceManager.getService( HttpClientService.class );
+        return ( HttpClientService ) pwmServiceManager.getService( PwmServiceEnum.HttpClientService );
     }
 
     public List<PwmService> getPwmServices( )
@@ -561,52 +573,52 @@ public class PwmApplication
 
     public WordlistService getWordlistService( )
     {
-        return ( WordlistService ) pwmServiceManager.getService( WordlistService.class );
+        return ( WordlistService ) pwmServiceManager.getService( PwmServiceEnum.WordlistManager );
     }
 
     public SeedlistService getSeedlistManager( )
     {
-        return ( SeedlistService ) pwmServiceManager.getService( SeedlistService.class );
+        return ( SeedlistService ) pwmServiceManager.getService( PwmServiceEnum.SeedlistManager );
     }
 
     public ReportService getReportService( )
     {
-        return ( ReportService ) pwmServiceManager.getService( ReportService.class );
+        return ( ReportService ) pwmServiceManager.getService( PwmServiceEnum.ReportService );
     }
 
     public EmailService getEmailQueue( )
     {
-        return ( EmailService ) pwmServiceManager.getService( EmailService.class );
+        return ( EmailService ) pwmServiceManager.getService( PwmServiceEnum.EmailQueueManager );
     }
 
     public AuditService getAuditManager( )
     {
-        return ( AuditService ) pwmServiceManager.getService( AuditService.class );
+        return ( AuditService ) pwmServiceManager.getService( PwmServiceEnum.AuditService );
     }
 
     public SmsQueueManager getSmsQueue( )
     {
-        return ( SmsQueueManager ) pwmServiceManager.getService( SmsQueueManager.class );
+        return ( SmsQueueManager ) pwmServiceManager.getService( PwmServiceEnum.SmsQueueManager );
     }
 
     public PwNotifyService getPwNotifyService( )
     {
-        return ( PwNotifyService ) pwmServiceManager.getService( PwNotifyService.class );
+        return ( PwNotifyService ) pwmServiceManager.getService( PwmServiceEnum.PwExpiryNotifyService );
     }
 
     public UrlShortenerService getUrlShortener( )
     {
-        return ( UrlShortenerService ) pwmServiceManager.getService( UrlShortenerService.class );
+        return ( UrlShortenerService ) pwmServiceManager.getService( PwmServiceEnum.UrlShortenerService );
     }
 
     public UserSearchEngine getUserSearchEngine( )
     {
-        return ( UserSearchEngine ) pwmServiceManager.getService( UserSearchEngine.class );
+        return ( UserSearchEngine ) pwmServiceManager.getService( PwmServiceEnum.UserSearchEngine );
     }
 
     public NodeService getClusterService( )
     {
-        return ( NodeService ) pwmServiceManager.getService( NodeService.class );
+        return ( NodeService ) pwmServiceManager.getService( PwmServiceEnum.ClusterService );
     }
 
     public ErrorInformation getLastLocalDBFailure( )
@@ -616,27 +628,27 @@ public class PwmApplication
 
     public TokenService getTokenService( )
     {
-        return ( TokenService ) pwmServiceManager.getService( TokenService.class );
+        return ( TokenService ) pwmServiceManager.getService( PwmServiceEnum.TokenService );
     }
 
     public LdapConnectionService getLdapConnectionService( )
     {
-        return ( LdapConnectionService ) pwmServiceManager.getService( LdapConnectionService.class );
+        return ( LdapConnectionService ) pwmServiceManager.getService( PwmServiceEnum.LdapConnectionService );
     }
 
     public SessionTrackService getSessionTrackService( )
     {
-        return ( SessionTrackService ) pwmServiceManager.getService( SessionTrackService.class );
+        return ( SessionTrackService ) pwmServiceManager.getService( PwmServiceEnum.SessionTrackService );
     }
 
     public ResourceServletService getResourceServletService( )
     {
-        return ( ResourceServletService ) pwmServiceManager.getService( ResourceServletService.class );
+        return ( ResourceServletService ) pwmServiceManager.getService( PwmServiceEnum.ResourceServletService );
     }
 
     public PeopleSearchService getPeopleSearchService( )
     {
-        return ( PeopleSearchService ) pwmServiceManager.getService( PeopleSearchService.class );
+        return ( PeopleSearchService ) pwmServiceManager.getService( PwmServiceEnum.PeopleSearchService );
     }
 
     public Configuration getConfig( )
@@ -658,7 +670,7 @@ public class PwmApplication
 
     public DatabaseService getDatabaseService( )
     {
-        return ( DatabaseService ) pwmServiceManager.getService( DatabaseService.class );
+        return ( DatabaseService ) pwmServiceManager.getService( PwmServiceEnum.DatabaseService );
     }
 
 
@@ -726,33 +738,33 @@ public class PwmApplication
 
     public StatisticsManager getStatisticsManager( )
     {
-        return ( StatisticsManager ) pwmServiceManager.getService( StatisticsManager.class );
+        return ( StatisticsManager ) pwmServiceManager.getService( PwmServiceEnum.StatisticsManager );
     }
 
     public OtpService getOtpService( )
     {
-        return ( OtpService ) pwmServiceManager.getService( OtpService.class );
+        return ( OtpService ) pwmServiceManager.getService( PwmServiceEnum.OtpService );
     }
 
     public CrService getCrService( )
     {
-        return ( CrService ) pwmServiceManager.getService( CrService.class );
+        return ( CrService ) pwmServiceManager.getService( PwmServiceEnum.CrService );
     }
 
     public SessionStateService getSessionStateService( )
     {
-        return ( SessionStateService ) pwmServiceManager.getService( SessionStateService.class );
+        return ( SessionStateService ) pwmServiceManager.getService( PwmServiceEnum.SessionStateSvc );
     }
 
 
     public CacheService getCacheService( )
     {
-        return ( CacheService ) pwmServiceManager.getService( CacheService.class );
+        return ( CacheService ) pwmServiceManager.getService( PwmServiceEnum.CacheService );
     }
 
     public SecureService getSecureService( )
     {
-        return ( SecureService ) pwmServiceManager.getService( SecureService.class );
+        return ( SecureService ) pwmServiceManager.getService( PwmServiceEnum.SecureService );
     }
 
     public void sendSmsUsingQueue(
@@ -849,7 +861,10 @@ public class PwmApplication
             localDB = null;
         }
 
-        pwmEnvironment.releaseFileLock();
+        if ( fileLocker != null )
+        {
+            fileLocker.releaseFileLock();
+        }
 
         LOGGER.info( () -> PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " closed for bidness, cya!" );
     }
@@ -871,7 +886,8 @@ public class PwmApplication
 
     private static class Initializer
     {
-        public static LocalDB initializeLocalDB( final PwmApplication pwmApplication, final PwmEnvironment pwmEnvironment ) throws PwmUnrecoverableException
+        public static LocalDB initializeLocalDB( final PwmApplication pwmApplication, final PwmEnvironment pwmEnvironment )
+                throws PwmUnrecoverableException
         {
             final File databaseDirectory;
 

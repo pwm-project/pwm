@@ -31,6 +31,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -38,12 +39,10 @@ import java.util.Map;
 
 public class PwmServiceManager
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmServiceManager.class );
 
-
-    private final PwmApplication pwmApplication;
-    private final Map<Class<? extends PwmService>, PwmService> runningServices = new HashMap<>();
+    private PwmApplication pwmApplication;
+    private final Map<PwmServiceEnum, PwmService> runningServices = new HashMap<>();
     private boolean initialized;
 
     public PwmServiceManager( final PwmApplication pwmApplication )
@@ -51,7 +50,7 @@ public class PwmServiceManager
         this.pwmApplication = pwmApplication;
     }
 
-    public PwmService getService( final Class<? extends PwmService> serviceClass )
+    public PwmService getService( final PwmServiceEnum serviceClass )
     {
         return runningServices.get( serviceClass );
     }
@@ -77,17 +76,35 @@ public class PwmServiceManager
             {
                 final Class<? extends PwmService> serviceClass = serviceClassEnum.getPwmServiceClass();
                 final PwmService newServiceInstance = initService( serviceClass );
-                runningServices.put( serviceClass, newServiceInstance );
+                runningServices.put( serviceClassEnum, newServiceInstance );
                 serviceCounter++;
             }
         }
 
         initialized = true;
 
-        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
         {
             final int finalServiceCounter = serviceCounter;
-            LOGGER.trace( () -> "started " + finalServiceCounter + " services in " + timeDuration.asCompactString() );
+            LOGGER.trace( () -> "started " + finalServiceCounter + " services", () -> TimeDuration.fromCurrent( startTime ) );
+        }
+    }
+
+    public void reInitialize( final PwmApplication pwmApplication )
+    {
+        final Instant startTime = Instant.now();
+        this.pwmApplication = pwmApplication;
+        LOGGER.trace( () -> "beginning service restart process" );
+
+        int counter = 0;
+        for ( final Map.Entry<PwmServiceEnum, PwmService> entry : runningServices.entrySet() )
+        {
+            counter++;
+            reInitService( entry.getKey(), entry.getValue() );
+        }
+
+        {
+            final int totalRestarts = counter;
+            LOGGER.trace( () -> "completed restart of " + totalRestarts + " services", () -> TimeDuration.fromCurrent( startTime ) );
         }
     }
 
@@ -99,8 +116,7 @@ public class PwmServiceManager
         final String serviceName = serviceClass.getName();
         try
         {
-            final Object newInstance = serviceClass.newInstance();
-            newServiceInstance = ( PwmService ) newInstance;
+            newServiceInstance = serviceClass.getDeclaredConstructor().newInstance();
         }
         catch ( final Exception e )
         {
@@ -135,6 +151,24 @@ public class PwmServiceManager
         return newServiceInstance;
     }
 
+    private void reInitService( final PwmServiceEnum serviceEnum, final PwmService newServiceInstance )
+    {
+        final Instant startTime = Instant.now();
+        final String serviceName = serviceEnum.serviceName();
+
+        try
+        {
+            LOGGER.debug( () -> "re-initializing service " + serviceName );
+            newServiceInstance.init( pwmApplication );
+            final TimeDuration startupDuration = TimeDuration.fromCurrent( startTime );
+            LOGGER.debug( () -> "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString() + ", status=" + newServiceInstance.status() );
+        }
+        catch ( final PwmException e )
+        {
+            LOGGER.warn( () -> "error instantiating service class '" + serviceName + "', service will remain unavailable, error: " + e.getMessage() );
+        }
+    }
+
     public void shutdownAllServices( )
     {
         if ( !initialized )
@@ -146,13 +180,13 @@ public class PwmServiceManager
         final Instant startTime = Instant.now();
 
 
-        final List<Class<? extends PwmService>> reverseServiceList = new ArrayList<>( PwmServiceEnum.allClasses() );
+        final List<PwmServiceEnum> reverseServiceList = Arrays.asList( PwmServiceEnum.values() );
         Collections.reverse( reverseServiceList );
-        for ( final Class<? extends PwmService> serviceClass : reverseServiceList )
+        for ( final PwmServiceEnum pwmServiceEnum : reverseServiceList )
         {
-            if ( runningServices.containsKey( serviceClass ) )
+            if ( runningServices.containsKey( pwmServiceEnum ) )
             {
-                shutDownService( serviceClass );
+                shutDownService( pwmServiceEnum, runningServices.get( pwmServiceEnum ) );
             }
         }
         initialized = false;
@@ -160,17 +194,17 @@ public class PwmServiceManager
         LOGGER.trace( () -> "closed all services in ", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
-    private void shutDownService( final Class<? extends PwmService> serviceClass )
+    private void shutDownService( final PwmServiceEnum pwmServiceEnum, final PwmService loopService )
     {
 
-        LOGGER.trace( () -> "closing service " + serviceClass.getName() );
-        final PwmService loopService = runningServices.get( serviceClass );
+        LOGGER.trace( () -> "closing service " + pwmServiceEnum.serviceName() );
+
         try
         {
             final Instant startTime = Instant.now();
             loopService.close();
             final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.trace( () -> "successfully closed service " + serviceClass.getName() + " (" + timeDuration.asCompactString() + ")" );
+            LOGGER.trace( () -> "successfully closed service " + pwmServiceEnum.serviceName() + " (" + timeDuration.asCompactString() + ")" );
         }
         catch ( final Exception e )
         {

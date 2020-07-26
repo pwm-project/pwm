@@ -72,7 +72,7 @@ public class ReportService implements PwmService
     private final AverageTracker avgTracker = new AverageTracker( 100 );
 
     private PwmApplication pwmApplication;
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
     private volatile boolean cancelFlag = false;
     private ReportSummaryData summaryData = ReportSummaryData.newSummaryData( null );
     private ExecutorService executorService;
@@ -107,7 +107,6 @@ public class ReportService implements PwmService
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
-        status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
         if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
@@ -146,6 +145,14 @@ public class ReportService implements PwmService
         executorService.submit( new InitializationTask() );
 
         status = STATUS.OPEN;
+    }
+
+    @Override
+    public void reInit( final PwmApplication pwmApplication )
+            throws PwmException
+    {
+        close();
+        init( pwmApplication );
     }
 
     @Override
