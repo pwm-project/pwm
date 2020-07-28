@@ -65,7 +65,7 @@ public class PwmHttpRequestWrapper
             );
 
     private static final Set<String> HTTP_HEADER_DEBUG_STRIP_VALUES =
-            Collections.unmodifiableSet( new HashSet<>( Arrays.asList(
+            Collections.unmodifiableSet( new HashSet<>( Collections.singletonList(
                     HttpHeader.Authorization.getHttpName() ) )
             );
 

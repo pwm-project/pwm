@@ -44,7 +44,7 @@ import password.pwm.util.password.PasswordUtility;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -235,7 +235,7 @@ class ForgottenPasswordStageProcessor
 
                     // for rest method, fail if any required methods are not supported
                     {
-                        final Set<IdentityVerificationMethod> tempSet = new HashSet<>( remainingAvailableOptionalMethods );
+                        final Set<IdentityVerificationMethod> tempSet = EnumSet.copyOf( remainingAvailableOptionalMethods );
                         tempSet.removeAll( ForgottenPasswordStateMachine.supportedVerificationMethods() );
                         if ( !tempSet.isEmpty() )
                         {

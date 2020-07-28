@@ -376,7 +376,7 @@ public enum PwmError
         this.errorCode = errorCode;
         this.errorIsPermanent = JavaHelper.enumArrayContainsValue( errorFlags, ErrorFlag.Permanent );
         this.forceLogout = JavaHelper.enumArrayContainsValue( errorFlags, ErrorFlag.ForceLogout );
-        this.chaiErrorCode = chaiErrorCode == null ? null : chaiErrorCode.toArray( new ChaiError[ chaiErrorCode.size() ] );
+        this.chaiErrorCode = chaiErrorCode == null ? null : chaiErrorCode.toArray( new ChaiError[0] );
 
     }
 

@@ -84,6 +84,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -632,7 +633,7 @@ class NewUserUtils
                 formFields
         ) );
 
-        final Set<TokenDestinationItem.Type> interestedTypes = new HashSet<>(  );
+        final Set<TokenDestinationItem.Type> interestedTypes = EnumSet.noneOf( TokenDestinationItem.Type.class );
         if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_EMAIL_VERIFICATION ) )
         {
             interestedTypes.add( TokenDestinationItem.Type.email );

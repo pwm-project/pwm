@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -259,7 +260,7 @@ public class RandomPasswordGenerator
             return;
         }
 
-        final Set<PwmError> errorMessages = new HashSet<>();
+        final Set<PwmError> errorMessages = EnumSet.noneOf( PwmError.class );
         for ( final ErrorInformation errorInfo : errors )
         {
             errorMessages.add( errorInfo.getError() );

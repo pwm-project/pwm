@@ -94,7 +94,7 @@ public class AuditService implements PwmService
 
         final Instant startTime = Instant.now();
 
-        settings = new AuditSettings( pwmApplication.getConfig() );
+        settings = AuditSettings.fromConfig( pwmApplication.getConfig() );
 
         if ( pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {

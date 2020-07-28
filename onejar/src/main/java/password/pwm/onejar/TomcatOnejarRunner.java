@@ -298,6 +298,6 @@ public class TomcatOnejarRunner
                 jarURLList.add( jarFile.toURI().toURL() );
             }
         }
-        return URLClassLoader.newInstance( jarURLList.toArray( new URL[ jarURLList.size() ] ) );
+        return URLClassLoader.newInstance( jarURLList.toArray( new URL[0] ) );
     }
 }

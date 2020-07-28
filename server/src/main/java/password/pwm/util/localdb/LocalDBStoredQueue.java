@@ -28,12 +28,10 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -684,7 +682,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         private static final int DEBUG_MAX_ROWS = 50;
         private static final int DEBUG_MAX_WIDTH = 120;
         private static final Set<LocalDB.DB> DEBUG_IGNORED_DB = Collections.unmodifiableSet(
-                Collections.unmodifiableSet( new HashSet<>( Arrays.asList( LocalDB.DB.EVENTLOG_EVENTS ) ) )
+                Collections.unmodifiableSet( Collections.singleton( LocalDB.DB.EVENTLOG_EVENTS ) )
         );
 
         private final ReadWriteLock lock = new ReentrantReadWriteLock();

@@ -35,14 +35,14 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 public abstract class HttpAuthenticationUtilities
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpAuthenticationUtilities.class );
 
-    private static final Set<AuthenticationMethod> IGNORED_AUTH_METHODS = new HashSet<>();
+    private static final Set<AuthenticationMethod> IGNORED_AUTH_METHODS = EnumSet.noneOf( AuthenticationMethod.class );
 
 
     public static ProcessStatus attemptAuthenticationMethods( final PwmRequest pwmRequest ) throws IOException, ServletException

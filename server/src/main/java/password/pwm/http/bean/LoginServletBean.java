@@ -23,9 +23,8 @@ package password.pwm.http.bean;
 import com.google.gson.annotations.SerializedName;
 import password.pwm.config.option.SessionBeanMode;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 public class LoginServletBean extends PwmSessionBean
@@ -51,7 +50,7 @@ public class LoginServletBean extends PwmSessionBean
     @Override
     public Set<SessionBeanMode> supportedModes( )
     {
-        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) ) );
+        return Collections.unmodifiableSet( EnumSet.of( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) );
     }
 
 }

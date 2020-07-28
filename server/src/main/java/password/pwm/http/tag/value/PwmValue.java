@@ -33,14 +33,12 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.ClientApiServlet;
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.jsp.JspPage;
 import javax.servlet.jsp.PageContext;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -66,7 +64,7 @@ public enum PwmValue
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmValueTag.class );
 
     private final ValueOutput valueOutput;
-    private final Flag[] flags;
+    private final Set<Flag> flags;
 
     enum Flag
     {
@@ -76,7 +74,7 @@ public enum PwmValue
     PwmValue( final ValueOutput valueOutput, final Flag... flags )
     {
         this.valueOutput = valueOutput;
-        this.flags = flags;
+        this.flags = JavaHelper.enumSetFromArray( flags );
     }
 
     public ValueOutput getValueOutput( )
@@ -86,9 +84,7 @@ public enum PwmValue
 
     public Set<Flag> getFlags( )
     {
-        return flags == null
-                ? Collections.emptySet()
-                : Collections.unmodifiableSet( new HashSet<>( Arrays.asList( flags ) ) );
+        return flags;
     }
 
     static class CspNonceOutput implements ValueOutput

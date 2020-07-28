@@ -56,7 +56,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -133,7 +133,7 @@ public class SessionAuthenticator
     private Set<PwmError> readHiddenErrorTypes( )
     {
         final String appProperty = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES );
-        final Set<PwmError> returnSet = new HashSet<>();
+        final Set<PwmError> returnSet = EnumSet.noneOf( PwmError.class );
         if ( !StringUtil.isEmpty( appProperty ) )
         {
             try

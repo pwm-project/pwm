@@ -38,7 +38,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -211,7 +211,7 @@ public class MacroMachine
 
     private static Set<MacroImplementation.Scope> effectiveScopes( final MacroImplementation.MacroRequestInfo macroRequestInfo )
     {
-        final Set<MacroImplementation.Scope> scopes = new HashSet<>();
+        final Set<MacroImplementation.Scope> scopes = EnumSet.noneOf( MacroImplementation.Scope.class );
         scopes.add( MacroImplementation.Scope.Static );
 
         final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();

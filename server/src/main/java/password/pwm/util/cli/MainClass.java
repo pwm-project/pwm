@@ -342,7 +342,7 @@ public class MainClass
                 if ( commandStr.equalsIgnoreCase( command.getCliParameters().commandName ) )
                 {
                     commandExceuted = true;
-                    executeCommand( command, commandStr, workingArgs.toArray( new String[ workingArgs.size() ] ) );
+                    executeCommand( command, commandStr, workingArgs.toArray( new String[0] ) );
                     break;
                 }
             }

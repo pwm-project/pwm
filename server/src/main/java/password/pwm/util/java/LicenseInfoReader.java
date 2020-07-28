@@ -25,7 +25,6 @@ import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +37,7 @@ public class LicenseInfoReader
 
     public static List<DependencyInfo> getLicenseInfos() throws PwmUnrecoverableException
     {
-        final List<String> attributionFiles = Arrays.asList( "/attribution.xml" );
+        final List<String> attributionFiles = Collections.singletonList( "/attribution.xml" );
         final List<DependencyInfo> returnList = new ArrayList<>();
         final XmlFactory factory = new XmlFactory.XmlFactoryW3c();
 

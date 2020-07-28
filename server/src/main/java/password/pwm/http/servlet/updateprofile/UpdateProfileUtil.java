@@ -142,7 +142,7 @@ public class UpdateProfileUtil
                 formValues,
                 userLocale,
                 Collections.singletonList( userIdentity ),
-                validationFlags.toArray( new FormUtility.ValidationFlag[ validationFlags.size() ] )
+                validationFlags.toArray( new FormUtility.ValidationFlag[0] )
         );
     }
 

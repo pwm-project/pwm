@@ -33,7 +33,7 @@ import password.pwm.util.java.JsonUtil;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -99,7 +99,7 @@ public class LoginInfoBean implements Serializable
     private int reqCounter;
 
     @SerializedName( "lf" )
-    private Set<LoginFlag> loginFlags = new HashSet<>();
+    private Set<LoginFlag> loginFlags = EnumSet.noneOf( LoginFlag.class );
 
     public boolean isLoginFlag( final LoginFlag loginStateFlag )
     {

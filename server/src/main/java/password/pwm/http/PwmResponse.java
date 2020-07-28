@@ -44,7 +44,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 public class PwmResponse extends PwmHttpResponseWrapper
@@ -276,7 +276,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         pwmRequest.getPwmApplication().getSessionStateService().saveSessionBeans( pwmRequest );
     }
 
-    private final Set<PwmResponseFlag> pwmResponseFlags = new HashSet<>();
+    private final Set<PwmResponseFlag> pwmResponseFlags = EnumSet.noneOf( PwmResponseFlag.class );
 
     private Collection<PwmResponseFlag> getResponseFlags( )
     {

@@ -38,7 +38,7 @@ import password.pwm.util.secure.SecureEngine;
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -160,7 +160,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
     private static PwmSettingTemplateSet readTemplateSet( final Map<StoredConfigItemKey, StoredValue> valueMap )
     {
-        final Set<PwmSettingTemplate> templates = new HashSet<>();
+        final Set<PwmSettingTemplate> templates = EnumSet.noneOf( PwmSettingTemplate.class );
         readTemplateValue( valueMap, PwmSetting.TEMPLATE_LDAP ).ifPresent( templates::add );
         readTemplateValue( valueMap, PwmSetting.TEMPLATE_STORAGE ).ifPresent( templates::add );
         readTemplateValue( valueMap, PwmSetting.DB_VENDOR_TEMPLATE ).ifPresent( templates::add );

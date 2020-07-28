@@ -63,7 +63,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -83,7 +83,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     private final transient PwmSession pwmSession;
     private final transient Supplier<SessionLabel> sessionLabelLazySupplier = new LazySupplier<>( this::makeSessionLabel );
 
-    private final Set<PwmRequestFlag> flags = new HashSet<>();
+    private final Set<PwmRequestFlag> flags = EnumSet.noneOf( PwmRequestFlag.class );
     private final Instant requestStartTime = Instant.now();
 
     public static PwmRequest forRequest(

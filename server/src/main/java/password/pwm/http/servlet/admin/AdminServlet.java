@@ -615,7 +615,7 @@ public class AdminServlet extends ControlledPwmServlet
                     pwmRequest.getPwmApplication(),
                     pwmRequest.getContextManager(),
                     pwmRequest.getLocale(),
-                    flags.toArray( new AppDashboardData.Flag[ flags.size() ] )
+                    flags.toArray( new AppDashboardData.Flag[0] )
             );
             pwmRequest.setAttribute( PwmRequestAttribute.AppDashboardData, appDashboardData );
         }

@@ -33,7 +33,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -52,7 +52,7 @@ public class ReportStatusBean implements Serializable
         final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
         final ReportStatusInfo reportInfo = reportService.getReportStatusInfo();
         final List<DisplayElement> presentableMap = new ArrayList<>();
-        final Set<ReportService.ReportCommand> availableCommands = new HashSet<>();
+        final Set<ReportService.ReportCommand> availableCommands = EnumSet.noneOf( ReportService.ReportCommand.class );
 
         presentableMap.add( new DisplayElement( "jobEngine", DisplayElement.Type.string, "Job Engine", reportInfo.getCurrentProcess().getLabel() ) );
 

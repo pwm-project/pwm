@@ -46,8 +46,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -126,8 +126,8 @@ public class HelpdeskVerificationOptionsBean implements Serializable
 
         final Set<IdentityVerificationMethod> unavailableMethods;
         {
-            final Set<IdentityVerificationMethod> returnSet = new HashSet<>();
-            final Set<IdentityVerificationMethod> workSet = new HashSet<>();
+            final Set<IdentityVerificationMethod> returnSet = EnumSet.noneOf( IdentityVerificationMethod.class );
+            final Set<IdentityVerificationMethod> workSet = EnumSet.noneOf( IdentityVerificationMethod.class );
             workSet.addAll( helpdeskProfile.readOptionalVerificationMethods()  );
             workSet.addAll( helpdeskProfile.readRequiredVerificationMethods()  );
 
@@ -175,12 +175,12 @@ public class HelpdeskVerificationOptionsBean implements Serializable
         {
             final Map<VerificationMethodValue.EnabledState, Collection<IdentityVerificationMethod>> returnMap = new HashMap<>();
             {
-                final Set<IdentityVerificationMethod> optionalMethods = new HashSet<>( helpdeskProfile.readOptionalVerificationMethods() );
+                final Set<IdentityVerificationMethod> optionalMethods = EnumSet.copyOf( helpdeskProfile.readOptionalVerificationMethods() );
                 optionalMethods.removeAll( unavailableMethods );
                 returnMap.put( VerificationMethodValue.EnabledState.optional, optionalMethods );
             }
             {
-                final Set<IdentityVerificationMethod> requiredMethods = new HashSet<>( helpdeskProfile.readRequiredVerificationMethods() );
+                final Set<IdentityVerificationMethod> requiredMethods = EnumSet.copyOf( helpdeskProfile.readRequiredVerificationMethods() );
                 requiredMethods.removeAll( unavailableMethods );
                 returnMap.put( VerificationMethodValue.EnabledState.required, requiredMethods );
             }

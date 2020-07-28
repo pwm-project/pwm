@@ -1590,19 +1590,17 @@ public enum PwmSetting
             {
                 for ( final XmlElement permissionElement : permissionElements )
                 {
-                    final LDAPPermissionInfo.Actor actor = JavaHelper.readEnumFromString(
+                    final Optional<LDAPPermissionInfo.Actor> actor = JavaHelper.readEnumFromString(
                             LDAPPermissionInfo.Actor.class,
-                            null,
                             permissionElement.getAttributeValue( PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACTOR )
                     );
-                    final LDAPPermissionInfo.Access type = JavaHelper.readEnumFromString(
+                    final Optional<LDAPPermissionInfo.Access> type = JavaHelper.readEnumFromString(
                             LDAPPermissionInfo.Access.class,
-                            null,
                             permissionElement.getAttributeValue( PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACCESS )
                     );
-                    if ( actor != null && type != null )
+                    if ( actor.isPresent() && type.isPresent() )
                     {
-                        final LDAPPermissionInfo permissionInfo = new LDAPPermissionInfo( type, actor );
+                        final LDAPPermissionInfo permissionInfo = new LDAPPermissionInfo( type.get(), actor.get() );
                         returnObj.add( permissionInfo );
                     }
                 }

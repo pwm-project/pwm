@@ -280,6 +280,7 @@ public class EmailService implements PwmService
                 }
             }
         }
+        stats.put( "maxThreads", String.valueOf( emailServiceSettings.getMaxThreads() ) );
 
         return Collections.unmodifiableMap( stats );
     }

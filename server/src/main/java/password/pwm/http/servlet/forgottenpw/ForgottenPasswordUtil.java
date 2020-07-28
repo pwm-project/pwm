@@ -77,7 +77,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -859,7 +859,7 @@ public class ForgottenPasswordUtil
                     commonValues,
                     forgottenPasswordBean
             );
-            final Set<IdentityVerificationMethod> otherOptionalMethodChoices = new HashSet<>( remainingAvailableOptionalMethods );
+            final Set<IdentityVerificationMethod> otherOptionalMethodChoices = EnumSet.copyOf( remainingAvailableOptionalMethods );
             otherOptionalMethodChoices.remove( thisMethod );
 
             if ( !otherOptionalMethodChoices.isEmpty() )

@@ -91,7 +91,7 @@ public class HttpsServerCertificateManager
                     alias,
                     new KeyStore.PrivateKeyEntry(
                             privateKeyCertificate.getKey(),
-                            privateKeyCertificate.getCertificates().toArray( new X509Certificate[ privateKeyCertificate.getCertificates().size() ] )
+                            privateKeyCertificate.getCertificates().toArray( new X509Certificate[0] )
                     ),
                     passwordProtection
             );

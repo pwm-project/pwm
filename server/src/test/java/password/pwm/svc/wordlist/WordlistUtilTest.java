@@ -24,6 +24,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,7 +43,7 @@ public class WordlistUtilTest
     public void testChunkWordNoSize()
     {
         final String input = "zoogam";
-        final Set<String> expectedOutput = new HashSet<>( Arrays.asList( "zoogam" ) );
+        final Set<String> expectedOutput = new HashSet<>( Collections.singletonList( "zoogam" ) );
         final Set<String> output = WordlistUtil.chunkWord( input, 0 );
         Assert.assertEquals( expectedOutput, output );
     }

@@ -74,8 +74,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -706,7 +706,7 @@ public class LDAPHealthChecker implements HealthChecker
         }
 
         final ArrayList<HealthRecord> healthRecords = new ArrayList<>();
-        final Set<DirectoryVendor> discoveredVendors = new HashSet<>( replicaVendorMap.values() );
+        final Set<DirectoryVendor> discoveredVendors = EnumSet.copyOf( replicaVendorMap.values() );
 
         if ( discoveredVendors.size() >= 2 )
         {
