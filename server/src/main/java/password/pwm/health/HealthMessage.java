@@ -78,6 +78,7 @@ public enum HealthMessage
 
     LDAP_VendorsNotSame( HealthStatus.CONFIG, HealthTopic.LDAP ),
     LDAP_OK( HealthStatus.GOOD, HealthTopic.LDAP ),
+    EMail_OK( HealthStatus.GOOD, HealthTopic.Email ),
     LDAP_RecentlyUnreachable( HealthStatus.CAUTION, HealthTopic.LDAP ),
     LDAP_SearchFailure( HealthStatus.WARN, HealthTopic.LDAP ),
     CryptoTokenWithNewUserVerification( HealthStatus.CAUTION, HealthTopic.Configuration ),

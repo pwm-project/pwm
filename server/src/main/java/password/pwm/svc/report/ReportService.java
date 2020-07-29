@@ -494,7 +494,8 @@ public class ReportService implements PwmService
             try
             {
                 LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "about to begin ldap processing with thread count of " + threadCount );
-                final BlockingThreadPool threadService = new BlockingThreadPool( threadCount, "reporting-thread" );
+                final String threadName = PwmScheduler.makeThreadName( pwmApplication, this.getClass() );
+                final BlockingThreadPool threadService = new BlockingThreadPool( threadCount, threadName );
                 while ( status == STATUS.OPEN && !dnQueue.isEmpty() && !cancelFlag )
                 {
                     final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( dnQueue.poll() );
@@ -540,7 +541,7 @@ public class ReportService implements PwmService
                         }
                         catch ( final PwmUnrecoverableException e )
                         {
-
+                            LOGGER.debug( () -> "unexpected error reading report data: " + e.getMessage() );
                         }
                         catch ( final Exception e )
                         {

@@ -82,6 +82,7 @@ public class HealthMonitor implements PwmService
     private HealthMonitorSettings settings;
 
     private final Map<HealthMonitorFlag, Serializable> healthProperties = new ConcurrentHashMap<>();
+    private final AtomicInteger healthCheckCount = new AtomicInteger( 0 );
 
     private STATUS status = STATUS.CLOSED;
     private PwmApplication pwmApplication;
@@ -100,6 +101,7 @@ public class HealthMonitor implements PwmService
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
         this.pwmApplication = pwmApplication;
+        this.healthData = emptyHealthData();
         settings = HealthMonitorSettings.fromConfiguration( pwmApplication.getConfig() );
 
         if ( !Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTHCHECK_ENABLED ) ) )
@@ -227,7 +229,6 @@ public class HealthMonitor implements PwmService
         return Collections.emptyList();
     }
 
-    private AtomicInteger healthCheckCount = new AtomicInteger( 0 );
 
     private void doHealthChecks( )
     {

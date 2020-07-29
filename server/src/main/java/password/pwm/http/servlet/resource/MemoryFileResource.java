@@ -29,24 +29,24 @@ import java.io.InputStream;
 class MemoryFileResource implements FileResource
 {
     private final String name;
-    private final ImmutableByteArray contents;
+    private final byte[] contents;
     private final long lastModified;
 
     MemoryFileResource( final String name, final ImmutableByteArray contents, final long lastModified )
     {
         this.name = name;
-        this.contents = contents;
+        this.contents = contents.copyOf();
         this.lastModified = lastModified;
     }
 
     public InputStream getInputStream( ) throws IOException
     {
-        return new ByteArrayInputStream( contents.copyOf() );
+        return new ByteArrayInputStream( contents );
     }
 
     public long length( )
     {
-        return contents.copyOf().length;
+        return contents.length;
     }
 
     public long lastModified( )
