@@ -70,6 +70,8 @@ import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecord;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenPayload;
@@ -80,11 +82,13 @@ import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.password.PasswordUtility;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -133,7 +137,8 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         verificationChoice( HttpMethod.POST ),
         enterRemoteResponse( HttpMethod.POST ),
         oauthReturn( HttpMethod.GET ),
-        resendToken( HttpMethod.POST ),;
+        resendToken( HttpMethod.POST ),
+        agree( HttpMethod.POST ),;
 
         private final Collection<HttpMethod> method;
 
@@ -918,6 +923,27 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         return ProcessStatus.Continue;
     }
 
+    @ActionHandler( action = "agree" )
+    ProcessStatus processAgreeAction( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean( pwmRequest );
+
+        LOGGER.debug( pwmRequest, () -> "user accepted forgotten password agreement" );
+        if ( !forgottenPasswordBean.isAgreementPassed() )
+        {
+            forgottenPasswordBean.setAgreementPassed( true );
+            final AuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createUserAuditRecord(
+                    AuditEvent.AGREEMENT_PASSED,
+                    pwmRequest.getUserInfoIfLoggedIn(),
+                    pwmRequest.getLabel(),
+                    "ForgottenPassword"
+            );
+            pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+        }
+
+        return ProcessStatus.Continue;
+    }
 
     @Override
     @SuppressWarnings( "checkstyle:MethodLength" )
@@ -972,6 +998,16 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                     progress.getSatisfiedMethods().add( IdentityVerificationMethod.PREVIOUS_AUTH );
                 }
             }
+        }
+
+        final String agreementMsg = forgottenPasswordProfile.readSettingAsLocalizedString( PwmSetting.RECOVERY_AGREEMENT_MESSAGE, pwmRequest.getLocale() );
+        if ( !StringUtil.isEmpty( agreementMsg ) && !forgottenPasswordBean.isAgreementPassed() )
+        {
+            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+            final String expandedText = macroMachine.expandMacros( agreementMsg );
+            pwmRequest.setAttribute( PwmRequestAttribute.AgreementText, expandedText );
+            pwmRequest.forwardToJsp( JspUrl.RECOVER_USER_AGREEMENT );
+            return;
         }
 
         // dispatch required auth methods.

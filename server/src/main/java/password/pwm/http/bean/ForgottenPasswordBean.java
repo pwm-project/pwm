@@ -75,6 +75,9 @@ public class ForgottenPasswordBean extends PwmSessionBean
     @SerializedName( "b" )
     private boolean bogusUser;
 
+    @SerializedName( "g" )
+    private boolean agreementPassed;
+
     @SerializedName( "fp" )
     private String forgottenPasswordProfileID;
 

@@ -50,6 +50,7 @@ public enum JspUrl
     PASSWORD_AGREEMENT( "changepassword-agreement.jsp" ),
     PASSWORD_COMPLETE( "changepassword-complete.jsp" ),
     PASSWORD_WARN( "changepassword-warn.jsp" ),
+    RECOVER_USER_AGREEMENT( "forgottenpassword-agreement.jsp" ),
     RECOVER_PASSWORD_SEARCH( "forgottenpassword-search.jsp" ),
     RECOVER_PASSWORD_RESPONSES( "forgottenpassword-responses.jsp" ),
     RECOVER_PASSWORD_ATTRIBUTES( "forgottenpassword-attributes.jsp" ),

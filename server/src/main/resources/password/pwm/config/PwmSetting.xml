@@ -2630,6 +2630,10 @@
             <value/>
         </default>
     </setting>
+    <setting hidden="false" key="recovery.changeAgreement" level="1">
+        <flag>MacroSupport</flag>
+        <default/>
+    </setting>
     <setting hidden="false" key="recovery.allowWhenLocked" level="2">
         <default>
             <value>false</value>

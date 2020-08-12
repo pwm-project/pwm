@@ -811,6 +811,8 @@ public enum PwmSetting
             "recovery.minimumPasswordLifetimeOptions", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_OPTIONS ),
     RECOVERY_POST_ACTIONS(
             "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY_OPTIONS ),
+    RECOVERY_AGREEMENT_MESSAGE(
+            "recovery.changeAgreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.RECOVERY_OPTIONS ),
 
 
     // recovery oauth
