@@ -71,7 +71,7 @@ public class EmailService implements PwmService
     private ErrorInformation startupError;
     private WorkQueueProcessor<EmailItemBean> workQueueProcessor;
     private EmailServiceSettings emailServiceSettings;
-    private EmailConnectionPool connectionPool;
+    private EmailConnectionPool connectionPool = EmailConnectionPool.emptyConnectionPool();
 
     private final AtomicReference<ErrorInformation> lastSendError = new AtomicReference<>();
 
@@ -160,7 +160,7 @@ public class EmailService implements PwmService
         if ( connectionPool != null )
         {
             connectionPool.close();
-            connectionPool = null;
+            connectionPool = EmailConnectionPool.emptyConnectionPool();
         }
     }
 

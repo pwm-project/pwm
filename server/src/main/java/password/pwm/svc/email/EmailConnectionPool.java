@@ -54,6 +54,11 @@ public class EmailConnectionPool
     private final AtomicBoolean closed = new AtomicBoolean( false );
     private final AtomicLoopIntIncrementer serverIncrementer;
 
+    public static EmailConnectionPool emptyConnectionPool()
+    {
+        return new EmailConnectionPool( Collections.emptyList(), EmailServiceSettings.builder().build() );
+    }
+
     public EmailConnectionPool(
             final List<EmailServer> servers,
             final EmailServiceSettings settings )
