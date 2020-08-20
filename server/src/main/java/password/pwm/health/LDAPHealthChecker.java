@@ -85,7 +85,6 @@ import java.util.Set;
 
 public class LDAPHealthChecker implements HealthChecker
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPHealthChecker.class );
     private static final String TOPIC = "LDAP";
 

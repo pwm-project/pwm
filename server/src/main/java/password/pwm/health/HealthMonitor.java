@@ -128,14 +128,6 @@ public class HealthMonitor implements PwmService
         status = STATUS.OPEN;
     }
 
-    @Override
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        close();
-        init( pwmApplication );
-    }
-
     public Instant getLastHealthCheckTime( )
     {
         if ( status != STATUS.OPEN )

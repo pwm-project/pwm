@@ -149,14 +149,6 @@ public class TelemetryService implements PwmService
         status = STATUS.OPEN;
     }
 
-    @Override
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        close();
-        init( pwmApplication );
-    }
-
     private void initSender( ) throws PwmUnrecoverableException
     {
         if ( StringUtil.isEmpty( settings.getSenderImplementation() ) )

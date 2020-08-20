@@ -133,22 +133,6 @@ public class EmailService implements PwmService
         statsLogger.conditionallyExecuteTask();
     }
 
-    @Override
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        submitLock.lock();
-        try
-        {
-            close();
-            init( pwmApplication );
-        }
-        finally
-        {
-            submitLock.unlock();
-        }
-    }
-
     public void close( )
     {
         status = STATUS.CLOSED;

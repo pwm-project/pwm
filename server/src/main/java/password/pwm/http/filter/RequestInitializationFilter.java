@@ -162,12 +162,12 @@ public class RequestInitializationFilter implements Filter
 
         try
         {
-            localPwmApplication.getInprogressRequests().incrementAndGet();
+            localPwmApplication.getActiveServletRequests().incrementAndGet();
             initializeServletRequest( req, resp, filterChain );
         }
         finally
         {
-            localPwmApplication.getInprogressRequests().decrementAndGet();
+            localPwmApplication.getActiveServletRequests().decrementAndGet();
         }
     }
 

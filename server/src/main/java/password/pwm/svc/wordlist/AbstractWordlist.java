@@ -56,7 +56,7 @@ import java.util.function.BooleanSupplier;
 abstract class AbstractWordlist implements Wordlist, PwmService
 {
     static final TimeDuration DEBUG_OUTPUT_FREQUENCY = TimeDuration.MINUTE;
-    private static final TimeDuration BUCKECT_CHECK_LOG_WARNING_TIMEOUT = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
+    private static final TimeDuration BUCKET_CHECK_LOG_WARNING_TIMEOUT = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
 
     private WordlistConfiguration wordlistConfiguration;
     private WordlistBucket wordlistBucket;
@@ -119,6 +119,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             this.wordlistBucket = new LocalDBWordlistBucket( pwmApplication, wordlistConfiguration, type );
         }
 
+        inhibitBackgroundImportFlag.set( false );
         executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         if ( !pwmApplication.getPwmEnvironment().isInternalRuntimeInstance() )
@@ -127,14 +128,6 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         }
 
         getLogger().trace( () -> "opening with configuration: " + JsonUtil.serialize( wordlistConfiguration ) );
-    }
-
-    @Override
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        close();
-        init( pwmApplication );
     }
 
     private void startTestInstance( final WordlistType wordlistType )
@@ -210,7 +203,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
         getStatistics().getWordCheckTimeMS().update( timeDuration.asMillis() );
 
-        if ( timeDuration.isLongerThan( BUCKECT_CHECK_LOG_WARNING_TIMEOUT ) )
+        if ( timeDuration.isLongerThan( BUCKET_CHECK_LOG_WARNING_TIMEOUT ) )
         {
             getLogger().debug( () -> "wordlist search time for wordlist permutations was greater then 100ms: " + timeDuration.asCompactString() );
         }
@@ -265,7 +258,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
     public synchronized void close( )
     {
-        final TimeDuration closeWaitTime = TimeDuration.of( 5, TimeDuration.Unit.SECONDS );
+        final TimeDuration closeWaitTime = TimeDuration.of( 1, TimeDuration.Unit.MINUTES );
 
         wlStatus = STATUS.CLOSED;
         inhibitBackgroundImportFlag.set( true );
@@ -392,7 +385,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                     wordlistZipReader,
                     WordlistSourceType.User,
                     AbstractWordlist.this,
-                    () -> wlStatus != STATUS.OPEN
+                    makeProcessCancelSupplier()
             );
             wordlistImporter.run();
             getLogger().debug( () -> "completed direct user-supplied wordlist import" );
@@ -432,7 +425,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                 if ( !inhibitBackgroundImportFlag.get() )
                 {
                     activity = Wordlist.Activity.ReadingWordlistFile;
-                    final BooleanSupplier cancelFlag = inhibitBackgroundImportFlag::get;
+                    final BooleanSupplier cancelFlag = makeProcessCancelSupplier( );
                     backgroundImportRunning.set( true );
                     final WordlistInspector wordlistInspector = new WordlistInspector( pwmApplication, AbstractWordlist.this, cancelFlag );
                     wordlistInspector.run();
@@ -514,5 +507,11 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         }
 
         return "";
+    }
+
+    private BooleanSupplier makeProcessCancelSupplier( )
+    {
+        return () -> inhibitBackgroundImportFlag.get()
+                        || !STATUS.OPEN.equals( wlStatus );
     }
 }

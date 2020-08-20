@@ -140,14 +140,6 @@ public class SmsQueueManager implements PwmService
         status = STATUS.OPEN;
     }
 
-    @Override
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        close();
-        init( pwmApplication );
-    }
-
     private class SmsItemProcessor implements WorkQueueProcessor.ItemProcessor<SmsItemBean>
     {
         @Override

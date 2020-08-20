@@ -203,14 +203,6 @@ public class IntruderManager implements PwmService
         }
     }
 
-    @Override
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        close();
-        init( pwmApplication );
-    }
-
     private void initializeRecordManagers( final Configuration config, final RecordStore recordStore )
     {
         {

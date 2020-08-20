@@ -76,11 +76,11 @@ public class LdapConnectionService implements PwmService
     private final Set<ThreadLocalContainer> threadLocalContainers = Collections.synchronizedSet( Collections.newSetFromMap( new WeakHashMap<>() ) );
     private final ReentrantLock reentrantLock = new ReentrantLock();
     private final ConditionalTaskExecutor debugLogger = ConditionalTaskExecutor.forPeriodicTask( this::conditionallyLogDebugInfo, TimeDuration.MINUTE );
-    private final ChaiProviderFactory chaiProviderFactory = ChaiProviderFactory.newProviderFactory();
     private final Map<String, Map<Integer, ChaiProvider>> proxyChaiProviders = new HashMap<>();
 
     private PwmApplication pwmApplication;
     private ExecutorService executorService;
+    private ChaiProviderFactory chaiProviderFactory;
     private AtomicLoopIntIncrementer slotIncrementer;
 
     private volatile STATUS status = STATUS.CLOSED;
@@ -116,6 +116,7 @@ public class LdapConnectionService implements PwmService
             throws PwmException
     {
         this.pwmApplication = pwmApplication;
+        this.chaiProviderFactory = ChaiProviderFactory.newProviderFactory();
 
         useThreadLocal = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PROXY_USE_THREAD_LOCAL ) );
         LOGGER.trace( () -> "threadLocal enabled: " + useThreadLocal );
@@ -158,16 +159,10 @@ public class LdapConnectionService implements PwmService
         }
 
         proxyChaiProviders.clear();
-
+        lastLdapErrors.clear();
         iterateThreadLocals( container -> container.getProviderMap().clear() );
+        threadLocalContainers.clear();
         executorService.shutdown();
-    }
-
-    @Override
-    public void reInit( final PwmApplication pwmApplication ) throws PwmException
-    {
-        close();
-        init( pwmApplication );
     }
 
     public List<HealthRecord> healthCheck( )

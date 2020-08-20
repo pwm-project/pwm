@@ -165,7 +165,7 @@ public class AppDashboardData implements Serializable
 
         builder.ldapConnectionCount( ldapConnectionCount( pwmApplication ) );
         builder.sessionCount( pwmApplication.getSessionTrackService().sessionCount() );
-        builder.requestsInProgress( pwmApplication.getInprogressRequests().get() );
+        builder.requestsInProgress( pwmApplication.getActiveServletRequests().get() );
 
         LOGGER.trace( () -> "AppDashboardData bean created in ", () -> TimeDuration.fromCurrent( startTime ) );
         return builder.build();

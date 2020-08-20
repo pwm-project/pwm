@@ -225,7 +225,7 @@ class WordlistImporter implements Runnable
 
             if ( cancelFlag.getAsBoolean() )
             {
-                getLogger().warn( () -> "pausing import" );
+                getLogger().debug( () -> "pausing import" );
             }
             else
             {

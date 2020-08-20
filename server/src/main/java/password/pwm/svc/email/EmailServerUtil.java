@@ -435,7 +435,10 @@ public class EmailServerUtil
             try
             {
                 final Transport transport = EmailServerUtil.makeSmtpTransport( emailServer );
-                transport.isConnected();
+                if ( !transport.isConnected() )
+                {
+                    records.add( HealthRecord.forMessage( HealthMessage.Email_ConnectFailure, emailServer.getId(), "unable to connect" ) );
+                }
                 transport.close();
             }
             catch ( final Exception e )

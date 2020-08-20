@@ -113,7 +113,6 @@ public class PwmLogManager
         java.util.logging.Logger.getLogger( "org.glassfish.jersey" ).setLevel( java.util.logging.Level.SEVERE );
     }
 
-
     public static void preInitConsoleLogLevel( final String pwmLogLevel )
     {
         try

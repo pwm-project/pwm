@@ -313,20 +313,21 @@ public class JavaHelper
             throws IOException
     {
         final byte[] buffer = new byte[ bufferSize ];
-        long bytesCopied;
+        int bytesCopied;
         long totalCopied = 0;
         do
         {
-            bytesCopied = IOUtils.copyLarge( input, output, 0, bufferSize, buffer );
+            bytesCopied = input.read( buffer );
             if ( bytesCopied > 0 )
             {
+                output.write( buffer, 0, bytesCopied );
                 totalCopied += bytesCopied;
             }
             if ( conditionalTaskExecutor != null )
             {
                 conditionalTaskExecutor.conditionallyExecuteTask();
             }
-            if ( !predicate.test( bytesCopied ) )
+            if ( !predicate.test( totalCopied ) )
             {
                 return totalCopied;
             }

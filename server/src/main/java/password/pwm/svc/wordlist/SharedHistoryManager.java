@@ -89,14 +89,6 @@ public class SharedHistoryManager implements PwmService
         localDB = null;
     }
 
-    @Override
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        close();
-        init( pwmApplication );
-    }
-
     public boolean containsWord( final String word )
     {
         if ( status != STATUS.OPEN )

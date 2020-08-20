@@ -119,15 +119,6 @@ public class UserSearchEngine implements PwmService
     }
 
     @Override
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        close();
-        init( pwmApplication );
-    }
-
-
-    @Override
     public void close( )
     {
         if ( executor != null )

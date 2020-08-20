@@ -25,7 +25,6 @@ import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
@@ -96,14 +95,6 @@ public class UrlShortenerService implements PwmService
             }
         }
         status = PwmService.STATUS.OPEN;
-    }
-
-    @Override
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        close();
-        init( pwmApplication );
     }
 
     public STATUS status( )

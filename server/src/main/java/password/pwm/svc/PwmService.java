@@ -39,7 +39,6 @@ import java.util.Map;
  */
 public interface PwmService
 {
-
     enum STATUS
     {
         OPEN,
@@ -49,8 +48,6 @@ public interface PwmService
     STATUS status( );
 
     void init( PwmApplication pwmApplication ) throws PwmException;
-
-    void reInit( PwmApplication pwmApplication ) throws PwmException;
 
     void close( );
 

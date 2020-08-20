@@ -151,13 +151,6 @@ public class UserCacheService implements PwmService
         status = STATUS.OPEN;
     }
 
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        close();
-        init( pwmApplication );
-    }
-
     public void close( )
     {
         status = STATUS.CLOSED;

@@ -20,6 +20,8 @@
 
 package password.pwm.util.java;
 
+import com.novell.ldapchai.util.StringHelper;
+
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -57,6 +59,11 @@ public class StatisticIntCounterMap<K extends Enum<K>>
                 .collect( Collectors.toMap(
                         ( entry ) -> entry.getKey().name(),
                         ( entry ) -> String.valueOf( entry.getValue().get() ) ) ) );
+    }
+
+    public String debugString()
+    {
+        return StringHelper.stringMapToString( debugStats(), null );
     }
 
 }

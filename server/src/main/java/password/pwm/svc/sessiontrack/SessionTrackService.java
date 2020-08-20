@@ -81,14 +81,6 @@ public class SessionTrackService implements PwmService
     }
 
     @Override
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        close();
-        init( pwmApplication );
-    }
-
-    @Override
     public void close( )
     {
         pwmSessions.clear();

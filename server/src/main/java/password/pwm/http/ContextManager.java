@@ -45,7 +45,6 @@ import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
 
@@ -83,7 +82,9 @@ public class ContextManager implements Serializable
 
     private static final TimeDuration RESTART_DELAY = TimeDuration.of( 5, TimeDuration.Unit.SECONDS );
 
-    private transient ServletContext servletContext;
+    private final transient ServletContext servletContext;
+    private final String contextPath;
+
     private transient ScheduledExecutorService taskMaster;
 
     private transient volatile PwmApplication pwmApplication;
@@ -94,7 +95,6 @@ public class ContextManager implements Serializable
     private TimeDuration readApplicationLockMaxWait = TimeDuration.of( 10, TimeDuration.Unit.SECONDS );
     private final AtomicBoolean restartInProgressFlag = new AtomicBoolean();
 
-    private String contextPath;
     private File applicationPath;
 
     private static final String UNSPECIFIED_VALUE = "unspecified";
@@ -104,7 +104,6 @@ public class ContextManager implements Serializable
         this.servletContext = servletContext;
         this.contextPath = servletContext.getContextPath();
     }
-
 
     public static PwmApplication getPwmApplication( final ServletRequest request ) throws PwmUnrecoverableException
     {
@@ -198,11 +197,6 @@ public class ContextManager implements Serializable
 
     public void initialize( )
     {
-        this.initialize( null );
-    }
-
-    private void initialize( final LocalDB preExistingLocalDB )
-    {
         final Instant startTime = Instant.now();
 
         try
@@ -216,7 +210,6 @@ public class ContextManager implements Serializable
 
         Configuration configuration = null;
         PwmApplicationMode mode = PwmApplicationMode.ERROR;
-
 
         final ParameterReader parameterReader = new ParameterReader( servletContext );
         {
@@ -279,7 +272,14 @@ public class ContextManager implements Serializable
                     .parameters( applicationParams )
                     .build();
 
-            pwmApplication = PwmApplication.createPwmApplication( pwmEnvironment, preExistingLocalDB );
+            if ( pwmApplication == null )
+            {
+                pwmApplication = PwmApplication.createPwmApplication( pwmEnvironment );
+            }
+            else
+            {
+                pwmApplication.reInit( pwmEnvironment );
+            }
         }
         catch ( final Exception e )
         {
@@ -516,7 +516,7 @@ public class ContextManager implements Serializable
 
                 try
                 {
-                        newReInit();
+                        reInitialize();
                 }
                 catch ( final Exception e )
                 {
@@ -541,7 +541,7 @@ public class ContextManager implements Serializable
             final TimeDuration maxRequestWaitTime = TimeDuration.of(
                     Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_RESTART_MAX_REQUEST_WAIT_MS ) ),
                     TimeDuration.Unit.MILLISECONDS );
-            final int startingRequestInProgress = pwmApplication.getInprogressRequests().get();
+            final int startingRequestInProgress = pwmApplication.getActiveServletRequests().get();
 
             if ( startingRequestInProgress == 0 )
             {
@@ -550,10 +550,10 @@ public class ContextManager implements Serializable
 
             LOGGER.trace( SESSION_LABEL, () -> "waiting up to " + maxRequestWaitTime.asCompactString()
                     + " for " + startingRequestInProgress  + " requests to complete." );
-            maxRequestWaitTime.pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> pwmApplication.getInprogressRequests().get() == 0
+            maxRequestWaitTime.pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> pwmApplication.getActiveServletRequests().get() == 0
             );
 
-            final int requestsInProgress = pwmApplication.getInprogressRequests().get();
+            final int requestsInProgress = pwmApplication.getActiveServletRequests().get();
             final TimeDuration waitTime = TimeDuration.fromCurrent( startTime  );
             LOGGER.trace( SESSION_LABEL, () -> "after " + waitTime.asCompactString() + ", " + requestsInProgress
                     + " requests in progress, proceeding with restart" );
@@ -767,12 +767,8 @@ public class ContextManager implements Serializable
         }
     }
 
-    private void newReInit() throws PwmException
+    private void reInitialize() throws PwmException
     {
-        final File configurationFile = locateConfigurationFile( applicationPath, PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
-
-        configReader = new ConfigurationReader( configurationFile );
-        final Configuration configuration = configReader.getConfiguration();
-        pwmApplication.reInit( configuration );
+        initialize();
     }
 }

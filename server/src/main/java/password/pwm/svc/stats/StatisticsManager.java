@@ -297,14 +297,6 @@ public class StatisticsManager implements PwmService
         status = STATUS.OPEN;
     }
 
-    @Override
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        close();
-        init( pwmApplication );
-    }
-
     private void writeDbValues( )
     {
         if ( localDB != null && status == STATUS.OPEN )

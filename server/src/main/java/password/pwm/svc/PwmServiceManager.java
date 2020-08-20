@@ -26,6 +26,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.StatisticIntCounterMap;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -45,9 +46,15 @@ public class PwmServiceManager
     private final Map<PwmServiceEnum, PwmService> runningServices = new HashMap<>();
     private boolean initialized;
 
-    public PwmServiceManager( final PwmApplication pwmApplication )
+    public PwmServiceManager(  )
     {
-        this.pwmApplication = pwmApplication;
+    }
+
+    private enum InitializationStats
+    {
+        starts,
+        stops,
+        restarts,
     }
 
     public PwmService getService( final PwmServiceEnum serviceClass )
@@ -55,67 +62,67 @@ public class PwmServiceManager
         return runningServices.get( serviceClass );
     }
 
-    public void initAllServices( )
+    public void initAllServices( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
+        this.pwmApplication = pwmApplication;
         final Instant startTime = Instant.now();
 
         final boolean internalRuntimeInstance = pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
                 || pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance );
 
-        int serviceCounter = 0;
+        final String logVerb = initialized ? "restart" : "start";
+        final StatisticIntCounterMap<InitializationStats> statCounter = new StatisticIntCounterMap<>( InitializationStats.class );
+        LOGGER.trace( () -> "beginning service " + logVerb + " process" );
 
         for ( final PwmServiceEnum serviceClassEnum : PwmServiceEnum.values() )
         {
-            boolean startService = true;
+            boolean serviceShouldBeRunning = true;
             if ( internalRuntimeInstance && !serviceClassEnum.isInternalRuntime() )
             {
-                startService = false;
+                serviceShouldBeRunning = false;
             }
-            if ( startService )
+
+            if ( serviceShouldBeRunning )
             {
-                final Class<? extends PwmService> serviceClass = serviceClassEnum.getPwmServiceClass();
-                final PwmService newServiceInstance = initService( serviceClass );
+                if ( runningServices.containsKey( serviceClassEnum ) )
+                {
+                    shutDownService( serviceClassEnum, runningServices.get( serviceClassEnum ) );
+                    statCounter.increment( InitializationStats.restarts );
+                }
+                else
+                {
+                    statCounter.increment( InitializationStats.starts );
+                }
+
+                final PwmService newServiceInstance = initService( serviceClassEnum );
                 runningServices.put( serviceClassEnum, newServiceInstance );
-                serviceCounter++;
+            }
+            else
+            {
+                if ( runningServices.containsKey( serviceClassEnum ) )
+                {
+                    shutDownService( serviceClassEnum, runningServices.get( serviceClassEnum ) );
+                    statCounter.increment( InitializationStats.stops );
+                }
             }
         }
 
         initialized = true;
 
-        {
-            final int finalServiceCounter = serviceCounter;
-            LOGGER.trace( () -> "started " + finalServiceCounter + " services", () -> TimeDuration.fromCurrent( startTime ) );
-        }
+        LOGGER.trace( () -> logVerb + "ed services, " + statCounter.debugStats(), () -> TimeDuration.fromCurrent( startTime ) );
     }
 
-    public void reInitialize( final PwmApplication pwmApplication )
-    {
-        final Instant startTime = Instant.now();
-        this.pwmApplication = pwmApplication;
-        LOGGER.trace( () -> "beginning service restart process" );
-
-        int counter = 0;
-        for ( final Map.Entry<PwmServiceEnum, PwmService> entry : runningServices.entrySet() )
-        {
-            counter++;
-            reInitService( entry.getKey(), entry.getValue() );
-        }
-
-        {
-            final int totalRestarts = counter;
-            LOGGER.trace( () -> "completed restart of " + totalRestarts + " services", () -> TimeDuration.fromCurrent( startTime ) );
-        }
-    }
-
-    private PwmService initService( final Class<? extends PwmService> serviceClass )
+    private PwmService initService( final PwmServiceEnum pwmServiceEnum )
             throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
         final PwmService newServiceInstance;
-        final String serviceName = serviceClass.getName();
+
+        final String serviceName = pwmServiceEnum.serviceName();
         try
         {
+            final Class<? extends PwmService> serviceClass = pwmServiceEnum.getPwmServiceClass();
             newServiceInstance = serviceClass.getDeclaredConstructor().newInstance();
         }
         catch ( final Exception e )
@@ -151,24 +158,6 @@ public class PwmServiceManager
         return newServiceInstance;
     }
 
-    private void reInitService( final PwmServiceEnum serviceEnum, final PwmService newServiceInstance )
-    {
-        final Instant startTime = Instant.now();
-        final String serviceName = serviceEnum.serviceName();
-
-        try
-        {
-            LOGGER.debug( () -> "re-initializing service " + serviceName );
-            newServiceInstance.init( pwmApplication );
-            final TimeDuration startupDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.debug( () -> "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString() + ", status=" + newServiceInstance.status() );
-        }
-        catch ( final PwmException e )
-        {
-            LOGGER.warn( () -> "error instantiating service class '" + serviceName + "', service will remain unavailable, error: " + e.getMessage() );
-        }
-    }
-
     public void shutdownAllServices( )
     {
         if ( !initialized )
@@ -194,7 +183,7 @@ public class PwmServiceManager
         LOGGER.trace( () -> "closed all services in ", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
-    private void shutDownService( final PwmServiceEnum pwmServiceEnum, final PwmService loopService )
+    private void shutDownService( final PwmServiceEnum pwmServiceEnum, final PwmService serviceInstance )
     {
 
         LOGGER.trace( () -> "closing service " + pwmServiceEnum.serviceName() );
@@ -202,13 +191,13 @@ public class PwmServiceManager
         try
         {
             final Instant startTime = Instant.now();
-            loopService.close();
+            serviceInstance.close();
             final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
             LOGGER.trace( () -> "successfully closed service " + pwmServiceEnum.serviceName() + " (" + timeDuration.asCompactString() + ")" );
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error closing " + loopService.getClass().getSimpleName() + ": " + e.getMessage(), e );
+            LOGGER.error( () -> "error closing " + pwmServiceEnum.serviceName() + ": " + e.getMessage(), e );
         }
     }
 

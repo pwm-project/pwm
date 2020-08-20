@@ -117,30 +117,24 @@ public class PwmApplication
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmApplication.class );
     private static final String DEFAULT_INSTANCE_ID = "-1";
+    
+    private final Instant startupTime = Instant.now();
+    private final AtomicInteger activeServletRequests = new AtomicInteger( 0 );
+    private final PwmServiceManager pwmServiceManager = new PwmServiceManager();
 
+    private Instant installTime = Instant.now();
+    private ErrorInformation lastLocalDBFailure;
+    private PwmEnvironment pwmEnvironment;
+    private FileLocker fileLocker;
+    private PwmScheduler pwmScheduler;
     private String instanceID = DEFAULT_INSTANCE_ID;
     private String runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
-
     private LocalDB localDB;
     private LocalDBLogger localDBLogger;
 
-    private final Instant startupTime = Instant.now();
-    private Instant installTime = Instant.now();
-    private ErrorInformation lastLocalDBFailure;
-    private final AtomicInteger inprogressRequests = new AtomicInteger( 0 );
-
-    private PwmEnvironment pwmEnvironment;
-
-    private final PwmServiceManager pwmServiceManager = new PwmServiceManager( this );
-
-    private FileLocker fileLocker;
-
-    private PwmScheduler pwmScheduler;
-
-    private PwmApplication( final PwmEnvironment pwmEnvironment, final LocalDB localDB )
+    private PwmApplication( final PwmEnvironment pwmEnvironment )
             throws PwmUnrecoverableException
     {
-        this.localDB = localDB;
         this.pwmEnvironment = pwmEnvironment;
         pwmEnvironment.verifyIfApplicationPathIsSetProperly();
 
@@ -157,12 +151,7 @@ public class PwmApplication
 
     public static PwmApplication createPwmApplication( final PwmEnvironment pwmEnvironment ) throws PwmUnrecoverableException
     {
-        return new PwmApplication( pwmEnvironment, null );
-    }
-
-    public static PwmApplication createPwmApplication( final PwmEnvironment pwmEnvironment, final LocalDB localDB ) throws PwmUnrecoverableException
-    {
-        return new PwmApplication( pwmEnvironment, localDB );
+        return new PwmApplication( pwmEnvironment );
     }
 
     private void initialize( )
@@ -239,7 +228,7 @@ public class PwmApplication
 
         if ( !pwmEnvironment.isInternalRuntimeInstance() )
         {
-            if ( getApplicationMode() == PwmApplicationMode.ERROR || getApplicationMode() == PwmApplicationMode.NEW )
+            if ( getApplicationMode() == PwmApplicationMode.ERROR )
             {
                 LOGGER.warn( () -> "skipping LocalDB open due to application mode " + getApplicationMode() );
             }
@@ -270,7 +259,7 @@ public class PwmApplication
 
         pwmScheduler = new PwmScheduler( getInstanceID() );
 
-        pwmServiceManager.initAllServices();
+        pwmServiceManager.initAllServices( this );
 
         final boolean skipPostInit = pwmEnvironment.isInternalRuntimeInstance()
                 || pwmEnvironment.getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance );
@@ -286,13 +275,16 @@ public class PwmApplication
         }
     }
 
-    public void reInit( final Configuration config )
+    public void reInit( final PwmEnvironment pwmEnvironment )
             throws PwmException
     {
-        fileLocker.releaseFileLock();
-        this.pwmEnvironment = pwmEnvironment.toBuilder().config( config ).build();
-        pwmServiceManager.reInitialize( this );
+        final Instant startTime = Instant.now();
+        LOGGER.debug( () -> "beginning application restart" );
+        shutdown( true );
+        this.pwmEnvironment = pwmEnvironment;
+        initialize();
         runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
+        LOGGER.debug( () -> "completed application restart", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     private void postInitTasks( )
@@ -799,10 +791,10 @@ public class PwmApplication
 
     public void shutdown( )
     {
-        shutdown( true );
+        shutdown( false );
     }
 
-    public void shutdown( final boolean leaveLocalDbOpen )
+    public void shutdown( final boolean keepServicesRunning )
     {
         pwmScheduler.shutdown();
 
@@ -828,7 +820,10 @@ public class PwmApplication
 
         MBeanUtility.unregisterMBean( this );
 
-        pwmServiceManager.shutdownAllServices();
+        if ( !keepServicesRunning )
+        {
+            pwmServiceManager.shutdownAllServices();
+        }
 
         if ( localDBLogger != null )
         {
@@ -843,7 +838,7 @@ public class PwmApplication
             localDBLogger = null;
         }
 
-        if ( leaveLocalDbOpen )
+        if ( keepServicesRunning )
         {
             LOGGER.trace( () -> "skipping close of LocalDB (restart request)" );
         }
@@ -1045,9 +1040,9 @@ public class PwmApplication
         return false;
     }
 
-    public AtomicInteger getInprogressRequests( )
+    public AtomicInteger getActiveServletRequests( )
     {
-        return inprogressRequests;
+        return activeServletRequests;
     }
 
     public PwmScheduler getPwmScheduler()

@@ -81,14 +81,6 @@ public class ResourceServletService implements PwmService
         return cacheHitRatio;
     }
 
-    @Override
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        close();
-        init( pwmApplication );
-    }
-
     public long bytesInCache( )
     {
         final Map<CacheKey, CacheEntry> cacheCopy = new HashMap<>( cache.asMap() );

@@ -185,14 +185,6 @@ public class DatabaseService implements PwmService
     }
 
     @Override
-    public void reInit( final PwmApplication pwmApplication )
-            throws PwmException
-    {
-        close();
-        init( pwmApplication );
-    }
-
-    @Override
     public void close( )
     {
         status = PwmService.STATUS.CLOSED;

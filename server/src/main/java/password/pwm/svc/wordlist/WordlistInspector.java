@@ -75,6 +75,11 @@ class WordlistInspector implements Runnable
 
         if ( checkIfClearIsNeeded( existingStatus, autoImportUrlConfigured ) )
         {
+            if ( cancelFlag.getAsBoolean() )
+            {
+                return;
+            }
+
             rootWordlist.clearImpl( Wordlist.Activity.ReadingWordlistFile );
         }
 

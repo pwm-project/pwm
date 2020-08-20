@@ -516,12 +516,6 @@ public class LocalDBLogger implements PwmService
     {
     }
 
-    @Override
-    public void reInit( final PwmApplication pwmApplication ) throws PwmException
-    {
-
-    }
-
     public String sizeToDebugString( )
     {
         final int storedEvents = this.getStoredEventCount();
