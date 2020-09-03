@@ -84,10 +84,10 @@ public enum AuditEvent
     private final Message message;
     private final PwmDisplayBundle narrative;
 
-    private String xdasTaxonomy;
-    private String xdasOutcome;
+    private final String xdasTaxonomy;
+    private final String xdasOutcome;
 
-    private Type type;
+    private final Type type;
 
     AuditEvent( final Message message, final PwmDisplayBundle narrative, final Type type )
     {

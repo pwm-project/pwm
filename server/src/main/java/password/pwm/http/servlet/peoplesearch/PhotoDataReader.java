@@ -39,7 +39,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.permission.UserPermissionTester;
 import password.pwm.ldap.PhotoDataBean;
 import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
@@ -123,7 +123,7 @@ public class PhotoDataReader
             return true;
         }
 
-        final boolean hasPermission = LdapPermissionTester.testUserPermissions( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userIdentity, permissions );
+        final boolean hasPermission = UserPermissionTester.testUserPermission( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userIdentity, permissions );
         if ( !hasPermission )
         {
             LOGGER.debug( pwmRequest, () -> "user " + userIdentity + " failed photo query filter, denying photo view ("

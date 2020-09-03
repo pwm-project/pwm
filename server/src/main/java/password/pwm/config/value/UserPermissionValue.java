@@ -21,13 +21,14 @@
 package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
-import org.apache.commons.lang3.StringUtils;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.i18n.Display;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -35,6 +36,7 @@ import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -46,7 +48,24 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
 
     public UserPermissionValue( final List<UserPermission> values )
     {
-        this.values = values == null ? Collections.emptyList() : Collections.unmodifiableList( values );
+       this.values = sanitizeList( values );
+    }
+
+    private List<UserPermission> sanitizeList( final List<UserPermission> permissions )
+    {
+        final List<UserPermission> tempList = new ArrayList<>();
+        if ( permissions != null )
+        {
+            tempList.addAll( permissions );
+        }
+
+        while ( tempList.contains( null ) )
+        {
+            tempList.remove( null );
+        }
+
+        Collections.sort( tempList );
+        return Collections.unmodifiableList( tempList );
     }
 
     public static StoredValueFactory factory( )
@@ -65,10 +84,6 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                     {
                     } );
                     srcList = srcList == null ? Collections.emptyList() : srcList;
-                    while ( srcList.contains( null ) )
-                    {
-                        srcList.remove( null );
-                    }
                     return new UserPermissionValue( Collections.unmodifiableList( srcList ) );
                 }
             }
@@ -93,7 +108,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                         else
                         {
                             values.add( UserPermission.builder()
-                                    .type( UserPermission.Type.ldapQuery )
+                                    .type( UserPermissionType.ldapQuery )
                                     .ldapQuery( value )
                                     .build() );
                         }
@@ -130,11 +145,11 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
         {
             try
             {
-                validateLdapSearchFilter( userPermission.getLdapQuery() );
+                 UserPermissionTester.validatePermissionSyntax( userPermission );
             }
-            catch ( final IllegalArgumentException e )
+            catch ( final PwmUnrecoverableException e )
             {
-                returnObj.add( e.getMessage() + " for filter " + userPermission.getLdapQuery() );
+                returnObj.add( e.getMessage() );
             }
         }
         return returnObj;
@@ -143,22 +158,6 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
     public boolean isNeedsXmlUpdate( )
     {
         return needsXmlUpdate;
-    }
-
-    private void validateLdapSearchFilter( final String filter )
-    {
-        if ( filter == null || filter.isEmpty() )
-        {
-            return;
-        }
-
-        final int leftParens = StringUtils.countMatches( filter, "(" );
-        final int rightParens = StringUtils.countMatches( filter, ")" );
-
-        if ( leftParens != rightParens )
-        {
-            throw new IllegalArgumentException( "unbalanced parentheses" );
-        }
     }
 
     @Override
@@ -172,34 +171,12 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
         if ( values != null && !values.isEmpty() )
         {
             final StringBuilder sb = new StringBuilder();
-            int counter = 0;
-            for ( final UserPermission userPermission : values )
+            for ( final Iterator<UserPermission> iterator = values.iterator(); iterator.hasNext(); )
             {
-                sb.append( "UserPermission" );
-                if ( values.size() > 1 )
-                {
-                    sb.append( counter );
-                }
-                sb.append( "-" );
-                sb.append( userPermission.getType() == null ? UserPermission.Type.ldapQuery.toString() : userPermission.getType().toString() );
-                sb.append( ": [" );
-                sb.append( "Profile:" ).append(
-                        userPermission.getLdapProfileID() == null
-                                ? "All"
-                                : userPermission.getLdapProfileID()
-                );
-                sb.append( " Base:" ).append(
-                        userPermission.getLdapBase() == null
-                                ? Display.getLocalizedMessage( locale, Display.Value_NotApplicable, null )
-                                : userPermission.getLdapBase()
-                );
-                if ( userPermission.getLdapQuery() != null )
-                {
-                    sb.append( " Query:" ).append( userPermission.getLdapQuery() );
-                }
-                sb.append( "]" );
-                counter++;
-                if ( counter != values.size() )
+                final UserPermission userPermission = iterator.next();
+                sb.append( "UserPermission: " );
+                sb.append( userPermission.debugString() );
+                if ( iterator.hasNext() )
                 {
                     sb.append( "\n" );
                 }

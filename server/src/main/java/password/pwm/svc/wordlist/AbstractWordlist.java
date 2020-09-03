@@ -470,12 +470,13 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     {
         if ( status() == STATUS.OPEN )
         {
-            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ), getStatistics().asDebugMap() );
+            return ServiceInfoBean.builder()
+                    .storageMethod( DataStorageMethod.LOCALDB )
+                    .debugProperties( getStatistics().asDebugMap() )
+                    .build();
         }
-        else
-        {
-            return new ServiceInfoBean( Collections.emptyList() );
-        }
+
+        return ServiceInfoBean.builder().build();
     }
 
     WordlistStatistics getStatistics()
@@ -512,6 +513,6 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     private BooleanSupplier makeProcessCancelSupplier( )
     {
         return () -> inhibitBackgroundImportFlag.get()
-                        || !STATUS.OPEN.equals( wlStatus );
+                || !STATUS.OPEN.equals( wlStatus );
     }
 }

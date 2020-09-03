@@ -163,7 +163,10 @@ public class NodeService implements PwmService
         {
             props.putAll( JsonUtil.deserializeStringMap( JsonUtil.serialize( nodeMachine.getNodeServiceStatistics() ) ) );
         }
-        return new ServiceInfoBean( Collections.singleton( dataStore ), props );
+        return ServiceInfoBean.builder()
+                .storageMethod( dataStore )
+                .debugProperties( props )
+                .build();
     }
 
     public boolean isMaster( )

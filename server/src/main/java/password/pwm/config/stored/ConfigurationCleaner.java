@@ -88,7 +88,7 @@ class ConfigurationCleaner
                             + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
                             + " to replacement setting "
                             + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value="
-                            + ValueTypeConverter.valueToBoolean( value ) );
+                            + ValueTypeConverter.valueToString( value ) );
                     final Optional<ValueMetaData> valueMetaData = oldConfig.readMetaData(
                             StoredConfigItemKey.fromSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) );
                     final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
@@ -121,7 +121,7 @@ class ConfigurationCleaner
                             + PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) + "/" + profileID
                             + " to replacement setting " + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE )
                             + ", value="
-                            + ValueTypeConverter.valueToBoolean( value ) );
+                            + ValueTypeConverter.valueToString( value ) );
                     modifier.writeSetting( PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS, profileID, value, newActor );
                 }
             }

@@ -33,9 +33,9 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
-import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.ldap.permission.UserPermissionTester;
 import password.pwm.svc.PwmService;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.PwmScheduler;
@@ -53,8 +53,8 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -186,7 +186,7 @@ public class ReportService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LDAP ) );
+        return ServiceInfoBean.builder().storageMethod( DataStorageMethod.LDAP ).build();
     }
 
     public void executeCommand( final ReportCommand reportCommand )
@@ -377,16 +377,31 @@ public class ReportService implements PwmService
             resetJobStatus();
             clearWorkQueue();
 
-            final Iterator<UserIdentity> memQueue = LdapOperationsHelper.readUsersFromLdapForPermissions(
+            final Queue<UserIdentity> memQueue = new ArrayDeque<>( UserPermissionTester.discoverMatchingUsers(
                     pwmApplication,
-                    SessionLabel.REPORTING_SESSION_LABEL,
-                    settings.getSearchFilter(),
-                    settings.getMaxSearchSize()
-            );
+                    settings.getSearchFilter(), SessionLabel.REPORTING_SESSION_LABEL, settings.getMaxSearchSize(),
+                    settings.getSearchTimeout()
+            ) );
 
             LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "completed ldap search process (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
 
-            writeUsersToLocalDBQueue( memQueue );
+            final Iterator<UserIdentity> iterator = new Iterator<UserIdentity>()
+            {
+                @Override
+                public boolean hasNext( )
+                {
+                    return memQueue.peek() != null;
+                }
+
+                @Override
+                public UserIdentity next( )
+                {
+                    return memQueue.poll();
+                }
+            };
+
+
+            writeUsersToLocalDBQueue( iterator );
         }
 
         private void writeUsersToLocalDBQueue( final Iterator<UserIdentity> identityQueue )

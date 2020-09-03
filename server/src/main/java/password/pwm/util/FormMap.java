@@ -28,7 +28,7 @@ import java.util.Set;
 
 public class FormMap implements Serializable, Map<String, String>
 {
-    private HashMap<String, String> backingMap = new HashMap<>();
+    private final HashMap<String, String> backingMap = new HashMap<>();
 
     public FormMap( )
     {

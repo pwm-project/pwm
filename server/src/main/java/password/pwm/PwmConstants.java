@@ -22,13 +22,11 @@ package password.pwm;
 
 import com.novell.ldapchai.ChaiConstant;
 import org.apache.commons.csv.CSVFormat;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -113,10 +111,11 @@ public abstract class PwmConstants
 
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle( "log.removedValue" );
 
-    public static final Collection<Locale> INCLUDED_LOCALES;
+    public static final Collection<Locale> INCLUDED_LOCALES = Collections.emptyList();
 
     static
     {
+        /*
         final List<Locale> localeList = new ArrayList<>();
         final String inputString = readPwmConstantsBundle( "includedLocales" );
         final List<String> inputList = JsonUtil.deserializeStringList( inputString );
@@ -125,6 +124,8 @@ public abstract class PwmConstants
             localeList.add( new Locale( localeKey ) );
         }
         INCLUDED_LOCALES = Collections.unmodifiableCollection( localeList );
+
+         */
     }
 
     public static final String URL_JSP_CONFIG_GUIDE = "WEB-INF/jsp/configguide-%1%.jsp";

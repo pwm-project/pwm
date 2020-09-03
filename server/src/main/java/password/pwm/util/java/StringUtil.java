@@ -25,6 +25,8 @@ import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import password.pwm.PwmConstants;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
@@ -623,5 +625,22 @@ public abstract class StringUtil
         }
 
         return false;
+    }
+
+    public static void validateLdapSearchFilter( final String filter )
+            throws PwmUnrecoverableException
+    {
+        if ( filter == null || filter.isEmpty() )
+        {
+            return;
+        }
+
+        final int leftParens = StringUtils.countMatches( filter, "(" );
+        final int rightParens = StringUtils.countMatches( filter, ")" );
+
+        if ( leftParens != rightParens )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.CONFIG_FORMAT_ERROR, "unbalanced parentheses in ldap filter" );
+        }
     }
 }

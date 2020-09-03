@@ -36,11 +36,11 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
+import password.pwm.svc.PwmService;
 import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
-import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
@@ -296,14 +296,15 @@ public class SmsQueueManager implements PwmService
         {
             debugItems.putAll( workQueueProcessor.debugInfo() );
         }
+
         if ( status() == STATUS.OPEN )
         {
-            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ), debugItems );
+            return ServiceInfoBean.builder()
+                    .storageMethod( DataStorageMethod.LOCALDB )
+                    .debugProperties( debugItems ).build();
         }
-        else
-        {
-            return new ServiceInfoBean( Collections.emptyList(), debugItems );
-        }
+
+        return ServiceInfoBean.builder().debugProperties( debugItems ).build();
     }
 
     private List<String> splitMessage( final String input )

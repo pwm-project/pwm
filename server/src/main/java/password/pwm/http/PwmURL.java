@@ -41,8 +41,8 @@ public class PwmURL
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmURL.class );
 
-    private URI uri;
-    private String contextPath;
+    private final URI uri;
+    private final String contextPath;
 
     public PwmURL(
             final URI uri,
@@ -67,7 +67,7 @@ public class PwmURL
      *
      * @param uri1 uri to compare
      * @param uri2 uri to compare
-     * @return true if scheama, host and port of uri1 and uri2 are equal.
+     * @return true if schema, host and port of uri1 and uri2 are equal.
      */
     public static boolean compareUriBase( final String uri1, final String uri2 )
     {

@@ -41,7 +41,6 @@ import password.pwm.util.secure.PwmRandom;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
@@ -509,11 +508,11 @@ public class SharedHistoryManager implements PwmService
     {
         if ( status == STATUS.OPEN )
         {
-            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ) );
+            return ServiceInfoBean.builder().storageMethod( DataStorageMethod.LOCALDB ).build();
         }
         else
         {
-            return new ServiceInfoBean( Collections.<DataStorageMethod>emptyList() );
+            return ServiceInfoBean.builder().build();
         }
     }
 }

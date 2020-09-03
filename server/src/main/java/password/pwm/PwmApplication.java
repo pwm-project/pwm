@@ -35,6 +35,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
+import password.pwm.http.servlet.configeditor.ConfigEditorServletUtils;
 import password.pwm.http.servlet.peoplesearch.PeopleSearchService;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.http.state.SessionStateService;
@@ -221,10 +222,13 @@ public class PwmApplication
             }
         }
 
-        LOGGER.info( () -> "initializing, application mode=" + getApplicationMode()
-                + ", applicationPath=" + ( pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath().getAbsolutePath() )
-                + ", configFile=" + ( pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath() )
-        );
+        if ( getApplicationMode() != PwmApplicationMode.READ_ONLY )
+        {
+            LOGGER.info( () -> "initializing, application mode=" + getApplicationMode()
+                    + ", applicationPath=" + ( pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath().getAbsolutePath() )
+                    + ", configFile=" + ( pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath() )
+            );
+        }
 
         if ( !pwmEnvironment.isInternalRuntimeInstance() )
         {
@@ -383,6 +387,16 @@ public class PwmApplication
         {
             LOGGER.debug( () -> "error initializing UserAgentUtils: " + e.getMessage() );
         }
+
+        try
+        {
+            ConfigEditorServletUtils.generateSettingData( this, this.getConfig().getStoredConfiguration(), null, PwmConstants.DEFAULT_LOCALE );
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.debug( () -> "error initializing generateSettingData: " + e.getMessage() );
+        }
+
 
         {
             final ExecutorService executorService = PwmScheduler.makeSingleThreadExecutorService( this, PwmApplication.class );
@@ -707,7 +721,7 @@ public class PwmApplication
             newInstanceID = Long.toHexString( pwmRandom.nextLong() ).toUpperCase();
 
             final String finalInstanceID = newInstanceID;
-            LOGGER.info( () -> "generated new random instanceID " + finalInstanceID );
+            LOGGER.debug( () -> "generated new random instanceID " + finalInstanceID );
 
             if ( localDB != null )
             {
@@ -929,7 +943,7 @@ public class PwmApplication
     {
         if ( localDB == null || localDB.status() != LocalDB.Status.OPEN )
         {
-            LOGGER.error( () -> "error retrieving key '" + appAttribute.getKey() + "', localDB unavailable: " );
+            LOGGER.debug( () -> "error retrieving key '" + appAttribute.getKey() + "', localDB unavailable: " );
             return null;
         }
 

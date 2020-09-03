@@ -70,7 +70,7 @@ public class AuditService implements PwmService
 
     private STATUS status = STATUS.CLOSED;
     private AuditSettings settings;
-    private ServiceInfoBean serviceInfo = new ServiceInfoBean( Collections.emptyList() );
+    private ServiceInfoBean serviceInfo = ServiceInfoBean.builder().build();
 
     private SyslogAuditService syslogManager;
     private ErrorInformation lastError;
@@ -165,7 +165,7 @@ public class AuditService implements PwmService
                     return;
             }
             LOGGER.debug( () -> debugMsg, () -> TimeDuration.fromCurrent( startTime ) );
-            serviceInfo = new ServiceInfoBean( Collections.singletonList( storageMethodUsed ) );
+            serviceInfo = ServiceInfoBean.builder().storageMethod( storageMethodUsed ).build();
         }
         {
             final TimeDuration maxRecordAge = TimeDuration.of( pwmApplication.getConfig().readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_AGE ), TimeDuration.Unit.SECONDS );

@@ -42,7 +42,6 @@ import java.util.Optional;
 
 class LdapTokenMachine implements TokenMachine
 {
-
     private static final String KEY_VALUE_DELIMITER = " ";
 
     private PwmApplication pwmApplication;

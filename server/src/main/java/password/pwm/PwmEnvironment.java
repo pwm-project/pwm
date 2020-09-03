@@ -173,7 +173,7 @@ public class PwmEnvironment
             throws PwmUnrecoverableException
     {
         return this.toBuilder()
-                .applicationMode( PwmApplicationMode.NEW )
+                .applicationMode( PwmApplicationMode.READ_ONLY )
                 .internalRuntimeInstance( true )
                 .configurationFile( null )
                 .config( configuration )

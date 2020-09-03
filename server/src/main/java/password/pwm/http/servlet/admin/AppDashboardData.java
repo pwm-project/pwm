@@ -156,7 +156,7 @@ public class AppDashboardData implements Serializable
                 ? "This node is the current master"
                 : "This node is not the current master";
         {
-            final Collection<DataStorageMethod> dataStorageMethods = pwmApplication.getClusterService().serviceInfo().getUsedStorageMethods();
+            final Collection<DataStorageMethod> dataStorageMethods = pwmApplication.getClusterService().serviceInfo().getStorageMethods();
             if ( !JavaHelper.isEmpty( dataStorageMethods ) )
             {
                 builder.nodeStorageMethod = dataStorageMethods.iterator().next();
@@ -259,9 +259,9 @@ public class AppDashboardData implements Serializable
             final PwmService.ServiceInfo serviceInfo = pwmService.serviceInfo();
             final Collection<DataStorageMethod> storageMethods = serviceInfo == null
                     ? Collections.emptyList()
-                    : serviceInfo.getUsedStorageMethods() == null
+                    : serviceInfo.getStorageMethods() == null
                     ? Collections.emptyList()
-                    : serviceInfo.getUsedStorageMethods();
+                    : serviceInfo.getStorageMethods();
 
             final Map<String, String> debugData = serviceInfo == null
                     ? Collections.emptyMap()

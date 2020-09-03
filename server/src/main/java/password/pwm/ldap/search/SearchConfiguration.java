@@ -23,15 +23,10 @@ package password.pwm.ldap.search;
 import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.PwmConstants;
 import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.config.value.data.UserPermission;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -48,7 +43,7 @@ public class SearchConfiguration implements Serializable
     private List<String> contexts;
     private Map<FormConfiguration, String> formValues;
     private transient ChaiProvider chaiProvider;
-    private long searchTimeout;
+    private TimeDuration searchTimeout;
 
     @Builder.Default
     private boolean ignoreOperationalErrors = false;
@@ -89,45 +84,5 @@ public class SearchConfiguration implements Serializable
         {
             throw new IllegalArgumentException( "username OR formRows cannot both be supplied" );
         }
-    }
-
-    public static SearchConfiguration fromPermission( final UserPermission userPermission ) throws PwmUnrecoverableException
-    {
-        final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
-
-        switch ( userPermission.getType() )
-        {
-            case ldapQuery:
-            {
-                builder.filter( userPermission.getLdapQuery() );
-                if ( userPermission.getLdapBase() != null && !userPermission.getLdapBase().isEmpty() )
-                {
-                    builder.enableContextValidation( false );
-                    builder.contexts( Collections.singletonList( userPermission.getLdapBase() ) );
-                }
-            }
-            break;
-
-            case ldapGroup:
-            {
-                builder.groupDN( userPermission.getLdapBase() );
-            }
-            break;
-
-            default:
-                throw new PwmUnrecoverableException( new ErrorInformation(
-                        PwmError.ERROR_INTERNAL,
-                        "unknown permission type: " + userPermission.getType() )
-                );
-        }
-
-        if ( userPermission.getLdapProfileID() != null
-                && !userPermission.getLdapProfileID().isEmpty()
-                && !userPermission.getLdapProfileID().equals( PwmConstants.PROFILE_ID_ALL ) )
-        {
-            builder.ldapProfile( userPermission.getLdapProfileID() );
-        }
-
-        return builder.build();
     }
 }

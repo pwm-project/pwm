@@ -40,6 +40,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
+import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.queue.SmsQueueManager;
@@ -207,7 +208,7 @@ public class LDAPPermissionCalculator implements Serializable
                             {
                                 for ( final UserPermission userPermission : userPermissions )
                                 {
-                                    if ( userPermission.getType() == UserPermission.Type.ldapGroup )
+                                    if ( userPermission.getType() == UserPermissionType.ldapGroup )
                                     {
                                         permissionRecords.add( new PermissionRecord( groupAttribute, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor() ) );
                                     }

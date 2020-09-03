@@ -59,6 +59,9 @@ class ReportSettings implements Serializable
     private int maxSearchSize = 100 * 1000;
 
     @Builder.Default
+    private TimeDuration searchTimeout = TimeDuration.SECONDS_30;
+
+    @Builder.Default
     private List<Integer> trackDays = Collections.emptyList();
 
     @Builder.Default
@@ -81,6 +84,7 @@ class ReportSettings implements Serializable
         builder.searchFilter( config.readSettingAsUserPermission( PwmSetting.REPORTING_USER_MATCH ) );
         builder.maxSearchSize ( ( int ) config.readSettingAsLong( PwmSetting.REPORTING_MAX_QUERY_SIZE ) );
         builder.dailyJobEnabled( config.readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB ) );
+        builder.searchTimeout( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ), TimeDuration.Unit.MILLISECONDS ) );
 
         {
             final List<UserPermission> userMatches = config.readSettingAsUserPermission( PwmSetting.REPORTING_USER_MATCH );

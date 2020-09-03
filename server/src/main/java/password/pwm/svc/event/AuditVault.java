@@ -20,6 +20,7 @@
 
 package password.pwm.svc.event;
 
+import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
@@ -47,27 +48,10 @@ public interface AuditVault
 
     void add( AuditRecord record ) throws PwmOperationalException;
 
+    @Value
     class Settings
     {
-        private long maxRecordCount;
-        private TimeDuration maxRecordAge;
-
-
-        public Settings( final long maxRecordCount, final TimeDuration maxRecordAge )
-        {
-            this.maxRecordCount = maxRecordCount;
-            this.maxRecordAge = maxRecordAge;
-        }
-
-        public long getMaxRecordCount( )
-        {
-            return maxRecordCount;
-        }
-
-        public TimeDuration getMaxRecordAge( )
-        {
-            return maxRecordAge;
-        }
+        private final long maxRecordCount;
+        private final TimeDuration maxRecordAge;
     }
-
 }

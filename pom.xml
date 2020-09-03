@@ -325,6 +325,7 @@
                     <excludeFilterFile>${project.root.basedir}/build/spotbugs-exclude.xml</excludeFilterFile>
                     <includeTests>false</includeTests>
                     <effort>max</effort>
+                    <timeout>1200000</timeout>
                 </configuration>
                 <executions>
                     <execution>

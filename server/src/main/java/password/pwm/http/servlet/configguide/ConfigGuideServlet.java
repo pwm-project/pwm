@@ -60,7 +60,6 @@ import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
-import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.http.servlet.configeditor.ConfigEditorServletUtils;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapBrowser;
@@ -670,7 +669,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
         final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
 
-        final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>( ConfigEditorServlet.generateSettingData(
+        final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>( ConfigEditorServletUtils.generateSettingData(
                 pwmRequest.getPwmApplication(),
                 storedConfiguration,
                 pwmRequest.getLabel(),

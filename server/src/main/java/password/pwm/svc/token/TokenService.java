@@ -25,6 +25,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
@@ -72,7 +73,6 @@ import password.pwm.util.secure.PwmRandom;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -98,7 +98,7 @@ public class TokenService implements PwmService
     private TokenStorageMethod storageMethod;
     private TokenMachine tokenMachine;
 
-    private ServiceInfoBean serviceInfo = new ServiceInfoBean( Collections.emptyList() );
+    private ServiceInfoBean serviceInfo = ServiceInfoBean.builder().build();
     private volatile STATUS status = STATUS.CLOSED;
 
     private ErrorInformation errorInformation = null;
@@ -146,6 +146,18 @@ public class TokenService implements PwmService
             throw new PwmOperationalException( errorInformation );
         }
 
+        if ( pwmApplication.getLocalDB() == null )
+        {
+            LOGGER.trace( () -> "localDB is not available, will remain closed" );
+            return;
+        }
+
+        if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING )
+        {
+            LOGGER.trace( () -> "Application mode is not 'running', will remain closed." );
+            return;
+        }
+
         try
         {
             DataStorageMethod usedStorageMethod = null;
@@ -180,7 +192,9 @@ public class TokenService implements PwmService
                 default:
                     JavaHelper.unhandledSwitchStatement( storageMethod );
             }
-            serviceInfo = new ServiceInfoBean( Collections.singletonList( usedStorageMethod ) );
+            serviceInfo = ServiceInfoBean.builder()
+                    .storageMethod( usedStorageMethod )
+                    .build();
         }
         catch ( final PwmException e )
         {

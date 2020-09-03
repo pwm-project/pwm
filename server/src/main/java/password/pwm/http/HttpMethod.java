@@ -20,6 +20,8 @@
 
 package password.pwm.http;
 
+import java.util.Optional;
+
 public enum HttpMethod
 {
     POST( false, true ),
@@ -37,16 +39,16 @@ public enum HttpMethod
         this.idempotent = idempotent;
     }
 
-    public static HttpMethod fromString( final String input )
+    public static Optional<HttpMethod> fromString( final String input )
     {
         for ( final HttpMethod method : HttpMethod.values() )
         {
             if ( method.toString().equalsIgnoreCase( input ) )
             {
-                return method;
+                return Optional.of( method );
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     public boolean isIdempotent( )

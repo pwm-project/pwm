@@ -24,7 +24,6 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
@@ -163,6 +162,6 @@ public class UrlShortenerService implements PwmService
 
     public ServiceInfoBean serviceInfo( )
     {
-        return new ServiceInfoBean( Collections.<DataStorageMethod>emptyList() );
+        return ServiceInfoBean.builder().build();
     }
 }

@@ -37,6 +37,7 @@ import password.pwm.config.value.X509CertificateValue;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ConfigGuideBean;
+import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
@@ -173,7 +174,7 @@ public class ConfigGuideForm
             // set admin query
             final String groupDN = formData.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP );
             final List<UserPermission> userPermissions = Collections.singletonList( UserPermission.builder()
-                    .type( UserPermission.Type.ldapGroup )
+                    .type( UserPermissionType.ldapGroup )
                     .ldapBase( groupDN )
                     .build() );
             storedConfiguration.writeSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, null, new UserPermissionValue( userPermissions ), null );

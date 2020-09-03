@@ -27,7 +27,6 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +78,10 @@ public class LocalDBService implements PwmService
                 returnInfo.put( entry.getKey(), String.valueOf( entry.getValue() ) );
             }
         }
-        return new ServiceInfoBean( Collections.singleton( DataStorageMethod.LOCALDB ), Collections.unmodifiableMap( returnInfo ) );
+
+        return ServiceInfoBean.builder()
+                .storageMethod( DataStorageMethod.LOCALDB )
+                .debugProperties( returnInfo )
+                .build();
     }
 }

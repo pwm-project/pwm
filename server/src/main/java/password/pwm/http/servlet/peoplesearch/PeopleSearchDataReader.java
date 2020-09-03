@@ -34,6 +34,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -48,10 +49,11 @@ import password.pwm.http.servlet.peoplesearch.bean.SearchResultBean;
 import password.pwm.http.servlet.peoplesearch.bean.UserDetailBean;
 import password.pwm.http.servlet.peoplesearch.bean.UserReferenceBean;
 import password.pwm.i18n.Display;
-import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.permission.UserPermissionTester;
 import password.pwm.ldap.PhotoDataBean;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.search.UserSearchResults;
@@ -615,7 +617,13 @@ class PeopleSearchDataReader
                 filterString = filterString.replace( "**", "*" );
             }
 
-            return LdapPermissionTester.testQueryMatch( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userIdentity, filterString );
+            final UserPermission userPermission = UserPermission.builder()
+                    .type( UserPermissionType.ldapQuery )
+                    .ldapQuery( filterString )
+                    .ldapProfileID( userIdentity.getLdapProfileID() )
+                    .build();
+
+            return UserPermissionTester.testUserPermission( pwmRequest.commonValues(), userIdentity, userPermission );
         };
 
         final boolean result = storeDataInCache( CacheIdentifier.checkIfViewable, userIdentity.toDelimitedKey(), Boolean.class, cacheLoader );

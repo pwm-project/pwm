@@ -22,11 +22,9 @@ package password.pwm.http.servlet.configeditor;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -34,7 +32,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplate;
-import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.profile.EmailServerProfile;
@@ -968,7 +965,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             throws IOException, PwmUnrecoverableException
     {
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
-        final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>( generateSettingData(
+        final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>( ConfigEditorServletUtils.generateSettingData(
                 pwmRequest.getPwmApplication(),
                 configManagerBean.getStoredConfiguration(),
                 pwmRequest.getLabel(),
@@ -988,58 +985,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final RestResultBean restResultBean = RestResultBean.withData( new LinkedHashMap<>( returnMap ) );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
-    }
-
-    public static Map<String, Object> generateSettingData(
-            final PwmApplication pwmApplication,
-            final StoredConfiguration storedConfiguration,
-            final SessionLabel sessionLabel,
-            final Locale locale
-
-    ) throws PwmUnrecoverableException
-    {
-        final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, sessionLabel );
-        final PwmSettingTemplateSet template = storedConfiguration.getTemplateSet();
-
-        {
-            final LinkedHashMap<String, Object> settingMap = new LinkedHashMap<>();
-            for ( final PwmSetting setting : PwmSetting.values() )
-            {
-
-                settingMap.put( setting.getKey(), SettingInfo.forSetting( setting, template, macroMachine, locale ) );
-            }
-            returnMap.put( "settings", settingMap );
-        }
-        {
-            final LinkedHashMap<String, Object> categoryMap = new LinkedHashMap<>();
-            for ( final PwmSettingCategory category : PwmSettingCategory.values() )
-            {
-                categoryMap.put( category.getKey(), CategoryInfo.forCategory( category, macroMachine, locale ) );
-            }
-            returnMap.put( "categories", categoryMap );
-        }
-        {
-            final LinkedHashMap<String, Object> labelMap = new LinkedHashMap<>();
-            for ( final PwmLocaleBundle localeBundle : PwmLocaleBundle.values() )
-            {
-                final LocaleInfo localeInfo = new LocaleInfo();
-                localeInfo.description = localeBundle.getTheClass().getSimpleName();
-                localeInfo.key = localeBundle.toString();
-                localeInfo.adminOnly = localeBundle.isAdminOnly();
-                labelMap.put( localeBundle.getTheClass().getSimpleName(), localeInfo );
-            }
-            returnMap.put( "locales", labelMap );
-        }
-        {
-            final LinkedHashMap<String, Object> varMap = new LinkedHashMap<>();
-            varMap.put( "ldapProfileIds", storedConfiguration.readSetting( PwmSetting.LDAP_PROFILE_LIST, null ).toNativeObject() );
-            varMap.put( "currentTemplate", storedConfiguration.getTemplateSet() );
-            varMap.put( "configurationNotes", storedConfiguration.readConfigProperty( ConfigurationProperty.NOTES ) );
-            returnMap.put( "var", varMap );
-        }
-        return Collections.unmodifiableMap( returnMap );
-
     }
 
     @ActionHandler( action = "testMacro" )

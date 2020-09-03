@@ -20,14 +20,12 @@
 
 package password.pwm.http.tag.conditional;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.Permission;
 import password.pwm.config.PwmSetting;
 import password.pwm.http.PwmRequestFlag;
 
-@Getter
-@AllArgsConstructor
+@Value
 class PwmIfOptions
 {
     private final boolean negate;

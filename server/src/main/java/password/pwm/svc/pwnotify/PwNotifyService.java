@@ -243,7 +243,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        return new ServiceInfoBean( Collections.singleton( storageMethod ), Collections.emptyMap() );
+        return ServiceInfoBean.builder().storageMethod( storageMethod ).build();
     }
 
     public void executeJob( )

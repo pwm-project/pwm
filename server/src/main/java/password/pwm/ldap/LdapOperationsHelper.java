@@ -44,7 +44,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.AutoSetLdapUserLanguage;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -59,7 +58,6 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -72,16 +70,13 @@ import java.io.IOException;
 import java.net.URLConnection;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
-import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
 
 public class LdapOperationsHelper
@@ -852,55 +847,6 @@ public class LdapOperationsHelper
             return results.values().iterator().next();
         }
         return Collections.emptyMap();
-    }
-
-    public static Iterator<UserIdentity> readUsersFromLdapForPermissions(
-            final PwmApplication pwmApplication,
-            final SessionLabel sessionLabel,
-            final List<UserPermission> permissionList,
-            final int maxResults
-    )
-            throws PwmUnrecoverableException, PwmOperationalException
-    {
-        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
-        final Queue<UserIdentity> resultSet = new ArrayDeque<>();
-        final long searchTimeoutMs = JavaHelper.silentParseLong(
-                pwmApplication.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT ),
-                30_000 );
-
-        for ( final UserPermission userPermission : permissionList )
-        {
-            if ( resultSet.size() < maxResults )
-            {
-                final SearchConfiguration searchConfiguration = SearchConfiguration.fromPermission( userPermission )
-                        .toBuilder()
-                        .searchTimeout( searchTimeoutMs )
-                        .build();
-                final Map<UserIdentity, Map<String, String>> searchResults = userSearchEngine.performMultiUserSearch(
-                        searchConfiguration,
-                        maxResults - resultSet.size(),
-                        Collections.emptyList(),
-                        sessionLabel
-
-                );
-                resultSet.addAll( searchResults.keySet() );
-            }
-        }
-
-        return new Iterator<UserIdentity>()
-        {
-            @Override
-            public boolean hasNext( )
-            {
-                return resultSet.peek() != null;
-            }
-
-            @Override
-            public UserIdentity next( )
-            {
-                return resultSet.poll();
-            }
-        };
     }
 
     public static Instant readPasswordExpirationTime( final ChaiUser theUser )

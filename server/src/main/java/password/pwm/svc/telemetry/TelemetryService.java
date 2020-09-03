@@ -258,7 +258,7 @@ public class TelemetryService implements PwmService
         {
             debugMap.put( "lastError", lastError.toDebugStr() );
         }
-        return new ServiceInfoBean( null, Collections.unmodifiableMap( debugMap ) );
+        return ServiceInfoBean.builder().debugProperties( debugMap ).build();
     }
 
 

@@ -175,10 +175,10 @@ public class LdapConnectionService implements PwmService
         final Map<String, String> debugProperties = new LinkedHashMap<>();
         debugProperties.putAll( chaiProviderFactory.getGlobalStatistics() );
         debugProperties.putAll( connectionDebugInfo() );
-        return new ServiceInfoBean(
-                Collections.singletonList( DataStorageMethod.LDAP ),
-                Collections.unmodifiableMap( debugProperties )
-        );
+        return ServiceInfoBean.builder()
+                .storageMethod(  DataStorageMethod.LDAP )
+                .debugProperties( debugProperties )
+                .build();
     }
 
 

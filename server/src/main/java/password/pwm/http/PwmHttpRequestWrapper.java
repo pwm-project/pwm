@@ -425,7 +425,8 @@ public class PwmHttpRequestWrapper
 
     public HttpMethod getMethod( )
     {
-        return HttpMethod.fromString( this.getHttpServletRequest().getMethod() );
+        return HttpMethod.fromString( this.getHttpServletRequest().getMethod() )
+                .orElseThrow( () -> new IllegalStateException( "http method not registered" ) );
     }
 
     public Configuration getConfig( )

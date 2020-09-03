@@ -87,7 +87,7 @@ public class IntruderManager implements PwmService
 
     private final Map<RecordType, RecordManager> recordManagers = new HashMap<>();
 
-    private ServiceInfoBean serviceInfo = new ServiceInfoBean( Collections.emptyList() );
+    private ServiceInfoBean serviceInfo = ServiceInfoBean.builder().build();
 
     public IntruderManager( )
     {
@@ -163,7 +163,7 @@ public class IntruderManager implements PwmService
                     return;
             }
             LOGGER.info( () -> debugMsg );
-            serviceInfo = new ServiceInfoBean( Collections.singletonList( storageMethodUsed ) );
+            serviceInfo = ServiceInfoBean.builder().storageMethod( storageMethodUsed ).build();
         }
         final RecordStore recordStore;
         {

@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
@@ -525,12 +524,14 @@ public class LocalDBLogger implements PwmService
         numberFormat.setMaximumFractionDigits( 3 );
         numberFormat.setMinimumFractionDigits( 3 );
 
-        return String.valueOf( this.getStoredEventCount() ) + " / " + maxEvents + " (" + numberFormat.format( percentFull ) + "%)";
+        return this.getStoredEventCount() + " / " + maxEvents + " (" + numberFormat.format( percentFull ) + "%)";
     }
 
     public ServiceInfoBean serviceInfo( )
     {
-        return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ) );
+        return ServiceInfoBean.builder()
+                .storageMethod( DataStorageMethod.LOCALDB )
+                .build();
     }
 
 }

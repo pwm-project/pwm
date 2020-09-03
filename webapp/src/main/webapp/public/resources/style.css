@@ -435,6 +435,7 @@ input[type=password]::-ms-reveal {
     color: white;
     background: #3e374c;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .btn:disabled {

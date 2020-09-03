@@ -22,12 +22,12 @@ package password.pwm.svc.node;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 
 import java.io.Serializable;
 import java.time.Instant;
 
-@Getter
+@Value
 @AllArgsConstructor( access = AccessLevel.PACKAGE )
 public class NodeInfo implements Serializable
 {

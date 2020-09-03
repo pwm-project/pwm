@@ -137,7 +137,7 @@ public class UserSearchEngine implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        return new ServiceInfoBean( Collections.emptyList(), debugProperties() );
+        return ServiceInfoBean.builder().debugProperties( debugProperties() ).build();
     }
 
     public UserIdentity resolveUsername(
@@ -432,8 +432,8 @@ public class UserSearchEngine implements PwmService
             searchContexts = ldapProfile.getRootContexts( pwmApplication );
         }
 
-        final long timeLimitMS = searchConfiguration.getSearchTimeout() > 0
-                ? searchConfiguration.getSearchTimeout()
+        final long timeLimitMS = searchConfiguration.getSearchTimeout() != null
+                ? searchConfiguration.getSearchTimeout().asMillis()
                 : ( ldapProfile.readSettingAsLong( PwmSetting.LDAP_SEARCH_TIMEOUT ) * 1000 );
 
         final ChaiProvider chaiProvider = searchConfiguration.getChaiProvider() == null

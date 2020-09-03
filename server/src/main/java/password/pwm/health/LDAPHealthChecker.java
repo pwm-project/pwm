@@ -980,7 +980,7 @@ public class LDAPHealthChecker implements HealthChecker
 
             final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                     .enableValueEscaping( false )
-                    .searchTimeout( warnDuration.asMillis() )
+                    .searchTimeout( warnDuration )
                     .username( healthUsername )
                     .build();
 
@@ -1045,6 +1045,22 @@ public class LDAPHealthChecker implements HealthChecker
         {
             switch ( userPermission.getType() )
             {
+                case ldapAllUsers:
+                    break;
+
+                case ldapUser:
+                {
+                    final String userDN = userPermission.getLdapBase();
+                    if ( userDN != null && !isExampleDN( userDN ) )
+                    {
+                        final Optional<String> errorMsg = validateDN( pwmApplication, userDN, ldapProfileID );
+                        errorMsg.ifPresent( s -> returnList.add( HealthRecord.forMessage(
+                                HealthMessage.Config_UserPermissionValidity,
+                                settingDebugName, "userDN: " + s ) ) );
+                    }
+                }
+                break;
+
                 case ldapGroup:
                 {
                     final String groupDN = userPermission.getLdapBase();

@@ -51,11 +51,10 @@ import java.util.Map;
 
 public class ActionExecutor
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ActionExecutor.class );
 
-    private PwmApplication pwmApplication;
-    private ActionExecutorSettings settings;
+    private final PwmApplication pwmApplication;
+    private final ActionExecutorSettings settings;
 
     private ActionExecutor( final PwmApplication pwmApplication, final ActionExecutorSettings settings )
     {
@@ -198,7 +197,8 @@ public class ActionExecutor
                 headers.put( HttpHeader.Authorization.getHttpName(), authHeaderValue );
             }
 
-            final HttpMethod method = HttpMethod.fromString( webAction.getMethod().toString() );
+            final HttpMethod method = HttpMethod.fromString( webAction.getMethod().toString() )
+                    .orElseThrow( () -> new IllegalStateException( "unaccepted http method" ) );
 
             final PwmHttpClientRequest clientRequest = PwmHttpClientRequest.builder()
                     .method( method )

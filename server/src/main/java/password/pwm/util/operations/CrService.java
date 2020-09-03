@@ -51,7 +51,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.permission.UserPermissionTester;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.java.JavaHelper;
@@ -256,7 +256,7 @@ public class CrService implements PwmService
                 LOGGER.debug( sessionLabel, () -> "testing challenge profiles '" + profile + "'" );
                 try
                 {
-                    final boolean match = LdapPermissionTester.testUserPermissions( pwmApplication, sessionLabel, userIdentity, queryMatch );
+                    final boolean match = UserPermissionTester.testUserPermission( pwmApplication, sessionLabel, userIdentity, queryMatch );
                     if ( match )
                     {
                         return profile;
@@ -611,13 +611,13 @@ public class CrService implements PwmService
             return false;
         }
 
-        if ( !LdapPermissionTester.testUserPermissions( pwmApplication, pwmSession, userIdentity, config.readSettingAsUserPermission( PwmSetting.QUERY_MATCH_SETUP_RESPONSE ) ) )
+        if ( !UserPermissionTester.testUserPermission( pwmApplication, pwmSession, userIdentity, config.readSettingAsUserPermission( PwmSetting.QUERY_MATCH_SETUP_RESPONSE ) ) )
         {
             LOGGER.debug( pwmSession, () -> "checkIfResponseConfigNeeded: " + userIdentity + " does not have permission to setup responses" );
             return false;
         }
 
-        if ( !LdapPermissionTester.testUserPermissions( pwmApplication, pwmSession, userIdentity, config.readSettingAsUserPermission( PwmSetting.QUERY_MATCH_CHECK_RESPONSES ) ) )
+        if ( !UserPermissionTester.testUserPermission( pwmApplication, pwmSession, userIdentity, config.readSettingAsUserPermission( PwmSetting.QUERY_MATCH_CHECK_RESPONSES ) ) )
         {
             LOGGER.debug( pwmSession, () -> "checkIfResponseConfigNeeded: " + userIdentity + " is not eligible for checkIfResponseConfigNeeded due to query match" );
             return false;
@@ -669,6 +669,6 @@ public class CrService implements PwmService
         final LinkedHashSet<DataStorageMethod> usedStorageMethods = new LinkedHashSet<>();
         usedStorageMethods.addAll( ConfigurationUtil.getCrReadPreference( pwmApplication.getConfig() ) );
         usedStorageMethods.addAll( ConfigurationUtil.getCrWritePreference( pwmApplication.getConfig() ) );
-        return new ServiceInfoBean( Collections.unmodifiableList( new ArrayList<>( usedStorageMethods ) ) );
+        return ServiceInfoBean.builder().storageMethods( usedStorageMethods ).build();
     }
 }

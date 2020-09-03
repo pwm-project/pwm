@@ -302,14 +302,16 @@ public class DatabaseService implements PwmService
             final DatabaseAboutProperty databaseAboutProperty = entry.getKey();
             debugProperties.put( databaseAboutProperty.name(), entry.getValue() );
         }
+
         if ( status() == STATUS.OPEN )
         {
-            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.DB ), debugProperties );
+            return ServiceInfoBean.builder()
+                    .storageMethod( DataStorageMethod.DB )
+                    .debugProperties( debugProperties )
+                    .build();
         }
-        else
-        {
-            return new ServiceInfoBean( Collections.emptyList(), debugProperties );
-        }
+
+        return ServiceInfoBean.builder().debugProperties( debugProperties ).build();
     }
 
     public DatabaseAccessor getAccessor( )

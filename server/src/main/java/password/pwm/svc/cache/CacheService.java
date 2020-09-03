@@ -111,7 +111,7 @@ public class CacheService implements PwmService
     {
         if ( status == STATUS.CLOSED )
         {
-            return new ServiceInfoBean( Collections.emptyList(), Collections.emptyMap() );
+            return ServiceInfoBean.builder().build();
         }
 
         final Map<String, String> debugInfo = new TreeMap<>( );
@@ -119,7 +119,7 @@ public class CacheService implements PwmService
         debugInfo.put( "byteCount", String.valueOf( memoryCacheStore.byteCount() ) );
         debugInfo.putAll( JsonUtil.deserializeStringMap( JsonUtil.serialize( memoryCacheStore.getCacheStoreInfo() ) ) );
         debugInfo.putAll( JsonUtil.deserializeStringMap( JsonUtil.serializeMap( memoryCacheStore.storedClassHistogram( "histogram." ) ) ) );
-        return new ServiceInfoBean( Collections.emptyList(), debugInfo );
+        return ServiceInfoBean.builder().debugProperties( debugInfo ).build();
     }
 
     public Map<String, Serializable> debugInfo( )

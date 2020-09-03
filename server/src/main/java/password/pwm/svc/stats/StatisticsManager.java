@@ -236,7 +236,7 @@ public class StatisticsManager implements PwmService
 
         if ( localDB == null )
         {
-            LOGGER.error( () -> "LocalDB is not available, will remain closed" );
+            LOGGER.debug( () -> "LocalDB is not available, will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
@@ -447,8 +447,8 @@ public class StatisticsManager implements PwmService
     public ServiceInfoBean serviceInfo( )
     {
         return status() == STATUS.OPEN
-                ? new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ) )
-                : new ServiceInfoBean( Collections.emptyList() );
+                ? ServiceInfoBean.builder().storageMethod( DataStorageMethod.LOCALDB ).build()
+                : ServiceInfoBean.builder().build();
     }
 
     public static void incrementStat(

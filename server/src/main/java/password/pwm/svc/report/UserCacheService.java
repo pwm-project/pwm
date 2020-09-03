@@ -163,7 +163,7 @@ public class UserCacheService implements PwmService
 
     public ServiceInfoBean serviceInfo( )
     {
-        return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ) );
+        return ServiceInfoBean.builder().storageMethod( DataStorageMethod.LOCALDB ).build();
     }
 
     public long size( )

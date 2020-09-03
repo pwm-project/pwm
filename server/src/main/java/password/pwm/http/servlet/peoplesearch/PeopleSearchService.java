@@ -26,6 +26,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -70,13 +71,13 @@ public class PeopleSearchService implements PwmService
     @Override
     public List<HealthRecord> healthCheck()
     {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
     public ServiceInfoBean serviceInfo()
     {
-        return null;
+        return ServiceInfoBean.builder().build();
     }
 
     public ThreadPoolExecutor getJobExecutor()

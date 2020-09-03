@@ -68,7 +68,7 @@ public class PwmSettingXml
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSettingXml.class );
 
-    private static LazySoftReference<XmlDocument> xmlDocCache = new LazySoftReference<>( () -> readXml() );
+    private static final LazySoftReference<XmlDocument> XML_DOC_CACHE = new LazySoftReference<>( () -> readXml() );
     private static final AtomicInteger LOAD_COUNTER = new AtomicInteger( 0 );
 
     private static XmlDocument readXml( )
@@ -107,21 +107,21 @@ public class PwmSettingXml
     static XmlElement readSettingXml( final PwmSetting setting )
     {
         final String expression = "/settings/setting[@key=\"" + setting.getKey() + "\"]";
-        return xmlDocCache.get().evaluateXpathToElement( expression )
+        return XML_DOC_CACHE.get().evaluateXpathToElement( expression )
                 .orElseThrow( () -> new IllegalStateException( "PwmSetting.xml is missing setting for key '" + setting.getKey() + "'" ) );
     }
 
     static XmlElement readCategoryXml( final PwmSettingCategory category )
     {
         final String expression = "/settings/category[@key=\"" + category.toString() + "\"]";
-        return xmlDocCache.get().evaluateXpathToElement( expression )
+        return XML_DOC_CACHE.get().evaluateXpathToElement( expression )
                 .orElseThrow( () -> new IllegalStateException( "PwmSetting.xml is missing category for key '" + category.getKey() + "'" ) );
     }
 
     static XmlElement readTemplateXml( final PwmSettingTemplate template )
     {
         final String expression = "/settings/template[@key=\"" + template.toString() + "\"]";
-        return xmlDocCache.get().evaluateXpathToElement( expression )
+        return XML_DOC_CACHE.get().evaluateXpathToElement( expression )
                 .orElseThrow( () -> new IllegalStateException( "PwmSetting.xml is missing template for key '" + template.toString() + "'" ) );
     }
 

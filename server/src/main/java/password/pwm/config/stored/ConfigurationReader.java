@@ -350,7 +350,7 @@ public class ConfigurationReader
             return "";
         }
 
-        return String.valueOf( file.lastModified() + String.valueOf( file.length() ) );
+        return file.lastModified() + "+" + file.length();
     }
 
     public ErrorInformation getConfigFileError( )

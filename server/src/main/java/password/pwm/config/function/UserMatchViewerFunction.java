@@ -40,7 +40,8 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
-import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -86,7 +87,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
         return userMatchViewerResults;
     }
 
-    public Collection<UserIdentity> discoverMatchingUsers(
+    public List<UserIdentity> discoverMatchingUsers(
             final PwmApplication pwmApplication,
             final int maxResultSize,
             final StoredConfiguration storedConfiguration,
@@ -99,26 +100,36 @@ public class UserMatchViewerFunction implements SettingUIFunction
         final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmApplication.getPwmEnvironment().makeRuntimeInstance( config ) );
         final List<UserPermission> permissions = ( List<UserPermission> ) storedConfiguration.readSetting( setting, profile ).toNativeObject();
 
+       validateUserPermissionLdapValues( tempApplication, permissions );
+
+        final TimeDuration maxSearchTime = TimeDuration.SECONDS_10;
+        return UserPermissionTester.discoverMatchingUsers( tempApplication, permissions, SessionLabel.SYSTEM_LABEL, maxResultSize, maxSearchTime );
+    }
+
+    private static void validateUserPermissionLdapValues(
+            final PwmApplication pwmApplication,
+            final List<UserPermission> permissions
+    )
+            throws PwmUnrecoverableException, PwmOperationalException
+    {
         for ( final UserPermission userPermission : permissions )
         {
-            if ( userPermission.getType() == UserPermission.Type.ldapQuery )
+            if ( userPermission.getType() == UserPermissionType.ldapQuery )
             {
                 if ( userPermission.getLdapBase() != null && !userPermission.getLdapBase().isEmpty() )
                 {
-                    testIfLdapDNIsValid( tempApplication, userPermission.getLdapBase(), userPermission.getLdapProfileID() );
+                    testIfLdapDNIsValid( pwmApplication, userPermission.getLdapBase(), userPermission.getLdapProfileID() );
                 }
             }
-            else if ( userPermission.getType() == UserPermission.Type.ldapGroup )
+            else if ( userPermission.getType() == UserPermissionType.ldapGroup )
             {
-                testIfLdapDNIsValid( tempApplication, userPermission.getLdapBase(), userPermission.getLdapProfileID() );
+                testIfLdapDNIsValid( pwmApplication, userPermission.getLdapBase(), userPermission.getLdapProfileID() );
             }
         }
-
-        return LdapPermissionTester.discoverMatchingUsers( tempApplication, maxResultSize, permissions, SessionLabel.SYSTEM_LABEL ).keySet();
     }
 
 
-    private void testIfLdapDNIsValid( final PwmApplication pwmApplication, final String baseDN, final String profileID )
+    private static void testIfLdapDNIsValid( final PwmApplication pwmApplication, final String baseDN, final String profileID )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final Set<String> profileIDsToTest = new LinkedHashSet<>();

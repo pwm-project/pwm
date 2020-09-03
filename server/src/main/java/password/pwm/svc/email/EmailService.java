@@ -109,7 +109,7 @@ public class EmailService implements PwmService
 
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            LOGGER.warn( () -> "localDB is not open, EmailService will remain closed" );
+            LOGGER.debug( () -> "localDB is not open, EmailService will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
@@ -189,16 +189,17 @@ public class EmailService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        final Map<String, String> debugItems = stats();
-
         if ( status() == STATUS.OPEN )
         {
-            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ), debugItems );
+            return ServiceInfoBean.builder()
+                    .storageMethod( DataStorageMethod.LOCALDB )
+                    .debugProperties( stats() )
+                    .build();
         }
-        else
-        {
-            return new ServiceInfoBean( Collections.emptyList(), debugItems );
-        }
+
+        return ServiceInfoBean.builder()
+                .debugProperties( stats() )
+                .build();
     }
 
     public int queueSize( )

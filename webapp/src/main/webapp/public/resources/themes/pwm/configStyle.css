@@ -36,9 +36,7 @@ html {
     border-radius: 3px 3px 5px 5px;
     /* box-shadow: 2px 2px 1px 1px #dcdcdc; */
     margin-bottom: 10px;
-    animation: fadein 0.5s;
-    -moz-animation: fadein 0.5s; /* Firefox */
-    -webkit-animation: fadein 0.5s; /* Safari and Chrome */
+    animation: fadein 0.4s;
 }
 
 .setting_title {
@@ -72,6 +70,9 @@ html {
 
 .setting_body {
     padding: 5px;
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .setting_body.modified {
@@ -268,7 +269,6 @@ table {
     position: absolute;
     top: 55px;
     width: 242px;
-    animation: fadein 0.5s;
 }
 
 #navigationTree {
@@ -295,20 +295,17 @@ table {
     padding-right: 6px;
     position: absolute;
     top: 55px;
-    width: 600px;
+    width: 606px;
 }
 
 #settingSearchPanel {
-    animation: fadein 1.5s;
+    animation: fadein 0.4s;
     background: none repeat scroll 0 0;
     left: 8px;
     position: absolute;
     top: 10px;
     width: 850px;
     z-index: 2;
-
-    -moz-animation: fadein 1.5s; /* Firefox */
-    -webkit-animation: fadein 1.5s; /* Safari and Chrome */
 }
 
 .setting_item_value_wrapper {
@@ -360,7 +357,7 @@ input:invalid{
     max-height: 250px;
     margin: 2px 2px 15px;
     overflow-x: auto;
-    animation: fadein 1s;
+    animation: fadein 0.4s;
 }
 
 /* This allows us to show text with carriage returns in it, without having to use <br> tags.  We may want to put this on .pane-help eventually */
@@ -473,6 +470,18 @@ input:invalid{
     text-overflow: ellipsis;
     cursor: pointer;
     max-height:50px;
+}
+
+.permissionProfileValueInput {
+    max-width: 100px;
+    width: 100px;
+    padding: 5px;
+    margin-left: 10px;
+}
+
+.permissionValuePanel {
+    width: 340px;
+    padding: 5px;
 }
 
 .editorIdleStatus {
@@ -597,4 +606,12 @@ select {
 .overflow-panel-medium {
     max-height: 350px;
     overflow-y: auto
+}
+
+.panel-large {
+    max-height: 500px;
+}
+
+.overflow-y {
+    overflow-y: auto;
 }

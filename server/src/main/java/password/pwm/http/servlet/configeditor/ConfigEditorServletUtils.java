@@ -20,9 +20,16 @@
 
 package password.pwm.http.servlet.configeditor;
 
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingCategory;
+import password.pwm.config.PwmSettingTemplateSet;
+import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.FileValue;
 import password.pwm.error.ErrorInformation;
@@ -33,15 +40,18 @@ import password.pwm.health.ConfigurationChecker;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.ConfigManagerBean;
+import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.bean.HealthData;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -163,5 +173,60 @@ public class ConfigEditorServletUtils
         }
 
         return HealthData.builder().build();
+    }
+
+    public static Map<String, Object> generateSettingData(
+            final PwmApplication pwmApplication,
+            final StoredConfiguration storedConfiguration,
+            final SessionLabel sessionLabel,
+            final Locale locale
+
+    )
+            throws PwmUnrecoverableException
+    {
+        final Instant startTime = Instant.now();
+        final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
+        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, sessionLabel );
+        final PwmSettingTemplateSet template = storedConfiguration.getTemplateSet();
+
+        {
+            final LinkedHashMap<String, Object> settingMap = new LinkedHashMap<>();
+            for ( final PwmSetting setting : PwmSetting.values() )
+            {
+
+                settingMap.put( setting.getKey(), SettingInfo.forSetting( setting, template, macroMachine, locale ) );
+            }
+            returnMap.put( "settings", settingMap );
+        }
+        {
+            final LinkedHashMap<String, Object> categoryMap = new LinkedHashMap<>();
+            for ( final PwmSettingCategory category : PwmSettingCategory.values() )
+            {
+                categoryMap.put( category.getKey(), CategoryInfo.forCategory( category, macroMachine, locale ) );
+            }
+            returnMap.put( "categories", categoryMap );
+        }
+        {
+            final LinkedHashMap<String, Object> labelMap = new LinkedHashMap<>();
+            for ( final PwmLocaleBundle localeBundle : PwmLocaleBundle.values() )
+            {
+                final LocaleInfo localeInfo = new LocaleInfo();
+                localeInfo.description = localeBundle.getTheClass().getSimpleName();
+                localeInfo.key = localeBundle.toString();
+                localeInfo.adminOnly = localeBundle.isAdminOnly();
+                labelMap.put( localeBundle.getTheClass().getSimpleName(), localeInfo );
+            }
+            returnMap.put( "locales", labelMap );
+        }
+        {
+            final LinkedHashMap<String, Object> varMap = new LinkedHashMap<>();
+            varMap.put( "ldapProfileIds", storedConfiguration.readSetting( PwmSetting.LDAP_PROFILE_LIST, null ).toNativeObject() );
+            varMap.put( "currentTemplate", storedConfiguration.getTemplateSet() );
+            varMap.put( "configurationNotes", storedConfiguration.readConfigProperty( ConfigurationProperty.NOTES ) );
+            returnMap.put( "var", varMap );
+        }
+        LOGGER.trace( sessionLabel, () -> "generated settingData", () -> TimeDuration.fromCurrent( startTime ) );
+        return Collections.unmodifiableMap( returnMap );
+
     }
 }

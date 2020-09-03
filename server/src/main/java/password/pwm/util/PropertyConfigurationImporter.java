@@ -35,6 +35,7 @@ import password.pwm.config.value.UserPermissionValue;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmException;
+import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.X509Utils;
@@ -263,7 +264,7 @@ public class PropertyConfigurationImporter
             if ( !StringUtil.isEmpty( value ) )
             {
                 permissions.add( UserPermission.builder()
-                        .type( UserPermission.Type.ldapQuery )
+                        .type( UserPermissionType.ldapQuery )
                         .ldapProfileID( LDAP_PROFILE )
                         .ldapQuery( filter )
                         .ldapBase( value )

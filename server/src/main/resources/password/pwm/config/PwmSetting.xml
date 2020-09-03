@@ -246,7 +246,7 @@
     <setting hidden="false" key="accountInfo.queryMatch" level="2" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="display.passwordHistory" level="1" required="true">
@@ -413,7 +413,7 @@
     <setting hidden="false" key="password.allowChange.queryMatch" level="2" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="logoutAfterPasswordChange" level="1" required="true">
@@ -544,10 +544,6 @@
     </setting>
     <setting hidden="false" key="pwmAdmin.queryMatch" level="0" required="true">
         <ldapPermission actor="proxy" access="read"/>
-        <example>cn=@PwmAppName@-Admins,ou=Groups,o=example</example>
-        <example template="AD">CN=@PwmAppName@-Administrators,CN=Builtin,DC=site,DC=example,DC=net</example>
-        <example template="ORACLE_DS">cn=@PwmAppName@-Admins,OU=Groups,DC=ad,DC=site,DC=example,DC=net</example>
-        <example template="OPEN_LDAP">cn=@PwmAppName@-Admins,dc=example,dc=com</example>
         <default>
             <value/>
         </default>
@@ -1114,7 +1110,7 @@
     <setting hidden="false" key="password.policy.queryMatch" level="1">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="password.policy.source" level="1" required="true">
@@ -1906,7 +1902,7 @@
     <setting hidden="false" key="otp.secret.allowSetup.queryMatch" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="otp.secret.identifier" level="2" required="true">
@@ -2422,13 +2418,13 @@
     <setting hidden="false" key="challenge.allowSetup.queryMatch" level="2" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="command.checkResponses.queryMatch" level="2" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="true" key="challenge.profile.list" level="1">
@@ -2443,7 +2439,7 @@
     <setting hidden="false" key="challenge.policy.queryMatch" level="1">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="recovery.verificationMethods" level="1">
@@ -3061,7 +3057,7 @@
     <setting hidden="false" key="updateAttributes.queryMatch" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=person)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="updateAttributes.writeAttributes" level="1">
@@ -3201,7 +3197,7 @@
     <setting hidden="false" key="peopleSearch.queryMatch" level="1" required="true">
         <ldapPermission actor="self_other" access="read"/>
         <default syntaxVersion="2">
-            <value>{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}</value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="true" key="peopleSearch.searchAttributes" level="1" required="false">
@@ -3330,7 +3326,7 @@
     </setting>
     <setting hidden="false" key="peopleSearch.photo.queryFilter" level="2">
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.idleTimeout" level="1">
@@ -3743,13 +3739,13 @@
     <setting hidden="false" key="recovery.queryMatch" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
         <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="helpdesk.token.sendMethod" level="1">
@@ -3900,7 +3896,7 @@
     </setting>
     <setting hidden="false" key="reporting.ldap.userMatch" level="1">
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="reporting.ldap.maxQuerySize" level="2">
@@ -4008,7 +4004,7 @@
             <value/>
         </default>
         <default syntaxVersion="2" template="NOVL_IDM">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="webservices.thirdParty.queryMatch" level="2">

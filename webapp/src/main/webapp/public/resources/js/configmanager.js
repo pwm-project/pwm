@@ -452,7 +452,7 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
 
 
 PWM_CONFIG.convertListOfIdentitiesToHtml = function(data) {
-    var html = '<div style="max-height: 500px; overflow-y: auto">';
+    var html = '<div class="panel-large overflow-y">';
     var users = data['users'];
     if (users && !PWM_MAIN.JSLibrary.isEmpty(users)) {
         html += '<table style="">';
@@ -470,9 +470,9 @@ PWM_CONFIG.convertListOfIdentitiesToHtml = function(data) {
     }
     html += '</div>';
 
-    html += '<br/><div class="noticebar" style="margin-right: 5px; margin-left: 5px">' + data['searchOperationSummary'];
+    html += '<br/><div class="footnote"><p>' + data['searchOperationSummary'] + '</p>';
     if (data['sizeExceeded']) {
-        html += ' ' + PWM_CONFIG.showString('Display_EditorLDAPSizeExceeded');
+        html += '<p>' + PWM_CONFIG.showString('Display_EditorLDAPSizeExceeded') + '</p>';
     }
     html += '</div>';
     return html;

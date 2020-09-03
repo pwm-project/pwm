@@ -165,9 +165,13 @@ public class ResponseStatsCommand extends AbstractCliCommand
         for ( final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values() )
         {
             final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            final TimeDuration searchTimeout = TimeDuration.of(
+                    Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ),
+                    TimeDuration.Unit.MILLISECONDS );
+
             final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                     .enableValueEscaping( false )
-                    .searchTimeout( Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT ) ) )
+                    .searchTimeout( searchTimeout )
                     .username( "*" )
                     .enableValueEscaping( false )
                     .filter( ldapProfile.readSettingAsString( PwmSetting.LDAP_USERNAME_SEARCH_FILTER ) )

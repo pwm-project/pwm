@@ -41,6 +41,7 @@ class PwNotifySettings implements Serializable
     private final TimeDuration maximumSkipWindow;
     private final TimeDuration zuluOffset;
     private final int maxLdapSearchSize;
+    private final TimeDuration searchTimeout;
     private final int batchCount;
     private final BigDecimal batchTimeMultiplier;
 
@@ -58,6 +59,7 @@ class PwNotifySettings implements Serializable
             builder.notificationIntervals( Collections.unmodifiableList( timeDurations ) );
         }
 
+        builder.searchTimeout( TimeDuration.of( Long.parseLong( configuration.readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ), TimeDuration.Unit.MILLISECONDS ) );
         builder.zuluOffset( TimeDuration.of( configuration.readSettingAsLong( PwmSetting.PW_EXPY_NOTIFY_JOB_OFFSET ), TimeDuration.Unit.SECONDS ) );
         builder.batchCount( Integer.parseInt( configuration.readAppProperty( AppProperty.PWNOTIFY_BATCH_COUNT ) ) );
         builder.maxLdapSearchSize( Integer.parseInt( configuration.readAppProperty( AppProperty.PWNOTIFY_MAX_LDAP_SEARCH_SIZE ) ) );

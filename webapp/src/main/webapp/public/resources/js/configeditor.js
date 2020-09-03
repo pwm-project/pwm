@@ -156,44 +156,42 @@ PWM_CFGEDIT.handleWorkingIcon = function() {
 
 
 PWM_CFGEDIT.updateSettingDisplay = function(keyName, isDefault) {
-    require(["dojo"],function(dojo){
-        var resetImageButton = PWM_MAIN.getObject('resetButton-' + keyName);
-        var modifiedIcon = PWM_MAIN.getObject('modifiedNoticeIcon-' + keyName);
-        var settingSyntax = '';
+    var resetImageButton = PWM_MAIN.getObject('resetButton-' + keyName);
+    var modifiedIcon = PWM_MAIN.getObject('modifiedNoticeIcon-' + keyName);
+    var settingSyntax = '';
+    try {
+        settingSyntax = PWM_SETTINGS['settings'][keyName]['syntax'];
+    } catch (e) { /* noop */ }  //setting keys may not be loaded
+
+    if (PWM_SETTINGS['settings'][keyName]) {
+        if (PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'],'NoDefault')) {
+            isDefault = true;
+        }
+    }
+
+    if (!isDefault) {
+        if (resetImageButton) {
+            resetImageButton.style.visibility = 'visible';
+        }
+        if (modifiedIcon) {
+            modifiedIcon.style.display = 'inline';
+        }
         try {
-            settingSyntax = PWM_SETTINGS['settings'][keyName]['syntax'];
-        } catch (e) { /* noop */ }  //setting keys may not be loaded
-
-        if (PWM_SETTINGS['settings'][keyName]) {
-            if (PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'],'NoDefault')) {
-                isDefault = true;
-            }
+            document.getElementById('title_' + keyName).classList.add('modified');
+            document.getElementById('titlePane_' + keyName).classList.add('modified');
+        } catch (e) { /* noop */ }
+    } else {
+        if (resetImageButton) {
+            resetImageButton.style.visibility = 'hidden';
         }
-
-        if (!isDefault) {
-            if (resetImageButton) {
-                resetImageButton.style.visibility = 'visible';
-            }
-            if (modifiedIcon) {
-                modifiedIcon.style.display = 'inline';
-            }
-            try {
-                dojo.addClass('title_' + keyName,"modified");
-                dojo.addClass('titlePane_' + keyName,"modified");
-            } catch (e) { /* noop */ }
-        } else {
-            if (resetImageButton) {
-                resetImageButton.style.visibility = 'hidden';
-            }
-            if (modifiedIcon) {
-                modifiedIcon.style.display = 'none';
-            }
-            try {
-                dojo.removeClass('title_' + keyName,"modified");
-                dojo.removeClass('titlePane_' + keyName,"modified");
-            } catch (e) { /* noop */ }
+        if (modifiedIcon) {
+            modifiedIcon.style.display = 'none';
         }
-    });
+        try {
+            document.getElementById('title_' + keyName).classList.remove('modified');
+            document.getElementById('titlePane_' + keyName).classList.remove('modified');
+        } catch (e) { /* noop */ }
+    }
 };
 
 PWM_CFGEDIT.getSettingValueElement = function(settingKey) {

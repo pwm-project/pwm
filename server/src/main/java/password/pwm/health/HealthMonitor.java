@@ -276,7 +276,7 @@ public class HealthMonitor implements PwmService
 
     public ServiceInfoBean serviceInfo( )
     {
-        return new ServiceInfoBean( Collections.emptyList() );
+        return ServiceInfoBean.builder().build();
     }
 
     Map<HealthMonitorFlag, Serializable> getHealthProperties( )

@@ -22,7 +22,7 @@ package password.pwm.util.localdb;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -561,7 +561,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         String convertToDebugString( W workItem );
     }
 
-    @Getter
+    @Value
     @Builder
     public static class Settings implements Serializable
     {

@@ -24,8 +24,10 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.StringHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.ShortcutItem;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
@@ -34,7 +36,8 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ShortcutsBean;
-import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
@@ -182,11 +185,18 @@ public class ShortcutServlet extends AbstractPwmServlet
         {
             for ( final ShortcutItem item : configuredItems )
             {
-                final boolean queryMatch = LdapPermissionTester.testQueryMatch(
-                        pwmRequest.getPwmApplication(),
-                        pwmRequest.getLabel(),
+                final UserIdentity userIdentity = pwmRequest.getPwmSession().getUserInfo().getUserIdentity();
+
+                final UserPermission userPermission = UserPermission.builder()
+                        .type( UserPermissionType.ldapQuery )
+                        .ldapQuery( item.getLdapQuery() )
+                        .ldapBase( userIdentity.getLdapProfileID() )
+                        .build();
+
+                final boolean queryMatch = UserPermissionTester.testUserPermission(
+                        pwmRequest.commonValues(),
                         pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
-                        item.getLdapQuery()
+                        userPermission
                 );
 
                 if ( queryMatch )
@@ -203,7 +213,7 @@ public class ShortcutServlet extends AbstractPwmServlet
             final PwmRequest pwmRequest,
             final ShortcutsBean shortcutsBean
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
+            throws PwmUnrecoverableException,  IOException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
