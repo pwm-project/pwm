@@ -20,18 +20,25 @@
 
 package password.pwm.http.servlet.configeditor;
 
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
+import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplateSet;
-import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
+import password.pwm.config.stored.ValueMetaData;
+import password.pwm.config.value.ActionValue;
 import password.pwm.config.value.FileValue;
+import password.pwm.config.value.PrivateKeyValue;
+import password.pwm.config.value.RemoteWebServiceValue;
+import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -50,13 +57,16 @@ import password.pwm.ws.server.rest.bean.HealthData;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 public class ConfigEditorServletUtils
 {
@@ -175,7 +185,20 @@ public class ConfigEditorServletUtils
         return HealthData.builder().build();
     }
 
-    public static Map<String, Object> generateSettingData(
+    @Value
+    @Builder
+    public static class SettingData implements Serializable
+    {
+        private final Map<String, Object> settings;
+        private final Map<String, Object> categories;
+        private final Map<String, Object> locales;
+        private final Object ldapProfileIds;
+        private final PwmSettingTemplateSet currentTemplate;
+        private final Map<String, Object> var;
+
+    }
+
+    public static SettingData generateSettingData(
             final PwmApplication pwmApplication,
             final StoredConfiguration storedConfiguration,
             final SessionLabel sessionLabel,
@@ -185,9 +208,9 @@ public class ConfigEditorServletUtils
             throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
-        final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
         final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, sessionLabel );
         final PwmSettingTemplateSet template = storedConfiguration.getTemplateSet();
+        final SettingData.SettingDataBuilder builder = SettingData.builder();
 
         {
             final LinkedHashMap<String, Object> settingMap = new LinkedHashMap<>();
@@ -196,7 +219,7 @@ public class ConfigEditorServletUtils
 
                 settingMap.put( setting.getKey(), SettingInfo.forSetting( setting, template, macroMachine, locale ) );
             }
-            returnMap.put( "settings", settingMap );
+            builder.settings( settingMap );
         }
         {
             final LinkedHashMap<String, Object> categoryMap = new LinkedHashMap<>();
@@ -204,7 +227,7 @@ public class ConfigEditorServletUtils
             {
                 categoryMap.put( category.getKey(), CategoryInfo.forCategory( category, macroMachine, locale ) );
             }
-            returnMap.put( "categories", categoryMap );
+            builder.categories( categoryMap );
         }
         {
             final LinkedHashMap<String, Object> labelMap = new LinkedHashMap<>();
@@ -216,17 +239,134 @@ public class ConfigEditorServletUtils
                 localeInfo.adminOnly = localeBundle.isAdminOnly();
                 labelMap.put( localeBundle.getTheClass().getSimpleName(), localeInfo );
             }
-            returnMap.put( "locales", labelMap );
+            builder.locales( labelMap );
         }
         {
             final LinkedHashMap<String, Object> varMap = new LinkedHashMap<>();
             varMap.put( "ldapProfileIds", storedConfiguration.readSetting( PwmSetting.LDAP_PROFILE_LIST, null ).toNativeObject() );
             varMap.put( "currentTemplate", storedConfiguration.getTemplateSet() );
-            varMap.put( "configurationNotes", storedConfiguration.readConfigProperty( ConfigurationProperty.NOTES ) );
-            returnMap.put( "var", varMap );
+            builder.var( varMap );
         }
         LOGGER.trace( sessionLabel, () -> "generated settingData", () -> TimeDuration.fromCurrent( startTime ) );
-        return Collections.unmodifiableMap( returnMap );
+        return builder.build();
 
+    }
+
+    static ConfigEditorServlet.ReadSettingResponse handleLocaleBundleReadSetting(
+            final PwmRequest pwmRequest,
+            final StoredConfiguration storedConfig,
+            final String key
+
+    )
+    {
+        final ConfigEditorServlet.ReadSettingResponse.ReadSettingResponseBuilder builder = ConfigEditorServlet.ReadSettingResponse.builder();
+        final StringTokenizer st = new StringTokenizer( key, "-" );
+        st.nextToken();
+        final String localeBundleName = st.nextToken();
+        final PwmLocaleBundle pwmLocaleBundle = PwmLocaleBundle.forKey( localeBundleName )
+                .orElseThrow( () -> new IllegalArgumentException( "unknown locale bundle name '" + localeBundleName + "'" ) );
+        final String keyName = st.nextToken();
+        final Map<String, String> bundleMap = storedConfig.readLocaleBundleMap( pwmLocaleBundle, keyName );
+        if ( bundleMap == null || bundleMap.isEmpty() )
+        {
+            final Map<String, String> defaultValueMap = new LinkedHashMap<>();
+            final String defaultLocaleValue = ResourceBundle.getBundle( pwmLocaleBundle.getTheClass().getName(), PwmConstants.DEFAULT_LOCALE ).getString( keyName );
+            for ( final Locale locale : pwmRequest.getConfig().getKnownLocales() )
+            {
+                final ResourceBundle localeBundle = ResourceBundle.getBundle( pwmLocaleBundle.getTheClass().getName(), locale );
+                if ( locale.toString().equalsIgnoreCase( PwmConstants.DEFAULT_LOCALE.toString() ) )
+                {
+                    defaultValueMap.put( "", defaultLocaleValue );
+                }
+                else
+                {
+                    final String valueStr = localeBundle.getString( keyName );
+                    if ( !defaultLocaleValue.equals( valueStr ) )
+                    {
+                        final String localeStr = locale.toString();
+                        defaultValueMap.put( localeStr, localeBundle.getString( keyName ) );
+                    }
+                }
+            }
+            builder.value( defaultValueMap );
+            builder.isDefault( true );
+        }
+        else
+        {
+            builder.value( bundleMap );
+            builder.isDefault( false );
+        }
+        builder.key( key );
+        return builder.build();
+    }
+
+    static ConfigEditorServlet.ReadSettingResponse handleReadSetting(
+            final PwmRequest pwmRequest,
+            final StoredConfiguration storedConfig,
+            final String key
+    )
+            throws PwmUnrecoverableException
+    {
+        final ConfigEditorServlet.ReadSettingResponse.ReadSettingResponseBuilder builder = ConfigEditorServlet.ReadSettingResponse.builder();
+        final PwmSetting theSetting = PwmSetting.forKey( key )
+                .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
+
+        final Object returnValue;
+        final String profile = theSetting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString( "profile" ) : null;
+        switch ( theSetting.getSyntax() )
+        {
+            case PASSWORD:
+                returnValue = Collections.singletonMap( "isDefault", storedConfig.isDefaultValue( theSetting, profile ) );
+                break;
+
+            case X509CERT:
+                returnValue = ( ( X509CertificateValue ) storedConfig.readSetting( theSetting, profile ) ).toInfoMap( true );
+                break;
+
+            case PRIVATE_KEY:
+                returnValue = ( ( PrivateKeyValue ) storedConfig.readSetting( theSetting, profile ) ).toInfoMap( true );
+                break;
+
+            case ACTION:
+                returnValue = ( ( ActionValue ) storedConfig.readSetting( theSetting, profile ) ).toInfoMap();
+                break;
+
+            case REMOTE_WEB_SERVICE:
+                returnValue = ( ( RemoteWebServiceValue ) storedConfig.readSetting( theSetting, profile ) ).toInfoMap();
+                break;
+
+            case FILE:
+                returnValue = ( ( FileValue ) storedConfig.readSetting( theSetting, profile ) ).toInfoMap();
+                break;
+
+            default:
+                returnValue = storedConfig.readSetting( theSetting, profile ).toNativeObject();
+
+        }
+        builder.value( returnValue );
+
+        builder.isDefault( storedConfig.isDefaultValue( theSetting, profile ) );
+        if ( theSetting.getSyntax() == PwmSettingSyntax.SELECT )
+        {
+            builder.options( theSetting.getOptions() );
+        }
+        {
+            final ValueMetaData settingMetaData = storedConfig.readSettingMetadata( theSetting, profile );
+            if ( settingMetaData != null )
+            {
+                if ( settingMetaData.getModifyDate() != null )
+                {
+                    builder.modifyTime( settingMetaData.getModifyDate() );
+                }
+                if ( settingMetaData.getUserIdentity() != null )
+                {
+                    builder.modifyUser( settingMetaData.getUserIdentity() );
+                }
+            }
+        }
+        builder.key( key );
+        builder.category( theSetting.getCategory().toString() );
+        builder.syntax( theSetting.getSyntax().toString() );
+        return builder.build();
     }
 }

@@ -669,15 +669,14 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
         final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
 
-        final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>( ConfigEditorServletUtils.generateSettingData(
+        final ConfigEditorServletUtils.SettingData settingData = ConfigEditorServletUtils.generateSettingData(
                 pwmRequest.getPwmApplication(),
                 storedConfiguration,
                 pwmRequest.getLabel(),
                 pwmRequest.getLocale()
-        )
         );
 
-        final RestResultBean restResultBean = RestResultBean.withData( new LinkedHashMap<>( returnMap ) );
+        final RestResultBean restResultBean = RestResultBean.withData( settingData );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
