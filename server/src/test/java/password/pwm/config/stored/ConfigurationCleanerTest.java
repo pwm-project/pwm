@@ -49,7 +49,7 @@ public class ConfigurationCleanerTest
     {
         //PwmLogger.disableAllLogging();
 
-        try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ); )
+        try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ) )
         {
             final StoredConfiguration storedConfiguration = StoredConfigurationFactory.input( xmlFile );
             configuration = new Configuration( storedConfiguration );

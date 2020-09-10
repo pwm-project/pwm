@@ -206,7 +206,7 @@ public class ConfigGuideForm
         {
             //telemetry
             final boolean telemetryEnabled = Boolean.parseBoolean( formData.get( ConfigGuideFormField.PARAM_TELEMETRY_ENABLE ) );
-            storedConfiguration.writeSetting( PwmSetting.PUBLISH_STATS_ENABLE, null, new BooleanValue( telemetryEnabled ), null );
+            storedConfiguration.writeSetting( PwmSetting.PUBLISH_STATS_ENABLE, null, BooleanValue.of( telemetryEnabled ), null );
 
             final String siteDescription = formData.get( ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION );
             storedConfiguration.writeSetting( PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION, null, new StringValue( siteDescription ), null );
@@ -224,7 +224,7 @@ public class ConfigGuideForm
         storedConfiguration.writeSetting( PwmSetting.PWM_SITE_URL, null, new StringValue( formData.get( ConfigGuideFormField.PARAM_APP_SITEURL ) ), null );
 
         // enable debug mode
-        storedConfiguration.writeSetting( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS, null, new BooleanValue( true ), null );
+        storedConfiguration.writeSetting( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS, null, BooleanValue.of( true ), null );
 
         return storedConfiguration.newStoredConfiguration();
     }

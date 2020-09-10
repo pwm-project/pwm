@@ -98,7 +98,7 @@ public class Configuration implements SettingReader
 
     private final ConfigurationSuppliers configurationSuppliers = new ConfigurationSuppliers();
 
-    private DataCache dataCache = new DataCache();
+    private final DataCache dataCache = new DataCache();
 
     public Configuration( final StoredConfiguration storedConfiguration )
     {
@@ -154,14 +154,7 @@ public class Configuration implements SettingReader
     public <E extends Enum<E>> E readSettingAsEnum( final PwmSetting setting, final Class<E> enumClass )
     {
         final StoredValue value = readStoredValue( setting );
-        final E returnValue = ValueTypeConverter.valueToEnum( setting, value, enumClass );
-
-        if ( MessageSendMethod.class.equals( enumClass ) )
-        {
-            deprecatedSettingException( setting, null, ( MessageSendMethod ) returnValue );
-        }
-
-        return returnValue;
+        return ValueTypeConverter.valueToEnum( setting, value, enumClass );
     }
 
     public <E extends Enum<E>> Set<E> readSettingAsOptionList( final PwmSetting setting, final Class<E> enumClass )

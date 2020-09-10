@@ -23,7 +23,7 @@ package password.pwm.cr.hash;
 import net.iharder.Base64;
 import password.pwm.cr.api.StoredResponseItem;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
@@ -114,14 +114,7 @@ public class TypicalHashMachine extends AbstractHashMachine implements ResponseH
 
 
         byte[] hashedBytes;
-        try
-        {
-            hashedBytes = input.getBytes( "UTF-8" );
-        }
-        catch ( final UnsupportedEncodingException e )
-        {
-            throw new IllegalStateException( "unsupported UTF8 byte encoding: " + e.getMessage() );
-        }
+        hashedBytes = input.getBytes( StandardCharsets.UTF_8 );
 
         switch ( version )
         {

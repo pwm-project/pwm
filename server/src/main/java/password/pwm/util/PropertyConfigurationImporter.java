@@ -139,9 +139,9 @@ public class PropertyConfigurationImporter
                     null );
         }
 
-        storedConfiguration.writeSetting( PwmSetting.DISPLAY_HOME_BUTTON, null, new BooleanValue( false ), null );
-        storedConfiguration.writeSetting( PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE, null, new BooleanValue( false ), null );
-        storedConfiguration.writeSetting( PwmSetting.PASSWORD_REQUIRE_CURRENT, null, new BooleanValue( false ), null );
+        storedConfiguration.writeSetting( PwmSetting.DISPLAY_HOME_BUTTON, null, BooleanValue.of( false ), null );
+        storedConfiguration.writeSetting( PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE, null, BooleanValue.of( false ), null );
+        storedConfiguration.writeSetting( PwmSetting.PASSWORD_REQUIRE_CURRENT, null, BooleanValue.of( false ), null );
         storedConfiguration.writeSetting( PwmSetting.PASSWORD_POLICY_SOURCE, null, new StringValue( "LDAP" ), null );
         storedConfiguration.writeSetting( PwmSetting.CERTIFICATE_VALIDATION_MODE, null, new StringValue( "CA_ONLY" ), null );
         {

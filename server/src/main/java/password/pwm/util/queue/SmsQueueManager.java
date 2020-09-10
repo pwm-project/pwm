@@ -430,13 +430,13 @@ public class SmsQueueManager implements PwmService
         // Remove leading double zero, replace by plus
         if ( returnValue.startsWith( "00" ) )
         {
-            returnValue = "+" + returnValue.substring( 2, returnValue.length() );
+            returnValue = "+" + returnValue.substring( 2 );
         }
 
         // Replace leading zero by country code
         if ( returnValue.startsWith( "0" ) )
         {
-            returnValue = countryCodeNumber + returnValue.substring( 1, returnValue.length() );
+            returnValue = countryCodeNumber + returnValue.substring( 1 );
         }
 
         // Add a leading plus if necessary

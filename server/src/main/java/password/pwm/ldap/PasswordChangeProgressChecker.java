@@ -138,8 +138,7 @@ public class PasswordChangeProgressChecker
             throw new IllegalArgumentException( "tracker cannot be null" );
         }
 
-        final Map<String, ProgressRecord> newItemProgress = new LinkedHashMap<>();
-        newItemProgress.putAll( tracker.itemCompletions );
+        final Map<String, ProgressRecord> newItemProgress = new LinkedHashMap<>( tracker.itemCompletions );
 
         if ( tracker.beginTime == null || Instant.now().isAfter( maxCompletionTime( tracker ) ) )
         {

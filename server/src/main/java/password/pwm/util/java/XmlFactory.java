@@ -46,6 +46,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -96,7 +97,7 @@ public interface XmlFactory
 
     class XmlFactoryJDOM implements XmlFactory
     {
-        private static final Charset STORAGE_CHARSET = Charset.forName( "UTF8" );
+        private static final Charset STORAGE_CHARSET = StandardCharsets.UTF_8;
 
         XmlFactoryJDOM()
         {
@@ -179,7 +180,7 @@ public interface XmlFactory
 
     class XmlFactoryW3c implements XmlFactory
     {
-        private static final Charset STORAGE_CHARSET = Charset.forName( "UTF8" );
+        private static final Charset STORAGE_CHARSET = StandardCharsets.UTF_8;
 
         XmlFactoryW3c()
         {

@@ -145,7 +145,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
 
         try
         {
-            final String input = key.substring( CRYPO_HEADER.length(), key.length() );
+            final String input = key.substring( CRYPO_HEADER.length() );
             final String jsonValue = pwmApplication.getSecureService().decryptStringValue( input );
             return JsonUtil.deserialize( jsonValue, UserIdentity.class );
         }

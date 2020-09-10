@@ -41,7 +41,7 @@ public class HealthMessageTest
         for ( final HealthMessage healthMessage : HealthMessage.values() )
         {
             // duplicate key found
-            Assert.assertTrue( !seenKeys.contains( healthMessage.getKey() ) );
+            Assert.assertFalse( seenKeys.contains( healthMessage.getKey() ) );
             seenKeys.add( healthMessage.getKey() );
         }
     }

@@ -129,7 +129,7 @@ public class RequestInitializationFilterTest
             throws PwmUnrecoverableException
     {
         final StoredConfigurationModifier modifier = StoredConfigurationFactory.newModifiableConfig();
-        modifier.writeSetting( PwmSetting.USE_X_FORWARDED_FOR_HEADER, null, new BooleanValue( false ), null );
+        modifier.writeSetting( PwmSetting.USE_X_FORWARDED_FOR_HEADER, null, BooleanValue.of( false ), null );
         final Configuration conf = new Configuration( modifier.newStoredConfiguration() );
         final HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
         Mockito.when( mockRequest.getRemoteAddr() ).thenReturn( "10.1.1.1" );

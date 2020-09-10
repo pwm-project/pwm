@@ -275,11 +275,11 @@ public class TomcatOnejarRunner
     {
         try ( InputStream inputStream = TomcatOnejarRunner.class.getClassLoader().getResourceAsStream( srcPath ) )
         {
-            try ( BufferedReader reader = new BufferedReader( new InputStreamReader( inputStream, "UTF8" ) ) )
+            try ( BufferedReader reader = new BufferedReader( new InputStreamReader( inputStream, StandardCharsets.UTF_8 ) ) )
             {
                 String contents = reader.lines().collect( Collectors.joining( "\n" ) );
                 contents = contents.replace( "[[[ROOT_CONTEXT]]]", rootcontext );
-                Files.write( Paths.get( destPath ), contents.getBytes( "UTF8" ) );
+                Files.write( Paths.get( destPath ), contents.getBytes( StandardCharsets.UTF_8 ) );
             }
         }
     }

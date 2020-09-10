@@ -105,7 +105,7 @@ public class RestUtility
         {
             final int pipeIndex = username.indexOf( "|" );
             ldapProfileID = username.substring( 0, pipeIndex );
-            effectiveUsername = username.substring( pipeIndex + 1, username.length() );
+            effectiveUsername = username.substring( pipeIndex + 1 );
         }
         else
         {

@@ -25,6 +25,7 @@ import password.pwm.cr.api.StoredResponseItem;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -107,7 +108,7 @@ class PBKDF2HashMachine extends AbstractHashMachine implements ResponseHashMachi
                 }
 
                 final char[] chars = input.toCharArray();
-                final byte[] saltBytes = salt.getBytes( "UTF-8" );
+                final byte[] saltBytes = salt.getBytes( StandardCharsets.UTF_8 );
 
                 spec = new PBEKeySpec( chars, saltBytes, iterations, keyLength );
                 skf = SecretKeyFactory.getInstance( methodName );

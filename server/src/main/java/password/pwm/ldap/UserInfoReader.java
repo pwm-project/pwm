@@ -656,7 +656,7 @@ public class UserInfoReader implements UserInfo
                 if ( profileID.isPresent() )
                 {
                     returnMap.put( profileDefinition, profileID.get() );
-                    LOGGER.debug( sessionLabel, () -> "assigned " + profileDefinition.toString() + " profileID \"" + profileID + "\" to " + userIdentity.toDisplayString() );
+                    LOGGER.debug( sessionLabel, () -> "assigned " + profileDefinition.toString() + " profileID \"" + profileID.get() + "\" to " + userIdentity.toDisplayString() );
                 }
                 else
                 {
@@ -669,10 +669,10 @@ public class UserInfoReader implements UserInfo
 
     private static Set<String> figurePasswordRuleAttributes(
             final UserInfo uiBean
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
-        final Set<String> interestingUserAttributes = new HashSet<>();
-        interestingUserAttributes.addAll( uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes() );
+        final Set<String> interestingUserAttributes = new HashSet<>( uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes() );
         if ( uiBean.getPasswordPolicy().getRuleHelper().getADComplexityLevel() == ADPolicyComplexity.AD2003
                 || uiBean.getPasswordPolicy().getRuleHelper().getADComplexityLevel() == ADPolicyComplexity.AD2008 )
         {

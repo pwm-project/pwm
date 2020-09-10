@@ -221,7 +221,7 @@ public class ShortcutServlet extends AbstractPwmServlet
         final String link = pwmRequest.readParameterAsString( "link" );
         final Map<String, ShortcutItem> visibleItems = shortcutsBean.getVisibleItems();
 
-        if ( link != null && visibleItems.keySet().contains( link ) )
+        if ( link != null && visibleItems.containsKey( link ) )
         {
             final ShortcutItem item = visibleItems.get( link );
 

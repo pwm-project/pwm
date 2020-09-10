@@ -27,7 +27,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,16 +64,7 @@ public class PwmSecurityKey
 
     private byte[] stringToKeyData( final String input ) throws PwmUnrecoverableException
     {
-        try
-        {
-            return input.getBytes( "iso-8859-1" );
-        }
-        catch ( final UnsupportedEncodingException e )
-        {
-            final String errorMsg = "unexpected error converting input text to crypto key bytes: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
+        return input.getBytes( StandardCharsets.ISO_8859_1 );
     }
 
     SecretKey getKey( final Type keyType )

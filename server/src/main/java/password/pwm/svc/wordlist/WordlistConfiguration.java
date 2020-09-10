@@ -84,7 +84,7 @@ public class WordlistConfiguration implements Serializable
         {
             case SEEDLIST:
             {
-                return commonBuilder( configuration, type ).toBuilder()
+                return commonBuilder( configuration ).toBuilder()
                         .autoImportUrl( readAutoImportUrl( configuration, PwmSetting.SEEDLIST_FILENAME ) )
                         .metaDataAppAttribute( AppAttribute.SEEDLIST_METADATA )
                         .builtInWordlistLocationProperty( AppProperty.SEEDLIST_BUILTIN_PATH )
@@ -95,7 +95,7 @@ public class WordlistConfiguration implements Serializable
 
             case WORDLIST:
             {
-                return commonBuilder( configuration, type ).toBuilder()
+                return commonBuilder( configuration ).toBuilder()
                         .caseSensitive( configuration.readSettingAsBoolean( PwmSetting.WORDLIST_CASE_SENSITIVE )  )
                         .checkSize( (int) configuration.readSettingAsLong( PwmSetting.PASSWORD_WORDLIST_WORDSIZE ) )
                         .autoImportUrl( readAutoImportUrl( configuration, PwmSetting.WORDLIST_FILENAME ) )
@@ -114,8 +114,7 @@ public class WordlistConfiguration implements Serializable
     }
 
     private static WordlistConfiguration commonBuilder(
-            final Configuration configuration,
-            final WordlistType type
+            final Configuration configuration
     )
     {
         return WordlistConfiguration.builder()

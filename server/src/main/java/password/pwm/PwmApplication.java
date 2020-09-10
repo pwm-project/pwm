@@ -133,7 +133,7 @@ public class PwmApplication
     private LocalDB localDB;
     private LocalDBLogger localDBLogger;
 
-    private PwmApplication( final PwmEnvironment pwmEnvironment )
+    public PwmApplication( final PwmEnvironment pwmEnvironment )
             throws PwmUnrecoverableException
     {
         this.pwmEnvironment = pwmEnvironment;

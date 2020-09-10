@@ -559,7 +559,7 @@ public class NMASCrOperator implements CrOperator
             {
                 throw new IllegalStateException( "test may not be called after success returned" );
             }
-            final List<String> answers = new ArrayList<>( challengeStringMap == null ? Collections.<String>emptyList() : challengeStringMap.values() );
+            final List<String> answers = new ArrayList<>( challengeStringMap == null ? Collections.emptyList() : challengeStringMap.values() );
             if ( answers.isEmpty() || answers.size() < challengeSet.minimumResponses() )
             {
                 return false;

@@ -102,7 +102,7 @@ public enum JspUrl
     HELPDESK_SEARCH( "helpdesk.jsp" ),
     FULL_PAGE_HEALTH( "fullpagehealth.jsp" ),;
 
-    private String path;
+    private final String path;
     private static final String JSP_ROOT_URL = "/WEB-INF/jsp/";
 
     JspUrl( final String path )

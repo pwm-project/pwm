@@ -51,7 +51,7 @@ public class NonLocalizedKeyTest
             for ( final String key : NON_LOCALIZED_KEYS )
             {
                 final String value = resourceBundle.getString( key );
-                Assert.assertTrue( !StringUtil.isEmpty( value ) );
+                Assert.assertFalse( StringUtil.isEmpty( value ) );
             }
         }
 

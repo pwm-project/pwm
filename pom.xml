@@ -232,7 +232,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.35</version>
+                        <version>8.36</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -400,13 +400,13 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>3.5.2</version>
+            <version>3.5.10</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.16.1</version>
+            <version>3.17.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -424,13 +424,13 @@
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-core</artifactId>
-            <version>1.25</version>
+            <version>1.25.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
-            <version>1.25</version>
+            <version>1.25.2</version>
             <scope>test</scope>
         </dependency>
 

@@ -75,7 +75,7 @@ public class ChallengeProfile implements Profile, Serializable
         this.helpdeskChallengeSet = helpdeskChallengeSet;
         this.minRandomSetup = minRandomSetup;
         this.minHelpdeskRandomsSetup = minHelpdeskRandomSetup;
-        this.userPermissions = userPermissions != null ? Collections.unmodifiableList( userPermissions ) : Collections.<UserPermission>emptyList();
+        this.userPermissions = userPermissions != null ? Collections.unmodifiableList( userPermissions ) : Collections.emptyList();
     }
 
     public static ChallengeProfile readChallengeProfileFromConfig(

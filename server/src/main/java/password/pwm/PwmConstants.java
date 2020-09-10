@@ -27,6 +27,7 @@ import password.pwm.util.java.StringUtil;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,7 +73,7 @@ public abstract class PwmConstants
     public static final String CONFIGMANAGER_INTRUDER_USERNAME = "ConfigurationManagerLogin";
 
     public static final Locale DEFAULT_LOCALE = new Locale( readPwmConstantsBundle( "locale.defaultLocale" ) );
-    public static final Charset DEFAULT_CHARSET = Charset.forName( "UTF8" );
+    public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
     public static final List<String> HIGHLIGHT_LOCALES = StringUtil.splitAndTrim( readPwmConstantsBundle( "locale.highlightList" ), "," );
 
     public static final CSVFormat DEFAULT_CSV_FORMAT = CSVFormat.DEFAULT;

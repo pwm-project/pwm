@@ -133,7 +133,7 @@ public class UrlShortenerService implements PwmService
             {
                 int start = 0;
                 int end = m.start();
-                result.append( text.substring( start, end ) );
+                result.append( text, start, end );
                 start = end;
                 end = m.end();
                 while ( found )
@@ -144,7 +144,7 @@ public class UrlShortenerService implements PwmService
                     if ( found )
                     {
                         end = m.start();
-                        result.append( text.substring( start, end ) );
+                        result.append( text, start, end );
                         start = end;
                         end = m.end();
                     }

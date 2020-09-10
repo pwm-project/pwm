@@ -55,13 +55,13 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         String uri = pwmRequest.getURLwithoutQueryString();
         if ( uri.startsWith( pwmRequest.getContextPath() ) )
         {
-            uri = uri.substring( pwmRequest.getContextPath().length(), uri.length() );
+            uri = uri.substring( pwmRequest.getContextPath().length() );
         }
         for ( final String servletUri : getServletDefinition().urlPatterns() )
         {
             if ( uri.startsWith( servletUri ) )
             {
-                uri = uri.substring( servletUri.length(), uri.length() );
+                uri = uri.substring( servletUri.length() );
             }
         }
         return uri;

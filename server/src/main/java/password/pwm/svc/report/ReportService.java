@@ -614,6 +614,8 @@ public class ReportService implements PwmService
                 return;
             }
 
+            final Instant startTime = Instant.now();
+
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxyForOfflineUser(
                     pwmApplication,
                     SessionLabel.REPORTING_SESSION_LABEL,
@@ -625,7 +627,7 @@ public class ReportService implements PwmService
             summaryData.update( newUserCacheRecord );
             processRateMeter.markEvents( 1 );
 
-            LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "stored cache for " + userIdentity );
+            LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "stored cache for " + userIdentity, () -> TimeDuration.fromCurrent( startTime ) );
         }
     }
 

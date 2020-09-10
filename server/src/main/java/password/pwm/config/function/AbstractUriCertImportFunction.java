@@ -82,7 +82,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
         final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
         store( certs, modifier, setting, profile, extraData, userIdentity );
 
-        final StringBuffer returnStr = new StringBuffer();
+        final StringBuilder returnStr = new StringBuilder();
         for ( final X509Certificate loopCert : certs )
         {
             returnStr.append( X509Utils.makeDebugText( loopCert ) );

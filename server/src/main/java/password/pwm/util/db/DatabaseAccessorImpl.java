@@ -577,7 +577,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         final String sqlStatement = "SELECT COUNT(" + DatabaseService.KEY_COLUMN + ") FROM " + table.name()
                 + " WHERE " + DatabaseService.KEY_COLUMN + " = ?";
 
-        try ( PreparedStatement selectStatement = connection.prepareStatement( sqlStatement ); )
+        try ( PreparedStatement selectStatement = connection.prepareStatement( sqlStatement ) )
         {
             selectStatement.setString( 1, key );
             selectStatement.setMaxRows( 1 );

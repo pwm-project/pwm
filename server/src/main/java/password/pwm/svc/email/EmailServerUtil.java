@@ -411,7 +411,7 @@ public class EmailServerUtil
         final Optional<EmailServer> emailServer = makeEmailServer( configuration, emailServerProfile, trustManagers );
         if ( emailServer.isPresent() )
         {
-            try ( Transport transport = makeSmtpTransport( emailServer.get() ); )
+            try ( Transport transport = makeSmtpTransport( emailServer.get() ) )
             {
                 return certReaderTm.getCertificates();
             }

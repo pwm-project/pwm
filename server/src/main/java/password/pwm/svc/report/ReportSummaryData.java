@@ -35,6 +35,7 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -309,12 +310,12 @@ public class ReportSummaryData
 
         returnCollection.add( builder.makeRow( "Field_Report_Sum_HaveResponses", this.hasResponses.get() ) );
         returnCollection.add( builder.makeRow( "Field_Report_Sum_HaveHelpdeskResponses", this.hasHelpdeskResponses.get() ) );
-        for ( final DataStorageMethod storageMethod : new TreeSet<>( this.getResponseStorage().keySet() ) )
+        for ( final DataStorageMethod storageMethod : EnumSet.copyOf( this.getResponseStorage().keySet() ) )
         {
             final int count = this.getResponseStorage().get( storageMethod );
             returnCollection.add( builder.makeRow( "Field_Report_Sum_StorageMethod", count, storageMethod.toString() ) );
         }
-        for ( final Answer.FormatType formatType : new TreeSet<>( this.getResponseFormatType().keySet() ) )
+        for ( final Answer.FormatType formatType : EnumSet.copyOf( this.getResponseFormatType().keySet() ) )
         {
             final int count = this.getResponseFormatType().get( formatType );
             returnCollection.add( builder.makeRow( "Field_Report_Sum_ResponseFormatType", count, formatType.toString() ) );

@@ -522,8 +522,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             lock.writeLock().lock();
             try
             {
-                final Set<LocalDB.LocalDBIterator<Map.Entry<String, String>>> copiedIterators = new HashSet<>();
-                copiedIterators.addAll( dbIterators );
+                final Set<LocalDB.LocalDBIterator<Map.Entry<String, String>>> copiedIterators = new HashSet<>( dbIterators );
 
                 for ( final LocalDB.LocalDBIterator dbIterator : copiedIterators )
                 {

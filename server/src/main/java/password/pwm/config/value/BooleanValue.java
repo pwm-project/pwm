@@ -38,13 +38,20 @@ import java.util.Optional;
 
 public class BooleanValue implements StoredValue
 {
+    private static final BooleanValue POSITIVE = new BooleanValue( true );
+    private static final BooleanValue NEGATIVE = new BooleanValue( false );
+
     private final boolean value;
 
-    public BooleanValue( final boolean value )
+    private BooleanValue( final boolean value )
     {
         this.value = value;
     }
 
+    public static BooleanValue of( final boolean input )
+    {
+        return input ? POSITIVE : NEGATIVE;
+    }
 
     public static StoredValueFactory factory( )
     {
@@ -52,7 +59,7 @@ public class BooleanValue implements StoredValue
         {
             public BooleanValue fromJson( final String value )
             {
-                return new BooleanValue( JsonUtil.deserialize( value, Boolean.class ) );
+                return BooleanValue.of( JsonUtil.deserialize( value, Boolean.class ) );
             }
 
             public BooleanValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
@@ -61,9 +68,9 @@ public class BooleanValue implements StoredValue
                 if ( valueElement.isPresent() )
                 {
                     final String value = valueElement.get().getTextTrim();
-                    return new BooleanValue( Boolean.valueOf( value ) );
+                    return BooleanValue.of( Boolean.parseBoolean( value ) );
                 }
-                return new BooleanValue( false );
+                return BooleanValue.of( false );
             }
 
         };

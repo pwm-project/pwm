@@ -435,6 +435,6 @@ public class PasswordRuleChecksTest
 
     private static <T> org.hamcrest.Matcher<java.lang.Iterable<T>> hasItems( final T... items )
     {
-        return org.hamcrest.core.IsCollectionContaining.<T>hasItems( items );
+        return org.hamcrest.core.IsCollectionContaining.hasItems( items );
     }
 }

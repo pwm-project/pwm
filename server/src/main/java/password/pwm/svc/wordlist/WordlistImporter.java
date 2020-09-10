@@ -39,7 +39,7 @@ import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -67,7 +67,7 @@ class WordlistImporter implements Runnable
     private ErrorInformation exitError;
     private Instant startTime = Instant.now();
     private long bytesSkipped;
-    private final Map<WordType, Long> seenWordTypes = new HashMap<>();
+    private final Map<WordType, Long> seenWordTypes = new EnumMap<>( WordType.class );
     private boolean completed;
 
     private enum DebugKey
@@ -254,8 +254,7 @@ class WordlistImporter implements Runnable
         }
 
         final WordType wordType = WordType.determineWordType( input );
-        seenWordTypes.computeIfAbsent( wordType, wordType1 -> 0L );
-        seenWordTypes.put( wordType, seenWordTypes.get( wordType ) + 1L );
+        seenWordTypes.compute( wordType, ( key, value ) -> value == null ? 0L : value + 1L );
 
         if ( wordType == WordType.RAW )
         {
@@ -461,7 +460,7 @@ class WordlistImporter implements Runnable
                 .checkDate( now )
                 .sourceType( sourceType )
                 .completed( completed )
-                .wordTypes( new HashMap<>( seenWordTypes ) )
+                .wordTypes( new EnumMap<>( seenWordTypes ) )
                 .bytes( zipFileReader.getByteCount() )
                 .build() );
     }

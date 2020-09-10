@@ -94,7 +94,7 @@ public class PasswordCharCounter
     public int getRepeatedChars( )
     {
         int numberOfRepeats = 0;
-        final CharSequence passwordL = password.toString().toLowerCase();
+        final CharSequence passwordL = password.toLowerCase();
 
         for ( int i = 0; i < passwordLength - 1; i++ )
         {
@@ -119,7 +119,7 @@ public class PasswordCharCounter
     public int getSequentialRepeatedChars( )
     {
         int numberOfRepeats = 0;
-        final CharSequence passwordL = password.toString().toLowerCase();
+        final CharSequence passwordL = password.toLowerCase();
 
         for ( int i = 0; i < passwordLength - 1; i++ )
         {
@@ -200,7 +200,7 @@ public class PasswordCharCounter
     public int getUniqueChars( )
     {
         final StringBuilder sb = new StringBuilder();
-        final String passwordL = password.toString().toLowerCase();
+        final String passwordL = password.toLowerCase();
         for ( int i = 0; i < passwordLength; i++ )
         {
             final char loopChar = passwordL.charAt( i );

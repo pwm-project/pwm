@@ -40,7 +40,7 @@ public class StoredConfigurationTest
     @BeforeClass
     public static void setUp() throws Exception
     {
-        try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ); )
+        try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ) )
         {
             final StoredConfiguration storedConfiguration = StoredConfigurationFactory.input( xmlFile );
             configuration = new Configuration( storedConfiguration );
@@ -53,6 +53,5 @@ public class StoredConfigurationTest
     {
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), configuration );
         final String configHash = configuration.configurationHash( pwmApplication.getSecureService() );
-        System.out.println( configHash );
     }
 }

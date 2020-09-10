@@ -188,7 +188,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
                 final String name = entry.getKey();
                 if ( name != null && name.startsWith( prefix ) )
                 {
-                    final String strippedName = name.substring( prefix.length(), name.length() );
+                    final String strippedName = name.substring( prefix.length() );
                     final String value = entry.getValue();
                     remoteResponses.put( strippedName, value );
                 }

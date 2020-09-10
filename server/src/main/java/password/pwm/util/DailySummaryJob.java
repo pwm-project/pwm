@@ -224,8 +224,7 @@ public class DailySummaryJob implements Runnable
             // statistics
             htmlBody.append( "<h2>Daily Statistics</h2>" );
             textBody.append( "--Daily Statistics--\n" );
-            final Map<String, String> sortedStats = new TreeMap<>();
-            sortedStats.putAll( dailyStatistics );
+            final Map<String, String> sortedStats = new TreeMap<>( dailyStatistics );
 
             htmlBody.append( "<table border='1'>" );
             for ( final String key : sortedStats.keySet() )

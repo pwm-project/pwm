@@ -174,8 +174,7 @@ class NewUserFormUtils
             final PasswordData passwordData2
     )
     {
-        final Map<String, String> newFormValues = new LinkedHashMap<>();
-        newFormValues.putAll( FormUtility.asStringMap( userFormValues ) );
+        final Map<String, String> newFormValues = new LinkedHashMap<>( FormUtility.asStringMap( userFormValues ) );
 
         final List<FormConfiguration> formConfigurations = newUserProfile.readSettingAsForm( PwmSetting.NEWUSER_FORM );
         if ( injectedValues != null )

@@ -254,12 +254,12 @@ public class X509Utils
 
     public static String hexSerial( final X509Certificate x509Certificate )
     {
-        String result = x509Certificate.getSerialNumber().toString( 16 ).toUpperCase();
+        final StringBuilder result = new StringBuilder( x509Certificate.getSerialNumber().toString( 16 ).toUpperCase() );
         while ( result.length() % 2 != 0 )
         {
-            result = "0" + result;
+            result.insert( 0, "0" );
         }
-        return result;
+        return result.toString();
     }
 
     public static String makeDetailText( final X509Certificate x509Certificate )

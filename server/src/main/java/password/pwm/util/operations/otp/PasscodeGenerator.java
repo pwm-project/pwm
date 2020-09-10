@@ -105,12 +105,12 @@ public class PasscodeGenerator
 
     private String padOutput( final int value )
     {
-        String result = Integer.toString( value );
+        final StringBuilder result = new StringBuilder( Integer.toString( value ) );
         for ( int i = result.length(); i < codeLength; i++ )
         {
-            result = "0" + result;
+            result.insert( 0, "0" );
         }
-        return result;
+        return result.toString();
     }
 
     /**

@@ -37,7 +37,7 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -412,14 +412,7 @@ public class PwmHttpRequestWrapper
     private static String decodeStringToDefaultCharSet( final String input )
     {
         String decodedValue = input;
-        try
-        {
-            decodedValue = new String( input.getBytes( "ISO-8859-1" ), PwmConstants.DEFAULT_CHARSET );
-        }
-        catch ( final UnsupportedEncodingException e )
-        {
-            LOGGER.error( () -> "error decoding request parameter: " + e.getMessage() );
-        }
+        decodedValue = new String( input.getBytes( StandardCharsets.ISO_8859_1 ), PwmConstants.DEFAULT_CHARSET );
         return decodedValue;
     }
 

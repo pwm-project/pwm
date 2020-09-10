@@ -341,7 +341,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
     {
         try (
                 OutputStream output = new BufferedOutputStream( response.getOutputStream() );
-                InputStream input = new BufferedInputStream( file.getInputStream() );
+                InputStream input = new BufferedInputStream( file.getInputStream() )
         )
         {
             if ( acceptsGzip )

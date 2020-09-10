@@ -56,7 +56,6 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -394,9 +393,7 @@ public class SessionFilter extends AbstractPwmFilter
             {
                 if ( !verificationParamName.equals( paramName ) )
                 {
-                    final List<String> paramValues = Arrays.asList( req.getParameterValues( paramName ) );
-
-                    for ( final String value : paramValues )
+                    for ( final String value : req.getParameterValues( paramName ) )
                     {
                         redirectURL = PwmURL.appendAndEncodeUrlParameters( redirectURL, paramName, value );
                     }

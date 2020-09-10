@@ -90,7 +90,7 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
         }
 
         final String requestUrl = pwmRequest.getURLwithoutQueryString();
-        final String requestServletUrl = requestUrl.substring( pwmRequest.getContextPath().length(), requestUrl.length() );
+        final String requestServletUrl = requestUrl.substring( pwmRequest.getContextPath().length() );
 
         for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
         {

@@ -33,9 +33,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.permission.UserPermissionTester;
 import password.pwm.ldap.auth.AuthenticationResult;
 import password.pwm.ldap.auth.SimpleLdapAuthenticator;
+import password.pwm.ldap.permission.UserPermissionTester;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.java.JavaHelper;
@@ -43,7 +43,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,7 +75,7 @@ public class RestAuthenticationProcessor
             if ( namedSecretName != null )
             {
                 LOGGER.trace( sessionLabel, () -> "authenticating with named secret '" + namedSecretName + "'" );
-                final Set<WebServiceUsage> usages = new HashSet<>( JavaHelper.readEnumSetFromStringCollection(
+                final Set<WebServiceUsage> usages = EnumSet.copyOf( JavaHelper.readEnumSetFromStringCollection(
                         WebServiceUsage.class,
                         pwmApplication.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET ).get( namedSecretName ).getUsage()
                 ) );
@@ -120,7 +120,7 @@ public class RestAuthenticationProcessor
                         RestAuthenticationType.LDAP,
                         null,
                         userIdentity,
-                        Collections.unmodifiableSet( new HashSet<>( WebServiceUsage.forType( RestAuthenticationType.LDAP ) ) ),
+                        Collections.unmodifiableSet( EnumSet.copyOf( WebServiceUsage.forType( RestAuthenticationType.LDAP ) ) ),
                         thirdParty,
                         chaiProvider
                 );
@@ -128,7 +128,7 @@ public class RestAuthenticationProcessor
         }
 
         final Set<WebServiceUsage> publicUsages = WebServiceUsage.forType( RestAuthenticationType.PUBLIC );
-        final Set<WebServiceUsage> enabledUsages = new HashSet<>(
+        final Set<WebServiceUsage> enabledUsages = EnumSet.copyOf(
                 pwmApplication.getConfig().readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class ) );
         enabledUsages.retainAll( publicUsages );
 

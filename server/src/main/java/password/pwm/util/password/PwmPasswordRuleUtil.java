@@ -237,9 +237,9 @@ public class PwmPasswordRuleUtil
             int lastCodePoint = -1;
             int consecutiveCharCount = 1;
 
-            for ( int i = 0; i < codePoints.length; i++ )
+            for ( final int codePoint : codePoints )
             {
-                if ( codePoints[ i ] == lastCodePoint + 1 )
+                if ( codePoint == lastCodePoint + 1 )
                 {
                     consecutiveCharCount++;
                 }
@@ -248,7 +248,7 @@ public class PwmPasswordRuleUtil
                     consecutiveCharCount = 1;
                 }
 
-                lastCodePoint = codePoints[ i ];
+                lastCodePoint = codePoint;
 
                 if ( consecutiveCharCount == maximumConsecutive )
                 {

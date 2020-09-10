@@ -741,8 +741,7 @@ public class UserSearchEngine implements PwmService
 
     private Map<String, String> debugProperties( )
     {
-        final Map<String, String> properties = new TreeMap<>();
-        properties.putAll( counters.debugStats() );
+        final Map<String, String> properties = new TreeMap<>( counters.debugStats() );
         properties.put( "jvmThreadCount", Integer.toString( Thread.activeCount() ) );
         if ( executor == null )
         {

@@ -155,7 +155,7 @@ public abstract class StringUtil
                 final String key = loopStr.substring( 0, separatorLocation );
                 if ( !key.trim().isEmpty() )
                 {
-                    final String value = loopStr.substring( separatorLocation + separator.length(), loopStr.length() );
+                    final String value = loopStr.substring( separatorLocation + separator.length() );
                     returnMap.put( key, value );
                 }
             }

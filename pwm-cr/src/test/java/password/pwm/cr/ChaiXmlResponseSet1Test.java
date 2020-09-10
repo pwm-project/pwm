@@ -31,7 +31,7 @@ import password.pwm.cr.hash.HashFactory;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 @SuppressWarnings( "checkstyle:MultipleStringLiterals" )
 public class ChaiXmlResponseSet1Test
@@ -92,7 +92,7 @@ public class ChaiXmlResponseSet1Test
 
     private static Reader readInputXmlFile()
     {
-        return new InputStreamReader( ChaiXmlResponseSet1Test.class.getResourceAsStream( "ChaiXmlResponseSet1.xml" ), Charset.forName( "UTF8" ) );
+        return new InputStreamReader( ChaiXmlResponseSet1Test.class.getResourceAsStream( "ChaiXmlResponseSet1.xml" ), StandardCharsets.UTF_8 );
     }
 
 

@@ -75,7 +75,7 @@ public class BasicAuthInfo implements Serializable
                 // ***** Get the encoded username/chpass string
                 // Strip off "Basic " from "Basic c2pvaG5zLmNzaTo=bm92ZWxs"
                 final String toStrip = PwmConstants.HTTP_BASIC_AUTH_PREFIX + " ";
-                final String encodedValue = authHeader.substring( toStrip.length(), authHeader.length() );
+                final String encodedValue = authHeader.substring( toStrip.length() );
 
                 try
                 {

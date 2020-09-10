@@ -214,9 +214,7 @@ public class UpdateProfileUtil
         {
             formValueMap.put(
                     formConfiguration,
-                    updateProfileBean.getFormData().keySet().contains( formConfiguration.getName() )
-                            ? updateProfileBean.getFormData().get( formConfiguration.getName() )
-                            : ""
+                    updateProfileBean.getFormData().getOrDefault( formConfiguration.getName(), "" )
             );
         }
         return formValueMap;

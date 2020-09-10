@@ -500,7 +500,7 @@ public class PwmLogger
         private final PwmLogLevel logLevel;
         private final SessionLabel sessionLabel;
 
-        private StringBuilder buffer = new StringBuilder();
+        private final StringBuilder buffer = new StringBuilder();
 
         private PwmLoggerAppendable(
                 final PwmLogLevel logLevel,

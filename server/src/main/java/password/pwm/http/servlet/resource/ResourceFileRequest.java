@@ -228,7 +228,7 @@ class ResourceFileRequest
                 final String path = entry.getKey();
                 if ( filename.startsWith( path ) )
                 {
-                    final String zipSubPath = filename.substring( path.length() + 1, filename.length() );
+                    final String zipSubPath = filename.substring( path.length() + 1 );
                     final ZipFile zipFile = entry.getValue();
                     final ZipEntry zipEntry = zipFile.getEntry( zipSubPath );
                     if ( zipEntry != null )
@@ -309,7 +309,7 @@ class ResourceFileRequest
                 return new RealFileResource( file );
             }
 
-            final String remainingPath = resourcePathUri.substring( ResourceFileServlet.WEBJAR_BASE_URL_PATH.length(), resourcePathUri.length() );
+            final String remainingPath = resourcePathUri.substring( ResourceFileServlet.WEBJAR_BASE_URL_PATH.length() );
 
             final String webJarName;
             final String webJarPath;
@@ -320,7 +320,7 @@ class ResourceFileRequest
                     return null;
                 }
                 webJarName = remainingPath.substring( 0, slashIndex );
-                webJarPath = remainingPath.substring( slashIndex + 1, remainingPath.length() );
+                webJarPath = remainingPath.substring( slashIndex + 1 );
             }
 
             final String versionString = WEB_JAR_VERSION_MAP.get( webJarName );

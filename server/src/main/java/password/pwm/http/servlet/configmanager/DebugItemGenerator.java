@@ -523,7 +523,7 @@ public class DebugItemGenerator
             }
 
 
-            try ( ClosableIterator<FileSystemUtility.FileSummaryInformation> iter = FileSystemUtility.readFileInformation( interestedFiles ); )
+            try ( ClosableIterator<FileSystemUtility.FileSummaryInformation> iter = FileSystemUtility.readFileInformation( interestedFiles ) )
             {
                 final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
                 {

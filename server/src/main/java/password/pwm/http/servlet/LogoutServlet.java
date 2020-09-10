@@ -219,7 +219,7 @@ public class LogoutServlet extends ControlledPwmServlet
             String path = uri.getPath();
             if ( path != null && path.startsWith( pwmRequest.getContextPath() ) )
             {
-                path = path.substring( pwmRequest.getContextPath().length(), path.length() );
+                path = path.substring( pwmRequest.getContextPath().length() );
 
             }
             PwmServletDefinition matchedServlet = null;

@@ -96,8 +96,7 @@ public class LdapBrowser
 
         final LdapBrowseResult result = new LdapBrowseResult();
         {
-            final Map<String, Boolean> childDNs = new TreeMap<>();
-            childDNs.putAll( getChildEntries( profileID, dn ) );
+            final Map<String, Boolean> childDNs = new TreeMap<>( getChildEntries( profileID, dn ) );
 
             for ( final Map.Entry<String, Boolean> entry : childDNs.entrySet() )
             {
@@ -161,7 +160,7 @@ public class LdapBrowser
     private String figureLdapProfileID( final String profile )
     {
         final Configuration configuration = new Configuration( storedConfiguration );
-        if ( configuration.getLdapProfiles().keySet().contains( profile ) )
+        if ( configuration.getLdapProfiles().containsKey( profile ) )
         {
             return profile;
         }
