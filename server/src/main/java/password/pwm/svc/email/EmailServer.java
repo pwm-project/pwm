@@ -26,7 +26,7 @@ import password.pwm.config.option.SmtpServerType;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.MovingAverage;
-import password.pwm.util.java.StatisticIntCounterMap;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
@@ -48,7 +48,7 @@ public class EmailServer
     private javax.mail.Session session;
     private SmtpServerType type;
 
-    private final StatisticIntCounterMap<ServerStat> connectionStats = new StatisticIntCounterMap<>( ServerStat.class );
+    private final StatisticCounterBundle<ServerStat> connectionStats = new StatisticCounterBundle<>( ServerStat.class );
     private final MovingAverage averageSendTime = new MovingAverage( TimeDuration.MINUTE );
     private final AtomicReference<ErrorInformation> lastConnectError = new AtomicReference();
 

@@ -204,7 +204,7 @@ UserPermissionHandler.addRowHandlers = function( resultValue, keyName, rowKey) {
             PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapProfileID'] = ldapProfileID;
             PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapBase'] = value;
             UserPermissionHandler.write(keyName,true);
-        }, {currentDN: currentBaseValue});
+        }, {currentDN: currentBaseValue, profile: currentProfile});
     };
     if (currentBaseValue && currentBaseValue.length > 0) {
         UILibrary.addTextValueToElement(inputID + '-base', currentBaseValue);

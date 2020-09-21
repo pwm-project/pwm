@@ -30,7 +30,7 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.CommonValues;
-import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.List;
@@ -81,7 +81,7 @@ public class ProfileUtility
         for ( final Profile profile : profileMap.values() )
         {
             final List<UserPermission> queryMatches = profile.getPermissionMatches();
-            final boolean match = UserPermissionTester.testUserPermission( pwmApplication, sessionLabel, userIdentity, queryMatches );
+            final boolean match = UserPermissionUtility.testUserPermission( pwmApplication, sessionLabel, userIdentity, queryMatches );
             if ( match )
             {
                 return Optional.of( profile.getIdentifier() );

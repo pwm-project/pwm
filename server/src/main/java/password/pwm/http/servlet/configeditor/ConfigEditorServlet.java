@@ -912,7 +912,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
         final String profile = inputMap.get( "profile" );
-        final String dn = inputMap.containsKey( "dn" ) ? inputMap.get( "dn" ) : "";
+        final String dn = inputMap.getOrDefault( "dn", "" );
 
         final LdapBrowser ldapBrowser = new LdapBrowser(
                 pwmRequest.getPwmApplication().getLdapConnectionService().getChaiProviderFactory(),

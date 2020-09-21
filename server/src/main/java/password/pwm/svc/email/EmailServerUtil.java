@@ -447,11 +447,6 @@ public class EmailServerUtil
             }
         }
 
-        if ( records.isEmpty() )
-        {
-            records.add( HealthRecord.forMessage( HealthMessage.EMail_OK ) );
-        }
-
         return Collections.unmodifiableList( records );
     }
 }

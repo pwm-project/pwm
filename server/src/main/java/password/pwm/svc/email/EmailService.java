@@ -39,7 +39,7 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.StatisticIntCounterMap;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -251,7 +251,7 @@ public class EmailService implements PwmService
 
             for ( final EmailServer emailServer : connectionPool.getServers() )
             {
-                final StatisticIntCounterMap<EmailServer.ServerStat> serverStats = emailServer.getConnectionStats();
+                final StatisticCounterBundle<EmailServer.ServerStat> serverStats = emailServer.getConnectionStats();
                 for ( final EmailServer.ServerStat serverStat : EmailServer.ServerStat.values() )
                 {
                     final String name = serverStat.name() + "[" + emailServer.getId() + "]";

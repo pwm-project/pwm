@@ -22,6 +22,7 @@ package password.pwm.bean;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jetbrains.annotations.NotNull;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
@@ -39,6 +40,7 @@ import password.pwm.util.java.TimeDuration;
 import java.io.Serializable;
 import java.util.StringTokenizer;
 
+@SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
 public class UserIdentity implements Serializable, Comparable<UserIdentity>
 {
     private static final long serialVersionUID = 1L;
@@ -49,8 +51,8 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
     private transient String obfuscatedValue;
     private transient boolean canonicalized;
 
-    private String userDN;
-    private String ldapProfile;
+    private final String userDN;
+    private final String ldapProfile;
 
     public UserIdentity( final String userDN, final String ldapProfile )
     {
@@ -60,6 +62,17 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         }
         this.userDN = userDN;
         this.ldapProfile = ldapProfile == null ? "" : ldapProfile;
+    }
+
+    public UserIdentity( final String userDN, final String ldapProfile, final boolean canonical )
+    {
+        if ( userDN == null || userDN.length() < 1 )
+        {
+            throw new IllegalArgumentException( "UserIdentity: userDN value cannot be empty" );
+        }
+        this.userDN = userDN;
+        this.ldapProfile = ldapProfile == null ? "" : ldapProfile;
+        this.canonicalized = true;
     }
 
     public String getUserDN( )
@@ -240,13 +253,14 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
     }
 
     @Override
-    public int compareTo( @NotNull final UserIdentity o )
+    public int compareTo( @NotNull final UserIdentity otherIdentity )
     {
-        final String thisStr = ( ldapProfile == null ? "_" : ldapProfile ) + userDN;
-        final UserIdentity otherIdentity = ( UserIdentity ) o;
-        final String otherStr = ( otherIdentity.ldapProfile == null ? "_" : otherIdentity.ldapProfile ) + otherIdentity.userDN;
+        return compareString().compareToIgnoreCase( otherIdentity.compareString() );
+    }
 
-        return thisStr.compareTo( otherStr );
+    private String compareString()
+    {
+        return ( ldapProfile == null ? "_" : ldapProfile ) + "_" + userDN;
     }
 
     public UserIdentity canonicalized( final PwmApplication pwmApplication )

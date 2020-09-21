@@ -27,7 +27,7 @@ import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
@@ -145,7 +145,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
         {
             try
             {
-                 UserPermissionTester.validatePermissionSyntax( userPermission );
+                 UserPermissionUtility.validatePermissionSyntax( userPermission );
             }
             catch ( final PwmUnrecoverableException e )
             {

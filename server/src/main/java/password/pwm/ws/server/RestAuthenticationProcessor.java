@@ -35,7 +35,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.auth.AuthenticationResult;
 import password.pwm.ldap.auth.SimpleLdapAuthenticator;
-import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.java.JavaHelper;
@@ -97,7 +97,7 @@ public class RestAuthenticationProcessor
             {
                 {
                     final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.WEBSERVICES_QUERY_MATCH );
-                    final boolean result = UserPermissionTester.testUserPermission( pwmApplication, sessionLabel, userIdentity, userPermission );
+                    final boolean result = UserPermissionUtility.testUserPermission( pwmApplication, sessionLabel, userIdentity, userPermission );
                     if ( !result )
                     {
                         final String errorMsg = "user does not have webservice permission due to setting "
@@ -109,7 +109,7 @@ public class RestAuthenticationProcessor
                 final boolean thirdParty;
                 {
                     final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.WEBSERVICES_THIRDPARTY_QUERY_MATCH );
-                    thirdParty = UserPermissionTester.testUserPermission( pwmApplication, sessionLabel, userIdentity, userPermission );
+                    thirdParty = UserPermissionUtility.testUserPermission( pwmApplication, sessionLabel, userIdentity, userPermission );
                 }
 
                 final ChaiProvider chaiProvider = authenticateUser( userIdentity );

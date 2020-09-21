@@ -46,7 +46,7 @@ import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.StatisticIntCounterMap;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
@@ -78,7 +78,7 @@ public class UserSearchEngine implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserSearchEngine.class );
 
-    private final StatisticIntCounterMap<SearchStatistic> counters = new StatisticIntCounterMap<>( SearchStatistic.class );
+    private final StatisticCounterBundle<SearchStatistic> counters = new StatisticCounterBundle<>( SearchStatistic.class );
     private final AtomicLoopIntIncrementer searchIdCounter = new AtomicLoopIntIncrementer();
 
     enum SearchStatistic

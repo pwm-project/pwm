@@ -49,7 +49,7 @@ import password.pwm.http.servlet.peoplesearch.bean.SearchResultBean;
 import password.pwm.http.servlet.peoplesearch.bean.UserDetailBean;
 import password.pwm.http.servlet.peoplesearch.bean.UserReferenceBean;
 import password.pwm.i18n.Display;
-import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.PhotoDataBean;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
@@ -623,7 +623,7 @@ class PeopleSearchDataReader
                     .ldapProfileID( userIdentity.getLdapProfileID() )
                     .build();
 
-            return UserPermissionTester.testUserPermission( pwmRequest.commonValues(), userIdentity, userPermission );
+            return UserPermissionUtility.testUserPermission( pwmRequest.commonValues(), userIdentity, userPermission );
         };
 
         final boolean result = storeDataInCache( CacheIdentifier.checkIfViewable, userIdentity.toDelimitedKey(), Boolean.class, cacheLoader );

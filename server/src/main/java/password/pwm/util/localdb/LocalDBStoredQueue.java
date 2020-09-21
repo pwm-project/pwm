@@ -737,8 +737,6 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
                 LOGGER.trace( () -> "loaded for db " + db + "; headPosition=" + headPosition + ", tailPosition=" + tailPosition + ", size=" + finalSize );
             }
 
-            checkSize();
-
             repair();
 
             debugOutput( "post init()" );
@@ -747,7 +745,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
         private boolean checkVersion( ) throws LocalDBException
         {
             final String storedVersion = localDB.get( db, KEY_VERSION );
-            if ( storedVersion == null || !VALUE_VERSION.equals( storedVersion ) )
+            if ( !Objects.equals( storedVersion, VALUE_VERSION ) )
             {
                 LOGGER.warn( () -> "values in db " + db + " use an outdated format, the stored events will be purged!" );
                 return false;
@@ -1061,19 +1059,6 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
             };
 
             LOGGER.trace( debugOutput );
-        }
-
-        private void checkSize()
-            throws LocalDBException
-        {
-            final long dbSize = localDB.size( db );
-            final long positionDistance = tailPosition.distanceToHead( headPosition );
-
-            // +3 for header/tail position and version keys.
-            if ( dbSize != positionDistance + 3 )
-            {
-                LOGGER.warn( () -> "dbSize=" + dbSize + " and positionDistance=" + positionDistance + " stored Queue is corrupted" );
-            }
         }
 
         private void repair( ) throws LocalDBException

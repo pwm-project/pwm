@@ -49,20 +49,15 @@
                     <pwm:display key="ldap_context_admin_title" bundle="ConfigGuide"/>
                 </div>
                 <div class="setting_body">
-                    <pwm:display key="ldap_context_admin_description" bundle="ConfigGuide"/>
+                    <pwm:display key="ldap_context_admin_description" bundle="ConfigGuide" value1="<%=configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_CONTEXT)%>"/>
                     <div class="setting_item">
-                        Example: <code><%=PwmSetting.QUERY_MATCH_PWM_ADMIN.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
                         <br/><br/>
-                        <b>Administrator Group DN</b>
+                        <b>Administrator User DN</b>
                         <br/>
-                        <input style="width:400px;" class="configStringInput" id="<%=ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP%>" name="<%=ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP))%>" <pwm:autofocus/> required/>
+                        <input style="width:400px;" class="configStringInput" id="<%=ConfigGuideFormField.PARAM_LDAP_ADMIN_USER%>" name="<%=ConfigGuideFormField.PARAM_LDAP_ADMIN_USER%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_ADMIN_USER))%>" <pwm:autofocus/> required/>
                         <button type="button" class="btn" id="button-browse-adminGroup">
                             <span class="btn-icon pwm-icon pwm-icon-sitemap"></span>
                             <pwm:display key="Button_Browse"/>
-                        </button>
-                        <button type="button" id="button-viewAdminMatches" class="btn">
-                            <span class="btn-icon pwm-icon pwm-icon-eye"></span>
-                            View Group Members
                         </button>
                     </div>
                 </div>
@@ -119,7 +114,7 @@
 
             PWM_MAIN.addEventHandler('button-browse-adminGroup','click',function(){
                 UILibrary.editLdapDN(function(value){
-                    PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP%>').value = value;
+                    PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_ADMIN_USER%>').value = value;
                     handleFormActivity();
                 })
             });

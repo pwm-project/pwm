@@ -42,16 +42,23 @@ class AllPermissionTypeHelper implements PermissionTypeHelper
     }
 
     @Override
-    public SearchConfiguration searchConfigurationFromPermission( final UserPermission userPermission ) throws PwmUnrecoverableException
+    public SearchConfiguration searchConfigurationFromPermission( final UserPermission userPermission )
+            throws PwmUnrecoverableException
     {
+        final String profileID = UserPermissionUtility.isAllProfiles( userPermission.getLdapProfileID() )
+                ? null
+                : userPermission.getLdapProfileID();
+
         return SearchConfiguration.builder()
                 .username( "*" )
+                .ldapProfile( profileID )
                 .enableValueEscaping( false )
                 .build();
     }
 
     @Override
-    public void validatePermission( final UserPermission userPermission ) throws PwmUnrecoverableException
+    public void validatePermission( final UserPermission userPermission )
+            throws PwmUnrecoverableException
     {
 
     }

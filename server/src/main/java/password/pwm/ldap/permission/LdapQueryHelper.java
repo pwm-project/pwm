@@ -26,7 +26,6 @@ import com.novell.ldapchai.provider.SearchScope;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -40,7 +39,7 @@ import java.util.Map;
 class LdapQueryHelper implements PermissionTypeHelper
 {
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass( UserPermissionTester.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( UserPermissionUtility.class );
 
     public boolean testMatch(
             final PwmApplication pwmApplication,
@@ -52,7 +51,10 @@ class LdapQueryHelper implements PermissionTypeHelper
     {
         if ( userPermission.getLdapBase() != null && !userPermission.getLdapBase().trim().isEmpty() )
         {
-            if ( !testBaseDnMatch( pwmApplication, userPermission.getLdapBase(), userIdentity ) )
+            final String canonicalBaseDN = pwmApplication.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() )
+                    .readCanonicalDN( pwmApplication, userPermission.getLdapBase() );
+
+            if ( !UserPermissionUtility.testBaseDnMatch( pwmApplication, canonicalBaseDN, userIdentity ) )
             {
                 return false;
             }
@@ -113,30 +115,14 @@ class LdapQueryHelper implements PermissionTypeHelper
     }
 
 
-    private static boolean testBaseDnMatch(
-            final PwmApplication pwmApplication,
-            final String baseDN,
-            final UserIdentity userIdentity
-    )
-            throws PwmUnrecoverableException
-    {
-        if ( baseDN == null || baseDN.trim().isEmpty() )
-        {
-            return true;
-        }
 
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
-        final String canonicalBaseDN = ldapProfile.readCanonicalDN( pwmApplication, baseDN );
-        final String userDN = userIdentity.getUserDN();
-        return userDN.endsWith( canonicalBaseDN );
-    }
 
     public SearchConfiguration searchConfigurationFromPermission( final UserPermission userPermission )
             throws PwmUnrecoverableException
     {
         return SearchConfiguration.builder()
                 .filter( userPermission.getLdapQuery() )
-                .ldapProfile( UserPermissionTester.profileIdForPermission( userPermission ) )
+                .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ) )
                 .build();
     }
 

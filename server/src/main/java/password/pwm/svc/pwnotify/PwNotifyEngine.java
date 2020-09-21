@@ -33,7 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
-import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PwmScheduler;
@@ -157,7 +157,7 @@ public class PwNotifyEngine
             }
 
             log( "starting job, beginning ldap search" );
-            final Queue<UserIdentity> workQueue = new ArrayDeque<>( UserPermissionTester.discoverMatchingUsers(
+            final Queue<UserIdentity> workQueue = new ArrayDeque<>( UserPermissionUtility.discoverMatchingUsers(
                     pwmApplication,
                     permissionList, SESSION_LABEL, settings.getMaxLdapSearchSize(),
                     settings.getSearchTimeout()

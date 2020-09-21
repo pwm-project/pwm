@@ -70,9 +70,9 @@ class LdapUserDNTypeHelper implements PermissionTypeHelper
     public SearchConfiguration searchConfigurationFromPermission( final UserPermission userPermission ) throws PwmUnrecoverableException
     {
         return SearchConfiguration.builder()
-                .filter( "(objectClass=*)" )
+                .username( "*" )
                 .enableContextValidation( false )
-                .ldapProfile( UserPermissionTester.profileIdForPermission( userPermission ) )
+                .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ) )
                 .contexts( Collections.singletonList( userPermission.getLdapBase() ) )
                 .searchScope( SearchConfiguration.SearchScope.base )
                 .build();

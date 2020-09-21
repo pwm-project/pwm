@@ -25,7 +25,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.StatisticIntCounterMap;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
@@ -46,7 +46,7 @@ public class HttpClientService implements PwmService
     private final Map<PwmHttpClientConfiguration, ThreadLocal<PwmHttpClient>> clients = new ConcurrentHashMap<>(  );
     private final Map<PwmHttpClient, Object> issuedClients = Collections.synchronizedMap( new WeakHashMap<>(  ) );
 
-    private final StatisticIntCounterMap<StatsKey> stats = new StatisticIntCounterMap<>( StatsKey.class );
+    private final StatisticCounterBundle<StatsKey> stats = new StatisticCounterBundle<>( StatsKey.class );
 
     enum StatsKey
     {

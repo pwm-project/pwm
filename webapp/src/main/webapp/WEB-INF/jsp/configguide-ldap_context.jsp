@@ -105,12 +105,6 @@
                     handleFormActivity();
                 })
             });
-            PWM_MAIN.addEventHandler('button-browse-adminGroup','click',function(){
-                UILibrary.editLdapDN(function(value){
-                    PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP%>').value = value;
-                    handleFormActivity();
-                })
-            });
         });
 
         function checkIfNextEnabled() {

@@ -84,8 +84,7 @@ public class UserSearchResults implements Serializable
             }
         };
 
-        final List<UserIdentity> identitySortMap = new ArrayList<>();
-        identitySortMap.addAll( results.keySet() );
+        final List<UserIdentity> identitySortMap = new ArrayList<>( results.keySet() );
         identitySortMap.sort( comparator );
 
         final Map<UserIdentity, Map<String, String>> sortedResults = new LinkedHashMap<>();

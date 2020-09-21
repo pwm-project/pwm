@@ -36,7 +36,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ShortcutsBean;
-import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.java.JavaHelper;
@@ -193,7 +193,7 @@ public class ShortcutServlet extends AbstractPwmServlet
                         .ldapBase( userIdentity.getLdapProfileID() )
                         .build();
 
-                final boolean queryMatch = UserPermissionTester.testUserPermission(
+                final boolean queryMatch = UserPermissionUtility.testUserPermission(
                         pwmRequest.commonValues(),
                         pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                         userPermission

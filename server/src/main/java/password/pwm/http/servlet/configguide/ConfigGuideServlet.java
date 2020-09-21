@@ -26,11 +26,9 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.StoredValue;
-import password.pwm.config.function.UserMatchViewerFunction;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfiguration;
@@ -109,7 +107,6 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         useConfiguredCerts( HttpMethod.POST ),
         uploadConfig( HttpMethod.POST ),
         extendSchema( HttpMethod.POST ),
-        viewAdminMatches( HttpMethod.POST ),
         browseLdap( HttpMethod.POST ),
         uploadJDBCDriver( HttpMethod.POST ),
         skipGuide( HttpMethod.POST ),
@@ -137,7 +134,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         return ConfigGuideAction.class;
     }
 
-    private ConfigGuideBean getBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    static ConfigGuideBean getBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigGuideBean.class );
     }
@@ -281,34 +278,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             case LDAP_ADMINS:
             {
-                try
-                {
-                    final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
-                    final Collection<UserIdentity> results = userMatchViewerFunction.discoverMatchingUsers(
-                            pwmRequest.getPwmApplication(),
-                            2,
-                            storedConfiguration,
-                            PwmSetting.QUERY_MATCH_PWM_ADMIN,
-                            null
-                    );
-
-                    if ( results.isEmpty() )
-                    {
-                        records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "No matching admin users" ) );
-                    }
-                    else
-                    {
-                        records.add( new HealthRecord( HealthStatus.GOOD, HealthTopic.LDAP, "Admin group validated" ) );
-                    }
-                }
-                catch ( final PwmException e )
-                {
-                    records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Error during admin group validation: " + e.getErrorInformation().toDebugStr() ) );
-                }
-                catch ( final Exception e )
-                {
-                    records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Error during admin group validation: " + e.getMessage() ) );
-                }
+                records.addAll( ConfigGuideUtils.checkAdminHealth( pwmRequest, storedConfiguration ) );
             }
             break;
 
@@ -344,36 +314,6 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 .build();
         final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
         pwmRequest.outputJsonResult( restResultBean );
-        return ProcessStatus.Halt;
-    }
-
-    @ActionHandler( action = "viewAdminMatches" )
-    private ProcessStatus restViewAdminMatches(
-            final PwmRequest pwmRequest
-    )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
-        final ConfigGuideBean configGuideBean = getBean( pwmRequest );
-
-        try
-        {
-            final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
-            final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
-            final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
-            final Serializable output = userMatchViewerFunction.provideFunction( pwmRequest, modifier, PwmSetting.QUERY_MATCH_PWM_ADMIN, null, null );
-            pwmRequest.outputJsonResult( RestResultBean.withData( output ) );
-        }
-        catch ( final PwmException e )
-        {
-            LOGGER.error( pwmRequest, e.getErrorInformation() );
-            pwmRequest.respondWithError( e.getErrorInformation(), false );
-        }
-        catch ( final Exception e )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error while testing matches = " + e.getMessage() );
-            LOGGER.error( pwmRequest, errorInformation );
-            pwmRequest.respondWithError( errorInformation );
-        }
         return ProcessStatus.Halt;
     }
 

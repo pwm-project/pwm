@@ -67,7 +67,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
@@ -981,7 +981,7 @@ public class PasswordUtility
             LOGGER.debug( pwmSession, () -> "testing password policy profile '" + profile + "'" );
             try
             {
-                final boolean match = UserPermissionTester.testUserPermission( pwmApplication, pwmSession, userIdentity, userPermissions );
+                final boolean match = UserPermissionUtility.testUserPermission( pwmApplication, pwmSession, userIdentity, userPermissions );
                 if ( match )
                 {
                     return loopPolicy;

@@ -35,7 +35,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
-import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.PwmService;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.PwmScheduler;
@@ -55,6 +55,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -377,11 +378,14 @@ public class ReportService implements PwmService
             resetJobStatus();
             clearWorkQueue();
 
-            final Queue<UserIdentity> memQueue = new ArrayDeque<>( UserPermissionTester.discoverMatchingUsers(
+            final List<UserIdentity> searchResults = new ArrayList<>( UserPermissionUtility.discoverMatchingUsers(
                     pwmApplication,
                     settings.getSearchFilter(), SessionLabel.REPORTING_SESSION_LABEL, settings.getMaxSearchSize(),
                     settings.getSearchTimeout()
             ) );
+            Collections.shuffle( searchResults );
+
+            final Queue<UserIdentity> memQueue = new ArrayDeque<>( searchResults );
 
             LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "completed ldap search process (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
 
@@ -399,7 +403,6 @@ public class ReportService implements PwmService
                     return memQueue.poll();
                 }
             };
-
 
             writeUsersToLocalDBQueue( iterator );
         }

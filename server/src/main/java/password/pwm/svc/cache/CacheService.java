@@ -22,7 +22,6 @@ package password.pwm.svc.cache;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmApplicationMode;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
@@ -67,20 +66,6 @@ public class CacheService implements PwmService
         if ( !enabled )
         {
             LOGGER.debug( () -> "skipping cache service init due to app property setting" );
-            status = STATUS.CLOSED;
-            return;
-        }
-
-        if ( pwmApplication.getLocalDB() == null )
-        {
-            LOGGER.debug( () -> "skipping cache service init due to localDB not being available" );
-            status = STATUS.CLOSED;
-            return;
-        }
-
-        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
-        {
-            LOGGER.debug( () -> "skipping cache service init due to read-only application mode" );
             status = STATUS.CLOSED;
             return;
         }

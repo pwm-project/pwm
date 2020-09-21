@@ -107,10 +107,10 @@
                         </td>
                     </tr>
                     <tr>
-                        <td><b>Administrator Group DN</b>
+                        <td><b>Administrator User DN</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_ADMIN_USER))%>
                         </td>
                     </tr>
                     <tr>

@@ -22,43 +22,42 @@ package password.pwm.util.java;
 
 import com.novell.ldapchai.util.StringHelper;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.Map;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 
-public class StatisticIntCounterMap<K extends Enum<K>>
+public class StatisticCounterBundle<K extends Enum<K>>
 {
-    private final Map<K, AtomicLoopIntIncrementer> statMap;
+    private final Class<K> keyType;
+    private final Map<K, LongAdder> statMap;
 
-    public StatisticIntCounterMap( final Class<K> keyType )
+    public StatisticCounterBundle( final Class<K> keyType )
     {
-        final EnumMap<K, AtomicLoopIntIncrementer> enumMap = new EnumMap<>( keyType );
-        for ( final K loopStatEnum : EnumSet.allOf( keyType ) )
-        {
-            enumMap.put( loopStatEnum, new AtomicLoopIntIncrementer() );
-        }
-        statMap = Collections.unmodifiableMap( enumMap );
+        this.keyType = keyType;
+        statMap = new EnumMap<>( keyType );
     }
 
     public void increment( final K stat )
     {
-        statMap.get( stat ).next();
+        statMap.computeIfAbsent( stat, k -> new LongAdder() ).increment();
     }
 
-    public int get( final K stat )
+    public long get( final K stat )
     {
-        return statMap.get( stat ).get();
+        final LongAdder longAdder = statMap.get( stat );
+        return longAdder == null ? 0 : longAdder.sum();
     }
 
     public Map<String, String> debugStats()
     {
-        return Collections.unmodifiableMap( statMap.entrySet()
-                .stream()
+        return Collections.unmodifiableMap( Arrays.stream( keyType.getEnumConstants() )
                 .collect( Collectors.toMap(
-                        ( entry ) -> entry.getKey().name(),
-                        ( entry ) -> String.valueOf( entry.getValue().get() ) ) ) );
+                        Enum::name,
+                        stat -> Long.toString( get( stat ) )
+                ) ) );
     }
 
     public String debugString()

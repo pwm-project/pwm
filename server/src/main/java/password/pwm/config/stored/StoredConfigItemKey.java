@@ -31,9 +31,12 @@ import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class StoredConfigItemKey implements Serializable, Comparable<StoredConfigItemKey>
 {
@@ -102,6 +105,11 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     static StoredConfigItemKey fromConfigurationProperty( final ConfigurationProperty configurationProperty )
     {
         return new StoredConfigItemKey( RecordType.PROPERTY, configurationProperty.getKey(), null );
+    }
+
+    public boolean isRecordType( final RecordType recordType )
+    {
+        return recordType != null && Objects.equals( getRecordType(), recordType );
     }
 
     public boolean isValid()
@@ -239,6 +247,8 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
         return toString().compareTo( o.toString() );
     }
 
+
+
     public PwmSettingSyntax getSyntax()
     {
         switch ( getRecordType() )
@@ -256,5 +266,23 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
                 JavaHelper.unhandledSwitchStatement( getRecordType() );
                 throw new IllegalStateException();
         }
+    }
+
+    public static Set<StoredConfigItemKey> filterBySettingSyntax( final PwmSettingSyntax pwmSettingSyntax, final Set<StoredConfigItemKey> input )
+    {
+        return Collections.unmodifiableSet( filterByType( RecordType.SETTING, input )
+                .stream()
+                .filter( ( k ) -> k.toPwmSetting().getSyntax() == pwmSettingSyntax )
+                .collect( Collectors.toSet() ) );
+    }
+
+    public static Set<StoredConfigItemKey> filterByType( final RecordType recordType, final Set<StoredConfigItemKey> input )
+    {
+        if ( JavaHelper.isEmpty( input ) )
+        {
+            return Collections.emptySet();
+        }
+
+        return Collections.unmodifiableSet( input.stream().filter( ( k ) -> k.isRecordType( recordType ) ).collect( Collectors.toSet() ) );
     }
 }

@@ -33,7 +33,7 @@ import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.MovingAverage;
-import password.pwm.util.java.StatisticIntCounterMap;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -79,7 +79,7 @@ public final class WorkQueueProcessor<W extends Serializable>
     private final MovingAverage avgLagTime = new MovingAverage( TimeDuration.MINUTE );
     private final EventRateMeter sendRate = new EventRateMeter( TimeDuration.MINUTE );
 
-    private final StatisticIntCounterMap<WorkQueueStat> workQueueStats = new StatisticIntCounterMap<>( WorkQueueStat.class );
+    private final StatisticCounterBundle<WorkQueueStat> workQueueStats = new StatisticCounterBundle<>( WorkQueueStat.class );
 
     enum WorkQueueStat
     {

@@ -20,7 +20,6 @@
 
 package password.pwm.svc.stats;
 
-import password.pwm.util.java.AtomicLoopLongIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -30,17 +29,18 @@ import java.math.BigInteger;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.LongAdder;
 
 public class StatisticsBundle
 {
-    private final Map<Statistic, AtomicLoopLongIncrementer> incrementerMap = new EnumMap<>( Statistic.class );
+    private final Map<Statistic, LongAdder> incrementerMap = new EnumMap<>( Statistic.class );
     private final Map<AvgStatistic, AverageBean> avgMap = new EnumMap<>( AvgStatistic.class );
 
     StatisticsBundle( )
     {
         for ( final Statistic statistic : Statistic.values() )
         {
-            incrementerMap.put( statistic, new AtomicLoopLongIncrementer() );
+            incrementerMap.put( statistic, new LongAdder() );
         }
         for ( final AvgStatistic avgStatistic : AvgStatistic.values() )
         {
@@ -54,7 +54,7 @@ public class StatisticsBundle
 
         for ( final Statistic statistic : Statistic.values() )
         {
-            final long currentValue = incrementerMap.get( statistic ).get();
+            final long currentValue = incrementerMap.get( statistic ).longValue();
             if ( currentValue > 0 )
             {
                 outputMap.put( statistic.name(), Long.toString( currentValue ) );
@@ -83,8 +83,9 @@ public class StatisticsBundle
             if ( !StringUtil.isEmpty( value ) )
             {
                 final long longValue = JavaHelper.silentParseLong( value, 0 );
-                final AtomicLoopLongIncrementer incrementer = AtomicLoopLongIncrementer.builder().initial( longValue ).build();
-                bundle.incrementerMap.put( loopStat, incrementer );
+                final LongAdder longAdder = new LongAdder();
+                longAdder.add( longValue );
+                bundle.incrementerMap.put( loopStat, longAdder );
             }
         }
 
@@ -103,7 +104,7 @@ public class StatisticsBundle
 
     void incrementValue( final Statistic statistic )
     {
-        incrementerMap.get( statistic ).next();
+        incrementerMap.get( statistic ).increment();
     }
 
     void updateAverageValue( final AvgStatistic statistic, final long timeDuration )
@@ -113,7 +114,7 @@ public class StatisticsBundle
 
     public String getStatistic( final Statistic statistic )
     {
-        return Long.toString( incrementerMap.get( statistic ).get() );
+        return Long.toString( incrementerMap.get( statistic ).longValue() );
     }
 
     public String getAvgStatistic( final AvgStatistic statistic )

@@ -33,7 +33,7 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
@@ -122,7 +122,7 @@ public class UserDebugDataReader
             if ( !setting.isHidden() && !setting.getCategory().isHidden() && !setting.getCategory().hasProfiles() )
             {
                 final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission( permission.getPwmSetting() );
-                final boolean result = UserPermissionTester.testUserPermission(
+                final boolean result = UserPermissionUtility.testUserPermission(
                         pwmApplication,
                         sessionLabel,
                         userIdentity,

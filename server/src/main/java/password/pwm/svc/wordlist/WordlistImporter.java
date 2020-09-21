@@ -45,6 +45,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -67,7 +68,7 @@ class WordlistImporter implements Runnable
     private ErrorInformation exitError;
     private Instant startTime = Instant.now();
     private long bytesSkipped;
-    private final Map<WordType, Long> seenWordTypes = new EnumMap<>( WordType.class );
+    private final Map<WordType, LongAdder> seenWordTypes = new EnumMap<>( WordType.class );
     private boolean completed;
 
     private enum DebugKey
@@ -162,7 +163,12 @@ class WordlistImporter implements Runnable
         checkWordlistSpaceRemaining();
 
         final long previousBytesRead = rootWordlist.readWordlistStatus().getBytes();
-        seenWordTypes.putAll( rootWordlist.readWordlistStatus().getWordTypes() );
+        for ( final Map.Entry<WordType, Long> entry : rootWordlist.readWordlistStatus().getWordTypes().entrySet() )
+        {
+            final LongAdder longAdder = new LongAdder();
+            longAdder.add( entry.getValue() );
+            seenWordTypes.put( entry.getKey(), longAdder );
+        }
 
         if ( previousBytesRead == 0 )
         {
@@ -254,7 +260,7 @@ class WordlistImporter implements Runnable
         }
 
         final WordType wordType = WordType.determineWordType( input );
-        seenWordTypes.compute( wordType, ( key, value ) -> value == null ? 0L : value + 1L );
+        seenWordTypes.getOrDefault( wordType, new LongAdder() ).increment();
 
         if ( wordType == WordType.RAW )
         {
@@ -318,7 +324,7 @@ class WordlistImporter implements Runnable
         final long wordlistSize = wordlistBucket.size();
 
         getLogger().info( () -> "population complete, added " + wordlistSize
-                + " total words in ", () -> TimeDuration.fromCurrent( startTime ) );
+                + " total words", () -> TimeDuration.fromCurrent( startTime ) );
 
         completed = true;
         writeCurrentWordlistStatus();
@@ -452,6 +458,9 @@ class WordlistImporter implements Runnable
 
     private void writeCurrentWordlistStatus()
     {
+        final Map<WordType, Long> outputWordTypeMap = new EnumMap<>( WordType.class );
+        seenWordTypes.forEach( ( key, value ) -> outputWordTypeMap.put( key, value.longValue() ) );
+
         final Instant now = Instant.now();
         rootWordlist.writeWordlistStatus( rootWordlist.readWordlistStatus().toBuilder()
                 .remoteInfo( wordlistSourceInfo )
@@ -460,7 +469,7 @@ class WordlistImporter implements Runnable
                 .checkDate( now )
                 .sourceType( sourceType )
                 .completed( completed )
-                .wordTypes( new EnumMap<>( seenWordTypes ) )
+                .wordTypes( outputWordTypeMap )
                 .bytes( zipFileReader.getByteCount() )
                 .build() );
     }

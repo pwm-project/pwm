@@ -22,7 +22,6 @@ package password.pwm.http.servlet.configguide;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplate;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -30,6 +29,7 @@ import password.pwm.config.value.BooleanValue;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.PasswordValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.UserPermissionValue;
@@ -45,7 +45,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +56,7 @@ public class ConfigGuideForm
 
     public static Map<ConfigGuideFormField, String> defaultForm( )
     {
-        final Map<ConfigGuideFormField, String> defaultLdapForm = new HashMap<>();
+        final Map<ConfigGuideFormField, String> defaultLdapForm = new EnumMap<>( ConfigGuideFormField.class );
         for ( final ConfigGuideFormField formParameter : ConfigGuideFormField.values() )
         {
             defaultLdapForm.put( formParameter, "" );
@@ -65,6 +65,11 @@ public class ConfigGuideForm
         defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_PORT, "636" );
         defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_SECURE, "true" );
         defaultLdapForm.remove( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA );
+
+        defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_HOST, "172.17.2.91" );
+        defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_CONTEXT, "ou=users,o=data" );
+        defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_PROXY_DN, "cn=pwm-proxy,ou=sa,o=system" );
+        defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_PROXY_PW, "gcms1234" );
 
         return Collections.unmodifiableMap( defaultLdapForm );
     }
@@ -172,10 +177,10 @@ public class ConfigGuideForm
 
         {
             // set admin query
-            final String groupDN = formData.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP );
+            final String userDN = formData.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_USER );
             final List<UserPermission> userPermissions = Collections.singletonList( UserPermission.builder()
-                    .type( UserPermissionType.ldapGroup )
-                    .ldapBase( groupDN )
+                    .type( UserPermissionType.ldapUser )
+                    .ldapBase( userDN )
                     .build() );
             storedConfiguration.writeSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, null, new UserPermissionValue( userPermissions ), null );
         }

@@ -20,10 +20,12 @@
 
 package password.pwm.ldap.permission;
 
+import com.novell.ldapchai.util.StringHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -31,6 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.CommonValues;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -40,10 +43,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-public class UserPermissionTester
+public class UserPermissionUtility
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( UserPermissionTester.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( UserPermissionUtility.class );
 
     public static boolean testUserPermission(
             final CommonValues commonValues,
@@ -118,8 +122,8 @@ public class UserPermissionTester
         final Instant startTime = Instant.now();
         final boolean match = permissionTypeHelper.testMatch( pwmApplication, sessionLabel, userIdentity, userPermission );
         LOGGER.debug( sessionLabel, () -> "user " + userIdentity.toDisplayString() + " is "
-                + ( match ? "" : "not " )
-                + "a match for permission '" + userPermission + "'",
+                        + ( match ? "" : "not " )
+                        + "a match for permission '" + userPermission + "'",
                 () -> TimeDuration.fromCurrent( startTime ) );
         return match;
     }
@@ -173,7 +177,10 @@ public class UserPermissionTester
             }
         }
 
-        return Collections.unmodifiableList( resultSet );
+        final List<UserIdentity> strippedResults = stripUserMatchesOutsideUserContexts( sessionLabel, pwmApplication, resultSet );
+        final List<UserIdentity> sortedResults = new ArrayList<>( strippedResults );
+        Collections.sort( sortedResults );
+        return Collections.unmodifiableList( sortedResults );
     }
 
     static String profileIdForPermission( final UserPermission userPermission )
@@ -188,7 +195,6 @@ public class UserPermissionTester
         return null;
     }
 
-
     public static void validatePermissionSyntax( final UserPermission userPermission )
             throws PwmUnrecoverableException
     {
@@ -202,4 +208,82 @@ public class UserPermissionTester
         final PermissionTypeHelper permissionTypeHelper = userPermission.getType().getPermissionTypeTester();
         permissionTypeHelper.validatePermission( userPermission );
     }
+
+    static List<UserIdentity> stripUserMatchesOutsideUserContexts(
+            final SessionLabel sessionLabel,
+            final PwmApplication pwmApplication,
+            final List<UserIdentity> userIdentities
+    )
+    {
+        final Instant startTime = Instant.now();
+        final List<UserIdentity> output = userIdentities
+                .stream()
+                .filter( ( u ) -> testUserWithinConfiguredUserContexts( sessionLabel, pwmApplication, u ) )
+                .collect( Collectors.toList() );
+
+        final int removedValues = userIdentities.size() - output.size();
+        if ( removedValues > 0 )
+        {
+            LOGGER.debug(
+                    sessionLabel,
+                    () -> "stripped " + removedValues + " user(s) from set of " + userIdentities.size() + " permission matches",
+                    () -> TimeDuration.fromCurrent( startTime ) );
+        }
+        return Collections.unmodifiableList( output );
+    }
+
+    public static boolean testUserWithinConfiguredUserContexts(
+            final SessionLabel sessionLabel,
+            final PwmApplication pwmApplication,
+            final UserIdentity userIdentity
+    )
+    {
+        final String ldapProfileID = userIdentity.getLdapProfileID();
+        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get( ldapProfileID );
+        try
+        {
+            final List<String> rootContexts = ldapProfile.getRootContexts( pwmApplication );
+
+            for ( final String rootContext : rootContexts )
+            {
+                if ( testBaseDnMatch( pwmApplication, rootContext, userIdentity ) )
+                {
+                    return true;
+                }
+            }
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            LOGGER.debug( sessionLabel,
+                    () -> "unexpected error testing userIdentity " + userIdentity.toDisplayString() + " for configured ldapProfile user context match" );
+        }
+
+        LOGGER.trace( sessionLabel, () -> "stripping user " + userIdentity.toDisplayString()
+                + " from permission list because it is not contained by configured user contexts in ldapProfile " + ldapProfileID  );
+
+        return false;
+    }
+
+    static boolean testBaseDnMatch(
+            final PwmApplication pwmApplication,
+            final String canonicalBaseDN,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        if ( StringUtil.isTrimEmpty( canonicalBaseDN ) )
+        {
+            return false;
+        }
+
+        final String userDN = userIdentity.canonicalized( pwmApplication ).getUserDN();
+        return userDN.endsWith( canonicalBaseDN );
+    }
+
+    public static boolean isAllProfiles( final String profile )
+    {
+        return StringHelper.isEmpty( profile ) || PwmConstants.PROFILE_ID_ALL.equalsIgnoreCase( profile );
+    }
+
+
 }

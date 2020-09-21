@@ -27,6 +27,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.TimeDuration;
@@ -310,7 +311,7 @@ public class ReportSummaryData
 
         returnCollection.add( builder.makeRow( "Field_Report_Sum_HaveResponses", this.hasResponses.get() ) );
         returnCollection.add( builder.makeRow( "Field_Report_Sum_HaveHelpdeskResponses", this.hasHelpdeskResponses.get() ) );
-        for ( final DataStorageMethod storageMethod : EnumSet.copyOf( this.getResponseStorage().keySet() ) )
+        for ( final DataStorageMethod storageMethod : JavaHelper.copiedEnumSet( this.getResponseStorage().keySet(), DataStorageMethod.class ) )
         {
             final int count = this.getResponseStorage().get( storageMethod );
             returnCollection.add( builder.makeRow( "Field_Report_Sum_StorageMethod", count, storageMethod.toString() ) );

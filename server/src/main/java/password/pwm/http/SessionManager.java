@@ -41,7 +41,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.PasswordData;
@@ -226,7 +226,7 @@ public class SessionManager
 
             final PwmSetting setting = permission.getPwmSetting();
             final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission( setting );
-            final boolean result = UserPermissionTester.testUserPermission( pwmApplication, pwmSession.getLabel(), pwmSession.getUserInfo().getUserIdentity(), userPermission );
+            final boolean result = UserPermissionUtility.testUserPermission( pwmApplication, pwmSession.getLabel(), pwmSession.getUserInfo().getUserIdentity(), userPermission );
             status = result ? Permission.PermissionStatus.GRANTED : Permission.PermissionStatus.DENIED;
             pwmSession.getUserSessionDataCacheBean().setPermission( permission, status );
 

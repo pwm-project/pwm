@@ -544,6 +544,8 @@
     </setting>
     <setting hidden="false" key="pwmAdmin.queryMatch" level="0" required="true">
         <ldapPermission actor="proxy" access="read"/>
+        <example>cn=admin,ou=users,o=example</example>
+        <example template="AD">CN=Administrator,CN=users,DC=site,DC=example,DC=net</example>
         <default>
             <value/>
         </default>

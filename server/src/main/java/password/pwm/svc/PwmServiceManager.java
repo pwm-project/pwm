@@ -26,7 +26,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.StatisticIntCounterMap;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -72,7 +72,7 @@ public class PwmServiceManager
                 || pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance );
 
         final String logVerb = initialized ? "restart" : "start";
-        final StatisticIntCounterMap<InitializationStats> statCounter = new StatisticIntCounterMap<>( InitializationStats.class );
+        final StatisticCounterBundle<InitializationStats> statCounter = new StatisticCounterBundle<>( InitializationStats.class );
         LOGGER.trace( () -> "beginning service " + logVerb + " process" );
 
         for ( final PwmServiceEnum serviceClassEnum : PwmServiceEnum.values() )

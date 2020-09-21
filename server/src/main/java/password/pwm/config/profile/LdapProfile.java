@@ -205,8 +205,7 @@ public class LdapProfile extends AbstractProfile implements Profile
 
         if ( !StringUtil.isEmpty( testUserDN ) )
         {
-            final String canonicalDN = readCanonicalDN( pwmApplication, testUserDN );
-            return new UserIdentity( canonicalDN, this.getIdentifier() );
+            return new UserIdentity( testUserDN, this.getIdentifier() ).canonicalized( pwmApplication );
         }
 
         return null;

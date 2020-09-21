@@ -39,7 +39,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.servlet.updateprofile.UpdateProfileUtil;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.permission.UserPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
@@ -211,7 +211,7 @@ public class RestProfileServer extends RestServlet
 
         {
             final List<UserPermission> userPermission = updateProfileProfile.readSettingAsUserPermission( PwmSetting.UPDATE_PROFILE_QUERY_MATCH );
-            final boolean result = UserPermissionTester.testUserPermission(
+            final boolean result = UserPermissionUtility.testUserPermission(
                     restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity(),
