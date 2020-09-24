@@ -26,13 +26,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.atomic.LongAccumulator;
 import java.util.stream.Collectors;
 
 public class StatisticCounterBundle<K extends Enum<K>>
 {
     private final Class<K> keyType;
-    private final Map<K, LongAdder> statMap;
+    private final Map<K, LongAccumulator> statMap;
 
     public StatisticCounterBundle( final Class<K> keyType )
     {
@@ -42,13 +42,18 @@ public class StatisticCounterBundle<K extends Enum<K>>
 
     public void increment( final K stat )
     {
-        statMap.computeIfAbsent( stat, k -> new LongAdder() ).increment();
+        increment( stat, 1 );
+    }
+
+    public void increment( final K stat, final long amount )
+    {
+        statMap.computeIfAbsent( stat, k -> makeLongAccumulator() ).accumulate( amount );
     }
 
     public long get( final K stat )
     {
-        final LongAdder longAdder = statMap.get( stat );
-        return longAdder == null ? 0 : longAdder.sum();
+        final LongAccumulator longAdder = statMap.get( stat );
+        return longAdder == null ? 0 : longAdder.longValue();
     }
 
     public Map<String, String> debugStats()
@@ -63,6 +68,11 @@ public class StatisticCounterBundle<K extends Enum<K>>
     public String debugString()
     {
         return StringHelper.stringMapToString( debugStats(), null );
+    }
+
+    private static LongAccumulator makeLongAccumulator()
+    {
+        return new LongAccumulator( Long::sum, 0L );
     }
 
 }

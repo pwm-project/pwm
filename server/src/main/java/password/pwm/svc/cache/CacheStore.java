@@ -21,6 +21,7 @@
 package password.pwm.svc.cache;
 
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.StatisticCounterBundle;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -35,11 +36,19 @@ public interface CacheStore
 
     <T extends Serializable> T read( CacheKey cacheKey, Class<T> classOfT ) throws PwmUnrecoverableException;
 
-    CacheStoreInfo getCacheStoreInfo( );
+    StatisticCounterBundle<DebugKey> getCacheStoreInfo( );
 
     int itemCount( );
 
     List<CacheDebugItem> getCacheDebugItems( );
 
     long byteCount();
+
+    enum DebugKey
+    {
+        storeCount,
+        readCount,
+        hitCount,
+        missCount,
+    }
 }

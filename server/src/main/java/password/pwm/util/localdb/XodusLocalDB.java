@@ -525,7 +525,7 @@ public class XodusLocalDB implements LocalDBProvider
                 final StatisticsItem item = statistics.getStatisticsItem( name );
                 if ( item != null )
                 {
-                    outputStats.put( name, String.valueOf( item.getTotal() ) );
+                    outputStats.put( "xodus." + name, String.valueOf( item.getTotal() ) );
                 }
             }
         }

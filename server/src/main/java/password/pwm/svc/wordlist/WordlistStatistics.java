@@ -21,7 +21,6 @@
 package password.pwm.svc.wordlist;
 
 import lombok.Value;
-import password.pwm.util.java.AtomicLoopLongIncrementer;
 import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.TimeDuration;
 
@@ -29,21 +28,22 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.LongAdder;
 
 @Value
 class WordlistStatistics
 {
     private MovingAverage wordCheckTimeMS = new MovingAverage( TimeDuration.of( 5, TimeDuration.Unit.MINUTES ) );
     private MovingAverage chunksPerWordCheck = new MovingAverage( TimeDuration.of( 1, TimeDuration.Unit.DAYS ) );
-    private AtomicLoopLongIncrementer wordChecks = new AtomicLoopLongIncrementer();
-    private Map<WordType, AtomicLoopLongIncrementer> wordTypeHits = new HashMap<>(  );
-    private AtomicLoopLongIncrementer misses = new AtomicLoopLongIncrementer();
+    private LongAdder wordChecks = new LongAdder();
+    private Map<WordType, LongAdder> wordTypeHits = new HashMap<>(  );
+    private LongAdder misses = new LongAdder();
 
     WordlistStatistics()
     {
         for ( final WordType wordType : WordType.values() )
         {
-            wordTypeHits.put( wordType, new AtomicLoopLongIncrementer() );
+            wordTypeHits.put( wordType, new LongAdder() );
         }
     }
 
@@ -52,11 +52,11 @@ class WordlistStatistics
         final Map<String, String> outputMap = new TreeMap<>(  );
         outputMap.put( "AvgLocalDBWordCheckTimeMS", Double.toString( wordCheckTimeMS.getAverage() ) );
         outputMap.put( "ChunksPerCheck", Double.toString( chunksPerWordCheck.getAverage() ) );
-        outputMap.put( "LocalDBWordChecks", Long.toString( wordChecks.get() ) );
-        outputMap.put( "Misses", Long.toString( misses.get() ) );
-        for ( final Map.Entry<WordType, AtomicLoopLongIncrementer> entry : wordTypeHits.entrySet() )
+        outputMap.put( "LocalDBWordChecks", Long.toString( wordChecks.sum() ) );
+        outputMap.put( "Misses", Long.toString( misses.sum() ) );
+        for ( final Map.Entry<WordType, LongAdder> entry : wordTypeHits.entrySet() )
         {
-            outputMap.put( "Hits-" + entry.getKey().name(), Long.toString( entry.getValue().get() ) );
+            outputMap.put( "Hits-" + entry.getKey().name(), Long.toString( entry.getValue().sum() ) );
         }
         return Collections.unmodifiableMap( outputMap );
     }

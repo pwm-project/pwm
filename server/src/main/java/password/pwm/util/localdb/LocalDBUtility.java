@@ -54,7 +54,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -96,7 +96,7 @@ public class LocalDBUtility
             throws PwmOperationalException
     {
         Objects.requireNonNull( outputStream );
-        final AtomicLong exportLineCounter = new AtomicLong( 0 );
+        final LongAdder exportLineCounter = new LongAdder();
 
         final long totalLines = countBackupableRecords( debugOutput );
 
@@ -106,7 +106,7 @@ public class LocalDBUtility
 
         final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
         final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask( () ->
-                        outputExportDebugStats( totalLines, exportLineCounter.get(), eventRateMeter, startTime, debugOutput ),
+                        outputExportDebugStats( totalLines, exportLineCounter.sum(), eventRateMeter, startTime, debugOutput ),
                 TimeDuration.MINUTE );
 
         try ( CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( new GZIPOutputStream( outputStream, GZIP_BUFFER_SIZE ) ) )
@@ -125,7 +125,7 @@ public class LocalDBUtility
                             final String key = entry.getKey();
                             final String value = entry.getValue();
                             csvPrinter.printRecord( loopDB.toString(), key, value );
-                            exportLineCounter.incrementAndGet();
+                            exportLineCounter.increment();
                             eventRateMeter.markEvents( 1 );
                             debugOutputter.conditionallyExecuteTask();
                         }
@@ -150,7 +150,7 @@ public class LocalDBUtility
 
         final long totalLines = localDB.size( LocalDB.DB.WORDLIST_WORDS );
 
-        final AtomicLong exportLineCounter = new AtomicLong( 0 );
+        final LongAdder exportLineCounter = new LongAdder();
 
         writeStringToOut( debugOutput, "Wordlist ZIP export beginning of "
                 + StringUtil.formatDiskSize( totalLines ) + " records" );
@@ -158,7 +158,7 @@ public class LocalDBUtility
 
         final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
         final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask( () ->
-                        outputExportDebugStats( totalLines, exportLineCounter.get(), eventRateMeter, startTime, debugOutput ),
+                        outputExportDebugStats( totalLines, exportLineCounter.sum(), eventRateMeter, startTime, debugOutput ),
                 TimeDuration.MINUTE );
 
         try ( ZipOutputStream zipOutputStream = new ZipOutputStream( outputStream, PwmConstants.DEFAULT_CHARSET ) )
@@ -172,7 +172,7 @@ public class LocalDBUtility
                     final String key = entry.getKey();
                     zipOutputStream.write( key.getBytes( PwmConstants.DEFAULT_CHARSET ) );
                     zipOutputStream.write( '\n' );
-                    exportLineCounter.incrementAndGet();
+                    exportLineCounter.increment();
                     eventRateMeter.markEvents( 1 );
                     debugOutputter.conditionallyExecuteTask();
                 }

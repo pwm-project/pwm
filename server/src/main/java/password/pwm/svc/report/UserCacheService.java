@@ -41,6 +41,7 @@ import password.pwm.util.secure.SecureService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class UserCacheService implements PwmService
 {
@@ -81,7 +82,7 @@ public class UserCacheService implements PwmService
         return null;
     }
 
-    UserCacheRecord readStorageKey( final StorageKey storageKey ) throws LocalDBException
+    Optional<UserCacheRecord> readStorageKey( final StorageKey storageKey ) throws LocalDBException
     {
         return cacheStore.read( storageKey );
     }
@@ -115,7 +116,7 @@ public class UserCacheService implements PwmService
     public class UserStatusCacheBeanIterator<K extends StorageKey> implements ClosableIterator
     {
 
-        private LocalDB.LocalDBIterator<Map.Entry<String, String>> innerIterator;
+        private final LocalDB.LocalDBIterator<Map.Entry<String, String>> innerIterator;
 
         private UserStatusCacheBeanIterator( ) throws LocalDBException
         {
@@ -173,7 +174,7 @@ public class UserCacheService implements PwmService
 
     public static class StorageKey
     {
-        private String key;
+        private final String key;
 
         private StorageKey( final String key )
         {
@@ -229,7 +230,7 @@ public class UserCacheService implements PwmService
             localDB.put( DB, key.getKey(), jsonValue );
         }
 
-        private UserCacheRecord read( final StorageKey key )
+        private Optional<UserCacheRecord> read( final StorageKey key )
                 throws LocalDBException
         {
             final String jsonValue = localDB.get( DB, key.getKey() );
@@ -237,7 +238,7 @@ public class UserCacheService implements PwmService
             {
                 try
                 {
-                    return JsonUtil.deserialize( jsonValue, UserCacheRecord.class );
+                    return Optional.of( JsonUtil.deserialize( jsonValue, UserCacheRecord.class ) );
                 }
                 catch ( final JsonSyntaxException e )
                 {
@@ -245,7 +246,7 @@ public class UserCacheService implements PwmService
                     localDB.remove( DB, key.getKey() );
                 }
             }
-            return null;
+            return Optional.empty();
         }
 
         private boolean remove( final StorageKey key )

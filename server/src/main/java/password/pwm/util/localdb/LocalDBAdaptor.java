@@ -22,17 +22,26 @@ package password.pwm.util.localdb;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.util.java.StatisticCounterBundle;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class LocalDBAdaptor implements LocalDB
 {
     private final LocalDBProvider innerDB;
-    private final LocalDBStatistics localDBStatistics = new LocalDBStatistics();
+    private final StatisticCounterBundle<DebugKey> stats = new StatisticCounterBundle<>( DebugKey.class );
+
+    enum DebugKey
+    {
+        readOperations,
+        writeOperations,
+    }
 
     LocalDBAdaptor( final LocalDBProvider innerDB )
     {
@@ -86,7 +95,9 @@ public class LocalDBAdaptor implements LocalDB
 
     public Map<String, Serializable> debugInfo( )
     {
-        return innerDB.debugInfo();
+        final Map<String, Serializable> debugValues = new LinkedHashMap<>( innerDB.debugInfo() );
+        debugValues.putAll( stats.debugStats() );
+        return Collections.unmodifiableMap( debugValues );
     }
 
     @WriteOperation
@@ -198,7 +209,7 @@ public class LocalDBAdaptor implements LocalDB
     public void truncate( final DB db ) throws LocalDBException
     {
         ParameterValidator.validateDBValue( db );
-            innerDB.truncate( db );
+        innerDB.truncate( db );
     }
 
     public Status status( )
@@ -251,11 +262,11 @@ public class LocalDBAdaptor implements LocalDB
 
     private void markRead()
     {
-       this.localDBStatistics.getReadOperations().incrementAndGet();
+        stats.increment( DebugKey.readOperations );
     }
 
     private void markWrite( final int events )
     {
-        this.localDBStatistics.getWriteOperations().addAndGet( events );
+        stats.increment( DebugKey.writeOperations, events );
     }
 }

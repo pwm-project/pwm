@@ -175,12 +175,16 @@ public class HelpdeskVerificationOptionsBean implements Serializable
         {
             final Map<VerificationMethodValue.EnabledState, Collection<IdentityVerificationMethod>> returnMap = new HashMap<>();
             {
-                final Set<IdentityVerificationMethod> optionalMethods = EnumSet.copyOf( helpdeskProfile.readOptionalVerificationMethods() );
+                final Set<IdentityVerificationMethod> optionalMethods = JavaHelper.copiedEnumSet(
+                        helpdeskProfile.readOptionalVerificationMethods(),
+                        IdentityVerificationMethod.class );
                 optionalMethods.removeAll( unavailableMethods );
                 returnMap.put( VerificationMethodValue.EnabledState.optional, optionalMethods );
             }
             {
-                final Set<IdentityVerificationMethod> requiredMethods = EnumSet.copyOf( helpdeskProfile.readRequiredVerificationMethods() );
+                final Set<IdentityVerificationMethod> requiredMethods = JavaHelper.copiedEnumSet(
+                        helpdeskProfile.readRequiredVerificationMethods(),
+                        IdentityVerificationMethod.class );
                 requiredMethods.removeAll( unavailableMethods );
                 returnMap.put( VerificationMethodValue.EnabledState.required, requiredMethods );
             }

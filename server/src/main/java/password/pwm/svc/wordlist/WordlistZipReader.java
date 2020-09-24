@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -45,7 +45,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
 
     private final ZipInputStream zipStream;
     private final CountingInputStream countingInputStream;
-    private final AtomicLong lineCounter = new AtomicLong( 0 );
+    private final LongAdder lineCounter = new LongAdder();
 
     private BufferedReader reader;
     private ZipEntry zipEntry;
@@ -138,7 +138,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
 
         if ( line != null )
         {
-            lineCounter.incrementAndGet();
+            lineCounter.increment();
         }
 
         return line;
@@ -146,7 +146,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
 
     long getLineCount()
     {
-        return lineCounter.get();
+        return lineCounter.sum();
     }
 
     long getByteCount()

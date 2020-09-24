@@ -59,6 +59,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
@@ -288,10 +289,10 @@ public class ReportService implements PwmService
                     while ( this.storageKeyIterator.hasNext() )
                     {
                         final UserCacheService.StorageKey key = this.storageKeyIterator.next();
-                        final UserCacheRecord returnBean = userCacheService.readStorageKey( key );
-                        if ( returnBean != null )
+                        final Optional<UserCacheRecord> returnBean = userCacheService.readStorageKey( key );
+                        if ( returnBean.isPresent() )
                         {
-                            return returnBean;
+                            return returnBean.get();
                         }
 
                     }
