@@ -185,25 +185,25 @@ public class ReportSummaryData
         if ( userCacheRecord.getResponseStorageMethod() != null )
         {
             final DataStorageMethod method = userCacheRecord.getResponseStorageMethod();
-            responseStorage.computeIfAbsent( method, dataStorageMethod -> new LongAdder() );
-            responseStorage.get( method ).increment();
+            responseStorage
+                    .computeIfAbsent( method, dataStorageMethod -> new LongAdder() )
+                    .increment();
         }
 
         if ( userCacheRecord.getLdapProfile() != null )
         {
             final String userProfile = userCacheRecord.getLdapProfile();
-            if ( !ldapProfile.containsKey( userProfile ) )
-            {
-                ldapProfile.put( userProfile, new LongAdder() );
-            }
-            ldapProfile.get( userProfile ).increment();
+            ldapProfile
+                    .computeIfAbsent( userProfile, type -> new LongAdder() )
+                    .increment();
         }
 
         if ( userCacheRecord.getResponseFormatType() != null )
         {
             final Answer.FormatType type = userCacheRecord.getResponseFormatType();
-            responseFormatType.computeIfAbsent( type, formatType -> new LongAdder() );
-            responseFormatType.get( type ).increment();
+            responseFormatType
+                    .computeIfAbsent( type, formatType -> new LongAdder() )
+                    .increment();
         }
 
         if ( userCacheRecord.isHasOtpSecret() )
@@ -395,7 +395,7 @@ public class ReportSummaryData
                     : LocaleHelper.getLocalizedMessage( locale, labelKey, config, Admin.class, new String[]
                     {
                             replacement,
-                    }
+                            }
             );
             final String pct = valueCount > 0 ? new Percent( valueCount, totalUsers ).pretty( 2 ) : "";
             final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );

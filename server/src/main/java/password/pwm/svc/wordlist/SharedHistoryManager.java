@@ -45,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 public class SharedHistoryManager implements PwmService
@@ -73,6 +75,7 @@ public class SharedHistoryManager implements PwmService
     private long oldestEntry;
 
     private final Settings settings = new Settings();
+    private final Lock addWordLock = new ReentrantLock();
 
     public SharedHistoryManager( ) throws LocalDBException
     {
@@ -271,7 +274,7 @@ public class SharedHistoryManager implements PwmService
         return word.length() > 0 ? word : null;
     }
 
-    public synchronized void addWord(
+    public void addWord(
             final SessionLabel sessionLabel,
             final String word
     )
@@ -290,6 +293,7 @@ public class SharedHistoryManager implements PwmService
 
         final Instant startTime = Instant.now();
 
+        addWordLock.lock();
         try
         {
             final String hashedWord = hashWord( addWord );
@@ -304,6 +308,10 @@ public class SharedHistoryManager implements PwmService
         catch ( final Exception e )
         {
             LOGGER.warn( sessionLabel, () -> "error adding word to global history list: " + e.getMessage() );
+        }
+        finally
+        {
+            addWordLock.unlock();
         }
     }
 

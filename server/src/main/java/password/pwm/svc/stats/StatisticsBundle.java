@@ -30,6 +30,8 @@ import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class StatisticsBundle
 {
@@ -124,32 +126,56 @@ public class StatisticsBundle
 
     private static class AverageBean implements Serializable
     {
-        BigInteger total = BigInteger.ZERO;
-        BigInteger count = BigInteger.ZERO;
+        private BigInteger total = BigInteger.ZERO;
+        private BigInteger count = BigInteger.ZERO;
+        private final Lock lock = new ReentrantLock();
 
         AverageBean( )
         {
         }
 
-        synchronized BigInteger getAverage( )
+        BigInteger getAverage( )
         {
-            if ( BigInteger.ZERO.equals( count ) )
+            lock.lock();
+            try
             {
-                return BigInteger.ZERO;
+                if ( BigInteger.ZERO.equals( count ) )
+                {
+                    return BigInteger.ZERO;
+                }
+                return total.divide( count );
             }
-
-            return total.divide( count );
+            finally
+            {
+                lock.unlock();
+            }
         }
 
-        synchronized void appendValue( final long value )
+        void appendValue( final long value )
         {
-            count = count.add( BigInteger.ONE );
-            total = total.add( BigInteger.valueOf( value ) );
+            lock.lock();
+            try
+            {
+                count = count.add( BigInteger.ONE );
+                total = total.add( BigInteger.valueOf( value ) );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
-        synchronized boolean isZero()
+        boolean isZero()
         {
-            return total.equals( BigInteger.ZERO );
+            lock.lock();
+            try
+            {
+                return total.equals( BigInteger.ZERO );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
     }
 }

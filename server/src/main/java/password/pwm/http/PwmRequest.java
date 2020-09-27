@@ -69,6 +69,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public class PwmRequest extends PwmHttpRequestWrapper
@@ -85,6 +87,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     private final Set<PwmRequestFlag> flags = EnumSet.noneOf( PwmRequestFlag.class );
     private final Instant requestStartTime = Instant.now();
+    private final Lock cspCreationLock = new ReentrantLock();
 
     public static PwmRequest forRequest(
             final HttpServletRequest request,
@@ -495,16 +498,24 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return ssBean.getLogoutURL() == null ? pwmApplication.getConfig().readSettingAsString( PwmSetting.URL_LOGOUT ) : ssBean.getLogoutURL();
     }
 
-    public synchronized String getCspNonce( )
+    public String getCspNonce( )
     {
-        if ( getAttribute( PwmRequestAttribute.CspNonce ) == null )
+        cspCreationLock.lock();
+        try
         {
-            final int nonceLength = Integer.parseInt( getConfig().readAppProperty( AppProperty.HTTP_HEADER_CSP_NONCE_BYTES ) );
-            final byte[] cspNonce = pwmApplication.getSecureService().pwmRandom().newBytes( nonceLength );
-            final String cspString = StringUtil.base64Encode( cspNonce );
-            setAttribute( PwmRequestAttribute.CspNonce, cspString );
+            if ( getAttribute( PwmRequestAttribute.CspNonce ) == null )
+            {
+                final int nonceLength = Integer.parseInt( getConfig().readAppProperty( AppProperty.HTTP_HEADER_CSP_NONCE_BYTES ) );
+                final byte[] cspNonce = pwmApplication.getSecureService().pwmRandom().newBytes( nonceLength );
+                final String cspString = StringUtil.base64Encode( cspNonce );
+                setAttribute( PwmRequestAttribute.CspNonce, cspString );
+            }
+            return ( String ) getAttribute( PwmRequestAttribute.CspNonce );
         }
-        return ( String ) getAttribute( PwmRequestAttribute.CspNonce );
+        finally
+        {
+            cspCreationLock.unlock();
+        }
     }
 
     public <T extends Serializable> T readEncryptedCookie( final String cookieName, final Class<T> returnClass )

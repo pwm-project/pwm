@@ -256,7 +256,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         return -1;
     }
 
-    public synchronized void close( )
+    public void close( )
     {
         final TimeDuration closeWaitTime = TimeDuration.of( 1, TimeDuration.Unit.MINUTES );
 

@@ -44,6 +44,7 @@ import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -86,8 +87,14 @@ public class LdapConnectionService implements PwmService
     private volatile STATUS status = STATUS.CLOSED;
 
     private boolean useThreadLocal;
-    private final AtomicLoopIntIncrementer statCreatedProxies = new AtomicLoopIntIncrementer();
-    private final AtomicLoopIntIncrementer statClearedThreadLocals = new AtomicLoopIntIncrementer();
+
+    private final StatisticCounterBundle<StatKey> stats = new StatisticCounterBundle<>( StatKey.class );
+
+    enum StatKey
+    {
+        createdProxies,
+        clearedThreadLocals,
+    }
 
     private enum DebugKey
     {
@@ -276,7 +283,7 @@ public class LdapConnectionService implements PwmService
             LOGGER.trace( () -> "created new system proxy chaiProvider id=" + chaiProvider.toString()
                     + " for ldap profile '" + ldapProfile.getIdentifier() + "'"
                     + " thread=" + Thread.currentThread().getName() );
-            statCreatedProxies.next();
+            stats.increment( StatKey.createdProxies );
             return chaiProvider;
         }
         catch ( final PwmUnrecoverableException e )
@@ -436,8 +443,8 @@ public class LdapConnectionService implements PwmService
         debugInfo.put( DebugKey.Allocated, String.valueOf( allocatedConnections ) );
         debugInfo.put( DebugKey.CurrentActive, String.valueOf( activeConnections ) );
         debugInfo.put( DebugKey.ThreadLocals, String.valueOf( threadLocalConnections.get( ) ) );
-        debugInfo.put( DebugKey.CreatedProviders, String.valueOf( statCreatedProxies.get() ) );
-        debugInfo.put( DebugKey.DiscardedThreadLocals, String.valueOf( statClearedThreadLocals.get() ) );
+        debugInfo.put( DebugKey.CreatedProviders, String.valueOf( stats.get( StatKey.createdProxies ) ) );
+        debugInfo.put( DebugKey.DiscardedThreadLocals, String.valueOf( stats.get( StatKey.clearedThreadLocals ) ) );
         return Collections.unmodifiableMap( JavaHelper.enumMapToStringMap( debugInfo ) );
     }
 
@@ -474,7 +481,7 @@ public class LdapConnectionService implements PwmService
                         {
                             LOGGER.trace( () -> "discarding idled connection id=" + chaiProvider.toString() + " from orphaned threadLocal, age="
                                     + age.asCompactString() + ", thread=" + container.getThreadName() );
-                            statClearedThreadLocals.next();
+                            stats.increment( StatKey.clearedThreadLocals );
                         }
                         container.getProviderMap().clear();
                     }

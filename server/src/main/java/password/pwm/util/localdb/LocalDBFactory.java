@@ -35,6 +35,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Jason D. Rivard
@@ -42,8 +44,9 @@ import java.util.Map;
 public class LocalDBFactory
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LocalDBFactory.class );
+    private static final Lock CREATION_LOCK = new ReentrantLock();
 
-    public static synchronized LocalDB getInstance(
+    public static LocalDB getInstance(
             final File dbDirectory,
             final boolean readonly,
             final PwmEnvironment pwmEnvironment,
@@ -51,66 +54,74 @@ public class LocalDBFactory
     )
             throws Exception
     {
-        final Configuration config = ( configuration == null && pwmEnvironment != null )
-                ? pwmEnvironment.getConfig()
-                : configuration;
-
-        final long startTime = System.currentTimeMillis();
-
-        final String className;
-        final Map<String, String> initParameters;
-        if ( config == null )
+        CREATION_LOCK.lock();
+        try
         {
-            className = AppProperty.LOCALDB_IMPLEMENTATION.getDefaultValue();
-            final String initStrings = AppProperty.LOCALDB_INIT_STRING.getDefaultValue();
-            initParameters = StringUtil.convertStringListToNameValuePair( Arrays.asList( initStrings.split( ";;;" ) ), "=" );
-        }
-        else
-        {
-            className = config.readAppProperty( AppProperty.LOCALDB_IMPLEMENTATION );
-            final String initStrings = config.readAppProperty( AppProperty.LOCALDB_INIT_STRING );
-            initParameters = StringUtil.convertStringListToNameValuePair( Arrays.asList( initStrings.split( ";;;" ) ), "=" );
-        }
+            final Configuration config = ( configuration == null && pwmEnvironment != null )
+                    ? pwmEnvironment.getConfig()
+                    : configuration;
 
-        final Map<LocalDBProvider.Parameter, String> parameters = pwmEnvironment == null
-                ? Collections.emptyMap()
-                : makeParameterMap( pwmEnvironment.getConfig(), readonly );
-        final LocalDBProvider dbProvider = createInstance( className );
-        LOGGER.debug( () -> "initializing " + className + " localDBProvider instance" );
+            final long startTime = System.currentTimeMillis();
 
-        final LocalDB localDB = new LocalDBAdaptor( dbProvider );
-
-        initInstance( dbProvider, dbDirectory, initParameters, className, parameters );
-        final TimeDuration openTime = TimeDuration.of( System.currentTimeMillis() - startTime, TimeDuration.Unit.MILLISECONDS );
-
-        if ( !readonly )
-        {
-            LOGGER.trace( () -> "clearing TEMP db" );
-            localDB.truncate( LocalDB.DB.TEMP );
-
-            final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
-            if ( localDBUtility.readImportInprogressFlag() )
+            final String className;
+            final Map<String, String> initParameters;
+            if ( config == null )
             {
-                LOGGER.error( () -> "previous database import process did not complete successfully, clearing all data" );
-                localDBUtility.cancelImportProcess();
+                className = AppProperty.LOCALDB_IMPLEMENTATION.getDefaultValue();
+                final String initStrings = AppProperty.LOCALDB_INIT_STRING.getDefaultValue();
+                initParameters = StringUtil.convertStringListToNameValuePair( Arrays.asList( initStrings.split( ";;;" ) ), "=" );
             }
-        }
-
-        final StringBuilder debugText = new StringBuilder();
-        debugText.append( "LocalDB open" );
-        if ( localDB.getFileLocation() != null )
-        {
-            debugText.append( ", db size: " ).append( StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( localDB.getFileLocation() ) ) );
-            debugText.append( " at " ).append( dbDirectory.toString() );
-            final long freeSpace = FileSystemUtility.diskSpaceRemaining( localDB.getFileLocation() );
-            if ( freeSpace >= 0 )
+            else
             {
-                debugText.append( ", " ).append( StringUtil.formatDiskSize( freeSpace ) ).append( " free" );
+                className = config.readAppProperty( AppProperty.LOCALDB_IMPLEMENTATION );
+                final String initStrings = config.readAppProperty( AppProperty.LOCALDB_INIT_STRING );
+                initParameters = StringUtil.convertStringListToNameValuePair( Arrays.asList( initStrings.split( ";;;" ) ), "=" );
             }
-        }
-        LOGGER.info( () -> debugText, () -> openTime );
 
-        return localDB;
+            final Map<LocalDBProvider.Parameter, String> parameters = pwmEnvironment == null
+                    ? Collections.emptyMap()
+                    : makeParameterMap( pwmEnvironment.getConfig(), readonly );
+            final LocalDBProvider dbProvider = createInstance( className );
+            LOGGER.debug( () -> "initializing " + className + " localDBProvider instance" );
+
+            final LocalDB localDB = new LocalDBAdaptor( dbProvider );
+
+            initInstance( dbProvider, dbDirectory, initParameters, className, parameters );
+            final TimeDuration openTime = TimeDuration.of( System.currentTimeMillis() - startTime, TimeDuration.Unit.MILLISECONDS );
+
+            if ( !readonly )
+            {
+                LOGGER.trace( () -> "clearing TEMP db" );
+                localDB.truncate( LocalDB.DB.TEMP );
+
+                final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
+                if ( localDBUtility.readImportInprogressFlag() )
+                {
+                    LOGGER.error( () -> "previous database import process did not complete successfully, clearing all data" );
+                    localDBUtility.cancelImportProcess();
+                }
+            }
+
+            final StringBuilder debugText = new StringBuilder();
+            debugText.append( "LocalDB open" );
+            if ( localDB.getFileLocation() != null )
+            {
+                debugText.append( ", db size: " ).append( StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( localDB.getFileLocation() ) ) );
+                debugText.append( " at " ).append( dbDirectory.toString() );
+                final long freeSpace = FileSystemUtility.diskSpaceRemaining( localDB.getFileLocation() );
+                if ( freeSpace >= 0 )
+                {
+                    debugText.append( ", " ).append( StringUtil.formatDiskSize( freeSpace ) ).append( " free" );
+                }
+            }
+            LOGGER.info( () -> debugText, () -> openTime );
+
+            return localDB;
+        }
+        finally
+        {
+            CREATION_LOCK.unlock();
+        }
     }
 
     private static LocalDBProvider createInstance( final String className )

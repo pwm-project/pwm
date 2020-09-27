@@ -158,7 +158,7 @@ public class JsonUtil
         {
         }
 
-        public synchronized JsonElement serialize( final X509Certificate cert, final Type type, final JsonSerializationContext jsonSerializationContext )
+        public JsonElement serialize( final X509Certificate cert, final Type type, final JsonSerializationContext jsonSerializationContext )
         {
             try
             {
@@ -207,12 +207,12 @@ public class JsonUtil
         {
         }
 
-        public synchronized JsonElement serialize( final Date date, final Type type, final JsonSerializationContext jsonSerializationContext )
+        public JsonElement serialize( final Date date, final Type type, final JsonSerializationContext jsonSerializationContext )
         {
             return new JsonPrimitive( ISO_DATE_FORMAT.format( date.toInstant() ) );
         }
 
-        public synchronized Date deserialize( final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext )
+        public Date deserialize( final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext )
         {
             try
             {
@@ -245,12 +245,12 @@ public class JsonUtil
         {
         }
 
-        public synchronized JsonElement serialize( final Instant instant, final Type type, final JsonSerializationContext jsonSerializationContext )
+        public JsonElement serialize( final Instant instant, final Type type, final JsonSerializationContext jsonSerializationContext )
         {
             return new JsonPrimitive( JavaHelper.toIsoDate( instant ) );
         }
 
-        public synchronized Instant deserialize( final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext )
+        public Instant deserialize( final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext )
         {
             try
             {
@@ -270,7 +270,7 @@ public class JsonUtil
         {
         }
 
-        public synchronized ChallengeSet deserialize( final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext )
+        public ChallengeSet deserialize( final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext )
         {
             try
             {

@@ -48,6 +48,8 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -460,6 +462,7 @@ public class SecureEngine
         private final byte[] value;
 
         private final int fixedComponentLength;
+        private final Lock lock = new ReentrantLock();
 
         NonceGenerator( final int fixedComponentLength, final int counterComponentLength )
         {
@@ -470,8 +473,16 @@ public class SecureEngine
 
         public synchronized byte[] nextValue( )
         {
-            increment( value.length - 1 );
-            return Arrays.copyOf( value, value.length );
+            lock.lock();
+            try
+            {
+                increment( value.length - 1 );
+                return Arrays.copyOf( value, value.length );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
         private void increment( final int index )

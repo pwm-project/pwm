@@ -69,7 +69,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
         this.internalQueue = new InternalQueue( localDB, db, developerDebug );
     }
 
-    public static synchronized LocalDBStoredQueue createLocalDBStoredQueue(
+    public static LocalDBStoredQueue createLocalDBStoredQueue(
             final PwmApplication pwmApplication,
             final LocalDB pwmDB,
             final LocalDB.DB db
@@ -90,7 +90,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
         return new LocalDBStoredQueue( pwmDB, db, developerDebug );
     }
 
-    public static synchronized LocalDBStoredQueue createLocalDBStoredQueue(
+    public static LocalDBStoredQueue createLocalDBStoredQueue(
             final LocalDB pwmDB,
             final LocalDB.DB db,
             final boolean debugEnabled

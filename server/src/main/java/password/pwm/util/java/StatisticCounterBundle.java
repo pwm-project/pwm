@@ -74,5 +74,4 @@ public class StatisticCounterBundle<K extends Enum<K>>
     {
         return new LongAccumulator( Long::sum, 0L );
     }
-
 }

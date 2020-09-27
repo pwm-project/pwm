@@ -23,38 +23,57 @@ package password.pwm.util.java;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
+import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class AverageTracker
 {
     private final int maxSamples;
-    private final Queue<BigInteger> samples = new ConcurrentLinkedQueue<>();
+    private final Queue<BigInteger> samples = new ArrayDeque<>();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public AverageTracker( final int maxSamples )
     {
         this.maxSamples = maxSamples;
     }
 
-    public synchronized void addSample( final long input )
+    public void addSample( final long input )
     {
-        samples.add( BigInteger.valueOf( input ) );
-        while ( samples.size() > maxSamples )
+        lock.writeLock().lock();
+        try
         {
-            samples.remove();
+            samples.add( BigInteger.valueOf( input ) );
+            while ( samples.size() > maxSamples )
+            {
+                samples.remove();
+            }
+        }
+        finally
+        {
+            lock.writeLock().unlock();
         }
     }
 
-    public synchronized BigDecimal avg( )
+    public BigDecimal avg( )
     {
-        if ( samples.isEmpty() )
+        lock.readLock().lock();
+        try
         {
-            return BigDecimal.ZERO;
-        }
+            if ( samples.isEmpty() )
+            {
+                return BigDecimal.ZERO;
+            }
 
-        final BigInteger total = samples.stream().reduce( BigInteger::add ).get();
-        final BigDecimal sampleSize = new BigDecimal( samples.size() );
-        return new BigDecimal( total ).divide( sampleSize, MathContext.DECIMAL128 );
+            final BigInteger total = samples.stream().reduce( BigInteger::add ).get();
+            final BigDecimal sampleSize = new BigDecimal( samples.size() );
+            return new BigDecimal( total ).divide( sampleSize, MathContext.DECIMAL128 );
+        }
+        finally
+        {
+            lock.readLock().unlock();
+        }
     }
 
     public long avgAsLong( )

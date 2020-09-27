@@ -26,19 +26,11 @@ import java.util.Map;
 
 public class SmsResponse
 {
-    public static final SmsResponse INSTANCE = new SmsResponse();
-
-    Map<String, ArrayList<SmsPostResponseBody>> recentSmsMessages;
+    private Map<String, ArrayList<SmsPostResponseBody>> recentSmsMessages;
 
     public SmsResponse()
     {
-        this.recentSmsMessages = new HashMap<String, ArrayList<SmsPostResponseBody>>();
-    }
-
-    /** Getters and Setters. */
-    public static synchronized SmsResponse getInstance()
-    {
-        return INSTANCE;
+        this.recentSmsMessages = new HashMap<>();
     }
 
     Map<String, ArrayList<SmsPostResponseBody>> getRecentSmsMessages()

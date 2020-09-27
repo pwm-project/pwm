@@ -45,7 +45,7 @@ public class RestTestSmsGatewayServlet extends HttpServlet
     @Override
     protected void doPost( final HttpServletRequest req, final HttpServletResponse resp ) throws ServletException, IOException
     {
-            final SmsResponse instance = SmsResponse.getInstance();
+            final SmsResponse instance = new SmsResponse();
             final InputStream inputStream = req.getInputStream();
             final String body = IOUtils.toString( inputStream );
 
@@ -69,7 +69,7 @@ public class RestTestSmsGatewayServlet extends HttpServlet
     protected void doGet( final HttpServletRequest req, final HttpServletResponse resp ) throws IOException
     {
             //Check request
-            final SmsResponse instance = SmsResponse.getInstance();
+            final SmsResponse instance = new SmsResponse();
             final String requestUsername = req.getParameter( USERNAME_PARAMETER );
             final SmsGetResponseBody responseBody;
 

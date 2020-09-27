@@ -52,7 +52,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 /**
@@ -72,6 +74,7 @@ public final class WorkQueueProcessor<W extends Serializable>
     private volatile WorkerThread workerThread;
 
     private final AtomicLoopIntIncrementer idGenerator = new AtomicLoopIntIncrementer();
+    private final Lock submitLock = new ReentrantLock();
     private Instant eldestItem = null;
 
     private ThreadPoolExecutor executorService;
@@ -239,34 +242,43 @@ public final class WorkQueueProcessor<W extends Serializable>
         }
     }
 
-    private synchronized void submitToQueue( final ItemWrapper<W> itemWrapper ) throws PwmOperationalException
+    private void submitToQueue( final ItemWrapper<W> itemWrapper )
+            throws PwmOperationalException
     {
-        if ( workerThread == null )
+        submitLock.lock();
+        try
         {
-            final String errorMsg = this.getClass().getName() + " has been closed, unable to submit new item";
-            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
-        }
-
-        final String asString = JsonUtil.serialize( itemWrapper );
-
-        if ( settings.getMaxEvents() > 0 )
-        {
-            final Instant startTime = Instant.now();
-            while ( !queue.offerLast( asString ) )
+            if ( workerThread == null )
             {
-                if ( TimeDuration.fromCurrent( startTime ).isLongerThan( settings.getMaxSubmitWaitTime() ) )
-                {
-                    final String errorMsg = "unable to submit item to worker queue after " + settings.getMaxSubmitWaitTime().asCompactString()
-                            + ", item=" + itemProcessor.convertToDebugString( itemWrapper.getWorkItem() );
-                    throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
-                }
-                SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.pause();
+                final String errorMsg = this.getClass().getName() + " has been closed, unable to submit new item";
+                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
             }
 
-            eldestItem = itemWrapper.getDate();
-            workerThread.notifyWorkPending();
+            final String asString = JsonUtil.serialize( itemWrapper );
 
-            logger.trace( () -> "item submitted: " + makeDebugText( itemWrapper ) );
+            if ( settings.getMaxEvents() > 0 )
+            {
+                final Instant startTime = Instant.now();
+                while ( !queue.offerLast( asString ) )
+                {
+                    if ( TimeDuration.fromCurrent( startTime ).isLongerThan( settings.getMaxSubmitWaitTime() ) )
+                    {
+                        final String errorMsg = "unable to submit item to worker queue after " + settings.getMaxSubmitWaitTime().asCompactString()
+                                + ", item=" + itemProcessor.convertToDebugString( itemWrapper.getWorkItem() );
+                        throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
+                    }
+                    SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.pause();
+                }
+
+                eldestItem = itemWrapper.getDate();
+                workerThread.notifyWorkPending();
+
+                logger.trace( () -> "item submitted: " + makeDebugText( itemWrapper ) );
+            }
+        }
+        finally
+        {
+            submitLock.unlock();
         }
     }
 

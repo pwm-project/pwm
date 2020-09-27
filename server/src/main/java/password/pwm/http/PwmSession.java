@@ -52,6 +52,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Jason D. Rivard
@@ -73,19 +75,24 @@ public class PwmSession implements Serializable
     private LoginInfoBean loginInfoBean;
     private transient UserInfo userInfo;
 
-    private static final Object CREATION_LOCK = new Object();
+    private static final Lock CREATION_LOCK = new ReentrantLock();
 
+    private final Lock securityKeyLock = new ReentrantLock();
     private final transient SessionManager sessionManager;
 
     public static PwmSession createPwmSession( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
-        synchronized ( CREATION_LOCK )
+        CREATION_LOCK.lock();
+        try
         {
             return new PwmSession( pwmApplication );
         }
+        finally
+        {
+            CREATION_LOCK.unlock();
+        }
     }
-
 
     private PwmSession( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
@@ -359,42 +366,50 @@ public class PwmSession implements Serializable
         return ( int ) JavaHelper.sizeof( this );
     }
 
-    synchronized PwmSecurityKey getSecurityKey( final PwmRequest pwmRequest )
+    PwmSecurityKey getSecurityKey( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final int length = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
-        final String cookieName =  pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
-
-        String nonce = (String) pwmRequest.getAttribute( PwmRequestAttribute.CookieNonce );
-        if ( nonce == null || nonce.length() < length )
+        securityKeyLock.lock();
+        try
         {
-            nonce = pwmRequest.readCookie( cookieName );
-        }
+            final int length = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
+            final String cookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
 
-        boolean newNonce = false;
-        if ( nonce == null || nonce.length() < length )
+            String nonce = ( String ) pwmRequest.getAttribute( PwmRequestAttribute.CookieNonce );
+            if ( nonce == null || nonce.length() < length )
+            {
+                nonce = pwmRequest.readCookie( cookieName );
+            }
+
+            boolean newNonce = false;
+            if ( nonce == null || nonce.length() < length )
+            {
+                // random value
+                final String random = pwmRequest.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
+
+                // timestamp component for uniqueness
+                final String prefix = Long.toString( System.currentTimeMillis(), Character.MAX_RADIX );
+
+                nonce = random + prefix;
+                newNonce = true;
+            }
+
+            final PwmSecurityKey securityKey = pwmRequest.getConfig().getSecurityKey();
+            final String concatValue = securityKey.keyHash( pwmRequest.getPwmApplication().getSecureService() ) + nonce;
+            final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( concatValue );
+            final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( hashValue );
+
+            if ( newNonce )
+            {
+                pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, nonce );
+                pwmRequest.getPwmResponse().writeCookie( cookieName, nonce, -1, PwmHttpResponseWrapper.CookiePath.Application );
+            }
+
+            return pwmSecurityKey;
+        }
+        finally
         {
-            // random value
-            final String random = pwmRequest.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
-
-            // timestamp component for uniqueness
-            final String prefix = Long.toString( System.currentTimeMillis(), Character.MAX_RADIX );
-
-            nonce = random + prefix;
-            newNonce = true;
+            securityKeyLock.unlock();
         }
-
-        final PwmSecurityKey securityKey = pwmRequest.getConfig().getSecurityKey();
-        final String concatValue = securityKey.keyHash( pwmRequest.getPwmApplication().getSecureService() ) + nonce;
-        final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( concatValue );
-        final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( hashValue );
-
-        if ( newNonce )
-        {
-            pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, nonce );
-            pwmRequest.getPwmResponse().writeCookie( cookieName, nonce, -1, PwmHttpResponseWrapper.CookiePath.Application );
-        }
-
-        return pwmSecurityKey;
     }
 }
