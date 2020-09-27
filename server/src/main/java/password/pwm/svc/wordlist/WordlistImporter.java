@@ -260,7 +260,7 @@ class WordlistImporter implements Runnable
         }
 
         final WordType wordType = WordType.determineWordType( input );
-        seenWordTypes.getOrDefault( wordType, new LongAdder() ).increment();
+        seenWordTypes.computeIfAbsent( wordType, t -> new LongAdder() ).increment();
 
         if ( wordType == WordType.RAW )
         {
