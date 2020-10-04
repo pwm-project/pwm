@@ -245,40 +245,47 @@ public final class WorkQueueProcessor<W extends Serializable>
     private void submitToQueue( final ItemWrapper<W> itemWrapper )
             throws PwmOperationalException
     {
-        submitLock.lock();
-        try
+        if ( workerThread == null )
         {
-            if ( workerThread == null )
+            final String errorMsg = this.getClass().getName() + " has been closed, unable to submit new item";
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
+        }
+
+        if ( settings.getMaxEvents() <= 0 )
+        {
+            return;
+        }
+
+        final Instant startTime = Instant.now();
+        int attempts = 1;
+
+        final String asString = JsonUtil.serialize( itemWrapper );
+        while ( !queue.offerLast( asString ) )
+        {
+            attempts++;
+            final TimeDuration waitTime = TimeDuration.fromCurrent( startTime );
+            if ( waitTime.isLongerThan( settings.getMaxSubmitWaitTime() ) )
             {
-                final String errorMsg = this.getClass().getName() + " has been closed, unable to submit new item";
+                final String errorMsg = "unable to submit item to worker queue after " + waitTime.asCompactString()
+                        + " and " + attempts + " attempts, item=" + itemProcessor.convertToDebugString( itemWrapper.getWorkItem() );
                 throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
             }
-
-            final String asString = JsonUtil.serialize( itemWrapper );
-
-            if ( settings.getMaxEvents() > 0 )
-            {
-                final Instant startTime = Instant.now();
-                while ( !queue.offerLast( asString ) )
-                {
-                    if ( TimeDuration.fromCurrent( startTime ).isLongerThan( settings.getMaxSubmitWaitTime() ) )
-                    {
-                        final String errorMsg = "unable to submit item to worker queue after " + settings.getMaxSubmitWaitTime().asCompactString()
-                                + ", item=" + itemProcessor.convertToDebugString( itemWrapper.getWorkItem() );
-                        throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
-                    }
-                    SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.pause();
-                }
-
-                eldestItem = itemWrapper.getDate();
-                workerThread.notifyWorkPending();
-
-                logger.trace( () -> "item submitted: " + makeDebugText( itemWrapper ) );
-            }
+            SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.pause();
         }
-        finally
+
+        eldestItem = itemWrapper.getDate();
+        workerThread.notifyWorkPending();
+
+        if ( attempts > 1 )
         {
-            submitLock.unlock();
+            logger.trace( () -> "item submitted directly to queue: " + makeDebugText( itemWrapper ),
+                    () -> TimeDuration.fromCurrent( startTime ) );
+        }
+        else
+        {
+            final int finalAttempts = attempts;
+            logger.debug( () -> "item submitted to queue after " + finalAttempts + " attempts: "
+                    + makeDebugText( itemWrapper ), () -> TimeDuration.fromCurrent( startTime ) );
         }
     }
 

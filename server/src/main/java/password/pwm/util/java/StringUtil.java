@@ -352,7 +352,17 @@ public abstract class StringUtil
         }
     }
 
-    public static String padEndToLength( final String input, final int length, final char appendChar )
+    public static String padRight( final String input, final int length, final char appendChar )
+    {
+        return padImpl( input, length, appendChar, true );
+    }
+
+    public static String padLeft( final String input, final int length, final char appendChar )
+    {
+        return padImpl( input, length, appendChar, false );
+    }
+
+    private static String padImpl( final String input, final int length, final char appendChar, final boolean right )
     {
         if ( input == null )
         {
@@ -367,7 +377,14 @@ public abstract class StringUtil
         final StringBuilder sb = new StringBuilder( input );
         while ( sb.length() < length )
         {
-            sb.append( appendChar );
+            if ( right )
+            {
+                sb.append( appendChar );
+            }
+            else
+            {
+                sb.insert( 0, appendChar );
+            }
         }
 
         return sb.toString();

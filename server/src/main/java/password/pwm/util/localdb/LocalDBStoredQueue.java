@@ -390,7 +390,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
         try
         {
             final List<String> values = internalQueue.getFirst( 1 );
-            if ( values == null || values.isEmpty() )
+            if ( JavaHelper.isEmpty( values ) )
             {
                 return null;
             }

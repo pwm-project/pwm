@@ -197,4 +197,11 @@ public class PwmSettingTest
             seenKeys.add( pwmSetting.getKey() );
         }
     }
+
+    @Test
+    public void sortedByMenuLocation()
+    {
+        final Set<PwmSetting> sortedSet = PwmSetting.sortedByMenuLocation( PwmConstants.DEFAULT_LOCALE );
+        Assert.assertEquals( sortedSet.size(), PwmSetting.values().length );
+    }
 }

@@ -212,7 +212,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
             sb.append( this.getTimestamp().toString() );
             sb.append( ", " );
         }
-        sb.append( StringUtil.padEndToLength( getLevel().toString(), 5, ' ' ) );
+        sb.append( StringUtil.padRight( getLevel().toString(), 5, ' ' ) );
         sb.append( ", " );
         sb.append( shortenTopic( this.topic ) );
         sb.append( ", " );

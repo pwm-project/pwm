@@ -20,6 +20,7 @@
 
 package password.pwm.svc.stats;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -126,9 +127,13 @@ public class StatisticsBundle
 
     private static class AverageBean implements Serializable
     {
+        private static final long serialVersionUID = 1L;
+
         private BigInteger total = BigInteger.ZERO;
         private BigInteger count = BigInteger.ZERO;
-        private final Lock lock = new ReentrantLock();
+
+        @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
+        private final transient Lock lock = new ReentrantLock();
 
         AverageBean( )
         {

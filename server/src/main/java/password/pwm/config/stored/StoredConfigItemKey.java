@@ -27,15 +27,14 @@ import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class StoredConfigItemKey implements Serializable, Comparable<StoredConfigItemKey>
@@ -63,9 +62,9 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     private final String recordID;
     private final String profileID;
 
-    private final transient Supplier<String> toStringSupplier = new LazySupplier<>( () -> this.getLabel( PwmConstants.DEFAULT_LOCALE ) );
-
     private static final long serialVersionUID = 1L;
+
+
 
     private StoredConfigItemKey( final RecordType recordType, final String recordID, final String profileID )
     {
@@ -223,31 +222,39 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     }
 
     @Override
-    public int hashCode()
+    public boolean equals( final Object o )
     {
-        return toString().hashCode();
+        if ( this == o )
+        {
+            return true;
+        }
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+        final StoredConfigItemKey that = ( StoredConfigItemKey ) o;
+        return Objects.equals( recordType, that.recordType )
+                && Objects.equals( recordID, that.recordID )
+                && Objects.equals( profileID, that.profileID );
     }
 
     @Override
-    public boolean equals( final Object anotherObject )
+    public int hashCode()
     {
-        return anotherObject instanceof StoredConfigItemKey
-                && toString().equals( anotherObject.toString() );
+        return Objects.hash( recordType, recordID, profileID );
     }
 
     @Override
     public String toString()
     {
-        return toStringSupplier.get();
+        return getLabel( PwmConstants.DEFAULT_LOCALE );
     }
 
     @Override
     public int compareTo( final StoredConfigItemKey o )
     {
-        return toString().compareTo( o.toString() );
+        return comparator( PwmConstants.DEFAULT_LOCALE ).compare( this, o );
     }
-
-
 
     public PwmSettingSyntax getSyntax()
     {
@@ -285,4 +292,32 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
 
         return Collections.unmodifiableSet( input.stream().filter( ( k ) -> k.isRecordType( recordType ) ).collect( Collectors.toSet() ) );
     }
+
+    private static Comparator<StoredConfigItemKey> comparator( final Locale locale )
+    {
+        final Comparator<StoredConfigItemKey> typeComparator = Comparator.comparing(
+                StoredConfigItemKey::getRecordType,
+                Comparator.nullsLast( Comparator.naturalOrder() ) );
+
+        final Comparator<StoredConfigItemKey> recordComparator = ( o1, o2 ) ->
+        {
+            if ( Objects.equals( o1.getRecordType(), o2.getRecordType() )
+                    && o1.isRecordType( RecordType.SETTING ) )
+            {
+                final Comparator<PwmSetting> pwmSettingComparator = PwmSetting.menuLocationComparator( locale );
+                return pwmSettingComparator.compare( o1.toPwmSetting(), o2.toPwmSetting() );
+            }
+            else
+            {
+                return o1.getRecordID().compareTo( o2.getRecordID() );
+            }
+        };
+
+        final Comparator<StoredConfigItemKey> profileComparator = Comparator.comparing( StoredConfigItemKey::getProfileID,
+                Comparator.nullsLast( Comparator.naturalOrder() ) );
+
+        return typeComparator.thenComparing( recordComparator ).thenComparing( profileComparator );
+    }
+
+
 }

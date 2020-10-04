@@ -32,7 +32,8 @@ public class AverageTracker
 {
     private final int maxSamples;
     private final Queue<BigInteger> samples = new ArrayDeque<>();
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+    private final transient ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public AverageTracker( final int maxSamples )
     {
