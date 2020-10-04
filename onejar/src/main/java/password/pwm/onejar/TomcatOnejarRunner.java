@@ -20,6 +20,7 @@
 
 package password.pwm.onejar;
 
+import org.apache.catalina.LifecycleException;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.util.ServerInfo;
@@ -53,6 +54,7 @@ import java.util.stream.Collectors;
 public class TomcatOnejarRunner
 {
     private final OnejarMain onejarMain;
+    private Tomcat tomcat;
 
     public TomcatOnejarRunner( final OnejarMain onejarMain )
     {
@@ -83,7 +85,7 @@ public class TomcatOnejarRunner
 
         setupEnv( onejarConfig );
 
-        final Tomcat tomcat = new Tomcat();
+        tomcat = new Tomcat();
         tomcat.setSilent( true );
 
         {
@@ -122,8 +124,6 @@ public class TomcatOnejarRunner
             throw new OnejarException( "unable to start tomcat: " + e.getMessage() );
         }
         tomcat.getServer().await();
-
-        System.out.println( "\nexiting..." );
     }
 
     private void deployRedirectConnector( final Tomcat tomcat, final OnejarConfig onejarConfig )
@@ -299,5 +299,16 @@ public class TomcatOnejarRunner
             }
         }
         return URLClassLoader.newInstance( jarURLList.toArray( new URL[0] ) );
+    }
+
+    public void shutdown() throws LifecycleException
+    {
+        if ( tomcat != null )
+        {
+            final Tomcat localTomcat = tomcat;
+            localTomcat.stop();
+            localTomcat.destroy();
+            tomcat = null;
+        }
     }
 }

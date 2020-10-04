@@ -20,6 +20,8 @@
 
 package password.pwm.onejar;
 
+import org.apache.catalina.LifecycleException;
+
 import javax.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
@@ -108,6 +110,7 @@ public class OnejarMain
                 purgeDirectory( onejarConfig.getWorkingPath().toPath() );
                 this.explodeWar( onejarConfig );
                 final TomcatOnejarRunner runner = new TomcatOnejarRunner( this );
+                Runtime.getRuntime().addShutdownHook( new ShutdownThread( runner ) );
                 runner.startTomcat( onejarConfig );
 
             }
@@ -119,6 +122,33 @@ public class OnejarMain
 
         final Duration duration = Duration.between( startTime, Instant.now() );
         out( "exiting after " + duration.toString() );
+    }
+
+    class ShutdownThread extends Thread
+    {
+        private final TomcatOnejarRunner runner;
+
+        public ShutdownThread( final TomcatOnejarRunner runner )
+        {
+            this.runner = runner;
+        }
+
+        @Override
+        public void run()
+        {
+            final Instant startTime = Instant.now();
+            out("shutdown process initiated");
+            try
+            {
+                runner.shutdown();
+            }
+            catch ( final LifecycleException e )
+            {
+                e.printStackTrace();
+            }
+            final Duration duration = Duration.between( startTime, Instant.now() );
+            out("shutdown complete (" + duration.toString() + ")" );
+        }
     }
 
     void out( final String output )
