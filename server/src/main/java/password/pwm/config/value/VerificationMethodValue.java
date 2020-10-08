@@ -28,6 +28,7 @@ import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -37,8 +38,6 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -49,7 +48,6 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     private static final PwmLogger LOGGER = PwmLogger.forClass( VerificationMethodValue.class );
 
     private final VerificationMethodSettings value;
-
 
     public enum EnabledState
     {
@@ -69,17 +67,18 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
             minOptionalRequired = 0;
         }
 
-        public VerificationMethodSettings( final Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings, final int minOptionalRequired )
+        public VerificationMethodSettings(
+                final Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings,
+                final int minOptionalRequired
+        )
         {
-            this.methodSettings = methodSettings == null ? Collections.emptyMap() : Collections.unmodifiableMap( methodSettings );
+            this.methodSettings = Collections.unmodifiableMap( JavaHelper.copiedEnumMap( methodSettings, IdentityVerificationMethod.class ) );
             this.minOptionalRequired = minOptionalRequired;
         }
 
         public Map<IdentityVerificationMethod, VerificationMethodSetting> getMethodSettings( )
         {
-            final Map<IdentityVerificationMethod, VerificationMethodSetting> tempMap = new LinkedHashMap<>( methodSettings );
-            tempMap.remove( null );
-            return Collections.unmodifiableMap( tempMap );
+            return methodSettings;
         }
 
         public int getMinOptionalRequired( )
@@ -106,7 +105,9 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
     private static VerificationMethodSettings normalizeSettings( final VerificationMethodSettings input )
     {
-        final Map<IdentityVerificationMethod, VerificationMethodValue.VerificationMethodSetting> tempMap = new HashMap<>( input.getMethodSettings() );
+        final Map<IdentityVerificationMethod, VerificationMethodValue.VerificationMethodSetting> tempMap = JavaHelper.copiedEnumMap(
+                input.getMethodSettings(),
+                IdentityVerificationMethod.class );
 
         for ( final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.availableValues() )
         {

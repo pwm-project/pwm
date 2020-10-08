@@ -174,9 +174,7 @@ public class CaptchaUtility
             final String errorMsg = "unexpected error during reCaptcha API execution: " + e.getMessage();
             LOGGER.error( () -> errorMsg, e );
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CAPTCHA_API_ERROR, errorMsg );
-            final PwmUnrecoverableException pwmE = new PwmUnrecoverableException( errorInfo );
-            pwmE.initCause( e );
-            throw pwmE;
+            throw new PwmUnrecoverableException( errorInfo, e );
         }
 
         LOGGER.trace( pwmRequest, () -> "captcha verification failed" );

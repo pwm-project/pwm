@@ -31,7 +31,6 @@ import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -194,7 +193,7 @@ class ResourceServletConfiguration
     private static Map<String, FileResource> makeMemoryFileMapFromZipInput( final ImmutableByteArray content )
             throws IOException
     {
-        final ZipInputStream stream = new ZipInputStream( new ByteArrayInputStream( content.copyOf() ) );
+        final ZipInputStream stream = new ZipInputStream( content.newByteArrayInputStream() );
         final Map<String, FileResource> memoryMap = new HashMap<>();
 
         ZipEntry entry;

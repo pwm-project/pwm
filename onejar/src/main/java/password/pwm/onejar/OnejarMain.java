@@ -128,7 +128,7 @@ public class OnejarMain
     {
         private final TomcatOnejarRunner runner;
 
-        public ShutdownThread( final TomcatOnejarRunner runner )
+        ShutdownThread( final TomcatOnejarRunner runner )
         {
             this.runner = runner;
         }
@@ -137,7 +137,7 @@ public class OnejarMain
         public void run()
         {
             final Instant startTime = Instant.now();
-            out("shutdown process initiated");
+            out( "shutdown process initiated" );
             try
             {
                 runner.shutdown();
@@ -146,21 +146,32 @@ public class OnejarMain
             {
                 e.printStackTrace();
             }
-            final Duration duration = Duration.between( startTime, Instant.now() );
-            out("shutdown complete (" + duration.toString() + ")" );
+            out( "shutdown complete", startTime );
         }
     }
 
-    void out( final String output )
+    void out( final String message )
     {
-        output( output );
+        output( message );
     }
 
-    static void output( final String output )
+    void out( final String message, final Instant startTime )
+    {
+        output( message, startTime );
+    }
+
+    static void output( final String message )
     {
         final Instant now = Instant.now().truncatedTo( ChronoUnit.SECONDS );
-        System.out.println( now.toString() + ", OneJar, " + output );
+        System.out.println( now.toString() + ", OneJar, " + message );
     }
+
+    static void output( final String message, final Instant startTime )
+    {
+        final Duration duration = Duration.between( Instant.now(), startTime );
+        output( message + " (" + duration.toString() + ")" );
+    }
+
 
     private void explodeWar( final OnejarConfig onejarConfig ) throws IOException
     {

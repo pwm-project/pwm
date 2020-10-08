@@ -196,10 +196,8 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
     private static ConfigLoginHistory readConfigLoginHistory( final PwmRequest pwmRequest )
     {
-        final ConfigLoginHistory configLoginHistory = pwmRequest.getPwmApplication().readAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class );
-        return configLoginHistory == null
-                ? new ConfigLoginHistory()
-                : configLoginHistory;
+       return pwmRequest.getPwmApplication().readAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class )
+               .orElseGet( ConfigLoginHistory::new );
     }
 
     private static void updateLoginHistory( final PwmRequest pwmRequest, final UserIdentity userIdentity, final boolean successful )

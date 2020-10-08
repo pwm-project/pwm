@@ -119,12 +119,8 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
     public WordlistStatus readWordlistStatus()
     {
         final AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
-        final WordlistStatus storedValue = pwmApplication.readAppAttribute( appAttribute, WordlistStatus.class );
-        if ( storedValue != null )
-        {
-            return storedValue;
-        }
-        return WordlistStatus.builder().build();
+        return pwmApplication.readAppAttribute( appAttribute, WordlistStatus.class )
+                .orElseGet( () -> WordlistStatus.builder().build() );
     }
 
     @Override

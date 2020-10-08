@@ -104,6 +104,12 @@ public class LocalDBFactory
 
             final StringBuilder debugText = new StringBuilder();
             debugText.append( "LocalDB open" );
+
+            if ( readonly )
+            {
+                debugText.append( " (read-only)" );
+            }
+
             if ( localDB.getFileLocation() != null )
             {
                 debugText.append( ", db size: " ).append( StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( localDB.getFileLocation() ) ) );

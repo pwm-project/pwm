@@ -20,13 +20,11 @@
 
 package password.pwm.config.profile;
 
-import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingReader;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
-import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.VerificationMethodValue;
 import password.pwm.config.value.data.ActionConfiguration;
@@ -36,7 +34,7 @@ import password.pwm.util.PasswordData;
 
 import java.security.cert.X509Certificate;
 import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -95,14 +93,7 @@ public abstract class AbstractProfile implements Profile, SettingReader
     @Override
     public <E extends Enum<E>> E readSettingAsEnum( final PwmSetting setting, final Class<E> enumClass )
     {
-        final StoredValue value = readSetting( setting );
-        final E returnValue = ValueTypeConverter.valueToEnum( setting, value, enumClass );
-        if ( MessageSendMethod.class.equals( enumClass ) )
-        {
-            Configuration.deprecatedSettingException( setting, this.getIdentifier(), ( MessageSendMethod ) returnValue );
-        }
-
-        return returnValue;
+        return ValueTypeConverter.valueToEnum( setting, readSetting( setting ), enumClass );
     }
 
     public List<ActionConfiguration> readSettingAsAction( final PwmSetting setting )
@@ -141,7 +132,7 @@ public abstract class AbstractProfile implements Profile, SettingReader
     }
 
     @Override
-    public List<UserPermission> getPermissionMatches( )
+    public List<UserPermission> profilePermissions( )
     {
         final Optional<PwmSetting> optionalQueryMatchSetting = profileType().getQueryMatch();
         if ( optionalQueryMatchSetting.isPresent() )
@@ -158,7 +149,7 @@ public abstract class AbstractProfile implements Profile, SettingReader
 
     Set<IdentityVerificationMethod> readVerificationMethods( final PwmSetting setting, final VerificationMethodValue.EnabledState enabledState )
     {
-        final Set<IdentityVerificationMethod> result = new LinkedHashSet<>();
+        final Set<IdentityVerificationMethod> result = EnumSet.noneOf( IdentityVerificationMethod.class );
         final StoredValue configValue = readSetting( setting );
         final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = ( VerificationMethodValue.VerificationMethodSettings ) configValue.toNativeObject();
 
@@ -179,7 +170,7 @@ public abstract class AbstractProfile implements Profile, SettingReader
     {
         if ( !setting.getCategory().hasProfiles() )
         {
-            throw new IllegalStateException( "attempt to read non-profiled setting via profile" );
+            throw new IllegalStateException( "attempt to read non-profiled setting '" + setting.getKey() + "' via profile" );
         }
         return storedConfiguration.readSetting( setting, getIdentifier() );
     }

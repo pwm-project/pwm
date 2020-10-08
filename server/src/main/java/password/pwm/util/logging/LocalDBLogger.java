@@ -108,15 +108,18 @@ public class LocalDBLogger implements PwmService
 
         if ( pwmApplication != null )
         {
-            final String currentFormat = pwmApplication.readAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, String.class );
-            if ( !STORAGE_FORMAT_VERSION.equals( currentFormat ) )
-            {
-                LOGGER.warn( () -> "localdb logger is using outdated format, clearing existing records (existing='"
-                        + currentFormat + "', current='" + STORAGE_FORMAT_VERSION + "')" );
+            pwmApplication.readAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, String.class )
+                    .ifPresent( ( currentFormat ) ->
+                    {
+                        if ( !STORAGE_FORMAT_VERSION.equals( currentFormat ) )
+                        {
+                            LOGGER.warn( () -> "localdb logger is using outdated format, clearing existing records (existing='"
+                                    + currentFormat + "', current='" + STORAGE_FORMAT_VERSION + "')" );
 
-                localDBListQueue.clear();
-                pwmApplication.writeAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, STORAGE_FORMAT_VERSION );
-            }
+                            localDBListQueue.clear();
+                            pwmApplication.writeAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, STORAGE_FORMAT_VERSION );
+                        }
+                    } );
         }
 
         status = STATUS.OPEN;

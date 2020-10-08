@@ -734,9 +734,7 @@ public class PasswordUtility
                     PwmError.ERROR_SERVICE_UNREACHABLE,
                     e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues()
             );
-            final PwmUnrecoverableException newException = new PwmUnrecoverableException( info );
-            newException.initCause( e );
-            throw newException;
+            throw new PwmUnrecoverableException( info, e );
         }
     }
 

@@ -75,6 +75,7 @@ import password.pwm.util.db.DatabaseService;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
@@ -104,6 +105,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -118,7 +120,7 @@ public class PwmApplication
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmApplication.class );
     private static final String DEFAULT_INSTANCE_ID = "-1";
-    
+
     private final Instant startupTime = Instant.now();
     private final AtomicInteger activeServletRequests = new AtomicInteger( 0 );
     private final PwmServiceManager pwmServiceManager = new PwmServiceManager();
@@ -145,7 +147,7 @@ public class PwmApplication
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.fatal( () -> e.getMessage() );
+            LOGGER.fatal( e::getMessage );
             throw e;
         }
     }
@@ -686,14 +688,14 @@ public class PwmApplication
         {
             try
             {
-                final String storedDateStr = readAppAttribute( AppAttribute.INSTALL_DATE, String.class );
-                if ( storedDateStr == null || storedDateStr.length() < 1 )
+                final Optional<String> storedDateStr = readAppAttribute( AppAttribute.INSTALL_DATE, String.class );
+                if ( !storedDateStr.isPresent() )
                 {
                     writeAppAttribute( AppAttribute.INSTALL_DATE, String.valueOf( startupTime.toEpochMilli() ) );
                 }
                 else
                 {
-                    return Instant.ofEpochMilli( Long.parseLong( storedDateStr ) );
+                    return Instant.ofEpochMilli( Long.parseLong( storedDateStr.get() ) );
                 }
             }
             catch ( final Exception e )
@@ -706,37 +708,35 @@ public class PwmApplication
 
     private String fetchInstanceID( final LocalDB localDB, final PwmApplication pwmApplication )
     {
-        String newInstanceID = pwmApplication.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.InstanceID );
-
-        if ( newInstanceID != null && newInstanceID.trim().length() > 0 )
         {
-            return newInstanceID;
-        }
+            final String newInstanceID = pwmApplication.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.InstanceID );
 
-        newInstanceID = readAppAttribute( AppAttribute.INSTANCE_ID, String.class );
-
-        if ( newInstanceID == null || newInstanceID.length() < 1 )
-        {
-            final PwmRandom pwmRandom = PwmRandom.getInstance();
-            newInstanceID = Long.toHexString( pwmRandom.nextLong() ).toUpperCase();
-
-            final String finalInstanceID = newInstanceID;
-            LOGGER.debug( () -> "generated new random instanceID " + finalInstanceID );
-
-            if ( localDB != null )
+            if ( !StringUtil.isTrimEmpty( newInstanceID ) )
             {
-                writeAppAttribute( AppAttribute.INSTANCE_ID, newInstanceID );
+                return newInstanceID;
             }
         }
-        else
+
         {
-            final String id = newInstanceID;
-            LOGGER.trace( () -> "retrieved instanceID " + id + "" + " from localDB" );
+            final Optional<String> optionalStoredInstanceID = readAppAttribute( AppAttribute.INSTANCE_ID, String.class );
+            if ( optionalStoredInstanceID.isPresent() )
+            {
+                final String instanceID = optionalStoredInstanceID.get();
+                if ( !StringUtil.isTrimEmpty( instanceID ) )
+                {
+                    LOGGER.trace( () -> "retrieved instanceID " + instanceID + "" + " from localDB" );
+                    return instanceID;
+                }
+            }
         }
 
-        if ( newInstanceID.length() < 1 )
+        final PwmRandom pwmRandom = PwmRandom.getInstance();
+        final String newInstanceID = Long.toHexString( pwmRandom.nextLong() ).toUpperCase();
+        LOGGER.debug( () -> "generated new random instanceID " + newInstanceID );
+
+        if ( localDB != null )
         {
-            newInstanceID = DEFAULT_INSTANCE_ID;
+            writeAppAttribute( AppAttribute.INSTANCE_ID, newInstanceID );
         }
 
         return newInstanceID;
@@ -939,29 +939,29 @@ public class PwmApplication
         return runtimeNonce;
     }
 
-    public <T extends Serializable> T readAppAttribute( final AppAttribute appAttribute, final Class<T> returnClass )
+    public <T extends Serializable> Optional<T> readAppAttribute( final AppAttribute appAttribute, final Class<T> returnClass )
     {
         if ( localDB == null || localDB.status() != LocalDB.Status.OPEN )
         {
             LOGGER.debug( () -> "error retrieving key '" + appAttribute.getKey() + "', localDB unavailable: " );
-            return null;
+            return Optional.empty();
         }
 
         if ( appAttribute == null )
         {
-            return null;
+            return Optional.empty();
         }
 
         try
         {
             final String strValue = localDB.get( LocalDB.DB.PWM_META, appAttribute.getKey() );
-            return JsonUtil.deserialize( strValue, returnClass );
+            return Optional.of( JsonUtil.deserialize( strValue, returnClass ) );
         }
         catch ( final Exception e )
         {
             LOGGER.error( () -> "error retrieving key '" + appAttribute.getKey() + "' value from localDB: " + e.getMessage() );
         }
-        return null;
+        return Optional.empty();
     }
 
     public void writeAppAttribute( final AppAttribute appAttribute, final Serializable value )

@@ -59,6 +59,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
@@ -327,15 +328,19 @@ public class LdapConnectionService implements PwmService
         String lastLdapFailureStr = null;
         try
         {
-            lastLdapFailureStr = pwmApplication.readAppAttribute( AppAttribute.LAST_LDAP_ERROR, String.class );
-            if ( lastLdapFailureStr != null && lastLdapFailureStr.length() > 0 )
+            final Optional<String> optionalLastLdapError = pwmApplication.readAppAttribute( AppAttribute.LAST_LDAP_ERROR, String.class );
+            if ( optionalLastLdapError.isPresent() )
             {
-                final Map<String, ErrorInformation> fromJson = JsonUtil.deserialize( lastLdapFailureStr, new TypeToken<Map<String, ErrorInformation>>()
+                lastLdapFailureStr = optionalLastLdapError.get();
+                if ( !StringUtil.isEmpty( lastLdapFailureStr ) )
                 {
-                } );
-                final Map<String, ErrorInformation> returnMap = new HashMap<>( fromJson );
-                returnMap.keySet().retainAll( pwmApplication.getConfig().getLdapProfiles().keySet() );
-                return returnMap;
+                    final Map<String, ErrorInformation> fromJson = JsonUtil.deserialize( lastLdapFailureStr, new TypeToken<Map<String, ErrorInformation>>()
+                    {
+                    } );
+                    final Map<String, ErrorInformation> returnMap = new HashMap<>( fromJson );
+                    returnMap.keySet().retainAll( pwmApplication.getConfig().getLdapProfiles().keySet() );
+                    return returnMap;
+                }
             }
         }
         catch ( final Exception e )

@@ -134,13 +134,9 @@ public class TelemetryService implements PwmService
             return;
         }
 
-        {
-            final Instant storedLastPublishTimestamp = pwmApplication.readAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, Instant.class );
-            lastPublishTime = storedLastPublishTimestamp != null
-                    ? storedLastPublishTimestamp
-                    : pwmApplication.getInstallTime();
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "last publish time was " + JavaHelper.toIsoDate( lastPublishTime ) );
-        }
+        lastPublishTime = pwmApplication.readAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, Instant.class )
+                .orElse( pwmApplication.getInstallTime() );
+        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "last publish time was " + JavaHelper.toIsoDate( lastPublishTime ) );
 
         executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, TelemetryService.class );
 

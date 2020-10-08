@@ -290,7 +290,7 @@ public class ChallengeProfile implements Profile, Serializable
     }
 
     @Override
-    public List<UserPermission> getPermissionMatches( )
+    public List<UserPermission> profilePermissions( )
     {
         throw new UnsupportedOperationException();
     }

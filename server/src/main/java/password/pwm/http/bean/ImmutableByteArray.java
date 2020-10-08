@@ -20,6 +20,8 @@
 
 package password.pwm.http.bean;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -44,6 +46,11 @@ public class ImmutableByteArray implements Serializable
     public byte[] copyOf( )
     {
         return bytes == null ? null : Arrays.copyOf( bytes, bytes.length );
+    }
+
+    public InputStream newByteArrayInputStream( )
+    {
+        return new ByteArrayInputStream( bytes == null ? EMPTY.bytes : bytes );
     }
 
     public int size()

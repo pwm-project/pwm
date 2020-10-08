@@ -296,7 +296,7 @@ public class PhotoDataReader
 
                 if ( photoDataBean.getContents() != null && !photoDataBean.getContents().isEmpty() )
                 {
-                    outputStream.write( photoDataBean.getContents().copyOf() );
+                    JavaHelper.copy( photoDataBean.getContents().newByteArrayInputStream(), outputStream );
                 }
             }
         }

@@ -29,6 +29,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.http.servlet.PwmServlet;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -44,7 +45,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -309,8 +309,8 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                 }
             }
 
-            final byte[] entity = tempOutputStream.toByteArray();
-            headers.put( HttpHeader.ContentLength.getHttpName(), String.valueOf( entity.length ) );
+            final ImmutableByteArray entity = ImmutableByteArray.of( tempOutputStream.toByteArray() );
+            headers.put( HttpHeader.ContentLength.getHttpName(), String.valueOf( entity.size() ) );
             cacheEntry = new CacheEntry( entity, headers );
         }
         else
@@ -326,7 +326,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
 
         try ( OutputStream responseOutputStream = response.getOutputStream() )
         {
-            JavaHelper.copy( new ByteArrayInputStream( cacheEntry.getEntity() ), responseOutputStream );
+            JavaHelper.copy( cacheEntry.getEntity().newByteArrayInputStream(), responseOutputStream );
         }
 
         return fromCache;

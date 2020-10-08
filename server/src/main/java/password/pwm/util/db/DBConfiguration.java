@@ -27,6 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
+import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
@@ -46,16 +47,16 @@ public class DBConfiguration implements Serializable
     private final PasswordData password;
     private final String columnTypeKey;
     private final String columnTypeValue;
-    private final byte[] jdbcDriver;
+    private final ImmutableByteArray jdbcDriver;
     private final Set<JDBCDriverLoader.ClassLoaderStrategy> classLoaderStrategies;
     private final int maxConnections;
     private final int connectionTimeout;
     private final int keyColumnLength;
     private final boolean failOnIndexCreation;
 
-    public byte[] getJdbcDriver( )
+    public ImmutableByteArray getJdbcDriver( )
     {
-        return jdbcDriver == null ? null : Arrays.copyOf( jdbcDriver, jdbcDriver.length );
+        return jdbcDriver;
     }
 
     public boolean isEnabled( )
@@ -71,11 +72,11 @@ public class DBConfiguration implements Serializable
     {
         final Map<FileValue.FileInformation, FileValue.FileContent> fileValue = config.readSettingAsFile(
                 PwmSetting.DATABASE_JDBC_DRIVER );
-        final byte[] jdbcDriverBytes;
+        final ImmutableByteArray jdbcDriverBytes;
         if ( fileValue != null && !fileValue.isEmpty() )
         {
             final FileValue.FileContent fileContent = fileValue.values().iterator().next();
-            jdbcDriverBytes = fileContent.getContents().copyOf();
+            jdbcDriverBytes = fileContent.getContents();
         }
         else
         {

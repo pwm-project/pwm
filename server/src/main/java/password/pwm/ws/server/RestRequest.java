@@ -36,6 +36,7 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 public class RestRequest extends PwmHttpRequestWrapper
 {
@@ -81,18 +82,17 @@ public class RestRequest extends PwmHttpRequestWrapper
         return pwmApplication;
     }
 
-    public HttpContentType readContentType( )
+    public Optional<HttpContentType> readContentType( )
     {
         return HttpContentType.fromContentTypeHeader( readHeaderValueAsString( HttpHeader.ContentType ), null );
     }
 
-    public HttpContentType readAcceptType( )
+    public Optional<HttpContentType> readAcceptType( )
     {
-
         return readAcceptType( getHttpServletRequest() );
     }
 
-    static HttpContentType readAcceptType( final HttpServletRequest request )
+    static Optional<HttpContentType> readAcceptType( final HttpServletRequest request )
     {
         final String acceptHeaderValue = request.getHeader( HttpHeader.Accept.getHttpName() );
         return HttpContentType.fromContentTypeHeader( acceptHeaderValue, HttpContentType.json );

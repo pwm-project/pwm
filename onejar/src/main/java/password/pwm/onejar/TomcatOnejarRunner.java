@@ -42,7 +42,6 @@ import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -117,7 +116,7 @@ public class TomcatOnejarRunner
         {
             tomcat.setConnector( makeConnector( onejarConfig, tlsProperties ) );
             tomcat.start();
-            out( "tomcat started in " + Duration.between( Instant.now(), startTime ).toString() );
+            out( "tomcat started", startTime );
         }
         catch ( final Exception e )
         {
@@ -163,22 +162,22 @@ public class TomcatOnejarRunner
         connector.setSecure( true );
         connector.setScheme( "https" );
         connector.addUpgradeProtocol( new Http2Protocol() );
-        connector.setAttribute( "SSLEnabled", "true" );
+        connector.setProperty( "SSLEnabled", "true" );
        // connector.setAttribute( "truststoreType", "PKCS12" );
-        connector.setAttribute( "keystoreFile", onejarConfig.getKeystoreFile().getAbsolutePath() );
-        connector.setAttribute( "keystorePass", onejarConfig.getKeystorePass() );
-        connector.setAttribute( "keyAlias", OnejarMain.KEYSTORE_ALIAS );
-        connector.setAttribute( "clientAuth", "false" );
+        connector.setProperty( "keystoreFile", onejarConfig.getKeystoreFile().getAbsolutePath() );
+        connector.setProperty( "keystorePass", onejarConfig.getKeystorePass() );
+        connector.setProperty( "keyAlias", OnejarMain.KEYSTORE_ALIAS );
+        connector.setProperty( "clientAuth", "false" );
 
-        out( "connector maxThreads=" + connector.getAttribute( "maxThreads" ) );
-        out( "connector maxConnections=" + connector.getAttribute( "maxConnections" ) );
+        out( "connector maxThreads=" + connector.getProperty( "maxThreads" ) );
+        out( "connector maxConnections=" + connector.getProperty( "maxConnections" ) );
 
         if ( tlsProperties != null )
         {
             for ( final String key : tlsProperties.stringPropertyNames() )
             {
                 final String value = tlsProperties.getProperty( key );
-                connector.setAttribute( key, value );
+                connector.setProperty( key, value );
             }
         }
 
@@ -215,10 +214,16 @@ public class TomcatOnejarRunner
         onejarMain.out( output );
     }
 
+    void out( final String output, final Instant startTime )
+    {
+        onejarMain.out( output, startTime );
+    }
 
     Properties executeOnejarHelper( final OnejarConfig onejarConfig )
             throws IOException, ClassNotFoundException, IllegalAccessException, NoSuchMethodException, InvocationTargetException
     {
+        final Instant startTime = Instant.now();
+
         try ( URLClassLoader classLoader = warClassLoaderFromConfig( onejarConfig ) )
         {
             final Class pwmMainClass = classLoader.loadClass( "password.pwm.util.OnejarHelper" );
@@ -240,7 +245,7 @@ public class TomcatOnejarRunner
 
             final Object returnObjValue = mainMethod.invoke( null, arguments );
             final Properties returnProps = ( Properties ) returnObjValue;
-            out( "completed read of tlsProperties " );
+            out( "completed read of tlsProperties", startTime );
             return returnProps;
         }
     }

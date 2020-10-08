@@ -63,6 +63,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 public abstract class RestServlet extends HttpServlet
 {
@@ -225,8 +226,8 @@ public abstract class RestServlet extends HttpServlet
             throws PwmUnrecoverableException, IOException
     {
         final HttpMethod reqMethod = restRequest.getMethod();
-        final HttpContentType reqContent = restRequest.readContentType();
-        final HttpContentType reqAccept = restRequest.readAcceptType();
+        final Optional<HttpContentType> reqContent = restRequest.readContentType();
+        final Optional<HttpContentType> reqAccept = restRequest.readAcceptType();
 
         final boolean careAboutContentType = reqMethod.isHasBody();
 
@@ -240,25 +241,43 @@ public abstract class RestServlet extends HttpServlet
 
             if ( annotation != null )
             {
-                if ( annotation.method().length == 0 || Arrays.asList( annotation.method() ).contains( reqMethod ) )
+                if (
+                        annotation.method().length == 0
+                                || Arrays.asList( annotation.method() ).contains( reqMethod )
+                )
                 {
                     loopMatch.setMethodMatch( true );
                     anyMatch.setMethodMatch( true );
                 }
 
-                if ( !careAboutContentType || annotation.consumes().length == 0 || Arrays.asList( annotation.consumes() ).contains( reqContent ) )
+                if ( reqContent.isPresent() )
                 {
-                    loopMatch.setContentMatch( true );
-                    anyMatch.setContentMatch( true );
+                    if (
+                            !careAboutContentType
+                                    || annotation.consumes().length == 0
+                                    || Arrays.asList( annotation.consumes() ).contains( reqContent.get() ) )
+                    {
+                        loopMatch.setContentMatch( true );
+                        anyMatch.setContentMatch( true );
+                    }
                 }
 
-                if ( annotation.produces().length == 0 || Arrays.asList( annotation.produces() ).contains( reqAccept ) )
+                if ( reqAccept.isPresent() )
                 {
-                    loopMatch.setAcceptMatch( true );
-                    anyMatch.setAcceptMatch( true );
+                    if (
+                            annotation.produces().length == 0
+                                    || Arrays.asList( annotation.produces() ).contains( reqAccept.get() )
+                    )
+                    {
+                        loopMatch.setAcceptMatch( true );
+                        anyMatch.setAcceptMatch( true );
+                    }
                 }
 
-                if ( loopMatch.isMethodMatch() && loopMatch.isContentMatch() && loopMatch.isAcceptMatch() )
+                if (
+                        loopMatch.isMethodMatch()
+                                && loopMatch.isContentMatch()
+                                && loopMatch.isAcceptMatch() )
                 {
                     return method;
                 }
@@ -270,11 +289,11 @@ public abstract class RestServlet extends HttpServlet
         {
             errorMsg = "HTTP method unavailable";
         }
-        else if ( reqAccept == null && !anyMatch.isAcceptMatch() )
+        else if ( !reqAccept.isPresent() && !anyMatch.isAcceptMatch() )
         {
             errorMsg = HttpHeader.Accept.getHttpName() + " header is required";
         }
-        else if ( reqContent == null && !anyMatch.isContentMatch() )
+        else if ( !reqContent.isPresent() && !anyMatch.isContentMatch() )
         {
             errorMsg = HttpHeader.ContentType.getHttpName() + " header is required";
         }
@@ -336,7 +355,7 @@ public abstract class RestServlet extends HttpServlet
 
         if ( restRequest.getMethod().isHasBody() )
         {
-            if ( restRequest.readContentType() == null )
+            if ( !restRequest.readContentType().isPresent() )
             {
                 final String message = restRequest.getMethod() + " method requires " + HttpHeader.ContentType.getHttpName() + " header";
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_UNAUTHORIZED, message );
@@ -353,11 +372,12 @@ public abstract class RestServlet extends HttpServlet
     )
             throws IOException
     {
-        final HttpContentType acceptType = RestRequest.readAcceptType( request );
         resp.setHeader( HttpHeader.Server.getHttpName(), PwmConstants.PWM_APP_NAME );
 
-        if ( acceptType != null )
+        final Optional<HttpContentType> optionalHttpContentType = RestRequest.readAcceptType( request );
+        if ( optionalHttpContentType.isPresent() )
         {
+            final HttpContentType acceptType = optionalHttpContentType.get();
             switch ( acceptType )
             {
                 case json:

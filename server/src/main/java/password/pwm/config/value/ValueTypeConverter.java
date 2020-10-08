@@ -21,6 +21,7 @@
 package password.pwm.config.value;
 
 import password.pwm.PwmConstants;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.value.data.ActionConfiguration;
@@ -282,6 +283,24 @@ public final class ValueTypeConverter
 
         final String strValue = ( String ) value.toNativeObject();
         return JavaHelper.readEnumFromString( enumClass, strValue ).orElse( null );
+    }
+
+    public static Map<Locale, EmailItemBean> valueToLocalizedEmail( final PwmSetting setting, final StoredValue storedValue )
+    {
+        if ( PwmSettingSyntax.EMAIL != setting.getSyntax() )
+        {
+            throw new IllegalArgumentException( "may not read EMAIL value for setting: " + setting.toString() );
+        }
+
+        final Map<String, EmailItemBean> storedValues =  ( Map<String, EmailItemBean> ) storedValue.toNativeObject();
+        final Map<Locale, EmailItemBean> availableLocaleMap = new LinkedHashMap<>();
+        for ( final Map.Entry<String, EmailItemBean> entry : storedValues.entrySet() )
+        {
+            final String localeStr = entry.getKey();
+            availableLocaleMap.put( LocaleHelper.parseLocaleString( localeStr ), entry.getValue() );
+        }
+
+        return Collections.unmodifiableMap( availableLocaleMap );
     }
 
     public static Map<FileValue.FileInformation, FileValue.FileContent> valueToFile( final PwmSetting setting, final StoredValue storedValue )

@@ -36,7 +36,7 @@ public class ConfigurationUtil
     public static List<DataStorageMethod> getCrReadPreference( final Configuration configuration )
     {
         final List<DataStorageMethod> readPreferences = configuration.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE );
-        if ( readPreferences.size() == 1 && readPreferences.get( 0 ) == DataStorageMethod.AUTO )
+        if ( readPreferences.size() == 1 && readPreferences.iterator().next() == DataStorageMethod.AUTO )
         {
             readPreferences.clear();
             if ( configuration.hasDbConfigured() )

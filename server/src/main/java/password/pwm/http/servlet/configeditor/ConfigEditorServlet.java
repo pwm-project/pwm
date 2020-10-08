@@ -86,8 +86,8 @@ import password.pwm.ws.server.rest.bean.HealthData;
 import javax.mail.MessagingException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -736,7 +736,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 }
 
                 final Map<String, PwmRequest.FileUploadItem> fileUploads = pwmRequest.readFileUploads( maxFileSize, 1 );
-                final ByteArrayInputStream fileIs = new ByteArrayInputStream( fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD ).getContent().copyOf() );
+                final InputStream fileIs = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD ).getContent().newByteArrayInputStream();
 
                 HttpsServerCertificateManager.importKey(
                         modifier,

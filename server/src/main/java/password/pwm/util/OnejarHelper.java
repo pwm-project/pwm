@@ -118,7 +118,6 @@ public class OnejarHelper
                 .applicationMode( PwmApplicationMode.READ_ONLY )
                 .configurationFile( configFile )
                 .flags( Collections.singleton( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
-                .internalRuntimeInstance( true )
                 .build();
 
         return PwmApplication.createPwmApplication( pwmEnvironment );

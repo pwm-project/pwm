@@ -37,7 +37,6 @@ import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -86,12 +85,12 @@ public class FileValue extends AbstractValue implements StoredValue
         String sha512sum( )
                 throws PwmUnrecoverableException
         {
-            return SecureEngine.hash( new ByteArrayInputStream( contents.copyOf() ), PwmHashAlgorithm.SHA512 );
+            return SecureEngine.hash( contents.newByteArrayInputStream(), PwmHashAlgorithm.SHA512 );
         }
 
         public int size( )
         {
-            return contents.copyOf().length;
+            return contents.size();
         }
     }
 

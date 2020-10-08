@@ -53,6 +53,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
@@ -102,7 +103,7 @@ public class JavaHelper
                         "D",
                         "E",
                         "F",
-                };
+                        };
 
         if ( in == null || in.length <= 0 )
         {
@@ -676,5 +677,42 @@ public class JavaHelper
         return source == null || source.isEmpty()
                 ? EnumSet.noneOf( classOfT )
                 : EnumSet.copyOf( source );
+    }
+
+    public static String requireNonEmpty( final String input )
+    {
+        if ( StringUtil.isEmpty( input ) )
+        {
+            throw new NullPointerException( );
+        }
+        return input;
+    }
+
+    public static String requireNonEmpty( final String input, final String message )
+    {
+        if ( StringUtil.isEmpty( input ) )
+        {
+            throw new NullPointerException( message );
+        }
+        return input;
+    }
+
+    public static <K extends Enum<K>, V> EnumMap<K, V> copiedEnumMap( final Map<K, V> source, final Class<K> classOfT )
+    {
+        if ( source == null )
+        {
+            return new EnumMap<K, V>( classOfT );
+        }
+
+        final EnumMap<K, V> returnMap = new EnumMap<>( classOfT );
+        for ( final Map.Entry<K, V> entry : source.entrySet() )
+        {
+            final K key = entry.getKey();
+            if ( key != null )
+            {
+                returnMap.put( key, entry.getValue() );
+            }
+        }
+        return returnMap;
     }
 }

@@ -89,7 +89,7 @@ public class ResourceServletService implements PwmService
         {
             if ( cacheEntry != null && cacheEntry.getEntity() != null )
             {
-                cacheByteCount += cacheEntry.getEntity().length;
+                cacheByteCount += cacheEntry.getEntity().size();
             }
         }
         return cacheByteCount;

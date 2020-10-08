@@ -22,31 +22,30 @@ package password.pwm.http.servlet.resource;
 
 import password.pwm.http.bean.ImmutableByteArray;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 class MemoryFileResource implements FileResource
 {
     private final String name;
-    private final byte[] contents;
+    private final ImmutableByteArray contents;
     private final long lastModified;
 
     MemoryFileResource( final String name, final ImmutableByteArray contents, final long lastModified )
     {
         this.name = name;
-        this.contents = contents.copyOf();
+        this.contents = contents;
         this.lastModified = lastModified;
     }
 
     public InputStream getInputStream( ) throws IOException
     {
-        return new ByteArrayInputStream( contents );
+        return contents.newByteArrayInputStream();
     }
 
     public long length( )
     {
-        return contents.length;
+        return contents.size();
     }
 
     public long lastModified( )

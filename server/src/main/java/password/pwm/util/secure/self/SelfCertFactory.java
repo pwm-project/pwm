@@ -82,8 +82,7 @@ public class SelfCertFactory
 
     private static Optional<StoredCertData> loadExistingStoredCert( final PwmApplication pwmApplication )
     {
-        final StoredCertData storedCertData = pwmApplication.readAppAttribute( AppAttribute.HTTPS_SELF_CERT, StoredCertData.class );
-        return Optional.ofNullable( storedCertData );
+        return pwmApplication.readAppAttribute( AppAttribute.HTTPS_SELF_CERT, StoredCertData.class );
     }
 
     private static boolean evaluateExistingStoredCert( final StoredCertData storedCertData, final Settings settings )

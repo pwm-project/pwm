@@ -124,7 +124,7 @@ public class LdapProfile extends AbstractProfile implements Profile
     }
 
     @Override
-    public List<UserPermission> getPermissionMatches( )
+    public List<UserPermission> profilePermissions( )
     {
         throw new UnsupportedOperationException();
     }

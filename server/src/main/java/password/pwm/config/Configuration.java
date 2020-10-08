@@ -74,7 +74,6 @@ import password.pwm.util.secure.SecureService;
 import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -134,20 +133,8 @@ public class Configuration implements SettingReader
 
     public EmailItemBean readSettingAsEmail( final PwmSetting setting, final Locale locale )
     {
-        if ( PwmSettingSyntax.EMAIL != setting.getSyntax() )
-        {
-            throw new IllegalArgumentException( "may not read EMAIL value for setting: " + setting.toString() );
-        }
-
-        final Map<String, EmailItemBean> storedValues = ( Map<String, EmailItemBean> ) readStoredValue( setting ).toNativeObject();
-        final Map<Locale, EmailItemBean> availableLocaleMap = new LinkedHashMap<>();
-        for ( final Map.Entry<String, EmailItemBean> entry : storedValues.entrySet() )
-        {
-            final String localeStr = entry.getKey();
-            availableLocaleMap.put( LocaleHelper.parseLocaleString( localeStr ), entry.getValue() );
-        }
+        final Map<Locale, EmailItemBean> availableLocaleMap = ValueTypeConverter.valueToLocalizedEmail( setting, readStoredValue( setting ) );
         final Locale matchedLocale = LocaleHelper.localeResolver( locale, availableLocaleMap.keySet() );
-
         return availableLocaleMap.get( matchedLocale );
     }
 
@@ -364,34 +351,6 @@ public class Configuration implements SettingReader
         return storedConfiguration.isDefaultValue( pwmSetting, null );
     }
 
-    public Collection<Locale> localesForSetting( final PwmSetting setting )
-    {
-        final Collection<Locale> returnCollection = new ArrayList<>();
-        switch ( setting.getSyntax() )
-        {
-            case LOCALIZED_TEXT_AREA:
-            case LOCALIZED_STRING:
-                for ( final String localeStr : ( ( Map<String, String> ) readStoredValue( setting ).toNativeObject() ).keySet() )
-                {
-                    returnCollection.add( LocaleHelper.parseLocaleString( localeStr ) );
-                }
-                break;
-
-            case LOCALIZED_STRING_ARRAY:
-                for ( final String localeStr : ( ( Map<String, List<String>> ) readStoredValue( setting ).toNativeObject() ).keySet() )
-                {
-                    returnCollection.add( LocaleHelper.parseLocaleString( localeStr ) );
-                }
-                break;
-
-            default:
-                // ignore other types
-                break;
-        }
-
-        return returnCollection;
-    }
-
     public boolean readSettingAsBoolean( final PwmSetting setting )
     {
         return ValueTypeConverter.valueToBoolean( readStoredValue( setting ) );
@@ -424,13 +383,11 @@ public class Configuration implements SettingReader
 
     public PwmSecurityKey getSecurityKey( ) throws PwmUnrecoverableException
     {
-
         return configurationSuppliers.pwmSecurityKey.call();
     }
 
     public List<DataStorageMethod> getResponseStorageLocations( final PwmSetting setting )
     {
-
         return getGenericStorageLocations( setting );
     }
 

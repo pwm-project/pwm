@@ -275,7 +275,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
     private String hash( final FileValue.FileContent fileContent )
             throws PwmUnrecoverableException
     {
-        return SecureEngine.hash( fileContent.getContents().copyOf(), PwmHashAlgorithm.SHA256 );
+        return SecureEngine.hash( fileContent.getContents().newByteArrayInputStream(), PwmHashAlgorithm.SHA256 );
     }
 
 

@@ -34,7 +34,7 @@ public interface Profile
 
     String getDisplayName( Locale locale );
 
-    List<UserPermission> getPermissionMatches( );
+    List<UserPermission> profilePermissions( );
 
     interface ProfileFactory
     {

@@ -535,10 +535,10 @@ public class PwmHttpClient implements AutoCloseable
                             final String name = headerElement.getName();
                             if ( name != null )
                             {
-                                final HttpContentType httpContentType = HttpContentType.fromContentTypeHeader( name, null );
-                                if ( httpContentType != null )
+                                final Optional<HttpContentType> httpContentType = HttpContentType.fromContentTypeHeader( name, null );
+                                if ( httpContentType.isPresent() )
                                 {
-                                    return Optional.of( httpContentType );
+                                    return httpContentType;
                                 }
                             }
                         }

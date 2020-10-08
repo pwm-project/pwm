@@ -30,15 +30,15 @@ final class CacheEntry implements Serializable
     private final ImmutableByteArray entity;
     private final Map<String, String> headerStrings;
 
-    CacheEntry( final byte[] entity, final Map<String, String> headerStrings )
+    CacheEntry( final ImmutableByteArray entity, final Map<String, String> headerStrings )
     {
-        this.entity = ImmutableByteArray.of( entity );
+        this.entity = entity;
         this.headerStrings = headerStrings;
     }
 
-    public byte[] getEntity( )
+    public ImmutableByteArray getEntity( )
     {
-        return entity.copyOf();
+        return entity;
     }
 
     public Map<String, String> getHeaderStrings( )

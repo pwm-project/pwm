@@ -680,8 +680,8 @@ public class ReportService implements PwmService
         {
             try
             {
-                final ReportStatusInfo localReportStatus = pwmApplication.readAppAttribute( AppAttribute.REPORT_STATUS, ReportStatusInfo.class );
-                reportStatus.set( localReportStatus );
+                pwmApplication.readAppAttribute( AppAttribute.REPORT_STATUS, ReportStatusInfo.class )
+                        .ifPresent( reportStatus::set );
             }
             catch ( final Exception e )
             {

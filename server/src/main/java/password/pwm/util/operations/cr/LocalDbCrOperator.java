@@ -132,9 +132,7 @@ public class LocalDbCrOperator implements CrOperator
         catch ( final LocalDBException e )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CLEARING_RESPONSES, "unexpected LocalDB error clearing responses: " + e.getMessage() );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( e );
-            throw pwmOE;
+            throw new PwmUnrecoverableException( errorInfo, e );
         }
     }
 

@@ -80,7 +80,7 @@ public class ProfileUtility
         final Map<String, Profile> profileMap = pwmApplication.getConfig().profileMap( profileDefinition );
         for ( final Profile profile : profileMap.values() )
         {
-            final List<UserPermission> queryMatches = profile.getPermissionMatches();
+            final List<UserPermission> queryMatches = profile.profilePermissions();
             final boolean match = UserPermissionUtility.testUserPermission( pwmApplication, sessionLabel, userIdentity, queryMatches );
             if ( match )
             {

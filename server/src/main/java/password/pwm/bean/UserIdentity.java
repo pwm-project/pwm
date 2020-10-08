@@ -33,11 +33,13 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.StringTokenizer;
 
 @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
@@ -49,19 +51,15 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
     private static final String DELIM_SEPARATOR = "|";
 
     private transient String obfuscatedValue;
-    private transient boolean canonicalized;
+    private transient boolean canonical;
 
     private final String userDN;
     private final String ldapProfile;
 
     public UserIdentity( final String userDN, final String ldapProfile )
     {
-        if ( userDN == null || userDN.length() < 1 )
-        {
-            throw new IllegalArgumentException( "UserIdentity: userDN value cannot be empty" );
-        }
-        this.userDN = userDN;
-        this.ldapProfile = ldapProfile == null ? "" : ldapProfile;
+        this.userDN = JavaHelper.requireNonEmpty( userDN, "UserIdentity: userDN value cannot be empty" );
+        this.ldapProfile = JavaHelper.requireNonEmpty( ldapProfile, "UserIdentity: ldapProfile value cannot be empty" );
     }
 
     public UserIdentity( final String userDN, final String ldapProfile, final boolean canonical )
@@ -72,7 +70,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         }
         this.userDN = userDN;
         this.ldapProfile = ldapProfile == null ? "" : ldapProfile;
-        this.canonicalized = true;
+        this.canonical = canonical;
     }
 
     public String getUserDN( )
@@ -87,11 +85,13 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
 
     public LdapProfile getLdapProfile( final Configuration configuration )
     {
-        if ( configuration == null )
+        Objects.requireNonNull( configuration );
+        final LdapProfile ldapProfile = configuration.getLdapProfiles().get( this.getLdapProfileID() );
+        if ( ldapProfile == null )
         {
-            return null;
+            throw new IllegalStateException( "bogus ldapProfileID on userIdentity: "  + this.getLdapProfileID() );
         }
-        return configuration.getLdapProfiles().getOrDefault( this.getLdapProfileID(), null );
+        return ldapProfile;
     }
 
     public String toString( )
@@ -144,12 +144,11 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         return this.getUserDN() + ( ( this.getLdapProfileID() != null && !this.getLdapProfileID().isEmpty() ) ? " (" + this.getLdapProfileID() + ")" : "" );
     }
 
-    public static UserIdentity fromObfuscatedKey( final String key, final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public static UserIdentity fromObfuscatedKey( final String key, final PwmApplication pwmApplication )
+            throws PwmUnrecoverableException
     {
-        if ( key == null || key.length() < 1 )
-        {
-            return null;
-        }
+        Objects.requireNonNull( pwmApplication );
+        JavaHelper.requireNonEmpty( key, "key can not be null or empty" );
 
         if ( !key.startsWith( CRYPO_HEADER ) )
         {
@@ -168,12 +167,10 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         }
     }
 
-    public static UserIdentity fromDelimitedKey( final String key ) throws PwmUnrecoverableException
+    public static UserIdentity fromDelimitedKey( final String key )
+            throws PwmUnrecoverableException
     {
-        if ( key == null || key.length() < 1 )
-        {
-            return null;
-        }
+        JavaHelper.requireNonEmpty( key );
 
         final StringTokenizer st = new StringTokenizer( key, DELIM_SEPARATOR );
         if ( st.countTokens() < 2 )
@@ -189,13 +186,10 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         return new UserIdentity( userDN, profileID );
     }
 
-    public static UserIdentity fromKey( final String key, final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public static UserIdentity fromKey( final String key, final PwmApplication pwmApplication )
+            throws PwmUnrecoverableException
     {
-        if ( key == null || key.length() < 1 )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, "userKey parameter is missing" );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
+        JavaHelper.requireNonEmpty( key );
 
         if ( key.startsWith( CRYPO_HEADER ) )
         {
@@ -266,7 +260,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
     public UserIdentity canonicalized( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
-        if ( this.canonicalized )
+        if ( this.canonical )
         {
             return this;
         }
@@ -282,7 +276,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             throw PwmUnrecoverableException.fromChaiException( e );
         }
         final UserIdentity canonicalziedIdentity = new UserIdentity( userDN, this.getLdapProfileID() );
-        canonicalziedIdentity.canonicalized = true;
+        canonicalziedIdentity.canonical = true;
         return canonicalziedIdentity;
     }
 }
