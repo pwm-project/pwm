@@ -20,9 +20,7 @@
 
 package password.pwm.util.java;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Value;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,13 +32,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CachingProxyWrapper
 {
 
-    @Getter
-    @AllArgsConstructor
-    @EqualsAndHashCode
+    @Value
     private static final class MethodSignature
     {
-        private Method method;
-        private Object[] arguments;
+        private final Method method;
+        private final Object[] arguments;
+    }
+
+    @Value
+    private static final class ResultWrapper<T>
+    {
+        private final T result;
     }
 
     public static <T> T create( final Class<T> proxiedClass, final T innerInstance )

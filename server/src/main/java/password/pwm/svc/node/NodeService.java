@@ -151,7 +151,7 @@ public class NodeService implements PwmService
             return Collections.singletonList( healthRecord );
         }
 
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

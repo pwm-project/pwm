@@ -85,11 +85,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * @author Jason D. Rivard
  */
-public class Configuration implements SettingReader
+public class Configuration
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( Configuration.class );
 
@@ -98,10 +99,12 @@ public class Configuration implements SettingReader
     private final ConfigurationSuppliers configurationSuppliers = new ConfigurationSuppliers();
 
     private final DataCache dataCache = new DataCache();
+    private final SettingReader settingReader;
 
     public Configuration( final StoredConfiguration storedConfiguration )
     {
         this.storedConfiguration = storedConfiguration;
+        this.settingReader = new SettingReader( storedConfiguration, null );
     }
 
     public static void deprecatedSettingException( final PwmSetting pwmSetting, final String profile, final MessageSendMethod value )
@@ -116,14 +119,12 @@ public class Configuration implements SettingReader
 
     public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )
     {
-        final StoredValue value = readStoredValue( setting );
-        return ValueTypeConverter.valueToForm( value );
+        return settingReader.readSettingAsForm( setting );
     }
 
     public List<UserPermission> readSettingAsUserPermission( final PwmSetting setting )
     {
-        final StoredValue value = readStoredValue( setting );
-        return ValueTypeConverter.valueToUserPermissions( value );
+        return settingReader.readSettingAsUserPermission( setting );
     }
 
     public Map<String, LdapProfile> getLdapProfiles( )
@@ -140,54 +141,42 @@ public class Configuration implements SettingReader
 
     public <E extends Enum<E>> E readSettingAsEnum( final PwmSetting setting, final Class<E> enumClass )
     {
-        final StoredValue value = readStoredValue( setting );
-        return ValueTypeConverter.valueToEnum( setting, value, enumClass );
+        return settingReader.readSettingAsEnum( setting, enumClass );
     }
 
     public <E extends Enum<E>> Set<E> readSettingAsOptionList( final PwmSetting setting, final Class<E> enumClass )
     {
-        return ValueTypeConverter.valueToOptionList( setting, readStoredValue( setting ), enumClass );
-    }
-
-    public MessageSendMethod readSettingAsTokenSendMethod( final PwmSetting setting )
-    {
-        return readSettingAsEnum( setting, MessageSendMethod.class );
+        return settingReader.readSettingAsOptionList( setting, enumClass );
     }
 
     public List<ActionConfiguration> readSettingAsAction( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToAction( setting, readStoredValue( setting ) );
+        return settingReader.readSettingAsAction( setting );
     }
 
     public List<String> readSettingAsLocalizedStringArray( final PwmSetting setting, final Locale locale )
     {
-        if ( PwmSettingSyntax.LOCALIZED_STRING_ARRAY != setting.getSyntax() )
-        {
-            throw new IllegalArgumentException( "may not read LOCALIZED_STRING_ARRAY value for setting: " + setting.toString() );
-        }
-
-        final StoredValue value = readStoredValue( setting );
-        return ValueTypeConverter.valueToLocalizedStringArray( value, locale );
+        return settingReader.readSettingAsLocalizedStringArray( setting, locale );
     }
 
     public String readSettingAsString( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToString( readStoredValue( setting ) );
+        return settingReader.readSettingAsString( setting );
     }
 
-    public List<RemoteWebServiceConfiguration> readSettingAsRemoteWebService( final PwmSetting pwmSetting )
+    public List<RemoteWebServiceConfiguration> readSettingAsRemoteWebService( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToRemoteWebServiceConfiguration( readStoredValue( pwmSetting ) );
+        return settingReader.readSettingAsRemoteWebService( setting );
     }
 
     public PasswordData readSettingAsPassword( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToPassword( readStoredValue( setting ) );
+        return settingReader.readSettingAsPassword( setting );
     }
 
     public Map<String, NamedSecretData> readSettingAsNamedPasswords( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToNamedPassword( readStoredValue( setting ) );
+        return settingReader.readSettingAsNamedPasswords( setting );
     }
 
     public Map<Locale, String> readLocalizedBundle( final PwmLocaleBundle className, final String keyName )
@@ -235,18 +224,12 @@ public class Configuration implements SettingReader
         }
 
         // challengeProfile challengeSet's are mutable (question text) and can not be cached.
-        final ChallengeProfile challengeProfile = ChallengeProfile.readChallengeProfileFromConfig( profile, locale, storedConfiguration );
-        return challengeProfile;
-    }
-
-    public List<Long> readSettingAsLongArray( final PwmSetting setting )
-    {
-        return ValueTypeConverter.valueToLongArray( readStoredValue( setting ) );
+        return ChallengeProfile.readChallengeProfileFromConfig( profile, locale, storedConfiguration );
     }
 
     public long readSettingAsLong( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToLong( readStoredValue( setting ) );
+        return settingReader.readSettingAsLong( setting );
     }
 
     public PwmPasswordPolicy getPasswordPolicy( final String profile, final Locale locale )
@@ -453,24 +436,10 @@ public class Configuration implements SettingReader
 
     public boolean hasDbConfigured( )
     {
-        if ( StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_CLASS ) ) )
-        {
-            return false;
-        }
-        if ( StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_URL ) ) )
-        {
-            return false;
-        }
-        if ( StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_USERNAME ) ) )
-        {
-            return false;
-        }
-        if ( readSettingAsPassword( PwmSetting.DATABASE_PASSWORD ) == null )
-        {
-            return false;
-        }
-
-        return true;
+        return !StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_CLASS ) )
+                && !StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_URL ) )
+                && !StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_USERNAME ) )
+                && readSettingAsPassword( PwmSetting.DATABASE_PASSWORD ) != null;
     }
 
     public String readAppProperty( final AppProperty property )
@@ -493,15 +462,14 @@ public class Configuration implements SettingReader
     {
         private final Supplier<Map<String, LdapProfile>> ldapProfilesSupplier = new LazySupplier<>( () ->
         {
-            final Map<String, LdapProfile> map = new LinkedHashMap<>();
-            for ( final Map.Entry<String, LdapProfile> entry : getProfileMap( ProfileDefinition.LdapProfile, LdapProfile.class ).entrySet() )
-            {
-                if ( entry.getValue().isEnabled() )
-                {
-                    map.put( entry.getKey(), entry.getValue() );
-                }
-            }
-            return Collections.unmodifiableMap( map );
+            final Map<String, LdapProfile> sourceMap = getProfileMap( ProfileDefinition.LdapProfile );
+
+            return Collections.unmodifiableMap(
+                    sourceMap.entrySet()
+                    .stream()
+                    .filter( entry -> entry.getValue().isEnabled() )
+                    .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) )
+            );
         } );
 
         private final Supplier<Map<String, String>> appPropertyOverrides = new LazySupplier<>( () ->
@@ -617,50 +585,50 @@ public class Configuration implements SettingReader
     /* generic profile stuff */
     public Map<String, NewUserProfile> getNewUserProfiles( )
     {
-        return getProfileMap( ProfileDefinition.NewUser, NewUserProfile.class );
+        return getProfileMap( ProfileDefinition.NewUser );
     }
 
     public Map<String, ActivateUserProfile> getUserActivationProfiles( )
     {
-        return getProfileMap( ProfileDefinition.ActivateUser, ActivateUserProfile.class );
+        return getProfileMap( ProfileDefinition.ActivateUser );
     }
 
     public Map<String, HelpdeskProfile> getHelpdeskProfiles( )
     {
-        return getProfileMap( ProfileDefinition.Helpdesk, HelpdeskProfile.class );
+        return getProfileMap( ProfileDefinition.Helpdesk );
     }
 
     public Map<String, EmailServerProfile> getEmailServerProfiles( )
     {
-        return getProfileMap( ProfileDefinition.EmailServers, EmailServerProfile.class );
+        return getProfileMap( ProfileDefinition.EmailServers );
     }
 
     public Map<String, PeopleSearchProfile> getPeopleSearchProfiles( )
     {
-        return getProfileMap( ProfileDefinition.PeopleSearch, PeopleSearchProfile.class );
+        return getProfileMap( ProfileDefinition.PeopleSearch );
     }
 
     public Map<String, SetupOtpProfile> getSetupOTPProfiles( )
     {
-        return getProfileMap( ProfileDefinition.SetupOTPProfile, SetupOtpProfile.class );
+        return getProfileMap( ProfileDefinition.SetupOTPProfile );
     }
 
     public Map<String, UpdateProfileProfile> getUpdateAttributesProfile( )
     {
-        return getProfileMap( ProfileDefinition.UpdateAttributes, UpdateProfileProfile.class );
+        return getProfileMap( ProfileDefinition.UpdateAttributes );
     }
 
     public Map<String, ChangePasswordProfile> getChangePasswordProfile( )
     {
-        return getProfileMap( ProfileDefinition.ChangePassword, ChangePasswordProfile.class );
+        return getProfileMap( ProfileDefinition.ChangePassword );
     }
 
     public Map<String, ForgottenPasswordProfile> getForgottenPasswordProfiles( )
     {
-        return getProfileMap( ProfileDefinition.ForgottenPassword, ForgottenPasswordProfile.class );
+        return getProfileMap( ProfileDefinition.ForgottenPassword );
     }
 
-    private <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition, final Class<T> classOfT  )
+    private <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition )
     {
         if ( !dataCache.profileCache.containsKey( profileDefinition ) )
         {
@@ -755,7 +723,7 @@ public class Configuration implements SettingReader
         if ( readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC ) )
         {
             final String profileID = readSettingAsString( PwmSetting.PEOPLE_SEARCH_PUBLIC_PROFILE );
-            final Map<String, PeopleSearchProfile> profiles = this.getProfileMap( ProfileDefinition.PeopleSearchPublic, PeopleSearchProfile.class );
+            final Map<String, PeopleSearchProfile> profiles = this.getProfileMap( ProfileDefinition.PeopleSearchPublic );
             return Optional.ofNullable( profiles.get( profileID ) );
         }
         return Optional.empty();

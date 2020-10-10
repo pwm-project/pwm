@@ -25,7 +25,6 @@ import password.pwm.config.SettingReader;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.StoredValue;
-import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.VerificationMethodValue;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
@@ -40,15 +39,17 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
-public abstract class AbstractProfile implements Profile, SettingReader
+public abstract class AbstractProfile implements Profile
 {
     private final String identifier;
     private final StoredConfiguration storedConfiguration;
+    private final SettingReader settingReader;
 
     AbstractProfile( final String identifier, final StoredConfiguration storedConfiguration )
     {
         this.identifier = identifier;
         this.storedConfiguration = storedConfiguration;
+        this.settingReader = new SettingReader( storedConfiguration, identifier );
     }
 
     @Override
@@ -64,71 +65,62 @@ public abstract class AbstractProfile implements Profile, SettingReader
 
     public List<UserPermission> readSettingAsUserPermission( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToUserPermissions( readSetting( setting ) );
+        return settingReader.readSettingAsUserPermission( setting );
     }
 
     public String readSettingAsString( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToString( readSetting( setting ) );
+        return settingReader.readSettingAsString( setting );
     }
 
-    @Override
     public List<String> readSettingAsStringArray( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToStringArray( readSetting( setting ) );
+        return settingReader.readSettingAsStringArray( setting );
     }
 
-    @Override
     public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToForm( readSetting( setting ) );
+        return settingReader.readSettingAsForm( setting );
     }
 
-    @Override
     public <E extends Enum<E>> Set<E> readSettingAsOptionList( final PwmSetting setting, final Class<E> enumClass )
     {
-        return ValueTypeConverter.valueToOptionList( setting, readSetting( setting ), enumClass );
+        return settingReader.readSettingAsOptionList( setting, enumClass );
     }
 
-    @Override
     public <E extends Enum<E>> E readSettingAsEnum( final PwmSetting setting, final Class<E> enumClass )
     {
-        return ValueTypeConverter.valueToEnum( setting, readSetting( setting ), enumClass );
+        return settingReader.readSettingAsEnum( setting, enumClass );
     }
 
     public List<ActionConfiguration> readSettingAsAction( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToAction( setting, readSetting( setting ) );
+        return settingReader.readSettingAsAction( setting );
     }
 
-    @Override
     public List<X509Certificate> readSettingAsCertificate( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToX509Certificates( setting, readSetting( setting ) );
+        return settingReader.readSettingAsCertificate( setting );
     }
 
-    @Override
     public boolean readSettingAsBoolean( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToBoolean( readSetting( setting ) );
+        return settingReader.readSettingAsBoolean( setting );
     }
 
-    @Override
     public long readSettingAsLong( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToLong( readSetting( setting ) );
+        return settingReader.readSettingAsLong( setting );
     }
 
-    @Override
     public String readSettingAsLocalizedString( final PwmSetting setting, final Locale locale )
     {
-        return ValueTypeConverter.valueToLocalizedString( readSetting( setting ), locale );
+        return settingReader.readSettingAsLocalizedString( setting, locale );
     }
 
-    @Override
     public PasswordData readSettingAsPassword( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToPassword( readSetting( setting ) );
+        return settingReader.readSettingAsPassword( setting );
     }
 
     @Override
