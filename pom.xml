@@ -43,7 +43,6 @@
     </properties>
 
     <modules>
-        <module>pwm-cr</module>
         <module>server</module>
         <module>client</module>
         <module>webapp</module>
