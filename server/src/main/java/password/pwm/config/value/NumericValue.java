@@ -46,11 +46,13 @@ public class NumericValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public NumericValue fromJson( final String value )
             {
                 return new NumericValue( JsonUtil.deserialize( value, Long.class ) );
             }
 
+            @Override
             public NumericValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
                 final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );

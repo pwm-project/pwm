@@ -22,11 +22,11 @@ package password.pwm.util.java;
 
 import lombok.Value;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CachingProxyWrapper
@@ -40,49 +40,56 @@ public class CachingProxyWrapper
     }
 
     @Value
-    private static final class ResultWrapper<T>
+    private static final class ResultWrapper
     {
-        private final T result;
+        private final Object result;
     }
 
     public static <T> T create( final Class<T> proxiedClass, final T innerInstance )
     {
-        // create the cache
-        final Map<MethodSignature, Optional<T>> cache = new ConcurrentHashMap<>();
-
         final Class<?>[] classList = new Class[]
                 {
                         proxiedClass,
                 };
 
         // proxy for the interface T
-        return ( T ) Proxy.newProxyInstance( proxiedClass.getClassLoader(), classList, ( proxy, method, args ) ->
-        {
-            final MethodSignature methodSignature = new MethodSignature( method, args );
+        return ( T ) Proxy.newProxyInstance( proxiedClass.getClassLoader(), classList, new ProxyInstance( innerInstance ) );
+    }
 
-            final Optional<T> cachedResult = cache.get( methodSignature );
+    static class ProxyInstance implements InvocationHandler
+    {
+        private final Map<MethodSignature, ResultWrapper> cache = new ConcurrentHashMap<>();
+        private final Object wrappedClass;
+
+        ProxyInstance( final Object wrappedClass )
+        {
+            this.wrappedClass = wrappedClass;
+        }
+
+        @Override
+        public Object invoke( final Object proxy, final Method method, final Object[] args ) throws Throwable
+        {
+
+            final MethodSignature methodSignature = new MethodSignature( method, args );
+            final ResultWrapper cachedResult = cache.get( methodSignature );
 
             if ( cachedResult != null )
             {
-                if ( cachedResult.isPresent() )
-                {
-                    return cachedResult.get();
-                }
-                return null;
+                return cachedResult.getResult();
             }
 
             // make sure exceptions are handled transparently
             try
             {
-                final T result = ( T ) method.invoke( innerInstance, args );
-                cache.put( methodSignature, Optional.ofNullable( result ) );
+                final Object result = method.invoke( wrappedClass, args );
+                cache.put( methodSignature, new ResultWrapper( result ) );
                 return result;
             }
             catch ( final InvocationTargetException e )
             {
                 throw e.getTargetException();
             }
-        } );
+        }
     }
 }
 

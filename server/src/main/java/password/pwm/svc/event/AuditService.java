@@ -83,11 +83,13 @@ public class AuditService implements PwmService
     {
     }
 
+    @Override
     public STATUS status( )
     {
         return status;
     }
 
+    @Override
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
         this.pwmApplication = pwmApplication;
@@ -489,6 +491,7 @@ public class AuditService implements PwmService
         return counter;
     }
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         return serviceInfo;

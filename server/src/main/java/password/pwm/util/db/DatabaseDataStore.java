@@ -38,25 +38,30 @@ public class DatabaseDataStore implements DataStore
         this.table = table;
     }
 
+    @Override
     public void close( ) throws PwmDataStoreException
     {
     }
 
+    @Override
     public boolean contains( final String key ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().contains( table, key );
     }
 
+    @Override
     public String get( final String key ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().get( table, key );
     }
 
+    @Override
     public ClosableIterator<Map.Entry<String, String>> iterator( ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().iterator( table );
     }
 
+    @Override
     public Status status( )
     {
         if ( databaseService == null )
@@ -67,21 +72,25 @@ public class DatabaseDataStore implements DataStore
         return Status.OPEN;
     }
 
+    @Override
     public boolean put( final String key, final String value ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().put( table, key, value );
     }
 
+    @Override
     public boolean putIfAbsent( final String key, final String value ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().putIfAbsent( table, key, value );
     }
 
+    @Override
     public void remove( final String key ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         databaseService.getAccessor().remove( table, key );
     }
 
+    @Override
     public long size( ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().size( table );

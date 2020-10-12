@@ -60,6 +60,7 @@ public class UpdateProfileBean extends PwmSessionBean
     @SerializedName( "ts" )
     private boolean tokenSent;
 
+    @Override
     public Type getType( )
     {
         return Type.AUTHENTICATED;

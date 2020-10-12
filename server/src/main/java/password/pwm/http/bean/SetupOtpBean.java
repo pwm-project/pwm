@@ -137,6 +137,7 @@ public class SetupOtpBean extends PwmSessionBean
         this.written = written;
     }
 
+    @Override
     public Type getType( )
     {
         return Type.AUTHENTICATED;

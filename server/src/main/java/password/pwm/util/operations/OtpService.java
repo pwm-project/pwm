@@ -492,6 +492,7 @@ public class OtpService implements PwmService
         return settings;
     }
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         return ServiceInfoBean.builder().build();

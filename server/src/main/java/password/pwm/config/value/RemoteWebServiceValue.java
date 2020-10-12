@@ -62,6 +62,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public RemoteWebServiceValue fromJson( final String input )
             {
                 if ( input == null )
@@ -82,6 +83,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
                 }
             }
 
+            @Override
             public RemoteWebServiceValue fromXmlElement(
                     final PwmSetting pwmSetting,
                     final XmlElement settingElement,
@@ -113,6 +115,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         };
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
@@ -140,11 +143,13 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         return returnList;
     }
 
+    @Override
     public List<RemoteWebServiceConfiguration> toNativeObject( )
     {
         return Collections.unmodifiableList( values );
     }
 
+    @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
         if ( pwmSetting.isRequired() )
@@ -226,6 +231,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         return output;
     }
     
+    @Override
     public String toDebugString( final Locale locale )
     {
         return JsonUtil.serialize( this.toDebugJsonObject( locale ) );

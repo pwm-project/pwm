@@ -160,6 +160,7 @@ class NodeMachine
 
     private class HeartbeatProcess implements Runnable
     {
+        @Override
         public void run( )
         {
             writeNodeStatus();

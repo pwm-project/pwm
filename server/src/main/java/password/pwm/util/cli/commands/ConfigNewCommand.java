@@ -30,6 +30,7 @@ import java.util.Collections;
 
 public class ConfigNewCommand extends AbstractCliCommand
 {
+    @Override
     public void doCommand( )
             throws Exception
     {

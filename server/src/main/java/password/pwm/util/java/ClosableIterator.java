@@ -24,5 +24,6 @@ import java.util.Iterator;
 
 public interface ClosableIterator<K> extends Iterator<K>, AutoCloseable
 {
+    @Override
     void close( );
 }

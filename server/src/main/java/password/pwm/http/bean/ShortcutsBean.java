@@ -43,6 +43,7 @@ public class ShortcutsBean extends PwmSessionBean
         this.visibleItems = visibleItems;
     }
 
+    @Override
     public Type getType( )
     {
         return Type.AUTHENTICATED;

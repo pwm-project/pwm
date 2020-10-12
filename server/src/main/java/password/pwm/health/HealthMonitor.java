@@ -98,6 +98,7 @@ public class HealthMonitor implements PwmService
     {
     }
 
+    @Override
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
         this.pwmApplication = pwmApplication;
@@ -163,6 +164,7 @@ public class HealthMonitor implements PwmService
         return returnStatus;
     }
 
+    @Override
     public STATUS status( )
     {
         return status;
@@ -197,6 +199,7 @@ public class HealthMonitor implements PwmService
         }
     }
 
+    @Override
     public void close( )
     {
         if ( executorService != null )
@@ -216,6 +219,7 @@ public class HealthMonitor implements PwmService
         return new HealthData( Collections.emptySet(), Instant.ofEpochMilli( 0 ) );
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         return Collections.emptyList();
@@ -274,6 +278,7 @@ public class HealthMonitor implements PwmService
         LOGGER.trace( () -> "completed health check execution #" + counter, () -> TimeDuration.fromCurrent( startTime ) );
     }
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         return ServiceInfoBean.builder().build();

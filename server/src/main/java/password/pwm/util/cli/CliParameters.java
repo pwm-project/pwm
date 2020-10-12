@@ -50,16 +50,19 @@ public class CliParameters
 
     public static final Option REQUIRED_NEW_OUTPUT_FILE = new Option()
     {
+        @Override
         public boolean isOptional( )
         {
             return false;
         }
 
+        @Override
         public Type getType( )
         {
             return Type.NEW_FILE;
         }
 
+        @Override
         public String getName( )
         {
             return "outputFile";
@@ -68,16 +71,19 @@ public class CliParameters
 
     public static final CliParameters.Option REQUIRED_EXISTING_INPUT_FILE = new CliParameters.Option()
     {
+        @Override
         public boolean isOptional( )
         {
             return false;
         }
 
+        @Override
         public Type getType( )
         {
             return Type.EXISTING_FILE;
         }
 
+        @Override
         public String getName( )
         {
             return "inputFile";
@@ -86,16 +92,19 @@ public class CliParameters
 
     public static final CliParameters.Option OPTIONAL_PASSWORD = new CliParameters.Option()
     {
+        @Override
         public boolean isOptional( )
         {
             return true;
         }
 
+        @Override
         public Type getType( )
         {
             return Type.STRING;
         }
 
+        @Override
         public String getName( )
         {
             return "password";

@@ -54,11 +54,13 @@ class ExternalRestMacro extends AbstractMacro
         this.url = url;
     }
 
+    @Override
     public Pattern getRegExPattern( )
     {
         return pattern;
     }
 
+    @Override
     public String replaceValue(
             final String matchValue,
             final MacroRequestInfo macroRequestInfo

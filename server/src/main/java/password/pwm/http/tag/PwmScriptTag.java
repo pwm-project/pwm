@@ -40,12 +40,14 @@ public class PwmScriptTag extends BodyTagSupport
     // match start and end <script> tags
     private static final Pattern SCRIPT_TAG_PATTERN = Pattern.compile( "<\\s*script.*?>|<\\s*\\/\\s*script\\s*.*?>" );
 
+    @Override
     public int doStartTag( )
             throws JspException
     {
         return EVAL_BODY_BUFFERED;
     }
 
+    @Override
     public int doAfterBody( )
     {
         try

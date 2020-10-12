@@ -77,6 +77,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         this.pwmApplication = pwmApplication;
     }
 
+    @Override
     public void updateUserHistory( final UserAuditRecord auditRecord )
             throws PwmUnrecoverableException
     {
@@ -172,6 +173,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         }
     }
 
+    @Override
     public List<UserAuditRecord> readUserHistory( final UserInfo userInfo )
             throws PwmUnrecoverableException
     {

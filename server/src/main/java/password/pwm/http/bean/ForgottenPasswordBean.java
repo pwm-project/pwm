@@ -141,6 +141,7 @@ public class ForgottenPasswordBean extends PwmSessionBean
         }
     }
 
+    @Override
     public Type getType( )
     {
         return Type.PUBLIC;

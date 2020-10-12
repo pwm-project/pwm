@@ -48,6 +48,7 @@ public class BasicUrlShortener implements AbstractUrlShortener
         return configuration;
     }
 
+    @Override
     public String shorten( final String input, final PwmApplication context ) throws PwmUnrecoverableException
     {
         /*

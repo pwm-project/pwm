@@ -84,6 +84,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
         return Optional.empty();
     }
 
+    @Override
     public void writeStoredUserState(
             final UserIdentity userIdentity,
             final SessionLabel sessionLabel,

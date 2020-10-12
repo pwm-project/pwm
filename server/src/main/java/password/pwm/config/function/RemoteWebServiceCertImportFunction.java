@@ -71,6 +71,7 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
         return extraData;
     }
 
+    @Override
     void store(
             final List<X509Certificate> certs,
             final StoredConfigurationModifier modifier,

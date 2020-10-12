@@ -67,6 +67,7 @@ public class ConfigurationChecker implements HealthChecker
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigurationChecker.class );
 
+    @Override
     public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
     {
         if ( pwmApplication.getConfig() == null )

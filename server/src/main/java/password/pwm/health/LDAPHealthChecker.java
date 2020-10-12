@@ -87,6 +87,7 @@ public class LDAPHealthChecker implements HealthChecker
     private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPHealthChecker.class );
     private static final String TOPIC = "LDAP";
 
+    @Override
     public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
     {
         final Configuration config = pwmApplication.getConfig();

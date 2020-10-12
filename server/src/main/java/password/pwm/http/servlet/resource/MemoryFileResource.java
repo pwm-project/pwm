@@ -38,26 +38,31 @@ class MemoryFileResource implements FileResource
         this.lastModified = lastModified;
     }
 
+    @Override
     public InputStream getInputStream( ) throws IOException
     {
         return contents.newByteArrayInputStream();
     }
 
+    @Override
     public long length( )
     {
         return contents.size();
     }
 
+    @Override
     public long lastModified( )
     {
         return lastModified;
     }
 
+    @Override
     public boolean exists( )
     {
         return true;
     }
 
+    @Override
     public String getName( )
     {
         return name;

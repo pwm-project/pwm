@@ -55,6 +55,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( AbstractPwmServlet.class );
 
+    @Override
     public void doGet(
             final HttpServletRequest req,
             final HttpServletResponse resp
@@ -64,6 +65,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         this.handleRequest( req, resp, HttpMethod.GET );
     }
 
+    @Override
     public void doPost(
             final HttpServletRequest req,
             final HttpServletResponse resp

@@ -64,28 +64,34 @@ class CryptoTokenMachine implements TokenMachine
         return Optional.of( tokenService.fromEncryptedString( tokenKey.getStoredHash() ) );
     }
 
+    @Override
     public void storeToken( final TokenKey tokenKey, final TokenPayload tokenPayload ) throws PwmOperationalException, PwmUnrecoverableException
     {
     }
 
+    @Override
     public void removeToken( final TokenKey tokenKey ) throws PwmOperationalException, PwmUnrecoverableException
     {
     }
 
+    @Override
     public long size( ) throws PwmOperationalException, PwmUnrecoverableException
     {
         return 0;
     }
 
+    @Override
     public void cleanup( )
     {
     }
 
+    @Override
     public boolean supportsName( )
     {
         return true;
     }
 
+    @Override
     public TokenKey keyFromKey( final String key ) throws PwmUnrecoverableException
     {
         return new CryptoTokenKey( key );

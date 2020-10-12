@@ -71,6 +71,7 @@ public abstract class RestServlet extends HttpServlet
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestServlet.class );
 
+    @Override
     protected void service( final HttpServletRequest req, final HttpServletResponse resp )
             throws ServletException, IOException
     {

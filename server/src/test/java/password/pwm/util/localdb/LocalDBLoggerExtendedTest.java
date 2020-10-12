@@ -151,6 +151,7 @@ public class LocalDBLoggerExtendedTest
 
     private class PopulatorThread extends Thread
     {
+        @Override
         public void run()
         {
             final RandomValueMaker randomValueMaker = new RandomValueMaker( settings.valueLength );
@@ -223,6 +224,7 @@ public class LocalDBLoggerExtendedTest
 
     private class DebugOutputTimerTask extends TimerTask
     {
+        @Override
         public void run()
         {
             outputDebugInfo();

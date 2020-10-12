@@ -57,6 +57,7 @@ public class HttpEventManager implements
     {
     }
 
+    @Override
     public void sessionCreated( final HttpSessionEvent httpSessionEvent )
     {
         final HttpSession httpSession = httpSessionEvent.getSession();
@@ -79,6 +80,7 @@ public class HttpEventManager implements
         }
     }
 
+    @Override
     public void sessionDestroyed( final HttpSessionEvent httpSessionEvent )
     {
         final HttpSession httpSession = httpSessionEvent.getSession();
@@ -114,6 +116,7 @@ public class HttpEventManager implements
     }
 
 
+    @Override
     public void contextInitialized( final ServletContextEvent servletContextEvent )
     {
         Logger.getLogger( "org.glassfish.jersey" ).setLevel( Level.SEVERE );
@@ -143,6 +146,7 @@ public class HttpEventManager implements
         }
     }
 
+    @Override
     public void contextDestroyed( final ServletContextEvent servletContextEvent )
     {
         try
@@ -157,6 +161,7 @@ public class HttpEventManager implements
     }
 
 
+    @Override
     public void sessionWillPassivate( final HttpSessionEvent event )
     {
         try
@@ -170,6 +175,7 @@ public class HttpEventManager implements
         }
     }
 
+    @Override
     public void sessionDidActivate( final HttpSessionEvent event )
     {
         try

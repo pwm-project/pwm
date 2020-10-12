@@ -246,6 +246,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         this.setContentType( contentType );
     }
 
+    @Override
     public void sendRedirect( final String url )
             throws IOException
     {

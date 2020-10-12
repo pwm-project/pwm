@@ -59,6 +59,7 @@ public class LocalDbAuditVault implements AuditVault
     {
     }
 
+    @Override
     public void init(
             final PwmApplication pwmApplication,
             final LocalDB localDB,
@@ -79,6 +80,7 @@ public class LocalDbAuditVault implements AuditVault
         pwmApplication.getPwmScheduler().scheduleFixedRateJob( new TrimmerThread(), executorService, TimeDuration.SECONDS_10, jobFrequency );
     }
 
+    @Override
     public void close( )
     {
         executorService.shutdown();
@@ -102,6 +104,7 @@ public class LocalDbAuditVault implements AuditVault
         return auditDB.size();
     }
 
+    @Override
     public Iterator<AuditRecord> readVault( )
     {
         return new IteratorWrapper( auditDB.descendingIterator() );
@@ -184,6 +187,7 @@ public class LocalDbAuditVault implements AuditVault
         return null;
     }
 
+    @Override
     public void add( final AuditRecord record )
     {
         if ( record == null )

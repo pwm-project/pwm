@@ -75,12 +75,14 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
         }
     }
 
+    @Override
     protected ConfigManagerCertificateAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
@@ -94,6 +96,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
         }
     }
 
+    @Override
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, PwmUnrecoverableException
     {

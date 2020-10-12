@@ -45,6 +45,7 @@ public class SetupResponsesBean extends PwmSessionBean
     private Locale userLocale;
     private boolean initialized;
 
+    @Override
     public Type getType( )
     {
         return Type.AUTHENTICATED;

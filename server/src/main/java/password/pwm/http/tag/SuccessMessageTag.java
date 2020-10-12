@@ -35,6 +35,7 @@ import javax.servlet.jsp.JspTagException;
 public class SuccessMessageTag extends PwmAbstractTag
 {
 
+    @Override
     public int doEndTag( )
             throws javax.servlet.jsp.JspTagException
     {

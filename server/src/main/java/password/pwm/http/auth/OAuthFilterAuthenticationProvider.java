@@ -32,6 +32,7 @@ public class OAuthFilterAuthenticationProvider implements PwmHttpFilterAuthentic
 
     private boolean redirected = false;
 
+    @Override
     public void attemptAuthentication(
             final PwmRequest pwmRequest
     )

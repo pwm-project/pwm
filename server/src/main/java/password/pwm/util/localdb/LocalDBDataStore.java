@@ -37,21 +37,25 @@ public class LocalDBDataStore implements DataStore
         this.db = db;
     }
 
+    @Override
     public void close( ) throws PwmDataStoreException
     {
         localDB.close();
     }
 
+    @Override
     public boolean contains( final String key ) throws PwmDataStoreException
     {
         return localDB.contains( db, key );
     }
 
+    @Override
     public String get( final String key ) throws PwmDataStoreException
     {
         return localDB.get( db, key );
     }
 
+    @Override
     public ClosableIterator<Map.Entry<String, String>> iterator( ) throws PwmDataStoreException
     {
         return localDB.iterator( db );
@@ -62,6 +66,7 @@ public class LocalDBDataStore implements DataStore
         localDB.putAll( db, keyValueMap );
     }
 
+    @Override
     public Status status( )
     {
         final LocalDB.Status dbStatus = localDB.status();
@@ -85,21 +90,25 @@ public class LocalDBDataStore implements DataStore
         }
     }
 
+    @Override
     public boolean put( final String key, final String value ) throws PwmDataStoreException
     {
         return localDB.put( db, key, value );
     }
 
+    @Override
     public boolean putIfAbsent( final String key, final String value ) throws PwmDataStoreException
     {
         return localDB.putIfAbsent( db, key, value );
     }
 
+    @Override
     public void remove( final String key ) throws PwmDataStoreException
     {
         localDB.remove( db, key );
     }
 
+    @Override
     public long size( ) throws PwmDataStoreException
     {
         return localDB.size( db );

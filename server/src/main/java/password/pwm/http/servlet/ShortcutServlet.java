@@ -70,12 +70,14 @@ public class ShortcutServlet extends AbstractPwmServlet
     {
         selectShortcut,;
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( HttpMethod.GET );
         }
     }
 
+    @Override
     protected ShortcutAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
@@ -89,6 +91,7 @@ public class ShortcutServlet extends AbstractPwmServlet
         }
     }
 
+    @Override
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {

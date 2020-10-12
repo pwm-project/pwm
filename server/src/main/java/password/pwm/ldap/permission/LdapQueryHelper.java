@@ -41,6 +41,7 @@ class LdapQueryHelper implements PermissionTypeHelper
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserPermissionUtility.class );
 
+    @Override
     public boolean testMatch(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
@@ -117,6 +118,7 @@ class LdapQueryHelper implements PermissionTypeHelper
 
 
 
+    @Override
     public SearchConfiguration searchConfigurationFromPermission( final UserPermission userPermission )
             throws PwmUnrecoverableException
     {

@@ -80,6 +80,7 @@ public class EmailService implements PwmService
 
     private PwmService.STATUS status = STATUS.CLOSED;
 
+    @Override
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
@@ -133,6 +134,7 @@ public class EmailService implements PwmService
         statsLogger.conditionallyExecuteTask();
     }
 
+    @Override
     public void close( )
     {
         status = STATUS.CLOSED;
@@ -154,6 +156,7 @@ public class EmailService implements PwmService
         return status;
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         if ( startupError != null )
@@ -224,6 +227,7 @@ public class EmailService implements PwmService
             return sendItem( workItem );
         }
 
+        @Override
         public String convertToDebugString( final EmailItemBean emailItemBean )
         {
             return emailItemBean.toDebugString();

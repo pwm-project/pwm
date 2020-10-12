@@ -118,6 +118,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );

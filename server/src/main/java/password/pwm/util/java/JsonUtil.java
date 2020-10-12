@@ -158,6 +158,7 @@ public class JsonUtil
         {
         }
 
+        @Override
         public JsonElement serialize( final X509Certificate cert, final Type type, final JsonSerializationContext jsonSerializationContext )
         {
             try
@@ -170,6 +171,7 @@ public class JsonUtil
             }
         }
 
+        @Override
         public X509Certificate deserialize( final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext )
                 throws JsonParseException
         {
@@ -207,11 +209,13 @@ public class JsonUtil
         {
         }
 
+        @Override
         public JsonElement serialize( final Date date, final Type type, final JsonSerializationContext jsonSerializationContext )
         {
             return new JsonPrimitive( ISO_DATE_FORMAT.format( date.toInstant() ) );
         }
 
+        @Override
         public Date deserialize( final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext )
         {
             try
@@ -245,11 +249,13 @@ public class JsonUtil
         {
         }
 
+        @Override
         public JsonElement serialize( final Instant instant, final Type type, final JsonSerializationContext jsonSerializationContext )
         {
             return new JsonPrimitive( JavaHelper.toIsoDate( instant ) );
         }
 
+        @Override
         public Instant deserialize( final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext )
         {
             try
@@ -270,6 +276,7 @@ public class JsonUtil
         {
         }
 
+        @Override
         public ChallengeSet deserialize( final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext )
         {
             try
@@ -286,6 +293,7 @@ public class JsonUtil
 
     private static class ByteArrayToBase64TypeAdapter implements JsonSerializer<byte[]>, JsonDeserializer<byte[]>
     {
+        @Override
         public byte[] deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
         {
             try
@@ -300,6 +308,7 @@ public class JsonUtil
             }
         }
 
+        @Override
         public JsonElement serialize( final byte[] src, final Type typeOfSrc, final JsonSerializationContext context )
         {
             try
@@ -317,6 +326,7 @@ public class JsonUtil
 
     private static class PasswordDataTypeAdapter implements JsonSerializer<PasswordData>, JsonDeserializer<PasswordData>
     {
+        @Override
         public PasswordData deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
         {
             try
@@ -331,6 +341,7 @@ public class JsonUtil
             }
         }
 
+        @Override
         public JsonElement serialize( final PasswordData src, final Type typeOfSrc, final JsonSerializationContext context )
         {
             try
@@ -349,11 +360,13 @@ public class JsonUtil
 
     private static class PwmLdapVendorTypeAdaptor implements JsonSerializer<PwmLdapVendor>, JsonDeserializer<PwmLdapVendor>
     {
+        @Override
         public PwmLdapVendor deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
         {
             return PwmLdapVendor.fromString( json.getAsString() );
         }
 
+        @Override
         public JsonElement serialize( final PwmLdapVendor src, final Type typeOfSrc, final JsonSerializationContext context )
         {
             return new JsonPrimitive( src.name() );

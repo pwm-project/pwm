@@ -50,6 +50,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
 
     private final Map<String, Method> actionMethodCache = createMethodCache();
 
+    @Override
     public String servletUriRemainder( final PwmRequest pwmRequest, final String command ) throws PwmUnrecoverableException
     {
         String uri = pwmRequest.getURLwithoutQueryString();
@@ -67,6 +68,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         return uri;
     }
 
+    @Override
     protected PwmServletDefinition getServletDefinition( )
     {
         for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
@@ -82,6 +84,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
 
     public abstract Class<? extends ProcessAction> getProcessActionsClass( );
 
+    @Override
     protected ProcessAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
@@ -148,6 +151,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
     }
 
+    @Override
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {

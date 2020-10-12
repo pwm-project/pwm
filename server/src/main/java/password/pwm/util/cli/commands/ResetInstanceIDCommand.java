@@ -26,6 +26,7 @@ import password.pwm.util.cli.CliParameters;
 
 public class ResetInstanceIDCommand extends AbstractCliCommand
 {
+    @Override
     public void doCommand( ) throws Exception
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();

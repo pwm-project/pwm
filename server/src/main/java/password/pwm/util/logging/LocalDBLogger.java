@@ -186,6 +186,7 @@ public class LocalDBLogger implements PwmService
         return sb.toString();
     }
 
+    @Override
     public void close( )
     {
         if ( status != STATUS.CLOSED )
@@ -446,6 +447,7 @@ public class LocalDBLogger implements PwmService
 
     private class CleanupTask implements Runnable
     {
+        @Override
         public void run( )
         {
             try
@@ -473,11 +475,13 @@ public class LocalDBLogger implements PwmService
         }
     }
 
+    @Override
     public STATUS status( )
     {
         return status;
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         final List<HealthRecord> healthRecords = new ArrayList<>();
@@ -514,6 +518,7 @@ public class LocalDBLogger implements PwmService
         return healthRecords;
     }
 
+    @Override
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
     }
@@ -530,6 +535,7 @@ public class LocalDBLogger implements PwmService
         return this.getStoredEventCount() + " / " + maxEvents + " (" + numberFormat.format( percentFull ) + "%)";
     }
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         return ServiceInfoBean.builder()

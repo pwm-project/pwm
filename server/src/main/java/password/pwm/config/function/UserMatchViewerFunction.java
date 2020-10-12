@@ -23,6 +23,8 @@ package password.pwm.config.function;
 import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
@@ -32,6 +34,8 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.config.value.StoredValue;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -72,18 +76,18 @@ public class UserMatchViewerFunction implements SettingUIFunction
         final Collection<UserIdentity> users = discoverMatchingUsers( pwmApplication, maxResultSize, storedConfiguration.newStoredConfiguration(), setting, profile );
         final TimeDuration searchDuration = TimeDuration.fromCurrent( startSearchTime );
 
-        final UserMatchViewerResults userMatchViewerResults = new UserMatchViewerResults();
+        final String message = LocaleHelper.getLocalizedMessage(
+                Display.Display_SearchResultsInfo, pwmRequest,
+                String.valueOf( users.size() ),
+                searchDuration.asLongString( pwmRequest.getLocale() ) );
+
         final boolean sizeExceeded = users.size() >= maxResultSize;
 
-        userMatchViewerResults.setUsers( users );
-        userMatchViewerResults.setSearchOperationSummary(
-                LocaleHelper.getLocalizedMessage(
-                        Display.Display_SearchResultsInfo, pwmRequest,
-                        String.valueOf( users.size() ),
-                        searchDuration.asLongString( pwmRequest.getLocale() )
-                ) );
-        userMatchViewerResults.setSizeExceeded( sizeExceeded );
-        return userMatchViewerResults;
+        return UserMatchViewerResults.builder()
+                .users( users )
+                .searchOperationSummary( message )
+                .sizeExceeded( sizeExceeded )
+                .build();
     }
 
     public List<UserIdentity> discoverMatchingUsers(
@@ -97,7 +101,8 @@ public class UserMatchViewerFunction implements SettingUIFunction
     {
         final Configuration config = new Configuration( storedConfiguration );
         final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmApplication.getPwmEnvironment().makeRuntimeInstance( config ) );
-        final List<UserPermission> permissions = ( List<UserPermission> ) storedConfiguration.readSetting( setting, profile ).toNativeObject();
+        final StoredValue storedValue = storedConfiguration.readSetting( setting, profile );
+        final List<UserPermission> permissions = ValueTypeConverter.valueToUserPermissions( storedValue );
 
         validateUserPermissionLdapValues( tempApplication, permissions );
 
@@ -175,40 +180,12 @@ public class UserMatchViewerFunction implements SettingUIFunction
         }
     }
 
+    @Value
+    @Builder
     public static class UserMatchViewerResults implements Serializable
     {
         private Collection<UserIdentity> users;
         private boolean sizeExceeded;
         private String searchOperationSummary;
-
-        public Collection<UserIdentity> getUsers( )
-        {
-            return users;
-        }
-
-        public void setUsers( final Collection<UserIdentity> users )
-        {
-            this.users = users;
-        }
-
-        public boolean isSizeExceeded( )
-        {
-            return sizeExceeded;
-        }
-
-        public void setSizeExceeded( final boolean sizeExceeded )
-        {
-            this.sizeExceeded = sizeExceeded;
-        }
-
-        public String getSearchOperationSummary( )
-        {
-            return searchOperationSummary;
-        }
-
-        public void setSearchOperationSummary( final String searchOperationSummary )
-        {
-            this.searchOperationSummary = searchOperationSummary;
-        }
     }
 }

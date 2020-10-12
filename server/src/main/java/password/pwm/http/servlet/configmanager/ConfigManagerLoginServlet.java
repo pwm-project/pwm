@@ -92,6 +92,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );

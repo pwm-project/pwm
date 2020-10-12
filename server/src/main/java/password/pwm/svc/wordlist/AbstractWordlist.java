@@ -237,6 +237,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         return autoImportError;
     }
 
+    @Override
     public long size( )
     {
         if ( wlStatus != STATUS.OPEN )
@@ -256,6 +257,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         return -1;
     }
 
+    @Override
     public void close( )
     {
         final TimeDuration closeWaitTime = TimeDuration.of( 1, TimeDuration.Unit.MINUTES );
@@ -274,11 +276,13 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         }
     }
 
+    @Override
     public STATUS status( )
     {
         return wlStatus;
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         final List<HealthRecord> returnList = new ArrayList<>();
@@ -311,6 +315,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         return Collections.unmodifiableList( returnList );
     }
 
+    @Override
     public WordlistStatus readWordlistStatus( )
     {
         if ( wlStatus == STATUS.CLOSED )
@@ -466,6 +471,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     }
 
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         if ( status() == STATUS.OPEN )

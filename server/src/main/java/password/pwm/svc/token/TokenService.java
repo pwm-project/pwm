@@ -129,6 +129,7 @@ public class TokenService implements PwmService
         return new TokenPayload( name.name(), expiration, data, userIdentity, destination, guid );
     }
 
+    @Override
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
@@ -328,11 +329,13 @@ public class TokenService implements PwmService
         return null;
     }
 
+    @Override
     public STATUS status( )
     {
         return status;
     }
 
+    @Override
     public void close( )
     {
         status = STATUS.CLOSED;
@@ -342,6 +345,7 @@ public class TokenService implements PwmService
         }
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         final List<HealthRecord> returnRecords = new ArrayList<>();
@@ -410,6 +414,7 @@ public class TokenService implements PwmService
 
     private class CleanerTask extends TimerTask
     {
+        @Override
         public void run( )
         {
             try
@@ -543,6 +548,7 @@ public class TokenService implements PwmService
         }
     }
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         return serviceInfo;

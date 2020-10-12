@@ -38,16 +38,19 @@ public class PromiscuousTrustManager implements X509TrustManager
         return new PromiscuousTrustManager();
     }
 
+    @Override
     public X509Certificate[] getAcceptedIssuers( )
     {
         return new X509Certificate[ 0 ];
     }
 
+    @Override
     public void checkClientTrusted( final X509Certificate[] certs, final String authType )
     {
         logMsg( certs, authType );
     }
 
+    @Override
     public void checkServerTrusted( final X509Certificate[] certs, final String authType )
     {
         logMsg( certs, authType );

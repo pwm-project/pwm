@@ -155,12 +155,14 @@ public class HelpdeskServlet extends ControlledPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
         }
     }
 
+    @Override
     public Class<? extends ProcessAction> getProcessActionsClass( )
     {
         return HelpdeskAction.class;

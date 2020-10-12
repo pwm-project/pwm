@@ -90,11 +90,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@LDAP" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -211,11 +213,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@InstanceID@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -237,11 +241,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@CurrentTime" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -297,11 +303,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@Iso8601" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -338,11 +346,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:PwExpireTime" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -394,11 +404,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:PwExpireTime@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -433,11 +445,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:DaysUntilPwExpire@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -470,11 +484,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:ID@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -503,11 +519,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:LdapProfile@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -532,11 +550,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:Email@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -565,11 +585,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:Password@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -593,6 +615,7 @@ public abstract class StandardMacros
             }
         }
 
+        @Override
         public MacroDefinitionFlag[] flags( )
         {
             return new MacroDefinitionFlag[]
@@ -606,11 +629,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@SiteURL@|@Site:URL@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -624,11 +649,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@DefaultEmailFromAddress@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -642,11 +669,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@SiteHost@|@Site:Host@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -670,11 +699,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@RandomChar(:[^@]*)?@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -725,11 +756,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@RandomNumber(:[^@]*)?@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -782,11 +815,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@UUID@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -800,11 +835,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@OtpSetupTime@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
         {
             try
@@ -828,11 +865,13 @@ public abstract class StandardMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@ResponseSetupTime@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
         {
             try

@@ -192,6 +192,7 @@ public enum Statistic
             this.pwmSetting = pwmSetting;
         }
 
+        @Override
         public boolean isActive( final PwmApplication pwmApplication )
         {
             return pwmApplication.getConfig().readSettingAsBoolean( pwmSetting );

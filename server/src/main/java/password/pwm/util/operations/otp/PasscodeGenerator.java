@@ -89,6 +89,7 @@ public class PasscodeGenerator
     {
         this( new Signer()
         {
+            @Override
             public byte[] sign( final byte[] data )
             {
                 return mac.doFinal( data );
@@ -255,12 +256,14 @@ public class PasscodeGenerator
         /*
          * @return The current interval
          */
+        @Override
         public long getCurrentInterval( )
         {
             final long currentTimeSeconds = System.currentTimeMillis() / 1000;
             return currentTimeSeconds / getIntervalPeriod();
         }
 
+        @Override
         public int getIntervalPeriod( )
         {
             return intervalPeriod;

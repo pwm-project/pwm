@@ -221,6 +221,7 @@ public class DatabaseService implements PwmService
         accessors.clear();
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         if ( status == PwmService.STATUS.CLOSED )

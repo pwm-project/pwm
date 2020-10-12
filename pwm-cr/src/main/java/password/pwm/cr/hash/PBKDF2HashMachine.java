@@ -39,6 +39,7 @@ class PBKDF2HashMachine extends AbstractHashMachine implements ResponseHashMachi
     {
     }
 
+    @Override
     public void init( final ResponseHashAlgorithm responseHashAlgorithm )
     {
         this.responseHashAlgorithm = responseHashAlgorithm;

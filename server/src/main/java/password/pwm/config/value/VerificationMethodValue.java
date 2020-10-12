@@ -124,6 +124,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     {
         return new StoredValueFactory()
         {
+            @Override
             public VerificationMethodValue fromJson( final String input )
             {
                 if ( input == null )
@@ -137,6 +138,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
                 }
             }
 
+            @Override
             public VerificationMethodValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {

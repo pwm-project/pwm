@@ -257,6 +257,7 @@ public class NMASCrOperator implements CrOperator
         }
     }
 
+    @Override
     public void close( )
     {
         unregisterSaslProvider();
@@ -269,6 +270,7 @@ public class NMASCrOperator implements CrOperator
         }
     }
 
+    @Override
     public ResponseSet readResponseSet(
             final ChaiUser theUser,
             final UserIdentity userIdentity,
@@ -330,6 +332,7 @@ public class NMASCrOperator implements CrOperator
         }
     }
 
+    @Override
     public void clearResponses(
             final UserIdentity userIdentity, final ChaiUser theUser,
             final String user
@@ -354,6 +357,7 @@ public class NMASCrOperator implements CrOperator
         }
     }
 
+    @Override
     public void writeResponses(
             final UserIdentity userIdentity, final ChaiUser theUser,
             final String userGuid,
@@ -499,6 +503,7 @@ public class NMASCrOperator implements CrOperator
             return ( LDAPConnection ) ( ( ChaiProviderImplementor ) chaiProvider ).getConnectionObject();
         }
 
+        @Override
         public ChallengeSet getChallengeSet( ) throws ChaiValidationException
         {
             if ( passed )
@@ -508,11 +513,13 @@ public class NMASCrOperator implements CrOperator
             return challengeSet;
         }
 
+        @Override
         public ChallengeSet getPresentableChallengeSet( ) throws ChaiValidationException
         {
             return getChallengeSet();
         }
 
+        @Override
         public boolean meetsChallengeSetRequirements( final ChallengeSet challengeSet ) throws ChaiValidationException
         {
             if ( challengeSet.getRequiredChallenges().size() > this.getChallengeSet().getRequiredChallenges().size() )
@@ -547,11 +554,13 @@ public class NMASCrOperator implements CrOperator
             return true;
         }
 
+        @Override
         public String stringValue( ) throws UnsupportedOperationException, ChaiOperationException
         {
             throw new UnsupportedOperationException( "not supported" );
         }
 
+        @Override
         public boolean test( final Map<Challenge, String> challengeStringMap )
                 throws ChaiUnavailableException
         {
@@ -720,6 +729,7 @@ public class NMASCrOperator implements CrOperator
                 super( lcmenvironment, lcmregistry );
             }
 
+            @Override
             public void handle( final Callback[] callbacks ) throws UnsupportedCallbackException
             {
                 LOGGER.trace( () -> "entering ChalRespCallbackHandler.handle()" );
@@ -885,6 +895,7 @@ public class NMASCrOperator implements CrOperator
             start();
         }
 
+        @Override
         public void run( )
         {
             try
@@ -1077,6 +1088,7 @@ public class NMASCrOperator implements CrOperator
             final NMASCrPwmSaslProvider thisInstance = NMASCrPwmSaslProvider.this;
             AccessController.doPrivileged( new PrivilegedAction()
             {
+                @Override
                 public Object run( )
                 {
                     try

@@ -54,6 +54,7 @@ class DataStoreRecordStore implements RecordStore
         this.intruderManager = intruderManager;
     }
 
+    @Override
     public IntruderRecord read( final String key )
             throws PwmUnrecoverableException
     {
@@ -166,6 +167,7 @@ class DataStoreRecordStore implements RecordStore
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void close( )
         {
             dbIterator.close();

@@ -64,6 +64,7 @@ public class PasswordValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public PasswordValue fromJson( final String value )
             {
                 final String strValue = JsonUtil.deserialize( value, String.class );
@@ -82,6 +83,7 @@ public class PasswordValue implements StoredValue
                 return new PasswordValue();
             }
 
+            @Override
             public PasswordValue fromXmlElement(
                     final PwmSetting pwmSetting,
                     final XmlElement settingElement,
@@ -155,6 +157,7 @@ public class PasswordValue implements StoredValue
         return 0;
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         if ( value == null )

@@ -371,11 +371,13 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             traceResult( debugInfo, null );
         }
 
+        @Override
         public boolean hasNext( )
         {
             return !finished;
         }
 
+        @Override
         public Map.Entry<String, String> next( )
         {
             if ( finished )
@@ -387,6 +389,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             return returnValue;
         }
 
+        @Override
         public void remove( )
         {
             throw new UnsupportedOperationException( "remove not supported" );
@@ -415,6 +418,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             databaseService.updateStats( DatabaseService.OperationType.READ );
         }
 
+        @Override
         public void close( )
         {
             final DatabaseUtil.DebugInfo debugInfo = DatabaseUtil.DebugInfo.create(
@@ -619,6 +623,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         }
     }
 
+    @Override
     public boolean isConnected()
     {
         try

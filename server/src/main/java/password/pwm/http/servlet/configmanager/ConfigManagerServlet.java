@@ -104,12 +104,14 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
         }
     }
 
+    @Override
     protected ConfigManagerAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
@@ -135,6 +137,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         }
     }
 
+    @Override
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {

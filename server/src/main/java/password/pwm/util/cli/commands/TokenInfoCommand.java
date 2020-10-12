@@ -33,6 +33,7 @@ public class TokenInfoCommand extends AbstractCliCommand
 {
     protected static final String TOKEN_KEY_OPTIONNAME = "token";
 
+    @Override
     public void doCommand( )
             throws Exception
     {
@@ -80,16 +81,19 @@ public class TokenInfoCommand extends AbstractCliCommand
     {
         final CliParameters.Option tokenValue = new CliParameters.Option()
         {
+            @Override
             public boolean isOptional( )
             {
                 return false;
             }
 
+            @Override
             public Type getType( )
             {
                 return Type.STRING;
             }
 
+            @Override
             public String getName( )
             {
                 return TOKEN_KEY_OPTIONNAME;

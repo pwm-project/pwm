@@ -145,6 +145,7 @@ public enum PwmIfTest
             this.appProperty = appProperty;
         }
 
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -168,6 +169,7 @@ public enum PwmIfTest
             this.pwmSetting = pwmSetting;
         }
 
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -228,6 +230,7 @@ public enum PwmIfTest
             this.constructorPermission = null;
         }
 
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -250,6 +253,7 @@ public enum PwmIfTest
 
     private static class AuthenticatedTest implements Test
     {
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -262,6 +266,7 @@ public enum PwmIfTest
 
     private static class ForcedPageViewTest implements Test
     {
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -275,6 +280,7 @@ public enum PwmIfTest
 
     private static class HasStoredOtpTimestamp implements Test
     {
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -298,6 +304,7 @@ public enum PwmIfTest
 
     private static class ShowErrorDetailTest implements Test
     {
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -310,6 +317,7 @@ public enum PwmIfTest
 
     private static class ForwardUrlDefinedTest implements Test
     {
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options

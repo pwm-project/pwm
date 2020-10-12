@@ -62,6 +62,7 @@ public class LocalDBSearchResults implements Iterator<PwmLogEvent>
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public PwmLogEvent next( )
     {
         if ( nextEvent == null )

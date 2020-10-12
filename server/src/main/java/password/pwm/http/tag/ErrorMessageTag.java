@@ -44,6 +44,7 @@ public class ErrorMessageTag extends PwmAbstractTag
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( ErrorMessageTag.class );
 
+    @Override
     public int doEndTag( )
             throws javax.servlet.jsp.JspTagException
     {

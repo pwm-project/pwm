@@ -90,11 +90,13 @@ public class PwmPasswordPolicy implements Profile, Serializable
         return new PwmPasswordPolicy( policyMap, chaiPasswordPolicy, policyMetaData );
     }
 
+    @Override
     public String getIdentifier( )
     {
         return profileID;
     }
 
+    @Override
     public String getDisplayName( final Locale locale )
     {
         return getIdentifier();

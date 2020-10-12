@@ -81,6 +81,7 @@ public class GuestRegistrationBean extends PwmSessionBean
         this.formValues = formValues;
     }
 
+    @Override
     public Type getType( )
     {
         return Type.AUTHENTICATED;

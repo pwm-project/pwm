@@ -50,6 +50,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public CustomLinkValue fromJson( final String input )
             {
                 if ( input == null )
@@ -70,6 +71,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
                 }
             }
 
+            @Override
             public CustomLinkValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
@@ -88,6 +90,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
         };
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
@@ -100,11 +103,13 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
         return returnList;
     }
 
+    @Override
     public List<CustomLinkConfiguration> toNativeObject( )
     {
         return Collections.unmodifiableList( values );
     }
 
+    @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
         if ( pwmSetting.isRequired() )
@@ -128,6 +133,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
         return Collections.emptyList();
     }
 
+    @Override
     public String toDebugString( final Locale locale )
     {
         if ( values != null && !values.isEmpty() )

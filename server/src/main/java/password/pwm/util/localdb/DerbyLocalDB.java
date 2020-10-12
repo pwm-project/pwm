@@ -188,6 +188,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         );
     }
 
+    @Override
     public void truncate( final LocalDB.DB db )
             throws LocalDBException
     {

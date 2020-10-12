@@ -49,17 +49,20 @@ public class LocalDBAdaptor implements LocalDB
         this.innerDB = innerDB;
     }
 
+    @Override
     public File getFileLocation( )
     {
         return innerDB.getFileLocation();
     }
 
+    @Override
     @WriteOperation
     public void close( ) throws LocalDBException
     {
         innerDB.close();
     }
 
+    @Override
     public boolean contains( final DB db, final String key ) throws LocalDBException
     {
         ParameterValidator.validateDBValue( db );
@@ -71,6 +74,7 @@ public class LocalDBAdaptor implements LocalDB
     }
 
 
+    @Override
     public String get( final DB db, final String key ) throws LocalDBException
     {
         ParameterValidator.validateDBValue( db );
@@ -87,12 +91,14 @@ public class LocalDBAdaptor implements LocalDB
         innerDB.init( dbDirectory, initParameters, parameters );
     }
 
+    @Override
     public LocalDBIterator<Map.Entry<String, String>> iterator( final DB db ) throws LocalDBException
     {
         ParameterValidator.validateDBValue( db );
         return innerDB.iterator( db );
     }
 
+    @Override
     public Map<String, Serializable> debugInfo( )
     {
         final Map<String, Serializable> debugValues = new LinkedHashMap<>( innerDB.debugInfo() );
@@ -100,6 +106,7 @@ public class LocalDBAdaptor implements LocalDB
         return Collections.unmodifiableMap( debugValues );
     }
 
+    @Override
     @WriteOperation
     public void putAll( final DB db, final Map<String, String> keyValueMap ) throws LocalDBException
     {
@@ -128,6 +135,7 @@ public class LocalDBAdaptor implements LocalDB
         markWrite( keyValueMap.size() );
     }
 
+    @Override
     @WriteOperation
     public boolean put( final DB db, final String key, final String value ) throws LocalDBException
     {
@@ -141,6 +149,7 @@ public class LocalDBAdaptor implements LocalDB
         return preExisting;
     }
 
+    @Override
     @WriteOperation
     public boolean putIfAbsent( final DB db, final String key, final String value ) throws LocalDBException
     {
@@ -153,6 +162,7 @@ public class LocalDBAdaptor implements LocalDB
         return success;
     }
 
+    @Override
     @WriteOperation
     public boolean remove( final DB db, final String key ) throws LocalDBException
     {
@@ -164,6 +174,7 @@ public class LocalDBAdaptor implements LocalDB
         return result;
     }
 
+    @Override
     @WriteOperation
     public void removeAll( final DB db, final Collection<String> keys ) throws LocalDBException
     {
@@ -199,12 +210,14 @@ public class LocalDBAdaptor implements LocalDB
         markWrite( keys.size() );
     }
 
+    @Override
     public long size( final DB db ) throws LocalDBException
     {
         ParameterValidator.validateDBValue( db );
         return innerDB.size( db );
     }
 
+    @Override
     @WriteOperation
     public void truncate( final DB db ) throws LocalDBException
     {
@@ -212,6 +225,7 @@ public class LocalDBAdaptor implements LocalDB
         innerDB.truncate( db );
     }
 
+    @Override
     public Status status( )
     {
         return innerDB.getStatus();

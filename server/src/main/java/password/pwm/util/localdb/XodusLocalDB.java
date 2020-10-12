@@ -401,6 +401,7 @@ public class XodusLocalDB implements LocalDBProvider
         } );
     }
 
+    @Override
     @LocalDB.WriteOperation
     public boolean putIfAbsent( final LocalDB.DB db, final String key, final String value ) throws LocalDBException
     {

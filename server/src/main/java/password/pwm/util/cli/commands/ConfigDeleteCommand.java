@@ -26,6 +26,7 @@ import java.io.File;
 
 public class ConfigDeleteCommand extends AbstractCliCommand
 {
+    @Override
     public void doCommand( )
             throws Exception
     {

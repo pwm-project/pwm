@@ -49,6 +49,7 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public NumericArrayValue fromJson( final String value )
             {
                 final long[] longArray = JsonUtil.deserialize( value, long[].class );
@@ -56,6 +57,7 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
                 return new NumericArrayValue( list );
             }
 
+            @Override
             public NumericArrayValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
                 final List<Long> returnList = new ArrayList<>(  );
@@ -96,6 +98,7 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
         return Collections.emptyList();
     }
 
+    @Override
     public String toDebugString( final Locale locale )
     {
         if ( !JavaHelper.isEmpty( values ) )

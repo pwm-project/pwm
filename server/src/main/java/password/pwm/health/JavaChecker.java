@@ -28,6 +28,7 @@ import java.util.List;
 
 public class JavaChecker implements HealthChecker
 {
+    @Override
     public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
     {
         final List<HealthRecord> records = new ArrayList<>();

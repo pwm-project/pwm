@@ -152,6 +152,7 @@ public class ChangePasswordBean extends PwmSessionBean
         this.warnPassed = warnPassed;
     }
 
+    @Override
     public Type getType( )
     {
         return Type.AUTHENTICATED;

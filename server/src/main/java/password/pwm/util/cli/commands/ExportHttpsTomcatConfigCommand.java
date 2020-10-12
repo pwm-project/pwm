@@ -73,16 +73,19 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
 
         final CliParameters.Option sourceFileOpt = new CliParameters.Option()
         {
+            @Override
             public boolean isOptional( )
             {
                 return false;
             }
 
+            @Override
             public Type getType( )
             {
                 return Type.EXISTING_FILE;
             }
 
+            @Override
             public String getName( )
             {
                 return "sourceFile";

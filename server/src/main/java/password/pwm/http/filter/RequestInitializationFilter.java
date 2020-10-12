@@ -90,6 +90,7 @@ public class RequestInitializationFilter implements Filter
     {
     }
 
+    @Override
     public void doFilter(
             final ServletRequest servletRequest,
             final ServletResponse servletResponse,

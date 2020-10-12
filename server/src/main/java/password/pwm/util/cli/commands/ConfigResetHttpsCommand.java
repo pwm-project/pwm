@@ -33,6 +33,7 @@ import java.io.File;
 public class ConfigResetHttpsCommand
         extends AbstractCliCommand
 {
+    @Override
     public void doCommand( )
             throws Exception
     {

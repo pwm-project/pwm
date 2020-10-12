@@ -58,6 +58,7 @@ public abstract class AbstractProfile implements Profile
         return identifier;
     }
 
+    @Override
     public String getDisplayName( final Locale locale )
     {
         return getIdentifier();

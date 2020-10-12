@@ -482,6 +482,7 @@ public class ContextManager implements Serializable
     private class RestartFlagWatcher implements Runnable
     {
 
+        @Override
         public void run( )
         {
             doRestart();

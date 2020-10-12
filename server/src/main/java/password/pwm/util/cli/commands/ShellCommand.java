@@ -57,6 +57,7 @@ public class ShellCommand extends AbstractCliCommand
         SHELL_COMMANDS = Collections.unmodifiableMap( sortedMap );
     }
 
+    @Override
     void doCommand( )
             throws Exception
     {

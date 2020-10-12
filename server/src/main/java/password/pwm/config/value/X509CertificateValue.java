@@ -65,6 +65,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public X509CertificateValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
                 final List<String> b64certificates = new ArrayList<>();
@@ -78,6 +79,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
                 return new X509CertificateValue( Collections.unmodifiableList( b64certificates ) );
             }
 
+            @Override
             public X509CertificateValue fromJson( final String input )
             {
                 return new X509CertificateValue( Collections.emptyList() );
@@ -140,6 +142,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
         return Collections.emptyList();
     }
 
+    @Override
     public String toDebugString( final Locale locale )
     {
         final StringBuilder sb = new StringBuilder();

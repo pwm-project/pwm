@@ -44,6 +44,7 @@ public class AuthorizationFilter extends AbstractPwmFilter
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( AuthenticationFilter.class );
 
+    @Override
     public void init( final FilterConfig filterConfig )
             throws ServletException
     {
@@ -55,6 +56,7 @@ public class AuthorizationFilter extends AbstractPwmFilter
         return !pwmURL.isRestService();
     }
 
+    @Override
     public void processFilter(
             final PwmApplicationMode mode,
             final PwmRequest pwmRequest,
@@ -94,6 +96,7 @@ public class AuthorizationFilter extends AbstractPwmFilter
         pwmRequest.respondWithError( PwmError.ERROR_UNAUTHORIZED.toInfo() );
     }
 
+    @Override
     public void destroy( )
     {
     }

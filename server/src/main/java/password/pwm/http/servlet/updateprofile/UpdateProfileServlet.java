@@ -119,6 +119,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
@@ -329,6 +330,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         return ProcessStatus.Continue;
     }
 
+    @Override
     protected void nextStep( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
     {

@@ -48,6 +48,7 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
     private static final String OPTION_BIND_DN = "bindDN";
     private static final String OPTION_BIND_PW = "bindPassword";
 
+    @Override
     public void doCommand( )
             throws Exception
     {
@@ -133,20 +134,24 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
     }
 
 
+    @Override
     public CliParameters getCliParameters( )
     {
         final CliParameters.Option ldapUrlOption = new CliParameters.Option()
         {
+            @Override
             public boolean isOptional( )
             {
                 return false;
             }
 
+            @Override
             public Type getType( )
             {
                 return Type.STRING;
             }
 
+            @Override
             public String getName( )
             {
                 return OPTION_LDAPURL;
@@ -155,16 +160,19 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
 
         final CliParameters.Option bindDN = new CliParameters.Option()
         {
+            @Override
             public boolean isOptional( )
             {
                 return false;
             }
 
+            @Override
             public Type getType( )
             {
                 return Type.STRING;
             }
 
+            @Override
             public String getName( )
             {
                 return OPTION_BIND_DN;
@@ -173,16 +181,19 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
 
         final CliParameters.Option bindPassword = new CliParameters.Option()
         {
+            @Override
             public boolean isOptional( )
             {
                 return true;
             }
 
+            @Override
             public Type getType( )
             {
                 return Type.STRING;
             }
 
+            @Override
             public String getName( )
             {
                 return OPTION_BIND_PW;

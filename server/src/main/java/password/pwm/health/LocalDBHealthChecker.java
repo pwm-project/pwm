@@ -34,6 +34,7 @@ import java.util.List;
 
 public class LocalDBHealthChecker implements HealthChecker
 {
+    @Override
     public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
     {
         if ( pwmApplication == null )

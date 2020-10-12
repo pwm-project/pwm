@@ -110,6 +110,7 @@ public class DisplayTag extends PwmAbstractTag
         this.bundle = bundle;
     }
 
+    @Override
     public int doEndTag( )
             throws javax.servlet.jsp.JspTagException
     {

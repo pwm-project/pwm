@@ -52,6 +52,7 @@ public class EdirSchemaExtender implements SchemaExtender
     private final StringBuilder activityLog = new StringBuilder();
     private final Map<String, SchemaDefinition.State> stateMap = new HashMap<>();
 
+    @Override
     public void init( final ChaiProvider chaiProvider ) throws PwmUnrecoverableException
     {
         try

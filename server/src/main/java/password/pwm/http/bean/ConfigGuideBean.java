@@ -47,6 +47,7 @@ public class ConfigGuideBean extends PwmSessionBean
     private boolean useConfiguredCerts = false;
     private FileValue databaseDriver = null;
 
+    @Override
     public Type getType( )
     {
         return Type.PUBLIC;

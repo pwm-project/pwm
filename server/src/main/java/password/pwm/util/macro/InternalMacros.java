@@ -76,11 +76,13 @@ public abstract class InternalMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmSettingReference" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
                 throws MacroParseException
         {
@@ -102,11 +104,13 @@ public abstract class InternalMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmSettingCategoryReference" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
                 throws MacroParseException
         {
@@ -126,11 +130,13 @@ public abstract class InternalMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmContextPath@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
                 throws MacroParseException
         {
@@ -202,11 +208,13 @@ public abstract class InternalMacros
         }
 
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -314,11 +322,13 @@ public abstract class InternalMacros
         }
 
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -402,11 +412,13 @@ public abstract class InternalMacros
         }
 
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -444,11 +456,13 @@ public abstract class InternalMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmAppName@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
                 throws MacroParseException
         {
@@ -460,11 +474,13 @@ public abstract class InternalMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmVendorName@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
                 throws MacroParseException
         {

@@ -34,6 +34,7 @@ import java.util.Map;
 
 public class LocalDBInfoCommand extends AbstractCliCommand
 {
+    @Override
     public void doCommand( ) throws Exception
     {
         final Instant startTime = Instant.now();

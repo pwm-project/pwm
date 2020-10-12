@@ -51,6 +51,7 @@ public interface VerificationMethodSystem
         private String displayPrompt;
         private String identifier;
 
+        @Override
         public String getDisplayPrompt( )
         {
             return displayPrompt;
@@ -61,6 +62,7 @@ public interface VerificationMethodSystem
             this.displayPrompt = displayPrompt;
         }
 
+        @Override
         public String getIdentifier( )
         {
             return identifier;

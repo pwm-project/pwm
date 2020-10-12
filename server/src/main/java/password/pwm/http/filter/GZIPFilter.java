@@ -48,6 +48,7 @@ public class GZIPFilter implements Filter
     private final CompressingFilter compressingFilter = new CompressingFilter();
     private boolean enabled = false;
 
+    @Override
     public void init( final FilterConfig filterConfig )
             throws ServletException
     {
@@ -65,6 +66,7 @@ public class GZIPFilter implements Filter
         compressingFilter.init( filterConfig );
     }
 
+    @Override
     public void destroy( )
     {
         compressingFilter.destroy();

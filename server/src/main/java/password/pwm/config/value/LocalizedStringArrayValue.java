@@ -51,6 +51,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
     {
         return new StoredValueFactory()
         {
+            @Override
             public LocalizedStringArrayValue fromJson( final String input )
             {
                 if ( input == null )
@@ -67,6 +68,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
                 }
             }
 
+            @Override
             public LocalizedStringArrayValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
@@ -89,6 +91,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
         };
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
@@ -109,11 +112,13 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
         return returnList;
     }
 
+    @Override
     public Map<String, List<String>> toNativeObject( )
     {
         return Collections.unmodifiableMap( values );
     }
 
+    @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
         if ( pwmSetting.isRequired() )

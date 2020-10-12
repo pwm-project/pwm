@@ -48,6 +48,7 @@ public class TinyUrlShortener extends BasicUrlShortener
         this.configuration = configuration;
     }
 
+    @Override
     public String shorten( final String input, final PwmApplication context )
             throws PwmUnrecoverableException
     {

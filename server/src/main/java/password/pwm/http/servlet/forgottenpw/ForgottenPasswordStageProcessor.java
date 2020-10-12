@@ -91,6 +91,7 @@ class ForgottenPasswordStageProcessor
 
     private static class StageProcessor1 implements  NextStageProcessor
     {
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
         {
             final CommonValues commonValues = stateMachine.getCommonValues();
@@ -130,6 +131,7 @@ class ForgottenPasswordStageProcessor
     private static class StageProcessor2 implements NextStageProcessor
     {
 
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
                 throws PwmUnrecoverableException
         {
@@ -179,6 +181,7 @@ class ForgottenPasswordStageProcessor
 
     static class StageProcessor3 implements NextStageProcessor
     {
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
@@ -212,6 +215,7 @@ class ForgottenPasswordStageProcessor
 
     static class StageProcessor4 implements NextStageProcessor
     {
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
                 throws PwmUnrecoverableException
         {
@@ -273,6 +277,7 @@ class ForgottenPasswordStageProcessor
 
     static class StageProcessor5 implements NextStageProcessor
     {
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
                 throws PwmUnrecoverableException
         {
@@ -312,6 +317,7 @@ class ForgottenPasswordStageProcessor
 
     static class StageProcessor6 implements NextStageProcessor
     {
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
                 throws PwmUnrecoverableException
         {
@@ -356,6 +362,7 @@ class ForgottenPasswordStageProcessor
 
     static class StageProcessor7 implements NextStageProcessor
     {
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
                 throws PwmUnrecoverableException
         {

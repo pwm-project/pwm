@@ -111,12 +111,14 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         update,
         selectPage,;
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( HttpMethod.POST );
         }
     }
 
+    @Override
     protected GuestRegistrationAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
@@ -131,6 +133,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
     }
 
 
+    @Override
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {

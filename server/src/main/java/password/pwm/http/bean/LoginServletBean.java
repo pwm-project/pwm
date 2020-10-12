@@ -42,6 +42,7 @@ public class LoginServletBean extends PwmSessionBean
         this.nextUrl = nextUrl;
     }
 
+    @Override
     public Type getType( )
     {
         return Type.PUBLIC;

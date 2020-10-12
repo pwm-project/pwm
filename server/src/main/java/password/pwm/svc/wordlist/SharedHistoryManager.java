@@ -81,6 +81,7 @@ public class SharedHistoryManager implements PwmService
     {
     }
 
+    @Override
     public void close( )
     {
         status = STATUS.CLOSED;
@@ -132,6 +133,7 @@ public class SharedHistoryManager implements PwmService
         return result;
     }
 
+    @Override
     public PwmService.STATUS status( )
     {
         return status;
@@ -336,6 +338,7 @@ public class SharedHistoryManager implements PwmService
         {
         }
 
+        @Override
         public void run( )
         {
             try
@@ -437,11 +440,13 @@ public class SharedHistoryManager implements PwmService
         }
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         return null;
     }
 
+    @Override
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
@@ -495,6 +500,7 @@ public class SharedHistoryManager implements PwmService
 
         new Thread( new Runnable()
         {
+            @Override
             public void run( )
             {
                 LOGGER.debug( () -> "starting up in background thread" );
@@ -512,6 +518,7 @@ public class SharedHistoryManager implements PwmService
         private boolean caseInsensitive;
     }
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         if ( status == STATUS.OPEN )

@@ -141,6 +141,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         return output.toString();
     }
 
+    @Override
     public int compareTo( final PwmLogEvent o )
     {
         return this.getTimestamp().compareTo( o.getTimestamp() );

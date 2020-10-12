@@ -107,6 +107,7 @@ public class LogoutServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    @Override
     public void nextStep(
             final PwmRequest pwmRequest
     )

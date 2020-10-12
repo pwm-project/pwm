@@ -92,6 +92,7 @@ public class ReportService implements PwmService
     {
     }
 
+    @Override
     public STATUS status( )
     {
         return status;

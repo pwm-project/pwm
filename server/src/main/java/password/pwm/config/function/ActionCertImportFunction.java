@@ -86,6 +86,7 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
         return uriString;
     }
 
+    @Override
     void store(
             final List<X509Certificate> certs,
             final StoredConfigurationModifier storedConfiguration,

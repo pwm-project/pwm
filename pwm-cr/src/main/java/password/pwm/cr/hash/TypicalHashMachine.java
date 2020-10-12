@@ -62,6 +62,7 @@ public class TypicalHashMachine extends AbstractHashMachine implements ResponseH
     {
     }
 
+    @Override
     public void init( final ResponseHashAlgorithm responseHashAlgorithm )
     {
         this.responseHashAlgorithm = responseHashAlgorithm;

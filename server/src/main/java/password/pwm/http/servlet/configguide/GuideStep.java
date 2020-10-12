@@ -123,6 +123,7 @@ public enum GuideStep
 
     static class LdapSchemeVisibilityCheck implements VisibilityCheck
     {
+        @Override
         public boolean visible( final ConfigGuideBean configGuideBean )
         {
             try
@@ -139,6 +140,7 @@ public enum GuideStep
 
     static class DbVisibilityCheck implements VisibilityCheck
     {
+        @Override
         public boolean visible( final ConfigGuideBean configGuideBean )
         {
             try
@@ -155,6 +157,7 @@ public enum GuideStep
 
     static class EulaVisibilityCheck implements VisibilityCheck
     {
+        @Override
         public boolean visible( final ConfigGuideBean configGuideBean )
         {
             return PwmConstants.ENABLE_EULA_DISPLAY;
@@ -163,6 +166,7 @@ public enum GuideStep
 
     static class TelemetryVisibilityCheck implements VisibilityCheck
     {
+        @Override
         public boolean visible( final ConfigGuideBean configGuideBean )
         {
             return !PwmSetting.PUBLISH_STATS_ENABLE.isHidden()
@@ -172,6 +176,7 @@ public enum GuideStep
 
     static class NeverVisible implements VisibilityCheck
     {
+        @Override
         public boolean visible( final ConfigGuideBean configGuideBean )
         {
             return false;

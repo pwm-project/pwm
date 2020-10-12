@@ -41,6 +41,7 @@ public class DeleteAccountBean extends PwmSessionBean
         this.agreementPassed = agreementPassed;
     }
 
+    @Override
     public Type getType( )
     {
         return Type.PUBLIC;

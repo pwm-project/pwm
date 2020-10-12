@@ -146,6 +146,7 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
                 locale, config ) + " " + this.getDetail( locale, config );
     }
 
+    @Override
     public int compareTo( final HealthRecord otherHealthRecord )
     {
         final int statusCompare = status.compareTo( otherHealthRecord.status );

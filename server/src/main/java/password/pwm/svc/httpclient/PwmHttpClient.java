@@ -498,6 +498,7 @@ public class PwmHttpClient implements AutoCloseable
             this.configuration = configuration;
         }
 
+        @Override
         public HttpRoute determineRoute(
                 final HttpHost target,
                 final HttpRequest request,

@@ -39,27 +39,32 @@ class ZipFileResource implements FileResource
         this.zipEntry = zipEntry;
     }
 
+    @Override
     public InputStream getInputStream( )
             throws IOException
     {
         return zipFile.getInputStream( zipEntry );
     }
 
+    @Override
     public long length( )
     {
         return zipEntry.getSize();
     }
 
+    @Override
     public long lastModified( )
     {
         return zipEntry.getTime();
     }
 
+    @Override
     public boolean exists( )
     {
         return zipEntry != null && zipFile != null;
     }
 
+    @Override
     public String getName( )
     {
         return zipFile.getName() + ":" + zipEntry.getName();

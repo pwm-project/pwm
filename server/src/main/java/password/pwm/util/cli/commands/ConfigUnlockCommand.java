@@ -31,6 +31,7 @@ import java.util.Optional;
 
 public class ConfigUnlockCommand extends AbstractCliCommand
 {
+    @Override
     public void doCommand( )
             throws Exception
     {

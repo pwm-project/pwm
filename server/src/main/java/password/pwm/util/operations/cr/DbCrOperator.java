@@ -52,10 +52,12 @@ public class DbCrOperator implements CrOperator
         this.pwmApplication = pwmApplication;
     }
 
+    @Override
     public void close( )
     {
     }
 
+    @Override
     public ResponseSet readResponseSet(
             final ChaiUser theUser,
             final UserIdentity userIdentity,
@@ -100,6 +102,7 @@ public class DbCrOperator implements CrOperator
         return null;
     }
 
+    @Override
     public ResponseInfoBean readResponseInfo( final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
             throws PwmUnrecoverableException
     {
@@ -117,6 +120,7 @@ public class DbCrOperator implements CrOperator
         }
     }
 
+    @Override
     public void clearResponses( final UserIdentity userIdentity, final ChaiUser theUser, final String userGUID )
             throws PwmUnrecoverableException
     {

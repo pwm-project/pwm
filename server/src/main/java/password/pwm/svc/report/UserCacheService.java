@@ -54,6 +54,7 @@ public class UserCacheService implements PwmService
     private PwmApplication pwmApplication;
 
 
+    @Override
     public STATUS status( )
     {
         return status;
@@ -123,28 +124,33 @@ public class UserCacheService implements PwmService
             innerIterator = cacheStore.localDB.iterator( CacheStoreWrapper.DB );
         }
 
+        @Override
         public boolean hasNext( )
         {
             return innerIterator.hasNext();
         }
 
+        @Override
         public StorageKey next( )
         {
             final String nextKey = innerIterator.next().getKey();
             return new StorageKey( nextKey );
         }
 
+        @Override
         public void remove( )
         {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void close( )
         {
             innerIterator.close();
         }
     }
 
+    @Override
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
         this.pwmApplication = pwmApplication;
@@ -152,16 +158,19 @@ public class UserCacheService implements PwmService
         status = STATUS.OPEN;
     }
 
+    @Override
     public void close( )
     {
         status = STATUS.CLOSED;
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         return Collections.emptyList();
     }
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         return ServiceInfoBean.builder().storageMethod( DataStorageMethod.LOCALDB ).build();

@@ -134,6 +134,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         return Optional.empty();
     }
 
+    @Override
     public boolean isDefaultValue( final PwmSetting setting, final String profileID )
     {
         final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID );
@@ -194,6 +195,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         return setting.getKey() + "=" + storedValue.toDebugString( null );
     }
 
+    @Override
     public Set<StoredConfigItemKey> modifiedItems()
     {
         return Collections.unmodifiableSet( storedValues.keySet() );
@@ -207,12 +209,14 @@ public class StoredConfigurationImpl implements StoredConfiguration
                 .orElse( Collections.emptyList() );
     }
 
+    @Override
     public ValueMetaData readSettingMetadata( final PwmSetting setting, final String profileID )
     {
         final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID );
         return metaValues.get( key );
     }
 
+    @Override
     public StoredValue readSetting( final PwmSetting setting, final String profileID )
     {
         final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID );
@@ -225,6 +229,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         return storedValue;
     }
 
+    @Override
     public String valueHash()
     {
         return valueHashSupplier.get();
@@ -253,6 +258,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
     private PwmSecurityKey cachedKey;
 
+    @Override
     public PwmSecurityKey getKey() throws PwmUnrecoverableException
     {
         if ( cachedKey == null )

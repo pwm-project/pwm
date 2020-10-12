@@ -55,6 +55,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
 
+            @Override
             public ChallengeValue fromJson( final String input )
             {
                 if ( input == null )
@@ -74,6 +75,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
                 }
             }
 
+            @Override
             public ChallengeValue fromXmlElement(
                     final PwmSetting pwmSetting,
                     final XmlElement settingElement,
@@ -111,6 +113,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
         };
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
@@ -134,11 +137,13 @@ public class ChallengeValue extends AbstractValue implements StoredValue
         return returnList;
     }
 
+    @Override
     public Map<String, List<ChallengeItemConfiguration>> toNativeObject( )
     {
         return Collections.unmodifiableMap( values );
     }
 
+    @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
         if ( pwmSetting.isRequired() )
@@ -239,6 +244,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
                 .build();
     }
 
+    @Override
     public String toDebugString( final Locale locale )
     {
         if ( values == null )

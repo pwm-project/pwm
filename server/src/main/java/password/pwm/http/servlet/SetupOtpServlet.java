@@ -98,12 +98,14 @@ public class SetupOtpServlet extends ControlledPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
         }
     }
 
+    @Override
     public Class<? extends ProcessAction> getProcessActionsClass( )
     {
         return SetupOtpAction.class;

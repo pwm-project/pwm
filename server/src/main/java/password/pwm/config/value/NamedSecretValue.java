@@ -75,6 +75,7 @@ public class NamedSecretValue implements StoredValue
     {
         return new StoredValue.StoredValueFactory()
         {
+            @Override
             public NamedSecretValue fromJson( final String value )
             {
                 try
@@ -92,6 +93,7 @@ public class NamedSecretValue implements StoredValue
                 }
             }
 
+            @Override
             public NamedSecretValue fromXmlElement(
                     final PwmSetting pwmSetting,
                     final XmlElement settingElement,
@@ -160,6 +162,7 @@ public class NamedSecretValue implements StoredValue
         return 0;
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         if ( values == null )

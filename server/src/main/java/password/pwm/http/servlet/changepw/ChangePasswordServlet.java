@@ -106,6 +106,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
@@ -445,6 +446,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    @Override
     public void nextStep(
             final PwmRequest pwmRequest
     )

@@ -179,6 +179,7 @@ public interface XmlElement
             this.element.addContent( ( ( XmlElementJDOM) element ).element );
         }
 
+        @Override
         public void addContent( final List<XmlElement> elements )
         {
             for ( final XmlElement loopElement : elements )
@@ -413,6 +414,7 @@ public interface XmlElement
             addContent( Collections.singletonList( element ) );
         }
 
+        @Override
         public void addContent( final List<XmlElement> elements )
         {
             lock.lock();

@@ -55,12 +55,14 @@ public class StringValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public StringValue fromJson( final String input )
             {
                 final String newValue = JsonUtil.deserialize( input, String.class );
                 return new StringValue( newValue );
             }
 
+            @Override
             public StringValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
                 final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
@@ -70,6 +72,7 @@ public class StringValue extends AbstractValue implements StoredValue
         };
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
@@ -77,11 +80,13 @@ public class StringValue extends AbstractValue implements StoredValue
         return Collections.singletonList( valueElement );
     }
 
+    @Override
     public String toNativeObject( )
     {
         return value;
     }
 
+    @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
         if ( pwmSetting.isRequired() )

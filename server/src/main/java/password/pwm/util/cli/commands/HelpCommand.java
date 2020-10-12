@@ -28,6 +28,7 @@ import java.util.Collections;
 public class HelpCommand extends AbstractCliCommand
 {
 
+    @Override
     void doCommand( )
             throws Exception
     {

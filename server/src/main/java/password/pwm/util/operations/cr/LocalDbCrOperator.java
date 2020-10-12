@@ -46,10 +46,12 @@ public class LocalDbCrOperator implements CrOperator
         this.localDB = localDB;
     }
 
+    @Override
     public void close( )
     {
     }
 
+    @Override
     public ResponseSet readResponseSet(
             final ChaiUser theUser,
             final UserIdentity userIdentity,
@@ -96,6 +98,7 @@ public class LocalDbCrOperator implements CrOperator
         return null;
     }
 
+    @Override
     public ResponseInfoBean readResponseInfo( final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
             throws PwmUnrecoverableException
     {
@@ -110,6 +113,7 @@ public class LocalDbCrOperator implements CrOperator
         }
     }
 
+    @Override
     public void clearResponses( final UserIdentity userIdentity, final ChaiUser theUser, final String userGUID ) throws PwmUnrecoverableException
     {
         if ( userGUID == null || userGUID.length() < 1 )
@@ -136,6 +140,7 @@ public class LocalDbCrOperator implements CrOperator
         }
     }
 
+    @Override
     public void writeResponses( final UserIdentity userIdentity, final ChaiUser theUser, final String userGUID, final ResponseInfoBean responseInfoBean )
             throws PwmUnrecoverableException
     {

@@ -76,12 +76,14 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
     {
         search,;
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( HttpMethod.POST );
         }
     }
 
+    @Override
     protected ForgottenUsernameAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
@@ -95,6 +97,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
         }
     }
 
+    @Override
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, PwmUnrecoverableException
     {

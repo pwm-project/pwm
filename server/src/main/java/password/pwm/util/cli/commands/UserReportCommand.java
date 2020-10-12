@@ -87,16 +87,19 @@ public class UserReportCommand extends AbstractCliCommand
     {
         final CliParameters.Option outputFileOption = new CliParameters.Option()
         {
+            @Override
             public boolean isOptional( )
             {
                 return false;
             }
 
+            @Override
             public Type getType( )
             {
                 return Type.NEW_FILE;
             }
 
+            @Override
             public String getName( )
             {
                 return OUTPUT_FILE_OPTIONNAME;

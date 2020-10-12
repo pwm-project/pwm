@@ -79,6 +79,7 @@ public class SessionFilter extends AbstractPwmFilter
         return !pwmURL.isRestService();
     }
 
+    @Override
     public void processFilter(
             final PwmApplicationMode mode,
             final PwmRequest pwmRequest,
@@ -276,6 +277,7 @@ public class SessionFilter extends AbstractPwmFilter
         return ProcessStatus.Continue;
     }
 
+    @Override
     public void destroy( )
     {
     }

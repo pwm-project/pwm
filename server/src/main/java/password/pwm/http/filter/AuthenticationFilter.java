@@ -63,6 +63,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
 {
     private static final PwmLogger LOGGER = PwmLogger.getLogger( AuthenticationFilter.class.getName() );
 
+    @Override
     public void processFilter(
             final PwmApplicationMode mode,
             final PwmRequest pwmRequest,

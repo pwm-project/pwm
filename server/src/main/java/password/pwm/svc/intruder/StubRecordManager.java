@@ -27,51 +27,62 @@ import java.util.NoSuchElementException;
 
 class StubRecordManager implements RecordManager
 {
+    @Override
     public boolean checkSubject( final String subject )
     {
         return false;
     }
 
+    @Override
     public void markSubject( final String subject )
     {
     }
 
+    @Override
     public void clearSubject( final String subject )
     {
     }
 
+    @Override
     public boolean isAlerted( final String subject )
     {
         return false;
     }
 
+    @Override
     public void markAlerted( final String subject )
     {
     }
 
+    @Override
     public IntruderRecord readIntruderRecord( final String subject )
     {
         return null;
     }
 
+    @Override
     public ClosableIterator<IntruderRecord> iterator( ) throws PwmOperationalException
     {
         return new ClosableIterator<IntruderRecord>()
         {
+            @Override
             public boolean hasNext( )
             {
                 return false;
             }
 
+            @Override
             public IntruderRecord next( )
             {
                 throw new NoSuchElementException();
             }
 
+            @Override
             public void remove( )
             {
             }
 
+            @Override
             public void close( )
             {
             }

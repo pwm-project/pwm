@@ -147,6 +147,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             this.method = Collections.unmodifiableList( Arrays.asList( method ) );
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return method;

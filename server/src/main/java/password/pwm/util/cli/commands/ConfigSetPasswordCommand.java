@@ -32,6 +32,7 @@ import java.util.Collections;
 public class ConfigSetPasswordCommand extends AbstractCliCommand
 {
 
+    @Override
     public void doCommand( )
             throws Exception
     {

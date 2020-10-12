@@ -57,11 +57,13 @@ public class BooleanValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public BooleanValue fromJson( final String value )
             {
                 return BooleanValue.of( JsonUtil.deserialize( value, Boolean.class ) );
             }
 
+            @Override
             public BooleanValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
                 final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
@@ -76,6 +78,7 @@ public class BooleanValue implements StoredValue
         };
     }
 
+    @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
         return Collections.emptyList();
@@ -95,6 +98,7 @@ public class BooleanValue implements StoredValue
         return value;
     }
 
+    @Override
     public String toDebugString( final Locale locale )
     {
         final Locale loc = ( locale == null )

@@ -40,6 +40,7 @@ public class UserInfoTag extends TagSupport
         this.attribute = attribute;
     }
 
+    @Override
     public int doEndTag( )
             throws JspTagException
     {

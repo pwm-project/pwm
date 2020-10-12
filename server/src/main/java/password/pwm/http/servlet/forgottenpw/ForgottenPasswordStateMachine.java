@@ -472,6 +472,7 @@ public class ForgottenPasswordStateMachine
 
         static class OTPVerificationHandler implements StageHandler
         {
+            @Override
             public void applyForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine, final Map<String, String> formValues )
                     throws PwmUnrecoverableException
             {
@@ -524,6 +525,7 @@ public class ForgottenPasswordStateMachine
                 }
             }
 
+            @Override
             public PresentableForm generateForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine ) throws PwmUnrecoverableException
             {
                 final CommonValues commonValues = forgottenPasswordStateMachine.getCommonValues();
@@ -569,6 +571,7 @@ public class ForgottenPasswordStateMachine
 
         static class TokenVerificationHandler implements StageHandler
         {
+            @Override
             public void applyForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine, final Map<String, String> formValues ) throws PwmUnrecoverableException
             {
                 final CommonValues commonValues = forgottenPasswordStateMachine.getCommonValues();
@@ -621,6 +624,7 @@ public class ForgottenPasswordStateMachine
                 }
             }
 
+            @Override
             public PresentableForm generateForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine )
             {
                 final CommonValues commonValues = forgottenPasswordStateMachine.getCommonValues();
@@ -654,6 +658,7 @@ public class ForgottenPasswordStateMachine
         static class ChallengeResponseHandler implements StageHandler
         {
 
+            @Override
             public void applyForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine, final Map<String, String> formValues )
                     throws PwmUnrecoverableException
             {
@@ -697,6 +702,7 @@ public class ForgottenPasswordStateMachine
                 }
             }
 
+            @Override
             public PresentableForm generateForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine )
             {
                 final CommonValues commonValues = forgottenPasswordStateMachine.getCommonValues();
@@ -726,6 +732,7 @@ public class ForgottenPasswordStateMachine
 
         static class AttributeVerificationHandler implements StageHandler
         {
+            @Override
             public void applyForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine, final Map<String, String> formData )
                     throws PwmUnrecoverableException
             {
@@ -824,6 +831,7 @@ public class ForgottenPasswordStateMachine
                 }
             }
 
+            @Override
             public PresentableForm generateForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine )
             {
                 final CommonValues commonValues = forgottenPasswordStateMachine.getCommonValues();
@@ -868,6 +876,7 @@ public class ForgottenPasswordStateMachine
             }
         }
 
+        @Override
         public PresentableForm generateForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine )
         {
             final CommonValues commonValues = forgottenPasswordStateMachine.getCommonValues();
@@ -902,6 +911,7 @@ public class ForgottenPasswordStateMachine
 
     static class IdentificationStageHandler implements StageHandler
     {
+        @Override
         public PresentableForm generateForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine )
                 throws PwmUnrecoverableException
         {
@@ -917,6 +927,7 @@ public class ForgottenPasswordStateMachine
                     .build();
         }
 
+        @Override
         public void applyForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine, final Map<String, String> values )
                 throws PwmUnrecoverableException
         {

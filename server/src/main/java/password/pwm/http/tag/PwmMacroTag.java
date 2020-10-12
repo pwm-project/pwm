@@ -46,6 +46,7 @@ public class PwmMacroTag extends TagSupport
         this.value = value;
     }
 
+    @Override
     public int doEndTag( )
             throws JspTagException
     {

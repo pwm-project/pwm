@@ -86,6 +86,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
         }
     }
 
+    @Override
     public void close( )
     {
         try

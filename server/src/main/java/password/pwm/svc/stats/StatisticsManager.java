@@ -229,6 +229,7 @@ public class StatisticsManager implements PwmService
         return sb.toString();
     }
 
+    @Override
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
         this.localDB = pwmApplication.getLocalDB();
@@ -335,12 +336,14 @@ public class StatisticsManager implements PwmService
         LOGGER.debug( () -> "reset daily statistics" );
     }
 
+    @Override
     public STATUS status( )
     {
         return status;
     }
 
 
+    @Override
     public void close( )
     {
         try
@@ -357,6 +360,7 @@ public class StatisticsManager implements PwmService
         status = STATUS.CLOSED;
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         return Collections.emptyList();
@@ -365,6 +369,7 @@ public class StatisticsManager implements PwmService
 
     private class NightlyTask extends TimerTask
     {
+        @Override
         public void run( )
         {
             writeDbValues();
@@ -374,6 +379,7 @@ public class StatisticsManager implements PwmService
 
     private class FlushTask extends TimerTask
     {
+        @Override
         public void run( )
         {
             writeDbValues();
@@ -444,6 +450,7 @@ public class StatisticsManager implements PwmService
         return counter;
     }
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         return status() == STATUS.OPEN

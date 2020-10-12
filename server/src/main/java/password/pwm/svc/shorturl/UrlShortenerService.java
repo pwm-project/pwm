@@ -53,6 +53,7 @@ public class UrlShortenerService implements PwmService
     {
     }
 
+    @Override
     public void init( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
@@ -96,16 +97,19 @@ public class UrlShortenerService implements PwmService
         status = PwmService.STATUS.OPEN;
     }
 
+    @Override
     public STATUS status( )
     {
         return status;
     }
 
+    @Override
     public void close( )
     {
         status = PwmService.STATUS.CLOSED;
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         return Collections.emptyList();
@@ -160,6 +164,7 @@ public class UrlShortenerService implements PwmService
         return text;
     }
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         return ServiceInfoBean.builder().build();

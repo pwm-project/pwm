@@ -488,6 +488,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
         return this.removeFirst();
     }
 
+    @Override
     public String poll( )
     {
         try
@@ -572,6 +573,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
             }
         }
 
+        @Override
         public void remove( )
         {
             throw new UnsupportedOperationException();

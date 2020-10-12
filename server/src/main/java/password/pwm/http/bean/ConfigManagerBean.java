@@ -43,6 +43,7 @@ public class ConfigManagerBean extends PwmSessionBean
     {
     }
 
+    @Override
     public Type getType( )
     {
         return Type.AUTHENTICATED;

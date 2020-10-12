@@ -712,6 +712,7 @@ public class DebugItemGenerator
             return "recentUserDebugData.json";
         }
 
+        @Override
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final PwmApplication pwmApplication = debugItemInput.getPwmApplication();

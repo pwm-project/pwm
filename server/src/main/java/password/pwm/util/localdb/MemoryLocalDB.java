@@ -56,6 +56,7 @@ public class MemoryLocalDB implements LocalDBProvider
         }
     }
 
+    @Override
     @LocalDB.WriteOperation
     public void close( )
             throws LocalDBException
@@ -67,6 +68,7 @@ public class MemoryLocalDB implements LocalDBProvider
         }
     }
 
+    @Override
     public boolean contains( final LocalDB.DB db, final String key )
             throws LocalDBException
     {
@@ -75,6 +77,7 @@ public class MemoryLocalDB implements LocalDBProvider
         return map.containsKey( key );
     }
 
+    @Override
     public String get( final LocalDB.DB db, final String key )
             throws LocalDBException
     {
@@ -83,6 +86,7 @@ public class MemoryLocalDB implements LocalDBProvider
         return map.get( key );
     }
 
+    @Override
     @LocalDB.WriteOperation
     public void init(
             final File dbDirectory,
@@ -107,11 +111,13 @@ public class MemoryLocalDB implements LocalDBProvider
         state = LocalDB.Status.OPEN;
     }
 
+    @Override
     public LocalDB.LocalDBIterator<Map.Entry<String, String>> iterator( final LocalDB.DB db ) throws LocalDBException
     {
         return new MapIterator( db );
     }
 
+    @Override
     @LocalDB.WriteOperation
     public void putAll( final LocalDB.DB db, final Map<String, String> keyValueMap )
             throws LocalDBException
@@ -125,6 +131,7 @@ public class MemoryLocalDB implements LocalDBProvider
         }
     }
 
+    @Override
     @LocalDB.WriteOperation
     public boolean put( final LocalDB.DB db, final String key, final String value )
             throws LocalDBException
@@ -135,6 +142,7 @@ public class MemoryLocalDB implements LocalDBProvider
         return null != map.put( key, value );
     }
 
+    @Override
     @LocalDB.WriteOperation
     public boolean putIfAbsent( final LocalDB.DB db, final String key, final String value )
             throws LocalDBException
@@ -146,6 +154,7 @@ public class MemoryLocalDB implements LocalDBProvider
         return oldValue == null;
     }
 
+    @Override
     @LocalDB.WriteOperation
     public boolean remove( final LocalDB.DB db, final String key )
             throws LocalDBException
@@ -156,6 +165,7 @@ public class MemoryLocalDB implements LocalDBProvider
         return null != map.remove( key );
     }
 
+    @Override
     public long size( final LocalDB.DB db )
             throws LocalDBException
     {
@@ -165,6 +175,7 @@ public class MemoryLocalDB implements LocalDBProvider
         return map.size();
     }
 
+    @Override
     @LocalDB.WriteOperation
     public void truncate( final LocalDB.DB db )
             throws LocalDBException
@@ -175,6 +186,7 @@ public class MemoryLocalDB implements LocalDBProvider
         map.clear();
     }
 
+    @Override
     public void removeAll( final LocalDB.DB db, final Collection<String> keys ) throws LocalDBException
     {
         operationPreCheck();
@@ -182,6 +194,7 @@ public class MemoryLocalDB implements LocalDBProvider
         maps.get( db ).keySet().removeAll( keys );
     }
 
+    @Override
     public LocalDB.Status getStatus( )
     {
         return state;
@@ -203,26 +216,31 @@ public class MemoryLocalDB implements LocalDBProvider
             iterator = maps.get( db ).entrySet().iterator();
         }
 
+        @Override
         public boolean hasNext( )
         {
             return iterator.hasNext();
         }
 
+        @Override
         public Map.Entry<String, String> next( )
         {
             return iterator.next();
         }
 
+        @Override
         public void remove( )
         {
             iterator.remove();
         }
 
+        @Override
         public void close( )
         {
         }
     }
 
+    @Override
     public File getFileLocation( )
     {
         return null;

@@ -125,6 +125,7 @@ public class NewUserServlet extends ControlledPwmServlet
             this.method = Collections.unmodifiableList( Arrays.asList( method ) );
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return method;

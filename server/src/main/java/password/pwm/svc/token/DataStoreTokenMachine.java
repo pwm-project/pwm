@@ -68,6 +68,7 @@ public class DataStoreTokenMachine implements TokenMachine
         return StoredTokenKey.fromStoredHash( storedHash );
     }
 
+    @Override
     public void cleanup( ) throws PwmUnrecoverableException, PwmOperationalException
     {
         if ( size() < 1 )
@@ -127,6 +128,7 @@ public class DataStoreTokenMachine implements TokenMachine
         return theToken.getExpiration().isBefore( Instant.now() );
     }
 
+    @Override
     public String generateToken(
             final SessionLabel sessionLabel,
             final TokenPayload tokenPayload
@@ -136,6 +138,7 @@ public class DataStoreTokenMachine implements TokenMachine
         return tokenService.makeUniqueTokenForMachine( sessionLabel, this );
     }
 
+    @Override
     public Optional<TokenPayload> retrieveToken( final SessionLabel sessionLabel, final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
@@ -171,6 +174,7 @@ public class DataStoreTokenMachine implements TokenMachine
         return Optional.empty();
     }
 
+    @Override
     public void storeToken( final TokenKey tokenKey, final TokenPayload tokenPayload ) throws PwmOperationalException, PwmUnrecoverableException
     {
         final String rawValue = tokenService.toEncryptedString( tokenPayload );
@@ -178,6 +182,7 @@ public class DataStoreTokenMachine implements TokenMachine
         dataStore.put( storedHash, rawValue );
     }
 
+    @Override
     public void removeToken( final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
@@ -185,11 +190,13 @@ public class DataStoreTokenMachine implements TokenMachine
         dataStore.remove( storedHash );
     }
 
+    @Override
     public long size( ) throws PwmOperationalException, PwmUnrecoverableException
     {
         return dataStore.size();
     }
 
+    @Override
     public boolean supportsName( )
     {
         return true;

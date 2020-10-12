@@ -56,6 +56,7 @@ public class ActivateUserBean extends PwmSessionBean
     private String profileID;
 
 
+    @Override
     public Type getType( )
     {
         return Type.PUBLIC;

@@ -145,11 +145,13 @@ public class ChallengeProfile implements Profile, Serializable
         return new ChallengeProfile( profileID, locale, challengeSet, helpdeskChallengeSet, minRandomSetup, minHelpdeskRandomSetup, null );
     }
 
+    @Override
     public String getIdentifier( )
     {
         return profileID;
     }
 
+    @Override
     public String getDisplayName( final Locale locale )
     {
         return getIdentifier();

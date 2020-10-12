@@ -713,6 +713,7 @@ public class IntruderManager implements PwmService
 
     }
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         return serviceInfo;

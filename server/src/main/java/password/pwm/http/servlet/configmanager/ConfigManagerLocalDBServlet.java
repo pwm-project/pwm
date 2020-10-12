@@ -82,12 +82,14 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
         }
     }
 
+    @Override
     protected ConfigManagerAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
@@ -101,6 +103,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
         }
     }
 
+    @Override
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, PwmUnrecoverableException
     {

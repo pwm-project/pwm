@@ -109,6 +109,7 @@ public class SmsQueueManager implements PwmService
     {
     }
 
+    @Override
     public void init(
             final PwmApplication pwmApplication
     )

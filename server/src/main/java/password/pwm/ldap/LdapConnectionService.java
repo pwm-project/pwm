@@ -115,11 +115,13 @@ public class LdapConnectionService implements PwmService
         DiscardedThreadLocals,
     }
 
+    @Override
     public STATUS status( )
     {
         return status;
     }
 
+    @Override
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
@@ -151,6 +153,7 @@ public class LdapConnectionService implements PwmService
         status = STATUS.OPEN;
     }
 
+    @Override
     public void close( )
     {
         status = STATUS.CLOSED;
@@ -173,11 +176,13 @@ public class LdapConnectionService implements PwmService
         executorService.shutdown();
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         return null;
     }
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         final Map<String, String> debugProperties = new LinkedHashMap<>();

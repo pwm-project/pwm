@@ -60,17 +60,20 @@ public class CertificateReadingTrustManager implements X509TrustManager
         return new CertificateReadingTrustManager( configuration, PromiscuousTrustManager.createPromiscuousTrustManager(), readCertificateFlags );
     }
 
+    @Override
     public void checkClientTrusted( final X509Certificate[] chain, final String authType )
             throws CertificateException
     {
         wrappedTrustManager.checkClientTrusted(  chain, authType );
     }
 
+    @Override
     public X509Certificate[] getAcceptedIssuers( )
     {
         return wrappedTrustManager.getAcceptedIssuers();
     }
 
+    @Override
     public void checkServerTrusted( final X509Certificate[] chain, final String authType )
             throws CertificateException
     {

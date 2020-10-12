@@ -63,6 +63,7 @@ public class CryptoRequestBeanImpl implements SessionBeanProvider
         return newBean;
     }
 
+    @Override
     public void saveSessionBeans( final PwmRequest pwmRequest )
     {
     }
@@ -84,6 +85,7 @@ public class CryptoRequestBeanImpl implements SessionBeanProvider
         return secureService.encryptObjectToString( bean );
     }
 
+    @Override
     public <E extends PwmSessionBean> void clearSessionBean( final PwmRequest pwmRequest, final Class<E> userBeanClass ) throws PwmUnrecoverableException
     {
         final Map<Class<E>, E> cachedMap = getBeanMap( pwmRequest );

@@ -285,6 +285,7 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
         return this.compareTo( duration ) > 0;
     }
 
+    @Override
     public int compareTo( final TimeDuration o )
     {
         final long otherMS = o.as( Unit.MILLISECONDS );

@@ -88,7 +88,7 @@ public class EventRateMeter implements Serializable
         lock.lock();
         try
         {
-            return new BigDecimal( this.movingAverage.getAverage() );
+            return BigDecimal.valueOf( this.movingAverage.getAverage() );
         }
         finally
         {

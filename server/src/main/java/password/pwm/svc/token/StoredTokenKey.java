@@ -37,6 +37,7 @@ class StoredTokenKey implements TokenKey
         this.storedHash = storedHash;
     }
 
+    @Override
     public String getStoredHash( )
     {
         return storedHash;

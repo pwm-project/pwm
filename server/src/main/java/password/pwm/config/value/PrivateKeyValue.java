@@ -58,6 +58,7 @@ public class PrivateKeyValue extends AbstractValue
     {
         return new StoredValue.StoredValueFactory()
         {
+            @Override
             public PrivateKeyValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
                 if ( settingElement != null && settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE  ).isPresent() )
@@ -117,6 +118,7 @@ public class PrivateKeyValue extends AbstractValue
                 return new PrivateKeyValue( null );
             }
 
+            @Override
             public X509CertificateValue fromJson( final String input )
             {
                 return new X509CertificateValue( Collections.emptyList() );
@@ -153,6 +155,7 @@ public class PrivateKeyValue extends AbstractValue
         return 0;
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final XmlElement valueElement = XmlFactory.getFactory().newElement( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
@@ -188,6 +191,7 @@ public class PrivateKeyValue extends AbstractValue
         return Collections.singletonList( valueElement );
     }
 
+    @Override
     public String toDebugString( final Locale locale )
     {
         if ( privateKeyCertificate != null )
