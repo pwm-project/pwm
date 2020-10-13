@@ -284,7 +284,7 @@ public class RestChallengesServer extends RestServlet
             csIdentifer = challengeProfile.getChallengeSet().getIdentifier();
 
             final ResponseInfoBean responseInfoBean = jsonInput.toResponseInfoBean( restRequest.getLocale(), csIdentifer );
-            crService.writeResponses( userIdentity, chaiUser, userGUID, responseInfoBean );
+            crService.writeResponses( restRequest.getSessionLabel(), userIdentity, chaiUser, userGUID, responseInfoBean );
 
             // update statistics
             StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_CHALLENGES );

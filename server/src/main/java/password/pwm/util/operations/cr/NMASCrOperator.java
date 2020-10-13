@@ -63,6 +63,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -101,7 +102,6 @@ import java.security.Security;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -272,6 +272,7 @@ public class NMASCrOperator implements CrOperator
 
     @Override
     public ResponseSet readResponseSet(
+            final SessionLabel sessionLabel,
             final ChaiUser theUser,
             final UserIdentity userIdentity,
             final String userGuid
@@ -306,14 +307,19 @@ public class NMASCrOperator implements CrOperator
     }
 
     @Override
-    public ResponseInfoBean readResponseInfo( final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
+    public ResponseInfoBean readResponseInfo(
+            final SessionLabel sessionLabel,
+            final ChaiUser theUser,
+            final UserIdentity userIdentity,
+            final String userGUID
+    )
             throws PwmUnrecoverableException
     {
         try
         {
             if ( theUser.getChaiProvider().getDirectoryVendor() != DirectoryVendor.EDIRECTORY )
             {
-                LOGGER.debug( () -> "skipping request to read NMAS responses for " + userIdentity + ", directory type is not eDirectory" );
+                LOGGER.debug( sessionLabel, () -> "skipping request to read NMAS responses for " + userIdentity + ", directory type is not eDirectory" );
                 return null;
             }
 
@@ -334,7 +340,9 @@ public class NMASCrOperator implements CrOperator
 
     @Override
     public void clearResponses(
-            final UserIdentity userIdentity, final ChaiUser theUser,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity,
+            final ChaiUser theUser,
             final String user
     )
             throws PwmUnrecoverableException
@@ -344,22 +352,22 @@ public class NMASCrOperator implements CrOperator
             if ( theUser.getChaiProvider().getDirectoryVendor() == DirectoryVendor.EDIRECTORY )
             {
                 NmasCrFactory.clearResponseSet( theUser );
-                LOGGER.info( () -> "cleared responses for user " + theUser.getEntryDN() + " using NMAS method " );
+                LOGGER.info( sessionLabel, () -> "cleared responses for user " + theUser.getEntryDN() + " using NMAS method " );
             }
         }
         catch ( final ChaiException e )
         {
             final String errorMsg = "error clearing responses from nmas: " + e.getMessage();
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CLEARING_RESPONSES, errorMsg );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( e );
-            throw pwmOE;
+            throw new PwmUnrecoverableException( errorInfo, e );
         }
     }
 
     @Override
     public void writeResponses(
-            final UserIdentity userIdentity, final ChaiUser theUser,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity,
+            final ChaiUser theUser,
             final String userGuid,
             final ResponseInfoBean responseInfoBean
     )
@@ -378,16 +386,14 @@ public class NMASCrOperator implements CrOperator
                         responseInfoBean.getCsIdentifier()
                 );
                 NmasCrFactory.writeResponseSet( nmasResponseSet );
-                LOGGER.info( () -> "saved responses for user using NMAS method " );
+                LOGGER.info( sessionLabel, () -> "saved responses for user using NMAS method " );
             }
         }
         catch ( final ChaiException e )
         {
             final String errorMsg = "error writing responses to nmas: " + e.getMessage();
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( e );
-            throw pwmOE;
+            throw new PwmUnrecoverableException( errorInfo, e );
         }
     }
 
@@ -629,7 +635,7 @@ public class NMASCrOperator implements CrOperator
         }
 
         @Override
-        public Date getTimestamp( ) throws ChaiUnavailableException, IllegalStateException, ChaiOperationException
+        public Instant getTimestamp( ) throws ChaiUnavailableException, IllegalStateException, ChaiOperationException
         {
             return null;
         }

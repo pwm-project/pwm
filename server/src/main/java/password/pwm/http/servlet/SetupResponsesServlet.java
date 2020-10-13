@@ -21,6 +21,7 @@
 package password.pwm.http.servlet;
 
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.cr.ChaiChallenge;
 import com.novell.ldapchai.cr.ChaiCrFactory;
 import com.novell.ldapchai.cr.ChaiResponseSet;
 import com.novell.ldapchai.cr.Challenge;
@@ -434,7 +435,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ChaiUser theUser = pwmSession.getSessionManager().getActor( );
         final String userGUID = pwmSession.getUserInfo().getUserGuid();
-        pwmApplication.getCrService().writeResponses( pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID, responseInfoBean );
+        pwmApplication.getCrService().writeResponses( pwmRequest.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID, responseInfoBean );
         pwmSession.reloadUserInfoBean( pwmRequest );
         pwmApplication.getStatisticsManager().incrementValue( Statistic.SETUP_RESPONSES );
         pwmApplication.getAuditManager().submit( AuditEvent.SET_RESPONSES, pwmSession.getUserInfo(), pwmSession );
@@ -477,17 +478,30 @@ public class SetupResponsesServlet extends ControlledPwmServlet
                 if ( loopChallenge.isRequired() || !setupData.isSimpleMode() )
                 {
 
+                    final Challenge newChallenge;
                     if ( !loopChallenge.isAdminDefined() )
                     {
                         final String questionText = inputMap.get( PwmConstants.PARAM_QUESTION_PREFIX + indexKey );
-                        loopChallenge.setChallengeText( questionText );
+                        newChallenge = new ChaiChallenge(
+                                loopChallenge.isRequired(),
+                                questionText,
+                                loopChallenge.getMinLength(),
+                                loopChallenge.getMaxLength(),
+                                loopChallenge.isAdminDefined(),
+                                loopChallenge.getMaxQuestionCharsInAnswer(),
+                                loopChallenge.isEnforceWordlist()
+                        );
+                    }
+                    else
+                    {
+                        newChallenge = loopChallenge;
                     }
 
                     final String answer = inputMap.get( PwmConstants.PARAM_RESPONSE_PREFIX + indexKey );
 
                     if ( answer != null && answer.length() > 0 )
                     {
-                        readResponses.put( loopChallenge, answer );
+                        readResponses.put( newChallenge, answer );
                     }
                 }
             }

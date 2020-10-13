@@ -29,6 +29,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -60,7 +61,7 @@ public class LdapCrOperator implements CrOperator
     }
 
     @Override
-    public ResponseSet readResponseSet( final ChaiUser theUser, final UserIdentity userIdentity, final String userGuid )
+    public ResponseSet readResponseSet( final SessionLabel sessionLabel, final ChaiUser theUser, final UserIdentity userIdentity, final String userGuid )
             throws PwmUnrecoverableException
     {
         try
@@ -69,18 +70,18 @@ public class LdapCrOperator implements CrOperator
         }
         catch ( final ChaiException e )
         {
-            LOGGER.debug( () -> "ldap error reading response set: " + e.getMessage(), e );
+            LOGGER.debug( sessionLabel, () -> "ldap error reading response set: " + e.getMessage() );
         }
         return null;
     }
 
     @Override
-    public ResponseInfoBean readResponseInfo( final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
+    public ResponseInfoBean readResponseInfo( final SessionLabel sessionLabel, final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
             throws PwmUnrecoverableException
     {
         try
         {
-            final ResponseSet responseSet = readResponseSet( theUser, userIdentity, userGUID );
+            final ResponseSet responseSet = readResponseSet( sessionLabel, theUser, userIdentity, userGUID );
             return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean( responseSet, DataStorageMethod.LDAP );
         }
         catch ( final ChaiException e )
@@ -91,7 +92,7 @@ public class LdapCrOperator implements CrOperator
     }
 
     @Override
-    public void clearResponses( final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid )
+    public void clearResponses( final SessionLabel sessionLabel, final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid )
             throws PwmUnrecoverableException
     {
         final LdapProfile ldapProfile = userIdentity.getLdapProfile( config );
@@ -110,7 +111,7 @@ public class LdapCrOperator implements CrOperator
             {
                 theUser.deleteAttribute( ldapStorageAttribute, null );
             }
-            LOGGER.info( () -> "cleared responses for user to chai-ldap format" );
+            LOGGER.info( sessionLabel, () -> "cleared responses for user to chai-ldap format" );
         }
         catch ( final ChaiOperationException e )
         {
@@ -126,9 +127,7 @@ public class LdapCrOperator implements CrOperator
                 errorMsg = "error clearing responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
             }
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( e );
-            throw pwmOE;
+            throw new PwmUnrecoverableException( errorInfo, e );
         }
         catch ( final ChaiUnavailableException e )
         {
@@ -137,7 +136,13 @@ public class LdapCrOperator implements CrOperator
     }
 
     @Override
-    public void writeResponses( final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean )
+    public void writeResponses(
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity,
+            final ChaiUser theUser,
+            final String userGuid,
+            final ResponseInfoBean responseInfoBean
+    )
             throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
@@ -160,7 +165,7 @@ public class LdapCrOperator implements CrOperator
                     responseInfoBean.getCsIdentifier()
             );
             ChaiCrFactory.writeChaiResponseSet( responseSet, theUser );
-            LOGGER.info( () -> "saved responses for user to chai-ldap format", () -> TimeDuration.fromCurrent( startTime ) );
+            LOGGER.info( sessionLabel, () -> "saved responses for user to chai-ldap format", () -> TimeDuration.fromCurrent( startTime ) );
         }
         catch ( final ChaiException e )
         {
@@ -176,9 +181,7 @@ public class LdapCrOperator implements CrOperator
                 errorMsg = "error writing user responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
             }
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( e );
-            throw pwmOE;
+            throw new PwmUnrecoverableException( errorInfo, e );
         }
     }
 }

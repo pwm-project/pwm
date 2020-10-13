@@ -423,7 +423,7 @@ public class CrService implements PwmService
             final ResponseInfoBean readResponses;
 
             LOGGER.trace( sessionLabel, () -> "attempting read of response info via storage method: " + storageMethod );
-            readResponses = operatorMap.get( storageMethod ).readResponseInfo( theUser, userIdentity, userGUID );
+            readResponses = operatorMap.get( storageMethod ).readResponseInfo( sessionLabel, theUser, userIdentity, userGUID );
 
             if ( readResponses != null )
             {
@@ -471,7 +471,7 @@ public class CrService implements PwmService
             final ResponseSet readResponses;
 
             LOGGER.trace( sessionLabel, () -> "attempting read of responses via storage method: " + storageMethod );
-            readResponses = operatorMap.get( storageMethod ).readResponseSet( theUser, userIdentity, userGUID );
+            readResponses = operatorMap.get( storageMethod ).readResponseSet( sessionLabel, theUser, userIdentity, userGUID );
 
             if ( readResponses != null )
             {
@@ -489,6 +489,7 @@ public class CrService implements PwmService
 
 
     public void writeResponses(
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final ChaiUser theUser,
             final String userGUID,
@@ -504,13 +505,17 @@ public class CrService implements PwmService
 
         final List<DataStorageMethod> writeMethods = ConfigurationUtil.getCrWritePreference( config );
 
+        LOGGER.debug( sessionLabel, () -> "will attempt to write the following storage methods: "
+                + JsonUtil.serializeCollection( writeMethods ) + " for user " + theUser.getEntryDN() );
+
+
         for ( final DataStorageMethod loopWriteMethod : writeMethods )
         {
             try
             {
                 attempts++;
-                operatorMap.get( loopWriteMethod ).writeResponses( userIdentity, theUser, userGUID, responseInfoBean );
-                LOGGER.debug( () -> "saved responses using storage method " + loopWriteMethod + " for user " + theUser.getEntryDN() );
+                operatorMap.get( loopWriteMethod ).writeResponses( sessionLabel, userIdentity, theUser, userGUID, responseInfoBean );
+                LOGGER.debug( sessionLabel, () -> "saved responses using storage method " + loopWriteMethod + " for user " + theUser.getEntryDN() );
                 errorMessages.put( loopWriteMethod, "Success" );
                 successes++;
             }
@@ -552,16 +557,19 @@ public class CrService implements PwmService
         int attempts = 0;
         int successes = 0;
 
-        LOGGER.trace( sessionLabel, () -> "beginning clear response operation for user " + theUser.getEntryDN() + " guid=" + userGUID );
-
         final List<DataStorageMethod> writeMethods = ConfigurationUtil.getCrWritePreference( config );
+
+        LOGGER.debug( sessionLabel, () -> "will attempt to clear the following storage methods: "
+                + JsonUtil.serializeCollection( writeMethods ) + " for user " + theUser.getEntryDN()
+                + theUser.getEntryDN() + " guid=" + userGUID );
 
         for ( final DataStorageMethod loopWriteMethod : writeMethods )
         {
             try
             {
                 attempts++;
-                operatorMap.get( loopWriteMethod ).clearResponses( userIdentity, theUser, userGUID );
+                operatorMap.get( loopWriteMethod ).clearResponses( sessionLabel, userIdentity, theUser, userGUID );
+                LOGGER.debug( sessionLabel, () -> "cleared responses using storage method " + loopWriteMethod + " for user " + theUser.getEntryDN() );
                 successes++;
             }
             catch ( final PwmUnrecoverableException e )

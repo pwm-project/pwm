@@ -28,6 +28,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.PwmApplication;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
@@ -59,6 +60,7 @@ public class DbCrOperator implements CrOperator
 
     @Override
     public ResponseSet readResponseSet(
+            final SessionLabel sessionLabel,
             final ChaiUser theUser,
             final UserIdentity userIdentity,
             final String userGUID
@@ -79,12 +81,12 @@ public class DbCrOperator implements CrOperator
             if ( responseStringBlob != null && responseStringBlob.length() > 0 )
             {
                 final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML( responseStringBlob, theUser );
-                LOGGER.debug( () -> "found responses for " + theUser.getEntryDN() + " in remote database: " + userResponseSet.toString() );
+                LOGGER.debug( sessionLabel, () -> "found responses for " + theUser.getEntryDN() + " in remote database: " + userResponseSet.toString() );
                 return userResponseSet;
             }
             else
             {
-                LOGGER.trace( () -> "user guid for " + theUser.getEntryDN() + " not found in remote database (key=" + userGUID + ")" );
+                LOGGER.trace( sessionLabel, () -> "user guid for " + theUser.getEntryDN() + " not found in remote database (key=" + userGUID + ")" );
             }
         }
         catch ( final ChaiValidationException e )
@@ -103,12 +105,12 @@ public class DbCrOperator implements CrOperator
     }
 
     @Override
-    public ResponseInfoBean readResponseInfo( final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
+    public ResponseInfoBean readResponseInfo( final SessionLabel sessionLabel, final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
             throws PwmUnrecoverableException
     {
         try
         {
-            final ResponseSet responseSet = readResponseSet( theUser, userIdentity, userGUID );
+            final ResponseSet responseSet = readResponseSet( sessionLabel, theUser, userIdentity, userGUID );
             return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean( responseSet, DataStorageMethod.DB );
         }
         catch ( final ChaiException e )
@@ -121,7 +123,12 @@ public class DbCrOperator implements CrOperator
     }
 
     @Override
-    public void clearResponses( final UserIdentity userIdentity, final ChaiUser theUser, final String userGUID )
+    public void clearResponses(
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity,
+            final ChaiUser theUser,
+            final String userGUID
+    )
             throws PwmUnrecoverableException
     {
         if ( userGUID == null || userGUID.length() < 1 )
@@ -136,7 +143,7 @@ public class DbCrOperator implements CrOperator
         {
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
             databaseAccessor.remove( DatabaseTable.PWM_RESPONSES, userGUID );
-            LOGGER.info( () -> "cleared responses for user " + theUser.getEntryDN() + " in remote database" );
+            LOGGER.info( sessionLabel, () -> "cleared responses for user " + theUser.getEntryDN() + " in remote database" );
         }
         catch ( final DatabaseException e )
         {
@@ -144,14 +151,13 @@ public class DbCrOperator implements CrOperator
                     PwmError.ERROR_CLEARING_RESPONSES,
                     "unexpected error clearing responses for " + theUser.getEntryDN() + " in remote database, error: " + e.getMessage()
             );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( e );
-            throw pwmOE;
+            throw new PwmUnrecoverableException( errorInfo, e );
         }
     }
 
     @Override
     public void writeResponses(
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final ChaiUser theUser,
             final String userGUID,
@@ -167,7 +173,7 @@ public class DbCrOperator implements CrOperator
             );
         }
 
-        LOGGER.trace( () -> "attempting to save responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
+        LOGGER.trace( sessionLabel, () -> "attempting to save responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
 
         try
         {
@@ -182,7 +188,7 @@ public class DbCrOperator implements CrOperator
 
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
             databaseAccessor.put( DatabaseTable.PWM_RESPONSES, userGUID, responseSet.stringValue() );
-            LOGGER.info( () -> "saved responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
+            LOGGER.info( sessionLabel, () -> "saved responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
         }
         catch ( final ChaiException e )
         {
@@ -194,10 +200,8 @@ public class DbCrOperator implements CrOperator
                     PwmError.ERROR_WRITING_RESPONSES,
                     "unexpected error saving responses for " + theUser.getEntryDN() + " in remote database: " + e.getMessage()
             );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            LOGGER.error( () -> errorInfo.toDebugStr() );
-            pwmOE.initCause( e );
-            throw pwmOE;
+            LOGGER.error( sessionLabel, errorInfo::toDebugStr );
+            throw new PwmUnrecoverableException( errorInfo, e );
         }
     }
 }

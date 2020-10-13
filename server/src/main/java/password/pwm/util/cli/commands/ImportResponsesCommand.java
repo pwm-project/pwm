@@ -74,7 +74,7 @@ public class ImportResponsesCommand extends AbstractCliCommand
                         final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
                         final String userGuid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, null, userIdentity, false );
                         final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean( PwmConstants.DEFAULT_LOCALE, challengeSet.getIdentifier() );
-                        pwmApplication.getCrService().writeResponses( userIdentity, user, userGuid, responseInfoBean );
+                        pwmApplication.getCrService().writeResponses( null, userIdentity, user, userGuid, responseInfoBean );
                     }
                     catch ( final Exception e )
                     {
