@@ -33,7 +33,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -173,9 +173,9 @@ public class CEFAuditFormatter implements AuditFormatter
     private void appendCefHeader( final PwmApplication pwmApplication, final StringBuilder cefOutput, final String value )
             throws PwmUnrecoverableException
     {
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, SessionLabel.SYSTEM_LABEL );
+        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, SessionLabel.SYSTEM_LABEL );
         cefOutput.append( CEFAuditFormatter.CEF_EXTENSION_SEPARATOR );
-        cefOutput.append( macroMachine.expandMacros( value ) );
+        cefOutput.append( macroRequest.expandMacros( value ) );
     }
 
     private void appendCefValue( final String name, final String value, final StringBuilder cefOutput, final Settings settings )

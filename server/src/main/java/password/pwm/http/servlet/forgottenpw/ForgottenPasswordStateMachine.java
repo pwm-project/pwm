@@ -74,7 +74,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.ws.server.PresentableForm;
@@ -307,7 +307,7 @@ public class ForgottenPasswordStateMachine
             final Locale locale = forgottenPasswordStateMachine.getCommonValues().getLocale();
             final UserIdentity userIdentity = forgottenPasswordStateMachine.getForgottenPasswordBean().getUserIdentity();
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( commonValues, userIdentity );
-            final MacroMachine macroMachine = MacroMachine.forUser( commonValues, userIdentity );
+            final MacroRequest macroRequest = MacroRequest.forUser( commonValues, userIdentity );
             final PwmPasswordPolicy pwmPasswordPolicy = userInfo.getPasswordPolicy();
 
             final boolean valueMasking = commonValues.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_MASK_PASSWORD_FIELDS );
@@ -333,7 +333,7 @@ public class ForgottenPasswordStateMachine
                     pwmPasswordPolicy,
                     commonValues.getConfig(),
                     commonValues.getLocale(),
-                    macroMachine );
+                    macroRequest );
 
             final String ruleDelimiter = commonValues.getConfig().readAppProperty( AppProperty.REST_SERVER_FORGOTTEN_PW_RULE_DELIMITER );
             final String ruleText = StringUtil.collectionToString( passwordRequirementsList, ruleDelimiter );

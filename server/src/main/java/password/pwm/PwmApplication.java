@@ -83,7 +83,7 @@ import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogManager;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.queue.SmsQueueManager;
@@ -777,7 +777,7 @@ public class PwmApplication
             final String to,
             final String message,
             final SessionLabel sessionLabel,
-            final MacroMachine macroMachine
+            final MacroRequest macroRequest
     )
     {
         final SmsQueueManager smsQueue = getSmsQueue();
@@ -788,8 +788,8 @@ public class PwmApplication
         }
 
         final SmsItemBean smsItemBean = new SmsItemBean(
-                macroMachine.expandMacros( to ),
-                macroMachine.expandMacros( message ),
+                macroRequest.expandMacros( to ),
+                macroRequest.expandMacros( message ),
                 sessionLabel
         );
 

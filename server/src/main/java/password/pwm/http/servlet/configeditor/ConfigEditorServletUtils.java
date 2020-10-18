@@ -51,7 +51,7 @@ import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.bean.HealthData;
 
@@ -208,7 +208,7 @@ public class ConfigEditorServletUtils
             throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, sessionLabel );
+        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, sessionLabel );
         final PwmSettingTemplateSet template = storedConfiguration.getTemplateSet();
         final SettingData.SettingDataBuilder builder = SettingData.builder();
 
@@ -217,7 +217,7 @@ public class ConfigEditorServletUtils
             for ( final PwmSetting setting : PwmSetting.values() )
             {
 
-                settingMap.put( setting.getKey(), SettingInfo.forSetting( setting, template, macroMachine, locale ) );
+                settingMap.put( setting.getKey(), SettingInfo.forSetting( setting, template, macroRequest, locale ) );
             }
             builder.settings( settingMap );
         }
@@ -225,7 +225,7 @@ public class ConfigEditorServletUtils
             final LinkedHashMap<String, Object> categoryMap = new LinkedHashMap<>();
             for ( final PwmSettingCategory category : PwmSettingCategory.values() )
             {
-                categoryMap.put( category.getKey(), CategoryInfo.forCategory( category, macroMachine, locale ) );
+                categoryMap.put( category.getKey(), CategoryInfo.forCategory( category, macroRequest, locale ) );
             }
             builder.categories( categoryMap );
         }

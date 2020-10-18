@@ -61,7 +61,7 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmTrustManager;
 
 import javax.net.ssl.X509TrustManager;
@@ -270,7 +270,7 @@ public class LdapOperationsHelper
      *
      * @param theUser User to write to.
      * @param valueMap A map with String keys and String values.
-     * @param macroMachine used to resolve macros before values are written.
+     * @param macroRequest used to resolve macros before values are written.
      * @param expandMacros a boolean to indicate if value macros should be expanded.
      * @throws ChaiUnavailableException if the directory is unavailable
      * @throws PwmUnrecoverableException if their is an unexpected ldap problem
@@ -278,7 +278,7 @@ public class LdapOperationsHelper
     public static void writeFormValuesToLdap(
             final ChaiUser theUser,
             final Map<FormConfiguration, String> valueMap,
-            final MacroMachine macroMachine,
+            final MacroRequest macroRequest,
             final boolean expandMacros
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
@@ -370,7 +370,7 @@ public class LdapOperationsHelper
 
                     if ( expandMacros )
                     {
-                        attrValue = macroMachine.expandMacros( attrValue );
+                        attrValue = macroRequest.expandMacros( attrValue );
                     }
 
                     final String currentValue;
@@ -593,9 +593,9 @@ public class LdapOperationsHelper
         )
                 throws PwmUnrecoverableException
         {
-            final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, sessionLabel );
+            final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, sessionLabel );
             final String guidPattern = pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_GUID_PATTERN );
-            return macroMachine.expandMacros( guidPattern );
+            return macroRequest.expandMacros( guidPattern );
         }
     }
 

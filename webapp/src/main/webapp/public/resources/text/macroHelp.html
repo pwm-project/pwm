@@ -35,10 +35,7 @@
             Input
         </td>
         <td>
-            <input maxlength="5000" class="configStringInput" style="width:82%;" id="input-testMacroInput" type="text"/>
-            <button type="button" id="button-testMacro" class="btn">
-                <span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test
-            </button>
+            <input value="Hello @LDAP:givenName@ @LDAP:sn@, Today is @CurrentTime:EEEE:IST@." maxlength="5000" class="configStringInput" style="width:82%;" id="input-testMacroInput" type="text"/>
         </td>
     </tr>
     <tr>
@@ -46,7 +43,7 @@
     </tr>
     </tbody>
 </table>
-<div class="footnote">User-specific macros are resolved using the currently authenticated user (if any)</div>
+<div class="footnote">User-specific macros are resolved using sample data.</div>
 <br/>
 <div style="overflow-x: auto; max-height: 450px">
 <table>
@@ -105,6 +102,15 @@
         </td>
         <td>
             Time user's password will expire where <i><span class="documentationParameter">pattern</span></i> is a <a onclick="PWM_CFGEDIT.showDateTimeFormatHelp()" href="#">SimpleDateFormat</a> pattern
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @User:PwExpireTime:<span class="documentationParameter">pattern:<span class="documentationParameter">tz</span>@
+        </td>
+        <td>
+            Time user's password will expire where <i><span class="documentationParameter">pattern</span></i> is a <a onclick="PWM_CFGEDIT.showDateTimeFormatHelp()" href="#">SimpleDateFormat</a> pattern, and the timezone is a tz specified
+            as a valid <a href="#" onclick="PWM_CFGEDIT.showTimezoneList()">TimeZone ID</a>.
         </td>
     </tr>
     <tr>

@@ -631,6 +631,16 @@ PWM_CFGEDIT.cancelEditing = function() {
 };
 
 PWM_CFGEDIT.showMacroHelp = function() {
+    var processExampleFunction = function() {
+        PWM_MAIN.getObject('panel-testMacroOutput').innerHTML = PWM_MAIN.showString('Display_PleaseWait');
+        var sendData = {};
+        sendData['input'] = PWM_MAIN.getObject('input-testMacroInput').value;
+        var url = "editor?processAction=testMacro";
+        var loadFunction = function(data) {
+            PWM_MAIN.getObject('panel-testMacroOutput').innerHTML = data['data'];
+        };
+        PWM_MAIN.ajaxRequest(url,loadFunction,{content:sendData});
+    };
     require(["dijit/Dialog"],function(Dialog) {
         var idName = 'macroPopup';
         PWM_MAIN.clearDijitWidget(idName);
@@ -641,23 +651,15 @@ PWM_CFGEDIT.showMacroHelp = function() {
             href: PWM_GLOBAL['url-resources'] + "/text/macroHelp.html"
         });
         var attempts = 0;
-        // iframe takes indeterminate amount of time to load, so just retry till it apperas
+        // iframe takes indeterminate amount of time to load, so just retry till it appears
         var loadFunction = function() {
             if (PWM_MAIN.getObject('input-testMacroInput')) {
                 console.log('connected to macroHelpDiv');
                 setTimeout(function(){
                     PWM_MAIN.getObject('input-testMacroInput').focus();
+                    PWM_MAIN.addEventHandler('input-testMacroInput','input',processExampleFunction);
+                    processExampleFunction();
                 },500);
-                PWM_MAIN.addEventHandler('button-testMacro','click',function(){
-                    PWM_MAIN.getObject('panel-testMacroOutput').innerHTML = PWM_MAIN.showString('Display_PleaseWait');
-                    var sendData = {};
-                    sendData['input'] = PWM_MAIN.getObject('input-testMacroInput').value;
-                    var url = "editor?processAction=testMacro";
-                    var loadFunction = function(data) {
-                        PWM_MAIN.getObject('panel-testMacroOutput').innerHTML = data['data'];
-                    };
-                    PWM_MAIN.ajaxRequest(url,loadFunction,{content:sendData});
-                });
             } else {
                 if (attempts < 50) {
                     attempts++;

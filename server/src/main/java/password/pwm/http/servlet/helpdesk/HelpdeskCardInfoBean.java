@@ -37,7 +37,7 @@ import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -102,13 +102,13 @@ public class HelpdeskCardInfoBean implements Serializable
 
     static String figureDisplayName(
             final HelpdeskProfile helpdeskProfile,
-            final MacroMachine macroMachine
+            final MacroRequest macroRequest
     )
     {
         final String configuredDisplayName = helpdeskProfile.readSettingAsString( PwmSetting.HELPDESK_DETAIL_DISPLAY_NAME );
         if ( configuredDisplayName != null && !configuredDisplayName.isEmpty() )
         {
-            return macroMachine.expandMacros( configuredDisplayName );
+            return macroRequest.expandMacros( configuredDisplayName );
         }
         return null;
     }
@@ -125,10 +125,10 @@ public class HelpdeskCardInfoBean implements Serializable
         final List<String> displayStringSettings = helpdeskProfile.readSettingAsStringArray( PwmSetting.HELPDESK_DISPLAY_NAMES_CARD_LABELS );
         if ( displayStringSettings != null )
         {
-            final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, sessionLabel, userInfo, null );
+            final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, sessionLabel, userInfo, null );
             for ( final String displayStringSetting : displayStringSettings )
             {
-                final String displayLabel = macroMachine.expandMacros( displayStringSetting );
+                final String displayLabel = macroRequest.expandMacros( displayStringSetting );
                 displayLabels.add( displayLabel );
             }
         }

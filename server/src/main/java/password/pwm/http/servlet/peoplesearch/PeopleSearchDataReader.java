@@ -68,7 +68,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -308,12 +308,12 @@ class PeopleSearchDataReader
             return Collections.emptyList();
         }
         final List<LinkReferenceBean> returnList = new ArrayList<>();
-        final MacroMachine macroMachine = getMacroMachine( actorIdentity );
+        final MacroRequest macroRequest = getMacroMachine( actorIdentity );
         for ( final Map.Entry<String, String> entry : linkMap.entrySet() )
         {
             final String key = entry.getKey();
             final String value = entry.getValue();
-            final String parsedValue = macroMachine.expandMacros( value );
+            final String parsedValue = macroRequest.expandMacros( value );
             final LinkReferenceBean linkReference = new LinkReferenceBean();
             linkReference.setName( key );
             linkReference.setLink( parsedValue );
@@ -487,9 +487,9 @@ class PeopleSearchDataReader
     )
             throws PwmUnrecoverableException
     {
-        final MacroMachine macroMachine = getMacroMachine( userIdentity );
+        final MacroRequest macroRequest = getMacroMachine( userIdentity );
         final String settingValue = this.peopleSearchConfiguration.getDisplayName();
-        return macroMachine.expandMacros( settingValue );
+        return macroRequest.expandMacros( settingValue );
     }
 
     private List<String> figureDisplaynames(
@@ -501,10 +501,10 @@ class PeopleSearchDataReader
         final List<String> displayStringSettings = this.peopleSearchConfiguration.getDisplayNameCardLables();
         if ( displayStringSettings != null )
         {
-            final MacroMachine macroMachine = getMacroMachine( userIdentity );
+            final MacroRequest macroRequest = getMacroMachine( userIdentity );
             for ( final String displayStringSetting : displayStringSettings )
             {
-                final String displayLabel = macroMachine.expandMacros( displayStringSetting );
+                final String displayLabel = macroRequest.expandMacros( displayStringSetting );
                 displayLabels.add( displayLabel );
             }
         }
@@ -585,7 +585,7 @@ class PeopleSearchDataReader
 
 
 
-    MacroMachine getMacroMachine(
+    MacroRequest getMacroMachine(
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
@@ -599,7 +599,7 @@ class PeopleSearchDataReader
                 userIdentity,
                 chaiProvider
         );
-        return MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
+        return MacroRequest.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
     }
 
     void checkIfUserIdentityViewable(

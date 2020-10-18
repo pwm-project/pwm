@@ -52,7 +52,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
 
 import javax.servlet.ServletException;
@@ -148,7 +148,7 @@ public class UpdateProfileUtil
 
     static void sendProfileUpdateEmailNotice(
             final PwmApplication pwmApplication,
-            final MacroMachine macroMachine,
+            final MacroRequest macroRequest,
             final UserInfo userInfo,
             final Locale locale,
             final SessionLabel sessionLabel
@@ -161,7 +161,7 @@ public class UpdateProfileUtil
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 userInfo,
-                macroMachine
+                macroRequest
         );
 
         if ( configuredEmailSetting == null )
@@ -347,7 +347,7 @@ public class UpdateProfileUtil
             final SessionLabel sessionLabel,
             final Locale locale,
             final UserInfo userInfo,
-            final MacroMachine macroMachine,
+            final MacroRequest macroRequest,
             final UpdateProfileProfile updateProfileProfile,
             final Map<String, String> formValues,
             final ChaiUser theUser
@@ -363,7 +363,7 @@ public class UpdateProfileUtil
         // write values.
         LOGGER.info( () -> "updating profile for " + userInfo.getUserIdentity() );
 
-        LdapOperationsHelper.writeFormValuesToLdap( theUser, formMap, macroMachine, false );
+        LdapOperationsHelper.writeFormValuesToLdap( theUser, formMap, macroRequest, false );
 
         postUpdateActionsAndEmail( pwmApplication, sessionLabel, locale, userInfo.getUserIdentity(), updateProfileProfile );
 
@@ -387,7 +387,7 @@ public class UpdateProfileUtil
                 locale,
                 userIdentity,
                 pwmApplication.getProxiedChaiUser( userIdentity ).getChaiProvider() );
-        final MacroMachine reloadedMacroMachine = MacroMachine.forUser( pwmApplication, sessionLabel, reloadedUserInfo, null, null );
+        final MacroRequest reloadedMacroRequest = MacroRequest.forUser( pwmApplication, sessionLabel, reloadedUserInfo, null, null );
 
         {
             // execute configured actions
@@ -398,14 +398,14 @@ public class UpdateProfileUtil
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, reloadedUserInfo.getUserIdentity() )
                         .setExpandPwmMacros( true )
-                        .setMacroMachine( reloadedMacroMachine )
+                        .setMacroMachine( reloadedMacroRequest )
                         .createActionExecutor();
 
                 actionExecutor.executeActions( actions, sessionLabel );
             }
         }
 
-        sendProfileUpdateEmailNotice( pwmApplication, reloadedMacroMachine, reloadedUserInfo, locale, sessionLabel );
+        sendProfileUpdateEmailNotice( pwmApplication, reloadedMacroRequest, reloadedUserInfo, locale, sessionLabel );
     }
 
     static TokenDestinationItem tokenDestinationItemForCurrentValidation(

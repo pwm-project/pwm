@@ -20,86 +20,85 @@
 
 package password.pwm.config.profile;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import password.pwm.util.macro.MacroMachine;
+import org.junit.rules.TemporaryFolder;
+import password.pwm.PwmApplication;
+import password.pwm.ldap.UserInfoBean;
+import password.pwm.util.localdb.TestHelper;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordRuleReaderHelper;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class PasswordRuleReaderHelperTest
 {
-    private static final String[][] MACRO_MAP = new String[][] {
-            {"@User:ID@", "fflintstone"},
-            {"@User:Email@", "fred@flintstones.tv"},
-            {"@LDAP:givenName@", "Fred"},
-            {"@LDAP:sn@", "Flintstone"},
-    };
 
-    private MacroMachine macroMachine = Mockito.mock( MacroMachine.class );
-    private PasswordRuleReaderHelper ruleHelper = Mockito.mock( PasswordRuleReaderHelper.class );
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @Before
-    public void setUp() throws Exception
+    private MacroRequest makeMacroRequest() throws Exception
     {
-        // Mock out things that don't need to be real
-        Mockito.when( macroMachine.expandMacros( ArgumentMatchers.anyString() ) ).thenAnswer( replaceAllMacrosInMap( MACRO_MAP ) );
-        Mockito.when( ruleHelper.readBooleanValue( PwmPasswordRule.AllowMacroInRegExSetting ) ).thenReturn( Boolean.TRUE );
-        Mockito.when( ruleHelper.readRegExSetting(
-                ArgumentMatchers.any( PwmPasswordRule.class ),
-                ArgumentMatchers.any( MacroMachine.class ),
-                ArgumentMatchers.anyString() ) ).thenCallRealMethod();
+        final Map<String, String> userAttributes;
+        {
+            final Map<String, String> map = new HashMap<>();
+            map.put( "cn", "fflintstone" );
+            map.put( "email", "fred@flintstones.tv" );
+            map.put( "givenName", "Fred" );
+            map.put( "sn", "Flintstone" );
+            userAttributes = Collections.unmodifiableMap( map );
+        }
+
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
+
+        final UserInfoBean userInfo = UserInfoBean.builder()
+                .attributes( userAttributes )
+                .userEmailAddress( "fred@flintstones.tv" )
+                .username( "fflintstone" )
+                .build();
+
+        return  MacroRequest.forUser( pwmApplication, null, userInfo, null );
+    }
+
+    private PasswordRuleReaderHelper makeRuleHelper( final boolean enableMacros )
+    {
+        final Map<String, String> passwordPolicyRules = new HashMap<>( );
+        passwordPolicyRules.put( PwmPasswordRule.AllowMacroInRegExSetting.getKey(), Boolean.toString( enableMacros ) );
+        return new PasswordRuleReaderHelper( PwmPasswordPolicy.createPwmPasswordPolicy( passwordPolicyRules ) );
     }
 
     @Test
     public void testReadRegExSettingNoRegex() throws Exception
     {
+        final MacroRequest macroRequest = makeMacroRequest();
+        final PasswordRuleReaderHelper ruleHelper = makeRuleHelper( true );
+
         final String input = "@User:ID@, First Name: @LDAP:givenName@, Last Name: @LDAP:sn@, Email: @User:Email@";
 
-        final List<Pattern> patterns = ruleHelper.readRegExSetting( PwmPasswordRule.RegExMatch, macroMachine, input );
+        final List<Pattern> patterns = ruleHelper.readRegExSetting( PwmPasswordRule.RegExMatch, macroRequest, input );
 
+        final String expected = "fflintstone, First Name: Fred, Last Name: Flintstone, Email: fred@flintstones.tv";
         Assert.assertEquals( patterns.size(), 1 );
-        Assert.assertEquals( patterns.get( 0 ).pattern(), "fflintstone, First Name: Fred, Last Name: Flintstone, Email: fred@flintstones.tv" );
+        Assert.assertEquals( expected, patterns.get( 0 ).pattern() );
     }
 
     @Test
     public void testReadRegExSetting() throws Exception
     {
+        final MacroRequest macroRequest = makeMacroRequest();
+        final PasswordRuleReaderHelper ruleHelper = makeRuleHelper( true );
+
         final String input = "^@User:ID@[0-9]+$;;;^password$";
 
-        final List<Pattern> patterns = ruleHelper.readRegExSetting( PwmPasswordRule.RegExMatch, macroMachine, input );
+        final List<Pattern> patterns = ruleHelper.readRegExSetting( PwmPasswordRule.RegExMatch, macroRequest, input );
 
         Assert.assertEquals( patterns.size(), 2 );
-        Assert.assertEquals( patterns.get( 0 ).pattern(), "^fflintstone[0-9]+$" );
-        Assert.assertEquals( patterns.get( 1 ).pattern(), "^password$" );
-    }
-
-    private Answer<String> replaceAllMacrosInMap( final String[][] macroMap )
-    {
-        return new Answer<String>()
-        {
-            @Override
-            public String answer( final InvocationOnMock invocation ) throws Throwable
-            {
-                final String[] macroNames = new String[macroMap.length];
-                final String[] macroValues = new String[macroMap.length];
-
-                for ( int i = 0; i < macroMap.length; i++ )
-                {
-                    macroNames[i] = macroMap[i][0];
-                    macroValues[i] = macroMap[i][1];
-                }
-
-                final String stringWithMacros = invocation.getArgument( 0 );
-                return StringUtils.replaceEach( stringWithMacros, macroNames, macroValues );
-            }
-        };
+        Assert.assertEquals( "^fflintstone[0-9]+$", patterns.get( 0 ).pattern() );
+        Assert.assertEquals( "^password$", patterns.get( 1 ).pattern() );
     }
 }

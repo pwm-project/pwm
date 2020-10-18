@@ -62,7 +62,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmRandom;
 
 import java.net.InetAddress;
@@ -697,14 +697,14 @@ public class IntruderManager implements PwmService
                     userIdentity, locale
             );
 
-            final MacroMachine macroMachine = MacroMachine.forUser(
+            final MacroRequest macroRequest = MacroRequest.forUser(
                     pwmApplication,
                     sessionLabel,
                     userInfo,
                     null
             );
 
-            pwmApplication.getEmailQueue().submitEmail( configuredEmailSetting, userInfo, macroMachine );
+            pwmApplication.getEmailQueue().submitEmail( configuredEmailSetting, userInfo, macroRequest );
         }
         catch ( final PwmUnrecoverableException e )
         {

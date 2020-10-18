@@ -23,7 +23,7 @@ package password.pwm.http.tag;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -53,8 +53,8 @@ public class PwmMacroTag extends TagSupport
         try
         {
             final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
-            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
-            final String outputValue = macroMachine.expandMacros( value );
+            final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+            final String outputValue = macroRequest.expandMacros( value );
             pageContext.getOut().write( outputValue );
         }
         catch ( final PwmUnrecoverableException e )

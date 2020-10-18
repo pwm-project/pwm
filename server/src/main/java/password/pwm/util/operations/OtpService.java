@@ -47,7 +47,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.otp.DbOtpOperator;
 import password.pwm.util.operations.otp.LdapOtpOperator;
 import password.pwm.util.operations.otp.LocalDbOtpOperator;
@@ -165,12 +165,12 @@ public class OtpService implements PwmService
     private List<String> createRawRecoveryCodes( final int numRecoveryCodes, final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, sessionLabel );
+        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, sessionLabel );
         final String configuredTokenMacro = settings.getRecoveryTokenMacro();
         final List<String> recoveryCodes = new ArrayList<>();
         while ( recoveryCodes.size() < numRecoveryCodes )
         {
-            final String code = macroMachine.expandMacros( configuredTokenMacro );
+            final String code = macroRequest.expandMacros( configuredTokenMacro );
             recoveryCodes.add( code );
         }
         return recoveryCodes;

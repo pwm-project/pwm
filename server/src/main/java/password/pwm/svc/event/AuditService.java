@@ -52,7 +52,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -298,9 +298,9 @@ public class AuditService implements PwmService
     )
             throws PwmUnrecoverableException
     {
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, SessionLabel.AUDITING_SESSION_LABEL );
+        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, SessionLabel.AUDITING_SESSION_LABEL );
 
-        String subject = macroMachine.expandMacros( pwmApplication.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_EMAILSUBJECT ) );
+        String subject = macroRequest.expandMacros( pwmApplication.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_EMAILSUBJECT ) );
         subject = subject.replace( "%EVENT%", record.getEventCode().getLocalizedString( pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE ) );
 
         final String body;
@@ -316,7 +316,7 @@ public class AuditService implements PwmService
                 .subject( subject )
                 .bodyPlain( body )
                 .build();
-        pwmApplication.getEmailQueue().submitEmail( emailItem, null, macroMachine );
+        pwmApplication.getEmailQueue().submitEmail( emailItem, null, macroRequest );
     }
 
     public Instant eldestVaultRecord( )

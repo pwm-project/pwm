@@ -27,8 +27,9 @@ import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -95,14 +96,14 @@ public class PasswordRuleReaderHelper
         }
     }
 
-    public List<Pattern> getRegExMatch( final MacroMachine macroMachine )
+    public List<Pattern> getRegExMatch( final MacroRequest macroRequest )
     {
-        return readRegExSetting( PwmPasswordRule.RegExMatch, macroMachine );
+        return readRegExSetting( PwmPasswordRule.RegExMatch, macroRequest );
     }
 
-    public List<Pattern> getRegExNoMatch( final MacroMachine macroMachine )
+    public List<Pattern> getRegExNoMatch( final MacroRequest macroRequest )
     {
-        return readRegExSetting( PwmPasswordRule.RegExNoMatch, macroMachine );
+        return readRegExSetting( PwmPasswordRule.RegExNoMatch, macroRequest );
     }
 
     public List<Pattern> getCharGroupValues( )
@@ -138,14 +139,14 @@ public class PasswordRuleReaderHelper
         return StringHelper.convertStrToBoolean( value );
     }
 
-    private List<Pattern> readRegExSetting( final PwmPasswordRule rule, final MacroMachine macroMachine )
+    private List<Pattern> readRegExSetting( final PwmPasswordRule rule, final MacroRequest macroRequest )
     {
         final String input = passwordPolicy.getPolicyMap().get( rule.getKey() );
 
-        return readRegExSetting( rule, macroMachine, input );
+        return readRegExSetting( rule, macroRequest, input );
     }
 
-    public List<Pattern> readRegExSetting( final PwmPasswordRule rule, final MacroMachine macroMachine, final String input )
+    public List<Pattern> readRegExSetting( final PwmPasswordRule rule, final MacroRequest macroRequest, final String input )
     {
         if ( input == null )
         {
@@ -158,13 +159,13 @@ public class PasswordRuleReaderHelper
 
         for ( final String value : values )
         {
-            if ( value != null && value.length() > 0 )
+            if ( !StringUtil.isEmpty( value ) )
             {
                 String valueToCompile = value;
 
-                if ( macroMachine != null && readBooleanValue( PwmPasswordRule.AllowMacroInRegExSetting ) )
+                if ( macroRequest != null && readBooleanValue( PwmPasswordRule.AllowMacroInRegExSetting ) )
                 {
-                    valueToCompile = macroMachine.expandMacros( value );
+                    valueToCompile = macroRequest.expandMacros( value );
                 }
 
                 try

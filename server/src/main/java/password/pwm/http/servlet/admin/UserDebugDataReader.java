@@ -39,7 +39,7 @@ import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 
 import java.util.Collections;
@@ -89,13 +89,13 @@ public class UserDebugDataReader
             /* disregard */
         }
 
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, locale, sessionLabel, userIdentity );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, locale, sessionLabel, userIdentity );
 
         final PwNotifyUserStatus pwNotifyUserStatus = readPwNotifyUserStatus( pwmApplication, userIdentity, sessionLabel );
 
         return UserDebugDataBean.builder()
                 .userInfo( userInfo )
-                .publicUserInfoBean( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), locale, macroMachine ) )
+                .publicUserInfoBean( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), locale, macroRequest ) )
                 .permissions( permissions )
                 .profiles( profiles )
                 .ldapPasswordPolicy( ldapPasswordPolicy )

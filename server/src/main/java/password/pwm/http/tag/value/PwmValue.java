@@ -35,7 +35,7 @@ import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import javax.servlet.jsp.JspPage;
 import javax.servlet.jsp.PageContext;
@@ -110,8 +110,8 @@ public enum PwmValue
             {
                 try
                 {
-                    final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
-                    outputURL = macroMachine.expandMacros( outputURL );
+                    final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+                    outputURL = macroRequest.expandMacros( outputURL );
                 }
                 catch ( final PwmUnrecoverableException e )
                 {
@@ -153,8 +153,8 @@ public enum PwmValue
             {
                 try
                 {
-                    final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
-                    final String expandedScript = macroMachine.expandMacros( customScript );
+                    final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+                    final String expandedScript = macroRequest.expandMacros( customScript );
                     return expandedScript;
                 }
                 catch ( final Exception e )

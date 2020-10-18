@@ -32,7 +32,7 @@ import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1406,8 +1406,8 @@ public enum PwmSetting
     {
         final String propertyKey = password.pwm.i18n.PwmSetting.SETTING_DESCRIPTION_PREFIX + this.getKey();
         final String storedText = LocaleHelper.getLocalizedMessage( locale, propertyKey, null, password.pwm.i18n.PwmSetting.class );
-        final MacroMachine macroMachine = MacroMachine.forStatic();
-        return macroMachine.expandMacros( storedText );
+        final MacroRequest macroRequest = MacroRequest.forStatic();
+        return macroRequest.expandMacros( storedText );
     }
 
     public String getExample( final PwmSettingTemplateSet template )
@@ -1636,13 +1636,13 @@ static class PwmSettingReader
     private static List<TemplateSetReference<String>> readExamples( final PwmSetting pwmSetting )
     {
         final List<TemplateSetReference<String>> returnObj = new ArrayList<>();
-        final MacroMachine macroMachine = MacroMachine.forStatic();
+        final MacroRequest macroRequest = MacroRequest.forStatic();
         final XmlElement settingElement = PwmSettingXml.readSettingXml( pwmSetting );
         final List<XmlElement> exampleElements = settingElement.getChildren( PwmSettingXml.XML_ELEMENT_EXAMPLE );
         for ( final XmlElement exampleElement : exampleElements )
         {
             final Set<PwmSettingTemplate> definedTemplates = PwmSettingXml.parseTemplateAttribute( exampleElement );
-            final String exampleString = macroMachine.expandMacros( exampleElement.getText() );
+            final String exampleString = macroRequest.expandMacros( exampleElement.getText() );
             returnObj.add( new TemplateSetReference<>( exampleString, Collections.unmodifiableSet( definedTemplates ) ) );
         }
         if ( returnObj.isEmpty() )

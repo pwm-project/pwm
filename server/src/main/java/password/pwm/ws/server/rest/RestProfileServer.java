@@ -46,7 +46,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.FormMap;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
@@ -251,7 +251,7 @@ public class RestProfileServer extends RestServlet
                 targetUserIdentity.getChaiProvider()
         );
 
-        final MacroMachine macroMachine = MacroMachine.forUser(
+        final MacroRequest macroRequest = MacroRequest.forUser(
                 restRequest.getPwmApplication(),
                 restRequest.getLocale(),
                 restRequest.getSessionLabel(),
@@ -263,7 +263,7 @@ public class RestProfileServer extends RestServlet
                 restRequest.getSessionLabel(),
                 restRequest.getLocale(),
                 userInfo,
-                macroMachine,
+                macroRequest,
                 updateProfileProfile,
                 FormUtility.asStringMap( profileFormData ),
                 targetUserIdentity.getChaiUser()

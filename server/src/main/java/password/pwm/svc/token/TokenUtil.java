@@ -41,7 +41,8 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
+import password.pwm.util.macro.MacroReplacer;
 import password.pwm.ws.client.rest.RestTokenDataClient;
 
 import java.time.Instant;
@@ -214,15 +215,15 @@ public class TokenUtil
         final Configuration config = commonValues.getConfig();
         final UserInfo userInfo = tokenInitAndSendRequest.getUserInfo();
         final Map<String, String> tokenMapData = new LinkedHashMap<>();
-        final MacroMachine macroMachine;
+        final MacroRequest macroRequest;
         {
-            if ( tokenInitAndSendRequest.getMacroMachine() != null )
+            if ( tokenInitAndSendRequest.getMacroRequest() != null )
             {
-                macroMachine = tokenInitAndSendRequest.getMacroMachine();
+                macroRequest = tokenInitAndSendRequest.getMacroRequest();
             }
             else if ( tokenInitAndSendRequest.getUserInfo() != null )
             {
-                macroMachine = MacroMachine.forUser(
+                macroRequest = MacroRequest.forUser(
                         commonValues.getPwmApplication(),
                         commonValues.getLocale(),
                         commonValues.getSessionLabel(),
@@ -231,7 +232,7 @@ public class TokenUtil
             }
             else
             {
-                macroMachine = null;
+                macroRequest = null;
             }
         }
 
@@ -288,7 +289,7 @@ public class TokenUtil
                 TokenService.TokenSendInfo.builder()
                         .pwmApplication( commonValues.getPwmApplication() )
                         .userInfo( userInfo )
-                        .macroMachine( macroMachine )
+                        .macroRequest( macroRequest )
                         .configuredEmailSetting( emailItemBean )
                         .tokenDestinationItem( tokenInitAndSendRequest.getTokenDestinationItem() )
                         .smsMessage( smsMessage )
@@ -298,7 +299,7 @@ public class TokenUtil
         );
     }
 
-    public static MacroMachine.StringReplacer makeTokenDestStringReplacer( final TokenDestinationItem tokenDestinationItem )
+    public static MacroReplacer makeTokenDestStringReplacer( final TokenDestinationItem tokenDestinationItem )
     {
         return ( matchedMacro, newValue ) ->
         {
@@ -321,7 +322,7 @@ public class TokenUtil
         private TokenType tokenType;
         private PwmSetting smsToSend;
         private Map<String, String> inputTokenData;
-        private MacroMachine macroMachine;
+        private MacroRequest macroRequest;
         private TimeDuration tokenLifetime;
     }
 }

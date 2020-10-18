@@ -40,7 +40,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmTrustManager;
 import password.pwm.util.secure.CertificateReadingTrustManager;
 import password.pwm.util.secure.X509Utils;
@@ -244,15 +244,15 @@ public class EmailServerUtil
         return new InternetAddress( input );
     }
 
-    static EmailItemBean applyMacrosToEmail( final EmailItemBean emailItem, final MacroMachine macroMachine )
+    static EmailItemBean applyMacrosToEmail( final EmailItemBean emailItem, final MacroRequest macroRequest )
     {
         final EmailItemBean expandedEmailItem;
         expandedEmailItem = new EmailItemBean(
-                macroMachine.expandMacros( emailItem.getTo() ),
-                macroMachine.expandMacros( emailItem.getFrom() ),
-                macroMachine.expandMacros( emailItem.getSubject() ),
-                macroMachine.expandMacros( emailItem.getBodyPlain() ),
-                macroMachine.expandMacros( emailItem.getBodyHtml() )
+                macroRequest.expandMacros( emailItem.getTo() ),
+                macroRequest.expandMacros( emailItem.getFrom() ),
+                macroRequest.expandMacros( emailItem.getSubject() ),
+                macroRequest.expandMacros( emailItem.getBodyPlain() ),
+                macroRequest.expandMacros( emailItem.getBodyHtml() )
         );
         return expandedEmailItem;
     }

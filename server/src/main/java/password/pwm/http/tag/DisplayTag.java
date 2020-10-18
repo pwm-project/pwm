@@ -28,7 +28,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -133,8 +133,8 @@ public class DisplayTag extends PwmAbstractTag
 
             if ( pwmRequest != null )
             {
-                final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
-                displayMessage = macroMachine.expandMacros( displayMessage );
+                final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+                displayMessage = macroRequest.expandMacros( displayMessage );
             }
 
             pageContext.getOut().write( displayMessage );

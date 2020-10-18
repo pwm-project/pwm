@@ -81,7 +81,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
@@ -281,10 +281,10 @@ public class HelpdeskServlet extends ControlledPwmServlet
             final ChaiUser chaiUser = useProxy
                     ? pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity )
                     : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
-            final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userIdentity );
+            final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, userIdentity );
             final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmRequest.getPwmApplication(), chaiUser )
                     .setExpandPwmMacros( true )
-                    .setMacroMachine( macroMachine )
+                    .setMacroMachine( macroRequest )
                     .createActionExecutor();
 
             actionExecutor.executeAction( action, pwmRequest.getLabel() );
@@ -783,9 +783,9 @@ public class HelpdeskServlet extends ControlledPwmServlet
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             return ProcessStatus.Halt;
         }
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
         final String configuredTokenString = config.readAppProperty( AppProperty.HELPDESK_TOKEN_VALUE );
-        final String tokenKey = macroMachine.expandMacros( configuredTokenString );
+        final String tokenKey = macroRequest.expandMacros( configuredTokenString );
         final EmailItemBean emailItemBean = config.readSettingAsEmail( PwmSetting.EMAIL_HELPDESK_TOKEN, pwmRequest.getLocale() );
 
         LOGGER.debug( pwmRequest, () -> "generated token code for " + userIdentity.toDelimitedKey() );
@@ -798,7 +798,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                     TokenService.TokenSendInfo.builder()
                             .pwmApplication( pwmRequest.getPwmApplication() )
                             .userInfo( userInfo )
-                            .macroMachine( macroMachine )
+                            .macroRequest( macroRequest )
                             .configuredEmailSetting( emailItemBean )
                             .tokenDestinationItem( tokenDestinationItem )
                             .smsMessage( smsMessage )

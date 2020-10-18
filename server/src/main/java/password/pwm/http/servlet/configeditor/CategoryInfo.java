@@ -22,7 +22,7 @@ package password.pwm.http.servlet.configeditor;
 
 import lombok.Data;
 import password.pwm.config.PwmSettingCategory;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.io.Serializable;
 import java.util.Locale;
@@ -42,13 +42,13 @@ public class CategoryInfo implements Serializable
 
     public static CategoryInfo forCategory(
             final PwmSettingCategory category,
-            final MacroMachine macroMachine,
+            final MacroRequest macroRequest,
             final Locale locale )
     {
         final CategoryInfo categoryInfo = new CategoryInfo();
         categoryInfo.key = category.getKey();
         categoryInfo.level = category.getLevel();
-        categoryInfo.description = macroMachine.expandMacros( category.getDescription( locale ) );
+        categoryInfo.description = macroRequest.expandMacros( category.getDescription( locale ) );
         categoryInfo.label = category.getLabel( locale );
         categoryInfo.hidden = category.isHidden();
         if ( category.getParent() != null )

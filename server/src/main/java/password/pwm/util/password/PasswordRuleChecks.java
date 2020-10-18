@@ -40,7 +40,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,7 +69,7 @@ public class PasswordRuleChecks
         private UserInfo userInfo;
         private PasswordRuleReaderHelper ruleHelper;
         private PasswordCharCounter charCounter;
-        private MacroMachine macroMachine;
+        private MacroRequest macroRequest;
     }
 
     private interface RuleChecker
@@ -125,9 +125,9 @@ public class PasswordRuleChecks
         }
 
         final List<ErrorInformation> errorList = new ArrayList<>();
-        final MacroMachine macroMachine = userInfo == null || userInfo.getUserIdentity() == null
-                ? MacroMachine.forNonUserSpecific( pwmApplication, SessionLabel.SYSTEM_LABEL )
-                : MacroMachine.forUser(
+        final MacroRequest macroRequest = userInfo == null || userInfo.getUserIdentity() == null
+                ? MacroRequest.forNonUserSpecific( pwmApplication, SessionLabel.SYSTEM_LABEL )
+                : MacroRequest.forUser(
                 pwmApplication,
                 PwmConstants.DEFAULT_LOCALE,
                 SessionLabel.SYSTEM_LABEL,
@@ -139,7 +139,7 @@ public class PasswordRuleChecks
                 .policy( policy )
                 .userInfo( userInfo )
                 .ruleHelper( policy.getRuleHelper() )
-                .macroMachine( macroMachine )
+                .macroRequest( macroRequest )
                 .charCounter( new PasswordCharCounter( password ) )
                 .build();
 
@@ -542,8 +542,8 @@ public class PasswordRuleChecks
                 {
                     if ( loopValue != null && loopValue.length() > 0 )
                     {
-                        final MacroMachine macroMachine = ruleCheckData.getMacroMachine();
-                        final String expandedValue = macroMachine.expandMacros( loopValue );
+                        final MacroRequest macroRequest = ruleCheckData.getMacroRequest();
+                        final String expandedValue = macroRequest.expandMacros( loopValue );
                         if ( StringUtils.isNotBlank( expandedValue ) )
                         {
                             final String loweredLoop = expandedValue.toLowerCase();
@@ -642,11 +642,11 @@ public class PasswordRuleChecks
                 throws PwmUnrecoverableException
         {
             final List<ErrorInformation> errorList = new ArrayList<>();
-            final MacroMachine macroMachine = ruleCheckData.getMacroMachine();
+            final MacroRequest macroRequest = ruleCheckData.getMacroRequest();
             final PasswordRuleReaderHelper ruleHelper = ruleCheckData.getRuleHelper();
 
             // check regex matches.
-            for ( final Pattern pattern : ruleHelper.getRegExMatch( macroMachine ) )
+            for ( final Pattern pattern : ruleHelper.getRegExMatch( macroRequest ) )
             {
                 if ( !pattern.matcher( password ).matches() )
                 {
@@ -659,7 +659,7 @@ public class PasswordRuleChecks
             }
 
             // check no-regex matches.
-            for ( final Pattern pattern : ruleHelper.getRegExNoMatch( macroMachine ) )
+            for ( final Pattern pattern : ruleHelper.getRegExNoMatch( macroRequest ) )
             {
                 if ( pattern.matcher( password ).matches() )
                 {

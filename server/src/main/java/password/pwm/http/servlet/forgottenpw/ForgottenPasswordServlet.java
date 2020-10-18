@@ -85,7 +85,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.util.password.PasswordUtility;
@@ -1004,8 +1004,8 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         final String agreementMsg = forgottenPasswordProfile.readSettingAsLocalizedString( PwmSetting.RECOVERY_AGREEMENT_MESSAGE, pwmRequest.getLocale() );
         if ( !StringUtil.isEmpty( agreementMsg ) && !forgottenPasswordBean.isAgreementPassed() )
         {
-            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
-            final String expandedText = macroMachine.expandMacros( agreementMsg );
+            final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+            final String expandedText = macroRequest.expandMacros( agreementMsg );
             pwmRequest.setAttribute( PwmRequestAttribute.AgreementText, expandedText );
             pwmRequest.forwardToJsp( JspUrl.RECOVER_USER_AGREEMENT );
             return;

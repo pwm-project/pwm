@@ -52,7 +52,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -128,7 +128,7 @@ public class HelpdeskDetailInfoBean implements Serializable
                 userIdentity,
                 theUser.getChaiProvider()
         );
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
 
         try
         {
@@ -159,7 +159,7 @@ public class HelpdeskDetailInfoBean implements Serializable
                     userInfo.getPasswordPolicy(),
                     pwmRequest.getConfig(),
                     pwmRequest.getLocale(),
-                    macroMachine
+                    macroRequest
             );
             builder.passwordRequirements( Collections.unmodifiableList( requirementLines ) );
         }
@@ -207,7 +207,7 @@ public class HelpdeskDetailInfoBean implements Serializable
 
         }
 
-        builder.userDisplayName( HelpdeskCardInfoBean.figureDisplayName( helpdeskProfile, macroMachine ) );
+        builder.userDisplayName( HelpdeskCardInfoBean.figureDisplayName( helpdeskProfile, macroRequest ) );
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
 

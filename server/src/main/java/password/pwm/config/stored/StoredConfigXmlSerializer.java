@@ -45,7 +45,7 @@ import password.pwm.util.java.XmlDocument;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.IOException;
@@ -641,7 +641,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
         private static String generateCommentText()
         {
             final String resourceText = ResourceBundle.getBundle( StoredConfigurationFactory.class.getName() ).getString( "configCommentText" );
-            return MacroMachine.forStatic().expandMacros( resourceText );
+            return MacroRequest.forStatic().expandMacros( resourceText );
         }
     }
 

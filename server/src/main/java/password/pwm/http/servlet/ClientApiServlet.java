@@ -50,7 +50,7 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 import password.pwm.ws.server.RestResultBean;
@@ -364,8 +364,8 @@ public class ClientApiServlet extends ControlledPwmServlet
                 );
                 if ( !StringUtil.isEmpty( configuredGuideText ) )
                 {
-                    final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine();
-                    final String expandedText = macroMachine.expandMacros( configuredGuideText );
+                    final MacroRequest macroRequest = pwmSession.getSessionManager().getMacroMachine();
+                    final String expandedText = macroRequest.expandMacros( configuredGuideText );
                     settingMap.put( "passwordGuideText", expandedText );
                 }
 
@@ -443,11 +443,11 @@ public class ClientApiServlet extends ControlledPwmServlet
         final ResourceBundle bundle = ResourceBundle.getBundle( displayClass.getName() );
         try
         {
-            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( );
+            final MacroRequest macroRequest = pwmSession.getSessionManager().getMacroMachine( );
             for ( final String key : new TreeSet<>( Collections.list( bundle.getKeys() ) ) )
             {
                 String displayValue = LocaleHelper.getLocalizedMessage( userLocale, key, config, displayClass );
-                displayValue = macroMachine.expandMacros( displayValue );
+                displayValue = macroRequest.expandMacros( displayValue );
                 displayStrings.put( key, displayValue );
             }
         }

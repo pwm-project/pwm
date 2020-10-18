@@ -48,7 +48,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.util.Collection;
 import java.util.List;
@@ -308,7 +308,7 @@ public class HelpdeskServletUtil
                 chaiUser.getChaiProvider()
         );
 
-        final MacroMachine macroMachine = MacroMachine.forUser(
+        final MacroRequest macroRequest = MacroRequest.forUser(
                 pwmApplication,
                 pwmRequest.getLabel(),
                 userInfo,
@@ -318,7 +318,7 @@ public class HelpdeskServletUtil
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 userInfo,
-                macroMachine
+                macroRequest
         );
     }
 

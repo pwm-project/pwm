@@ -33,7 +33,7 @@ import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.time.Instant;
 import java.util.Map;
@@ -43,30 +43,30 @@ public class AuditRecordFactory
     private static final PwmLogger LOGGER = PwmLogger.forClass( AuditRecordFactory.class );
 
     private final PwmApplication pwmApplication;
-    private final MacroMachine macroMachine;
+    private final MacroRequest macroRequest;
 
     public AuditRecordFactory( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
-        this.macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, null );
+        this.macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, null );
     }
 
-    public AuditRecordFactory( final PwmApplication pwmApplication, final MacroMachine macroMachine )
+    public AuditRecordFactory( final PwmApplication pwmApplication, final MacroRequest macroRequest )
     {
         this.pwmApplication = pwmApplication;
-        this.macroMachine = macroMachine;
+        this.macroRequest = macroRequest;
     }
 
     public AuditRecordFactory( final PwmApplication pwmApplication, final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
-        this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+        this.macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
     }
 
     public AuditRecordFactory( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmRequest.getPwmApplication();
-        this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+        this.macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
     }
 
     public HelpdeskAuditRecord createHelpdeskAuditRecord(
@@ -204,9 +204,9 @@ public class AuditRecordFactory
 
         String outputString = LocaleHelper.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, pwmDisplayBundle, pwmApplication.getConfig() );
 
-        if ( macroMachine != null )
+        if ( macroRequest != null )
         {
-            outputString = macroMachine.expandMacros( outputString );
+            outputString = macroRequest.expandMacros( outputString );
         }
 
         final Map<String, String> recordFields = JsonUtil.deserializeStringMap( JsonUtil.serialize( auditRecord ) );

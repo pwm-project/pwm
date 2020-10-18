@@ -60,7 +60,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.rest.bean.HealthData;
@@ -976,7 +976,7 @@ public class LDAPHealthChecker implements HealthChecker
 
         try
         {
-            final String healthUsername = MacroMachine.forStatic().expandMacros( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_LDAP_USER_SEARCH_TERM ) );
+            final String healthUsername = MacroRequest.forStatic().expandMacros( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_LDAP_USER_SEARCH_TERM ) );
 
             final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                     .enableValueEscaping( false )

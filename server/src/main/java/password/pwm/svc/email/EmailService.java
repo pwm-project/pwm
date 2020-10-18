@@ -46,7 +46,7 @@ import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.localdb.WorkQueueProcessor;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -327,27 +327,27 @@ public class EmailService implements PwmService
     public void submitEmail(
             final EmailItemBean emailItem,
             final UserInfo userInfo,
-            final MacroMachine macroMachine
+            final MacroRequest macroRequest
     )
             throws PwmUnrecoverableException
     {
-        submitEmailImpl( emailItem, userInfo, macroMachine, false );
+        submitEmailImpl( emailItem, userInfo, macroRequest, false );
     }
 
     public void submitEmailImmediate(
             final EmailItemBean emailItem,
             final UserInfo userInfo,
-            final MacroMachine macroMachine
+            final MacroRequest macroRequest
     )
             throws PwmUnrecoverableException
     {
-        submitEmailImpl( emailItem, userInfo, macroMachine, true );
+        submitEmailImpl( emailItem, userInfo, macroRequest, true );
     }
 
     private void submitEmailImpl(
             final EmailItemBean emailItem,
             final UserInfo userInfo,
-            final MacroMachine macroMachine,
+            final MacroRequest macroRequest,
             final boolean immediate
     )
             throws PwmUnrecoverableException
@@ -371,9 +371,9 @@ public class EmailService implements PwmService
                     workingItemBean = EmailServerUtil.newEmailToAddress( workingItemBean, toAddress );
                 }
 
-                if ( macroMachine != null )
+                if ( macroRequest != null )
                 {
-                    workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroMachine );
+                    workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroRequest );
                 }
 
                 if ( StringUtil.isEmpty( workingItemBean.getTo() ) )
@@ -425,16 +425,16 @@ public class EmailService implements PwmService
             final EmailServer emailServer,
             final Configuration configuration,
             final EmailItemBean emailItem,
-            final MacroMachine macroMachine
+            final MacroRequest macroRequest
     )
             throws PwmOperationalException, PwmUnrecoverableException, MessagingException
 
     {
         validateEmailItem( emailItem );
         EmailItemBean workingItemBean = emailItem;
-        if ( macroMachine != null )
+        if ( macroRequest != null )
         {
-            workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroMachine );
+            workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroRequest );
         }
         final Transport transport = EmailServerUtil.makeSmtpTransport( emailServer );
         final List<Message> messages = EmailServerUtil.convertEmailItemToMessages(

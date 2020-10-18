@@ -70,7 +70,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomPasswordGenerator;
 
@@ -204,7 +204,7 @@ public class ForgottenPasswordUtil
         }
 
         final UserInfo userInfo = readUserInfo( commonValues, forgottenPasswordBean );
-        final MacroMachine macroMachine = MacroMachine.forUser(
+        final MacroRequest macroRequest = MacroRequest.forUser(
                 pwmApplication,
                 commonValues.getSessionLabel(),
                 userInfo,
@@ -214,7 +214,7 @@ public class ForgottenPasswordUtil
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 userInfo,
-                macroMachine
+                macroRequest
         );
     }
 

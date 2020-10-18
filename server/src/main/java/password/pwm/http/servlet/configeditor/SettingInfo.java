@@ -27,7 +27,7 @@ import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.PwmSettingProperty;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplateSet;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -55,13 +55,13 @@ public class SettingInfo implements Serializable
     static SettingInfo forSetting(
             final PwmSetting setting,
             final PwmSettingTemplateSet template,
-            final MacroMachine macroMachine,
+            final MacroRequest macroRequest,
             final Locale locale
     )
     {
         final SettingInfo settingInfo = new SettingInfo();
         settingInfo.key = setting.getKey();
-        settingInfo.description = macroMachine.expandMacros( setting.getDescription( locale ) );
+        settingInfo.description = macroRequest.expandMacros( setting.getDescription( locale ) );
         settingInfo.level = setting.getLevel();
         settingInfo.label = setting.getLabel( locale );
         settingInfo.syntax = setting.getSyntax();

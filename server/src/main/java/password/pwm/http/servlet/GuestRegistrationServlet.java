@@ -58,7 +58,7 @@ import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomPasswordGenerator;
@@ -492,12 +492,12 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
                 final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction( PwmSetting.GUEST_WRITE_ATTRIBUTES );
                 if ( actions != null && !actions.isEmpty() )
                 {
-                    final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userIdentity );
+                    final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, userIdentity );
 
 
                     final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, theUser )
                             .setExpandPwmMacros( true )
-                            .setMacroMachine( macroMachine )
+                            .setMacroMachine( macroRequest )
                             .createActionExecutor();
 
                     actionExecutor.executeActions( actions, pwmRequest.getLabel() );
@@ -615,9 +615,9 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             return;
         }
 
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userIdentity );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, userIdentity );
 
-        pwmApplication.getEmailQueue().submitEmail( configuredEmailSetting, null, macroMachine );
+        pwmApplication.getEmailQueue().submitEmail( configuredEmailSetting, null, macroRequest );
     }
 
     private void forwardToJSP(

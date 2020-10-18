@@ -22,7 +22,7 @@ package password.pwm.config;
 
 import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.io.Serializable;
 import java.util.Locale;
@@ -69,8 +69,8 @@ public class LDAPPermissionInfo implements Serializable
 
         public String getDescription( final Locale locale, final Configuration config )
         {
-            final MacroMachine macroMachine = MacroMachine.forStatic();
-            return macroMachine.expandMacros( LocaleHelper.getLocalizedMessage( locale, "Actor_Description_" + this.toString(), config, Config.class ) );
+            final MacroRequest macroRequest = MacroRequest.forStatic();
+            return macroRequest.expandMacros( LocaleHelper.getLocalizedMessage( locale, "Actor_Description_" + this.toString(), config, Config.class ) );
         }
     }
 }

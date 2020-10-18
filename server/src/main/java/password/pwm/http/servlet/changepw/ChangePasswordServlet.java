@@ -58,7 +58,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.PwmPasswordRuleValidator;
 import password.pwm.util.password.RandomPasswordGenerator;
@@ -386,8 +386,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, ChangePasswordBean.class );
             if ( completeMessage != null && !completeMessage.isEmpty() )
             {
-                final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
-                final String expandedText = macroMachine.expandMacros( completeMessage );
+                final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+                final String expandedText = macroRequest.expandMacros( completeMessage );
                 pwmRequest.setAttribute( PwmRequestAttribute.CompleteText, expandedText );
                 pwmRequest.forwardToJsp( JspUrl.PASSWORD_COMPLETE );
             }
@@ -473,8 +473,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         final String agreementMsg = changePasswordProfile.readSettingAsLocalizedString( PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, pwmRequest.getLocale() );
         if ( !StringUtil.isEmpty( agreementMsg ) && !changePasswordBean.isAgreementPassed() )
         {
-            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine();
-            final String expandedText = macroMachine.expandMacros( agreementMsg );
+            final MacroRequest macroRequest = pwmSession.getSessionManager().getMacroMachine();
+            final String expandedText = macroRequest.expandMacros( agreementMsg );
             pwmRequest.setAttribute( PwmRequestAttribute.AgreementText, expandedText );
             pwmRequest.forwardToJsp( JspUrl.PASSWORD_AGREEMENT );
             return;
@@ -571,8 +571,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         final String passwordPolicyChangeMessage = pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy().getRuleHelper().getChangeMessage();
         if ( passwordPolicyChangeMessage.length() > 1 )
         {
-            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
-            macroMachine.expandMacros( passwordPolicyChangeMessage );
+            final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+            macroRequest.expandMacros( passwordPolicyChangeMessage );
             pwmRequest.setAttribute( PwmRequestAttribute.ChangePassword_PasswordPolicyChangeMessage, passwordPolicyChangeMessage );
         }
 

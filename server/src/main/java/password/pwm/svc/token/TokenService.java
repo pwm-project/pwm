@@ -67,7 +67,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.secure.PwmRandom;
 
@@ -704,7 +704,7 @@ public class TokenService implements PwmService
     {
         private PwmApplication pwmApplication;
         private UserInfo userInfo;
-        private MacroMachine macroMachine;
+        private MacroRequest macroRequest;
         private EmailItemBean configuredEmailSetting;
         private TokenDestinationItem tokenDestinationItem;
         private String smsMessage;
@@ -766,7 +766,7 @@ public class TokenService implements PwmService
             pwmApplication.getEmailQueue().submitEmailImmediate(
                     tokenizedEmail,
                     tokenSendInfo.getUserInfo(),
-                    tokenSendInfo.getMacroMachine() );
+                    tokenSendInfo.getMacroRequest() );
 
             LOGGER.debug( () -> "token email added to send queue for " + toAddress );
             return true;
@@ -789,7 +789,7 @@ public class TokenService implements PwmService
             final PwmApplication pwmApplication = tokenSendInfo.getPwmApplication();
             pwmApplication.getIntruderManager().mark( RecordType.TOKEN_DEST, smsNumber, tokenSendInfo.getSessionLabel() );
 
-            pwmApplication.sendSmsUsingQueue( smsNumber, modifiedMessage, tokenSendInfo.getSessionLabel(), tokenSendInfo.getMacroMachine() );
+            pwmApplication.sendSmsUsingQueue( smsNumber, modifiedMessage, tokenSendInfo.getSessionLabel(), tokenSendInfo.getMacroRequest() );
             LOGGER.debug( () -> "token SMS added to send queue for " + smsNumber );
             return true;
         }

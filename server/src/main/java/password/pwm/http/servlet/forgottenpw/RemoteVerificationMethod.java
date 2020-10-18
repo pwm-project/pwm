@@ -42,7 +42,7 @@ import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -142,11 +142,11 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
         headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
         headers.put( HttpHeader.AcceptLanguage.getHttpName(), locale.toLanguageTag() );
 
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, sessionLabel, userInfo, null );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, sessionLabel, userInfo, null );
 
         final RemoteVerificationRequestBean remoteVerificationRequestBean = RemoteVerificationRequestBean.builder()
             .responseSessionID( this.remoteSessionID )
-            .userInfo( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), locale, macroMachine ) )
+            .userInfo( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), locale, macroRequest ) )
             .userResponses( userResponses )
             .build();
 

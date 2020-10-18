@@ -75,7 +75,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.queue.SmsQueueManager;
 import password.pwm.util.secure.HttpsServerCertificateManager;
@@ -676,11 +676,11 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final Optional<EmailServer> emailServer = EmailServerUtil.makeEmailServer( testConfiguration, emailServerProfile, null );
             if ( emailServer.isPresent() )
             {
-                final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, pwmRequest.getUserInfoIfLoggedIn() );
+                final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, pwmRequest.getUserInfoIfLoggedIn() );
 
                 try
                 {
-                    EmailService.sendEmailSynchronous( emailServer.get(), testConfiguration, testEmailItem, macroMachine );
+                    EmailService.sendEmailSynchronous( emailServer.get(), testConfiguration, testEmailItem, macroRequest );
                     returnRecords.add( new HealthRecord( HealthStatus.INFO, HealthTopic.Email, "message sent" ) );
                 }
                 catch ( final MessagingException | PwmException e )
@@ -884,17 +884,9 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 return ProcessStatus.Halt;
             }
 
-            final MacroMachine macroMachine;
-            if ( pwmRequest.isAuthenticated() )
-            {
-                macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
-            }
-            else
-            {
-                macroMachine = MacroMachine.forNonUserSpecific( pwmRequest.getPwmApplication(), pwmRequest.getLabel() );
-            }
+            final MacroRequest macroRequest = MacroRequest.sampleMacroRequest( pwmRequest.getPwmApplication() );
             final String input = inputMap.get( "input" );
-            final String output = macroMachine.expandMacros( input );
+            final String output = macroRequest.expandMacros( input );
             pwmRequest.outputJsonResult( RestResultBean.withData( output ) );
         }
         catch ( final PwmUnrecoverableException e )

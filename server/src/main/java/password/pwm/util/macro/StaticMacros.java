@@ -20,59 +20,55 @@
 
 package password.pwm.util.macro;
 
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmEnvironment;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public abstract class InternalMacros
+public abstract class StaticMacros
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( StaticMacros.class );
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass( InternalMacros.class );
+    static final List<Macro> STATIC_MACROS = Collections.unmodifiableList( Stream.of(
+            new PwmSettingReference(),
+            new PwmSettingCategoryReference(),
+            new PwmAppName(),
+            new PwmVendorName(),
+            new EncodingMacro(),
+            new CasingMacro(),
+            new HashingMacro()
+    ).collect( Collectors.toList() ) );
 
-    static final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> INTERNAL_MACROS;
+    private static final Set<Macro.MacroDefinitionFlag> ONLY_DEBUG_LOG_FLAG = Collections.singleton( Macro.MacroDefinitionFlag.OnlyDebugLogging );
 
-    static
-    {
-        final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> defaultMacros = new HashMap<>();
-        defaultMacros.put( PwmSettingReference.class, MacroImplementation.Scope.Static );
-        defaultMacros.put( PwmSettingCategoryReference.class, MacroImplementation.Scope.Static );
-        defaultMacros.put( PwmAppName.class, MacroImplementation.Scope.Static );
-        defaultMacros.put( PwmVendorName.class, MacroImplementation.Scope.Static );
-        defaultMacros.put( PwmContextPath.class, MacroImplementation.Scope.System );
-        defaultMacros.put( EncodingMacro.class, MacroImplementation.Scope.Static );
-        defaultMacros.put( CasingMacro.class, MacroImplementation.Scope.Static );
-        defaultMacros.put( HashingMacro.class, MacroImplementation.Scope.Static );
-
-        INTERNAL_MACROS = Collections.unmodifiableMap( defaultMacros );
-    }
-
-    abstract static class InternalAbstractMacro extends AbstractMacro
+    private abstract static class StaticAbstractMacro extends AbstractMacro
     {
         @Override
-        public MacroDefinitionFlag[] flags( )
+        public Set<MacroDefinitionFlag> flags( )
         {
-            return new MacroDefinitionFlag[]
-                    {
-                            MacroDefinitionFlag.OnlyDebugLogging,
-                    };
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Scope getScope()
+        {
+            return Scope.Static;
         }
     }
 
-    public static class PwmSettingReference extends InternalAbstractMacro
+    public static class PwmSettingReference extends StaticAbstractMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmSettingReference" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
@@ -83,7 +79,7 @@ public abstract class InternalMacros
         }
 
         @Override
-        public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
+        public String replaceValue( final String matchValue, final MacroRequest macroRequestInfo )
                 throws MacroParseException
         {
             final String settingKeyStr = matchValue.substring( 21, matchValue.length() - 1 );
@@ -98,9 +94,15 @@ public abstract class InternalMacros
             }
             return setting.get().toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
         }
+
+        @Override
+        public Set<MacroDefinitionFlag> flags( )
+        {
+            return ONLY_DEBUG_LOG_FLAG;
+        }
     }
 
-    public static class PwmSettingCategoryReference extends InternalAbstractMacro
+    public static class PwmSettingCategoryReference extends StaticAbstractMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmSettingCategoryReference" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
@@ -111,7 +113,7 @@ public abstract class InternalMacros
         }
 
         @Override
-        public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
+        public String replaceValue( final String matchValue, final MacroRequest macroRequestInfo )
                 throws MacroParseException
         {
             final String settingKeyStr = matchValue.substring( 29, matchValue.length() - 1 );
@@ -124,41 +126,15 @@ public abstract class InternalMacros
 
             return category.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
         }
-    }
-
-    public static class PwmContextPath extends InternalAbstractMacro
-    {
-        private static final Pattern PATTERN = Pattern.compile( "@PwmContextPath@" );
 
         @Override
-        public Pattern getRegExPattern( )
+        public Set<MacroDefinitionFlag> flags( )
         {
-            return PATTERN;
-        }
-
-        @Override
-        public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
-                throws MacroParseException
-        {
-            String contextName = "[context]";
-            final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
-            if ( pwmApplication != null )
-            {
-                final PwmEnvironment pwmEnvironment = pwmApplication.getPwmEnvironment();
-                if ( pwmEnvironment != null )
-                {
-                    final ContextManager contextManager = pwmEnvironment.getContextManager();
-                    if ( contextManager != null && contextManager.getContextPath() != null )
-                    {
-                        contextName = contextManager.getContextPath();
-                    }
-                }
-            }
-            return contextName;
+            return ONLY_DEBUG_LOG_FLAG;
         }
     }
 
-    public static class EncodingMacro extends AbstractMacro
+    public static class EncodingMacro extends StaticAbstractMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@Encode:[^:]+:\\[\\[.*\\]\\]@" );
         // @Encode:ENCODE_TYPE:[[value]]@
@@ -217,11 +193,11 @@ public abstract class InternalMacros
         @Override
         public String replaceValue(
                 final String matchValue,
-                final MacroRequestInfo macroRequestInfo
+                final MacroRequest macroRequestInfo
         )
                 throws MacroParseException
         {
-            if ( matchValue == null || matchValue.length() < 1 )
+            if ( StringUtil.isEmpty( matchValue ) )
             {
                 return "";
             }
@@ -248,7 +224,7 @@ public abstract class InternalMacros
         }
     }
 
-    public static class HashingMacro extends AbstractMacro
+    public static class HashingMacro extends StaticAbstractMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@Hash:[^:]+:\\[\\[.*\\]\\]@" );
         // @Hash:HASH_TYPE:[[value]]@
@@ -331,7 +307,7 @@ public abstract class InternalMacros
         @Override
         public String replaceValue(
                 final String matchValue,
-                final MacroRequestInfo macroRequestInfo
+                final MacroRequest macroRequestInfo
         )
                 throws MacroParseException
         {
@@ -362,7 +338,7 @@ public abstract class InternalMacros
         }
     }
 
-    public static class CasingMacro extends AbstractMacro
+    public static class CasingMacro extends StaticAbstractMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@Case:[^:]+:\\[\\[.*\\]\\]@" );
         // @Case:CASE_TYPE:[[value]]@
@@ -421,7 +397,7 @@ public abstract class InternalMacros
         @Override
         public String replaceValue(
                 final String matchValue,
-                final MacroRequestInfo macroRequestInfo
+                final MacroRequest macroRequestInfo
         )
                 throws MacroParseException
         {
@@ -452,7 +428,7 @@ public abstract class InternalMacros
         }
     }
 
-    public static class PwmAppName extends InternalAbstractMacro
+    public static class PwmAppName extends StaticAbstractMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmAppName@" );
 
@@ -463,14 +439,20 @@ public abstract class InternalMacros
         }
 
         @Override
-        public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
+        public String replaceValue( final String matchValue, final MacroRequest macroRequestInfo )
                 throws MacroParseException
         {
             return PwmConstants.PWM_APP_NAME;
         }
+
+        @Override
+        public Set<MacroDefinitionFlag> flags( )
+        {
+            return ONLY_DEBUG_LOG_FLAG;
+        }
     }
 
-    public static class PwmVendorName extends InternalAbstractMacro
+    public static class PwmVendorName extends StaticAbstractMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmVendorName@" );
 
@@ -481,10 +463,16 @@ public abstract class InternalMacros
         }
 
         @Override
-        public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
+        public String replaceValue( final String matchValue, final MacroRequest macroRequestInfo )
                 throws MacroParseException
         {
             return PwmConstants.PWM_VENDOR_NAME;
+        }
+
+        @Override
+        public Set<MacroDefinitionFlag> flags( )
+        {
+            return ONLY_DEBUG_LOG_FLAG;
         }
     }
 }
