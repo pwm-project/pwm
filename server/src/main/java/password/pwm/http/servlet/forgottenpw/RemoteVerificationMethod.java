@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmRequest;
 import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
@@ -44,6 +45,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -74,12 +76,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
             return null;
         }
 
-        final List<UserPrompt> returnObj = new ArrayList<>();
-        for ( final UserPromptBean userPromptBean : lastResponse.getUserPrompts() )
-        {
-            returnObj.add( userPromptBean );
-        }
-        return returnObj;
+        return new ArrayList<>( lastResponse.getUserPrompts() );
     }
 
     @Override
@@ -145,11 +142,13 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
         headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
         headers.put( HttpHeader.AcceptLanguage.getHttpName(), locale.toLanguageTag() );
 
-        final RemoteVerificationRequestBean remoteVerificationRequestBean = new RemoteVerificationRequestBean();
-        remoteVerificationRequestBean.setResponseSessionID( this.remoteSessionID );
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity() );
-        remoteVerificationRequestBean.setUserInfo( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), locale, macroMachine ) );
-        remoteVerificationRequestBean.setUserResponses( userResponses );
+        final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, sessionLabel, userInfo, null );
+
+        final RemoteVerificationRequestBean remoteVerificationRequestBean = RemoteVerificationRequestBean.builder()
+            .responseSessionID( this.remoteSessionID )
+            .userInfo( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), locale, macroMachine ) )
+            .userResponses( userResponses )
+            .build();
 
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder()
                 .method( HttpMethod.POST )
@@ -177,4 +176,26 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
             throw new PwmUnrecoverableException( errorInformation );
         }
     }
+
+    public static Map<String, String> readRemoteResponses( final PwmRequest pwmRequest, final String prefix )
+        throws PwmUnrecoverableException
+    {
+        final Map<String, String> remoteResponses = new LinkedHashMap<>();
+        {
+            final Map<String, String> inputMap = pwmRequest.readParametersAsMap();
+            for ( final Map.Entry<String, String> entry : inputMap.entrySet() )
+            {
+                final String name = entry.getKey();
+                if ( name != null && name.startsWith( prefix ) )
+                {
+                    final String strippedName = name.substring( prefix.length() );
+                    final String value = entry.getValue();
+                    remoteResponses.put( strippedName, value );
+                }
+            }
+        }
+        return Collections.unmodifiableMap( remoteResponses );
+    }
+
+
 }

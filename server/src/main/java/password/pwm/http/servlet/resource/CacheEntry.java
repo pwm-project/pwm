@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,15 +30,15 @@ final class CacheEntry implements Serializable
     private final ImmutableByteArray entity;
     private final Map<String, String> headerStrings;
 
-    CacheEntry( final byte[] entity, final Map<String, String> headerStrings )
+    CacheEntry( final ImmutableByteArray entity, final Map<String, String> headerStrings )
     {
-        this.entity = ImmutableByteArray.of( entity );
+        this.entity = entity;
         this.headerStrings = headerStrings;
     }
 
-    public byte[] getEntity( )
+    public ImmutableByteArray getEntity( )
     {
-        return entity.copyOf();
+        return entity;
     }
 
     public Map<String, String> getHeaderStrings( )

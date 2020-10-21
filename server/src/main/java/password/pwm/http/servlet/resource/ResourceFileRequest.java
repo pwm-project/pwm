@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -190,7 +190,8 @@ class ResourceFileRequest
 
         if ( !filename.startsWith( ResourceFileServlet.RESOURCE_PATH ) )
         {
-            LOGGER.warn( "illegal url request to " + filename );
+            final String filenameFinal = filename;
+            LOGGER.warn( () -> "illegal url request to " + filenameFinal );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal url request" ) );
         }
 
@@ -227,7 +228,7 @@ class ResourceFileRequest
                 final String path = entry.getKey();
                 if ( filename.startsWith( path ) )
                 {
-                    final String zipSubPath = filename.substring( path.length() + 1, filename.length() );
+                    final String zipSubPath = filename.substring( path.length() + 1 );
                     final ZipFile zipFile = entry.getValue();
                     final ZipEntry zipEntry = zipFile.getEntry( zipSubPath );
                     if ( zipEntry != null )
@@ -237,7 +238,8 @@ class ResourceFileRequest
                 }
                 if ( filename.startsWith( zipResources.get( path ).getName() ) )
                 {
-                    LOGGER.warn( "illegal url request to " + filename + " zip resource" );
+                    final String filenameFinal = filename;
+                    LOGGER.warn( () -> "illegal url request to " + filenameFinal + " zip resource" );
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal url request" ) );
                 }
             }
@@ -270,7 +272,7 @@ class ResourceFileRequest
 
         if ( fileSystemResource == null )
         {
-            LOGGER.warn( "attempt to access file outside of servlet path " + file.getAbsolutePath() );
+            LOGGER.warn( () -> "attempt to access file outside of servlet path " + file.getAbsolutePath() );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal file path request" ) );
         }
 
@@ -307,7 +309,7 @@ class ResourceFileRequest
                 return new RealFileResource( file );
             }
 
-            final String remainingPath = resourcePathUri.substring( ResourceFileServlet.WEBJAR_BASE_URL_PATH.length(), resourcePathUri.length() );
+            final String remainingPath = resourcePathUri.substring( ResourceFileServlet.WEBJAR_BASE_URL_PATH.length() );
 
             final String webJarName;
             final String webJarPath;
@@ -318,7 +320,7 @@ class ResourceFileRequest
                     return null;
                 }
                 webJarName = remainingPath.substring( 0, slashIndex );
-                webJarPath = remainingPath.substring( slashIndex + 1, remainingPath.length() );
+                webJarPath = remainingPath.substring( slashIndex + 1 );
             }
 
             final String versionString = WEB_JAR_VERSION_MAP.get( webJarName );

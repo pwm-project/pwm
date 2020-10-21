@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 package password.pwm.config.value.data;
 
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
@@ -33,6 +34,7 @@ import java.util.Map;
  * @author Richard A. Keil
  */
 @Value
+@EqualsAndHashCode( callSuper = false )
 public class CustomLinkConfiguration implements Serializable
 {
 
@@ -41,13 +43,13 @@ public class CustomLinkConfiguration implements Serializable
         text, url, select, checkbox, customLink
     }
 
-    private String name;
-    private Type type = Type.customLink;
-    private Map<String, String> labels = Collections.singletonMap( "", "" );
-    private Map<String, String> description = Collections.singletonMap( "", "" );
-    private String customLinkUrl = "";
-    private boolean customLinkNewWindow;
-    private Map<String, String> selectOptions = Collections.emptyMap();
+    private final String name;
+    private final Type type = Type.customLink;
+    private final Map<String, String> labels = Collections.singletonMap( "", "" );
+    private final Map<String, String> description = Collections.singletonMap( "", "" );
+    private final String customLinkUrl = "";
+    private final boolean customLinkNewWindow;
+    private final Map<String, String> selectOptions = Collections.emptyMap();
 
     public String getLabel( final Locale locale )
     {

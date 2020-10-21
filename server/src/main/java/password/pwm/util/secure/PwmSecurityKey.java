@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,16 +64,7 @@ public class PwmSecurityKey
 
     private byte[] stringToKeyData( final String input ) throws PwmUnrecoverableException
     {
-        try
-        {
-            return input.getBytes( "iso-8859-1" );
-        }
-        catch ( final UnsupportedEncodingException e )
-        {
-            final String errorMsg = "unexpected error converting input text to crypto key bytes: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
+        return input.getBytes( StandardCharsets.ISO_8859_1 );
     }
 
     SecretKey getKey( final Type keyType )

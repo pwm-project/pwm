@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@
 package password.pwm.config.value;
 
 import password.pwm.PwmConstants;
-import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
@@ -82,7 +81,7 @@ public abstract class AbstractValue implements StoredValue
                     .pwmSecurityKey( testingKey )
                     .storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN )
                     .build();
-            final List<XmlElement> xmlValues = storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, xmlOutputProcessData );
+            final List<XmlElement> xmlValues = storedValue.toXmlValues( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE, xmlOutputProcessData );
             final XmlDocument document = XmlFactory.getFactory().newDocument( "root" );
             document.getRootElement().addContent( xmlValues );
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

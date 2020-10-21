@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ public class PwmValueTag extends TagSupport
         this.name = name;
     }
 
+    @Override
     public int doEndTag( )
             throws JspTagException
     {
@@ -75,12 +76,12 @@ public class PwmValueTag extends TagSupport
             }
             catch ( final IllegalArgumentException e )
             {
-                LOGGER.error( "can't output requested value name '" + getName() + "'" );
+                LOGGER.error( () -> "can't output requested value name '" + getName() + "'" );
             }
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "error while processing PwmValueTag: " + e.getMessage() );
+            LOGGER.error( () -> "error while processing PwmValueTag: " + e.getMessage() );
         }
         catch ( final Exception e )
         {
@@ -104,7 +105,7 @@ public class PwmValueTag extends TagSupport
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error executing value tag option '" + value.toString() + "', error: " + e.getMessage() );
+                LOGGER.error( () -> "error executing value tag option '" + value.toString() + "', error: " + e.getMessage() );
             }
         }
 

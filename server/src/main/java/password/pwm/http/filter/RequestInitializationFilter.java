@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,6 +90,7 @@ public class RequestInitializationFilter implements Filter
     {
     }
 
+    @Override
     public void doFilter(
             final ServletRequest servletRequest,
             final ServletResponse servletResponse,
@@ -150,10 +151,10 @@ public class RequestInitializationFilter implements Filter
                     return;
                 }
 
-                LOGGER.error( "error while trying to detect application status: " + e.getMessage() );
+                LOGGER.error( () -> "error while trying to detect application status: " + e.getMessage() );
             }
 
-            LOGGER.error( "unable to satisfy incoming request, application is not available" );
+            LOGGER.error( () -> "unable to satisfy incoming request, application is not available" );
             resp.setStatus( 500 );
             final String url = JspUrl.APP_UNAVAILABLE.getPath();
             servletRequest.getServletContext().getRequestDispatcher( url ).forward( servletRequest, servletResponse );
@@ -162,12 +163,12 @@ public class RequestInitializationFilter implements Filter
 
         try
         {
-            localPwmApplication.getInprogressRequests().incrementAndGet();
+            localPwmApplication.getActiveServletRequests().incrementAndGet();
             initializeServletRequest( req, resp, filterChain );
         }
         finally
         {
-            localPwmApplication.getInprogressRequests().decrementAndGet();
+            localPwmApplication.getActiveServletRequests().decrementAndGet();
         }
     }
 
@@ -185,7 +186,7 @@ public class RequestInitializationFilter implements Filter
         }
         catch ( final Throwable e )
         {
-            LOGGER.error( "can't load application: " + e.getMessage(), e );
+            LOGGER.error( () -> "can't load application: " + e.getMessage(), e );
             if ( !( new PwmURL( req ).isResourceURL() ) )
             {
                 respondWithUnavailableError( req, resp );
@@ -227,11 +228,11 @@ public class RequestInitializationFilter implements Filter
             final String logMsg = "can't init request: " + e.getMessage();
             if ( e instanceof PwmException && ( ( PwmException ) e ).getError() != PwmError.ERROR_INTERNAL )
             {
-                LOGGER.error( logMsg );
+                LOGGER.error( () -> logMsg );
             }
             else
             {
-                LOGGER.error( logMsg, e );
+                LOGGER.error( () -> logMsg, e );
             }
             if ( !( new PwmURL( req ).isResourceURL() ) )
             {
@@ -258,7 +259,7 @@ public class RequestInitializationFilter implements Filter
         }
         catch ( final PwmUnrecoverableException e2 )
         {
-            LOGGER.error( "error reading session context from servlet container: " + e2.getMessage() );
+            LOGGER.error( () -> "error reading session context from servlet container: " + e2.getMessage() );
         }
 
         req.setAttribute( PwmRequestAttribute.PwmErrorInfo.toString(), errorInformation );
@@ -357,7 +358,8 @@ public class RequestInitializationFilter implements Filter
             if ( contentPolicy != null && !contentPolicy.isEmpty() )
             {
                 final String nonce = pwmRequest.getCspNonce();
-                final String expandedPolicy = contentPolicy.replace( "%NONCE%", nonce );
+                final String replacedPolicy = contentPolicy.replace( "%NONCE%", nonce );
+                final String expandedPolicy = MacroMachine.forNonUserSpecific( pwmRequest.getPwmApplication(), null ).expandMacros( replacedPolicy );
                 resp.setHeader( HttpHeader.ContentSecurityPolicy, expandedPolicy );
             }
         }
@@ -488,7 +490,7 @@ public class RequestInitializationFilter implements Filter
             }
             else
             {
-                LOGGER.warn( "discarding bogus source network address '" + trimAddr + "'" );
+                LOGGER.warn( () -> "discarding bogus source network address '" + trimAddr + "'" );
             }
         }
 
@@ -692,12 +694,12 @@ public class RequestInitializationFilter implements Filter
                     }
                     catch ( final IPMatcher.IPMatcherException e )
                     {
-                        LOGGER.error( "error while attempting to match permitted address range '" + ipMatchString + "', error: " + e );
+                        LOGGER.error( () -> "error while attempting to match permitted address range '" + ipMatchString + "', error: " + e );
                     }
                 }
                 catch ( final IPMatcher.IPMatcherException e )
                 {
-                    LOGGER.error( "error parsing permitted address range '" + ipMatchString + "', error: " + e );
+                    LOGGER.error( () -> "error parsing permitted address range '" + ipMatchString + "', error: " + e );
                 }
             }
             if ( !match )

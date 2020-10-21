@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,12 +39,13 @@ import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -67,7 +68,7 @@ class WordlistImporter implements Runnable
     private ErrorInformation exitError;
     private Instant startTime = Instant.now();
     private long bytesSkipped;
-    private Map<WordType, Long> seenWordTypes = new HashMap<>();
+    private final Map<WordType, LongAdder> seenWordTypes = new EnumMap<>( WordType.class );
     private boolean completed;
 
     private enum DebugKey
@@ -162,7 +163,12 @@ class WordlistImporter implements Runnable
         checkWordlistSpaceRemaining();
 
         final long previousBytesRead = rootWordlist.readWordlistStatus().getBytes();
-        seenWordTypes.putAll( rootWordlist.readWordlistStatus().getWordTypes() );
+        for ( final Map.Entry<WordType, Long> entry : rootWordlist.readWordlistStatus().getWordTypes().entrySet() )
+        {
+            final LongAdder longAdder = new LongAdder();
+            longAdder.add( entry.getValue() );
+            seenWordTypes.put( entry.getKey(), longAdder );
+        }
 
         if ( previousBytesRead == 0 )
         {
@@ -225,7 +231,7 @@ class WordlistImporter implements Runnable
 
             if ( cancelFlag.getAsBoolean() )
             {
-                getLogger().warn( "pausing import" );
+                getLogger().debug( () -> "pausing import" );
             }
             else
             {
@@ -254,8 +260,7 @@ class WordlistImporter implements Runnable
         }
 
         final WordType wordType = WordType.determineWordType( input );
-        seenWordTypes.computeIfAbsent( wordType, wordType1 -> 0L );
-        seenWordTypes.put( wordType, seenWordTypes.get( wordType ) + 1L );
+        seenWordTypes.computeIfAbsent( wordType, t -> new LongAdder() ).increment();
 
         if ( wordType == WordType.RAW )
         {
@@ -319,7 +324,7 @@ class WordlistImporter implements Runnable
         final long wordlistSize = wordlistBucket.size();
 
         getLogger().info( () -> "population complete, added " + wordlistSize
-                + " total words in " + TimeDuration.compactFromCurrent( startTime ) );
+                + " total words", () -> TimeDuration.fromCurrent( startTime ) );
 
         completed = true;
         writeCurrentWordlistStatus();
@@ -401,7 +406,7 @@ class WordlistImporter implements Runnable
             }
             catch ( final Exception e )
             {
-                getLogger().error( "error calculating import statistics: " + e.getMessage() );
+                getLogger().error( () -> "error calculating import statistics: " + e.getMessage() );
 
                 /* ignore - it's a long overflow if the estimate is off */
             }
@@ -453,6 +458,9 @@ class WordlistImporter implements Runnable
 
     private void writeCurrentWordlistStatus()
     {
+        final Map<WordType, Long> outputWordTypeMap = new EnumMap<>( WordType.class );
+        seenWordTypes.forEach( ( key, value ) -> outputWordTypeMap.put( key, value.longValue() ) );
+
         final Instant now = Instant.now();
         rootWordlist.writeWordlistStatus( rootWordlist.readWordlistStatus().toBuilder()
                 .remoteInfo( wordlistSourceInfo )
@@ -461,7 +469,7 @@ class WordlistImporter implements Runnable
                 .checkDate( now )
                 .sourceType( sourceType )
                 .completed( completed )
-                .wordTypes( new HashMap<>( seenWordTypes ) )
+                .wordTypes( outputWordTypeMap )
                 .bytes( zipFileReader.getByteCount() )
                 .build() );
     }

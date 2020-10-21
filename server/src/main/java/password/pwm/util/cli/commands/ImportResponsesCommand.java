@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ public class ImportResponsesCommand extends AbstractCliCommand
                         final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
                         final String userGuid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, null, userIdentity, false );
                         final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean( PwmConstants.DEFAULT_LOCALE, challengeSet.getIdentifier() );
-                        pwmApplication.getCrService().writeResponses( userIdentity, user, userGuid, responseInfoBean );
+                        pwmApplication.getCrService().writeResponses( null, userIdentity, user, userGuid, responseInfoBean );
                     }
                     catch ( final Exception e )
                     {

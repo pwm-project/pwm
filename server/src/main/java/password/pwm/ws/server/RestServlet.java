@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 public abstract class RestServlet extends HttpServlet
 {
@@ -70,6 +71,7 @@ public abstract class RestServlet extends HttpServlet
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestServlet.class );
 
+    @Override
     protected void service( final HttpServletRequest req, final HttpServletResponse resp )
             throws ServletException, IOException
     {
@@ -128,7 +130,7 @@ public abstract class RestServlet extends HttpServlet
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "error while trying to log HTTP request data " + e.getMessage(), e );
+            LOGGER.error( () -> "error while trying to log HTTP request data " + e.getMessage(), e );
         }
 
         if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING )
@@ -180,7 +182,7 @@ public abstract class RestServlet extends HttpServlet
 
         outputRestResultBean( restResultBean, req, resp );
         final boolean success = restResultBean != null && !restResultBean.isError();
-        LOGGER.trace( sessionLabel, () -> "completed rest invocation in " + TimeDuration.compactFromCurrent( startTime ) + " success=" + success );
+        LOGGER.trace( sessionLabel, () -> "completed rest invocation, success=" + success, () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     private RestResultBean invokeWebService( final RestRequest restRequest ) throws IOException, PwmUnrecoverableException
@@ -201,12 +203,12 @@ public abstract class RestServlet extends HttpServlet
                 {
                     throw ( PwmUnrecoverableException ) rootException;
                 }
-                LOGGER.error( restRequest.getSessionLabel(), "internal error executing rest request: " + e.getMessage(), e );
+                LOGGER.error( restRequest.getSessionLabel(), () -> "internal error executing rest request: " + e.getMessage(), e );
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, e.getMessage() );
             }
             catch ( final IllegalAccessException e )
             {
-                LOGGER.error( restRequest.getSessionLabel(), "internal error executing rest request: " + e.getMessage(), e );
+                LOGGER.error( restRequest.getSessionLabel(), () -> "internal error executing rest request: " + e.getMessage(), e );
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, e.getMessage() );
             }
         }
@@ -225,8 +227,8 @@ public abstract class RestServlet extends HttpServlet
             throws PwmUnrecoverableException, IOException
     {
         final HttpMethod reqMethod = restRequest.getMethod();
-        final HttpContentType reqContent = restRequest.readContentType();
-        final HttpContentType reqAccept = restRequest.readAcceptType();
+        final Optional<HttpContentType> reqContent = restRequest.readContentType();
+        final Optional<HttpContentType> reqAccept = restRequest.readAcceptType();
 
         final boolean careAboutContentType = reqMethod.isHasBody();
 
@@ -240,25 +242,43 @@ public abstract class RestServlet extends HttpServlet
 
             if ( annotation != null )
             {
-                if ( annotation.method().length == 0 || Arrays.asList( annotation.method() ).contains( reqMethod ) )
+                if (
+                        annotation.method().length == 0
+                                || Arrays.asList( annotation.method() ).contains( reqMethod )
+                )
                 {
                     loopMatch.setMethodMatch( true );
                     anyMatch.setMethodMatch( true );
                 }
 
-                if ( !careAboutContentType || annotation.consumes().length == 0 || Arrays.asList( annotation.consumes() ).contains( reqContent ) )
+                if ( reqContent.isPresent() )
                 {
-                    loopMatch.setContentMatch( true );
-                    anyMatch.setContentMatch( true );
+                    if (
+                            !careAboutContentType
+                                    || annotation.consumes().length == 0
+                                    || Arrays.asList( annotation.consumes() ).contains( reqContent.get() ) )
+                    {
+                        loopMatch.setContentMatch( true );
+                        anyMatch.setContentMatch( true );
+                    }
                 }
 
-                if ( annotation.produces().length == 0 || Arrays.asList( annotation.produces() ).contains( reqAccept ) )
+                if ( reqAccept.isPresent() )
                 {
-                    loopMatch.setAcceptMatch( true );
-                    anyMatch.setAcceptMatch( true );
+                    if (
+                            annotation.produces().length == 0
+                                    || Arrays.asList( annotation.produces() ).contains( reqAccept.get() )
+                    )
+                    {
+                        loopMatch.setAcceptMatch( true );
+                        anyMatch.setAcceptMatch( true );
+                    }
                 }
 
-                if ( loopMatch.isMethodMatch() && loopMatch.isContentMatch() && loopMatch.isAcceptMatch() )
+                if (
+                        loopMatch.isMethodMatch()
+                                && loopMatch.isContentMatch()
+                                && loopMatch.isAcceptMatch() )
                 {
                     return method;
                 }
@@ -270,11 +290,11 @@ public abstract class RestServlet extends HttpServlet
         {
             errorMsg = "HTTP method unavailable";
         }
-        else if ( reqAccept == null && !anyMatch.isAcceptMatch() )
+        else if ( !reqAccept.isPresent() && !anyMatch.isAcceptMatch() )
         {
             errorMsg = HttpHeader.Accept.getHttpName() + " header is required";
         }
-        else if ( reqContent == null && !anyMatch.isContentMatch() )
+        else if ( !reqContent.isPresent() && !anyMatch.isContentMatch() )
         {
             errorMsg = HttpHeader.ContentType.getHttpName() + " header is required";
         }
@@ -336,7 +356,7 @@ public abstract class RestServlet extends HttpServlet
 
         if ( restRequest.getMethod().isHasBody() )
         {
-            if ( restRequest.readContentType() == null )
+            if ( !restRequest.readContentType().isPresent() )
             {
                 final String message = restRequest.getMethod() + " method requires " + HttpHeader.ContentType.getHttpName() + " header";
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_UNAUTHORIZED, message );
@@ -353,27 +373,21 @@ public abstract class RestServlet extends HttpServlet
     )
             throws IOException
     {
-        final HttpContentType acceptType = RestRequest.readAcceptType( request );
         resp.setHeader( HttpHeader.Server.getHttpName(), PwmConstants.PWM_APP_NAME );
 
-        if ( acceptType != null )
+        final Optional<HttpContentType> optionalHttpContentType = RestRequest.readAcceptType( request );
+        if ( optionalHttpContentType.isPresent() )
         {
+            final HttpContentType acceptType = optionalHttpContentType.get();
             switch ( acceptType )
             {
                 case json:
                 {
                     resp.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
-                    final String formatParameter = request.getParameter( "format" );
+                    final boolean jsonPretty = Boolean.parseBoolean( request.getParameter( PwmConstants.PARAM_FORMAT_JSON_PRETTY ) );
                     try ( PrintWriter pw = resp.getWriter() )
                     {
-                        if ( "pretty".equalsIgnoreCase( formatParameter ) )
-                        {
-                            pw.write( JsonUtil.serialize( restResultBean, JsonUtil.Flag.PrettyPrint ) );
-                        }
-                        else
-                        {
-                            pw.write( restResultBean.toJson() );
-                        }
+                        pw.write( restResultBean.toJson( jsonPretty ) );
                     }
                 }
                 break;

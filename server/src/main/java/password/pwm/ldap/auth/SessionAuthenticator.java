@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -133,7 +133,7 @@ public class SessionAuthenticator
     private Set<PwmError> readHiddenErrorTypes( )
     {
         final String appProperty = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES );
-        final Set<PwmError> returnSet = new HashSet<>();
+        final Set<PwmError> returnSet = EnumSet.noneOf( PwmError.class );
         if ( !StringUtil.isEmpty( appProperty ) )
         {
             try
@@ -149,7 +149,7 @@ public class SessionAuthenticator
             }
             catch ( final Exception e )
             {
-                LOGGER.error( pwmRequest, "error parsing app property " + AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES.getKey()
+                LOGGER.error( pwmRequest, () -> "error parsing app property " + AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES.getKey()
                         + ", error: " + e.getMessage() );
             }
         }
@@ -272,7 +272,7 @@ public class SessionAuthenticator
 
         if ( userIdentity == null || userIdentity.getUserDN() == null || userIdentity.getUserDN().length() < 1 )
         {
-            LOGGER.error( sessionLabel, "attempt to simulateBadPassword with null userDN" );
+            LOGGER.error( sessionLabel, () -> "attempt to simulateBadPassword with null userDN" );
             return;
         }
 
@@ -324,7 +324,7 @@ public class SessionAuthenticator
                 catch ( final Throwable e )
                 {
                     LOGGER.error( sessionLabel,
-                            "unexpected error closing invalid ldap connection after simulated bad-password failed login attempt: " + e.getMessage() );
+                            () -> "unexpected error closing invalid ldap connection after simulated bad-password failed login attempt: " + e.getMessage() );
                 }
             }
         }
@@ -338,7 +338,7 @@ public class SessionAuthenticator
     )
             throws PwmUnrecoverableException
     {
-        LOGGER.error( sessionLabel, "ldap error during search: " + exception.getMessage() );
+        LOGGER.error( sessionLabel, () -> "ldap error during search: " + exception.getMessage() );
 
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
         if ( intruderManager != null )

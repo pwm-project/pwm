@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2019 The PWM Project
+ ~ Copyright (c) 2009-2020 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -107,10 +107,10 @@
                         </td>
                     </tr>
                     <tr>
-                        <td><b>Administrator Group DN</b>
+                        <td><b>Administrator User DN</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_ADMIN_USER))%>
                         </td>
                     </tr>
                     <tr>

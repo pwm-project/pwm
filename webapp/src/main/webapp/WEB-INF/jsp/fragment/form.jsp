@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2019 The PWM Project
+ ~ Copyright (c) 2009-2020 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -257,7 +257,7 @@
             <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" style="margin-left:5px"/>
         </td>
         <td class="noborder">
-            <% if (JspUtility.getPwmRequest( pageContext ).getConfig() != null && JspUtility.getPwmRequest( pageContext ).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
+            <pwm:if test="<%=PwmIfTest.showStrengthMeter%>">
             <div id="strengthBox" style="visibility:hidden;">
                 <div id="strengthLabel">
                     <pwm:display key="Display_StrengthMeter"/>
@@ -277,7 +277,7 @@
                     });
                 </script>
             </pwm:script>
-            <% } %>
+            </pwm:if>
         </td>
         <td class="noborder" style="width:10%">&nbsp;</td>
     </tr>

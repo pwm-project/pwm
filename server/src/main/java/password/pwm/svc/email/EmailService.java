@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,10 @@
 
 package password.pwm.svc.email;
 
-import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -38,8 +36,10 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.java.AtomicLoopIntIncrementer;
+import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -54,14 +54,11 @@ import javax.mail.Transport;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Jason D. Rivard
@@ -71,31 +68,35 @@ public class EmailService implements PwmService
     private static final PwmLogger LOGGER = PwmLogger.forClass( EmailService.class );
 
     private PwmApplication pwmApplication;
-    private final Map<EmailServer, ErrorInformation> serverErrors = new ConcurrentHashMap<>( );
     private ErrorInformation startupError;
-    private final List<EmailServer> servers = new ArrayList<>( );
     private WorkQueueProcessor<EmailItemBean> workQueueProcessor;
-    private AtomicLoopIntIncrementer serverIncrementer;
-    private Set<Integer> retryableStatusResponses = Collections.emptySet();
+    private EmailServiceSettings emailServiceSettings;
+    private EmailConnectionPool connectionPool = EmailConnectionPool.emptyConnectionPool();
 
-    private PwmService.STATUS status = STATUS.NEW;
+    private final AtomicReference<ErrorInformation> lastSendError = new AtomicReference<>();
 
-    private final ThreadLocal<EmailConnection> threadLocalTransport = new ThreadLocal<>();
+    private final ConditionalTaskExecutor statsLogger = ConditionalTaskExecutor.forPeriodicTask( this::logStats, TimeDuration.MINUTE );
+    private final ReentrantLock submitLock = new ReentrantLock();
 
+    private PwmService.STATUS status = STATUS.CLOSED;
+
+    @Override
     public void init( final PwmApplication pwmApplication )
             throws PwmException
     {
-        status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
+        this.emailServiceSettings = EmailServiceSettings.fromConfiguration( pwmApplication.getConfig() );
+        LOGGER.trace( () -> "initializing with settings: " + JsonUtil.serialize( emailServiceSettings ) );
 
+        final List<EmailServer> servers;
         try
         {
-            servers.addAll( EmailServerUtil.makeEmailServersMap( pwmApplication.getConfig() ) );
+            servers = new ArrayList<>( EmailServerUtil.makeEmailServersMap( pwmApplication.getConfig() ) );
         }
         catch ( final PwmUnrecoverableException e )
         {
             startupError = e.getErrorInformation();
-            LOGGER.error( "unable to startup email service: " + e.getMessage() );
+            LOGGER.error( () -> "unable to startup email service: " + e.getMessage() );
             status = STATUS.CLOSED;
             return;
         }
@@ -107,39 +108,45 @@ public class EmailService implements PwmService
             return;
         }
 
-        serverIncrementer = AtomicLoopIntIncrementer.builder().ceiling( servers.size() - 1 ).build();
-
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            LOGGER.warn( "localdb is not open, EmailService will remain closed" );
+            LOGGER.debug( () -> "localDB is not open, EmailService will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
 
+        LOGGER.debug( () -> "starting with settings: " + JsonUtil.serialize( emailServiceSettings ) );
+
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
-                .maxEvents( Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.QUEUE_EMAIL_MAX_COUNT ) ) )
-                .retryDiscardAge( TimeDuration.of( pwmApplication.getConfig().readSettingAsLong( PwmSetting.EMAIL_MAX_QUEUE_AGE ), TimeDuration.Unit.SECONDS ) )
-                .retryInterval( TimeDuration.of(
-                        Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.QUEUE_EMAIL_RETRY_TIMEOUT_MS ) ),
-                        TimeDuration.Unit.MILLISECONDS )
-                )
-                .preThreads( Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.QUEUE_EMAIL_MAX_THREADS ) ) )
+                .maxEvents( emailServiceSettings.getQueueMaxItems() )
+                .retryDiscardAge( emailServiceSettings.getQueueDiscardAge() )
+                .retryInterval( emailServiceSettings.getQueueRetryTimeout() )
+                .preThreads( emailServiceSettings.getMaxThreads() )
                 .build();
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.EMAIL_QUEUE );
 
         workQueueProcessor = new WorkQueueProcessor<>( pwmApplication, localDBStoredQueue, settings, new EmailItemProcessor(), this.getClass() );
 
-        retryableStatusResponses = readRetryableStatusCodes( pwmApplication.getConfig() );
+        connectionPool = new EmailConnectionPool( servers, emailServiceSettings );
 
         status = STATUS.OPEN;
+
+        statsLogger.conditionallyExecuteTask();
     }
 
+    @Override
     public void close( )
     {
         status = STATUS.CLOSED;
         if ( workQueueProcessor != null )
         {
             workQueueProcessor.close();
+            workQueueProcessor = null;
+        }
+        if ( connectionPool != null )
+        {
+            connectionPool.close();
+            connectionPool = EmailConnectionPool.emptyConnectionPool();
         }
     }
 
@@ -149,6 +156,7 @@ public class EmailService implements PwmService
         return status;
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         if ( startupError != null )
@@ -167,32 +175,34 @@ public class EmailService implements PwmService
         }
 
         final List<HealthRecord> records = new ArrayList<>( );
-        final Map<EmailServer, ErrorInformation> localMap = new HashMap<>( serverErrors );
-        for ( final Map.Entry<EmailServer, ErrorInformation> entry : localMap.entrySet() )
         {
-            final ErrorInformation errorInformation = entry.getValue();
-            records.add( HealthRecord.forMessage( HealthMessage.Email_SendFailure, errorInformation.toDebugStr() ) );
+            final ErrorInformation lastError = lastSendError.get();
+            if ( lastError != null )
+            {
+                records.add( HealthRecord.forMessage( HealthMessage.Email_SendFailure, lastError.toDebugStr() ) );
+
+            }
         }
 
-        return records;
+        records.addAll( EmailServerUtil.checkAllConfiguredServers( connectionPool.getServers() ) );
+
+        return Collections.unmodifiableList( records );
     }
 
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        final Map<String, String> debugItems = new LinkedHashMap<>();
-        if ( workQueueProcessor != null )
-        {
-            debugItems.putAll( workQueueProcessor.debugInfo() );
-        }
         if ( status() == STATUS.OPEN )
         {
-            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ), debugItems );
+            return ServiceInfoBean.builder()
+                    .storageMethod( DataStorageMethod.LOCALDB )
+                    .debugProperties( stats() )
+                    .build();
         }
-        else
-        {
-            return new ServiceInfoBean( Collections.emptyList(), debugItems );
-        }
+
+        return ServiceInfoBean.builder()
+                .debugProperties( stats() )
+                .build();
     }
 
     public int queueSize( )
@@ -217,46 +227,101 @@ public class EmailService implements PwmService
             return sendItem( workItem );
         }
 
+        @Override
         public String convertToDebugString( final EmailItemBean emailItemBean )
         {
             return emailItemBean.toDebugString();
         }
     }
 
+    private void logStats()
+    {
+        LOGGER.trace( () -> "stats: " + StringUtil.mapToString( stats() ) );
+    }
+
+
+    private Map<String, String> stats()
+    {
+        final Map<String, String> stats = new TreeMap<>( );
+        if ( workQueueProcessor != null )
+        {
+            stats.putAll( workQueueProcessor.debugInfo() );
+            stats.put( "workQueueSize", String.valueOf( workQueueProcessor.queueSize() ) );
+        }
+        if ( connectionPool != null )
+        {
+            stats.put( "idleConnections", Integer.toString( connectionPool.idleConnectionCount() ) );
+            stats.put( "activeConnections", Integer.toString( connectionPool.activeConnectionCount() ) );
+
+            for ( final EmailServer emailServer : connectionPool.getServers() )
+            {
+                final StatisticCounterBundle<EmailServer.ServerStat> serverStats = emailServer.getConnectionStats();
+                for ( final EmailServer.ServerStat serverStat : EmailServer.ServerStat.values() )
+                {
+                    final String name = serverStat.name() + "[" + emailServer.getId() + "]";
+                    stats.put( name, String.valueOf( serverStats.get( serverStat ) ) );
+                }
+                {
+                    final String name = "averageSendTime[" + emailServer.getId() + "]";
+                    final TimeDuration value =  TimeDuration.of( ( long ) emailServer.getAverageSendTime().getAverage(), TimeDuration.Unit.MILLISECONDS );
+                    stats.put( name, value.asCompactString() );
+
+                }
+            }
+        }
+        stats.put( "maxThreads", String.valueOf( emailServiceSettings.getMaxThreads() ) );
+
+        return Collections.unmodifiableMap( stats );
+    }
+
     private boolean determineIfItemCanBeDelivered( final EmailItemBean emailItem )
     {
-
-        if ( servers.isEmpty() )
+        if ( status() != STATUS.OPEN )
         {
-            LOGGER.debug( () -> "discarding email send event (no SMTP server address configured) " + emailItem.toDebugString() );
+            LOGGER.debug( () -> "discarding email send event, no service is not running" );
             return false;
         }
 
-        if ( emailItem.getFrom() == null || emailItem.getFrom().length() < 1 )
+        try
         {
-            LOGGER.error( "discarding email event (no from address): " + emailItem.toDebugString() );
-            return false;
+            validateEmailItem( emailItem );
+            return true;
+        }
+        catch ( final PwmOperationalException e )
+        {
+            LOGGER.debug( () -> "discarding email send event: " + e.getMessage() );
+        }
+        return false;
+    }
+
+    private static void validateEmailItem( final EmailItemBean emailItem )
+            throws PwmOperationalException
+    {
+
+
+        if ( StringUtil.isEmpty( emailItem.getFrom() ) )
+        {
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_EMAIL_SEND_FAILURE,
+                    "missing from address in email item" ) );
         }
 
-        if ( emailItem.getTo() == null || emailItem.getTo().length() < 1 )
+        if ( StringUtil.isEmpty( emailItem.getTo() ) )
         {
-            LOGGER.error( "discarding email event (no to address): " + emailItem.toDebugString() );
-            return false;
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_EMAIL_SEND_FAILURE,
+                    "missing to address in email item" ) );
         }
 
-        if ( emailItem.getSubject() == null || emailItem.getSubject().length() < 1 )
+        if ( StringUtil.isEmpty( emailItem.getSubject() ) )
         {
-            LOGGER.error( "discarding email event (no subject): " + emailItem.toDebugString() );
-            return false;
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_EMAIL_SEND_FAILURE,
+                    "missing subject in email item" ) );
         }
 
-        if ( ( emailItem.getBodyPlain() == null || emailItem.getBodyPlain().length() < 1 ) && ( emailItem.getBodyHtml() == null || emailItem.getBodyHtml().length() < 1 ) )
+        if ( StringUtil.isEmpty( emailItem.getBodyPlain() ) && StringUtil.isEmpty( emailItem.getBodyHtml() ) )
         {
-            LOGGER.error( "discarding email event (no body): " + emailItem.toDebugString() );
-            return false;
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_EMAIL_SEND_FAILURE,
+                    "missing body in email item" ) );
         }
-
-        return true;
     }
 
     public void submitEmail(
@@ -292,120 +357,158 @@ public class EmailService implements PwmService
             return;
         }
 
-        final EmailItemBean finalBean;
-        {
-            EmailItemBean workingItemBean = emailItem;
-            if ( ( emailItem.getTo() == null || emailItem.getTo().isEmpty() ) && userInfo != null )
-            {
-                final String toAddress = userInfo.getUserEmailAddress();
-                workingItemBean = EmailServerUtil.newEmailToAddress( workingItemBean, toAddress );
-            }
+        checkIfServiceIsOpen();
 
-            if ( macroMachine != null )
-            {
-                workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroMachine );
-            }
-
-            if ( workingItemBean.getTo() == null || workingItemBean.getTo().length() < 1 )
-            {
-                LOGGER.error( "no destination address available for email, skipping; email: " + emailItem.toDebugString() );
-            }
-
-            if ( !determineIfItemCanBeDelivered( emailItem ) )
-            {
-                return;
-            }
-            finalBean = workingItemBean;
-        }
-
+        submitLock.lock();
         try
         {
-            if ( immediate )
+            final EmailItemBean finalBean;
             {
-                workQueueProcessor.submitImmediate( finalBean );
+                EmailItemBean workingItemBean = emailItem;
+                if ( ( emailItem.getTo() == null || emailItem.getTo().isEmpty() ) && userInfo != null )
+                {
+                    final String toAddress = userInfo.getUserEmailAddress();
+                    workingItemBean = EmailServerUtil.newEmailToAddress( workingItemBean, toAddress );
+                }
+
+                if ( macroMachine != null )
+                {
+                    workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroMachine );
+                }
+
+                if ( StringUtil.isEmpty( workingItemBean.getTo() ) )
+                {
+                    LOGGER.error( () -> "no destination address available for email, skipping; email: " + emailItem.toDebugString() );
+                }
+
+                if ( !determineIfItemCanBeDelivered( emailItem ) )
+                {
+                    return;
+                }
+                finalBean = workingItemBean;
             }
-            else
+
+            try
             {
-                workQueueProcessor.submit( finalBean );
+                if ( immediate )
+                {
+                    workQueueProcessor.submitImmediate( finalBean );
+                }
+                else
+                {
+                    workQueueProcessor.submit( finalBean );
+                }
+            }
+            catch ( final PwmOperationalException e )
+            {
+                LOGGER.warn( () -> "unable to add email to queue: " + e.getMessage() );
             }
         }
-        catch ( final PwmOperationalException e )
+        finally
         {
-            LOGGER.warn( "unable to add email to queue: " + e.getMessage() );
+            submitLock.unlock();
+        }
+
+        statsLogger.conditionallyExecuteTask();
+    }
+
+    private void checkIfServiceIsOpen()
+            throws PwmUnrecoverableException
+    {
+        if ( !STATUS.OPEN.equals( status ) )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "email service is closed and will not accent new jobs" );
         }
     }
 
-    private final AtomicInteger newThreadLocalTransport = new AtomicInteger();
-    private final AtomicInteger useExistingConnection = new AtomicInteger();
-    private final AtomicInteger useExistingTransport = new AtomicInteger();
-    private final AtomicInteger newConnectionCounter = new AtomicInteger();
+    public static void sendEmailSynchronous(
+            final EmailServer emailServer,
+            final Configuration configuration,
+            final EmailItemBean emailItem,
+            final MacroMachine macroMachine
+    )
+            throws PwmOperationalException, PwmUnrecoverableException, MessagingException
 
-    private String stats( )
     {
-        final Map<String, Integer> map = new HashMap<>();
-        map.put( "newThreadLocalTransport", newThreadLocalTransport.get() );
-        map.put( "useExistingConnection", newThreadLocalTransport.get() );
-        map.put( "useExistingTransport", useExistingTransport.get() );
-        map.put( "newConnectionCounter", newConnectionCounter.get() );
-        return StringUtil.mapToString( map );
+        validateEmailItem( emailItem );
+        EmailItemBean workingItemBean = emailItem;
+        if ( macroMachine != null )
+        {
+            workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroMachine );
+        }
+        final Transport transport = EmailServerUtil.makeSmtpTransport( emailServer );
+        final List<Message> messages = EmailServerUtil.convertEmailItemToMessages(
+                workingItemBean,
+                configuration,
+                emailServer
+        );
+
+        for ( final Message message : messages )
+        {
+            message.saveChanges();
+            transport.sendMessage( message, message.getAllRecipients() );
+        }
+        transport.close();
     }
 
     private WorkQueueProcessor.ProcessResult sendItem( final EmailItemBean emailItemBean )
     {
-        EmailConnection serverTransport = null;
-
-        // create a new MimeMessage object (using the Session created above)
         try
         {
-            if ( threadLocalTransport.get() == null )
+            executeEmailSend( emailItemBean );
+            return WorkQueueProcessor.ProcessResult.SUCCESS;
+        }
+        catch ( final MessagingException | PwmException e )
+        {
+            if ( EmailServerUtil.examineSendFailure( e, emailServiceSettings.getRetryableStatusResponses() ) )
             {
-
-                LOGGER.trace( () -> "initializing new threadLocal transport, stats: " + stats() );
-                threadLocalTransport.set( getSmtpTransport( ) );
-                newThreadLocalTransport.getAndIncrement();
+                LOGGER.error( () -> "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", will retry" );
+                StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_FAILURES );
+                return WorkQueueProcessor.ProcessResult.RETRY;
             }
             else
             {
-                LOGGER.trace( () -> "using existing threadLocal transport, stats: " + stats() );
-                useExistingTransport.getAndIncrement();
+                LOGGER.error( () -> "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", permanent failure, discarding message" );
+                StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_DISCARDS );
+                return WorkQueueProcessor.ProcessResult.FAILED;
             }
+        }
+    }
 
-            serverTransport = threadLocalTransport.get();
 
-            if ( !serverTransport.getTransport().isConnected() )
-            {
-                LOGGER.trace( () -> "connecting threadLocal transport, stats: " + stats() );
-                threadLocalTransport.set( getSmtpTransport( ) );
-                serverTransport = threadLocalTransport.get();
-                newConnectionCounter.getAndIncrement();
-            }
-            else
-            {
-                LOGGER.trace( () -> "using existing threadLocal: stats: " + stats() );
-                useExistingConnection.getAndIncrement();
-            }
+    private void executeEmailSend( final EmailItemBean emailItemBean )
+            throws PwmUnrecoverableException, MessagingException
+    {
+        final Instant startTime = Instant.now();
+        EmailConnection emailConnection = null;
+
+        try
+        {
+            emailConnection = connectionPool.getConnection();
 
             final List<Message> messages = EmailServerUtil.convertEmailItemToMessages(
                     emailItemBean,
                     this.pwmApplication.getConfig(),
-                    serverTransport.getEmailServer()
+                    emailConnection.getEmailServer()
             );
 
             for ( final Message message : messages )
             {
                 message.saveChanges();
-                serverTransport.getTransport().sendMessage( message, message.getAllRecipients() );
+                emailConnection.getTransport().sendMessage( message, message.getAllRecipients() );
             }
 
-            serverErrors.remove( serverTransport.getEmailServer() );
+            emailConnection.incrementSentItems();
+            emailConnection.getEmailServer().getConnectionStats().increment( EmailServer.ServerStat.sendCount );
+            final TimeDuration sendTime = TimeDuration.fromCurrent( startTime );
+            emailConnection.getEmailServer().getAverageSendTime().update( sendTime.asMillis() );
+            lastSendError.set( null );
 
-            LOGGER.debug( () -> "sent email: " + emailItemBean.toDebugString() );
+            LOGGER.debug( () -> "sent email: " + emailItemBean.toDebugString(), () -> sendTime );
             StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_SUCCESSES );
-            return WorkQueueProcessor.ProcessResult.SUCCESS;
         }
         catch ( final MessagingException | PwmException e )
         {
-
             final ErrorInformation errorInformation;
             if ( e instanceof PwmException )
             {
@@ -420,80 +523,30 @@ public class EmailService implements PwmService
                         new String[] {
                                 emailItemBean.toDebugString(),
                                 JavaHelper.readHostileExceptionMessage( e ),
-                        }
+                                }
                 );
             }
 
-            if ( serverTransport != null )
+            if ( emailConnection != null )
             {
-                serverErrors.put( serverTransport.getEmailServer(), errorInformation );
+                lastSendError.set( errorInformation );
+                emailConnection.getEmailServer().getConnectionStats().increment( EmailServer.ServerStat.sendFailures );
+
             }
             LOGGER.error( errorInformation );
-
-            if ( EmailServerUtil.examineSendFailure( e, retryableStatusResponses ) )
+            throw e;
+        }
+        finally
+        {
+            if ( emailConnection != null )
             {
-                LOGGER.error( "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", will retry" );
-                StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_FAILURES );
-                return WorkQueueProcessor.ProcessResult.RETRY;
-            }
-            else
-            {
-                LOGGER.error( "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", permanent failure, discarding message" );
-                StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_DISCARDS );
-                return WorkQueueProcessor.ProcessResult.FAILED;
+                connectionPool.returnEmailConnection( emailConnection );
             }
         }
+
+        statsLogger.conditionallyExecuteTask();
     }
 
-    private EmailConnection getSmtpTransport( )
-            throws PwmUnrecoverableException
-    {
 
-        // the global server incrementer rotates the server list by 1 offset each attempt to get an smtp transport.
-        int nextSlot = serverIncrementer.next();
-
-        for ( int i = 0; i < servers.size(); i++ )
-        {
-            nextSlot = nextSlot >= ( servers.size() - 1 )
-                    ? 0
-                    : nextSlot + 1;
-
-            final EmailServer server = servers.get( nextSlot );
-            try
-            {
-                final Transport transport = EmailServerUtil.makeSmtpTransport( server );
-
-                serverErrors.remove( server );
-                return new EmailConnection( server, transport );
-            }
-            catch ( final Exception e )
-            {
-                final String exceptionMsg = JavaHelper.readHostileExceptionMessage( e );
-                final String msg = "unable to connect to email server '" + server.toDebugString() + "', error: " + exceptionMsg;
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_UNREACHABLE, msg );
-                serverErrors.put( server, errorInformation );
-                LOGGER.warn( errorInformation.toDebugStr() );
-            }
-        }
-
-        throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_UNREACHABLE, "unable to reach any configured email server" );
-    }
-
-    private static Set<Integer> readRetryableStatusCodes( final Configuration configuration )
-    {
-        final String rawAppProp = configuration.readAppProperty( AppProperty.SMTP_RETRYABLE_SEND_RESPONSE_STATUSES );
-        if ( StringUtil.isEmpty( rawAppProp ) )
-        {
-            return Collections.emptySet();
-        }
-
-        final Set<Integer> returnData = new HashSet<>();
-        for ( final String loopString : rawAppProp.split( "," ) )
-        {
-            final Integer loopInt = Integer.parseInt( loopString );
-            returnData.add( loopInt );
-        }
-        return Collections.unmodifiableSet( returnData );
-    }
 }
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,6 +84,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
@@ -197,7 +198,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( pwmRequest, "error generating user detail object: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error generating user detail object: " + e.getMessage() );
             pwmRequest.respondWithError( e.getErrorInformation() );
         }
 
@@ -331,7 +332,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
         if ( pwmRequest.isAuthenticated() )
         {
-            return pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile( pwmRequest.getPwmApplication() );
+            return pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile();
         }
 
         throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "unable to load peoplesearch profile for authenticated user" );

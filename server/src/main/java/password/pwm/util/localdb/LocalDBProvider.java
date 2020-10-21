@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public interface LocalDBProvider
     void init( File dbDirectory, Map<String, String> initParameters, Map<Parameter, String> parameters )
             throws LocalDBException;
 
-    LocalDB.LocalDBIterator<String> iterator( LocalDB.DB db )
+    LocalDB.LocalDBIterator<Map.Entry<String, String>> iterator( LocalDB.DB db )
             throws LocalDBException;
 
     @LocalDB.WriteOperation

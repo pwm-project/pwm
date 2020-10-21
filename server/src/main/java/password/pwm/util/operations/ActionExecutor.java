@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,11 +51,10 @@ import java.util.Map;
 
 public class ActionExecutor
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ActionExecutor.class );
 
-    private PwmApplication pwmApplication;
-    private ActionExecutorSettings settings;
+    private final PwmApplication pwmApplication;
+    private final ActionExecutorSettings settings;
 
     private ActionExecutor( final PwmApplication pwmApplication, final ActionExecutorSettings settings )
     {
@@ -160,11 +159,8 @@ public class ActionExecutor
     {
         String url = webAction.getUrl();
         String body = webAction.getBody();
+
         final Map<String, String> headers = new LinkedHashMap<>();
-        if ( webAction.getHeaders() != null )
-        {
-            headers.putAll( webAction.getHeaders() );
-        }
 
         try
         {
@@ -180,13 +176,16 @@ public class ActionExecutor
                 url = macroMachine.expandMacros( url );
                 body = body == null ? "" : macroMachine.expandMacros( body );
 
-                for ( final Map.Entry<String, String> entry : headers.entrySet() )
+                if ( webAction.getHeaders() != null )
                 {
-                    final String headerName = entry.getKey();
-                    final String headerValue = entry.getValue();
-                    if ( headerValue != null )
+                    for ( final Map.Entry<String, String> entry : webAction.getHeaders().entrySet() )
                     {
-                        headers.put( headerName, macroMachine.expandMacros( headerValue ) );
+                        final String headerName = entry.getKey();
+                        final String headerValue = entry.getValue();
+                        if ( headerValue != null )
+                        {
+                            headers.put( headerName, macroMachine.expandMacros( headerValue ) );
+                        }
                     }
                 }
             }
@@ -198,7 +197,8 @@ public class ActionExecutor
                 headers.put( HttpHeader.Authorization.getHttpName(), authHeaderValue );
             }
 
-            final HttpMethod method = HttpMethod.fromString( webAction.getMethod().toString() );
+            final HttpMethod method = HttpMethod.fromString( webAction.getMethod().toString() )
+                    .orElseThrow( () -> new IllegalStateException( "unaccepted http method" ) );
 
             final PwmHttpClientRequest clientRequest = PwmHttpClientRequest.builder()
                     .method( method )
@@ -250,7 +250,7 @@ public class ActionExecutor
             }
 
             final String errorMsg = "unexpected error during API execution: " + e.getMessage();
-            LOGGER.error( errorMsg );
+            LOGGER.error( () -> errorMsg );
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
     }

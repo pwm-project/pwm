@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,9 +165,13 @@ public class ResponseStatsCommand extends AbstractCliCommand
         for ( final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values() )
         {
             final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            final TimeDuration searchTimeout = TimeDuration.of(
+                    Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ),
+                    TimeDuration.Unit.MILLISECONDS );
+
             final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                     .enableValueEscaping( false )
-                    .searchTimeout( Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT ) ) )
+                    .searchTimeout( searchTimeout )
                     .username( "*" )
                     .enableValueEscaping( false )
                     .filter( ldapProfile.readSettingAsString( PwmSetting.LDAP_USERNAME_SEARCH_FILTER ) )

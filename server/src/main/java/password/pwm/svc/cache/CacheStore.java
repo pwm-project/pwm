@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 package password.pwm.svc.cache;
 
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.StatisticCounterBundle;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -35,11 +36,19 @@ public interface CacheStore
 
     <T extends Serializable> T read( CacheKey cacheKey, Class<T> classOfT ) throws PwmUnrecoverableException;
 
-    CacheStoreInfo getCacheStoreInfo( );
+    StatisticCounterBundle<DebugKey> getCacheStoreInfo( );
 
     int itemCount( );
 
     List<CacheDebugItem> getCacheDebugItems( );
 
     long byteCount();
+
+    enum DebugKey
+    {
+        storeCount,
+        readCount,
+        hitCount,
+        missCount,
+    }
 }

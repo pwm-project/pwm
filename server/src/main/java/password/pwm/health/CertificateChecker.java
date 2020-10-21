@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class CertificateChecker implements HealthChecker
@@ -61,7 +62,7 @@ public class CertificateChecker implements HealthChecker
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "error while checking action certificates: " + e.getMessage(), e );
+            LOGGER.error( () -> "error while checking action certificates: " + e.getMessage(), e );
         }
         return records;
     }
@@ -99,19 +100,23 @@ public class CertificateChecker implements HealthChecker
         {
             if ( storedConfigItemKey.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
             {
-                final PwmSetting pwmSetting = PwmSetting.forKey( storedConfigItemKey.getRecordID() );
-                if ( pwmSetting != null && pwmSetting.getSyntax() == PwmSettingSyntax.ACTION )
+                final Optional<PwmSetting> optionalPwmSetting = PwmSetting.forKey( storedConfigItemKey.getRecordID() );
+                optionalPwmSetting.ifPresent( pwmSetting ->
                 {
-                    final ActionValue value = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, storedConfigItemKey.getProfileID() );
-                    for ( final ActionConfiguration actionConfiguration : value.toNativeObject() )
+                    if ( pwmSetting.getSyntax() == PwmSettingSyntax.ACTION )
                     {
-                        for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions()  )
+                        final ActionValue value = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, storedConfigItemKey.getProfileID() );
+                        for ( final ActionConfiguration actionConfiguration : value.toNativeObject() )
                         {
-                            final List<X509Certificate> certificates = webAction.getCertificates();
-                            returnList.addAll( doHealthCheck( configuration, pwmSetting, storedConfigItemKey.getProfileID(), certificates ) );
+                            for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
+                            {
+                                final List<X509Certificate> certificates = webAction.getCertificates();
+                                returnList.addAll( doHealthCheck( configuration, pwmSetting, storedConfigItemKey.getProfileID(), certificates ) );
+                            }
                         }
                     }
                 }
+                );
             }
         }
         return Collections.unmodifiableList( returnList );
@@ -146,7 +151,7 @@ public class CertificateChecker implements HealthChecker
                     return Collections.singletonList( record );
                 }
             }
-            return returnList;
+            return Collections.unmodifiableList( returnList );
         }
         return Collections.emptyList();
     }
@@ -173,7 +178,7 @@ public class CertificateChecker implements HealthChecker
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg.toString(), new String[]
                     {
                             errorMsg.toString(),
-                    }
+                            }
             );
             throw new PwmOperationalException( errorInformation );
         }
@@ -191,7 +196,7 @@ public class CertificateChecker implements HealthChecker
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg.toString(), new String[]
                     {
                             errorMsg.toString(),
-                    }
+                            }
             );
             throw new PwmOperationalException( errorInformation );
         }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,6 +89,7 @@ public class PasscodeGenerator
     {
         this( new Signer()
         {
+            @Override
             public byte[] sign( final byte[] data )
             {
                 return mac.doFinal( data );
@@ -105,12 +106,12 @@ public class PasscodeGenerator
 
     private String padOutput( final int value )
     {
-        String result = Integer.toString( value );
+        final StringBuilder result = new StringBuilder( Integer.toString( value ) );
         for ( int i = result.length(); i < codeLength; i++ )
         {
-            result = "0" + result;
+            result.insert( 0, "0" );
         }
-        return result;
+        return result.toString();
     }
 
     /**
@@ -255,12 +256,14 @@ public class PasscodeGenerator
         /*
          * @return The current interval
          */
+        @Override
         public long getCurrentInterval( )
         {
             final long currentTimeSeconds = System.currentTimeMillis() / 1000;
             return currentTimeSeconds / getIntervalPeriod();
         }
 
+        @Override
         public int getIntervalPeriod( )
         {
             return intervalPeriod;

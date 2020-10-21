@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@
 package password.pwm.config.value;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -50,6 +49,7 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public NumericArrayValue fromJson( final String value )
             {
                 final long[] longArray = JsonUtil.deserialize( value, long[].class );
@@ -57,6 +57,7 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
                 return new NumericArrayValue( list );
             }
 
+            @Override
             public NumericArrayValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
                 final List<Long> returnList = new ArrayList<>(  );
@@ -97,6 +98,7 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
         return Collections.emptyList();
     }
 
+    @Override
     public String toDebugString( final Locale locale )
     {
         if ( !JavaHelper.isEmpty( values ) )

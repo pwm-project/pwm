@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,8 @@ import password.pwm.http.servlet.GuestRegistrationServlet;
 import password.pwm.util.FormMap;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 /**
@@ -82,6 +81,7 @@ public class GuestRegistrationBean extends PwmSessionBean
         this.formValues = formValues;
     }
 
+    @Override
     public Type getType( )
     {
         return Type.AUTHENTICATED;
@@ -90,7 +90,7 @@ public class GuestRegistrationBean extends PwmSessionBean
     @Override
     public Set<SessionBeanMode> supportedModes( )
     {
-        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) ) );
+        return Collections.unmodifiableSet( EnumSet.of( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) );
     }
 
 }

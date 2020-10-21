@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 
+import java.util.Optional;
+
 class CryptoTokenMachine implements TokenMachine
 {
 
@@ -35,6 +37,7 @@ class CryptoTokenMachine implements TokenMachine
         this.tokenService = tokenService;
     }
 
+    @Override
     public String generateToken(
             final SessionLabel sessionLabel,
             final TokenPayload tokenPayload
@@ -50,38 +53,45 @@ class CryptoTokenMachine implements TokenMachine
         return returnString.toString();
     }
 
-    public TokenPayload retrieveToken( final TokenKey tokenKey )
+    @Override
+    public Optional<TokenPayload> retrieveToken( final SessionLabel sessionLabel, final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         if ( tokenKey == null || tokenKey.getStoredHash().length() < 1 )
         {
-            return null;
+            return Optional.empty();
         }
-        return tokenService.fromEncryptedString( tokenKey.getStoredHash() );
+        return Optional.of( tokenService.fromEncryptedString( tokenKey.getStoredHash() ) );
     }
 
+    @Override
     public void storeToken( final TokenKey tokenKey, final TokenPayload tokenPayload ) throws PwmOperationalException, PwmUnrecoverableException
     {
     }
 
+    @Override
     public void removeToken( final TokenKey tokenKey ) throws PwmOperationalException, PwmUnrecoverableException
     {
     }
 
+    @Override
     public long size( ) throws PwmOperationalException, PwmUnrecoverableException
     {
         return 0;
     }
 
+    @Override
     public void cleanup( )
     {
     }
 
+    @Override
     public boolean supportsName( )
     {
         return true;
     }
 
+    @Override
     public TokenKey keyFromKey( final String key ) throws PwmUnrecoverableException
     {
         return new CryptoTokenKey( key );

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
@@ -38,7 +37,6 @@ import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -87,12 +85,12 @@ public class FileValue extends AbstractValue implements StoredValue
         String sha512sum( )
                 throws PwmUnrecoverableException
         {
-            return SecureEngine.hash( new ByteArrayInputStream( contents.copyOf() ), PwmHashAlgorithm.SHA512 );
+            return SecureEngine.hash( contents.newByteArrayInputStream(), PwmHashAlgorithm.SHA512 );
         }
 
         public int size( )
         {
-            return contents.copyOf().length;
+            return contents.size();
         }
     }
 
@@ -106,9 +104,10 @@ public class FileValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
 
+            @Override
             public FileValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final Map<FileInformation, FileContent> values = new LinkedHashMap<>();
                 for ( final XmlElement loopValueElement : valueElements )
                 {
@@ -131,7 +130,7 @@ public class FileValue extends AbstractValue implements StoredValue
                             }
                             catch ( final IOException e )
                             {
-                                LOGGER.error( "error reading file contents item: " + e.getMessage(), e );
+                                LOGGER.error( () -> "error reading file contents item: " + e.getMessage(), e );
                             }
                         }
                     }
@@ -139,6 +138,7 @@ public class FileValue extends AbstractValue implements StoredValue
                 return new FileValue( values );
             }
 
+            @Override
             public StoredValue fromJson( final String input )
             {
                 throw new IllegalStateException( "not implemented" );
@@ -146,6 +146,7 @@ public class FileValue extends AbstractValue implements StoredValue
         };
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
@@ -169,7 +170,7 @@ public class FileValue extends AbstractValue implements StoredValue
             }
             catch ( final IOException e )
             {
-                LOGGER.error( "unexpected error writing setting to xml, IO error during base64 encoding: " + e.getMessage() );
+                LOGGER.error( () -> "unexpected error writing setting to xml, IO error during base64 encoding: " + e.getMessage() );
             }
             valueElement.addContent( fileContentElement );
 

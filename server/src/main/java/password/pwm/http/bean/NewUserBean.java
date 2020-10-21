@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,25 +21,28 @@
 package password.pwm.http.bean;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Getter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import password.pwm.VerificationMethodSystem;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.http.servlet.newuser.NewUserForm;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
+@EqualsAndHashCode( callSuper = false )
 public class NewUserBean extends PwmSessionBean
 {
+    private static final long serialVersionUID = 1L;
+
     @SerializedName( "p" )
     private String profileID;
 
@@ -70,7 +73,10 @@ public class NewUserBean extends PwmSessionBean
     @SerializedName( "ts" )
     private boolean tokenSent;
 
+    @SerializedName( "ep" )
+    private boolean externalResponsesPassed;
 
+    private transient VerificationMethodSystem remoteRecoveryMethod;
 
     @Override
     public Type getType( )
@@ -81,7 +87,7 @@ public class NewUserBean extends PwmSessionBean
     @Override
     public Set<SessionBeanMode> supportedModes( )
     {
-        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) ) );
+        return Collections.unmodifiableSet( EnumSet.of( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) );
     }
 
 

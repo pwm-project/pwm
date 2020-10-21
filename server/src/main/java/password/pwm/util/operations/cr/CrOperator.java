@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,12 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.impl.edir.NmasResponseSet;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
-import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,31 +45,54 @@ public interface CrOperator
     /**
      * Read a response set suitable for use in forgotten password scenarios.
      *
+     * @param sessionLabel sessionLabel of invocation
      * @param theUser chaiUser to examine
      * @param userIdentity identify of the user
      * @param userGUID user's guid
      * @return a responseSet instance suitable for use with forgotten password.
      * @throws PwmUnrecoverableException if the operation fails
      */
-    ResponseSet readResponseSet( ChaiUser theUser, UserIdentity userIdentity, String userGUID )
+    ResponseSet readResponseSet(
+            SessionLabel sessionLabel,
+            ChaiUser theUser,
+            UserIdentity userIdentity,
+            String userGUID
+    )
             throws PwmUnrecoverableException;
 
     /**
      * Read a response info bean suitable for examining the user's stored response data, but not for use during forgotten password.
      *
+     * @param sessionLabel sessionLabel of invocation
      * @param theUser chaiUser to examine
      * @param userIdentity identify of the user
      * @param userGUID user's guid
      * @return a bean with the users stored response data.
      * @throws PwmUnrecoverableException if the operation fails
      */
-    ResponseInfoBean readResponseInfo( ChaiUser theUser, UserIdentity userIdentity, String userGUID )
+    ResponseInfoBean readResponseInfo(
+            SessionLabel sessionLabel,
+            ChaiUser theUser,
+            UserIdentity userIdentity,
+            String userGUID
+    )
             throws PwmUnrecoverableException;
 
-    void clearResponses( UserIdentity userIdentity, ChaiUser theUser, String userGUID )
+    void clearResponses(
+            SessionLabel sessionLabel,
+            UserIdentity userIdentity,
+            ChaiUser theUser,
+            String userGUID
+    )
             throws PwmUnrecoverableException;
 
-    void writeResponses( UserIdentity userIdentity, ChaiUser theUser, String userGuid, ResponseInfoBean responseInfoBean )
+    void writeResponses(
+            SessionLabel sessionLabel,
+            UserIdentity userIdentity,
+            ChaiUser theUser,
+            String userGuid,
+            ResponseInfoBean responseInfoBean
+    )
             throws PwmUnrecoverableException;
 
     void close( );
@@ -101,7 +124,7 @@ public interface CrOperator
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "unable to determine formatType of stored responses: " + e.getMessage() );
+                LOGGER.error( () -> "unable to determine formatType of stored responses: " + e.getMessage() );
             }
             for ( final Challenge challenge : responseSet.getChallengeSet().getChallenges() )
             {
@@ -117,10 +140,7 @@ public interface CrOperator
                     dataSource,
                     formatType
             );
-            responseInfoBean.setTimestamp( responseSet.getTimestamp() == null
-                    ? null
-                    : Instant.ofEpochMilli( responseSet.getTimestamp().getTime() )
-            );
+            responseInfoBean.setTimestamp( responseSet.getTimestamp() );
             return responseInfoBean;
         }
     }

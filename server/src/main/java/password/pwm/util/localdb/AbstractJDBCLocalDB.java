@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Instant;
+import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -59,8 +60,8 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     protected File dbDirectory;
 
     // cache of dbIterators
-    private final Set<LocalDB.LocalDBIterator<String>> dbIterators = Collections.newSetFromMap(
-            new ConcurrentHashMap<LocalDB.LocalDBIterator<String>, Boolean>() );
+    private final Set<LocalDB.LocalDBIterator<Map.Entry<String, String>>> dbIterators = Collections.newSetFromMap(
+            new ConcurrentHashMap<>() );
 
     // sql db connection
     protected Connection dbConnection;
@@ -103,7 +104,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                 }
                 catch ( final SQLException ex )
                 {
-                    LOGGER.error( "error creating new table " + db.toString() + ": " + ex.getMessage() );
+                    LOGGER.error( () -> "error creating new table " + db.toString() + ": " + ex.getMessage() );
                 }
                 finally
                 {
@@ -129,7 +130,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                 }
                 catch ( final SQLException ex )
                 {
-                    LOGGER.error( "error creating new index " + indexName + ex.getMessage() );
+                    LOGGER.error( () -> "error creating new index " + indexName + ex.getMessage() );
                 }
                 finally
                 {
@@ -172,7 +173,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             }
             catch ( final SQLException e )
             {
-                LOGGER.error( "unexpected error during close statement object " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error during close statement object " + e.getMessage(), e );
             }
         }
     }
@@ -187,7 +188,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             }
             catch ( final SQLException e )
             {
-                LOGGER.error( "unexpected error during close resultSet object " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error during close resultSet object " + e.getMessage(), e );
             }
         }
     }
@@ -197,6 +198,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     {
     }
 
+    @Override
     public void close( )
             throws LocalDBException
     {
@@ -227,11 +229,13 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     abstract void closeConnection( Connection connection )
             throws SQLException;
 
+    @Override
     public LocalDB.Status getStatus( )
     {
         return status;
     }
 
+    @Override
     public boolean contains( final LocalDB.DB db, final String key )
             throws LocalDBException
     {
@@ -239,6 +243,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         return get( db, key ) != null;
     }
 
+    @Override
     public String get( final LocalDB.DB db, final String key )
             throws LocalDBException
     {
@@ -273,6 +278,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         return null;
     }
 
+    @Override
     public void init( final File dbDirectory, final Map<String, String> initParams, final Map<Parameter, String> parameters )
             throws LocalDBException
     {
@@ -289,7 +295,8 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         this.status = LocalDB.Status.OPEN;
     }
 
-    public LocalDB.LocalDBIterator<String> iterator( final LocalDB.DB db )
+    @Override
+    public LocalDB.LocalDBIterator<Map.Entry<String, String>> iterator( final LocalDB.DB db )
             throws LocalDBException
     {
         try
@@ -310,6 +317,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         }
     }
 
+    @Override
     public void putAll( final LocalDB.DB db, final Map<String, String> keyValueMap )
             throws LocalDBException
     {
@@ -356,6 +364,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         }
     }
 
+    @Override
     public boolean put( final LocalDB.DB db, final String key, final String value )
             throws LocalDBException
     {
@@ -403,6 +412,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         }
     }
 
+    @Override
     public boolean putIfAbsent( final LocalDB.DB db, final String key, final String value )
             throws LocalDBException
     {
@@ -454,6 +464,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         }
     }
 
+    @Override
     public boolean remove( final LocalDB.DB db, final String key )
             throws LocalDBException
     {
@@ -468,6 +479,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         return true;
     }
 
+    @Override
     public long size( final LocalDB.DB db )
             throws LocalDBException
     {
@@ -507,6 +519,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         return 0;
     }
 
+    @Override
     public void truncate( final LocalDB.DB db )
             throws LocalDBException
     {
@@ -521,8 +534,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             lock.writeLock().lock();
             try
             {
-                final Set<LocalDB.LocalDBIterator<String>> copiedIterators = new HashSet<>();
-                copiedIterators.addAll( dbIterators );
+                final Set<LocalDB.LocalDBIterator<Map.Entry<String, String>>> copiedIterators = new HashSet<>( dbIterators );
 
                 for ( final LocalDB.LocalDBIterator dbIterator : copiedIterators )
                 {
@@ -551,6 +563,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         }
     }
 
+    @Override
     public void removeAll( final LocalDB.DB db, final Collection<String> keys )
             throws LocalDBException
     {
@@ -595,10 +608,9 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     ) throws LocalDBException;
 
 
-    private class DbIterator implements Closeable, LocalDB.LocalDBIterator<String>
+    private class DbIterator implements Closeable, LocalDB.LocalDBIterator<Map.Entry<String, String>>
     {
-        private String nextItem;
-        private String currentItem;
+        private Map.Entry<String, String> nextItem;
 
         private ResultSet resultSet;
         private final LocalDB.DB db;
@@ -630,7 +642,10 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             {
                 if ( resultSet.next() )
                 {
-                    nextItem = resultSet.getString( KEY_COLUMN );
+                    final String key = resultSet.getString( KEY_COLUMN );
+                    final String value = resultSet.getString( VALUE_COLUMN );
+
+                    nextItem = new AbstractMap.SimpleImmutableEntry<>( key, value );
                 }
                 else
                 {
@@ -643,6 +658,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             }
         }
 
+        @Override
         public boolean hasNext( )
         {
             final boolean hasNext = nextItem != null;
@@ -653,6 +669,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             return hasNext;
         }
 
+        @Override
         public void close( )
         {
             nextItem = null;
@@ -660,29 +677,16 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             dbIterators.remove( this );
         }
 
-        public String next( )
+        @Override
+        public Map.Entry<String, String> next( )
         {
-            currentItem = nextItem;
+            final Map.Entry<String, String> currentItem = nextItem;
             fetchNext();
             return currentItem;
         }
-
-        public void remove( )
-        {
-            if ( currentItem != null )
-            {
-                try
-                {
-                    AbstractJDBCLocalDB.this.remove( db, currentItem );
-                }
-                catch ( final LocalDBException e )
-                {
-                    throw new RuntimeException( e );
-                }
-            }
-        }
     }
 
+    @Override
     public File getFileLocation( )
     {
         return dbDirectory;

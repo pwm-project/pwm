@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,23 +54,22 @@ import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.FormMap;
 import password.pwm.util.PasswordData;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.password.PasswordUtility;
+import password.pwm.util.password.RandomPasswordGenerator;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -112,12 +111,14 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         update,
         selectPage,;
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( HttpMethod.POST );
         }
     }
 
+    @Override
     protected GuestRegistrationAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
@@ -132,6 +133,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
     }
 
 
+    @Override
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
@@ -199,7 +201,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         }
         catch ( final IllegalArgumentException e )
         {
-            LOGGER.error( pwmRequest, "unknown page select request: " + requestedPage );
+            LOGGER.error( pwmRequest, () -> "unknown page select request: " + requestedPage );
         }
         this.forwardToJSP( pwmRequest, guestRegistrationBean );
     }
@@ -231,7 +233,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             FormUtility.validateFormValues( config, formValues, ssBean.getLocale() );
 
             //read current values from user.
-            final ChaiUser theGuest = pwmSession.getSessionManager().getActor( pwmApplication, guestRegistrationBean.getUpdateUserIdentity() );
+            final ChaiUser theGuest = pwmSession.getSessionManager().getActor( guestRegistrationBean.getUpdateUserIdentity() );
 
             // check unique fields against ldap
             FormUtility.validateFormValueUniqueness(
@@ -244,7 +246,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             final Instant expirationDate = readExpirationFromRequest( pwmRequest );
 
             // Update user attributes
-            LdapOperationsHelper.writeFormValuesToLdap( theGuest, formValues, pwmSession.getSessionManager().getMacroMachine( pwmApplication ), false );
+            LdapOperationsHelper.writeFormValuesToLdap( theGuest, formValues, pwmSession.getSessionManager().getMacroMachine( ), false );
 
             // Write expirationDate
             if ( expirationDate != null )
@@ -270,7 +272,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.error( pwmRequest, e.getErrorInformation().toDebugStr() );
+            LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
             setLastError( pwmRequest, e.getErrorInformation() );
         }
         catch ( final ChaiOperationException e )
@@ -392,7 +394,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.warn( pwmRequest, "error reading current attributes for user: " + e.getMessage() );
+                LOGGER.warn( pwmRequest, () -> "error reading current attributes for user: " + e.getMessage() );
             }
         }
         catch ( final PwmOperationalException e )
@@ -518,7 +520,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.error( pwmRequest, e.getErrorInformation().toDebugStr() );
+            LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
             setLastError( pwmRequest, e.getErrorInformation() );
             this.forwardToJSP( pwmRequest, guestRegistrationBean );
         }
@@ -541,10 +543,10 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
         final String expirationDateStr = pwmRequest.readParameterAsString( HTTP_PARAM_EXPIRATION_DATE );
 
-        final Date expirationDate;
+        final Instant expirationDate;
         try
         {
-            expirationDate = new SimpleDateFormat( "yyyy-MM-dd" ).parse( expirationDateStr );
+            expirationDate = PwmDateFormat.parse( "yyyy-MM-dd", expirationDateStr );
         }
         catch ( final ParseException e )
         {
@@ -556,7 +558,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             ) );
         }
 
-        if ( expirationDate.before( new Date() ) )
+        if ( expirationDate.isBefore( Instant.now() ) )
         {
             final String errorMsg = "expiration date must be in the future";
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_FIELD_REQUIRED, errorMsg ) );
@@ -566,14 +568,14 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         final long futureDateMs = System.currentTimeMillis() + durationValueMs;
         final Instant futureDate = Instant.ofEpochMilli( futureDateMs );
 
-        if ( expirationDate.after( Date.from( futureDate ) ) )
+        if ( expirationDate.isAfter( futureDate ) )
         {
             final String errorMsg = "expiration date must be sooner than " + futureDate.toString();
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_FIELD_REQUIRED, errorMsg ) );
         }
 
         LOGGER.trace( pwmRequest, () -> "read expiration date as " + expirationDate.toString() );
-        return expirationDate.toInstant();
+        return expirationDate;
     }
 
     private static String determineUserDN( final Map<FormConfiguration, String> formValues, final Configuration config )
@@ -687,7 +689,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
     private void calculateFutureDateFlags( final PwmRequest pwmRequest, final GuestRegistrationBean guestRegistrationBean )
     {
-        final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+        final PwmDateFormat dateFormat = PwmDateFormat.newPwmDateFormat( "yyyy-MM-dd" );
 
         final long maxValidDays = pwmRequest.getConfig().readSettingAsLong( PwmSetting.GUEST_MAX_VALID_DAYS );
         pwmRequest.setAttribute( PwmRequestAttribute.GuestMaximumValidDays, String.valueOf( maxValidDays ) );
@@ -698,7 +700,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             if ( maxValidDays > 0 )
             {
                 final long futureMS = maxValidDays * 24 * 60 * 60 * 1000;
-                final Date maxValidDate = new Date( new Date().getTime() + ( futureMS ) );
+                final Instant maxValidDate = Instant.ofEpochMilli( System.currentTimeMillis() + futureMS );
                 maxExpirationDate = dateFormat.format( maxValidDate );
             }
             else
@@ -725,7 +727,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             }
             else
             {
-                currentExpirationDate = dateFormat.format( new Date() );
+                currentExpirationDate = dateFormat.format( Instant.now() );
             }
         }
 

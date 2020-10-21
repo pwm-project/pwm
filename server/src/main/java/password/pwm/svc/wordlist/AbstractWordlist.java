@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,14 +56,14 @@ import java.util.function.BooleanSupplier;
 abstract class AbstractWordlist implements Wordlist, PwmService
 {
     static final TimeDuration DEBUG_OUTPUT_FREQUENCY = TimeDuration.MINUTE;
-    private static final TimeDuration BUCKECT_CHECK_LOG_WARNING_TIMEOUT = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
+    private static final TimeDuration BUCKET_CHECK_LOG_WARNING_TIMEOUT = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
 
     private WordlistConfiguration wordlistConfiguration;
     private WordlistBucket wordlistBucket;
     private ExecutorService executorService;
     private Set<WordType> wordTypesCache = null;
 
-    private volatile STATUS wlStatus = STATUS.NEW;
+    private volatile STATUS wlStatus = STATUS.CLOSED;
 
     private volatile ErrorInformation lastError;
     private volatile ErrorInformation autoImportError;
@@ -91,6 +91,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         if ( this.wordlistConfiguration.isTestMode() )
         {
             startTestInstance( type );
+            wlStatus = STATUS.OPEN;
             return;
         }
         else
@@ -111,13 +112,14 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             {
                 wlStatus = STATUS.CLOSED;
                 final String errorMsg = "LocalDB is not available, will remain closed";
-                getLogger().warn( errorMsg );
+                getLogger().warn( () -> errorMsg );
                 lastError = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
             }
 
             this.wordlistBucket = new LocalDBWordlistBucket( pwmApplication, wordlistConfiguration, type );
         }
 
+        inhibitBackgroundImportFlag.set( false );
         executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         if ( !pwmApplication.getPwmEnvironment().isInternalRuntimeInstance() )
@@ -193,7 +195,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     private boolean realBucketCheck( final String word, final WordType wordType )
             throws PwmUnrecoverableException
     {
-        getStatistics().getWordChecks().next();
+        getStatistics().getWordChecks().increment();
 
         final Instant startTime = Instant.now();
         final boolean isContainsWord = wordlistBucket.containsWord( word );
@@ -201,18 +203,18 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
         getStatistics().getWordCheckTimeMS().update( timeDuration.asMillis() );
 
-        if ( timeDuration.isLongerThan( BUCKECT_CHECK_LOG_WARNING_TIMEOUT ) )
+        if ( timeDuration.isLongerThan( BUCKET_CHECK_LOG_WARNING_TIMEOUT ) )
         {
             getLogger().debug( () -> "wordlist search time for wordlist permutations was greater then 100ms: " + timeDuration.asCompactString() );
         }
 
         if ( isContainsWord )
         {
-            getStatistics().getWordTypeHits().get( wordType ).next();
+            getStatistics().getWordTypeHits().get( wordType ).increment();
         }
         else
         {
-            getStatistics().getMisses().next();
+            getStatistics().getMisses().increment();
         }
 
         return isContainsWord;
@@ -235,6 +237,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         return autoImportError;
     }
 
+    @Override
     public long size( )
     {
         if ( wlStatus != STATUS.OPEN )
@@ -248,15 +251,16 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         }
         catch ( final PwmUnrecoverableException e )
         {
-            getLogger().error( "error reading size: " + e.getMessage() );
+            getLogger().error( () -> "error reading size: " + e.getMessage() );
         }
 
         return -1;
     }
 
-    public synchronized void close( )
+    @Override
+    public void close( )
     {
-        final TimeDuration closeWaitTime = TimeDuration.of( 5, TimeDuration.Unit.SECONDS );
+        final TimeDuration closeWaitTime = TimeDuration.of( 1, TimeDuration.Unit.MINUTES );
 
         wlStatus = STATUS.CLOSED;
         inhibitBackgroundImportFlag.set( true );
@@ -267,16 +271,18 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             JavaHelper.closeAndWaitExecutor( executorService, closeWaitTime );
             if ( backgroundImportRunning.get() )
             {
-                getLogger().warn( "background thread still running after waiting " + closeWaitTime.asCompactString() );
+                getLogger().warn( () -> "background thread still running after waiting " + closeWaitTime.asCompactString() );
             }
         }
     }
 
+    @Override
     public STATUS status( )
     {
         return wlStatus;
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         final List<HealthRecord> returnList = new ArrayList<>();
@@ -309,6 +315,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         return Collections.unmodifiableList( returnList );
     }
 
+    @Override
     public WordlistStatus readWordlistStatus( )
     {
         if ( wlStatus == STATUS.CLOSED )
@@ -383,7 +390,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                     wordlistZipReader,
                     WordlistSourceType.User,
                     AbstractWordlist.this,
-                    () -> wlStatus != STATUS.OPEN
+                    makeProcessCancelSupplier()
             );
             wordlistImporter.run();
             getLogger().debug( () -> "completed direct user-supplied wordlist import" );
@@ -423,7 +430,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                 if ( !inhibitBackgroundImportFlag.get() )
                 {
                     activity = Wordlist.Activity.ReadingWordlistFile;
-                    final BooleanSupplier cancelFlag = inhibitBackgroundImportFlag::get;
+                    final BooleanSupplier cancelFlag = makeProcessCancelSupplier( );
                     backgroundImportRunning.set( true );
                     final WordlistInspector wordlistInspector = new WordlistInspector( pwmApplication, AbstractWordlist.this, cancelFlag );
                     wordlistInspector.run();
@@ -432,7 +439,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             }
             catch ( final Throwable t )
             {
-                getLogger().error( "error running InspectorJob: " + t.getMessage(), t );
+                getLogger().error( () -> "error running InspectorJob: " + t.getMessage(), t );
                 throw t;
             }
             finally
@@ -464,16 +471,18 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     }
 
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         if ( status() == STATUS.OPEN )
         {
-            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ), getStatistics().asDebugMap() );
+            return ServiceInfoBean.builder()
+                    .storageMethod( DataStorageMethod.LOCALDB )
+                    .debugProperties( getStatistics().asDebugMap() )
+                    .build();
         }
-        else
-        {
-            return new ServiceInfoBean( Collections.emptyList() );
-        }
+
+        return ServiceInfoBean.builder().build();
     }
 
     WordlistStatistics getStatistics()
@@ -505,5 +514,11 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         }
 
         return "";
+    }
+
+    private BooleanSupplier makeProcessCancelSupplier( )
+    {
+        return () -> inhibitBackgroundImportFlag.get()
+                || !STATUS.OPEN.equals( wlStatus );
     }
 }

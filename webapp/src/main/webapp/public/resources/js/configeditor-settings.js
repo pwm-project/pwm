@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -877,202 +877,6 @@ BooleanHandler.toggle = function(keyName,widget) {
 };
 
 
-// -------------------------- user permission handler ------------------------------------
-
-var UserPermissionHandler = {};
-UserPermissionHandler.defaultFilterValue = {type:'ldapFilter',ldapQuery:"(objectClass=*)",ldapBase:""};
-UserPermissionHandler.defaultGroupValue = {type:'ldapGroup',ldapBase:""};
-
-UserPermissionHandler.init = function(keyName) {
-    console.log('UserPermissionHandler init for ' + keyName);
-    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
-        PWM_VAR['clientSettingCache'][keyName] = resultValue;
-        UserPermissionHandler.draw(keyName);
-    });
-};
-
-UserPermissionHandler.draw = function(keyName) {
-    var resultValue = PWM_VAR['clientSettingCache'][keyName];
-    var parentDiv = 'table_setting_' + keyName;
-    var parentDivElement = PWM_MAIN.getObject(parentDiv);
-
-    while (parentDivElement.firstChild) {
-        parentDivElement.removeChild(parentDivElement.firstChild);
-    }
-
-    var htmlBody = '';
-    for (var iteration in resultValue) {
-        (function(rowKey) {
-            var inputID = "value-" + keyName + "-" + rowKey;
-
-            if (htmlBody.length > 0) {
-                htmlBody += '<br/><br/><div style="clear:both; text-align:center">OR</span></div>'
-            }
-
-            htmlBody += '<div class="setting_item_value_wrapper" style="float:left; width: 570px;"><div style="width:100%; text-align:center">';
-
-            var currentProfileValue = ('ldapProfileID' in resultValue[rowKey]) ? resultValue[rowKey]['ldapProfileID'] : "";
-            htmlBody += '</div><table class="noborder">'
-                + '<td style="width:200px" id="' + inputID + '_profileHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Profile') + '</td>'
-                + '<td></td>'
-                + '<td><input style="width: 200px;" class="configStringInput" id="' + inputID + '-profile" list="' + inputID + '-datalist" value="' +  currentProfileValue + '"/>'
-                + '<datalist id="' + inputID + '-datalist"/></td>'
-                + '</tr>';
-
-            if (resultValue[rowKey]['type'] !== 'ldapGroup') {
-                htmlBody += '<tr>'
-                    + '<td><span id="' + inputID + '_FilterHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Filter') + '</span></td>'
-                    + '<td id="icon-edit-query-' + inputID + '"><div title="Edit Value" class="btn-icon pwm-icon pwm-icon-edit"></div></td>'
-                    + '<td><div style="width: 350px; padding: 5px;" class="configStringPanel noWrapTextBox border" id="' + inputID + '-query"></div></td>'
-                    + '</tr>';
-            }
-
-            htmlBody += '<tr>'
-                + '<td><span id="' + inputID + '_BaseHeader' + '">'
-                + PWM_CONFIG.showString((resultValue[rowKey]['type'] === 'ldapGroup') ?  'Setting_Permission_Base_Group' : 'Setting_Permission_Base')
-                + '</span></td>'
-                + '<td id="icon-edit-base-' + inputID + '"><div title="Edit Value" class="btn-icon pwm-icon pwm-icon-edit"></div></td>'
-                + '<td><div style="width: 350px; padding: 5px;" class="configStringPanel noWrapTextBox border" id="' + inputID + '-base">&nbsp;</div></td>'
-                + '</tr>';
-
-
-            htmlBody += '</table></div><div id="button-' + inputID + '-deleteRow" style="float:right" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></div>';
-        }(iteration));
-    }
-    parentDivElement.innerHTML = parentDivElement.innerHTML + htmlBody;
-
-    setTimeout(function(){
-        for (var iteration in resultValue) {
-            (function(rowKey) {
-                var inputID = "value-" + keyName + "-" + rowKey;
-                console.log('inputID-' + inputID);
-
-                var profileSelectElement = PWM_MAIN.getObject(inputID + "-datalist");
-                profileSelectElement.appendChild(new Option('all'));
-                var profileIdList = PWM_SETTINGS['var']['ldapProfileIds'];
-                for (var i in profileIdList) {
-                    profileSelectElement.appendChild(new Option(profileIdList[i]));
-                }
-
-                PWM_MAIN.addEventHandler(inputID + '-profile','input',function(){
-                    console.log('write');
-                    PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapProfileID'] = this.value;
-                    UserPermissionHandler.write(keyName);
-                });
-
-                if (resultValue[rowKey]['type'] !== 'ldapGroup') {
-                    UILibrary.addTextValueToElement(inputID + '-query', PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery']);
-                    var queryEditor = function(){
-                        UILibrary.stringEditorDialog({
-                            value:PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery'],
-                            completeFunction:function(value) {
-                                PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery'] = value;
-                                UserPermissionHandler.write(keyName,true);
-                            }
-                        });
-                    };
-
-                    PWM_MAIN.addEventHandler(inputID + "-query",'click',function(){
-                        queryEditor();
-                    });
-                    PWM_MAIN.addEventHandler('icon-edit-query-' + inputID,'click',function(){
-                        queryEditor();
-                    });
-                }
-
-                var currentBaseValue = ('ldapBase' in resultValue[rowKey]) ? resultValue[rowKey]['ldapBase'] : "";
-                var baseEditor = function(){
-                    UILibrary.editLdapDN(function(value, ldapProfileID) {
-                        PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapProfileID'] = ldapProfileID;
-                        PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapBase'] = value;
-                        UserPermissionHandler.write(keyName,true);
-                    }, {currentDN: currentBaseValue});
-                };
-                if (currentBaseValue && currentBaseValue.length > 0) {
-                    UILibrary.addTextValueToElement(inputID + '-base', currentBaseValue);
-                }
-                PWM_MAIN.addEventHandler(inputID + '-base','click',function(){
-                    baseEditor();
-                });
-                PWM_MAIN.addEventHandler('icon-edit-base-' + inputID,'click',function(){
-                    baseEditor();
-                });
-
-
-                var deleteButtonID = 'button-' + inputID + '-deleteRow';
-                var hasID = PWM_MAIN.getObject(deleteButtonID) ? "YES" : "NO";
-                console.log("addEventHandler row: " + deleteButtonID + " rowKey=" + rowKey + " hasID="+hasID);
-                PWM_MAIN.addEventHandler(deleteButtonID,'click',function(){
-                    console.log("delete row: " + inputID + " rowKey=" + rowKey + " hasID="+hasID);
-                    delete PWM_VAR['clientSettingCache'][keyName][rowKey];
-                    UserPermissionHandler.write(keyName,true);
-                });
-
-                PWM_MAIN.showTooltip({
-                    id:inputID +'_profileHeader',
-                    width: 300,
-                    text:PWM_CONFIG.showString('Tooltip_Setting_Permission_Profile')
-                });
-                PWM_MAIN.showTooltip({
-                    id:inputID +'_FilterHeader',
-                    width: 300,
-                    text:PWM_CONFIG.showString('Tooltip_Setting_Permission_Filter')
-                });
-                PWM_MAIN.showTooltip({
-                    id: inputID + '_BaseHeader',
-                    width: 300,
-                    text: PWM_CONFIG.showString('Tooltip_Setting_Permission_Base')
-                });
-            }(iteration));
-        }
-    },10);
-
-    var options = PWM_SETTINGS['settings'][keyName]['options'];
-
-    var buttonRowHtml = '<button class="btn" id="button-' + keyName + '-addFilterValue">'
-        + '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Filter</button>';
-
-    var hideGroup = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'], 'Permission_HideGroups');
-    if (!hideGroup) {
-        buttonRowHtml += '<button class="btn" id="button-' + keyName + '-addGroupValue">'
-            + '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Group</button>';
-    }
-
-    var hideMatch = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'], 'Permission_HideMatch');
-    if (!hideMatch) {
-        buttonRowHtml += '<button id="button-' + keyName + '-viewMatches" class="btn">'
-            + '<span class="btn-icon pwm-icon pwm-icon-user"></span>View Matches</button>';
-    }
-
-    parentDivElement.innerHTML = parentDivElement.innerHTML + buttonRowHtml;
-
-    PWM_MAIN.addEventHandler('button-' + keyName + '-viewMatches','click',function(){
-        var dataHandler = function(data) {
-            var html = PWM_CONFIG.convertListOfIdentitiesToHtml(data['data']);
-            PWM_MAIN.showDialog({title:'Matches',text:html});
-        };
-        PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.config.function.UserMatchViewerFunction', dataHandler, null)
-    });
-
-    PWM_MAIN.addEventHandler('button-' + keyName + '-addFilterValue','click',function(){
-        PWM_VAR['clientSettingCache'][keyName].push(PWM_MAIN.copyObject(UserPermissionHandler.defaultFilterValue));
-        UserPermissionHandler.write(keyName, true);
-    });
-
-    PWM_MAIN.addEventHandler('button-' + keyName + '-addGroupValue','click',function(){
-        PWM_VAR['clientSettingCache'][keyName].push(PWM_MAIN.copyObject(UserPermissionHandler.defaultGroupValue));
-        UserPermissionHandler.write(keyName, true);
-    });
-};
-
-UserPermissionHandler.write = function(settingKey,redraw) {
-    var nextFunction = function(){
-        if (redraw) {
-            UserPermissionHandler.draw(settingKey);
-        }
-    };
-    PWM_CFGEDIT.writeSetting(settingKey, PWM_VAR['clientSettingCache'][settingKey], nextFunction);
-};
 
 // -------------------------- option list handler ------------------------------------
 
@@ -1106,36 +910,28 @@ OptionListHandler.init = function(keyName) {
 
 OptionListHandler.draw = function(keyName) {
     var resultValue = PWM_VAR['clientSettingCache'][keyName];
-    require(["dojo/_base/array"],function(array){
-        var options = PWM_SETTINGS['settings'][keyName]['options'];
-        for (var key in options) {
-            (function (optionKey) {
-                var buttonID = keyName + "_button_" + optionKey;
-                var checked = array.indexOf(resultValue,optionKey) > -1;
-                PWM_MAIN.getObject(buttonID).checked = checked;
-                PWM_MAIN.getObject(buttonID).disabled = false;
-                PWM_MAIN.addEventHandler(buttonID,'change',function(){
-                    OptionListHandler.toggle(keyName,optionKey);
-                });
-            })(key);
-        }
-    });
+    var options = PWM_SETTINGS['settings'][keyName]['options'];
+    for (var key in options) {
+        (function (optionKey) {
+            var buttonID = keyName + "_button_" + optionKey;
+            var checked = PWM_MAIN.JSLibrary.arrayContains(resultValue,optionKey)
+            PWM_MAIN.getObject(buttonID).checked = checked;
+            PWM_MAIN.getObject(buttonID).disabled = false;
+            PWM_MAIN.addEventHandler(buttonID,'change',function(){
+                OptionListHandler.toggle(keyName,optionKey);
+            });
+        })(key);
+    }
 };
 
 OptionListHandler.toggle = function(keyName,optionKey) {
     var resultValue = PWM_VAR['clientSettingCache'][keyName];
-    require(["dojo/_base/array"],function(array){
-        var checked = array.indexOf(resultValue,optionKey) > -1;
-        if (checked) {
-            var index = array.indexOf(resultValue, optionKey);
-            while (index > -1) {
-                resultValue.splice(index, 1);
-                index = array.indexOf(resultValue, optionKey);
-            }
-        } else {
-            resultValue.push(optionKey);
-        }
-    });
+    var checked = PWM_MAIN.JSLibrary.arrayContains(resultValue,optionKey)
+    if (checked) {
+        PWM_MAIN.JSLibrary.removeFromArray(resultValue, optionKey);
+    } else {
+        resultValue.push(optionKey);
+    }
     PWM_CFGEDIT.writeSetting(keyName, resultValue);
 };
 
@@ -1524,7 +1320,7 @@ X509CertificateHandler.draw = function(keyName) {
 
     var resultValue = PWM_VAR['clientSettingCache'][keyName];
 
-    var htmlBody = '<div style="max-height: 300px; overflow-y: auto">';
+    var htmlBody = '<div>';
     for (var certCounter in resultValue) {
         (function (counter) {
             var certificate = resultValue[counter];
@@ -1781,7 +1577,7 @@ PrivateKeyHandler.draw = function(keyName) {
 
     var resultValue = PWM_VAR['clientSettingCache'][keyName];
 
-    var htmlBody = '<div style="max-height: 300px; overflow-y: auto">';
+    var htmlBody = '<div>';
 
     var hasValue = resultValue !== undefined && 'key' in resultValue;
 

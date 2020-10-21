@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,7 +142,8 @@ public class Validator
                 final String newString = theString.replaceAll( testString, "" );
                 if ( !newString.equals( theString ) )
                 {
-                    LOGGER.warn( "removing potentially malicious string values from input, converting '" + input + "' newValue=" + newString + "' pattern='" + testString + "'" );
+                    LOGGER.warn( () -> "removing potentially malicious string values from input, converting '"
+                            + input + "' newValue=" + newString + "' pattern='" + testString + "'" );
                     theString = newString;
                 }
             }
@@ -167,7 +168,7 @@ public class Validator
             final String output = matcher.replaceAll( "" );
             if ( !input.equals( output ) )
             {
-                LOGGER.warn( "stripped potentially harmful chars from value: input=" + input + " strippedOutput=" + output );
+                LOGGER.warn( () -> "stripped potentially harmful chars from value: input=" + input + " strippedOutput=" + output );
             }
             return output;
         }

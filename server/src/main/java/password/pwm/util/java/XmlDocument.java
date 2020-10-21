@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public interface XmlDocument
 {
@@ -99,6 +101,7 @@ public interface XmlDocument
     class XmlDocumentW3c implements XmlDocument
     {
         final org.w3c.dom.Document document;
+        final Lock lock = new ReentrantLock();
 
         public XmlDocumentW3c( final org.w3c.dom.Document document )
         {
@@ -108,7 +111,15 @@ public interface XmlDocument
         @Override
         public XmlElement getRootElement()
         {
-            return new XmlElement.XmlElementW3c( document.getDocumentElement() );
+            lock.lock();
+            try
+            {
+                return new XmlElement.XmlElementW3c( document.getDocumentElement(), lock );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
         @Override
@@ -129,23 +140,36 @@ public interface XmlDocument
                 final String xpathExpression
         )
         {
+            lock.lock();
             try
             {
                 final XPath xPath = javax.xml.xpath.XPathFactory.newInstance().newXPath();
                 final javax.xml.xpath.XPathExpression expression = xPath.compile( xpathExpression );
                 final NodeList nodeList = (NodeList) expression.evaluate( document, XPathConstants.NODESET );
-                return XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList );
+                return XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList, lock );
             }
             catch ( final XPathExpressionException e )
             {
                 throw new IllegalStateException( "error evaluating xpath expression: " + e.getMessage() );
+            }
+            finally
+            {
+                lock.unlock();
             }
         }
 
         @Override
         public XmlDocument copy()
         {
-            return new XmlDocumentW3c( ( org.w3c.dom.Document) document.cloneNode( true ) );
+            lock.lock();
+            try
+            {
+                return new XmlDocumentW3c( ( org.w3c.dom.Document ) document.cloneNode( true ) );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
     }
 }

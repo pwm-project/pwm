@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.AbstractMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -231,7 +232,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
     }
 
     @Override
-    public ClosableIterator<String> iterator( final DatabaseTable table )
+    public ClosableIterator<Map.Entry<String, String>> iterator( final DatabaseTable table )
             throws DatabaseException
     {
         try
@@ -331,12 +332,12 @@ class DatabaseAccessorImpl implements DatabaseAccessor
     }
 
 
-    public class DBIterator implements ClosableIterator<String>
+    public class DBIterator implements ClosableIterator<Map.Entry<String, String>>
     {
         private final DatabaseTable table;
         private ResultSet resultSet;
         private PreparedStatement statement;
-        private String nextValue;
+        private Map.Entry<String, String> nextValue;
         private boolean finished;
         private int counter = ITERATOR_COUNTER.getAndIncrement();
 
@@ -354,7 +355,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     "iterator #" + counter + " open", table, null, null );
             traceBegin( debugInfo );
 
-            final String sqlText = "SELECT " + DatabaseService.KEY_COLUMN + " FROM " + table.name();
+            final String sqlText = "SELECT * FROM " + table.name();
             try
             {
                 outstandingIterators.add( this );
@@ -370,22 +371,25 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             traceResult( debugInfo, null );
         }
 
+        @Override
         public boolean hasNext( )
         {
             return !finished;
         }
 
-        public String next( )
+        @Override
+        public Map.Entry<String, String> next( )
         {
             if ( finished )
             {
                 throw new IllegalStateException( "iterator completed" );
             }
-            final String returnValue = nextValue;
+            final Map.Entry<String, String> returnValue = nextValue;
             getNextItem();
             return returnValue;
         }
 
+        @Override
         public void remove( )
         {
             throw new UnsupportedOperationException( "remove not supported" );
@@ -397,7 +401,9 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             {
                 if ( resultSet.next() )
                 {
-                    nextValue = resultSet.getString( DatabaseService.KEY_COLUMN );
+                    final String key = resultSet.getString( DatabaseService.KEY_COLUMN );
+                    final String value = resultSet.getString( DatabaseService.VALUE_COLUMN );
+                    nextValue = new AbstractMap.SimpleEntry<>( key, value );
                 }
                 else
                 {
@@ -407,20 +413,21 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             catch ( final SQLException e )
             {
                 finished = true;
-                LOGGER.warn( "unexpected error during result set iteration: " + e.getMessage() );
+                LOGGER.warn( () -> "unexpected error during result set iteration: " + e.getMessage() );
             }
             databaseService.updateStats( DatabaseService.OperationType.READ );
         }
 
+        @Override
         public void close( )
         {
             final DatabaseUtil.DebugInfo debugInfo = DatabaseUtil.DebugInfo.create(
                     "iterator #" + counter + " close", table, null, null );
             traceBegin( debugInfo );
 
+            lock.lock();
             try
             {
-                lock.lock();
                 outstandingIterators.remove( this );
 
                 if ( resultSet != null )
@@ -432,7 +439,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     }
                     catch ( final SQLException e )
                     {
-                        LOGGER.error( "error closing inner resultSet in iterator: " + e.getMessage() );
+                        LOGGER.error( () -> "error closing inner resultSet in iterator: " + e.getMessage() );
                     }
                 }
 
@@ -445,7 +452,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     }
                     catch ( final SQLException e )
                     {
-                        LOGGER.error( "error closing inner statement in iterator: " + e.getMessage() );
+                        LOGGER.error( () -> "error closing inner statement in iterator: " + e.getMessage() );
                     }
                 }
 
@@ -539,7 +546,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             {
                 if ( !outstandingIterators.isEmpty() )
                 {
-                    LOGGER.warn( "closing outstanding " + outstandingIterators.size() + " iterators" );
+                    LOGGER.warn( () -> "closing outstanding " + outstandingIterators.size() + " iterators" );
                 }
                 for ( final DBIterator iterator : new HashSet<>( outstandingIterators ) )
                 {
@@ -548,7 +555,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( "error while closing connection: " + e.getMessage() );
+                LOGGER.warn( () -> "error while closing connection: " + e.getMessage() );
             }
 
             try
@@ -557,7 +564,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             }
             catch ( final SQLException e )
             {
-                LOGGER.warn( "error while closing connection: " + e.getMessage() );
+                LOGGER.warn( () -> "error while closing connection: " + e.getMessage() );
             }
         }
         finally
@@ -574,7 +581,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         final String sqlStatement = "SELECT COUNT(" + DatabaseService.KEY_COLUMN + ") FROM " + table.name()
                 + " WHERE " + DatabaseService.KEY_COLUMN + " = ?";
 
-        try ( PreparedStatement selectStatement = connection.prepareStatement( sqlStatement ); )
+        try ( PreparedStatement selectStatement = connection.prepareStatement( sqlStatement ) )
         {
             selectStatement.setString( 1, key );
             selectStatement.setMaxRows( 1 );
@@ -616,6 +623,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         }
     }
 
+    @Override
     public boolean isConnected()
     {
         try
@@ -624,7 +632,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         }
         catch ( final SQLException e )
         {
-            LOGGER.error( "error while checking database connection: " + e.getMessage() );
+            LOGGER.error( () -> "error while checking database connection: " + e.getMessage() );
         }
 
         return false;

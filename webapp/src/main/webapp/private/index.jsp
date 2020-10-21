@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2019 The PWM Project
+ ~ Copyright (c) 2009-2020 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@
             <br/>
         </pwm:if>
         <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvailable%>">
-            <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.CHANGE_PASSWORD%>">
+            <pwm:if test="<%=PwmIfTest.changePasswordAvailable%>">
                 <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivateChangePassword.servletUrl()%>'/>">
                     <div class="tile">
                         <div class="tile-content">
@@ -157,7 +157,7 @@
             </pwm:if>
 
 
-            <pwm:if test="<%=PwmIfTest.DeleteAccountAvailable%>">
+            <pwm:if test="<%=PwmIfTest.deleteAccountAvailable%>">
                 <a id="button_Helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SelfDelete.servletUrl()%>'/>">
                     <div class="tile">
                         <div class="tile-content">

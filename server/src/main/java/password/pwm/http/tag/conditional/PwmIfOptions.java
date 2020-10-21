@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,12 @@
 
 package password.pwm.http.tag.conditional;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.Permission;
 import password.pwm.config.PwmSetting;
 import password.pwm.http.PwmRequestFlag;
 
-@Getter
-@AllArgsConstructor
+@Value
 class PwmIfOptions
 {
     private final boolean negate;

@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2019 The PWM Project
+ ~ Copyright (c) 2009-2020 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@
             <h1>Configuration Password</h1>
             <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" class="inputfield passwordfield" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" <pwm:autofocus/>/>
             </div>
-            <% if (!pwmRequest.getConfig().isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) { %>
+            <% if ( (Boolean)pwmRequest.getAttribute( PwmRequestAttribute.ConfigEnablePersistentLogin ) ) { %>
             <div class="checkboxWrapper">
                 <label>
                     <input type="checkbox" id="remember" name="remember"/>

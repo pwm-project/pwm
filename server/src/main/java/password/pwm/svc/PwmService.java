@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@
 
 package password.pwm.svc;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Singular;
+import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
@@ -29,9 +30,9 @@ import password.pwm.health.HealthRecord;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * An interface for daemon/background services.  Services are initialized, shutdown and accessed via {@link PwmApplication}.  Some services
@@ -39,13 +40,10 @@ import java.util.Map;
  */
 public interface PwmService
 {
-
     enum STATUS
     {
-        NEW,
-        OPENING,
         OPEN,
-        CLOSED
+        CLOSED,
     }
 
     STATUS status( );
@@ -60,22 +58,19 @@ public interface PwmService
 
     interface ServiceInfo
     {
-        Collection<DataStorageMethod> getUsedStorageMethods( );
+        Collection<DataStorageMethod> getStorageMethods( );
 
         Map<String, String> getDebugProperties( );
     }
 
-    @Getter
-    @AllArgsConstructor
+    @Value
+    @Builder
     class ServiceInfoBean implements ServiceInfo, Serializable
     {
-        private final Collection<DataStorageMethod> usedStorageMethods;
-        private final Map<String, String> debugProperties;
+        @Singular
+        private final Set<DataStorageMethod> storageMethods;
 
-        public ServiceInfoBean( final Collection<DataStorageMethod> usedStorageMethods )
-        {
-            this.usedStorageMethods = usedStorageMethods;
-            this.debugProperties = Collections.emptyMap();
-        }
+        @Singular
+        private final Map<String, String> debugProperties;
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error while de-registering derby driver: " + e.getMessage() );
+            LOGGER.error( () -> "error while de-registering derby driver: " + e.getMessage() );
         }
 
         driver = null;
@@ -109,7 +109,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error while closing derby connection: " + e.getMessage() );
+            LOGGER.error( () -> "error while closing derby connection: " + e.getMessage() );
         }
     }
 
@@ -127,7 +127,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         try
         {
             //load driver.
-            driver = ( Driver ) Class.forName( driverClasspath ).newInstance();
+            driver = ( Driver ) Class.forName( driverClasspath ).getDeclaredConstructor().newInstance();
             final Connection connection = driver.connect( connectionURL, new Properties() );
             connection.setAutoCommit( false );
 
@@ -165,7 +165,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
             {
                 errorMsg = "error opening DB: " + e.getMessage();
             }
-            LOGGER.error( errorMsg, e );
+            LOGGER.error( () -> errorMsg, e );
             throw new LocalDBException( new ErrorInformation( PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg ) );
         }
     }
@@ -188,6 +188,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         );
     }
 
+    @Override
     public void truncate( final LocalDB.DB db )
             throws LocalDBException
     {
@@ -218,7 +219,7 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         }
         catch ( final SQLException ex )
         {
-            LOGGER.error( "error reclaiming space in table " + db.toString() + ": " + ex.getMessage() );
+            LOGGER.error( () -> "error reclaiming space in table " + db.toString() + ": " + ex.getMessage() );
         }
         finally
         {

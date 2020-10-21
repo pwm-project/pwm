@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -284,7 +284,7 @@ public class RestChallengesServer extends RestServlet
             csIdentifer = challengeProfile.getChallengeSet().getIdentifier();
 
             final ResponseInfoBean responseInfoBean = jsonInput.toResponseInfoBean( restRequest.getLocale(), csIdentifer );
-            crService.writeResponses( userIdentity, chaiUser, userGUID, responseInfoBean );
+            crService.writeResponses( restRequest.getSessionLabel(), userIdentity, chaiUser, userGUID, responseInfoBean );
 
             // update statistics
             StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_CHALLENGES );

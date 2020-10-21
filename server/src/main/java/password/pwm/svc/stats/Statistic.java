@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import password.pwm.util.java.TimeDuration;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -191,27 +192,17 @@ public enum Statistic
             this.pwmSetting = pwmSetting;
         }
 
+        @Override
         public boolean isActive( final PwmApplication pwmApplication )
         {
             return pwmApplication.getConfig().readSettingAsBoolean( pwmSetting );
         }
     }
 
-    public static Statistic forKey( final String key )
+    public static Optional<Statistic> forKey( final String key )
     {
-        if ( key == null )
-        {
-            return null;
-        }
-
-        for ( final Statistic stat : values() )
-        {
-            if ( stat.getKey().equals( key ) )
-            {
-                return stat;
-            }
-        }
-
-        return null;
+        return Arrays.stream( values() )
+                .filter( loopValue -> loopValue.getKey().equals( key ) )
+                .findFirst();
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -170,7 +170,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "completed transfer of " + fileBytes.length + " in " + TimeDuration.compactFromCurrent( startTime ) );
+            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "completed transfer of " + fileBytes.length + " in ", () -> TimeDuration.fromCurrent( startTime ) );
         }
         catch ( final IOException e )
         {

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 @Data
@@ -76,7 +76,7 @@ public class LocalDBLoggerSettings implements Serializable
 
     public static LocalDBLoggerSettings fromConfiguration( final Configuration configuration )
     {
-        final Set<Flag> flags = new HashSet<>();
+        final Set<Flag> flags = EnumSet.noneOf( Flag.class );
         if ( configuration.isDevDebugMode() )
         {
             flags.add( Flag.DevDebug );

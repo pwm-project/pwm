@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,8 +174,7 @@ class NewUserFormUtils
             final PasswordData passwordData2
     )
     {
-        final Map<String, String> newFormValues = new LinkedHashMap<>();
-        newFormValues.putAll( FormUtility.asStringMap( userFormValues ) );
+        final Map<String, String> newFormValues = new LinkedHashMap<>( FormUtility.asStringMap( userFormValues ) );
 
         final List<FormConfiguration> formConfigurations = newUserProfile.readSettingAsForm( PwmSetting.NEWUSER_FORM );
         if ( injectedValues != null )

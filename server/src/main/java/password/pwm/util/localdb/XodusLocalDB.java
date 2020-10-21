@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.time.Instant;
+import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -122,7 +123,7 @@ public class XodusLocalDB implements LocalDBProvider
         if ( Files.exists( getDirtyFile().toPath() ) )
         {
             environmentConfig.setGcUtilizationFromScratch( true );
-            LOGGER.warn( "environment not closed cleanly, will re-calculate GC" );
+            LOGGER.warn( () -> "environment not closed cleanly, will re-calculate GC" );
         }
         else
         {
@@ -139,7 +140,7 @@ public class XodusLocalDB implements LocalDBProvider
         }
         catch ( final IOException e )
         {
-            LOGGER.error( "error creating openLock file: " + e.getMessage() );
+            LOGGER.error( () -> "error creating openLock file: " + e.getMessage() );
         }
 
         {
@@ -197,7 +198,7 @@ public class XodusLocalDB implements LocalDBProvider
         }
         catch ( final IOException e )
         {
-            LOGGER.error( "error creating openLock file: " + e.getMessage() );
+            LOGGER.error( () -> "error creating openLock file: " + e.getMessage() );
         }
 
         status = LocalDB.Status.CLOSED;
@@ -223,7 +224,7 @@ public class XodusLocalDB implements LocalDBProvider
             }
             catch ( final InvalidSettingException e )
             {
-                LOGGER.warn( "problem setting configured env settings: " + e.getMessage() );
+                LOGGER.warn( () -> "problem setting configured env settings: " + e.getMessage() );
             }
         }
 
@@ -265,18 +266,18 @@ public class XodusLocalDB implements LocalDBProvider
     }
 
     @Override
-    public LocalDB.LocalDBIterator<String> iterator( final LocalDB.DB db )  throws LocalDBException
+    public LocalDB.LocalDBIterator<Map.Entry<String, String>> iterator( final LocalDB.DB db )  throws LocalDBException
     {
         return new InnerIterator( db );
     }
 
-    private class InnerIterator implements LocalDB.LocalDBIterator<String>
+    public class InnerIterator implements LocalDB.LocalDBIterator<Map.Entry<String, String>>
     {
         private final Transaction transaction;
         private final Cursor cursor;
 
         private boolean closed;
-        private String nextValue = "";
+        private Map.Entry<String, String> nextValue = null;
 
         InnerIterator( final LocalDB.DB db )
         {
@@ -307,19 +308,22 @@ public class XodusLocalDB implements LocalDBProvider
                     close();
                     return;
                 }
-                final ByteIterable nextKey = cursor.getKey();
-                if ( nextKey == null || nextKey.getLength() == 0 )
+                final ByteIterable nextCursor = cursor.getKey();
+                if ( nextCursor == null || nextCursor.getLength() == 0 )
                 {
                     close();
                     return;
                 }
-                final String decodedValue = bindMachine.entryToKey( nextKey );
-                if ( decodedValue == null )
+                final String decodedKey = bindMachine.entryToKey( nextCursor );
+                if ( decodedKey == null )
                 {
                     close();
                     return;
                 }
-                nextValue = decodedValue;
+                final ByteIterable nextValueIterable = cursor.getValue();
+                final String nextStringValue = nextValueIterable == null ? null : bindMachine.entryToValue( nextValueIterable );
+
+                nextValue = new AbstractMap.SimpleImmutableEntry<>( decodedKey, nextStringValue );
             }
             catch ( final Exception e )
             {
@@ -348,17 +352,17 @@ public class XodusLocalDB implements LocalDBProvider
         }
 
         @Override
-        public String next( )
+        public Map.Entry<String, String> next( )
         {
             if ( closed )
             {
                 return null;
             }
-            final String value = nextValue;
+            final Map.Entry<String, String> value = nextValue;
             doNext();
             return value;
         }
-
+        
         @Override
         public void remove( )
         {
@@ -397,6 +401,7 @@ public class XodusLocalDB implements LocalDBProvider
         } );
     }
 
+    @Override
     @LocalDB.WriteOperation
     public boolean putIfAbsent( final LocalDB.DB db, final String key, final String value ) throws LocalDBException
     {
@@ -521,7 +526,7 @@ public class XodusLocalDB implements LocalDBProvider
                 final StatisticsItem item = statistics.getStatisticsItem( name );
                 if ( item != null )
                 {
-                    outputStats.put( name, String.valueOf( item.getTotal() ) );
+                    outputStats.put( "xodus." + name, String.valueOf( item.getTotal() ) );
                 }
             }
         }
@@ -657,7 +662,7 @@ public class XodusLocalDB implements LocalDBProvider
         }
         catch ( final IOException e )
         {
-            LOGGER.error( "error writing LocalDB readme file: " + e.getMessage() );
+            LOGGER.error( () -> "error writing LocalDB readme file: " + e.getMessage() );
         }
     }
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,8 +67,7 @@ public enum IdentityVerificationMethod implements Serializable, ConfigurationOpt
 
     public static IdentityVerificationMethod[] availableValues( )
     {
-        final List<IdentityVerificationMethod> values = new ArrayList<>();
-        values.addAll( Arrays.asList( IdentityVerificationMethod.values() ) );
-        return values.toArray( new IdentityVerificationMethod[ values.size() ] );
+        final List<IdentityVerificationMethod> values = new ArrayList<>( Arrays.asList( IdentityVerificationMethod.values() ) );
+        return values.toArray( new IdentityVerificationMethod[0] );
     }
 }

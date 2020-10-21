@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
@@ -53,6 +52,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public LocalizedStringValue fromJson( final String input )
             {
                 if ( input == null )
@@ -69,13 +69,14 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
                 }
             }
 
+            @Override
             public LocalizedStringValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
-                final List<XmlElement> elements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final List<XmlElement> elements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final Map<String, String> values = new TreeMap<>();
                 for ( final XmlElement loopValueElement : elements )
                 {
-                    final String localeString = loopValueElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE );
+                    final String localeString = loopValueElement.getAttributeValue( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE );
                     final String value = loopValueElement.getText();
                     values.put( localeString == null ? "" : localeString, value );
                 }
@@ -84,6 +85,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
         };
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
@@ -102,11 +104,13 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
         return returnList;
     }
 
+    @Override
     public Map<String, String> toNativeObject( )
     {
         return Collections.unmodifiableMap( value );
     }
 
+    @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
         if ( pwmSetting.isRequired() )

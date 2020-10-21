@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,8 @@ import java.util.TreeMap;
 
 class HelpdeskVerificationStateBean implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskVerificationStateBean.class );
     public static final String PARAMETER_VERIFICATION_STATE_KEY = "verificationState";
 

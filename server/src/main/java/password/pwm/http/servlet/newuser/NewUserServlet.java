@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ package password.pwm.http.servlet.newuser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -46,6 +47,7 @@ import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.http.servlet.forgottenpw.RemoteVerificationMethod;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoBean;
@@ -112,6 +114,7 @@ public class NewUserServlet extends ControlledPwmServlet
         processForm( HttpMethod.POST ),
         validate( HttpMethod.POST ),
         enterCode( HttpMethod.POST, HttpMethod.GET ),
+        enterRemoteResponse( HttpMethod.POST ),
         reset( HttpMethod.POST ),
         agree( HttpMethod.POST ),;
 
@@ -122,6 +125,7 @@ public class NewUserServlet extends ControlledPwmServlet
             this.method = Collections.unmodifiableList( Arrays.asList( method ) );
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return method;
@@ -194,8 +198,6 @@ public class NewUserServlet extends ControlledPwmServlet
     protected void nextStep( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        TimeDuration.of( 8, TimeDuration.Unit.SECONDS ).pause();
-
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -235,7 +237,11 @@ public class NewUserServlet extends ControlledPwmServlet
 
 
         // try to read the new user policy to make sure it's readable, that way an exception is thrown here instead of by the jsp
-        newUserProfile.getNewUserPasswordPolicy( pwmApplication, pwmSession.getSessionStateBean().getLocale() );
+        {
+            final Instant startTime = Instant.now();
+            newUserProfile.getNewUserPasswordPolicy( pwmApplication, pwmSession.getSessionStateBean().getLocale() );
+            LOGGER.trace( () -> "read new user password policy in ", () -> TimeDuration.fromCurrent( startTime ) );
+        }
 
         if ( !newUserBean.isFormPassed() )
         {
@@ -259,11 +265,16 @@ public class NewUserServlet extends ControlledPwmServlet
             }
         }
 
-        if ( NewUserUtils.checkForTokenVerificationProgress( pwmRequest, newUserBean, newUserProfile ) == ProcessStatus.Halt )
+
+        if ( NewUserUtils.checkForExternalResponsesVerificationProgress( pwmRequest, newUserBean, newUserProfile ) == ProcessStatus.Halt )
         {
             return;
         }
 
+        if ( NewUserUtils.checkForTokenVerificationProgress( pwmRequest, newUserBean, newUserProfile ) == ProcessStatus.Halt )
+        {
+            return;
+        }
 
         final String newUserAgreementText = newUserProfile.readSettingAsLocalizedString( PwmSetting.NEWUSER_AGREEMENT_MESSAGE,
                 pwmSession.getSessionStateBean().getLocale() );
@@ -273,6 +284,7 @@ public class NewUserServlet extends ControlledPwmServlet
             {
                 final MacroMachine macroMachine = NewUserUtils.createMacroMachineForNewUser(
                         pwmApplication,
+                        newUserProfile,
                         pwmRequest.getLabel(),
                         newUserBean.getNewUserForm(),
                         null
@@ -295,12 +307,12 @@ public class NewUserServlet extends ControlledPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.error( pwmRequest, "error during user creation: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error during user creation: " + e.getMessage() );
             if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_DELETE_ON_FAIL ) )
             {
                 NewUserUtils.deleteUserAccount( newUserDN, pwmRequest );
             }
-            LOGGER.error( pwmRequest, e.getErrorInformation().toDebugStr() );
+            LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
             pwmRequest.respondWithError( e.getErrorInformation() );
         }
     }
@@ -400,6 +412,7 @@ public class NewUserServlet extends ControlledPwmServlet
     )
             throws PwmDataValidationException, PwmUnrecoverableException, ChaiUnavailableException
     {
+        final Instant startTime = Instant.now();
         final Locale locale = pwmRequest.getLocale();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final NewUserProfile newUserProfile = getNewUserProfile( pwmRequest );
@@ -418,7 +431,7 @@ public class NewUserServlet extends ControlledPwmServlet
                 formValueData,
                 locale,
                 Collections.emptyList(),
-                validationFlags.toArray( new FormUtility.ValidationFlag[ validationFlags.size() ] )
+                validationFlags.toArray( new FormUtility.ValidationFlag[0] )
         );
 
         NewUserUtils.remoteVerifyFormData( pwmRequest, newUserForm );
@@ -430,9 +443,11 @@ public class NewUserServlet extends ControlledPwmServlet
 
         final boolean promptForPassword = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD );
 
+
+        final PasswordUtility.PasswordCheckInfo passwordCheckInfo;
         if ( promptForPassword )
         {
-            return PasswordUtility.checkEnteredPassword(
+            passwordCheckInfo =  PasswordUtility.checkEnteredPassword(
                     pwmApplication,
                     locale,
                     null,
@@ -442,8 +457,13 @@ public class NewUserServlet extends ControlledPwmServlet
                     newUserForm.getConfirmPassword()
             );
         }
+        else
+        {
+            passwordCheckInfo = new PasswordUtility.PasswordCheckInfo( null, true, 0, PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH, 0 );
+        }
 
-        return new PasswordUtility.PasswordCheckInfo( null, true, 0, PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH, 0 );
+        LOGGER.trace( () -> "competed form validation in ", () -> TimeDuration.fromCurrent( startTime ) );
+        return passwordCheckInfo;
     }
 
     @ActionHandler( action = "enterCode" )
@@ -504,7 +524,7 @@ public class NewUserServlet extends ControlledPwmServlet
                     }
                     catch ( final PwmUnrecoverableException | PwmOperationalException e )
                     {
-                        LOGGER.error( pwmRequest, "while reading stored form data in token payload, form validation error occurred: " + e.getMessage() );
+                        LOGGER.error( pwmRequest, () -> "while reading stored form data in token payload, form validation error occurred: " + e.getMessage() );
                         errorInformation = e.getErrorInformation();
                     }
                 }
@@ -545,6 +565,40 @@ public class NewUserServlet extends ControlledPwmServlet
 
         return ProcessStatus.Continue;
     }
+
+    @ActionHandler( action = "enterRemoteResponse" )
+    private ProcessStatus processEnterRemoteResponse( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException, ServletException
+    {
+        final String prefix = "remote-";
+        final NewUserBean newUserBean = getNewUserBean( pwmRequest );
+        final VerificationMethodSystem remoteRecoveryMethod = NewUserUtils.readRemoteVerificationMethod( pwmRequest, newUserBean );
+
+        final Map<String, String> remoteResponses = RemoteVerificationMethod.readRemoteResponses( pwmRequest, prefix );
+
+        final ErrorInformation errorInformation = remoteRecoveryMethod.respondToPrompts( remoteResponses );
+
+        if ( remoteRecoveryMethod.getVerificationState() == VerificationMethodSystem.VerificationState.COMPLETE )
+        {
+            newUserBean.setExternalResponsesPassed( true );
+        }
+
+        if ( remoteRecoveryMethod.getVerificationState() == VerificationMethodSystem.VerificationState.FAILED )
+        {
+            newUserBean.setExternalResponsesPassed( false );
+            pwmRequest.respondWithError( errorInformation, true );
+            LOGGER.debug( pwmRequest, () -> "unsuccessful remote response verification input: " + errorInformation.toDebugStr() );
+            return ProcessStatus.Continue;
+        }
+
+        if ( errorInformation != null )
+        {
+            setLastError( pwmRequest, errorInformation );
+        }
+
+        return ProcessStatus.Continue;
+    }
+
 
     @ActionHandler( action = "profileChoice" )
     private ProcessStatus handleProfileChoiceRequest( final PwmRequest pwmRequest )
@@ -727,7 +781,7 @@ public class NewUserServlet extends ControlledPwmServlet
         final String configuredRedirectUrl = newUserProfile.readSettingAsString( PwmSetting.NEWUSER_REDIRECT_URL );
         if ( !StringUtil.isEmpty( configuredRedirectUrl ) && StringUtil.isEmpty( pwmRequest.getPwmSession().getSessionStateBean().getForwardURL() ) )
         {
-            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmRequest.getPwmApplication() );
+            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
             final String macroedUrl = macroMachine.expandMacros( configuredRedirectUrl );
             pwmRequest.sendRedirect( macroedUrl );
             return ProcessStatus.Halt;

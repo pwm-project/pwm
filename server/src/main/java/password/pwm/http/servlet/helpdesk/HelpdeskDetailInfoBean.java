@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.ViewStatusFields;
+import password.pwm.config.profile.AccountInformationProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.value.data.FormConfiguration;
@@ -131,8 +132,12 @@ public class HelpdeskDetailInfoBean implements Serializable
 
         try
         {
+
+            final AccountInformationProfile accountInformationProfile = pwmRequest.getPwmSession().getSessionManager().getAccountInfoProfile();
+
             final List<AccountInformationBean.ActivityRecord> userHistory = AccountInformationBean.makeAuditInfo(
                     pwmRequest.getPwmApplication(),
+                    accountInformationProfile,
                     pwmRequest.getLabel(),
                     userInfo,
                     pwmRequest.getLocale() );
@@ -140,7 +145,7 @@ public class HelpdeskDetailInfoBean implements Serializable
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, "unexpected error reading userHistory for user '" + userIdentity + "', " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "unexpected error reading userHistory for user '" + userIdentity + "', " + e.getMessage() );
         }
 
         builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );

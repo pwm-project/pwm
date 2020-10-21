@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,11 +36,11 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
+import password.pwm.svc.PwmService;
 import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
-import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
@@ -102,23 +102,23 @@ public class SmsQueueManager implements PwmService
 
     private WorkQueueProcessor<SmsItemBean> workQueueProcessor;
     private PwmApplication pwmApplication;
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
     private ErrorInformation lastError;
 
     public SmsQueueManager( )
     {
     }
 
+    @Override
     public void init(
             final PwmApplication pwmApplication
     )
             throws PwmException
     {
-        status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            LOGGER.warn( "localdb is not open,  will remain closed" );
+            LOGGER.warn( () -> "localdb is not open,  will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
@@ -159,7 +159,7 @@ public class SmsQueueManager implements PwmService
             {
                 StatisticsManager.incrementStat( pwmApplication, Statistic.SMS_SEND_DISCARDS );
                 StatisticsManager.incrementStat( pwmApplication, Statistic.SMS_SEND_FAILURES );
-                LOGGER.error( "discarding sms message due to permanent failure: " + e.getErrorInformation().toDebugStr() );
+                LOGGER.error( () -> "discarding sms message due to permanent failure: " + e.getErrorInformation().toDebugStr() );
                 lastError = e.getErrorInformation();
                 return WorkQueueProcessor.ProcessResult.FAILED;
             }
@@ -199,7 +199,7 @@ public class SmsQueueManager implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error writing to LocalDB queue, discarding sms send request: " + e.getMessage() );
+            LOGGER.error( () -> "error writing to LocalDB queue, discarding sms send request: " + e.getMessage() );
         }
     }
 
@@ -297,14 +297,15 @@ public class SmsQueueManager implements PwmService
         {
             debugItems.putAll( workQueueProcessor.debugInfo() );
         }
+
         if ( status() == STATUS.OPEN )
         {
-            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ), debugItems );
+            return ServiceInfoBean.builder()
+                    .storageMethod( DataStorageMethod.LOCALDB )
+                    .debugProperties( debugItems ).build();
         }
-        else
-        {
-            return new ServiceInfoBean( Collections.emptyList(), debugItems );
-        }
+
+        return ServiceInfoBean.builder().debugProperties( debugItems ).build();
     }
 
     private List<String> splitMessage( final String input )
@@ -430,13 +431,13 @@ public class SmsQueueManager implements PwmService
         // Remove leading double zero, replace by plus
         if ( returnValue.startsWith( "00" ) )
         {
-            returnValue = "+" + returnValue.substring( 2, returnValue.length() );
+            returnValue = "+" + returnValue.substring( 2 );
         }
 
         // Replace leading zero by country code
         if ( returnValue.startsWith( "0" ) )
         {
-            returnValue = countryCodeNumber + returnValue.substring( 1, returnValue.length() );
+            returnValue = countryCodeNumber + returnValue.substring( 1 );
         }
 
         // Add a leading plus if necessary
@@ -584,7 +585,7 @@ public class SmsQueueManager implements PwmService
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "unable to read sms password while reading configuration: " + e.getMessage() );
+                LOGGER.error( () -> "unable to read sms password while reading configuration: " + e.getMessage() );
             }
 
             return modifiableText;
@@ -636,7 +637,7 @@ public class SmsQueueManager implements PwmService
                         }
                         else
                         {
-                            LOGGER.warn( "Cannot parse HTTP header: " + header );
+                            LOGGER.warn( () -> "Cannot parse HTTP header: " + header );
                         }
                     }
                 }

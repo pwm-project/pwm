@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@
 
 package password.pwm.ws.server.rest;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -35,7 +34,9 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.SecureService;
 import password.pwm.ws.server.RestAuthenticationType;
 import password.pwm.ws.server.RestMethodHandler;
@@ -58,6 +59,7 @@ import java.util.Map;
 @RestWebServer( webService = WebServiceUsage.SigningForm )
 public class RestFormSigningServer extends RestServlet
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( RestFormSigningServer.class );
 
     @Override
     public void preCheckRequest( final RestRequest restRequest )
@@ -99,9 +101,13 @@ public class RestFormSigningServer extends RestServlet
                 final SignedFormData signedFormData = new SignedFormData( Instant.now(), inputFormData );
                 final String signedValue = securityService.encryptObjectToString( signedFormData );
                 StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_SIGNING_FORM );
+                LOGGER.trace( () -> "processed request signing form for form with keys '"
+                        + JsonUtil.serializeCollection( inputFormData.keySet() )
+                        + "' and timestamp " + signedFormData.getTimestamp().toString() );
                 return RestResultBean.withData( signedValue );
             }
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_MISSING_PARAMETER, "POST body should be a json object" );
+
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_MISSING_PARAMETER, "unable to read form data for request" );
         }
         catch ( final Exception e )
         {
@@ -118,26 +124,29 @@ public class RestFormSigningServer extends RestServlet
 
     public static Map<String, String> readSignedFormValue( final PwmApplication pwmApplication, final String input ) throws PwmUnrecoverableException
     {
-        final Integer maxAgeSeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS ) );
+        final int maxAgeSeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS ) );
         final TimeDuration maxAge = TimeDuration.of( maxAgeSeconds, TimeDuration.Unit.SECONDS );
         final SignedFormData signedFormData = pwmApplication.getSecureService().decryptObject( input, SignedFormData.class );
-        if ( signedFormData != null )
-        {
-            if ( signedFormData.getTimestamp() != null )
-            {
-                if ( TimeDuration.fromCurrent( signedFormData.getTimestamp() ).isLongerThan( maxAge ) )
-                {
-                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, "signedForm data is too old" ) );
-                }
 
-                return signedFormData.getFormData();
-            }
+        if ( signedFormData == null )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, "signedForm data is not valid" ) );
         }
-        return null;
+
+        if ( signedFormData.getTimestamp() == null )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, "signedForm data is missing timestamp" ) );
+        }
+
+        if ( TimeDuration.fromCurrent( signedFormData.getTimestamp() ).isLongerThan( maxAge ) )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, "signedForm data is expired" ) );
+        }
+
+        return signedFormData.getFormData();
     }
 
-    @Getter
-    @AllArgsConstructor
+    @Value
     private static class SignedFormData implements Serializable
     {
         private Instant timestamp;

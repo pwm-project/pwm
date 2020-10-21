@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,12 +104,14 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
         }
     }
 
+    @Override
     protected ConfigManagerAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
@@ -135,6 +137,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         }
     }
 
+    @Override
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
@@ -325,7 +328,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         catch ( final Exception e )
         {
             final String errorString = "error saving file: " + e.getMessage();
-            LOGGER.error( pwmRequest, errorString, e );
+            LOGGER.error( pwmRequest, () -> errorString, e );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                     {
                             errorString,
@@ -352,12 +355,12 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             final OutputStream responseWriter = resp.getOutputStream();
             resp.setHeader( HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
             resp.setContentType( HttpContentType.xml );
-            StoredConfigurationFactory.toXml( storedConfiguration, responseWriter );
+            StoredConfigurationFactory.output( storedConfiguration, responseWriter );
             responseWriter.close();
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, "unable to download configuration: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "unable to download configuration: " + e.getMessage() );
         }
     }
 
@@ -374,7 +377,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, "error during zip debug building: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error during zip debug building: " + e.getMessage() );
         }
     }
 

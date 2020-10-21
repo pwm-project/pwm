@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ package password.pwm.config.stored;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingSyntax;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.i18n.LocaleHelper;
@@ -29,10 +30,14 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-public class StoredConfigItemKey implements Serializable, Comparable
+public class StoredConfigItemKey implements Serializable, Comparable<StoredConfigItemKey>
 {
     public enum RecordType
     {
@@ -56,6 +61,10 @@ public class StoredConfigItemKey implements Serializable, Comparable
     private final RecordType recordType;
     private final String recordID;
     private final String profileID;
+
+    private static final long serialVersionUID = 1L;
+
+
 
     private StoredConfigItemKey( final RecordType recordType, final String recordID, final String profileID )
     {
@@ -95,6 +104,11 @@ public class StoredConfigItemKey implements Serializable, Comparable
     static StoredConfigItemKey fromConfigurationProperty( final ConfigurationProperty configurationProperty )
     {
         return new StoredConfigItemKey( RecordType.PROPERTY, configurationProperty.getKey(), null );
+    }
+
+    public boolean isRecordType( final RecordType recordType )
+    {
+        return recordType != null && Objects.equals( getRecordType(), recordType );
     }
 
     public boolean isValid()
@@ -182,7 +196,8 @@ public class StoredConfigItemKey implements Serializable, Comparable
             throw new IllegalStateException( "attempt to read pwmSetting key for non-setting ConfigItemKey" );
         }
 
-        return PwmSetting.forKey( this.recordID );
+        return PwmSetting.forKey( this.recordID ).orElseThrow( () -> new IllegalStateException(
+                "attempt to read ConfigItemKey with unknown setting key '" + getRecordID() + "'" ) );
     }
 
     public PwmLocaleBundle toLocaleBundle()
@@ -207,29 +222,102 @@ public class StoredConfigItemKey implements Serializable, Comparable
     }
 
     @Override
-    public int hashCode()
+    public boolean equals( final Object o )
     {
-        return toString().hashCode();
+        if ( this == o )
+        {
+            return true;
+        }
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+        final StoredConfigItemKey that = ( StoredConfigItemKey ) o;
+        return Objects.equals( recordType, that.recordType )
+                && Objects.equals( recordID, that.recordID )
+                && Objects.equals( profileID, that.profileID );
     }
 
     @Override
-    public boolean equals( final Object anotherObject )
+    public int hashCode()
     {
-        return anotherObject != null
-                && anotherObject instanceof StoredConfigItemKey
-                && toString().equals( anotherObject.toString() );
+        return Objects.hash( recordType, recordID, profileID );
     }
 
     @Override
     public String toString()
     {
         return getLabel( PwmConstants.DEFAULT_LOCALE );
-       // return getRecordType().name() + "-" + this.getRecordID() + "-" + this.getProfileID();
     }
 
     @Override
-    public int compareTo( final Object o )
+    public int compareTo( final StoredConfigItemKey o )
     {
-        return getLabel( PwmConstants.DEFAULT_LOCALE ).compareTo( o.toString() );
+        return comparator( PwmConstants.DEFAULT_LOCALE ).compare( this, o );
     }
+
+    public PwmSettingSyntax getSyntax()
+    {
+        switch ( getRecordType() )
+        {
+            case SETTING:
+                return toPwmSetting().getSyntax();
+
+            case PROPERTY:
+                return PwmSettingSyntax.STRING;
+
+            case LOCALE_BUNDLE:
+                return PwmSettingSyntax.LOCALIZED_STRING_ARRAY;
+
+            default:
+                JavaHelper.unhandledSwitchStatement( getRecordType() );
+                throw new IllegalStateException();
+        }
+    }
+
+    public static Set<StoredConfigItemKey> filterBySettingSyntax( final PwmSettingSyntax pwmSettingSyntax, final Set<StoredConfigItemKey> input )
+    {
+        return Collections.unmodifiableSet( filterByType( RecordType.SETTING, input )
+                .stream()
+                .filter( ( k ) -> k.toPwmSetting().getSyntax() == pwmSettingSyntax )
+                .collect( Collectors.toSet() ) );
+    }
+
+    public static Set<StoredConfigItemKey> filterByType( final RecordType recordType, final Set<StoredConfigItemKey> input )
+    {
+        if ( JavaHelper.isEmpty( input ) )
+        {
+            return Collections.emptySet();
+        }
+
+        return Collections.unmodifiableSet( input.stream().filter( ( k ) -> k.isRecordType( recordType ) ).collect( Collectors.toSet() ) );
+    }
+
+    private static Comparator<StoredConfigItemKey> comparator( final Locale locale )
+    {
+        final Comparator<StoredConfigItemKey> typeComparator = Comparator.comparing(
+                StoredConfigItemKey::getRecordType,
+                Comparator.nullsLast( Comparator.naturalOrder() ) );
+
+        final Comparator<StoredConfigItemKey> recordComparator = ( o1, o2 ) ->
+        {
+            if ( Objects.equals( o1.getRecordType(), o2.getRecordType() )
+                    && o1.isRecordType( RecordType.SETTING ) )
+            {
+                final Comparator<PwmSetting> pwmSettingComparator = PwmSetting.menuLocationComparator( locale );
+                return pwmSettingComparator.compare( o1.toPwmSetting(), o2.toPwmSetting() );
+            }
+            else
+            {
+                return o1.getRecordID().compareTo( o2.getRecordID() );
+            }
+        };
+
+        final Comparator<StoredConfigItemKey> profileComparator = Comparator.comparing( StoredConfigItemKey::getProfileID,
+                Comparator.nullsLast( Comparator.naturalOrder() ) );
+
+        return typeComparator.thenComparing( recordComparator ).thenComparing( profileComparator );
+    }
+
+
 }

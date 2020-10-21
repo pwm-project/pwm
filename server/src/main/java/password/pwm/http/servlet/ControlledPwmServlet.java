@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,23 +50,25 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
 
     private final Map<String, Method> actionMethodCache = createMethodCache();
 
+    @Override
     public String servletUriRemainder( final PwmRequest pwmRequest, final String command ) throws PwmUnrecoverableException
     {
         String uri = pwmRequest.getURLwithoutQueryString();
         if ( uri.startsWith( pwmRequest.getContextPath() ) )
         {
-            uri = uri.substring( pwmRequest.getContextPath().length(), uri.length() );
+            uri = uri.substring( pwmRequest.getContextPath().length() );
         }
         for ( final String servletUri : getServletDefinition().urlPatterns() )
         {
             if ( uri.startsWith( servletUri ) )
             {
-                uri = uri.substring( servletUri.length(), uri.length() );
+                uri = uri.substring( servletUri.length() );
             }
         }
         return uri;
     }
 
+    @Override
     protected PwmServletDefinition getServletDefinition( )
     {
         for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
@@ -82,6 +84,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
 
     public abstract Class<? extends ProcessAction> getProcessActionsClass( );
 
+    @Override
     protected ProcessAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
@@ -94,7 +97,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error", e );
+            LOGGER.error( () -> "error", e );
         }
         return null;
     }
@@ -131,23 +134,24 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                 final String msg = "unexpected error during action handler for '"
                         + this.getClass().getName()
                         + ":" + action + "', error: " + cause.getMessage();
-                LOGGER.error( pwmRequest, msg, e.getCause() );
+                LOGGER.error( pwmRequest, () -> msg, e.getCause() );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
             }
-            LOGGER.error( "uncased invocation error: " + e.getMessage(), e );
+            LOGGER.error( () -> "uncased invocation error: " + e.getMessage(), e );
         }
         catch ( final Throwable e )
         {
             final String msg = "unexpected error invoking action handler for '" + action + "', error: " + e.getMessage();
-            LOGGER.error( msg, e );
+            LOGGER.error( () -> msg, e );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
 
         final String msg = "missing action handler for '" + action + "'";
-        LOGGER.error( msg );
+        LOGGER.error( () -> msg );
         throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
     }
 
+    @Override
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
@@ -164,7 +168,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                     if ( pwmRequest.getConfig().isDevDebugMode() )
                     {
                         final String msg = "processing complete, handler returned halt but response is not committed";
-                        LOGGER.error( pwmRequest, msg, new IllegalStateException( msg ) );
+                        LOGGER.error( pwmRequest, () -> msg, new IllegalStateException( msg ) );
                     }
                 }
                 return;

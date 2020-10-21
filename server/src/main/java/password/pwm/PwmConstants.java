@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,22 +20,24 @@
 
 package password.pwm;
 
+import com.novell.ldapchai.ChaiConstant;
 import org.apache.commons.csv.CSVFormat;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
+import java.util.TreeMap;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -46,27 +48,16 @@ import java.util.jar.Manifest;
  */
 public abstract class PwmConstants
 {
+    public static final Map<String, String> BUILD_MANIFEST = readBuildManifest();
 
-    public static final String BUILD_TIME = readBuildInfoBundle( "Implementation-Build-Timestamp", "n/a" );
-    public static final String BUILD_NUMBER = readBuildInfoBundle( "Implementation-Build", "0" );
-    public static final String BUILD_REVISION = readBuildInfoBundle( "Implementation-Revision", "0" );
-    public static final String BUILD_JAVA_VENDOR = readBuildInfoBundle( "Implementation-Build-Java-Vendor" );
-    public static final String BUILD_JAVA_VERSION = readBuildInfoBundle( "Implementation-Build-Java-Version" );
-    public static final String BUILD_VERSION = readBuildInfoBundle( "Implementation-Version", "" );
+    public static final String BUILD_TIME = BUILD_MANIFEST.getOrDefault( "SCM-Git-Commit-Timestamp", "n/a" );
+    public static final String BUILD_NUMBER = BUILD_MANIFEST.getOrDefault( "SCM-Git-Commit-ID-Abbrev", "0" );
+    public static final String BUILD_REVISION = BUILD_MANIFEST.getOrDefault( "SCM-Git-Commit-ID", "0" );
+    public static final String BUILD_JAVA_VENDOR = BUILD_MANIFEST.getOrDefault( "Implementation-Build-Java-Vendor", "0" );
+    public static final String BUILD_JAVA_VERSION = BUILD_MANIFEST.getOrDefault( "Implementation-Build-Java-Version", "0" );
+    public static final String BUILD_VERSION = BUILD_MANIFEST.getOrDefault( "Implementation-Version", "0" );
 
-    private static final String MISSING_VERSION_STRING = readPwmConstantsBundle( "missingVersionString" );
-    public static final String SERVLET_VERSION;
-
-    static
-    {
-        final String servletVersion = "v" + BUILD_VERSION
-                        + " b" + BUILD_NUMBER
-                        + " r" + BUILD_REVISION;
-
-        SERVLET_VERSION = servletVersion.isEmpty()
-                ? MISSING_VERSION_STRING
-                : servletVersion;
-    }
+    public static final String SERVLET_VERSION = "v" + BUILD_VERSION  + " b" + BUILD_NUMBER;
 
     public static final String CHAI_API_VERSION = com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION;
 
@@ -82,7 +73,7 @@ public abstract class PwmConstants
     public static final String CONFIGMANAGER_INTRUDER_USERNAME = "ConfigurationManagerLogin";
 
     public static final Locale DEFAULT_LOCALE = new Locale( readPwmConstantsBundle( "locale.defaultLocale" ) );
-    public static final Charset DEFAULT_CHARSET = Charset.forName( "UTF8" );
+    public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
     public static final List<String> HIGHLIGHT_LOCALES = StringUtil.splitAndTrim( readPwmConstantsBundle( "locale.highlightList" ), "," );
 
     public static final CSVFormat DEFAULT_CSV_FORMAT = CSVFormat.DEFAULT;
@@ -121,10 +112,11 @@ public abstract class PwmConstants
 
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle( "log.removedValue" );
 
-    public static final Collection<Locale> INCLUDED_LOCALES;
+    public static final Collection<Locale> INCLUDED_LOCALES = Collections.emptyList();
 
     static
     {
+        /*
         final List<Locale> localeList = new ArrayList<>();
         final String inputString = readPwmConstantsBundle( "includedLocales" );
         final List<String> inputList = JsonUtil.deserializeStringList( inputString );
@@ -133,6 +125,8 @@ public abstract class PwmConstants
             localeList.add( new Locale( localeKey ) );
         }
         INCLUDED_LOCALES = Collections.unmodifiableCollection( localeList );
+
+         */
     }
 
     public static final String URL_JSP_CONFIG_GUIDE = "WEB-INF/jsp/configguide-%1%.jsp";
@@ -163,6 +157,7 @@ public abstract class PwmConstants
     public static final String PARAM_SIGNED_FORM = "signedForm";
     public static final String PARAM_USERKEY = "userKey";
     public static final String PARAM_METHOD_CHOICE = "methodChoice";
+    public static final String PARAM_FORMAT_JSON_PRETTY = "jsonPrettyFormat";
 
 
     public static final String COOKIE_PERSISTENT_CONFIG_LOGIN = "CONFIG-AUTH";
@@ -238,35 +233,35 @@ public abstract class PwmConstants
         return ResourceBundle.getBundle( PwmConstants.class.getName() ).getString( key );
     }
 
-    private static String readBuildInfoBundle( final String key )
-    {
-        return readBuildInfoBundle( key, null );
-    }
-
-    private static String readBuildInfoBundle( final String key, final String defaultValue )
+    private static Map<String, String> readBuildManifest( )
     {
         final String interestedArchiveNonce = "F84576985F0A176014F751736F7C79B6D9BED842FC48377404FE24A36BF6C2AA";
-        final String manifestKeyName = "Implementation-Archive-Nonce";
+        final String manifestKeyName = "Archive-UID";
         final String manifestFileName = "META-INF/MANIFEST.MF";
 
+        final Map<String, String> returnMap = new TreeMap<>();
         try
         {
-            final Enumeration<URL> resources = PwmConstants.class.getClassLoader().getResources( manifestFileName );
+            final Enumeration<URL> resources = ChaiConstant.class.getClassLoader().getResources( manifestFileName );
             while ( resources.hasMoreElements() )
             {
                 try ( InputStream inputStream = resources.nextElement().openStream() )
                 {
                     final Manifest manifest = new Manifest( inputStream );
                     final Attributes attributes = manifest.getMainAttributes();
-                    final String archiveNonve = attributes.getValue( manifestKeyName );
+                    final String archiveNonce = attributes.getValue( manifestKeyName );
                     try
                     {
-                        if ( interestedArchiveNonce.equals( archiveNonve ) )
+                        if ( interestedArchiveNonce.equals( archiveNonce ) )
                         {
-                            final String value = attributes.getValue( key );
-                            if ( !StringUtil.isEmpty( value ) )
+                            for ( final Map.Entry<Object, Object> entry : attributes.entrySet() )
                             {
-                                return value;
+                                final Object keyObject = entry.getKey();
+                                final Object valueObject = entry.getValue();
+                                if ( keyObject != null && valueObject != null )
+                                {
+                                    returnMap.put( keyObject.toString(), valueObject.toString() );
+                                }
                             }
                         }
                     }
@@ -282,7 +277,7 @@ public abstract class PwmConstants
             System.out.println( t );
         }
 
-        return defaultValue;
+        return Collections.unmodifiableMap( returnMap );
     }
 
     public enum AcceptValue
@@ -290,7 +285,7 @@ public abstract class PwmConstants
         json( "application/json" ),
         html( "text/html" ),;
 
-        private String headerValue;
+        private final String headerValue;
 
         AcceptValue( final String headerValue )
         {

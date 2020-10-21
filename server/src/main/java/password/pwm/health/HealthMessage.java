@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ public enum HealthMessage
     LDAP_TestUserReadPwError( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_TestUserOK( HealthStatus.GOOD, HealthTopic.LDAP ),
     Email_SendFailure( HealthStatus.WARN, HealthTopic.Email ),
+    Email_ConnectFailure( HealthStatus.WARN, HealthTopic.Email ),
     PwNotify_Failure( HealthStatus.WARN, HealthTopic.Application ),
     MissingResource( HealthStatus.DEBUG, HealthTopic.Integrity ),
     BrokenMethod( HealthStatus.DEBUG, HealthTopic.Integrity ),
@@ -67,13 +68,21 @@ public enum HealthMessage
     Config_PasswordPolicyProblem( HealthStatus.CONFIG, HealthTopic.Configuration ),
     Config_UserPermissionValidity( HealthStatus.CONFIG, HealthTopic.Configuration ),
     Config_DNValueValidity( HealthStatus.CONFIG, HealthTopic.Configuration ),
+    Config_ProfileValueValidity( HealthStatus.CONFIG, HealthTopic.Configuration ),
+    Config_SettingIssue( HealthStatus.CAUTION, HealthTopic.Configuration ),
     Config_NoRecoveryEnabled( HealthStatus.CAUTION, HealthTopic.Configuration ),
     Config_Certificate( HealthStatus.WARN, HealthTopic.Configuration ),
     Config_InvalidSendMethod( HealthStatus.CAUTION, HealthTopic.Configuration ),
     Config_DeprecatedJSForm( HealthStatus.CONFIG, HealthTopic.Configuration ),
+    Config_InvalidLdapProfile( HealthStatus.CONFIG, HealthTopic.Configuration ),
+    Config_NoLdapProfiles( HealthStatus.CONFIG, HealthTopic.Configuration ),
+    Config_ValueConflict( HealthStatus.CONFIG, HealthTopic.Configuration ),
+
     LDAP_VendorsNotSame( HealthStatus.CONFIG, HealthTopic.LDAP ),
     LDAP_OK( HealthStatus.GOOD, HealthTopic.LDAP ),
+    EMail_OK( HealthStatus.GOOD, HealthTopic.Email ),
     LDAP_RecentlyUnreachable( HealthStatus.CAUTION, HealthTopic.LDAP ),
+    LDAP_SearchFailure( HealthStatus.WARN, HealthTopic.LDAP ),
     CryptoTokenWithNewUserVerification( HealthStatus.CAUTION, HealthTopic.Configuration ),
     TokenServiceError( HealthStatus.WARN, HealthTopic.TokenService ),
     Java_HighThreads( HealthStatus.CAUTION, HealthTopic.Platform ),

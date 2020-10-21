@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ package password.pwm.config.value;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingProperty;
-import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
@@ -47,14 +46,16 @@ public class NumericValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public NumericValue fromJson( final String value )
             {
                 return new NumericValue( JsonUtil.deserialize( value, Long.class ) );
             }
 
+            @Override
             public NumericValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
-                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 if ( valueElement.isPresent() )
                 {
                     final String value = valueElement.get().getText();

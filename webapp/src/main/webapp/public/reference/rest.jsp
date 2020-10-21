@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2019 The PWM Project
+ ~ Copyright (c) 2009-2020 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -1128,6 +1128,18 @@ GOOD
                         <tr>
                             <td class="key">Accept Header</td>
                             <td>application/json</td>
+                        </tr>
+                        <tr>
+                            <td class="key">Parameter username</td>
+                            <td>
+                                <table>
+                                    <tr><td>Name</td><td>username</td></tr>
+                                    <tr><td>Required</td><td>Optional</td></tr>
+                                    <tr><td>Location</td><td>query string</td></tr>
+                                    <tr><td>Value</td><td>Optional username or ldap DN of a user on which to perform the operation</td></tr>
+                                    <tr><td>Default</td><td>Authenticating user (if LDAP)</td></tr>
+                                </table>
+                            </td>
                         </tr>
                     </table>
                     <table style="max-width: 100%">

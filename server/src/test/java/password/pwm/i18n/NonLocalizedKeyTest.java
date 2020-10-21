@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public class NonLocalizedKeyTest
             for ( final String key : NON_LOCALIZED_KEYS )
             {
                 final String value = resourceBundle.getString( key );
-                Assert.assertTrue( !StringUtil.isEmpty( value ) );
+                Assert.assertFalse( StringUtil.isEmpty( value ) );
             }
         }
 

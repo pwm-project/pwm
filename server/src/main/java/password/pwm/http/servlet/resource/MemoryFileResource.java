@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ package password.pwm.http.servlet.resource;
 
 import password.pwm.http.bean.ImmutableByteArray;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -39,26 +38,31 @@ class MemoryFileResource implements FileResource
         this.lastModified = lastModified;
     }
 
+    @Override
     public InputStream getInputStream( ) throws IOException
     {
-        return new ByteArrayInputStream( contents.copyOf() );
+        return contents.newByteArrayInputStream();
     }
 
+    @Override
     public long length( )
     {
-        return contents.copyOf().length;
+        return contents.size();
     }
 
+    @Override
     public long lastModified( )
     {
         return lastModified;
     }
 
+    @Override
     public boolean exists( )
     {
         return true;
     }
 
+    @Override
     public String getName( )
     {
         return name;

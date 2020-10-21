@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ package password.pwm.http.servlet.accountinfo;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.AccountInformationProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -66,6 +67,7 @@ public class AccountInformationServlet extends ControlledPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
@@ -83,8 +85,11 @@ public class AccountInformationServlet extends ControlledPwmServlet
     {
         try
         {
+            final AccountInformationProfile accountInformationProfile = pwmRequest.getPwmSession().getSessionManager().getAccountInfoProfile();
+
             final AccountInformationBean accountInformationBean = AccountInformationBean.makeUserAccountInfoBean(
                     pwmRequest,
+                    accountInformationProfile,
                     pwmRequest.getPwmSession().getUserInfo(),
                     pwmRequest.getLocale()
             );
@@ -92,7 +97,7 @@ public class AccountInformationServlet extends ControlledPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( pwmRequest, "error reading user form data: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error reading user form data: " + e.getMessage() );
         }
 
         pwmRequest.forwardToJsp( JspUrl.ACCOUNT_INFORMATION );
@@ -101,8 +106,11 @@ public class AccountInformationServlet extends ControlledPwmServlet
     @ActionHandler( action = "read" )
     public ProcessStatus handleReadRequest( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException
     {
+        final AccountInformationProfile accountInformationProfile = pwmRequest.getPwmSession().getSessionManager().getAccountInfoProfile();
+
         final AccountInformationBean accountInformationBean = AccountInformationBean.makeUserAccountInfoBean(
                 pwmRequest,
+                accountInformationProfile,
                 pwmRequest.getPwmSession().getUserInfo(),
                 pwmRequest.getLocale()
         );
@@ -118,6 +126,9 @@ public class AccountInformationServlet extends ControlledPwmServlet
             pwmRequest.respondWithError( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE ) );
             return ProcessStatus.Halt;
         }
+
+        // check to make sure profile is assigned
+        pwmRequest.getPwmSession().getSessionManager().getAccountInfoProfile();
 
         return ProcessStatus.Continue;
     }

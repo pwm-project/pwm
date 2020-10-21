@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,7 @@ package password.pwm.config.value;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.error.ErrorInformation;
@@ -52,6 +51,7 @@ import java.util.Optional;
 
 public class NamedSecretValue implements StoredValue
 {
+    private static final long serialVersionUID = 1L;
 
     private final transient LazySupplier<String> valueHashSupplier = new LazySupplier<>( () -> AbstractValue.valueHashComputer( NamedSecretValue.this ) );
 
@@ -75,6 +75,7 @@ public class NamedSecretValue implements StoredValue
     {
         return new StoredValue.StoredValueFactory()
         {
+            @Override
             public NamedSecretValue fromJson( final String value )
             {
                 try
@@ -92,6 +93,7 @@ public class NamedSecretValue implements StoredValue
                 }
             }
 
+            @Override
             public NamedSecretValue fromXmlElement(
                     final PwmSetting pwmSetting,
                     final XmlElement settingElement,
@@ -100,7 +102,7 @@ public class NamedSecretValue implements StoredValue
                     throws PwmOperationalException, PwmUnrecoverableException
             {
                 final Map<String, NamedSecretData> values = new LinkedHashMap<>();
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
 
                 try
                 {
@@ -160,6 +162,7 @@ public class NamedSecretValue implements StoredValue
         return 0;
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         if ( values == null )

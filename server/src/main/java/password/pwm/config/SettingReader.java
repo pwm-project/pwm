@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,36 +20,126 @@
 
 package password.pwm.config;
 
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.value.StoredValue;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.config.value.data.NamedSecretData;
+import password.pwm.config.value.data.RemoteWebServiceConfiguration;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.StringUtil;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
-public interface SettingReader
+public class SettingReader
 {
-    List<String> readSettingAsStringArray( PwmSetting setting );
+    private final StoredConfiguration storedConfiguration;
+    private final String profileID;
 
-    List<FormConfiguration> readSettingAsForm( PwmSetting pwmSetting );
+    public SettingReader( final StoredConfiguration storedConfiguration, final String profileID )
+    {
+        this.storedConfiguration = storedConfiguration;
+        this.profileID = profileID;
+    }
 
-    <E extends Enum<E>> Set<E> readSettingAsOptionList( PwmSetting setting, Class<E> enumClass );
+    public List<UserPermission> readSettingAsUserPermission( final PwmSetting setting )
+    {
+        return ValueTypeConverter.valueToUserPermissions( readSetting( setting ) );
+    }
 
-    <E extends Enum<E>> E readSettingAsEnum( PwmSetting setting, Class<E> enumClass );
+    public String readSettingAsString( final PwmSetting setting )
+    {
+        return ValueTypeConverter.valueToString( readSetting( setting ) );
+    }
 
-    List<X509Certificate> readSettingAsCertificate( PwmSetting setting );
+    public List<String> readSettingAsStringArray( final PwmSetting setting )
+    {
+        return ValueTypeConverter.valueToStringArray( readSetting( setting ) );
+    }
 
-    boolean readSettingAsBoolean( PwmSetting setting );
+    public List<String> readSettingAsLocalizedStringArray( final PwmSetting setting, final Locale locale )
+    {
+        return ValueTypeConverter.valueToLocalizedStringArray( readSetting( setting ), locale );
+    }
 
-    long readSettingAsLong( PwmSetting setting );
+    public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )
+    {
+        return ValueTypeConverter.valueToForm( readSetting( setting ) );
+    }
 
-    String readSettingAsLocalizedString( PwmSetting setting, Locale locale );
+    public <E extends Enum<E>> Set<E> readSettingAsOptionList( final PwmSetting setting, final Class<E> enumClass )
+    {
+        return ValueTypeConverter.valueToOptionList( setting, readSetting( setting ), enumClass );
+    }
 
-    List<ActionConfiguration> readSettingAsAction( PwmSetting setting );
+    public <E extends Enum<E>> E readSettingAsEnum( final PwmSetting setting, final Class<E> enumClass )
+    {
+        return ValueTypeConverter.valueToEnum( setting, readSetting( setting ), enumClass );
+    }
 
-    PasswordData readSettingAsPassword( PwmSetting setting );
+    public List<ActionConfiguration> readSettingAsAction( final PwmSetting setting )
+    {
+        return ValueTypeConverter.valueToAction( setting, readSetting( setting ) );
+    }
 
-    String readSettingAsString( PwmSetting oauthIdLoginUrl );
+    public List<X509Certificate> readSettingAsCertificate( final PwmSetting setting )
+    {
+        return ValueTypeConverter.valueToX509Certificates( setting, readSetting( setting ) );
+    }
+
+    public boolean readSettingAsBoolean( final PwmSetting setting )
+    {
+        return ValueTypeConverter.valueToBoolean( readSetting( setting ) );
+    }
+
+    public long readSettingAsLong( final PwmSetting setting )
+    {
+        return ValueTypeConverter.valueToLong( readSetting( setting ) );
+    }
+
+    public String readSettingAsLocalizedString( final PwmSetting setting, final Locale locale )
+    {
+        return ValueTypeConverter.valueToLocalizedString( readSetting( setting ), locale );
+    }
+
+    public PasswordData readSettingAsPassword( final PwmSetting setting )
+    {
+        return ValueTypeConverter.valueToPassword( readSetting( setting ) );
+    }
+
+    public List<RemoteWebServiceConfiguration> readSettingAsRemoteWebService( final PwmSetting pwmSetting )
+    {
+        return ValueTypeConverter.valueToRemoteWebServiceConfiguration( readSetting( pwmSetting ) );
+    }
+
+    public Map<String, NamedSecretData> readSettingAsNamedPasswords( final PwmSetting setting )
+    {
+        return ValueTypeConverter.valueToNamedPassword( readSetting( setting ) );
+    }
+
+    private StoredValue readSetting( final PwmSetting setting )
+    {
+        if ( StringUtil.isEmpty( profileID ) )
+        {
+            if ( setting.getCategory().hasProfiles() )
+            {
+                throw new IllegalStateException( "attempt to read profiled setting '" + setting.getKey() + "' via non-profile" );
+            }
+        }
+        else
+        {
+            if ( !setting.getCategory().hasProfiles() )
+            {
+                throw new IllegalStateException( "attempt to read non-profiled setting '" + setting.getKey() + "' via profile" );
+            }
+        }
+
+        return storedConfiguration.readSetting( setting, profileID );
+    }
 }

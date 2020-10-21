@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.DataStore;
 import password.pwm.util.java.ClosableIterator;
 
+import java.util.Map;
+
 public class DatabaseDataStore implements DataStore
 {
     private final DatabaseService databaseService;
@@ -36,25 +38,30 @@ public class DatabaseDataStore implements DataStore
         this.table = table;
     }
 
+    @Override
     public void close( ) throws PwmDataStoreException
     {
     }
 
+    @Override
     public boolean contains( final String key ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().contains( table, key );
     }
 
+    @Override
     public String get( final String key ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().get( table, key );
     }
 
-    public ClosableIterator<String> iterator( ) throws PwmDataStoreException, PwmUnrecoverableException
+    @Override
+    public ClosableIterator<Map.Entry<String, String>> iterator( ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().iterator( table );
     }
 
+    @Override
     public Status status( )
     {
         if ( databaseService == null )
@@ -65,21 +72,25 @@ public class DatabaseDataStore implements DataStore
         return Status.OPEN;
     }
 
+    @Override
     public boolean put( final String key, final String value ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().put( table, key, value );
     }
 
+    @Override
     public boolean putIfAbsent( final String key, final String value ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().putIfAbsent( table, key, value );
     }
 
+    @Override
     public void remove( final String key ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         databaseService.getAccessor().remove( table, key );
     }
 
+    @Override
     public long size( ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().size( table );

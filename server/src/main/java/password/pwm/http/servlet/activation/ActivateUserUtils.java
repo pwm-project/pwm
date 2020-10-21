@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,9 +154,8 @@ class ActivateUserUtils
     )
             throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final String searchFilter = figureLdapSearchFilter( pwmRequest );
-        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxyChaiProvider( userIdentity.getLdapProfileID() );
         final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
 
         for ( final Map.Entry<FormConfiguration, String> entry : formValues.entrySet() )
@@ -188,7 +187,7 @@ class ActivateUserUtils
                 }
                 catch ( final ChaiOperationException e )
                 {
-                    LOGGER.error( pwmRequest, "error during param validation of '" + attrName + "', error: " + e.getMessage() );
+                    LOGGER.error( pwmRequest, () -> "error during param validation of '" + attrName + "', error: " + e.getMessage() );
                     throw new PwmDataValidationException( new ErrorInformation(
                             PwmError.ERROR_ACTIVATION_VALIDATIONFAIL,
                             "ldap error testing value for '" + attrName + "'", new String[]
@@ -226,7 +225,7 @@ class ActivateUserUtils
         }
         if ( !success )
         {
-            LOGGER.warn( pwmRequest, "skipping send activation message for '" + userInfo.getUserIdentity() + "' no email or SMS number configured" );
+            LOGGER.warn( pwmRequest, () -> "skipping send activation message for '" + userInfo.getUserIdentity() + "' no email or SMS number configured" );
         }
     }
 
@@ -251,7 +250,7 @@ class ActivateUserUtils
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmSession.getUserInfo(),
-                pwmSession.getSessionManager().getMacroMachine( pwmApplication )
+                pwmSession.getSessionManager().getMacroMachine( )
         );
         return true;
     }
@@ -289,7 +288,7 @@ class ActivateUserUtils
                 toSmsNumber,
                 message,
                 pwmRequest.getLabel(),
-                pwmSession.getSessionManager().getMacroMachine( pwmApplication )
+                pwmSession.getSessionManager().getMacroMachine( )
         );
         return true;
     }
@@ -343,7 +342,7 @@ class ActivateUserUtils
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final ActivateUserBean activateUserBean = pwmApplication.getSessionStateService().getBean( pwmRequest, ActivateUserBean.class );
 
-        final Optional<String> profileID = ProfileUtility.discoverProfileIDforUser( pwmRequest.commonValues(), userIdentity, ProfileDefinition.ActivateUser );
+        final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser( pwmRequest.commonValues(), userIdentity, ProfileDefinition.ActivateUser );
 
         if ( !profileID.isPresent() || !pwmApplication.getConfig().getUserActivationProfiles().containsKey( profileID.get() ) )
         {

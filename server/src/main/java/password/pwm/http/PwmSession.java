@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 package password.pwm.http;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -51,33 +52,47 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Jason D. Rivard
  */
 public class PwmSession implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSession.class );
 
-    private final LocalSessionStateBean sessionStateBean;
+    private final transient PwmApplication pwmApplication;
+
+    @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
+    private final transient LocalSessionStateBean sessionStateBean = new LocalSessionStateBean();
+
+    @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
+    private final transient UserSessionDataCacheBean userSessionDataCacheBean = new UserSessionDataCacheBean();
 
     private LoginInfoBean loginInfoBean;
     private transient UserInfo userInfo;
-    private UserSessionDataCacheBean userSessionDataCacheBean;
 
-    private static final Object CREATION_LOCK = new Object();
+    private static final Lock CREATION_LOCK = new ReentrantLock();
 
-    private transient SessionManager sessionManager;
+    private final Lock securityKeyLock = new ReentrantLock();
+    private final transient SessionManager sessionManager;
 
     public static PwmSession createPwmSession( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
-        synchronized ( CREATION_LOCK )
+        CREATION_LOCK.lock();
+        try
         {
             return new PwmSession( pwmApplication );
         }
+        finally
+        {
+            CREATION_LOCK.unlock();
+        }
     }
-
 
     private PwmSession( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
@@ -87,7 +102,7 @@ public class PwmSession implements Serializable
             throw new IllegalStateException( "PwmApplication must be available during session creation" );
         }
 
-        sessionStateBean = new LocalSessionStateBean();
+        this.pwmApplication = pwmApplication;
         this.sessionStateBean.setSessionID( pwmApplication.getSessionTrackService().generateNewSessionID() );
 
         this.sessionStateBean.setSessionLastAccessedTime( Instant.now() );
@@ -98,6 +113,7 @@ public class PwmSession implements Serializable
         }
 
         pwmApplication.getSessionTrackService().addSessionData( this );
+        this.sessionManager = new SessionManager( pwmApplication, this );
 
         LOGGER.trace( () -> "created new session" );
     }
@@ -105,10 +121,6 @@ public class PwmSession implements Serializable
 
     public SessionManager getSessionManager( )
     {
-        if ( sessionManager == null )
-        {
-            sessionManager = new SessionManager( this );
-        }
         return sessionManager;
     }
 
@@ -188,10 +200,6 @@ public class PwmSession implements Serializable
 
     public UserSessionDataCacheBean getUserSessionDataCacheBean( )
     {
-        if ( userSessionDataCacheBean == null )
-        {
-            userSessionDataCacheBean = new UserSessionDataCacheBean();
-        }
         return userSessionDataCacheBean;
     }
 
@@ -212,7 +220,7 @@ public class PwmSession implements Serializable
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "unexpected error reading username: " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error reading username: " + e.getMessage(), e );
             }
         }
 
@@ -279,7 +287,7 @@ public class PwmSession implements Serializable
 
         userInfo = null;
         loginInfoBean = null;
-        userSessionDataCacheBean = null;
+        userSessionDataCacheBean.clearPermissions();
     }
 
     public TimeDuration getIdleTime( )
@@ -342,7 +350,7 @@ public class PwmSession implements Serializable
         }
         else
         {
-            LOGGER.error( pwmRequest, "ignoring unknown locale value set request for locale '" + localeString + "'" );
+            LOGGER.error( pwmRequest, () -> "ignoring unknown locale value set request for locale '" + localeString + "'" );
             ssBean.setLocale( PwmConstants.DEFAULT_LOCALE );
             return false;
         }
@@ -358,42 +366,50 @@ public class PwmSession implements Serializable
         return ( int ) JavaHelper.sizeof( this );
     }
 
-    synchronized PwmSecurityKey getSecurityKey( final PwmRequest pwmRequest )
+    PwmSecurityKey getSecurityKey( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final int length = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
-        final String cookieName =  pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
-
-        String nonce = (String) pwmRequest.getAttribute( PwmRequestAttribute.CookieNonce );
-        if ( nonce == null || nonce.length() < length )
+        securityKeyLock.lock();
+        try
         {
-            nonce = pwmRequest.readCookie( cookieName );
-        }
+            final int length = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
+            final String cookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
 
-        boolean newNonce = false;
-        if ( nonce == null || nonce.length() < length )
+            String nonce = ( String ) pwmRequest.getAttribute( PwmRequestAttribute.CookieNonce );
+            if ( nonce == null || nonce.length() < length )
+            {
+                nonce = pwmRequest.readCookie( cookieName );
+            }
+
+            boolean newNonce = false;
+            if ( nonce == null || nonce.length() < length )
+            {
+                // random value
+                final String random = pwmRequest.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
+
+                // timestamp component for uniqueness
+                final String prefix = Long.toString( System.currentTimeMillis(), Character.MAX_RADIX );
+
+                nonce = random + prefix;
+                newNonce = true;
+            }
+
+            final PwmSecurityKey securityKey = pwmRequest.getConfig().getSecurityKey();
+            final String concatValue = securityKey.keyHash( pwmRequest.getPwmApplication().getSecureService() ) + nonce;
+            final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( concatValue );
+            final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( hashValue );
+
+            if ( newNonce )
+            {
+                pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, nonce );
+                pwmRequest.getPwmResponse().writeCookie( cookieName, nonce, -1, PwmHttpResponseWrapper.CookiePath.Application );
+            }
+
+            return pwmSecurityKey;
+        }
+        finally
         {
-            // random value
-            final String random = pwmRequest.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
-
-            // timestamp component for uniqueness
-            final String prefix = Long.toString( System.currentTimeMillis(), Character.MAX_RADIX );
-
-            nonce = random + prefix;
-            newNonce = true;
+            securityKeyLock.unlock();
         }
-
-        final PwmSecurityKey securityKey = pwmRequest.getConfig().getSecurityKey();
-        final String concatValue = securityKey.keyHash( pwmRequest.getPwmApplication().getSecureService() ) + nonce;
-        final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( concatValue );
-        final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( hashValue );
-
-        if ( newNonce )
-        {
-            pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, nonce );
-            pwmRequest.getPwmResponse().writeCookie( cookieName, nonce, -1, PwmHttpResponseWrapper.CookiePath.Application );
-        }
-
-        return pwmSecurityKey;
     }
 }

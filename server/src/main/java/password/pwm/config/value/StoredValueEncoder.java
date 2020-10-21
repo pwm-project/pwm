@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -200,7 +200,7 @@ public abstract class StoredValueEncoder
             {
                 final String errorMsg = "unable to decrypt config password value for setting: " + e.getMessage();
                 final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
-                LOGGER.warn( errorInfo.toDebugStr() );
+                LOGGER.warn( () -> errorInfo.toDebugStr() );
                 throw new PwmOperationalException( errorInfo );
             }
         }
@@ -252,7 +252,7 @@ public abstract class StoredValueEncoder
             {
                 final String errorMsg = "unable to decrypt password value for setting: " + e.getMessage();
                 final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
-                LOGGER.warn( errorInfo.toDebugStr() );
+                LOGGER.warn( () -> errorInfo.toDebugStr() );
                 throw new PwmOperationalException( errorInfo );
             }
         }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import password.pwm.util.secure.SecureEngine;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 public abstract class InternalMacros
@@ -75,11 +76,13 @@ public abstract class InternalMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmSettingReference" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
                 throws MacroParseException
         {
@@ -88,12 +91,12 @@ public abstract class InternalMacros
             {
                 throw new MacroParseException( "PwmSettingReference macro requires a setting key value" );
             }
-            final PwmSetting setting = PwmSetting.forKey( settingKeyStr );
-            if ( setting == null )
+            final Optional<PwmSetting> setting = PwmSetting.forKey( settingKeyStr );
+            if ( !setting.isPresent() )
             {
                 throw new MacroParseException( "PwmSettingReference macro has unknown key value '" + settingKeyStr + "'" );
             }
-            return setting.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
+            return setting.get().toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
         }
     }
 
@@ -101,11 +104,13 @@ public abstract class InternalMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmSettingCategoryReference" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
                 throws MacroParseException
         {
@@ -114,11 +119,9 @@ public abstract class InternalMacros
             {
                 throw new MacroParseException( "PwmSettingCategoryReference macro requires a setting key value" );
             }
-            final PwmSettingCategory category = PwmSettingCategory.forKey( settingKeyStr );
-            if ( category == null )
-            {
-                throw new MacroParseException( "PwmSettingCategoryReference macro has unknown key value '" + settingKeyStr + "'" );
-            }
+            final PwmSettingCategory category = PwmSettingCategory.forKey( settingKeyStr )
+                    .orElseThrow( () -> new MacroParseException( "PwmSettingCategoryReference macro has unknown key value '" + settingKeyStr + "'" ) );
+
             return category.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
         }
     }
@@ -127,11 +130,13 @@ public abstract class InternalMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmContextPath@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
                 throws MacroParseException
         {
@@ -203,11 +208,13 @@ public abstract class InternalMacros
         }
 
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -315,11 +322,13 @@ public abstract class InternalMacros
         }
 
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -403,11 +412,13 @@ public abstract class InternalMacros
         }
 
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
@@ -445,11 +456,13 @@ public abstract class InternalMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmAppName@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
                 throws MacroParseException
         {
@@ -461,11 +474,13 @@ public abstract class InternalMacros
     {
         private static final Pattern PATTERN = Pattern.compile( "@PwmVendorName@" );
 
+        @Override
         public Pattern getRegExPattern( )
         {
             return PATTERN;
         }
 
+        @Override
         public String replaceValue( final String matchValue, final MacroRequestInfo macroRequestInfo )
                 throws MacroParseException
         {

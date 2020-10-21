@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ package password.pwm.svc.telemetry;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import lombok.Builder;
 import lombok.Getter;
+import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
 import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
@@ -79,7 +80,7 @@ public class TelemetryService implements PwmService
     private ErrorInformation lastError;
     private TelemetrySender sender;
 
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
 
 
     @Override
@@ -91,7 +92,6 @@ public class TelemetryService implements PwmService
     @Override
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
         if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING )
@@ -134,13 +134,9 @@ public class TelemetryService implements PwmService
             return;
         }
 
-        {
-            final Instant storedLastPublishTimestamp = pwmApplication.readAppAttribute( PwmApplication.AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, Instant.class );
-            lastPublishTime = storedLastPublishTimestamp != null
-                    ? storedLastPublishTimestamp
-                    : pwmApplication.getInstallTime();
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "last publish time was " + JavaHelper.toIsoDate( lastPublishTime ) );
-        }
+        lastPublishTime = pwmApplication.readAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, Instant.class )
+                .orElse( pwmApplication.getInstallTime() );
+        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "last publish time was " + JavaHelper.toIsoDate( lastPublishTime ) );
 
         executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, TelemetryService.class );
 
@@ -162,7 +158,7 @@ public class TelemetryService implements PwmService
         {
             final String senderClass = settings.getSenderImplementation();
             final Class theClass = Class.forName( senderClass );
-            telemetrySender = ( TelemetrySender ) theClass.newInstance();
+            telemetrySender = ( TelemetrySender ) theClass.getDeclaredConstructor().newInstance();
         }
         catch ( final Exception e )
         {
@@ -201,12 +197,12 @@ public class TelemetryService implements PwmService
             catch ( final PwmException e )
             {
                 lastError = e.getErrorInformation();
-                LOGGER.error( SessionLabel.TELEMETRY_SESSION_LABEL, "error sending telemetry data: " + e.getMessage() );
+                LOGGER.error( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "error sending telemetry data: " + e.getMessage() );
             }
         }
 
         lastPublishTime = Instant.now();
-        pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, lastPublishTime );
+        pwmApplication.writeAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, lastPublishTime );
         scheduleNextJob();
     }
 
@@ -232,7 +228,7 @@ public class TelemetryService implements PwmService
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "unexpected error during telemetry publish job: " + e.getMessage() );
+                LOGGER.error( () -> "unexpected error during telemetry publish job: " + e.getMessage() );
             }
         }
     }
@@ -258,7 +254,7 @@ public class TelemetryService implements PwmService
         {
             debugMap.put( "lastError", lastError.toDebugStr() );
         }
-        return new ServiceInfoBean( null, Collections.unmodifiableMap( debugMap ) );
+        return ServiceInfoBean.builder().debugProperties( debugMap ).build();
     }
 
 

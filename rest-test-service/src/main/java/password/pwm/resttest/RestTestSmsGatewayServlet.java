@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public class RestTestSmsGatewayServlet extends HttpServlet
     @Override
     protected void doPost( final HttpServletRequest req, final HttpServletResponse resp ) throws ServletException, IOException
     {
-            final SmsResponse instance = SmsResponse.getInstance();
+            final SmsResponse instance = new SmsResponse();
             final InputStream inputStream = req.getInputStream();
             final String body = IOUtils.toString( inputStream );
 
@@ -69,7 +69,7 @@ public class RestTestSmsGatewayServlet extends HttpServlet
     protected void doGet( final HttpServletRequest req, final HttpServletResponse resp ) throws IOException
     {
             //Check request
-            final SmsResponse instance = SmsResponse.getInstance();
+            final SmsResponse instance = new SmsResponse();
             final String requestUsername = req.getParameter( USERNAME_PARAMETER );
             final SmsGetResponseBody responseBody;
 

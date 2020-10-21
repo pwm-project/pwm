@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class LogoutServlet extends ControlledPwmServlet
     private static final String PARAM_PASSWORD_MODIFIED = "passwordModified";
     private static final String PARAM_PUBLIC_ONLY = "publicOnly";
 
-    private enum LogoutAction implements ControlledPwmServlet.ProcessAction
+    private enum LogoutAction implements ProcessAction
     {
         showLogout,
         showTimeout,;
@@ -107,6 +107,7 @@ public class LogoutServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    @Override
     public void nextStep(
             final PwmRequest pwmRequest
     )
@@ -219,7 +220,7 @@ public class LogoutServlet extends ControlledPwmServlet
             String path = uri.getPath();
             if ( path != null && path.startsWith( pwmRequest.getContextPath() ) )
             {
-                path = path.substring( pwmRequest.getContextPath().length(), path.length() );
+                path = path.substring( pwmRequest.getContextPath().length() );
 
             }
             PwmServletDefinition matchedServlet = null;

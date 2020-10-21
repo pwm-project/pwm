@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.ActionValue;
+import password.pwm.config.value.StoredValue;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -55,8 +57,9 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
         {
         } );
 
-        final ActionValue actionValue = ( ActionValue ) modifier.newStoredConfiguration().readSetting( pwmSetting, profile );
-        final ActionConfiguration action = ( actionValue.toNativeObject() ).get( extraDataMap.get( KEY_ITERATION ) );
+        final StoredValue actionValue = modifier.newStoredConfiguration().readSetting( pwmSetting, profile );
+        final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( pwmSetting, actionValue );
+        final ActionConfiguration action = actionConfigurations.get( extraDataMap.get( KEY_ITERATION ) );
         final ActionConfiguration.WebAction webAction = action.getWebActions().get( extraDataMap.get( KEY_WEB_ACTION_ITERATION ) );
 
         final String uriString = webAction.getUrl();
@@ -83,6 +86,7 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
         return uriString;
     }
 
+    @Override
     void store(
             final List<X509Certificate> certs,
             final StoredConfigurationModifier storedConfiguration,
@@ -97,8 +101,8 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
         {
         } );
 
-        final ActionValue actionValue = ( ActionValue ) storedConfiguration.newStoredConfiguration().readSetting( pwmSetting, profile );
-        final List<ActionConfiguration> actionConfigurations = actionValue.toNativeObject();
+        final StoredValue actionValue = storedConfiguration.newStoredConfiguration().readSetting( pwmSetting, profile );
+        final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( pwmSetting, actionValue );
         final ActionConfiguration action = actionConfigurations.get( extraDataMap.get( KEY_ITERATION ) );
         final ActionConfiguration.WebAction webAction = action.getWebActions().get( extraDataMap.get( KEY_WEB_ACTION_ITERATION ) );
 

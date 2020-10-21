@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,21 +22,22 @@ package password.pwm.util.db;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
+import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-@Getter
+@Value
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class DBConfiguration implements Serializable
 {
@@ -46,16 +47,16 @@ public class DBConfiguration implements Serializable
     private final PasswordData password;
     private final String columnTypeKey;
     private final String columnTypeValue;
-    private final byte[] jdbcDriver;
-    private final List<JDBCDriverLoader.ClassLoaderStrategy> classLoaderStrategies;
+    private final ImmutableByteArray jdbcDriver;
+    private final Set<JDBCDriverLoader.ClassLoaderStrategy> classLoaderStrategies;
     private final int maxConnections;
     private final int connectionTimeout;
     private final int keyColumnLength;
     private final boolean failOnIndexCreation;
 
-    public byte[] getJdbcDriver( )
+    public ImmutableByteArray getJdbcDriver( )
     {
-        return jdbcDriver == null ? null : Arrays.copyOf( jdbcDriver, jdbcDriver.length );
+        return jdbcDriver;
     }
 
     public boolean isEnabled( )
@@ -71,11 +72,11 @@ public class DBConfiguration implements Serializable
     {
         final Map<FileValue.FileInformation, FileValue.FileContent> fileValue = config.readSettingAsFile(
                 PwmSetting.DATABASE_JDBC_DRIVER );
-        final byte[] jdbcDriverBytes;
+        final ImmutableByteArray jdbcDriverBytes;
         if ( fileValue != null && !fileValue.isEmpty() )
         {
             final FileValue.FileContent fileContent = fileValue.values().iterator().next();
-            jdbcDriverBytes = fileContent.getContents().copyOf();
+            jdbcDriverBytes = fileContent.getContents();
         }
         else
         {
@@ -83,7 +84,7 @@ public class DBConfiguration implements Serializable
         }
 
         final String strategyList = config.readAppProperty( AppProperty.DB_JDBC_LOAD_STRATEGY );
-        final List<JDBCDriverLoader.ClassLoaderStrategy> strategies = JavaHelper.readEnumListFromStringCollection(
+        final Set<JDBCDriverLoader.ClassLoaderStrategy> strategies = JavaHelper.readEnumSetFromStringCollection(
                 JDBCDriverLoader.ClassLoaderStrategy.class,
                 Arrays.asList( strategyList.split( "," ) )
         );

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,12 +40,14 @@ public class PwmScriptTag extends BodyTagSupport
     // match start and end <script> tags
     private static final Pattern SCRIPT_TAG_PATTERN = Pattern.compile( "<\\s*script.*?>|<\\s*\\/\\s*script\\s*.*?>" );
 
+    @Override
     public int doStartTag( )
             throws JspException
     {
         return EVAL_BODY_BUFFERED;
     }
 
+    @Override
     public int doAfterBody( )
     {
         try
@@ -64,11 +66,11 @@ public class PwmScriptTag extends BodyTagSupport
         }
         catch ( final IOException e )
         {
-            LOGGER.error( "IO error while processing PwmScriptTag: " + e.getMessage() );
+            LOGGER.error( () -> "IO error while processing PwmScriptTag: " + e.getMessage() );
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "error while processing PwmScriptTag: " + e.getMessage() );
+            LOGGER.error( () -> "error while processing PwmScriptTag: " + e.getMessage() );
         }
         return SKIP_BODY;
     }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,27 +39,32 @@ class ZipFileResource implements FileResource
         this.zipEntry = zipEntry;
     }
 
+    @Override
     public InputStream getInputStream( )
             throws IOException
     {
         return zipFile.getInputStream( zipEntry );
     }
 
+    @Override
     public long length( )
     {
         return zipEntry.getSize();
     }
 
+    @Override
     public long lastModified( )
     {
         return zipEntry.getTime();
     }
 
+    @Override
     public boolean exists( )
     {
         return zipEntry != null && zipFile != null;
     }
 
+    @Override
     public String getName( )
     {
         return zipFile.getName() + ":" + zipEntry.getName();

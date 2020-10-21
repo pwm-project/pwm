@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 package password.pwm.svc.wordlist;
 
+import password.pwm.AppAttribute;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -117,19 +118,15 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
     @Override
     public WordlistStatus readWordlistStatus()
     {
-        final PwmApplication.AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
-        final WordlistStatus storedValue = pwmApplication.readAppAttribute( appAttribute, WordlistStatus.class );
-        if ( storedValue != null )
-        {
-            return storedValue;
-        }
-        return WordlistStatus.builder().build();
+        final AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
+        return pwmApplication.readAppAttribute( appAttribute, WordlistStatus.class )
+                .orElseGet( () -> WordlistStatus.builder().build() );
     }
 
     @Override
     public void writeWordlistStatus( final WordlistStatus wordlistStatus )
     {
-        final PwmApplication.AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
+        final AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
         pwmApplication.writeAppAttribute( appAttribute, wordlistStatus );
     }
 

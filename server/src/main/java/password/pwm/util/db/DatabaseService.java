@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class DatabaseService implements PwmService
     private ErrorInformation lastError;
     private PwmApplication pwmApplication;
 
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
 
     private AtomicLoopIntIncrementer slotIncrementer;
     private final Map<Integer, DatabaseAccessorImpl> accessors = new ConcurrentHashMap<>();
@@ -125,7 +125,6 @@ public class DatabaseService implements PwmService
         }
 
         final Instant startTime = Instant.now();
-        status = STATUS.OPENING;
 
         try
         {
@@ -179,10 +178,9 @@ public class DatabaseService implements PwmService
         catch ( final Throwable t )
         {
             final String errorMsg = "exception initializing database service: " + t.getMessage();
-            LOGGER.warn( errorMsg );
+            LOGGER.warn( () -> errorMsg );
             initialized = false;
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
-            lastError = errorInformation;
+            lastError = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
         }
     }
 
@@ -223,6 +221,7 @@ public class DatabaseService implements PwmService
         accessors.clear();
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         if ( status == PwmService.STATUS.CLOSED )
@@ -304,14 +303,16 @@ public class DatabaseService implements PwmService
             final DatabaseAboutProperty databaseAboutProperty = entry.getKey();
             debugProperties.put( databaseAboutProperty.name(), entry.getValue() );
         }
+
         if ( status() == STATUS.OPEN )
         {
-            return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.DB ), debugProperties );
+            return ServiceInfoBean.builder()
+                    .storageMethod( DataStorageMethod.DB )
+                    .debugProperties( debugProperties )
+                    .build();
         }
-        else
-        {
-            return new ServiceInfoBean( Collections.emptyList(), debugProperties );
-        }
+
+        return ServiceInfoBean.builder().debugProperties( debugProperties ).build();
     }
 
     public DatabaseAccessor getAccessor( )
@@ -415,7 +416,7 @@ public class DatabaseService implements PwmService
             }
             catch ( final SQLException e )
             {
-                LOGGER.error( "error reading jdbc meta data: " + e.getMessage() );
+                LOGGER.error( () -> "error reading jdbc meta data: " + e.getMessage() );
             }
         }
     }
@@ -443,7 +444,7 @@ public class DatabaseService implements PwmService
                 }
                 if ( !valid )
                 {
-                    LOGGER.warn( "database connection lost; will retry connect periodically" );
+                    LOGGER.warn( () -> "database connection lost; will retry connect periodically" );
                     initialized = false;
                 }
 

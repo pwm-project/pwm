@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ class RecordManagerImpl implements RecordManager
         this.settings = settings;
     }
 
+    @Override
     public boolean checkSubject( final String subject )
     {
         if ( subject == null || subject.length() < 1 )
@@ -71,6 +72,7 @@ class RecordManagerImpl implements RecordManager
         return false;
     }
 
+    @Override
     public void markSubject( final String subject )
     {
         if ( subject == null || subject.length() < 1 )
@@ -98,6 +100,7 @@ class RecordManagerImpl implements RecordManager
         writeIntruderRecord( record );
     }
 
+    @Override
     public void clearSubject( final String subject )
     {
         final IntruderRecord record = readIntruderRecord( subject );
@@ -115,12 +118,14 @@ class RecordManagerImpl implements RecordManager
         writeIntruderRecord( record );
     }
 
+    @Override
     public boolean isAlerted( final String subject )
     {
         final IntruderRecord record = readIntruderRecord( subject );
         return record != null && record.isAlerted();
     }
 
+    @Override
     public void markAlerted( final String subject )
     {
         final IntruderRecord record = readIntruderRecord( subject );
@@ -141,7 +146,7 @@ class RecordManagerImpl implements RecordManager
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( "unable to read read intruder record from storage: " + e.getMessage() );
+            LOGGER.error( () -> "unable to read read intruder record from storage: " + e.getMessage() );
         }
         return null;
     }
@@ -154,7 +159,7 @@ class RecordManagerImpl implements RecordManager
         }
         catch ( final PwmException e )
         {
-            LOGGER.warn( "unexpected error attempting to write intruder record " + JsonUtil.serialize( intruderRecord ) + ", error: " + e.getMessage() );
+            LOGGER.warn( () -> "unexpected error attempting to write intruder record " + JsonUtil.serialize( intruderRecord ) + ", error: " + e.getMessage() );
         }
     }
 
@@ -188,11 +193,13 @@ class RecordManagerImpl implements RecordManager
             this.innerIter = recordIterator;
         }
 
+        @Override
         public boolean hasNext( )
         {
             return innerIter.hasNext();
         }
 
+        @Override
         public IntruderRecord next( )
         {
             IntruderRecord record = null;
@@ -203,10 +210,12 @@ class RecordManagerImpl implements RecordManager
             return record;
         }
 
+        @Override
         public void remove( )
         {
         }
 
+        @Override
         public void close( )
         {
             innerIter.close();

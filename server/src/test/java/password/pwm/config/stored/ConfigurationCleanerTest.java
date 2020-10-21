@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,9 +49,9 @@ public class ConfigurationCleanerTest
     {
         //PwmLogger.disableAllLogging();
 
-        try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ); )
+        try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ) )
         {
-            final StoredConfiguration storedConfiguration = StoredConfigurationFactory.fromXml( xmlFile );
+            final StoredConfiguration storedConfiguration = StoredConfigurationFactory.input( xmlFile );
             configuration = new Configuration( storedConfiguration );
         }
     }

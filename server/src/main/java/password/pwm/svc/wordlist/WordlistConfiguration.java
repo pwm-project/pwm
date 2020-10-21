@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Value;
+import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
@@ -47,6 +47,8 @@ import java.util.function.Supplier;
 @Builder( toBuilder = true )
 public class WordlistConfiguration implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     static final int STREAM_BUFFER_SIZE = 1_1024_1024;
     static final PwmHashAlgorithm HASH_ALGORITHM = PwmHashAlgorithm.SHA256;
 
@@ -55,7 +57,7 @@ public class WordlistConfiguration implements Serializable
     private final String autoImportUrl;
     private final int minWordSize;
     private final int maxWordSize;
-    private final PwmApplication.AppAttribute metaDataAppAttribute;
+    private final AppAttribute metaDataAppAttribute;
     private final AppProperty builtInWordlistLocationProperty;
     private final LocalDB.DB db;
     private final PwmSetting wordlistFilenameSetting;
@@ -82,9 +84,9 @@ public class WordlistConfiguration implements Serializable
         {
             case SEEDLIST:
             {
-                return commonBuilder( configuration, type ).toBuilder()
+                return commonBuilder( configuration ).toBuilder()
                         .autoImportUrl( readAutoImportUrl( configuration, PwmSetting.SEEDLIST_FILENAME ) )
-                        .metaDataAppAttribute( PwmApplication.AppAttribute.SEEDLIST_METADATA )
+                        .metaDataAppAttribute( AppAttribute.SEEDLIST_METADATA )
                         .builtInWordlistLocationProperty( AppProperty.SEEDLIST_BUILTIN_PATH )
                         .db( LocalDB.DB.SEEDLIST_WORDS )
                         .wordlistFilenameSetting( PwmSetting.SEEDLIST_FILENAME )
@@ -93,11 +95,11 @@ public class WordlistConfiguration implements Serializable
 
             case WORDLIST:
             {
-                return commonBuilder( configuration, type ).toBuilder()
+                return commonBuilder( configuration ).toBuilder()
                         .caseSensitive( configuration.readSettingAsBoolean( PwmSetting.WORDLIST_CASE_SENSITIVE )  )
                         .checkSize( (int) configuration.readSettingAsLong( PwmSetting.PASSWORD_WORDLIST_WORDSIZE ) )
                         .autoImportUrl( readAutoImportUrl( configuration, PwmSetting.WORDLIST_FILENAME ) )
-                        .metaDataAppAttribute( PwmApplication.AppAttribute.WORDLIST_METADATA )
+                        .metaDataAppAttribute( AppAttribute.WORDLIST_METADATA )
                         .builtInWordlistLocationProperty( AppProperty.WORDLIST_BUILTIN_PATH )
                         .db( LocalDB.DB.WORDLIST_WORDS )
                         .wordlistFilenameSetting( PwmSetting.WORDLIST_FILENAME )
@@ -112,8 +114,7 @@ public class WordlistConfiguration implements Serializable
     }
 
     private static WordlistConfiguration commonBuilder(
-            final Configuration configuration,
-            final WordlistType type
+            final Configuration configuration
     )
     {
         return WordlistConfiguration.builder()

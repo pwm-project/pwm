@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,16 @@
 
 package password.pwm.http.servlet.configmanager;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
@@ -49,7 +49,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -76,12 +75,14 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
         }
     }
 
+    @Override
     protected ConfigManagerCertificateAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
@@ -95,15 +96,16 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
         }
     }
 
+    @Override
     protected void processAction( final PwmRequest pwmRequest )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+            throws ServletException, IOException, PwmUnrecoverableException
     {
         ConfigManagerServlet.verifyConfigAccess( pwmRequest );
 
         final ConfigManagerCertificateAction action = readProcessAction( pwmRequest );
         final ArrayList<CertificateDebugDataItem> certificateDebugDataItems = new ArrayList<>( makeCertificateDebugData( pwmRequest.getConfig() ) );
 
-        if ( action != null && action == ConfigManagerCertificateAction.certificateData )
+        if ( action == ConfigManagerCertificateAction.certificateData )
         {
             final RestResultBean restResultBean = RestResultBean.withData( certificateDebugDataItems );
             pwmRequest.outputJsonResult( restResultBean );
@@ -124,34 +126,17 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
         {
             if ( ref.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
             {
-                final PwmSetting pwmSetting = PwmSetting.forKey( ref.getRecordID() );
+                final PwmSetting pwmSetting = ref.toPwmSetting();
                 if ( pwmSetting.getSyntax() == PwmSettingSyntax.X509CERT )
                 {
-                    final StoredValue storedValue;
-                    if ( pwmSetting.getCategory().hasProfiles() )
-                    {
-                        storedValue = storedConfiguration.readSetting( pwmSetting, ref.getProfileID() );
-                    }
-                    else
-                    {
-                        storedValue = storedConfiguration.readSetting( pwmSetting, null );
-                    }
-                    final X509Certificate[] arrayCerts = ( X509Certificate[] ) storedValue.toNativeObject();
-                    final List<X509Certificate> certificates = arrayCerts == null ? Collections.emptyList() : Arrays.asList( arrayCerts );
+                    final StoredValue storedValue = storedConfiguration.readSetting( pwmSetting, ref.getProfileID() );
+                    final List<X509Certificate> certificates = ValueTypeConverter.valueToX509Certificates( pwmSetting, storedValue );
                     certificateDebugDataItems.addAll( makeItems( pwmSetting, ref.getProfileID(), certificates ) );
                 }
                 else if ( pwmSetting.getSyntax() == PwmSettingSyntax.ACTION )
                 {
-                    final StoredValue storedValue;
-                    if ( pwmSetting.getCategory().hasProfiles() )
-                    {
-                        storedValue = storedConfiguration.readSetting( pwmSetting, ref.getProfileID() );
-                    }
-                    else
-                    {
-                        storedValue = storedConfiguration.readSetting( pwmSetting, null );
-                    }
-                    final List<ActionConfiguration> actionConfigurations = ( List ) storedValue.toNativeObject();
+                    final StoredValue storedValue = storedConfiguration.readSetting( pwmSetting, ref.getProfileID() );
+                    final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( pwmSetting, storedValue );
                     for ( final ActionConfiguration actionConfiguration : actionConfigurations )
                     {
                         for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
@@ -172,7 +157,8 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
             final PwmSetting setting,
             final String profileId,
             final List<X509Certificate> certificates
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         if ( certificates == null )
         {
@@ -208,14 +194,14 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
         }
         catch ( final CertificateEncodingException e )
         {
-            LOGGER.error( "unexpected error parsing certificate detail text: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error parsing certificate detail text: " + e.getMessage() );
         }
         return builder.build();
     }
 
     @Value
     @Builder
-    public static class CertificateDebugDataItem implements Serializable, Comparable
+    public static class CertificateDebugDataItem implements Serializable, Comparable<CertificateDebugDataItem>
     {
         private String menuLocation;
         private String subject;
@@ -226,14 +212,14 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
         private String detail;
 
         @Override
-        public int compareTo( final Object o )
+        public int compareTo( final CertificateDebugDataItem o )
         {
             if ( this == o || this.equals( o ) )
             {
                 return 0;
             }
 
-            return expirationDate.compareTo( ( ( CertificateDebugDataItem ) o ).getExpirationDate() );
+            return expirationDate.compareTo( o.getExpirationDate() );
         }
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PwmScheduler;
@@ -48,10 +49,11 @@ import java.io.Writer;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Iterator;
+import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -155,17 +157,16 @@ public class PwNotifyEngine
             }
 
             log( "starting job, beginning ldap search" );
-            final Iterator<UserIdentity> workQueue = LdapOperationsHelper.readUsersFromLdapForPermissions(
+            final Queue<UserIdentity> workQueue = new ArrayDeque<>( UserPermissionUtility.discoverMatchingUsers(
                     pwmApplication,
-                    SESSION_LABEL,
-                    permissionList,
-                    settings.getMaxLdapSearchSize()
-            );
+                    permissionList, SESSION_LABEL, settings.getMaxLdapSearchSize(),
+                    settings.getSearchTimeout()
+            ) );
 
             log( "ldap search complete, examining users..." );
 
             final ThreadPoolExecutor threadPoolExecutor = createExecutor( pwmApplication );
-            while ( workQueue.hasNext() )
+            while ( workQueue.peek() != null )
             {
                 if ( !checkIfRunningOnMaster() || cancelFlag.get() )
                 {
@@ -174,7 +175,7 @@ public class PwNotifyEngine
                     throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, msg );
                 }
 
-                threadPoolExecutor.submit( new ProcessJob( workQueue.next() ) );
+                threadPoolExecutor.submit( new ProcessJob( workQueue.poll() ) );
             }
 
             JavaHelper.closeAndWaitExecutor( threadPoolExecutor, TimeDuration.DAY );
@@ -358,7 +359,7 @@ public class PwNotifyEngine
             }
             catch ( final IOException e )
             {
-                LOGGER.warn( SessionLabel.PWNOTIFY_SESSION_LABEL, "unexpected IO error writing to debugWriter: " + e.getMessage() );
+                LOGGER.warn( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> "unexpected IO error writing to debugWriter: " + e.getMessage() );
             }
         }
 

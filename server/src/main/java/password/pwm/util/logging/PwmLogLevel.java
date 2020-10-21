@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public enum PwmLogLevel
         this.log4jLevel = log4jLevel;
     }
 
-    private Level log4jLevel;
+    private final Level log4jLevel;
 
     public Level getLog4jLevel( )
     {
@@ -50,27 +50,27 @@ public enum PwmLogLevel
             return null;
         }
 
-        if ( level == Level.TRACE )
+        if ( Level.TRACE.equals( level ) )
         {
             return TRACE;
         }
-        else if ( level == Level.DEBUG )
+        else if ( Level.DEBUG.equals( level ) )
         {
             return DEBUG;
         }
-        else if ( level == Level.INFO )
+        else if ( Level.INFO.equals( level ) )
         {
             return INFO;
         }
-        else if ( level == Level.WARN )
+        else if ( Level.WARN.equals( level ) )
         {
             return WARN;
         }
-        else if ( level == Level.ERROR )
+        else if ( Level.ERROR.equals( level ) )
         {
             return ERROR;
         }
-        else if ( level == Level.FATAL )
+        else if ( Level.FATAL.equals( level ) )
         {
             return FATAL;
         }

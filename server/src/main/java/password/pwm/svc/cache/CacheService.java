@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ package password.pwm.svc.cache;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmApplicationMode;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -49,7 +49,7 @@ public class CacheService implements PwmService
 
     private MemoryCacheStore memoryCacheStore;
 
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
 
     private ConditionalTaskExecutor traceDebugOutputter;
 
@@ -71,21 +71,6 @@ public class CacheService implements PwmService
             return;
         }
 
-        if ( pwmApplication.getLocalDB() == null )
-        {
-            LOGGER.debug( () -> "skipping cache service init due to localDB not being available" );
-            status = STATUS.CLOSED;
-            return;
-        }
-
-        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
-        {
-            LOGGER.debug( () -> "skipping cache service init due to read-only application mode" );
-            status = STATUS.CLOSED;
-            return;
-        }
-
-        status = STATUS.OPENING;
         final int maxMemItems = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_MEMORY_MAX_ITEMS ) );
         memoryCacheStore = new MemoryCacheStore( maxMemItems );
         this.traceDebugOutputter = new ConditionalTaskExecutor(
@@ -112,21 +97,21 @@ public class CacheService implements PwmService
     {
         if ( status == STATUS.CLOSED )
         {
-            return new ServiceInfoBean( Collections.emptyList(), Collections.emptyMap() );
+            return ServiceInfoBean.builder().build();
         }
 
         final Map<String, String> debugInfo = new TreeMap<>( );
         debugInfo.put( "itemCount", String.valueOf( memoryCacheStore.itemCount() ) );
         debugInfo.put( "byteCount", String.valueOf( memoryCacheStore.byteCount() ) );
-        debugInfo.putAll( JsonUtil.deserializeStringMap( JsonUtil.serialize( memoryCacheStore.getCacheStoreInfo() ) ) );
+        debugInfo.putAll( JsonUtil.deserializeStringMap( JsonUtil.serializeMap( memoryCacheStore.getCacheStoreInfo().debugStats() ) ) );
         debugInfo.putAll( JsonUtil.deserializeStringMap( JsonUtil.serializeMap( memoryCacheStore.storedClassHistogram( "histogram." ) ) ) );
-        return new ServiceInfoBean( Collections.emptyList(), debugInfo );
+        return ServiceInfoBean.builder().debugProperties( debugInfo ).build();
     }
 
     public Map<String, Serializable> debugInfo( )
     {
         final Map<String, Serializable> debugInfo = new LinkedHashMap<>( );
-        debugInfo.put( "memory-statistics", memoryCacheStore.getCacheStoreInfo() );
+        debugInfo.put( "memory-statistics", JsonUtil.serializeMap( memoryCacheStore.getCacheStoreInfo().debugStats() ) );
         debugInfo.put( "memory-items", new ArrayList<Serializable>( memoryCacheStore.getCacheDebugItems() ) );
         debugInfo.put( "memory-histogram", new HashMap<>( memoryCacheStore.storedClassHistogram( "" ) ) );
         return Collections.unmodifiableMap( debugInfo );
@@ -195,9 +180,9 @@ public class CacheService implements PwmService
         final StringBuilder traceOutput = new StringBuilder();
         if ( memoryCacheStore != null )
         {
-            final CacheStoreInfo info = memoryCacheStore.getCacheStoreInfo();
+            final StatisticCounterBundle<CacheStore.DebugKey> info = memoryCacheStore.getCacheStoreInfo();
             traceOutput.append( "memCache=" );
-            traceOutput.append( JsonUtil.serialize( info ) );
+            traceOutput.append( JsonUtil.serializeMap( info.debugStats() ) );
             traceOutput.append( ", histogram=" );
             traceOutput.append( JsonUtil.serializeMap( memoryCacheStore.storedClassHistogram( "" ) ) );
         }

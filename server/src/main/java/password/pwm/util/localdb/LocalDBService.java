@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +78,10 @@ public class LocalDBService implements PwmService
                 returnInfo.put( entry.getKey(), String.valueOf( entry.getValue() ) );
             }
         }
-        return new ServiceInfoBean( Collections.singleton( DataStorageMethod.LOCALDB ), Collections.unmodifiableMap( returnInfo ) );
+
+        return ServiceInfoBean.builder()
+                .storageMethod( DataStorageMethod.LOCALDB )
+                .debugProperties( returnInfo )
+                .build();
     }
 }

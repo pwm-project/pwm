@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import password.pwm.PwmConstants;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
@@ -153,7 +155,7 @@ public abstract class StringUtil
                 final String key = loopStr.substring( 0, separatorLocation );
                 if ( !key.trim().isEmpty() )
                 {
-                    final String value = loopStr.substring( separatorLocation + separator.length(), loopStr.length() );
+                    final String value = loopStr.substring( separatorLocation + separator.length() );
                     returnMap.put( key, value );
                 }
             }
@@ -291,7 +293,7 @@ public abstract class StringUtil
         }
         catch ( final UnsupportedEncodingException e )
         {
-            LOGGER.error( "unexpected error during url encoding: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error during url encoding: " + e.getMessage() );
             return input;
         }
     }
@@ -304,7 +306,7 @@ public abstract class StringUtil
         }
         catch ( final UnsupportedEncodingException e )
         {
-            LOGGER.error( "unexpected error during url decoding: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error during url decoding: " + e.getMessage() );
             return input;
         }
     }
@@ -350,7 +352,17 @@ public abstract class StringUtil
         }
     }
 
-    public static String padEndToLength( final String input, final int length, final char appendChar )
+    public static String padRight( final String input, final int length, final char appendChar )
+    {
+        return padImpl( input, length, appendChar, true );
+    }
+
+    public static String padLeft( final String input, final int length, final char appendChar )
+    {
+        return padImpl( input, length, appendChar, false );
+    }
+
+    private static String padImpl( final String input, final int length, final char appendChar, final boolean right )
     {
         if ( input == null )
         {
@@ -365,7 +377,14 @@ public abstract class StringUtil
         final StringBuilder sb = new StringBuilder( input );
         while ( sb.length() < length )
         {
-            sb.append( appendChar );
+            if ( right )
+            {
+                sb.append( appendChar );
+            }
+            else
+            {
+                sb.insert( 0, appendChar );
+            }
         }
 
         return sb.toString();
@@ -492,6 +511,11 @@ public abstract class StringUtil
     public static boolean isEmpty( final CharSequence input )
     {
         return StringUtils.isEmpty( input );
+    }
+
+    public static boolean isTrimEmpty( final String input )
+    {
+        return isEmpty( input ) || input.trim().length() == 0;
     }
 
     public static String defaultString( final String input, final String defaultStr )
@@ -623,5 +647,22 @@ public abstract class StringUtil
         }
 
         return false;
+    }
+
+    public static void validateLdapSearchFilter( final String filter )
+            throws PwmUnrecoverableException
+    {
+        if ( filter == null || filter.isEmpty() )
+        {
+            return;
+        }
+
+        final int leftParens = StringUtils.countMatches( filter, "(" );
+        final int rightParens = StringUtils.countMatches( filter, ")" );
+
+        if ( leftParens != rightParens )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.CONFIG_FORMAT_ERROR, "unbalanced parentheses in ldap filter" );
+        }
     }
 }

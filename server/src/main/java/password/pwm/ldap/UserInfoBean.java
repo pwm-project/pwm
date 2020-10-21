@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ package password.pwm.ldap;
 import com.novell.ldapchai.impl.edir.entry.EdirEntries;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Singular;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
@@ -35,7 +36,6 @@ import password.pwm.util.operations.otp.OTPUserRecord;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,14 +59,14 @@ public class UserInfoBean implements UserInfo
     /**
      * A listing of all readable attributes on the ldap user object.
      */
-    @Builder.Default
-    private final Map<String, String> cachedPasswordRuleAttributes = Collections.emptyMap();
+    @Singular
+    private final Map<String, String> cachedPasswordRuleAttributes;
 
-    @Builder.Default
-    private final Map<String, String> cachedAttributeValues = Collections.emptyMap();
+    @Singular
+    private final Map<String, String> cachedAttributeValues;
 
-    @Builder.Default
-    private final Map<ProfileDefinition, String> profileIDs = new HashMap<>();
+    @Singular
+    private final Map<ProfileDefinition, String> profileIDs;
 
     @Builder.Default
     private final PasswordStatus passwordStatus = PasswordStatus.builder().build();
@@ -97,8 +97,8 @@ public class UserInfoBean implements UserInfo
     private final boolean requiresInteraction;
     private final boolean withinPasswordMinimumLifetime;
 
-    @Builder.Default
-    private Map<String, String> attributes = Collections.emptyMap();
+    @Singular
+    private final Map<String, String> attributes;
 
     @Override
     public String readStringAttribute( final String attribute ) throws PwmUnrecoverableException

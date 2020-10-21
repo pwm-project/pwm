@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -101,7 +102,6 @@ import java.security.Security;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -165,12 +165,12 @@ public class NMASCrOperator implements CrOperator
         {
             if ( forceRegistration )
             {
-                LOGGER.warn( "SASL provider '" + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + "' is already defined, however forcing registration due to app property "
+                LOGGER.warn( () -> "SASL provider '" + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + "' is already defined, however forcing registration due to app property "
                         + AppProperty.NMAS_FORCE_SASL_FACTORY_REGISTRATION.getKey() + " value" );
             }
             else
             {
-                LOGGER.warn( "SASL provider '" + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + "' is already defined, skipping SASL factory registration" );
+                LOGGER.warn( () -> "SASL provider '" + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + "' is already defined, skipping SASL factory registration" );
                 return;
             }
         }
@@ -197,7 +197,7 @@ public class NMASCrOperator implements CrOperator
         }
         catch ( final Throwable t )
         {
-            LOGGER.warn( "unable to create SASL provider, error: " + t.getMessage(), t );
+            LOGGER.warn( () -> "unable to create SASL provider, error: " + t.getMessage(), t );
         }
 
         if ( saslProvider != null )
@@ -208,7 +208,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( "error registering security provider" );
+                LOGGER.warn( () -> "error registering security provider" );
             }
         }
     }
@@ -224,7 +224,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( "error removing provider " + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + ", error: " + e.getMessage() );
+                LOGGER.warn( () -> "error removing provider " + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + ", error: " + e.getMessage() );
             }
         }
     }
@@ -257,6 +257,7 @@ public class NMASCrOperator implements CrOperator
         }
     }
 
+    @Override
     public void close( )
     {
         unregisterSaslProvider();
@@ -269,7 +270,9 @@ public class NMASCrOperator implements CrOperator
         }
     }
 
+    @Override
     public ResponseSet readResponseSet(
+            final SessionLabel sessionLabel,
             final ChaiUser theUser,
             final UserIdentity userIdentity,
             final String userGuid
@@ -304,14 +307,19 @@ public class NMASCrOperator implements CrOperator
     }
 
     @Override
-    public ResponseInfoBean readResponseInfo( final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
+    public ResponseInfoBean readResponseInfo(
+            final SessionLabel sessionLabel,
+            final ChaiUser theUser,
+            final UserIdentity userIdentity,
+            final String userGUID
+    )
             throws PwmUnrecoverableException
     {
         try
         {
             if ( theUser.getChaiProvider().getDirectoryVendor() != DirectoryVendor.EDIRECTORY )
             {
-                LOGGER.debug( () -> "skipping request to read NMAS responses for " + userIdentity + ", directory type is not eDirectory" );
+                LOGGER.debug( sessionLabel, () -> "skipping request to read NMAS responses for " + userIdentity + ", directory type is not eDirectory" );
                 return null;
             }
 
@@ -330,8 +338,11 @@ public class NMASCrOperator implements CrOperator
         }
     }
 
+    @Override
     public void clearResponses(
-            final UserIdentity userIdentity, final ChaiUser theUser,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity,
+            final ChaiUser theUser,
             final String user
     )
             throws PwmUnrecoverableException
@@ -341,21 +352,22 @@ public class NMASCrOperator implements CrOperator
             if ( theUser.getChaiProvider().getDirectoryVendor() == DirectoryVendor.EDIRECTORY )
             {
                 NmasCrFactory.clearResponseSet( theUser );
-                LOGGER.info( () -> "cleared responses for user " + theUser.getEntryDN() + " using NMAS method " );
+                LOGGER.info( sessionLabel, () -> "cleared responses for user " + theUser.getEntryDN() + " using NMAS method " );
             }
         }
         catch ( final ChaiException e )
         {
             final String errorMsg = "error clearing responses from nmas: " + e.getMessage();
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CLEARING_RESPONSES, errorMsg );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( e );
-            throw pwmOE;
+            throw new PwmUnrecoverableException( errorInfo, e );
         }
     }
 
+    @Override
     public void writeResponses(
-            final UserIdentity userIdentity, final ChaiUser theUser,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity,
+            final ChaiUser theUser,
             final String userGuid,
             final ResponseInfoBean responseInfoBean
     )
@@ -374,16 +386,14 @@ public class NMASCrOperator implements CrOperator
                         responseInfoBean.getCsIdentifier()
                 );
                 NmasCrFactory.writeResponseSet( nmasResponseSet );
-                LOGGER.info( () -> "saved responses for user using NMAS method " );
+                LOGGER.info( sessionLabel, () -> "saved responses for user using NMAS method " );
             }
         }
         catch ( final ChaiException e )
         {
             final String errorMsg = "error writing responses to nmas: " + e.getMessage();
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( e );
-            throw pwmOE;
+            throw new PwmUnrecoverableException( errorInfo, e );
         }
     }
 
@@ -499,6 +509,7 @@ public class NMASCrOperator implements CrOperator
             return ( LDAPConnection ) ( ( ChaiProviderImplementor ) chaiProvider ).getConnectionObject();
         }
 
+        @Override
         public ChallengeSet getChallengeSet( ) throws ChaiValidationException
         {
             if ( passed )
@@ -508,11 +519,13 @@ public class NMASCrOperator implements CrOperator
             return challengeSet;
         }
 
+        @Override
         public ChallengeSet getPresentableChallengeSet( ) throws ChaiValidationException
         {
             return getChallengeSet();
         }
 
+        @Override
         public boolean meetsChallengeSetRequirements( final ChallengeSet challengeSet ) throws ChaiValidationException
         {
             if ( challengeSet.getRequiredChallenges().size() > this.getChallengeSet().getRequiredChallenges().size() )
@@ -547,11 +560,13 @@ public class NMASCrOperator implements CrOperator
             return true;
         }
 
+        @Override
         public String stringValue( ) throws UnsupportedOperationException, ChaiOperationException
         {
             throw new UnsupportedOperationException( "not supported" );
         }
 
+        @Override
         public boolean test( final Map<Challenge, String> challengeStringMap )
                 throws ChaiUnavailableException
         {
@@ -559,7 +574,7 @@ public class NMASCrOperator implements CrOperator
             {
                 throw new IllegalStateException( "test may not be called after success returned" );
             }
-            final List<String> answers = new ArrayList<>( challengeStringMap == null ? Collections.<String>emptyList() : challengeStringMap.values() );
+            final List<String> answers = new ArrayList<>( challengeStringMap == null ? Collections.emptyList() : challengeStringMap.values() );
             if ( answers.isEmpty() || answers.size() < challengeSet.minimumResponses() )
             {
                 return false;
@@ -577,7 +592,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error testing responses: " + e.getMessage() );
+                LOGGER.error( () -> "error testing responses: " + e.getMessage() );
             }
             if ( !passed )
             {
@@ -594,7 +609,7 @@ public class NMASCrOperator implements CrOperator
                 catch ( final PwmException e )
                 {
                     final String errorMsg = "error reading next challenges after testing responses: " + e.getMessage();
-                    LOGGER.error( "error reading next challenges after testing responses: " + e.getMessage() );
+                    LOGGER.error( () -> "error reading next challenges after testing responses: " + e.getMessage() );
                     final ChaiUnavailableException chaiUnavailableException = new ChaiUnavailableException( errorMsg, ChaiError.UNKNOWN );
                     chaiUnavailableException.initCause( e );
                     throw chaiUnavailableException;
@@ -602,7 +617,7 @@ public class NMASCrOperator implements CrOperator
                 catch ( final Exception e )
                 {
                     final String errorMsg = "error reading next challenges after testing responses: " + e.getMessage();
-                    LOGGER.error( "error reading next challenges after testing responses: " + e.getMessage() );
+                    LOGGER.error( () -> "error reading next challenges after testing responses: " + e.getMessage() );
                     throw new ChaiUnavailableException( errorMsg, ChaiError.UNKNOWN );
                 }
             }
@@ -620,7 +635,7 @@ public class NMASCrOperator implements CrOperator
         }
 
         @Override
-        public Date getTimestamp( ) throws ChaiUnavailableException, IllegalStateException, ChaiOperationException
+        public Instant getTimestamp( ) throws ChaiUnavailableException, IllegalStateException, ChaiOperationException
         {
             return null;
         }
@@ -705,7 +720,7 @@ public class NMASCrOperator implements CrOperator
                 }
                 catch ( final LDAPException e )
                 {
-                    LOGGER.error( "error closing ldap connection: " + e.getMessage(), e );
+                    LOGGER.error( () -> "error closing ldap connection: " + e.getMessage(), e );
                 }
                 this.ldapConnection = null;
             }
@@ -720,6 +735,7 @@ public class NMASCrOperator implements CrOperator
                 super( lcmenvironment, lcmregistry );
             }
 
+            @Override
             public void handle( final Callback[] callbacks ) throws UnsupportedCallbackException
             {
                 LOGGER.trace( () -> "entering ChalRespCallbackHandler.handle()" );
@@ -742,7 +758,7 @@ public class NMASCrOperator implements CrOperator
                         }
                         catch ( final com.novell.security.nmas.client.InvalidNMASCallbackException e )
                         {
-                            LOGGER.error( "error processing NMASCallback: " + e.getMessage(), e );
+                            LOGGER.error( () -> "error processing NMASCallback: " + e.getMessage(), e );
                         }
                     }
                     else if ( LCMUserPromptCallback.class.getName().equals( callbackClassname ) )
@@ -754,7 +770,7 @@ public class NMASCrOperator implements CrOperator
                         }
                         catch ( final LCMUserPromptException e )
                         {
-                            LOGGER.error( "error processing LCMUserPromptCallback: " + e.getMessage(), e );
+                            LOGGER.error( () -> "error processing LCMUserPromptCallback: " + e.getMessage(), e );
                         }
                     }
                     else
@@ -885,6 +901,7 @@ public class NMASCrOperator implements CrOperator
             start();
         }
 
+        @Override
         public void run( )
         {
             try
@@ -936,7 +953,7 @@ public class NMASCrOperator implements CrOperator
                 }
                 catch ( final NullPointerException e )
                 {
-                    LOGGER.error( "NullPointer error during CallBackHandler-NMASCR-bind; "
+                    LOGGER.error( () -> "NullPointer error during CallBackHandler-NMASCR-bind; "
                             + "this is usually the result of an ldap disconnection, thread=" + this.toDebugString() );
                     this.setLoginState( NMASThreadState.ABORTED );
                     return;
@@ -962,11 +979,11 @@ public class NMASCrOperator implements CrOperator
                 final String ldapErrorMessage = e.getLDAPErrorMessage();
                 if ( ldapErrorMessage != null )
                 {
-                    LOGGER.error( "NMASLoginMonitor: LDAP error (" + ldapErrorMessage + ")" );
+                    LOGGER.error( () -> "NMASLoginMonitor: LDAP error (" + ldapErrorMessage + ")" );
                 }
                 else
                 {
-                    LOGGER.error( "NMASLoginMonitor: LDAPException " + e.toString() );
+                    LOGGER.error( () -> "NMASLoginMonitor: LDAPException " + e.toString() );
                 }
                 setLoginState( NMASThreadState.COMPLETED );
                 final com.novell.security.nmas.client.NMASLoginResult localNMASLoginResult
@@ -1077,6 +1094,7 @@ public class NMASCrOperator implements CrOperator
             final NMASCrPwmSaslProvider thisInstance = NMASCrPwmSaslProvider.this;
             AccessController.doPrivileged( new PrivilegedAction()
             {
+                @Override
                 public Object run( )
                 {
                     try
@@ -1086,7 +1104,7 @@ public class NMASCrOperator implements CrOperator
                     }
                     catch ( final SecurityException e )
                     {
-                        LOGGER.warn( "error registering " + NMASCrPwmSaslProvider.class.getSimpleName() + " SASL Provider, error: " + e.getMessage(), e );
+                        LOGGER.warn( () -> "error registering " + NMASCrPwmSaslProvider.class.getSimpleName() + " SASL Provider, error: " + e.getMessage(), e );
                     }
 
                     return null;
@@ -1128,7 +1146,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( final Throwable t )
             {
-                LOGGER.error( "error creating backing sasl factory: " + t.getMessage(), t );
+                LOGGER.error( () -> "error creating backing sasl factory: " + t.getMessage(), t );
             }
             return null;
         }
@@ -1151,7 +1169,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( final Throwable t )
             {
-                LOGGER.error( "error creating backing sasl factory: " + t.getMessage(), t );
+                LOGGER.error( () -> "error creating backing sasl factory: " + t.getMessage(), t );
             }
             return new String[ 0 ];
         }

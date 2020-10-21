@@ -14,10 +14,6 @@
 
     <name>PWM Password Self Service: Angular Client JAR</name>
 
-    <properties>
-        <project.root.basedir>${project.basedir}/..</project.root.basedir>
-    </properties>
-
     <profiles>
         <profile>
             <id>skip-frontend</id>
@@ -31,7 +27,7 @@
         <plugins>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <id>copy-client-files</id>
@@ -79,11 +75,11 @@
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.8.0</version>
+                <version>1.10.0</version>
                 <configuration>
                     <nodeVersion>v12.13.1</nodeVersion>
                     <npmVersion>6.13.4</npmVersion>
-                    <installDirectory>.node</installDirectory>
+                    <installDirectory>target/node-executable</installDirectory>
                 </configuration>
                 <executions>
                     <execution>
@@ -115,7 +111,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.0</version>
                 <configuration>
                     <archive>
                         <manifestEntries>
@@ -124,9 +120,14 @@
                             <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
                             <Implementation-URL>${project.organization.url}</Implementation-URL>
                             <Implementation-Build>${build.number}</Implementation-Build>
-                            <Implementation-Build-Timestamp>${timestamp.iso}</Implementation-Build-Timestamp>
                             <Implementation-Revision>${build.revision}</Implementation-Revision>
                             <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
+                            <SCM-Git-Branch>${git.branch}</SCM-Git-Branch>
+                            <SCM-Git-Commit-ID>${git.commit.id}</SCM-Git-Commit-ID>
+                            <SCM-Git-Commit-ID-Abbrev>${git.commit.id.abbrev}</SCM-Git-Commit-ID-Abbrev>
+                            <SCM-Git-Commit-ID-Description>${git.commit.id.describe}</SCM-Git-Commit-ID-Description>
+                            <SCM-Git-Commit-Timestamp>${git.commit.time}</SCM-Git-Commit-Timestamp>
+                            <SCM-Git-Commit-Dirty>${git.dirty}</SCM-Git-Commit-Dirty>
                         </manifestEntries>
                     </archive>
                 </configuration>

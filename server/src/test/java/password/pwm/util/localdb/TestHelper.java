@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,10 +71,13 @@ public class TestHelper
             throws PwmUnrecoverableException
     {
         Logger.getRootLogger().setLevel( Level.OFF );
-        final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder( configuration, tempFolder )
-                .setApplicationMode( PwmApplicationMode.READ_ONLY )
-                .setInternalRuntimeInstance( true )
-                .createPwmEnvironment();
-        return new PwmApplication( pwmEnvironment );
+        final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
+                .config( configuration )
+                .applicationPath( tempFolder )
+                .applicationMode( PwmApplicationMode.READ_ONLY )
+                .internalRuntimeInstance( true )
+                .build();
+
+        return PwmApplication.createPwmApplication( pwmEnvironment );
     }
 }

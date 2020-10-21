@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,17 @@ package password.pwm.svc.email;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.config.option.SmtpServerType;
+import password.pwm.error.ErrorInformation;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.MovingAverage;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Value
 @Builder
@@ -42,6 +47,19 @@ public class EmailServer
     private Properties javaMailProps;
     private javax.mail.Session session;
     private SmtpServerType type;
+
+    private final StatisticCounterBundle<ServerStat> connectionStats = new StatisticCounterBundle<>( ServerStat.class );
+    private final MovingAverage averageSendTime = new MovingAverage( TimeDuration.MINUTE );
+    private final AtomicReference<ErrorInformation> lastConnectError = new AtomicReference();
+
+
+    enum ServerStat
+    {
+        sendCount,
+        sendFailures,
+        newConnections,
+        failedConnections,
+    }
 
     public String toDebugString()
     {

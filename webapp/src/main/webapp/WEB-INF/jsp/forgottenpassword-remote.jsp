@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2019 The PWM Project
+ ~ Copyright (c) 2009-2020 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ page import="password.pwm.VerificationMethodSystem" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.servlet.newuser.NewUserServlet" %>
 <%@ page import="java.util.List" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -40,8 +40,8 @@
     <div id="centerbody">
         <h1 id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></h1>
         <%
-            final List<VerificationMethodSystem.UserPrompt> prompts = (List<VerificationMethodSystem.UserPrompt>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordPrompts);
-            final String instructions = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ForgottenPasswordInstructions);
+            final List<VerificationMethodSystem.UserPrompt> prompts = (List<VerificationMethodSystem.UserPrompt>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ExternalResponsePrompts );
+            final String instructions = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ExternalResponseInstructions );
         %>
         <p><%=instructions%></p>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">

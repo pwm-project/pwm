@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -77,12 +78,12 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class ForgottenPasswordUtil
@@ -245,7 +246,7 @@ public class ForgottenPasswordUtil
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, "unexpected error while examining cookie auth record: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "unexpected error while examining cookie auth record: " + e.getMessage() );
         }
         return false;
     }
@@ -444,7 +445,7 @@ public class ForgottenPasswordUtil
         {
             final String errorMsg = "unable to unlock user " + theUser.getEntryDN() + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNLOCK_FAILURE, errorMsg );
-            LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
             pwmRequest.respondWithError( errorInformation );
             return;
         }
@@ -514,7 +515,7 @@ public class ForgottenPasswordUtil
         }
         catch ( final PwmException e )
         {
-            LOGGER.warn( pwmRequest, "unexpected error setting new password during recovery process for user: " + e.getMessage() );
+            LOGGER.warn( pwmRequest, () -> "unexpected error setting new password during recovery process for user: " + e.getMessage() );
             pwmRequest.respondWithError( e.getErrorInformation() );
         }
         catch ( final ChaiOperationException e )
@@ -523,7 +524,7 @@ public class ForgottenPasswordUtil
                     PwmError.ERROR_INTERNAL,
                     "unexpected ldap error while processing recovery action " + recoveryAction + ", error: " + e.getMessage()
             );
-            LOGGER.warn( pwmRequest, errorInformation.toDebugStr() );
+            LOGGER.warn( pwmRequest, () -> errorInformation.toDebugStr() );
             pwmRequest.respondWithError( errorInformation );
         }
         finally
@@ -630,20 +631,20 @@ public class ForgottenPasswordUtil
     )
             throws PwmUnrecoverableException
     {
-        final String forgottenProfileID = ProfileUtility.discoverProfileIDforUser(
-                pwmApplication,
-                sessionLabel,
-                userIdentity,
-                ProfileDefinition.ForgottenPassword
+        final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser(
+            pwmApplication,
+            sessionLabel,
+            userIdentity,
+            ProfileDefinition.ForgottenPassword
         );
 
-        if ( StringUtil.isEmpty( forgottenProfileID ) )
+        if ( profileID.isPresent() )
         {
-            final String msg = "user does not have a forgotten password profile assigned";
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, msg );
+            return pwmApplication.getConfig().getForgottenPasswordProfiles().get( profileID.get() );
         }
 
-        return pwmApplication.getConfig().getForgottenPasswordProfiles().get( forgottenProfileID );
+        final String msg = "user does not have a forgotten password profile assigned";
+        throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, msg );
     }
 
     static ForgottenPasswordProfile forgottenPasswordProfile(
@@ -858,7 +859,7 @@ public class ForgottenPasswordUtil
                     commonValues,
                     forgottenPasswordBean
             );
-            final Set<IdentityVerificationMethod> otherOptionalMethodChoices = new HashSet<>( remainingAvailableOptionalMethods );
+            final Set<IdentityVerificationMethod> otherOptionalMethodChoices = JavaHelper.copiedEnumSet( remainingAvailableOptionalMethods, IdentityVerificationMethod.class );
             otherOptionalMethodChoices.remove( thisMethod );
 
             if ( !otherOptionalMethodChoices.isEmpty() )

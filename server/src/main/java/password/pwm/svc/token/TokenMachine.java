@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,14 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 
+import java.util.Optional;
+
 interface TokenMachine
 {
     String generateToken( SessionLabel sessionLabel, TokenPayload tokenPayload )
             throws PwmUnrecoverableException, PwmOperationalException;
 
-    TokenPayload retrieveToken( TokenKey tokenKey )
+    Optional<TokenPayload> retrieveToken( SessionLabel sessionLabel, TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException;
 
     void storeToken( TokenKey tokenKey, TokenPayload tokenPayload )

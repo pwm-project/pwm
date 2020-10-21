@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,26 +34,31 @@ class RealFileResource implements FileResource
         this.realFile = realFile;
     }
 
+    @Override
     public InputStream getInputStream( ) throws IOException
     {
         return new FileInputStream( realFile );
     }
 
+    @Override
     public long length( )
     {
         return realFile.length();
     }
 
+    @Override
     public long lastModified( )
     {
         return realFile.lastModified();
     }
 
+    @Override
     public boolean exists( )
     {
         return realFile.exists();
     }
 
+    @Override
     public String getName( )
     {
         return realFile.getAbsolutePath();

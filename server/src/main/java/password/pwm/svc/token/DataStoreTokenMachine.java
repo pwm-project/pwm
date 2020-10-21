@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,8 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
+import java.util.Map;
+import java.util.Optional;
 
 public class DataStoreTokenMachine implements TokenMachine
 {
@@ -66,6 +68,7 @@ public class DataStoreTokenMachine implements TokenMachine
         return StoredTokenKey.fromStoredHash( storedHash );
     }
 
+    @Override
     public void cleanup( ) throws PwmUnrecoverableException, PwmOperationalException
     {
         if ( size() < 1 )
@@ -84,25 +87,24 @@ public class DataStoreTokenMachine implements TokenMachine
             final long finalSize = size();
             LOGGER.trace( () -> "beginning purge cycle; database size = " + finalSize );
         }
-        try ( ClosableIterator<String> keyIterator = dataStore.iterator() )
+        try ( ClosableIterator<Map.Entry<String, String>> keyIterator = dataStore.iterator() )
         {
             while ( tokenService.status() == PwmService.STATUS.OPEN && keyIterator.hasNext() )
             {
-                final String storedHash = keyIterator.next();
+                final String storedHash = keyIterator.next().getKey();
                 final TokenKey loopKey = keyFromStoredHash( storedHash );
 
                 // retrieving token tests validity and causes purging
-                retrieveToken( loopKey );
+                retrieveToken( null, loopKey );
             }
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "unexpected error while cleaning expired stored tokens: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error while cleaning expired stored tokens: " + e.getMessage() );
         }
         {
             final long finalSize = size();
-            LOGGER.trace( () -> "completed record purge cycle in " + TimeDuration.compactFromCurrent( startTime )
-                    + "; database size = " + finalSize );
+            LOGGER.trace( () -> "completed record purge cycle; database size = " + finalSize, () -> TimeDuration.fromCurrent( startTime ) );
         }
     }
 
@@ -115,17 +117,18 @@ public class DataStoreTokenMachine implements TokenMachine
         final Instant issueDate = theToken.getIssueTime();
         if ( issueDate == null )
         {
-            LOGGER.error( "retrieved token has no issueDate, marking as purgable: " + JsonUtil.serialize( theToken ) );
+            LOGGER.error( () -> "retrieved token has no issueDate, marking as purgable: " + JsonUtil.serialize( theToken ) );
             return true;
         }
         if ( theToken.getExpiration() == null )
         {
-            LOGGER.error( "retrieved token has no expiration, marking as purgable: " + JsonUtil.serialize( theToken ) );
+            LOGGER.error( () -> "retrieved token has no expiration, marking as purgable: " + JsonUtil.serialize( theToken ) );
             return true;
         }
         return theToken.getExpiration().isBefore( Instant.now() );
     }
 
+    @Override
     public String generateToken(
             final SessionLabel sessionLabel,
             final TokenPayload tokenPayload
@@ -135,7 +138,8 @@ public class DataStoreTokenMachine implements TokenMachine
         return tokenService.makeUniqueTokenForMachine( sessionLabel, this );
     }
 
-    public TokenPayload retrieveToken( final TokenKey tokenKey )
+    @Override
+    public Optional<TokenPayload> retrieveToken( final SessionLabel sessionLabel, final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String storedHash = tokenKey.getStoredHash();
@@ -150,25 +154,27 @@ public class DataStoreTokenMachine implements TokenMachine
             }
             catch ( final PwmException e )
             {
-                LOGGER.trace( () -> "error while trying to decrypted stored token payload for key '" + storedHash + "', will purge record, error: " + e.getMessage() );
+                LOGGER.trace( sessionLabel, () -> "error while trying to decrypted stored token payload for key '" + storedHash
+                        + "', will purge record, error: " + e.getMessage() );
                 dataStore.remove( storedHash );
-                return null;
+                return Optional.empty();
             }
 
             if ( testIfTokenNeedsPurging( tokenPayload ) )
             {
-                LOGGER.trace( () -> "stored token key '" + storedHash + "', has an outdated issue/expire date and will be purged" );
+                LOGGER.trace( sessionLabel, () -> "stored token key '" + storedHash + "', has an outdated issue/expire date and will be purged" );
                 dataStore.remove( storedHash );
             }
             else
             {
-                return tokenPayload;
+                return Optional.of( tokenPayload );
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
+    @Override
     public void storeToken( final TokenKey tokenKey, final TokenPayload tokenPayload ) throws PwmOperationalException, PwmUnrecoverableException
     {
         final String rawValue = tokenService.toEncryptedString( tokenPayload );
@@ -176,6 +182,7 @@ public class DataStoreTokenMachine implements TokenMachine
         dataStore.put( storedHash, rawValue );
     }
 
+    @Override
     public void removeToken( final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
@@ -183,11 +190,13 @@ public class DataStoreTokenMachine implements TokenMachine
         dataStore.remove( storedHash );
     }
 
+    @Override
     public long size( ) throws PwmOperationalException, PwmUnrecoverableException
     {
         return dataStore.size();
     }
 
+    @Override
     public boolean supportsName( )
     {
         return true;

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,6 +110,7 @@ public class DisplayTag extends PwmAbstractTag
         this.bundle = bundle;
     }
 
+    @Override
     public int doEndTag( )
             throws javax.servlet.jsp.JspTagException
     {
@@ -132,7 +133,7 @@ public class DisplayTag extends PwmAbstractTag
 
             if ( pwmRequest != null )
             {
-                final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmRequest.getPwmApplication() );
+                final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
                 displayMessage = macroMachine.expandMacros( displayMessage );
             }
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.X509Utils;
+import password.pwm.util.secure.CertificateReadingTrustManager;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -93,6 +93,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PwmHttpClient implements AutoCloseable
@@ -173,6 +174,7 @@ public class PwmHttpClient implements AutoCloseable
             clientBuilder.setSSLContext( sslContext );
             clientBuilder.setSSLSocketFactory( sslConnectionFactory );
             clientBuilder.setConnectionManager( ccm );
+            clientBuilder.setConnectionManagerShared( true );
         }
         catch ( final Exception e )
         {
@@ -356,9 +358,9 @@ public class PwmHttpClient implements AutoCloseable
         final PwmHttpClientResponse.PwmHttpClientResponseBuilder httpClientResponseBuilder = PwmHttpClientResponse.builder();
         httpClientResponseBuilder.requestID( clientRequest.getRequestID() );
 
-        final HttpContentType httpContentType = contentTypeForEntity( httpResponse.getEntity() );
+        final Optional<HttpContentType> optionalHttpContentType = contentTypeForEntity( httpResponse.getEntity() );
 
-        if ( httpContentType != null && httpContentType.getDataType() ==  HttpEntityDataType.ByteArray )
+        if ( optionalHttpContentType.isPresent() && optionalHttpContentType.get().getDataType() ==  HttpEntityDataType.ByteArray )
         {
             httpClientResponseBuilder.binaryBody( readBinaryEntityBody( httpResponse.getEntity() ) );
             httpClientResponseBuilder.dataType( HttpEntityDataType.ByteArray );
@@ -377,7 +379,7 @@ public class PwmHttpClient implements AutoCloseable
 
         final PwmHttpClientResponse httpClientResponse = httpClientResponseBuilder
                 .statusCode( httpResponse.getStatusLine().getStatusCode() )
-                .contentType( httpContentType )
+                .contentType( optionalHttpContentType.orElse( HttpContentType.plain ) )
                 .statusPhrase( httpResponse.getStatusLine().getReasonPhrase() )
                 .headers( Collections.unmodifiableMap( responseHeaders ) )
                 .build();
@@ -496,6 +498,7 @@ public class PwmHttpClient implements AutoCloseable
             this.configuration = configuration;
         }
 
+        @Override
         public HttpRoute determineRoute(
                 final HttpHost target,
                 final HttpRequest request,
@@ -516,7 +519,7 @@ public class PwmHttpClient implements AutoCloseable
         }
     }
 
-    private static HttpContentType contentTypeForEntity( final HttpEntity httpEntity )
+    private static Optional<HttpContentType> contentTypeForEntity( final HttpEntity httpEntity )
     {
         if ( httpEntity != null )
         {
@@ -533,8 +536,8 @@ public class PwmHttpClient implements AutoCloseable
                             final String name = headerElement.getName();
                             if ( name != null )
                             {
-                                final HttpContentType httpContentType = HttpContentType.fromContentTypeHeader( name, null );
-                                if ( httpContentType != null )
+                                final Optional<HttpContentType> httpContentType = HttpContentType.fromContentTypeHeader( name, null );
+                                if ( httpContentType.isPresent() )
                                 {
                                     return httpContentType;
                                 }
@@ -545,7 +548,7 @@ public class PwmHttpClient implements AutoCloseable
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     private ImmutableByteArray readBinaryEntityBody( final HttpEntity httpEntity )
@@ -561,15 +564,16 @@ public class PwmHttpClient implements AutoCloseable
     }
 
     public List<X509Certificate> readServerCertificates()
+            throws PwmUnrecoverableException
     {
         final List<X509Certificate> returnList = new ArrayList<>(  );
         if ( trustManagers != null )
         {
             for ( final TrustManager trustManager : trustManagers )
             {
-                if ( trustManager instanceof X509Utils.CertReaderTrustManager )
+                if ( trustManager instanceof CertificateReadingTrustManager )
                 {
-                    returnList.addAll( ( (X509Utils.CertReaderTrustManager) trustManager ).getCertificates() );
+                    returnList.addAll( ( ( CertificateReadingTrustManager ) trustManager ).getCertificates() );
                 }
             }
         }

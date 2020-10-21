@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ package password.pwm.http.servlet.configguide;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplate;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -30,6 +29,7 @@ import password.pwm.config.value.BooleanValue;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.PasswordValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.UserPermissionValue;
@@ -37,6 +37,7 @@ import password.pwm.config.value.X509CertificateValue;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ConfigGuideBean;
+import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
@@ -44,7 +45,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,7 +56,7 @@ public class ConfigGuideForm
 
     public static Map<ConfigGuideFormField, String> defaultForm( )
     {
-        final Map<ConfigGuideFormField, String> defaultLdapForm = new HashMap<>();
+        final Map<ConfigGuideFormField, String> defaultLdapForm = new EnumMap<>( ConfigGuideFormField.class );
         for ( final ConfigGuideFormField formParameter : ConfigGuideFormField.values() )
         {
             defaultLdapForm.put( formParameter, "" );
@@ -64,6 +65,11 @@ public class ConfigGuideForm
         defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_PORT, "636" );
         defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_SECURE, "true" );
         defaultLdapForm.remove( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA );
+
+        defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_HOST, "172.17.2.91" );
+        defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_CONTEXT, "ou=users,o=data" );
+        defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_PROXY_DN, "cn=pwm-proxy,ou=sa,o=system" );
+        defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_PROXY_PW, "gcms1234" );
 
         return Collections.unmodifiableMap( defaultLdapForm );
     }
@@ -132,7 +138,7 @@ public class ConfigGuideForm
 
         if ( configGuideBean.isUseConfiguredCerts() && !JavaHelper.isEmpty( configGuideBean.getLdapCertificates() ) )
         {
-            final StoredValue newStoredValue = new X509CertificateValue( configGuideBean.getLdapCertificates() );
+            final StoredValue newStoredValue = X509CertificateValue.fromX509( configGuideBean.getLdapCertificates() );
             storedConfiguration.writeSetting( PwmSetting.LDAP_SERVER_CERTS, LDAP_PROFILE_NAME, newStoredValue, null );
         }
 
@@ -171,10 +177,10 @@ public class ConfigGuideForm
 
         {
             // set admin query
-            final String groupDN = formData.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_GROUP );
+            final String userDN = formData.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_USER );
             final List<UserPermission> userPermissions = Collections.singletonList( UserPermission.builder()
-                    .type( UserPermission.Type.ldapGroup )
-                    .ldapBase( groupDN )
+                    .type( UserPermissionType.ldapUser )
+                    .ldapBase( userDN )
                     .build() );
             storedConfiguration.writeSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, null, new UserPermissionValue( userPermissions ), null );
         }
@@ -205,7 +211,7 @@ public class ConfigGuideForm
         {
             //telemetry
             final boolean telemetryEnabled = Boolean.parseBoolean( formData.get( ConfigGuideFormField.PARAM_TELEMETRY_ENABLE ) );
-            storedConfiguration.writeSetting( PwmSetting.PUBLISH_STATS_ENABLE, null, new BooleanValue( telemetryEnabled ), null );
+            storedConfiguration.writeSetting( PwmSetting.PUBLISH_STATS_ENABLE, null, BooleanValue.of( telemetryEnabled ), null );
 
             final String siteDescription = formData.get( ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION );
             storedConfiguration.writeSetting( PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION, null, new StringValue( siteDescription ), null );
@@ -223,7 +229,7 @@ public class ConfigGuideForm
         storedConfiguration.writeSetting( PwmSetting.PWM_SITE_URL, null, new StringValue( formData.get( ConfigGuideFormField.PARAM_APP_SITEURL ) ), null );
 
         // enable debug mode
-        storedConfiguration.writeSetting( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS, null, new BooleanValue( true ), null );
+        storedConfiguration.writeSetting( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS, null, BooleanValue.of( true ), null );
 
         return storedConfiguration.newStoredConfiguration();
     }
@@ -248,7 +254,7 @@ public class ConfigGuideForm
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error calculating ldap hostname example: " + e.getMessage() );
+            LOGGER.error( () -> "error calculating ldap hostname example: " + e.getMessage() );
         }
         return "ldap.example.com";
     }

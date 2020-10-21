@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ public enum GuideStep
             }
             catch ( final ReflectiveOperationException e )
             {
-                LOGGER.error( "unexpected error during step visibility check: " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error during step visibility check: " + e.getMessage(), e );
             }
         }
 
@@ -123,6 +123,7 @@ public enum GuideStep
 
     static class LdapSchemeVisibilityCheck implements VisibilityCheck
     {
+        @Override
         public boolean visible( final ConfigGuideBean configGuideBean )
         {
             try
@@ -139,6 +140,7 @@ public enum GuideStep
 
     static class DbVisibilityCheck implements VisibilityCheck
     {
+        @Override
         public boolean visible( final ConfigGuideBean configGuideBean )
         {
             try
@@ -155,6 +157,7 @@ public enum GuideStep
 
     static class EulaVisibilityCheck implements VisibilityCheck
     {
+        @Override
         public boolean visible( final ConfigGuideBean configGuideBean )
         {
             return PwmConstants.ENABLE_EULA_DISPLAY;
@@ -163,6 +166,7 @@ public enum GuideStep
 
     static class TelemetryVisibilityCheck implements VisibilityCheck
     {
+        @Override
         public boolean visible( final ConfigGuideBean configGuideBean )
         {
             return !PwmSetting.PUBLISH_STATS_ENABLE.isHidden()
@@ -172,6 +176,7 @@ public enum GuideStep
 
     static class NeverVisible implements VisibilityCheck
     {
+        @Override
         public boolean visible( final ConfigGuideBean configGuideBean )
         {
             return false;

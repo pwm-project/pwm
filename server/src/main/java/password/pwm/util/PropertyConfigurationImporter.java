@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 package password.pwm.util;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -35,6 +35,7 @@ import password.pwm.config.value.UserPermissionValue;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmException;
+import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.X509Utils;
@@ -138,9 +139,9 @@ public class PropertyConfigurationImporter
                     null );
         }
 
-        storedConfiguration.writeSetting( PwmSetting.DISPLAY_HOME_BUTTON, null, new BooleanValue( false ), null );
-        storedConfiguration.writeSetting( PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE, null, new BooleanValue( false ), null );
-        storedConfiguration.writeSetting( PwmSetting.PASSWORD_REQUIRE_CURRENT, null, new BooleanValue( false ), null );
+        storedConfiguration.writeSetting( PwmSetting.DISPLAY_HOME_BUTTON, null, BooleanValue.of( false ), null );
+        storedConfiguration.writeSetting( PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE, null, BooleanValue.of( false ), null );
+        storedConfiguration.writeSetting( PwmSetting.PASSWORD_REQUIRE_CURRENT, null, BooleanValue.of( false ), null );
         storedConfiguration.writeSetting( PwmSetting.PASSWORD_POLICY_SOURCE, null, new StringValue( "LDAP" ), null );
         storedConfiguration.writeSetting( PwmSetting.CERTIFICATE_VALIDATION_MODE, null, new StringValue( "CA_ONLY" ), null );
         {
@@ -181,21 +182,21 @@ public class PropertyConfigurationImporter
             final Optional<Collection<X509Certificate>> optionalCert = readCertificate( PropertyKey.LDAP_SERVERCERTS );
             if ( optionalCert.isPresent( ) )
             {
-                storedConfiguration.writeSetting( PwmSetting.LDAP_SERVER_CERTS, LDAP_PROFILE, new X509CertificateValue( optionalCert.get( ) ), null );
+                storedConfiguration.writeSetting( PwmSetting.LDAP_SERVER_CERTS, LDAP_PROFILE, X509CertificateValue.fromX509( optionalCert.get( ) ), null );
             }
         }
         {
             final Optional<Collection<X509Certificate>> optionalCert = readCertificate( PropertyKey.AUDIT_SERVERCERTS );
             if ( optionalCert.isPresent( ) )
             {
-                storedConfiguration.writeSetting( PwmSetting.AUDIT_SYSLOG_CERTIFICATES, null, new X509CertificateValue( optionalCert.get( ) ), null );
+                storedConfiguration.writeSetting( PwmSetting.AUDIT_SYSLOG_CERTIFICATES, null, X509CertificateValue.fromX509( optionalCert.get( ) ), null );
             }
         }
         {
             final Optional<Collection<X509Certificate>> optionalCert = readCertificate( PropertyKey.OAUTH_IDSERVER_SERVERCERTS );
             if ( optionalCert.isPresent( ) )
             {
-                storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_CERTIFICATE, null, new X509CertificateValue( optionalCert.get( ) ), null );
+                storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_CERTIFICATE, null, X509CertificateValue.fromX509( optionalCert.get( ) ), null );
             }
         }
 
@@ -263,7 +264,7 @@ public class PropertyConfigurationImporter
             if ( !StringUtil.isEmpty( value ) )
             {
                 permissions.add( UserPermission.builder()
-                        .type( UserPermission.Type.ldapQuery )
+                        .type( UserPermissionType.ldapQuery )
                         .ldapProfileID( LDAP_PROFILE )
                         .ldapQuery( filter )
                         .ldapBase( value )

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ package password.pwm.util.password;
 
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -234,7 +235,7 @@ public class RandomPasswordGenerator
                 final StringBuilder sb = new StringBuilder();
                 sb.append( "failed random password generation after " ).append( td.asCompactString() ).append( " after " ).append( tryCount ).append( " tries. " );
                 sb.append( "(errors=" ).append( errors.size() ).append( ", judgeLevel=" ).append( judgeLevel );
-                LOGGER.error( sessionLabel, sb.toString() );
+                LOGGER.error( sessionLabel, () -> sb.toString() );
             }
         }
 
@@ -259,7 +260,7 @@ public class RandomPasswordGenerator
             return;
         }
 
-        final Set<PwmError> errorMessages = new HashSet<>();
+        final Set<PwmError> errorMessages = EnumSet.noneOf( PwmError.class );
         for ( final ErrorInformation errorInfo : errors )
         {
             errorMessages.add( errorInfo.getError() );
@@ -622,7 +623,7 @@ public class RandomPasswordGenerator
         return newSeeds.isEmpty() ? DEFAULT_SEED_PHRASES : newSeeds;
     }
 
-    @Getter
+    @Value
     @Builder( toBuilder = true )
     public static class RandomGeneratorConfig
     {
@@ -651,8 +652,8 @@ public class RandomPasswordGenerator
         private int maximumLength = DEFAULT_MAXIMUM_LENGTH;
 
         /**
-         * @param minimumStrength The minimum length desired strength.  The algorithm will attempt to make
-         *         the returned value at least this strong, but it is not guaranteed.
+         * The minimum length desired strength.  The algorithm will attempt to make
+         * the returned value at least this strong, but it is not guaranteed.
          */
         @Builder.Default
         private int minimumStrength = DEFAULT_DESIRED_STRENGTH;

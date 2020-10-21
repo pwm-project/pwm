@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,10 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.time.Instant;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.Deque;
 import java.util.List;
 
 /**
@@ -75,6 +77,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         this.pwmApplication = pwmApplication;
     }
 
+    @Override
     public void updateUserHistory( final UserAuditRecord auditRecord )
             throws PwmUnrecoverableException
     {
@@ -128,7 +131,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         {
             final String errorMsg = "error reading LDAP user event history for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-            LOGGER.error( errorInformation.toDebugStr(), e );
+            LOGGER.error( () -> errorInformation.toDebugStr(), e );
             throw new PwmUnrecoverableException( errorInformation, e );
         }
 
@@ -147,7 +150,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "ldap error writing user event log: " + e.getMessage() );
+            LOGGER.error( () -> "ldap error writing user event log: " + e.getMessage() );
             return;
         }
 
@@ -166,10 +169,11 @@ class LdapXmlUserHistory implements UserHistoryStore
         }
         catch ( final ChaiOperationException e )
         {
-            LOGGER.error( "ldap error writing user event log: " + e.getMessage() );
+            LOGGER.error( () -> "ldap error writing user event log: " + e.getMessage() );
         }
     }
 
+    @Override
     public List<UserAuditRecord> readUserHistory( final UserInfo userInfo )
             throws PwmUnrecoverableException
     {
@@ -213,14 +217,14 @@ class LdapXmlUserHistory implements UserHistoryStore
         }
         catch ( final ChaiOperationException e )
         {
-            LOGGER.error( "ldap error reading user event log: " + e.getMessage() );
+            LOGGER.error( () -> "ldap error reading user event log: " + e.getMessage() );
         }
         return new StoredHistory();
     }
 
     private static class StoredHistory
     {
-        private final LinkedList<StoredEvent> records = new LinkedList<>();
+        private final Deque<StoredEvent> records = new ArrayDeque<>();
 
         void addEvent( final StoredEvent storedEvent )
         {
@@ -237,7 +241,7 @@ class LdapXmlUserHistory implements UserHistoryStore
 
         List<UserAuditRecord> asAuditRecords( final UserInfo userInfoBean )
         {
-            final List<UserAuditRecord> returnList = new LinkedList<>();
+            final List<UserAuditRecord> returnList = new ArrayList<>();
             for ( final StoredEvent loopEvent : records )
             {
                 returnList.add( loopEvent.asAuditRecord( userInfoBean ) );
@@ -297,17 +301,19 @@ class LdapXmlUserHistory implements UserHistoryStore
                 {
                     final long timeStamp = hrElement.getAttribute( XML_ATTR_TIMESTAMP ).getLongValue();
                     final String transactionCode = hrElement.getAttribute( XML_ATTR_TRANSACTION ).getValue();
-                    final AuditEvent eventCode = AuditEvent.forKey( transactionCode );
-                    final String srcAddr = hrElement.getAttribute( XML_ATTR_SRC_IP ) != null ? hrElement.getAttribute( XML_ATTR_SRC_IP ).getValue() : "";
-                    final String srcHost = hrElement.getAttribute( XML_ATTR_SRC_HOST ) != null ? hrElement.getAttribute( XML_ATTR_SRC_HOST ).getValue() : "";
-                    final String message = hrElement.getText();
-                    final StoredEvent storedEvent = new StoredEvent( eventCode, timeStamp, message, srcAddr, srcHost );
-                    returnHistory.addEvent( storedEvent );
+                    AuditEvent.forKey( transactionCode ).ifPresent( ( eventCode ) ->
+                    {
+                        final String srcAddr = hrElement.getAttribute( XML_ATTR_SRC_IP ) != null ? hrElement.getAttribute( XML_ATTR_SRC_IP ).getValue() : "";
+                        final String srcHost = hrElement.getAttribute( XML_ATTR_SRC_HOST ) != null ? hrElement.getAttribute( XML_ATTR_SRC_HOST ).getValue() : "";
+                        final String message = hrElement.getText();
+                        final StoredEvent storedEvent = new StoredEvent( eventCode, timeStamp, message, srcAddr, srcHost );
+                        returnHistory.addEvent( storedEvent );
+                    } );
                 }
             }
             catch ( final JDOMException | IOException e )
             {
-                LOGGER.error( "error parsing user event history record: " + e.getMessage() );
+                LOGGER.error( () -> "error parsing user event history record: " + e.getMessage() );
             }
             return returnHistory;
         }

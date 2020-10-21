@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,28 +22,49 @@ package password.pwm.config.value.data;
 
 import lombok.Builder;
 import lombok.Value;
+import org.jetbrains.annotations.NotNull;
+import password.pwm.ldap.permission.UserPermissionType;
+import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 
 @Value
 @Builder
-public class UserPermission implements Serializable
+/**
+ * Represents a user permission configuration value.
+ */
+public class UserPermission implements Serializable, Comparable<UserPermission>
 {
-    public enum Type
-    {
-        ldapQuery,
-        ldapGroup,
-    }
-
     @Builder.Default
-    private Type type = Type.ldapQuery;
+    private UserPermissionType type = UserPermissionType.ldapQuery;
 
     private String ldapProfileID;
     private String ldapQuery;
     private String ldapBase;
 
-    public Type getType( )
+    public UserPermissionType getType( )
     {
-        return type == null ? Type.ldapQuery : type;
+        return type == null ? UserPermissionType.ldapQuery : type;
+    }
+
+    public String debugString()
+    {
+        return getType().getLabel()
+                +  ": [Profile: "
+                + ( StringUtil.isEmpty( getLdapProfileID() ) ?  "All" : '\'' + this.getLdapProfileID() + '\'' )
+                + ( StringUtil.isEmpty( getLdapBase() ) ?  "" : " " + getType().getBaseLabel() + ": " + this.getLdapBase() )
+                + ( StringUtil.isEmpty( getLdapQuery() ) ?  "" : " Filter: " + this.getLdapQuery() )
+                + "]";
+    }
+
+    @Override
+    public int compareTo( @NotNull final UserPermission o )
+    {
+        return makeComparisonString().compareTo( o.makeComparisonString() );
+    }
+
+    private String makeComparisonString()
+    {
+        return getType().ordinal() + "-" + getLdapProfileID() + "-" + getLdapBase() + "-" + getLdapQuery();
     }
 }

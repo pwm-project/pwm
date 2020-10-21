@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class JspThrowableHandlerTag extends TagSupport
             final String exceptionStr = JavaHelper.throwableToString( jspThrowable );
             final String errorHash = SecureEngine.hash( exceptionStr, PwmHashAlgorithm.SHA1 );
 
-            LOGGER.error( "jsp error reference " + errorHash, jspThrowable );
+            LOGGER.error( () -> "jsp error reference " + errorHash, jspThrowable );
 
             final String jspOutout = jspOutput( errorHash );
             pageContext.getOut().write( jspOutout );
@@ -71,7 +71,7 @@ public class JspThrowableHandlerTag extends TagSupport
             {
                 /* ignore */
             }
-            LOGGER.error( "error during pwmFormIDTag output of pwmFormID: " + e.getMessage() );
+            LOGGER.error( () -> "error during pwmFormIDTag output of pwmFormID: " + e.getMessage() );
         }
         return EVAL_PAGE;
     }
@@ -88,7 +88,7 @@ public class JspThrowableHandlerTag extends TagSupport
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error during pwmFormIDTag output of pwmFormID: " + e.getMessage() );
+            LOGGER.error( () -> "error during pwmFormIDTag output of pwmFormID: " + e.getMessage() );
         }
         final String[] strArgs = new String[]
                 {

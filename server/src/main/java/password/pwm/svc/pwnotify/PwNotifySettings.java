@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ class PwNotifySettings implements Serializable
     private final TimeDuration maximumSkipWindow;
     private final TimeDuration zuluOffset;
     private final int maxLdapSearchSize;
+    private final TimeDuration searchTimeout;
     private final int batchCount;
     private final BigDecimal batchTimeMultiplier;
 
@@ -58,6 +59,7 @@ class PwNotifySettings implements Serializable
             builder.notificationIntervals( Collections.unmodifiableList( timeDurations ) );
         }
 
+        builder.searchTimeout( TimeDuration.of( Long.parseLong( configuration.readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ), TimeDuration.Unit.MILLISECONDS ) );
         builder.zuluOffset( TimeDuration.of( configuration.readSettingAsLong( PwmSetting.PW_EXPY_NOTIFY_JOB_OFFSET ), TimeDuration.Unit.SECONDS ) );
         builder.batchCount( Integer.parseInt( configuration.readAppProperty( AppProperty.PWNOTIFY_BATCH_COUNT ) ) );
         builder.maxLdapSearchSize( Integer.parseInt( configuration.readAppProperty( AppProperty.PWNOTIFY_MAX_LDAP_SEARCH_SIZE ) ) );

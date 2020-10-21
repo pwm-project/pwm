@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,6 @@ package password.pwm.config;
 import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.PwmConstants;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class PwmSettingCategoryTest
 {
@@ -66,7 +63,7 @@ public class PwmSettingCategoryTest
         {
             if ( category.hasProfiles() )
             {
-                final PwmSetting pwmSetting = category.getProfileSetting();
+                final PwmSetting pwmSetting = category.getProfileSetting().orElseThrow( IllegalStateException::new );
                 Assert.assertEquals( pwmSetting.getSyntax(), PwmSettingSyntax.PROFILE );
             }
         }
@@ -85,20 +82,5 @@ public class PwmSettingCategoryTest
                 Assert.assertFalse( category.getKey() + " has both child categories and settings", hasChildren && hasSettings );
             }
         }
-    }
-
-    @Test
-    public void testProfileSettingUniqueness()
-    {
-        final Set<PwmSetting> seenSettings = new HashSet<>();
-        /*
-        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
-            if (category.hasProfiles()) {
-                Assert.assertTrue(!seenSettings.contains(category.getProfileSetting())); // duplicate category
-                seenSettings.add(category.getProfileSetting());
-            }
-        }
-        */
-        //@todo removed during multi-level profiled-category introduction
     }
 }

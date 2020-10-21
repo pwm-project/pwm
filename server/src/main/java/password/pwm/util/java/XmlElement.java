@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public interface XmlElement
 {
@@ -177,6 +179,7 @@ public interface XmlElement
             this.element.addContent( ( ( XmlElementJDOM) element ).element );
         }
 
+        @Override
         public void addContent( final List<XmlElement> elements )
         {
             for ( final XmlElement loopElement : elements )
@@ -228,16 +231,26 @@ public interface XmlElement
     class XmlElementW3c implements XmlElement
     {
         private final org.w3c.dom.Element element;
+        private volatile Lock lock;
 
-        XmlElementW3c( final org.w3c.dom.Element element )
+        XmlElementW3c( final org.w3c.dom.Element element, final Lock lock )
         {
             this.element = element;
+            this.lock = lock;
         }
 
         @Override
         public String getName()
         {
-            return element.getTagName();
+            lock.lock();
+            try
+            {
+                return element.getTagName();
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
         @Override
@@ -254,36 +267,76 @@ public interface XmlElement
         @Override
         public String getAttributeValue( final String attribute )
         {
-            final String attrValue = element.getAttribute( attribute );
-            return StringUtil.isEmpty( attrValue ) ? null : attrValue;
+            lock.lock();
+            try
+            {
+                final String attrValue = element.getAttribute( attribute );
+                return StringUtil.isEmpty( attrValue ) ? null : attrValue;
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
         @Override
         public List<XmlElement> getChildren()
         {
-            final NodeList nodeList = element.getChildNodes();
-            return XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList );
+            lock.lock();
+            try
+            {
+                final NodeList nodeList = element.getChildNodes();
+                return XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList, lock );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
         @Override
         public List<XmlElement> getChildren( final String elementName )
         {
-            final NodeList nodeList = element.getElementsByTagName( elementName );
-            return XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList );
+            lock.lock();
+            try
+            {
+                final NodeList nodeList = element.getElementsByTagName( elementName );
+                return XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList, lock );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
         @Override
         public String getText()
         {
-            final String value = element.getTextContent();
-            return value == null ? "" : value;
+            lock.lock();
+            try
+            {
+                final String value = element.getTextContent();
+                return value == null ? "" : value;
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
         @Override
         public String getTextTrim()
         {
-            final String result = element.getTextContent();
-            return result == null ? null : result.trim();
+            lock.lock();
+            try
+            {
+                final String result = element.getTextContent();
+                return result == null ? null : result.trim();
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
         @Override
@@ -296,106 +349,172 @@ public interface XmlElement
         @Override
         public void setAttribute( final String name, final String value )
         {
-            element.setAttribute( name, value );
+            lock.lock();
+            try
+            {
+                element.setAttribute( name, value );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
         @Override
         public void detach()
         {
-            element.getParentNode().removeChild( element );
+            lock.lock();
+            try
+            {
+                element.getParentNode().removeChild( element );
+            }
+            finally
+            {
+                lock.unlock();
+            }
+            lock = new ReentrantLock();
         }
 
         @Override
         public void removeContent()
         {
-            final NodeList nodeList = element.getChildNodes();
-            for ( final XmlElement child : XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList ) )
+            lock.lock();
+            try
             {
-                element.removeChild( ( (XmlElementW3c) child ).element );
+                final NodeList nodeList = element.getChildNodes();
+                for ( final XmlElement child : XmlFactory.XmlFactoryW3c.nodeListToElementList( nodeList, lock ) )
+                {
+                    element.removeChild( ( (XmlElementW3c) child ).element );
+                    ( ( XmlElementW3c ) child ).lock = new ReentrantLock();
+                }
+            }
+            finally
+            {
+                lock.unlock();
             }
         }
 
         @Override
         public void removeAttribute( final String attributeName )
         {
-            element.removeAttribute( attributeName );
+            lock.lock();
+            try
+            {
+                element.removeAttribute( attributeName );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
         @Override
         public void addContent( final XmlElement element )
         {
-            final org.w3c.dom.Element w3cElement = ( ( XmlElementW3c ) element ).element;
-            this.element.getOwnerDocument().adoptNode( w3cElement );
-            this.element.appendChild( w3cElement );
+            addContent( Collections.singletonList( element ) );
         }
 
+        @Override
         public void addContent( final List<XmlElement> elements )
         {
-            for ( final XmlElement element : elements )
+            lock.lock();
+            try
             {
-                final org.w3c.dom.Element w3cElement = ( ( XmlElementW3c ) element ).element;
-                this.element.getOwnerDocument().adoptNode( w3cElement );
-                this.element.appendChild( w3cElement );
+                for ( final XmlElement element : elements )
+                {
+                    final org.w3c.dom.Element w3cElement = ( ( XmlElementW3c ) element ).element;
+                    this.element.getOwnerDocument().adoptNode( w3cElement );
+                    this.element.appendChild( w3cElement );
+                    ( ( XmlElementW3c ) element ).lock = lock;
+                }
+            }
+            finally
+            {
+                lock.unlock();
             }
         }
 
         @Override
         public void addText( final String text )
         {
-            final DocumentBuilder documentBuilder = XmlFactory.XmlFactoryW3c.getBuilder();
-            final org.w3c.dom.Document document = documentBuilder.newDocument();
-            final org.w3c.dom.Text textNode = document.createTextNode( text );
-            this.element.getOwnerDocument().adoptNode( textNode );
-            element.appendChild( textNode );
+            lock.lock();
+            try
+            {
+                final DocumentBuilder documentBuilder = XmlFactory.XmlFactoryW3c.getBuilder();
+                final org.w3c.dom.Document document = documentBuilder.newDocument();
+                final org.w3c.dom.Text textNode = document.createTextNode( text );
+                this.element.getOwnerDocument().adoptNode( textNode );
+                element.appendChild( textNode );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
         @Override
         public void setComment( final List<String> textLines )
         {
-            final NodeList nodeList = element.getChildNodes();
-            for ( int i = 0; i < nodeList.getLength(); i++ )
+            lock.lock();
+            try
             {
-                final Node node = nodeList.item( i );
-                if ( node.getNodeType() == Node.COMMENT_NODE )
+                final NodeList nodeList = element.getChildNodes();
+                for ( int i = 0; i < nodeList.getLength(); i++ )
                 {
-                    element.removeChild( node );
+                    final Node node = nodeList.item( i );
+                    if ( node.getNodeType() == Node.COMMENT_NODE )
+                    {
+                        element.removeChild( node );
+                    }
+                }
+
+                final DocumentBuilder documentBuilder = XmlFactory.XmlFactoryW3c.getBuilder();
+                final org.w3c.dom.Document document = documentBuilder.newDocument();
+
+                final List<String> reversedList = new ArrayList<>( textLines );
+                Collections.reverse( reversedList );
+                for ( final String text : reversedList )
+                {
+                    final org.w3c.dom.Comment textNode = document.createComment( text );
+                    this.element.getOwnerDocument().adoptNode( textNode );
+
+                    if ( element.hasChildNodes() )
+                    {
+                        element.insertBefore( textNode, element.getFirstChild() );
+                    }
+                    else
+                    {
+                        element.appendChild( textNode );
+                    }
+
                 }
             }
-
-            final DocumentBuilder documentBuilder = XmlFactory.XmlFactoryW3c.getBuilder();
-            final org.w3c.dom.Document document = documentBuilder.newDocument();
-
-            final List<String> reversedList = new ArrayList<>( textLines );
-            Collections.reverse( reversedList );
-            for ( final String text : reversedList )
+            finally
             {
-                final org.w3c.dom.Comment textNode = document.createComment( text );
-                this.element.getOwnerDocument().adoptNode( textNode );
-
-                if ( element.hasChildNodes() )
-                {
-                    element.insertBefore( textNode, element.getFirstChild() );
-                }
-                else
-                {
-                    element.appendChild( textNode );
-                }
-
+                lock.unlock();
             }
         }
 
         @Override
         public XmlElement copy()
         {
-            final Node newNode = this.element.cloneNode( true );
-            this.element.getOwnerDocument().adoptNode( newNode );
-            return new XmlElementW3c( (org.w3c.dom.Element ) newNode );
+            lock.lock();
+            try
+            {
+                final Node newNode = this.element.cloneNode( true );
+                this.element.getOwnerDocument().adoptNode( newNode );
+                return new XmlElementW3c( (org.w3c.dom.Element ) newNode, lock );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
         @Override
         public XmlElement parent()
         {
-            return new XmlElementW3c( ( org.w3c.dom.Element ) this.element.getParentNode() );
+            return new XmlElementW3c( ( org.w3c.dom.Element ) this.element.getParentNode(), lock );
         }
     }
 }

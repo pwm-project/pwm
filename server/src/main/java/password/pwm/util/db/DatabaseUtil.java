@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ class DatabaseUtil
             }
             catch ( final SQLException e )
             {
-                LOGGER.error( "unexpected error during close statement object " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error during close statement object " + e.getMessage(), e );
                 throw new DatabaseException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, "statement close failure: " + e.getMessage() ) );
             }
         }
@@ -75,7 +75,7 @@ class DatabaseUtil
             }
             catch ( final SQLException e )
             {
-                LOGGER.error( "unexpected error during close resultSet object " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error during close resultSet object " + e.getMessage(), e );
                 throw new DatabaseException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, "resultset close failure: " + e.getMessage() ) );
             }
         }
@@ -90,7 +90,7 @@ class DatabaseUtil
         }
         catch ( final SQLException e )
         {
-            LOGGER.warn( "database commit failed: " + e.getMessage() );
+            LOGGER.warn( () -> "database commit failed: " + e.getMessage() );
             throw new DatabaseException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, "commit failure: " + e.getMessage() ) );
         }
     }
@@ -194,7 +194,7 @@ class DatabaseUtil
                 }
                 else
                 {
-                    LOGGER.warn( errorInformation.toDebugStr() );
+                    LOGGER.warn( () -> errorInformation.toDebugStr() );
                 }
             }
             finally

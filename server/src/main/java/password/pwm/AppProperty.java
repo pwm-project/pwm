@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,8 @@ public enum AppProperty
     CONFIG_THEME                                    ( "config.theme" ),
     CONFIG_JBCRYPT_PWLIB_ENABLE                     ( "config.enableJbCryptPwLibrary" ),
     CONFIG_EDITOR_BLOCK_OLD_IE                      ( "configEditor.blockOldIE" ),
-    CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT           ( "configEditor.queryFilter.testLimit" ),
+    CONFIG_EDITOR_USER_PERMISSION_MATCH_LIMIT       ( "configEditor.userPermission.matchResultsLimit" ),
+    CONFIG_EDITOR_USER_PERMISSION_TIMEOUT_SECONDS   ( "configEditor.userPermission.matchTimeoutSeconds" ),
     CONFIG_EDITOR_IDLE_TIMEOUT                      ( "configEditor.idleTimeoutSeconds" ),
     CONFIG_GUIDE_IDLE_TIMEOUT                       ( "configGuide.idleTimeoutSeconds" ),
     CONFIG_MANAGER_ZIPDEBUG_MAXLOGBYTES             ( "configManager.zipDebug.maxLogBytes" ),
@@ -176,6 +177,7 @@ public enum AppProperty
     LOCALDB_LOGWRITER_BUFFER_SIZE                   ( "localdb.logWriter.bufferSize" ),
     LOCALDB_LOGWRITER_MAX_BUFFER_WAIT_MS            ( "localdb.logWriter.maxBufferWaitMs" ),
     LOCALDB_LOGWRITER_MAX_TRIM_SIZE                 ( "localdb.logWriter.maxTrimSize" ),
+    LOCALDB_RELOAD_WHEN_APP_RESTARTED               ( "localdb.reloadWhenAppRestarted" ),
     MACRO_RANDOM_CHAR_MAX_LENGTH                    ( "macro.randomChar.maxLength" ),
     MACRO_LDAP_ATTR_CHAR_MAX_LENGTH                 ( "macro.ldapAttr.maxLength" ),
 
@@ -200,6 +202,8 @@ public enum AppProperty
     HEALTH_CERTIFICATE_WARN_SECONDS                 ( "health.certificate.warnSeconds" ),
     HEALTH_LDAP_CAUTION_DURATION_MS                 ( "health.ldap.cautionDurationMS" ),
     HEALTH_LDAP_PROXY_WARN_PW_EXPIRE_SECONDS        ( "health.ldap.proxy.pwExpireWarnSeconds" ),
+    HEALTH_LDAP_USER_SEARCH_TERM                    ( "health.ldap.userSearch.searchTerm" ),
+    HEALTH_LDAP_USER_SEARCH_WARN_MS                 ( "health.ldap.userSearch.warnMS" ),
     HEALTH_JAVA_MAX_THREADS                         ( "health.java.maxThreads" ),
     HEALTH_JAVA_MIN_HEAP_BYTES                      ( "health.java.minHeapBytes" ),
     HELPDESK_TOKEN_MAX_AGE                          ( "helpdesk.token.maxAgeSeconds" ),
@@ -215,6 +219,7 @@ public enum AppProperty
     LDAP_PROXY_CONNECTION_PER_PROFILE               ( "ldap.proxy.connectionsPerProfile" ),
     LDAP_PROXY_MAX_CONNECTIONS                      ( "ldap.proxy.maxConnections" ),
     LDAP_PROXY_USE_THREAD_LOCAL                     ( "ldap.proxy.useThreadLocal" ),
+    LDAP_PROXY_IDLE_THREAD_LOCAL_TIMEOUT_MS         ( "ldap.proxy.idleThreadLocal.timeoutMS" ),
     LDAP_EXTENSIONS_NMAS_ENABLE                     ( "ldap.extensions.nmas.enable" ),
     LDAP_CONNECTION_TIMEOUT                         ( "ldap.connection.timeoutMS" ),
     LDAP_PROFILE_RETRY_DELAY                        ( "ldap.profile.retryDelayMS" ),
@@ -237,6 +242,7 @@ public enum AppProperty
     LOGGING_FILE_MAX_ROLLOVER                       ( "logging.file.maxRollover" ),
     LOGGING_FILE_PATH                               ( "logging.file.path" ),
     LOGGING_DEV_OUTPUT                              ( "logging.devOutput.enable" ),
+    LOGGING_LOG_CSP_REPORT                          ( "logging.cspReport.enable" ),
     NEWUSER_LDAP_USE_TEMP_PW                        ( "newUser.ldap.useTempPassword" ),
     NEWUSER_TOKEN_ALLOW_PLAIN_PW                    ( "newUser.token.allowPlainPassword" ),
     NMAS_THREADS_MAX_COUNT                          ( "nmas.threads.maxCount" ),
@@ -298,6 +304,8 @@ public enum AppProperty
     QUEUE_EMAIL_RETRY_TIMEOUT_MS                    ( "queue.email.retryTimeoutMs" ),
     QUEUE_EMAIL_MAX_COUNT                           ( "queue.email.maxCount" ),
     QUEUE_EMAIL_MAX_THREADS                         ( "queue.email.maxThreads" ),
+    QUEUE_EMAIL_MAX_ITEMS_PER_CONNECTION            ( "queue.email.maxItemsPerConnection" ),
+    QUEUE_EMAIL_MAX_SECONDS_PER_CONNECTION          ( "queue.email.maxSecondsPerConnection" ),
     QUEUE_SMS_RETRY_TIMEOUT_MS                      ( "queue.sms.retryTimeoutMs" ),
     QUEUE_SMS_MAX_COUNT                             ( "queue.sms.maxCount" ),
     QUEUE_SYSLOG_RETRY_TIMEOUT_MS                   ( "queue.syslog.retryTimeoutMs" ),
@@ -306,7 +314,7 @@ public enum AppProperty
     RECAPTCHA_CLIENT_JS_URL                         ( "recaptcha.clientJsUrl" ),
     RECAPTCHA_CLIENT_IFRAME_URL                     ( "recaptcha.clientIframeUrl" ),
     RECAPTCHA_VALIDATE_URL                          ( "recaptcha.validateUrl" ),
-    REPORTING_LDAP_SEARCH_TIMEOUT                   ( "reporting.ldap.searchTimeoutMs" ),
+    REPORTING_LDAP_SEARCH_TIMEOUT_MS                ( "reporting.ldap.searchTimeoutMs" ),
     REPORTING_LDAP_SEARCH_THREADS                   ( "reporting.ldap.searchThreads" ),
     REPORTING_MAX_REPORT_AGE_SECONDS                ( "reporting.maxReportAgeSeconds" ),
     SECURITY_STRIP_INLINE_JAVASCRIPT                ( "security.html.stripInlineJavascript" ),

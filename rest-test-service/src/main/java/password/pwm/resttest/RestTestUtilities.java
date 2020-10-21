@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class RestTestUtilities
 {
@@ -37,7 +37,7 @@ public class RestTestUtilities
         final StringWriter stringWriter = new StringWriter();
         final Reader readerStream = new InputStreamReader(
                 req.getInputStream(),
-                Charset.forName( "UTF8" )
+                StandardCharsets.UTF_8
         );
 
         try

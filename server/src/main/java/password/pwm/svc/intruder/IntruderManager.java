@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,13 +81,13 @@ public class IntruderManager implements PwmService
     private static final PwmLogger LOGGER = PwmLogger.forClass( IntruderManager.class );
 
     private PwmApplication pwmApplication;
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
     private ErrorInformation startupError;
     private Timer timer;
 
     private final Map<RecordType, RecordManager> recordManagers = new HashMap<>();
 
-    private ServiceInfoBean serviceInfo = new ServiceInfoBean( Collections.emptyList() );
+    private ServiceInfoBean serviceInfo = ServiceInfoBean.builder().build();
 
     public IntruderManager( )
     {
@@ -109,11 +109,10 @@ public class IntruderManager implements PwmService
     {
         this.pwmApplication = pwmApplication;
         final Configuration config = pwmApplication.getConfig();
-        status = STATUS.OPENING;
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "unable to start IntruderManager, LocalDB unavailable" );
-            LOGGER.error( errorInformation.toDebugStr() );
+            LOGGER.error( () -> errorInformation.toDebugStr() );
             startupError = errorInformation;
             status = STATUS.CLOSED;
             return;
@@ -164,7 +163,7 @@ public class IntruderManager implements PwmService
                     return;
             }
             LOGGER.info( () -> debugMsg );
-            serviceInfo = new ServiceInfoBean( Collections.singletonList( storageMethodUsed ) );
+            serviceInfo = ServiceInfoBean.builder().storageMethod( storageMethodUsed ).build();
         }
         final RecordStore recordStore;
         {
@@ -184,7 +183,7 @@ public class IntruderManager implements PwmService
                     }
                     catch ( final Exception e )
                     {
-                        LOGGER.error( "error cleaning recordStore: " + e.getMessage(), e );
+                        LOGGER.error( () -> "error cleaning recordStore: " + e.getMessage(), e );
                     }
                 }
             }, 1000, cleanerRunFrequency );
@@ -198,7 +197,7 @@ public class IntruderManager implements PwmService
         catch ( final Exception e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "unexpected error starting intruder manager: " + e.getMessage() );
-            LOGGER.error( errorInformation.toDebugStr() );
+            LOGGER.error( () -> errorInformation.toDebugStr() );
             startupError = errorInformation;
             close();
         }
@@ -373,7 +372,7 @@ public class IntruderManager implements PwmService
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error examining address: " + subject );
+                LOGGER.error( () -> "error examining address: " + subject );
             }
         }
 
@@ -489,7 +488,7 @@ public class IntruderManager implements PwmService
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "unable to send intruder mail, can't read userDN/ldapProfile from stored record: " + e.getMessage() );
+                LOGGER.error( () -> "unable to send intruder mail, can't read userDN/ldapProfile from stored record: " + e.getMessage() );
             }
         }
     }
@@ -709,11 +708,12 @@ public class IntruderManager implements PwmService
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage() );
+            LOGGER.error( () -> "error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage() );
         }
 
     }
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
         return serviceInfo;

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,10 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.function.UserMatchViewerFunction;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfiguration;
@@ -39,6 +42,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthRecord;
+import password.pwm.health.HealthStatus;
+import password.pwm.health.HealthTopic;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
@@ -62,6 +68,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -156,7 +164,7 @@ public class ConfigGuideUtils
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "unable to create schema extender object: " + e.getMessage() );
+            LOGGER.error( () -> "unable to create schema extender object: " + e.getMessage() );
             return null;
         }
     }
@@ -225,7 +233,7 @@ public class ConfigGuideUtils
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_UPLOAD_FAILURE, errorMsg, new String[]
                     {
                             errorMsg,
-                    }
+                            }
             );
             pwmRequest.respondWithError( errorInformation, true );
         }
@@ -237,7 +245,7 @@ public class ConfigGuideUtils
             {
                 try
                 {
-                    final StoredConfiguration storedConfig = StoredConfigurationFactory.fromXml( uploadedFile );
+                    final StoredConfiguration storedConfig = StoredConfigurationFactory.input( uploadedFile );
                     final List<String> configErrors = StoredConfigurationUtil.validateValues( storedConfig );
                     if ( !JavaHelper.isEmpty( configErrors ) )
                     {
@@ -253,7 +261,7 @@ public class ConfigGuideUtils
                 {
                     final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
                     pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
-                    LOGGER.error( pwmRequest, e.getErrorInformation().toDebugStr() );
+                    LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
                 }
             }
             else
@@ -261,9 +269,57 @@ public class ConfigGuideUtils
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file: no file present in upload" );
                 final RestResultBean restResultBean = RestResultBean.fromError( errorInformation, pwmRequest );
                 pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
-                LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+                LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
             }
         }
     }
 
+    static List<HealthRecord> checkAdminHealth( final PwmRequest pwmRequest, final StoredConfiguration storedConfiguration )
+    {
+        final List<HealthRecord> records = new ArrayList<>();
+
+        try
+        {
+            final ConfigGuideBean configGuideBean = ConfigGuideServlet.getBean( pwmRequest );
+            final Map<ConfigGuideFormField, String> form = configGuideBean.getFormData();
+            final PwmApplication tempApplication = PwmApplication.createPwmApplication(
+                    pwmRequest.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( new Configuration( storedConfiguration ) ) );
+
+            final String adminDN = form.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_USER );
+            final UserIdentity adminIdentity = new UserIdentity( adminDN, PwmConstants.PROFILE_ID_DEFAULT );
+
+            final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
+            final Collection<UserIdentity> results = userMatchViewerFunction.discoverMatchingUsers(
+                    tempApplication,
+                    1,
+                    storedConfiguration,
+                    PwmSetting.QUERY_MATCH_PWM_ADMIN,
+                    null
+            );
+
+            if ( !results.isEmpty() )
+            {
+                final UserIdentity foundIdentity = results.iterator().next();
+                if ( foundIdentity.canonicalEquals( adminIdentity, tempApplication ) )
+                {
+                    records.add( new HealthRecord( HealthStatus.GOOD, HealthTopic.LDAP, "Admin user validated." ) );
+                }
+            }
+        }
+        catch ( final PwmException e )
+        {
+            records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Error during admin user validation: " + e.getErrorInformation().toDebugStr() ) );
+        }
+        catch ( final Exception e )
+        {
+            records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Error during admin user validation: " + e.getMessage() ) );
+        }
+
+        if ( records.isEmpty() )
+        {
+            records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Admin user not found." ) );
+        }
+
+        return records;
+    }
 }

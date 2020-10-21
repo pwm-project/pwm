@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,6 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.SecureService;
 
-import javax.annotation.CheckReturnValue;
-import javax.annotation.meta.When;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -52,7 +50,7 @@ import java.util.function.BooleanSupplier;
  *
  * @author Jason D. Rivard
  */
-public class TimeDuration implements Comparable, Serializable
+public class TimeDuration implements Comparable<TimeDuration>, Serializable
 {
     public enum Unit
     {
@@ -287,10 +285,10 @@ public class TimeDuration implements Comparable, Serializable
         return this.compareTo( duration ) > 0;
     }
 
-    public int compareTo( final Object o )
+    @Override
+    public int compareTo( final TimeDuration o )
     {
-        final TimeDuration td = ( TimeDuration ) o;
-        final long otherMS = td.as( Unit.MILLISECONDS );
+        final long otherMS = o.as( Unit.MILLISECONDS );
         return Long.compare( ms, otherMS );
     }
 
@@ -363,17 +361,17 @@ public class TimeDuration implements Comparable, Serializable
             final StringBuilder sb = new StringBuilder();
             if ( sb.length() == 0 )
             {
-                if ( ms < 5000 )
+                if ( ms < 10_000 )
                 {
                     final BigDecimal msDecimal = new BigDecimal( ms ).movePointLeft( 3 );
 
                     final DecimalFormat formatter;
 
-                    if ( ms > 2000 )
+                    if ( ms > 5000 )
                     {
                         formatter = new DecimalFormat( "#.#" );
                     }
-                    else if ( ms > 1000 )
+                    else if ( ms > 2000 )
                     {
                         formatter = new DecimalFormat( "#.##" );
                     }
@@ -393,11 +391,15 @@ public class TimeDuration implements Comparable, Serializable
             {
                 sb.append( fractionalTimeDetail.seconds );
             }
+
             sb.append( " " );
             sb.append( ms == 1000
                     ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Second, null )
                     : LocaleHelper.getLocalizedMessage( locale, Display.Display_Seconds, null )
             );
+
+
+
             segments.add( sb.toString() );
         }
 
@@ -434,46 +436,38 @@ public class TimeDuration implements Comparable, Serializable
 
     /**
      * Pause the calling thread the specified amount of time.
-     *
-     * @return time actually spent sleeping
      */
-    @CheckReturnValue( when = When.NEVER )
-    public TimeDuration pause( )
+    public void pause( )
     {
-        return pause( this, () -> false );
+        pause( this, () -> false );
     }
 
     /**
      * Pause the calling thread the specified amount of time.
-     *
-     * @return time actually spent sleeping
      */
-    @CheckReturnValue( when = When.NEVER )
-    public TimeDuration jitterPause( final SecureService secureService, final float factor )
+    public void jitterPause( final SecureService secureService, final float factor )
     {
         final PwmRandom pwmRandom = secureService.pwmRandom();
         final long jitterMs = (long) ( this.ms * factor );
         final long deviation = pwmRandom.nextBoolean() ? jitterMs + this.ms : jitterMs - this.ms;
-        return pause( TimeDuration.of( deviation, Unit.MILLISECONDS ), () -> false );
+        pause( TimeDuration.of( deviation, Unit.MILLISECONDS ), () -> false );
     }
 
-    @CheckReturnValue( when = When.NEVER )
-    public TimeDuration pause(
+    public void pause(
             final BooleanSupplier interruptBoolean
     )
     {
-        final long interruptMs = JavaHelper.rangeCheck( 5, 1000, this.asMillis() / 100 );
-        return pause( TimeDuration.of( interruptMs, Unit.MILLISECONDS ), interruptBoolean );
+        final long interruptMs = this.asMillis() / 100;
+        pause( TimeDuration.of( interruptMs, Unit.MILLISECONDS ), interruptBoolean );
     }
 
-    @CheckReturnValue( when = When.NEVER )
-    public TimeDuration pause(
+    public void pause(
             final TimeDuration interruptCheckInterval,
             final BooleanSupplier interruptBoolean
     )
     {
         final long startTime = System.currentTimeMillis();
-        final long pauseTime = JavaHelper.rangeCheck( this.asMillis(), this.asMillis(), interruptCheckInterval.asMillis()  );
+        final long pauseTime = JavaHelper.rangeCheck( 5, 1000, interruptCheckInterval.asMillis() );
 
         while ( ( System.currentTimeMillis() - startTime ) < this.asMillis() && !interruptBoolean.getAsBoolean() )
         {
@@ -486,8 +480,6 @@ public class TimeDuration implements Comparable, Serializable
                 // ignore
             }
         }
-
-        return TimeDuration.fromCurrent( startTime );
     }
 
     public Duration asDuration()

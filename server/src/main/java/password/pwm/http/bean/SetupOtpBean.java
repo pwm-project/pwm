@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,9 @@ import password.pwm.util.operations.otp.OTPUserRecord;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -92,18 +91,13 @@ public class SetupOtpBean extends PwmSessionBean
             {
                 random = SecureRandom.getInstance( "SHA1PRNG", "SUN" );
             }
-            catch ( final NoSuchAlgorithmException ex )
+            catch ( final NoSuchAlgorithmException | NoSuchProviderException ex )
             {
                 random = new SecureRandom();
-                LOGGER.error( ex.getMessage(), ex );
-            }
-            catch ( final NoSuchProviderException ex )
-            {
-                random = new SecureRandom();
-                LOGGER.error( ex.getMessage(), ex );
+                LOGGER.error( () -> ex.getMessage(), ex );
             }
             random.setSeed( ( new Date() ).getTime() );
-            challenge = random.nextLong() % ( 10 ^ 6 );
+            challenge = random.nextLong() % ( 1_000_000 );
         }
         return challenge;
     }
@@ -143,6 +137,7 @@ public class SetupOtpBean extends PwmSessionBean
         this.written = written;
     }
 
+    @Override
     public Type getType( )
     {
         return Type.AUTHENTICATED;
@@ -151,7 +146,7 @@ public class SetupOtpBean extends PwmSessionBean
     @Override
     public Set<SessionBeanMode> supportedModes( )
     {
-        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) ) );
+        return Collections.unmodifiableSet( EnumSet.of( SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE ) );
     }
 
 }

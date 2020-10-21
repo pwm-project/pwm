@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -97,7 +97,7 @@ public class MacroMachine
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "unable to load macro class " + macroClass.getName() + ", error: " + e.getMessage() );
+                LOGGER.error( () -> "unable to load macro class " + macroClass.getName() + ", error: " + e.getMessage() );
             }
         }
 
@@ -192,7 +192,7 @@ public class MacroMachine
                             workingString = doReplace( workingString, pwmMacro, matcher, macroRequestInfo );
                             if ( workingString.equals( previousString ) )
                             {
-                                LOGGER.warn( sessionLabel, "macro replace was called but input string was not modified.  "
+                                LOGGER.warn( sessionLabel, () -> "macro replace was called but input string was not modified.  "
                                         + " macro=" + pwmMacro.getClass().getName() + ", pattern=" + pwmMacro.getRegExPattern().toString() );
                                 break;
                             }
@@ -211,7 +211,7 @@ public class MacroMachine
 
     private static Set<MacroImplementation.Scope> effectiveScopes( final MacroImplementation.MacroRequestInfo macroRequestInfo )
     {
-        final Set<MacroImplementation.Scope> scopes = new HashSet<>();
+        final Set<MacroImplementation.Scope> scopes = EnumSet.noneOf( MacroImplementation.Scope.class );
         scopes.add( MacroImplementation.Scope.Static );
 
         final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
@@ -260,7 +260,7 @@ public class MacroMachine
         }
         catch ( final Exception e )
         {
-            LOGGER.error( sessionLabel, "error while replacing macro '" + matchedStr + "', error: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "error while replacing macro '" + matchedStr + "', error: " + e.getMessage() );
         }
 
         if ( replaceStr == null )
@@ -276,7 +276,7 @@ public class MacroMachine
             }
             catch ( final Exception e )
             {
-                LOGGER.error( sessionLabel, "unexpected error while executing '" + matchedStr + "' during StringReplacer.replace(), error: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "unexpected error while executing '" + matchedStr + "' during StringReplacer.replace(), error: " + e.getMessage() );
             }
         }
 

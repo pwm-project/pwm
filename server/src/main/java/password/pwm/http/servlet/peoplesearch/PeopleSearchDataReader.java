@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -48,10 +49,11 @@ import password.pwm.http.servlet.peoplesearch.bean.SearchResultBean;
 import password.pwm.http.servlet.peoplesearch.bean.UserDetailBean;
 import password.pwm.http.servlet.peoplesearch.bean.UserReferenceBean;
 import password.pwm.i18n.Display;
-import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.PhotoDataBean;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.search.UserSearchResults;
@@ -302,7 +304,7 @@ class PeopleSearchDataReader
         }
         catch ( final Exception e )
         {
-            LOGGER.warn( pwmRequest, "error de-serializing configured app property json for detail links: " + e.getMessage() );
+            LOGGER.warn( pwmRequest, () -> "error de-serializing configured app property json for detail links: " + e.getMessage() );
             return Collections.emptyList();
         }
         final List<LinkReferenceBean> returnList = new ArrayList<>();
@@ -615,7 +617,13 @@ class PeopleSearchDataReader
                 filterString = filterString.replace( "**", "*" );
             }
 
-            return LdapPermissionTester.testQueryMatch( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userIdentity, filterString );
+            final UserPermission userPermission = UserPermission.builder()
+                    .type( UserPermissionType.ldapQuery )
+                    .ldapQuery( filterString )
+                    .ldapProfileID( userIdentity.getLdapProfileID() )
+                    .build();
+
+            return UserPermissionUtility.testUserPermission( pwmRequest.commonValues(), userIdentity, userPermission );
         };
 
         final boolean result = storeDataInCache( CacheIdentifier.checkIfViewable, userIdentity.toDelimitedKey(), Boolean.class, cacheLoader );
@@ -624,13 +632,13 @@ class PeopleSearchDataReader
             if ( !result )
             {
                 final String msg = "attempt to read data of out-of-scope userDN '" + userIdentity.toDisplayString() + "' by user " + userIdentity.toDisplayString();
-                LOGGER.warn( pwmRequest, msg );
+                LOGGER.warn( pwmRequest, () -> msg );
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, msg );
             }
         }
         finally
         {
-            LOGGER.trace( pwmRequest, () -> "completed checkIfUserViewable for " + userIdentity.toDisplayString() + " in " + TimeDuration.compactFromCurrent( startTime ) );
+            LOGGER.trace( pwmRequest, () -> "completed checkIfUserViewable for " + userIdentity.toDisplayString() + " in ", () -> TimeDuration.fromCurrent( startTime ) );
         }
     }
 
@@ -693,7 +701,7 @@ class PeopleSearchDataReader
         final boolean useProxy = useProxy();
         return useProxy
                 ? pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity )
-                : pwmRequest.getPwmSession().getSessionManager().getActor( pwmRequest.getPwmApplication(), userIdentity );
+                : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
     }
 
     private UserSearchResults doDetailLookup(
@@ -731,7 +739,7 @@ class PeopleSearchDataReader
         }
         catch ( final ChaiException e )
         {
-            LOGGER.error( "unexpected error during detail lookup of '" + userIdentity + "', error: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error during detail lookup of '" + userIdentity + "', error: " + e.getMessage() );
             throw PwmUnrecoverableException.fromChaiException( e );
         }
     }
@@ -823,7 +831,7 @@ class PeopleSearchDataReader
         catch ( final PwmOperationalException e )
         {
             final ErrorInformation errorInformation = e.getErrorInformation();
-            LOGGER.error( pwmRequest.getLabel(), errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest.getLabel(), () -> errorInformation.toDebugStr() );
             throw new PwmUnrecoverableException( errorInformation );
         }
 
@@ -992,7 +1000,7 @@ class PeopleSearchDataReader
             }
             catch ( final Exception e )
             {
-                LOGGER.error( pwmRequest, "error exporting csv row data: " + e.getMessage() );
+                LOGGER.error( pwmRequest, () -> "error exporting csv row data: " + e.getMessage() );
             }
         }
 

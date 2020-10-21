@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,44 +20,18 @@
 
 package password.pwm.bean;
 
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.bean.pub.PublicUserInfoBean;
 
 import java.io.Serializable;
 import java.util.Map;
 
+@Value
+@Builder
 public class RemoteVerificationRequestBean implements Serializable
 {
-    private String responseSessionID;
-    private PublicUserInfoBean userInfo;
-    private Map<String, String> userResponses;
-
-    public String getResponseSessionID( )
-    {
-        return responseSessionID;
-    }
-
-    public void setResponseSessionID( final String responseSessionID )
-    {
-        this.responseSessionID = responseSessionID;
-    }
-
-    public PublicUserInfoBean getUserInfo( )
-    {
-        return userInfo;
-    }
-
-    public void setUserInfo( final PublicUserInfoBean userInfo )
-    {
-        this.userInfo = userInfo;
-    }
-
-    public Map<String, String> getUserResponses( )
-    {
-        return userResponses;
-    }
-
-    public void setUserResponses( final Map<String, String> userResponses )
-    {
-        this.userResponses = userResponses;
-    }
+    private final String responseSessionID;
+    private final PublicUserInfoBean userInfo;
+    private final Map<String, String> userResponses;
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
             final URI uri = URI.create( urlString );
             if ( "https".equalsIgnoreCase( uri.getScheme() ) )
             {
-                certs = X509Utils.readRemoteHttpCertificates( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), uri, new Configuration( modifier.newStoredConfiguration() ) );
+                certs = X509Utils.readRemoteHttpCertificates( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), uri );
             }
             else
             {
@@ -82,7 +82,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
         final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
         store( certs, modifier, setting, profile, extraData, userIdentity );
 
-        final StringBuffer returnStr = new StringBuffer();
+        final StringBuilder returnStr = new StringBuilder();
         for ( final X509Certificate loopCert : certs )
         {
             returnStr.append( X509Utils.makeDebugText( loopCert ) );
@@ -110,7 +110,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        storedConfiguration.writeSetting( pwmSetting, profile, new X509CertificateValue( certs ), userIdentity );
+        storedConfiguration.writeSetting( pwmSetting, profile, X509CertificateValue.fromX509( certs ), userIdentity );
     }
 
 

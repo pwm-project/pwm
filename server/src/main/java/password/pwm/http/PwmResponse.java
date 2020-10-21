@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 public class PwmResponse extends PwmHttpResponseWrapper
@@ -150,7 +150,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "unexpected error sending user to success page: " + e.toString() );
+            LOGGER.error( () -> "unexpected error sending user to success page: " + e.toString() );
         }
     }
 
@@ -179,7 +179,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         if ( isCommitted() )
         {
             final String msg = "cannot respond with error '" + errorInformation.toDebugStr() + "', response is already committed";
-            LOGGER.warn( pwmRequest.getLabel(), ExceptionUtils.getStackTrace( new Throwable( msg ) ) );
+            LOGGER.warn( pwmRequest.getLabel(), () -> ExceptionUtils.getStackTrace( new Throwable( msg ) ) );
             return;
         }
 
@@ -195,7 +195,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "unexpected error sending user to error page: " + e.toString() );
+                LOGGER.error( () -> "unexpected error sending user to error page: " + e.toString() );
             }
         }
         else
@@ -218,7 +218,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
     {
         preCommitActions();
         final HttpServletResponse resp = this.getHttpServletResponse();
-        final String outputString = restResultBean.toJson();
+        final String outputString = restResultBean.toJson( pwmRequest.isPrettyPrintJsonParameterTrue() );
         resp.setContentType( HttpContentType.json.getHeaderValueWithEncoding() );
         resp.getWriter().print( outputString );
         resp.getWriter().close();
@@ -246,6 +246,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         this.setContentType( contentType );
     }
 
+    @Override
     public void sendRedirect( final String url )
             throws IOException
     {
@@ -276,7 +277,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         pwmRequest.getPwmApplication().getSessionStateService().saveSessionBeans( pwmRequest );
     }
 
-    private final Set<PwmResponseFlag> pwmResponseFlags = new HashSet<>();
+    private final Set<PwmResponseFlag> pwmResponseFlags = EnumSet.noneOf( PwmResponseFlag.class );
 
     private Collection<PwmResponseFlag> getResponseFlags( )
     {

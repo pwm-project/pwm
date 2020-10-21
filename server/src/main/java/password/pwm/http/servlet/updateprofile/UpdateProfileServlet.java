@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,6 +119,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
@@ -140,7 +141,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
 
     private static UpdateProfileProfile getProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmSession().getSessionManager().getUpdateAttributeProfile( pwmRequest.getPwmApplication() );
+        return pwmRequest.getPwmSession().getSessionManager().getUpdateAttributeProfile( );
     }
 
     private static UpdateProfileBean getBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
@@ -320,7 +321,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.error( pwmRequest, e.getMessage() );
+            LOGGER.error( pwmRequest, () -> e.getMessage() );
             setLastError( pwmRequest, e.getErrorInformation() );
         }
 
@@ -329,6 +330,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         return ProcessStatus.Continue;
     }
 
+    @Override
     protected void nextStep( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
     {
@@ -347,7 +349,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             {
                 if ( !updateProfileBean.isAgreementPassed() )
                 {
-                    final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmRequest.getPwmApplication() );
+                    final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
                     final String expandedText = macroMachine.expandMacros( updateProfileAgreementText );
                     pwmRequest.setAttribute( PwmRequestAttribute.AgreementText, expandedText );
                     pwmRequest.forwardToJsp( JspUrl.UPDATE_ATTRIBUTES_AGREEMENT );
@@ -383,7 +385,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( pwmRequest, e.getMessage() );
+            LOGGER.error( pwmRequest, () -> e.getMessage() );
             setLastError( pwmRequest, e.getErrorInformation() );
             UpdateProfileUtil.forwardToForm( pwmRequest, updateProfileProfile, updateProfileBean );
             return;
@@ -406,13 +408,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         try
         {
             // write the form values
-            final ChaiUser theUser = pwmSession.getSessionManager().getActor( pwmApplication );
+            final ChaiUser theUser = pwmSession.getSessionManager().getActor( );
             UpdateProfileUtil.doProfileUpdate(
                     pwmRequest.getPwmApplication(),
                     pwmRequest.getLabel(),
                     pwmRequest.getLocale(),
                     pwmSession.getUserInfo(),
-                    pwmSession.getSessionManager().getMacroMachine( pwmApplication ),
+                    pwmSession.getSessionManager().getMacroMachine( ),
                     updateProfileProfile,
                     updateProfileBean.getFormData(),
                     theUser
@@ -432,13 +434,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( pwmRequest, e.getMessage() );
+            LOGGER.error( pwmRequest, () -> e.getMessage() );
             setLastError( pwmRequest, e.getErrorInformation() );
         }
         catch ( final ChaiException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UPDATE_ATTRS_FAILURE, e.toString() );
-            LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
             setLastError( pwmRequest, errorInformation );
         }
 

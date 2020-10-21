@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,11 @@
 package password.pwm.http.servlet.command;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
-import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
@@ -109,7 +108,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error processing csp report: " + e.getMessage() + ", body=" + body );
+            LOGGER.error( () -> "error processing csp report: " + e.getMessage() + ", body=" + body );
         }
         return ProcessStatus.Halt;
     }
@@ -136,8 +135,6 @@ public abstract class CommandServlet extends ControlledPwmServlet
             throws IOException, PwmUnrecoverableException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final Configuration config = pwmApplication.getConfig();
 
         if ( pwmRequest.isAuthenticated() )
         {
@@ -147,7 +144,9 @@ public abstract class CommandServlet extends ControlledPwmServlet
             }
 
             // log the user out if our finish action is currently set to log out.
-            final boolean forceLogoutOnChange = config.readSettingAsBoolean( PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE );
+            final ChangePasswordProfile changePasswordProfile = pwmSession.getSessionManager().getChangePasswordProfile();
+
+            final boolean forceLogoutOnChange = changePasswordProfile.readSettingAsBoolean( PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE );
             if ( forceLogoutOnChange && pwmSession.getSessionStateBean().isPasswordModified() )
             {
                 LOGGER.trace( pwmRequest, () -> "logging out user; password has been modified" );

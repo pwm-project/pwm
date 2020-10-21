@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ public class GZIPFilter implements Filter
     private final CompressingFilter compressingFilter = new CompressingFilter();
     private boolean enabled = false;
 
+    @Override
     public void init( final FilterConfig filterConfig )
             throws ServletException
     {
@@ -59,12 +60,13 @@ public class GZIPFilter implements Filter
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( "unable to load application configuration, defaulting to disabled" );
+            LOGGER.warn( () -> "unable to load application configuration, defaulting to disabled" );
         }
 
         compressingFilter.init( filterConfig );
     }
 
+    @Override
     public void destroy( )
     {
         compressingFilter.destroy();
@@ -98,7 +100,7 @@ public class GZIPFilter implements Filter
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "unable to parse request url, defaulting to non-gzip: " + e.getMessage() );
+            LOGGER.error( () -> "unable to parse request url, defaulting to non-gzip: " + e.getMessage() );
         }
 
         return true;

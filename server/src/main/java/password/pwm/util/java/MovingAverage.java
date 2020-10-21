@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@
 package password.pwm.util.java;
 
 import java.io.Serializable;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * <p>MovingAverage.java</p>
@@ -50,6 +52,8 @@ public class MovingAverage implements Serializable
     private long lastMillis;
     private double average;
 
+    private final Lock lock = new ReentrantLock();
+
     /**
      * Construct a {@link MovingAverage}, providing the time window
      * we want the average over. For example, providing a value of
@@ -73,22 +77,30 @@ public class MovingAverage implements Serializable
      *
      * @param sample the latest measurement in the rolling average
      */
-    public synchronized void update( final double sample )
+    public void update( final double sample )
     {
-        final long now = System.currentTimeMillis();
-
-        if ( lastMillis == 0 )
+        lock.lock();
+        try
         {
-            // first sample
-            average = sample;
-            lastMillis = now;
-            return;
-        }
-        final long deltaTime = now - lastMillis;
-        final double coeff = Math.exp( -1.0 * ( ( double ) deltaTime / windowMillis ) );
-        average = ( 1.0 - coeff ) * sample + coeff * average;
+            final long now = System.currentTimeMillis();
 
-        lastMillis = now;
+            if ( lastMillis == 0 )
+            {
+                // first sample
+                average = sample;
+                lastMillis = now;
+                return;
+            }
+            final long deltaTime = now - lastMillis;
+            final double coeff = Math.exp( -1.0 * ( ( double ) deltaTime / windowMillis ) );
+            average = ( 1.0 - coeff ) * sample + coeff * average;
+
+            lastMillis = now;
+        }
+        finally
+        {
+            lock.unlock();
+        }
     }
 
     /**

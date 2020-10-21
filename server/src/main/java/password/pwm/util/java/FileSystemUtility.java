@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -194,7 +194,7 @@ public class FileSystemUtility
         }
         catch ( final IOException e )
         {
-            LOGGER.error( "error calculating disk size of '" + dir.getAbsolutePath() + "', error: " + e.getMessage(), e );
+            LOGGER.error( () -> "error calculating disk size of '" + dir.getAbsolutePath() + "', error: " + e.getMessage(), e );
         }
 
         return -1;
@@ -238,7 +238,7 @@ public class FileSystemUtility
                     LOGGER.debug( () -> "deleting old backup file: " + thisFile.getAbsolutePath() );
                     if ( !thisFile.delete() )
                     {
-                        LOGGER.error( "unable to delete old backup file: " + thisFile.getAbsolutePath() );
+                        LOGGER.error( () -> "unable to delete old backup file: " + thisFile.getAbsolutePath() );
                     }
                 }
             }
@@ -298,7 +298,7 @@ public class FileSystemUtility
             }
             catch ( final IOException e )
             {
-                LOGGER.warn( "error deleting temporary file '" + path.getAbsolutePath() + "', error: " + e.getMessage() );
+                LOGGER.warn( () -> "error deleting temporary file '" + path.getAbsolutePath() + "', error: " + e.getMessage() );
             }
         }
     }

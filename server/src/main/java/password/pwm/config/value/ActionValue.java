@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.PwmOperationalException;
@@ -65,6 +64,7 @@ public class ActionValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public ActionValue fromJson( final String input )
             {
                 if ( input == null )
@@ -88,6 +88,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                 }
             }
 
+            @Override
             public ActionValue fromXmlElement(
                     final PwmSetting pwmSetting,
                     final XmlElement settingElement,
@@ -99,8 +100,8 @@ public class ActionValue extends AbstractValue implements StoredValue
                 final List<ActionConfiguration> values = new ArrayList<>();
 
                 final boolean oldType = PwmSettingSyntax.STRING_ARRAY.toString().equals(
-                        settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX ) );
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                        settingElement.getAttributeValue( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX ) );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 for ( final XmlElement loopValueElement : valueElements )
                 {
                     final String stringValue = loopValueElement.getText();
@@ -110,7 +111,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                         {
                             if ( oldType )
                             {
-                                if ( loopValueElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ) == null )
+                                if ( loopValueElement.getAttributeValue( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ) == null )
                                 {
                                     final ActionConfiguration.ActionConfigurationOldVersion1 oldVersion1 = ActionConfiguration.ActionConfigurationOldVersion1
                                             .parseOldConfigString( stringValue );
@@ -164,7 +165,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                                 }
                                 catch ( final PwmOperationalException e )
                                 {
-                                    LOGGER.warn( "error decoding stored pw value on setting '" + pwmSetting.getKey() + "': " + e.getMessage() );
+                                    LOGGER.warn( () -> "error decoding stored pw value on setting '" + pwmSetting.getKey() + "': " + e.getMessage() );
                                 }
                             }
 
@@ -183,6 +184,7 @@ public class ActionValue extends AbstractValue implements StoredValue
         };
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
@@ -205,7 +207,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                     }
                     catch ( final PwmOperationalException e )
                     {
-                        LOGGER.warn( "error encoding stored pw value: " + e.getMessage() );
+                        LOGGER.warn( () -> "error encoding stored pw value: " + e.getMessage() );
                     }
                 }
             }
@@ -221,11 +223,13 @@ public class ActionValue extends AbstractValue implements StoredValue
         return returnList;
     }
 
+    @Override
     public List<ActionConfiguration> toNativeObject( )
     {
         return Collections.unmodifiableList( values );
     }
 
+    @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
         if ( pwmSetting.isRequired() )
@@ -286,6 +290,7 @@ public class ActionValue extends AbstractValue implements StoredValue
         return output;
     }
 
+    @Override
     public String toDebugString( final Locale locale )
     {
         final StringBuilder sb = new StringBuilder();
@@ -313,7 +318,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                 {
                     sb.append( "\n    successStatus=" ).append( StringUtil.collectionToString( webAction.getSuccessStatus() ) );
                 }
-                if ( StringUtil.isEmpty( webAction.getBody() ) )
+                if ( !StringUtil.isEmpty( webAction.getBody() ) )
                 {
                     sb.append( "\n    body=" ).append( webAction.getBody() );
                 }
@@ -395,7 +400,7 @@ public class ActionValue extends AbstractValue implements StoredValue
 
     private static int figureCurrentStoredSyntax( final XmlElement settingElement )
     {
-        final String storedSyntaxVersionString = settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION );
+        final String storedSyntaxVersionString = settingElement.getAttributeValue( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION );
         if ( !StringUtil.isEmpty( storedSyntaxVersionString ) )
         {
             try

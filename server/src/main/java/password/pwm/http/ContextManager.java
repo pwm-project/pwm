@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,12 @@ import password.pwm.PwmEnvironment;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -45,7 +45,6 @@ import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.logging.PwmLogManager;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
 
@@ -63,7 +62,6 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -77,12 +75,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ContextManager implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private static final PwmLogger LOGGER = PwmLogger.forClass( ContextManager.class );
     private static final SessionLabel SESSION_LABEL = SessionLabel.CONTEXT_SESSION_LABEL;
 
     private static final TimeDuration RESTART_DELAY = TimeDuration.of( 5, TimeDuration.Unit.SECONDS );
 
-    private transient ServletContext servletContext;
+    private final transient ServletContext servletContext;
+    private final String contextPath;
+
     private transient ScheduledExecutorService taskMaster;
 
     private transient volatile PwmApplication pwmApplication;
@@ -93,7 +95,6 @@ public class ContextManager implements Serializable
     private TimeDuration readApplicationLockMaxWait = TimeDuration.of( 10, TimeDuration.Unit.SECONDS );
     private final AtomicBoolean restartInProgressFlag = new AtomicBoolean();
 
-    private String contextPath;
     private File applicationPath;
 
     private static final String UNSPECIFIED_VALUE = "unspecified";
@@ -103,7 +104,6 @@ public class ContextManager implements Serializable
         this.servletContext = servletContext;
         this.contextPath = servletContext.getContextPath();
     }
-
 
     public static PwmApplication getPwmApplication( final ServletRequest request ) throws PwmUnrecoverableException
     {
@@ -211,7 +211,6 @@ public class ContextManager implements Serializable
         Configuration configuration = null;
         PwmApplicationMode mode = PwmApplicationMode.ERROR;
 
-
         final ParameterReader parameterReader = new ParameterReader( servletContext );
         {
             final String applicationPathStr = parameterReader.readApplicationPath();
@@ -259,22 +258,28 @@ public class ContextManager implements Serializable
         final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = parameterReader.readApplicationFlags();
         final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = parameterReader.readApplicationParams( applicationPath );
 
-        if ( applicationParams != null && applicationParams.containsKey( PwmEnvironment.ApplicationParameter.InitConsoleLogLevel ) )
-        {
-            final String logLevel = applicationParams.get( PwmEnvironment.ApplicationParameter.InitConsoleLogLevel );
-            PwmLogManager.preInitConsoleLogLevel( logLevel );
-        }
+        mode = PwmEnvironment.checkForTrial( mode );
 
         try
         {
-            final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder( configuration, applicationPath )
-                    .setApplicationMode( mode )
-                    .setConfigurationFile( configurationFile )
-                    .setContextManager( this )
-                    .setFlags( applicationFlags )
-                    .setParams( applicationParams )
-                    .createPwmEnvironment();
-            pwmApplication = new PwmApplication( pwmEnvironment );
+            final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
+                    .config( configuration )
+                    .applicationPath( applicationPath )
+                    .applicationMode( mode )
+                    .configurationFile( configurationFile )
+                    .contextManager( this )
+                    .flags( applicationFlags )
+                    .parameters( applicationParams )
+                    .build();
+
+            if ( pwmApplication == null )
+            {
+                pwmApplication = PwmApplication.createPwmApplication( pwmEnvironment );
+            }
+            else
+            {
+                pwmApplication.reInit( pwmEnvironment );
+            }
         }
         catch ( final Exception e )
         {
@@ -359,7 +364,7 @@ public class ContextManager implements Serializable
 
         try
         {
-            LOGGER.fatal( SESSION_LABEL, startupErrorInformation.getDetailedErrorMsg() );
+            LOGGER.fatal( SESSION_LABEL, () -> startupErrorInformation.getDetailedErrorMsg() );
         }
         catch ( final Exception e2 )
         {
@@ -381,7 +386,7 @@ public class ContextManager implements Serializable
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "unexpected error attempting to close application: " + e.getMessage() );
+                LOGGER.error( () -> "unexpected error attempting to close application: " + e.getMessage() );
             }
         }
         taskMaster.shutdown();
@@ -393,7 +398,7 @@ public class ContextManager implements Serializable
 
     public void requestPwmApplicationRestart( )
     {
-        LOGGER.debug( () -> "immediate restart requested" );
+        LOGGER.debug( SESSION_LABEL, () -> "immediate restart requested" );
         taskMaster.schedule( new RestartFlagWatcher(), 0, TimeUnit.MILLISECONDS );
     }
 
@@ -439,7 +444,13 @@ public class ContextManager implements Serializable
                     try
                     {
                         final PropertyConfigurationImporter importer = new PropertyConfigurationImporter();
-                        final StoredConfiguration storedConfiguration = importer.readConfiguration( new FileInputStream( silentPropertiesFile ) );
+
+                        final StoredConfiguration storedConfiguration;
+                        try ( InputStream fileInputStream = new FileInputStream( silentPropertiesFile ) )
+                        {
+                            storedConfiguration = importer.readConfiguration( fileInputStream );
+                        }
+
                         configReader.saveConfiguration( storedConfiguration, pwmApplication, SESSION_LABEL );
                         LOGGER.info( SESSION_LABEL, () -> "file " + silentPropertiesFile.getAbsolutePath() + " has been successfully imported and saved as configuration file" );
                         requestPwmApplicationRestart();
@@ -447,7 +458,7 @@ public class ContextManager implements Serializable
                     }
                     catch ( final Exception e )
                     {
-                        LOGGER.error( SESSION_LABEL, "error importing " + silentPropertiesFile.getAbsolutePath() + ", error: " + e.getMessage() );
+                        LOGGER.error( SESSION_LABEL, () -> "error importing " + silentPropertiesFile.getAbsolutePath() + ", error: " + e.getMessage() );
                     }
 
                     final String appendValue = success ? ".imported" : ".error";
@@ -461,7 +472,7 @@ public class ContextManager implements Serializable
                     }
                     catch ( final IOException e )
                     {
-                        LOGGER.error( SESSION_LABEL, "error renaming file " + source.toString() + " to " + dest.toString() + ", error: " + e.getMessage() );
+                        LOGGER.error( SESSION_LABEL, () -> "error renaming file " + source.toString() + " to " + dest.toString() + ", error: " + e.getMessage() );
                     }
                 }
             }
@@ -471,6 +482,7 @@ public class ContextManager implements Serializable
     private class RestartFlagWatcher implements Runnable
     {
 
+        @Override
         public void run( )
         {
             doRestart();
@@ -493,53 +505,29 @@ public class ContextManager implements Serializable
                 return;
             }
 
-            final PwmApplication oldPwmApplication = pwmApplication;
-            pwmApplication = null;
-
             try
             {
                 restartInProgressFlag.set( true );
-
-                waitForRequestsToComplete( oldPwmApplication );
+                waitForRequestsToComplete( pwmApplication );
 
                 {
                     final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
                     LOGGER.info( SESSION_LABEL, () -> "beginning application restart (" + timeDuration.asCompactString() + "), restart count=" + restartCount.incrementAndGet() );
                 }
 
-                final Instant shutdownStartTime = Instant.now();
                 try
                 {
-                    try
-                    {
-                        // prevent restart watcher from detecting in-progress restart in a loop
-                        taskMaster.shutdown();
-
-                        oldPwmApplication.shutdown();
-                    }
-                    catch ( final Exception e )
-                    {
-                        LOGGER.error( SESSION_LABEL, "unexpected error attempting to close application: " + e.getMessage() );
-                    }
+                        reInitialize();
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.fatal( "unexpected error during shutdown: " + e.getMessage(), e );
+                    LOGGER.fatal( () -> "unexpected error during shutdown: " + e.getMessage(), e );
                 }
+
 
                 {
                     final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                    final TimeDuration shutdownDuration = TimeDuration.fromCurrent( shutdownStartTime );
-                    LOGGER.info( SESSION_LABEL, () -> "application restart; shutdown completed, ("
-                            + shutdownDuration.asCompactString()
-                            + ") now starting new application instance ("
-                            + timeDuration.asCompactString() + ")" );
-                }
-                initialize();
-
-                {
-                    final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                    LOGGER.info( SESSION_LABEL, () -> "application restart completed (" + timeDuration.asCompactString() + ")" );
+                    LOGGER.info( SESSION_LABEL, () -> "application restart completed", () -> timeDuration );
                 }
             }
             finally
@@ -554,7 +542,7 @@ public class ContextManager implements Serializable
             final TimeDuration maxRequestWaitTime = TimeDuration.of(
                     Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_RESTART_MAX_REQUEST_WAIT_MS ) ),
                     TimeDuration.Unit.MILLISECONDS );
-            final int startingRequestInProgress = pwmApplication.getInprogressRequests().get();
+            final int startingRequestInProgress = pwmApplication.getActiveServletRequests().get();
 
             if ( startingRequestInProgress == 0 )
             {
@@ -563,10 +551,10 @@ public class ContextManager implements Serializable
 
             LOGGER.trace( SESSION_LABEL, () -> "waiting up to " + maxRequestWaitTime.asCompactString()
                     + " for " + startingRequestInProgress  + " requests to complete." );
-            maxRequestWaitTime.pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> pwmApplication.getInprogressRequests().get() == 0
+            maxRequestWaitTime.pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> pwmApplication.getActiveServletRequests().get() == 0
             );
 
-            final int requestsInProgress = pwmApplication.getInprogressRequests().get();
+            final int requestsInProgress = pwmApplication.getActiveServletRequests().get();
             final TimeDuration waitTime = TimeDuration.fromCurrent( startTime  );
             LOGGER.trace( SESSION_LABEL, () -> "after " + waitTime.asCompactString() + ", " + requestsInProgress
                     + " requests in progress, proceeding with restart" );
@@ -606,7 +594,7 @@ public class ContextManager implements Serializable
 
     private static void outputError( final String outputText )
     {
-        final String msg = PwmConstants.PWM_APP_NAME + " " + JavaHelper.toIsoDate( new Date() ) + " " + outputText;
+        final String msg = PwmConstants.PWM_APP_NAME + " " + JavaHelper.toIsoDate( Instant.now() ) + " " + outputText;
         System.out.println( msg );
         System.out.println( msg );
     }
@@ -641,7 +629,7 @@ public class ContextManager implements Serializable
             );
         }
 
-        Collection<PwmEnvironment.ApplicationFlag> readApplicationFlags( )
+        Set<PwmEnvironment.ApplicationFlag> readApplicationFlags( )
         {
             final String contextAppFlagsValue = readEnvironmentParameter( PwmEnvironment.EnvironmentParameter.applicationFlags );
 
@@ -728,7 +716,7 @@ public class ContextManager implements Serializable
             }
             catch ( final Exception e )
             {
-                LOGGER.error( SESSION_LABEL, "error trying to auto-import certs: " + e.getMessage() );
+                LOGGER.error( SESSION_LABEL, () -> "error trying to auto-import certs: " + e.getMessage() );
             }
         }
 
@@ -753,7 +741,7 @@ public class ContextManager implements Serializable
                         {
                             LOGGER.trace( SESSION_LABEL, () -> "imported cert: " + X509Utils.makeDebugText( cert ) );
                         }
-                        final StoredValue storedValue = new X509CertificateValue( certs );
+                        final StoredValue storedValue = X509CertificateValue.fromX509( certs );
 
                         modifiedConfig.writeSetting( PwmSetting.LDAP_SERVER_CERTS, ldapProfile.getIdentifier(), storedValue, null );
                     }
@@ -778,5 +766,10 @@ public class ContextManager implements Serializable
                         + ", no LDAP urls are configured" );
             }
         }
+    }
+
+    private void reInitialize() throws PwmException
+    {
+        initialize();
     }
 }

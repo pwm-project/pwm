@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.auth.AuthenticationResult;
 import password.pwm.ldap.auth.SimpleLdapAuthenticator;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.java.JavaHelper;
@@ -43,7 +43,6 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,10 +74,10 @@ public class RestAuthenticationProcessor
             if ( namedSecretName != null )
             {
                 LOGGER.trace( sessionLabel, () -> "authenticating with named secret '" + namedSecretName + "'" );
-                final Set<WebServiceUsage> usages = new HashSet<>( JavaHelper.readEnumListFromStringCollection(
+                final Set<WebServiceUsage> usages = JavaHelper.copiedEnumSet( JavaHelper.readEnumSetFromStringCollection(
                         WebServiceUsage.class,
                         pwmApplication.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET ).get( namedSecretName ).getUsage()
-                ) );
+                ), WebServiceUsage.class );
                 return new RestAuthentication(
                         RestAuthenticationType.NAMED_SECRET,
                         namedSecretName,
@@ -97,7 +96,7 @@ public class RestAuthenticationProcessor
             {
                 {
                     final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.WEBSERVICES_QUERY_MATCH );
-                    final boolean result = LdapPermissionTester.testUserPermissions( pwmApplication, sessionLabel, userIdentity, userPermission );
+                    final boolean result = UserPermissionUtility.testUserPermission( pwmApplication, sessionLabel, userIdentity, userPermission );
                     if ( !result )
                     {
                         final String errorMsg = "user does not have webservice permission due to setting "
@@ -109,7 +108,7 @@ public class RestAuthenticationProcessor
                 final boolean thirdParty;
                 {
                     final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.WEBSERVICES_THIRDPARTY_QUERY_MATCH );
-                    thirdParty = LdapPermissionTester.testUserPermissions( pwmApplication, sessionLabel, userIdentity, userPermission );
+                    thirdParty = UserPermissionUtility.testUserPermission( pwmApplication, sessionLabel, userIdentity, userPermission );
                 }
 
                 final ChaiProvider chaiProvider = authenticateUser( userIdentity );
@@ -120,7 +119,7 @@ public class RestAuthenticationProcessor
                         RestAuthenticationType.LDAP,
                         null,
                         userIdentity,
-                        Collections.unmodifiableSet( new HashSet<>( WebServiceUsage.forType( RestAuthenticationType.LDAP ) ) ),
+                        Collections.unmodifiableSet( JavaHelper.copiedEnumSet( WebServiceUsage.forType( RestAuthenticationType.LDAP ), WebServiceUsage.class ) ),
                         thirdParty,
                         chaiProvider
                 );
@@ -128,8 +127,8 @@ public class RestAuthenticationProcessor
         }
 
         final Set<WebServiceUsage> publicUsages = WebServiceUsage.forType( RestAuthenticationType.PUBLIC );
-        final Set<WebServiceUsage> enabledUsages = new HashSet<>(
-                pwmApplication.getConfig().readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class ) );
+        final Set<WebServiceUsage> enabledUsages = JavaHelper.copiedEnumSet(
+                pwmApplication.getConfig().readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class ), WebServiceUsage.class );
         enabledUsages.retainAll( publicUsages );
 
         return new RestAuthentication(

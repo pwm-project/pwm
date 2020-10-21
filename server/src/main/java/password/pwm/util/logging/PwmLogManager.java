@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ public class PwmLogManager
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error loading log4jconfig file '" + log4jConfigFile + "' error: " + e.getMessage() );
+                LOGGER.error( () -> "error loading log4jconfig file '" + log4jConfigFile + "' error: " + e.getMessage() );
             }
         }
 
@@ -112,7 +112,6 @@ public class PwmLogManager
         // disable jersey warnings.
         java.util.logging.Logger.getLogger( "org.glassfish.jersey" ).setLevel( java.util.logging.Level.SEVERE );
     }
-
 
     public static void preInitConsoleLogLevel( final String pwmLogLevel )
     {
@@ -237,7 +236,7 @@ public class PwmLogManager
         }
         catch ( final Exception e )
         {
-            LOGGER.warn( "unable to initialize localDBLogger: " + e.getMessage() );
+            LOGGER.warn( () -> "unable to initialize localDBLogger: " + e.getMessage() );
             return null;
         }
 
@@ -258,7 +257,7 @@ public class PwmLogManager
         }
         catch ( final Exception e )
         {
-            LOGGER.warn( "unable to initialize localDBLogger/extraAppender: " + e.getMessage() );
+            LOGGER.warn( () -> "unable to initialize localDBLogger/extraAppender: " + e.getMessage() );
         }
 
         return localDBLogger;

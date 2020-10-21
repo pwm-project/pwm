@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class UserAgentUtils
         catch ( final IOException | ParseException e )
         {
             final String msg = "error loading user-agent parser: " + e.getMessage();
-            LOGGER.error( msg, e );
+            LOGGER.error( () -> msg, e );
         }
 
         return null;
@@ -62,7 +62,7 @@ public class UserAgentUtils
     {
         final Instant startTime = Instant.now();
         CACHED_PARSER.get();
-        LOGGER.trace( () -> "loaded useragent parser in " + TimeDuration.compactFromCurrent( startTime ) );
+        LOGGER.trace( () -> "loaded useragent parser", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     public static void checkIfPreIE11( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
@@ -92,7 +92,7 @@ public class UserAgentUtils
             }
             catch ( final NumberFormatException e )
             {
-                LOGGER.error( "error parsing user-agent major version" + e.getMessage(), e );
+                LOGGER.error( () -> "error parsing user-agent major version" + e.getMessage(), e );
             }
         }
 

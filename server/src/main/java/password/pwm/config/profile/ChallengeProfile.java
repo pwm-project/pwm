@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@ import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.ChallengeValue;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.ChallengeItemConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
@@ -75,7 +75,7 @@ public class ChallengeProfile implements Profile, Serializable
         this.helpdeskChallengeSet = helpdeskChallengeSet;
         this.minRandomSetup = minRandomSetup;
         this.minHelpdeskRandomsSetup = minHelpdeskRandomSetup;
-        this.userPermissions = userPermissions != null ? Collections.unmodifiableList( userPermissions ) : Collections.<UserPermission>emptyList();
+        this.userPermissions = userPermissions != null ? Collections.unmodifiableList( userPermissions ) : Collections.emptyList();
     }
 
     public static ChallengeProfile readChallengeProfileFromConfig(
@@ -84,7 +84,7 @@ public class ChallengeProfile implements Profile, Serializable
             final StoredConfiguration storedConfiguration
     )
     {
-        final int minRandomRequired = ( int ) Configuration.JavaTypeConverter.valueToLong( storedConfiguration.readSetting( PwmSetting.CHALLENGE_MIN_RANDOM_REQUIRED, profileID ) );
+        final int minRandomRequired = ( int ) ValueTypeConverter.valueToLong( storedConfiguration.readSetting( PwmSetting.CHALLENGE_MIN_RANDOM_REQUIRED, profileID ) );
 
         ChallengeSet readChallengeSet = null;
         try
@@ -120,8 +120,8 @@ public class ChallengeProfile implements Profile, Serializable
             LOGGER.trace( () -> "discarding configured helpdesk challengeSet for profile '" + profileID + "' issue: " + e.getMessage() );
         }
 
-        final int minRandomSetup = ( int ) Configuration.JavaTypeConverter.valueToLong( storedConfiguration.readSetting( PwmSetting.CHALLENGE_MIN_RANDOM_SETUP, profileID ) );
-        final int minHelpdeskRandomSetup = ( int ) Configuration.JavaTypeConverter.valueToLong( storedConfiguration.readSetting(
+        final int minRandomSetup = ( int ) ValueTypeConverter.valueToLong( storedConfiguration.readSetting( PwmSetting.CHALLENGE_MIN_RANDOM_SETUP, profileID ) );
+        final int minHelpdeskRandomSetup = ( int ) ValueTypeConverter.valueToLong( storedConfiguration.readSetting(
                 PwmSetting.CHALLENGE_HELPDESK_MIN_RANDOM_SETUP,
                 profileID
         ) );
@@ -145,11 +145,13 @@ public class ChallengeProfile implements Profile, Serializable
         return new ChallengeProfile( profileID, locale, challengeSet, helpdeskChallengeSet, minRandomSetup, minHelpdeskRandomSetup, null );
     }
 
+    @Override
     public String getIdentifier( )
     {
         return profileID;
     }
 
+    @Override
     public String getDisplayName( final Locale locale )
     {
         return getIdentifier();
@@ -290,7 +292,7 @@ public class ChallengeProfile implements Profile, Serializable
     }
 
     @Override
-    public List<UserPermission> getPermissionMatches( )
+    public List<UserPermission> profilePermissions( )
     {
         throw new UnsupportedOperationException();
     }

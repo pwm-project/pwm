@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,21 @@
 package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiEntry;
+import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.util.ChaiUtility;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.error.PwmException;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -58,74 +62,102 @@ public class LdapDebugDataGenerator
         final List<LdapDebugInfo> returnList = new ArrayList<>();
         for ( final LdapProfile ldapProfile : configuration.getLdapProfiles().values() )
         {
-            final LdapDebugInfo ldapDebugInfo = new LdapDebugInfo();
-            ldapDebugInfo.setProfileName( ldapProfile.getIdentifier() );
-            ldapDebugInfo.setDisplayName( ldapProfile.getDisplayName( locale ) );
+            final List<LdapDebugServerInfo> ldapDebugServerInfos = new ArrayList<>();
+
             try
             {
-                final ChaiProvider chaiProvider = LdapOperationsHelper.createChaiProvider(
-                        pwmApplication,
-                        null,
-                        ldapProfile,
-                        configuration,
-                        ldapProfile.readSettingAsString( PwmSetting.LDAP_PROXY_USER_DN ),
-                        ldapProfile.readSettingAsPassword( PwmSetting.LDAP_PROXY_USER_PASSWORD )
-                );
-                final Collection<ChaiConfiguration> chaiConfigurations = ChaiUtility.splitConfigurationPerReplica( chaiProvider.getChaiConfiguration(), null );
-                final List<LdapDebugServerInfo> ldapDebugServerInfos = new ArrayList<>();
+                final ChaiConfiguration profileChaiConf = LdapOperationsHelper.createChaiConfiguration( configuration, ldapProfile );
+                final Collection<ChaiConfiguration> chaiConfigurations = ChaiUtility.splitConfigurationPerReplica( profileChaiConf, null );
+
                 for ( final ChaiConfiguration chaiConfiguration : chaiConfigurations )
                 {
-                    final LdapDebugServerInfo ldapDebugServerInfo = new LdapDebugServerInfo();
-                    ldapDebugServerInfo.setLdapServerlUrl( chaiConfiguration.getSetting( ChaiSetting.BIND_URLS ) );
-                    final ChaiProvider loopProvider = chaiProvider.getProviderFactory().newProvider( chaiConfiguration );
-
+                    try
                     {
-                        final ChaiEntry rootDSEentry = ChaiUtility.getRootDSE( loopProvider );
-                        final Map<String, List<String>> rootDSEdata = LdapOperationsHelper.readAllEntryAttributeValues( rootDSEentry );
-                        ldapDebugServerInfo.setRootDseAttributes( rootDSEdata );
-                    }
+                        final ChaiProvider chaiProvider = LdapOperationsHelper.createChaiProvider(
+                                pwmApplication,
+                                sessionLabel,
+                                ldapProfile,
+                                configuration,
+                                ldapProfile.readSettingAsString( PwmSetting.LDAP_PROXY_USER_DN ),
+                                ldapProfile.readSettingAsPassword( PwmSetting.LDAP_PROXY_USER_PASSWORD )
+                        );
 
+                        final LdapDebugServerInfo ldapDebugServerInfo = makeLdapDebugServerInfo( chaiConfiguration, chaiProvider, ldapProfile );
+                        ldapDebugServerInfos.add( ldapDebugServerInfo );
+                    }
+                    catch ( final PwmException | ChaiException e )
                     {
-                        final String proxyUserDN = ldapProfile.readSettingAsString( PwmSetting.LDAP_PROXY_USER_DN );
-                        if ( proxyUserDN != null )
-                        {
-                            ldapDebugServerInfo.setProxyDN( proxyUserDN );
-                            final ChaiEntry proxyUserEntry = chaiProvider.getEntryFactory().newChaiEntry( proxyUserDN );
-                            if ( proxyUserEntry.exists() )
-                            {
-                                final Map<String, List<String>> proxyUserData = LdapOperationsHelper.readAllEntryAttributeValues( proxyUserEntry );
-                                ldapDebugServerInfo.setProxyUserAttributes( proxyUserData );
-                            }
-                        }
+                        LOGGER.error( () -> "error during output of ldap profile debug data profile: "
+                                + ldapProfile + ", error: " + e.getMessage() );
                     }
-
-                    {
-
-                        final String testUserDN = ldapProfile.readSettingAsString( PwmSetting.LDAP_TEST_USER_DN );
-                        if ( testUserDN != null )
-                        {
-                            ldapDebugServerInfo.setTestUserDN( testUserDN );
-                            final ChaiEntry testUserEntry = chaiProvider.getEntryFactory().newChaiEntry( testUserDN );
-                            if ( testUserEntry.exists() )
-                            {
-                                final Map<String, List<String>> testUserdata = LdapOperationsHelper.readAllEntryAttributeValues( testUserEntry );
-                                ldapDebugServerInfo.setTestUserAttributes( testUserdata );
-                            }
-                        }
-                    }
-
-                    ldapDebugServerInfos.add( ldapDebugServerInfo );
                 }
-                ldapDebugInfo.setServerInfo( ldapDebugServerInfos );
+
+                final LdapDebugInfo ldapDebugInfo = LdapDebugInfo.builder()
+                        .profileName( ldapProfile.getIdentifier() )
+                        .displayName( ldapProfile.getDisplayName( locale ) )
+                        .serverInfo( ldapDebugServerInfos )
+                        .build();
+
                 returnList.add( ldapDebugInfo );
 
             }
-            catch ( final Exception e )
+            catch ( final PwmException e )
             {
-                LOGGER.error( "error during output of ldap profile debug data profile: " + ldapProfile + ", error: " + e.getMessage() );
+                LOGGER.error( () -> "error during output of ldap profile debug data profile: "
+                        + ldapProfile + ", error: " + e.getMessage() );
             }
         }
         return returnList;
+    }
+
+    private static LdapDebugDataGenerator.LdapDebugServerInfo makeLdapDebugServerInfo(
+            final ChaiConfiguration chaiConfiguration,
+            final ChaiProvider chaiProvider,
+            final LdapProfile ldapProfile
+    )
+            throws ChaiUnavailableException, ChaiOperationException
+    {
+        final LdapDebugServerInfo.LdapDebugServerInfoBuilder builder = LdapDebugServerInfo.builder();
+
+        builder.ldapServerlUrl( chaiConfiguration.getSetting( ChaiSetting.BIND_URLS ) );
+        final ChaiProvider loopProvider = chaiProvider.getProviderFactory().newProvider( chaiConfiguration );
+
+        {
+            final ChaiEntry rootDSEentry = ChaiUtility.getRootDSE( loopProvider );
+            final Map<String, List<String>> rootDSEdata = LdapOperationsHelper.readAllEntryAttributeValues( rootDSEentry );
+            builder.rootDseAttributes( rootDSEdata );
+        }
+
+        {
+            final String proxyUserDN = ldapProfile.readSettingAsString( PwmSetting.LDAP_PROXY_USER_DN );
+            if ( proxyUserDN != null )
+            {
+                builder.proxyDN( proxyUserDN );
+                final ChaiEntry proxyUserEntry = chaiProvider.getEntryFactory().newChaiEntry( proxyUserDN );
+                if ( proxyUserEntry.exists() )
+                {
+                    final Map<String, List<String>> proxyUserData = LdapOperationsHelper.readAllEntryAttributeValues( proxyUserEntry );
+                    builder.proxyUserAttributes( proxyUserData );
+                }
+            }
+        }
+
+        {
+
+            final String testUserDN = ldapProfile.readSettingAsString( PwmSetting.LDAP_TEST_USER_DN );
+            if ( testUserDN != null )
+            {
+                builder.testUserDN( testUserDN );
+                final ChaiEntry testUserEntry = chaiProvider.getEntryFactory().newChaiEntry( testUserDN );
+                if ( testUserEntry.exists() )
+                {
+                    final Map<String, List<String>> testUserdata = LdapOperationsHelper.readAllEntryAttributeValues( testUserEntry );
+                    builder.testUserAttributes( testUserdata );
+                }
+            }
+        }
+
+        return builder.build();
     }
 
     private Map<String, List<String>> readUserAttributeData( final ChaiProvider chaiProvider, final String userDN )
@@ -142,44 +174,17 @@ public class LdapDebugDataGenerator
         return null;
     }
 
-
+    @Value
+    @Builder
     public static class LdapDebugInfo implements Serializable
     {
         private String profileName;
         private String displayName;
         private List<LdapDebugServerInfo> serverInfo;
-
-        public String getProfileName( )
-        {
-            return profileName;
-        }
-
-        public void setProfileName( final String profileName )
-        {
-            this.profileName = profileName;
-        }
-
-        public String getDisplayName( )
-        {
-            return displayName;
-        }
-
-        public void setDisplayName( final String displayName )
-        {
-            this.displayName = displayName;
-        }
-
-        public List<LdapDebugServerInfo> getServerInfo( )
-        {
-            return serverInfo;
-        }
-
-        public void setServerInfo( final List<LdapDebugServerInfo> serverInfo )
-        {
-            this.serverInfo = serverInfo;
-        }
     }
 
+    @Value
+    @Builder
     public static class LdapDebugServerInfo implements Serializable
     {
         private String ldapServerlUrl;
@@ -188,65 +193,5 @@ public class LdapDebugDataGenerator
         private String proxyDN;
         private Map<String, List<String>> proxyUserAttributes;
         private Map<String, List<String>> rootDseAttributes;
-
-        public String getLdapServerlUrl( )
-        {
-            return ldapServerlUrl;
-        }
-
-        public void setLdapServerlUrl( final String ldapServerlUrl )
-        {
-            this.ldapServerlUrl = ldapServerlUrl;
-        }
-
-        public String getTestUserDN( )
-        {
-            return testUserDN;
-        }
-
-        public void setTestUserDN( final String testUserDN )
-        {
-            this.testUserDN = testUserDN;
-        }
-
-        public Map<String, List<String>> getTestUserAttributes( )
-        {
-            return testUserAttributes;
-        }
-
-        public void setTestUserAttributes( final Map<String, List<String>> testUserAttributes )
-        {
-            this.testUserAttributes = testUserAttributes;
-        }
-
-        public String getProxyDN( )
-        {
-            return proxyDN;
-        }
-
-        public void setProxyDN( final String proxyDN )
-        {
-            this.proxyDN = proxyDN;
-        }
-
-        public Map<String, List<String>> getProxyUserAttributes( )
-        {
-            return proxyUserAttributes;
-        }
-
-        public void setProxyUserAttributes( final Map<String, List<String>> proxyUserAttributes )
-        {
-            this.proxyUserAttributes = proxyUserAttributes;
-        }
-
-        public Map<String, List<String>> getRootDseAttributes( )
-        {
-            return rootDseAttributes;
-        }
-
-        public void setRootDseAttributes( final Map<String, List<String>> rootDseAttributes )
-        {
-            this.rootDseAttributes = rootDseAttributes;
-        }
     }
 }

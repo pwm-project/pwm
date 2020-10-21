@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
@@ -52,6 +51,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
     {
         return new StoredValueFactory()
         {
+            @Override
             public LocalizedStringArrayValue fromJson( final String input )
             {
                 if ( input == null )
@@ -68,6 +68,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
                 }
             }
 
+            @Override
             public LocalizedStringArrayValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
@@ -90,6 +91,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
         };
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
@@ -110,11 +112,13 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
         return returnList;
     }
 
+    @Override
     public Map<String, List<String>> toNativeObject( )
     {
         return Collections.unmodifiableMap( values );
     }
 
+    @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
         if ( pwmSetting.isRequired() )

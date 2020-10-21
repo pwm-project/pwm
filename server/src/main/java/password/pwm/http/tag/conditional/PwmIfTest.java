@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.SetupOtpProfile;
@@ -41,7 +42,10 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 public enum PwmIfTest
 {
@@ -55,7 +59,7 @@ public enum PwmIfTest
     showLogout( new BooleanPwmSettingTest( PwmSetting.DISPLAY_LOGOUT_BUTTON ) ),
     showLoginOptions( new BooleanPwmSettingTest( PwmSetting.DISPLAY_LOGIN_PAGE_OPTIONS ) ),
     showStrengthMeter( new BooleanPwmSettingTest( PwmSetting.PASSWORD_SHOW_STRENGTH_METER ) ),
-    showRandomPasswordGenerator( new BooleanPwmSettingTest( PwmSetting.PASSWORD_SHOW_AUTOGEN ) ),
+    showRandomPasswordGenerator( new ShowRandomPasswordGeneratorTest() ),
     showHeaderMenu( new ShowHeaderMenuTest() ),
     showVersionHeader( new BooleanAppPropertyTest( AppProperty.HTTP_HEADER_SEND_XVERSION ) ),
     permission( new BooleanPermissionTest() ),
@@ -64,22 +68,22 @@ public enum PwmIfTest
     hasCustomJavascript( new HasCustomJavascript() ),
     setupChallengeEnabled( new BooleanPwmSettingTest( PwmSetting.CHALLENGE_ENABLE ) ),
     shortcutsEnabled( new BooleanPwmSettingTest( PwmSetting.SHORTCUT_ENABLE ) ),
-    peopleSearchAvailable(  new BooleanPwmSettingTest( PwmSetting.PEOPLE_SEARCH_ENABLE ), new ActorHasProfileTest( ProfileDefinition.PeopleSearch )  ),
+    peopleSearchAvailable( new BooleanPwmSettingTest( PwmSetting.PEOPLE_SEARCH_ENABLE ), new ActorHasProfileTest( ProfileDefinition.PeopleSearch ) ),
     orgChartEnabled( new OrgChartEnabled() ),
     passwordExpired( new PasswordExpired() ),
     showMaskedTokenSelection( new BooleanAppPropertyTest( AppProperty.TOKEN_MASK_SHOW_SELECTION ) ),
     clientFormShowRegexEnabled( new BooleanAppPropertyTest( AppProperty.CLIENT_FORM_CLIENT_REGEX_ENABLED ) ),
-
-    accountInfoEnabled( new BooleanPwmSettingTest( PwmSetting.ACCOUNT_INFORMATION_ENABLED ) ),
 
     forgottenPasswordEnabled( new BooleanPwmSettingTest( PwmSetting.FORGOTTEN_PASSWORD_ENABLE ) ),
     forgottenUsernameEnabled( new BooleanPwmSettingTest( PwmSetting.FORGOTTEN_USERNAME_ENABLE ) ),
     activateUserEnabled( new BooleanPwmSettingTest( PwmSetting.ACTIVATE_USER_ENABLE ) ),
     newUserRegistrationEnabled( new BooleanPwmSettingTest( PwmSetting.NEWUSER_ENABLE ) ),
 
+    accountInfoEnabled( new BooleanPwmSettingTest( PwmSetting.ACCOUNT_INFORMATION_ENABLED ), new ActorHasProfileTest( ProfileDefinition.AccountInformation ) ),
+    changePasswordAvailable( new BooleanPwmSettingTest( PwmSetting.CHANGE_PASSWORD_ENABLE ), new ActorHasProfileTest( ProfileDefinition.ChangePassword ) ),
     updateProfileAvailable( new BooleanPwmSettingTest( PwmSetting.UPDATE_PROFILE_ENABLE ), new ActorHasProfileTest( ProfileDefinition.UpdateAttributes ) ),
     helpdeskAvailable( new BooleanPwmSettingTest( PwmSetting.HELPDESK_ENABLE ), new ActorHasProfileTest( ProfileDefinition.Helpdesk ) ),
-    DeleteAccountAvailable( new BooleanPwmSettingTest( PwmSetting.DELETE_ACCOUNT_ENABLE ), new ActorHasProfileTest( ProfileDefinition.DeleteAccount ) ),
+    deleteAccountAvailable( new BooleanPwmSettingTest( PwmSetting.DELETE_ACCOUNT_ENABLE ), new ActorHasProfileTest( ProfileDefinition.DeleteAccount ) ),
     guestRegistrationAvailable( new BooleanPwmSettingTest( PwmSetting.GUEST_ENABLE ), new BooleanPermissionTest( Permission.GUEST_REGISTRATION ) ),
 
     booleanSetting( new BooleanPwmSettingTest( null ) ),
@@ -98,16 +102,16 @@ public enum PwmIfTest
     requestFlag( new RequestFlagTest() ),;
 
 
-    private Test[] tests;
+    private final Set<Test> tests;
 
     PwmIfTest( final Test... test )
     {
-        this.tests = test;
+        tests = test == null ? Collections.emptySet() : Collections.unmodifiableSet( new HashSet<>( Arrays.asList( test ) ) );
     }
 
-    public Test[] getTests( )
+    private Set<Test> getTests()
     {
-        return tests == null ? null : Arrays.copyOf( tests, tests.length );
+        return tests;
     }
 
     public boolean passed( final PwmRequest pwmRequest, final PwmIfOptions options )
@@ -123,8 +127,7 @@ public enum PwmIfTest
         return true;
     }
 
-
-    interface Test
+    private interface Test
     {
         boolean test(
                 PwmRequest pwmRequest,
@@ -142,6 +145,7 @@ public enum PwmIfTest
             this.appProperty = appProperty;
         }
 
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -165,6 +169,7 @@ public enum PwmIfTest
             this.pwmSetting = pwmSetting;
         }
 
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -220,11 +225,12 @@ public enum PwmIfTest
             this.constructorPermission = constructorPermission;
         }
 
-        BooleanPermissionTest( )
+        BooleanPermissionTest()
         {
             this.constructorPermission = null;
         }
 
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -247,6 +253,7 @@ public enum PwmIfTest
 
     private static class AuthenticatedTest implements Test
     {
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -259,6 +266,7 @@ public enum PwmIfTest
 
     private static class ForcedPageViewTest implements Test
     {
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -272,6 +280,7 @@ public enum PwmIfTest
 
     private static class HasStoredOtpTimestamp implements Test
     {
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -295,6 +304,7 @@ public enum PwmIfTest
 
     private static class ShowErrorDetailTest implements Test
     {
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -307,6 +317,7 @@ public enum PwmIfTest
 
     private static class ForwardUrlDefinedTest implements Test
     {
+        @Override
         public boolean test(
                 final PwmRequest pwmRequest,
                 final PwmIfOptions options
@@ -424,7 +435,8 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmSession().getSessionManager().getProfile( pwmRequest.getPwmApplication(), profileDefinition ) != null;
+            final String profileID = pwmRequest.getPwmSession().getUserInfo().getProfileIDs().get( profileDefinition );
+            return !StringUtil.isEmpty( profileID );
         }
     }
 
@@ -476,7 +488,7 @@ public enum PwmIfTest
             if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
             {
                 final Optional<PeopleSearchProfile> peopleSearchProfile = pwmRequest.isAuthenticated()
-                        ? Optional.ofNullable( pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile( pwmRequest.getPwmApplication() ) )
+                        ? Optional.ofNullable( pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile() )
                         : pwmRequest.getConfig().getPublicPeopleSearchProfile();
 
                 if ( peopleSearchProfile.isPresent() )
@@ -515,7 +527,7 @@ public enum PwmIfTest
                 return false;
             }
 
-            final SetupOtpProfile setupOtpProfile = pwmRequest.getPwmSession().getSessionManager().getSetupOTPProfile( pwmRequest.getPwmApplication() );
+            final SetupOtpProfile setupOtpProfile = pwmRequest.getPwmSession().getSessionManager().getSetupOTPProfile();
             return setupOtpProfile != null && setupOtpProfile.readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP );
         }
     }
@@ -530,4 +542,14 @@ public enum PwmIfTest
         }
     }
 
+    private static class ShowRandomPasswordGeneratorTest implements Test
+    {
+        @Override
+        public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws PwmUnrecoverableException
+        {
+            final ChangePasswordProfile changePasswordProfile = pwmRequest.getPwmSession().getSessionManager().getChangePasswordProfile();
+            return changePasswordProfile.readSettingAsBoolean( PwmSetting.PASSWORD_SHOW_AUTOGEN );
+        }
+    }
 }
+

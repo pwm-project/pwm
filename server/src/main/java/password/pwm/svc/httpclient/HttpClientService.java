@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
@@ -35,7 +36,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class HttpClientService implements PwmService
 {
@@ -46,7 +46,7 @@ public class HttpClientService implements PwmService
     private final Map<PwmHttpClientConfiguration, ThreadLocal<PwmHttpClient>> clients = new ConcurrentHashMap<>(  );
     private final Map<PwmHttpClient, Object> issuedClients = Collections.synchronizedMap( new WeakHashMap<>(  ) );
 
-    private final Map<StatsKey, AtomicInteger> stats = new HashMap<>( );
+    private final StatisticCounterBundle<StatsKey> stats = new StatisticCounterBundle<>( StatsKey.class );
 
     enum StatsKey
     {
@@ -57,10 +57,6 @@ public class HttpClientService implements PwmService
     public HttpClientService()
             throws PwmUnrecoverableException
     {
-        for ( final StatsKey statsKey : StatsKey.values() )
-        {
-            stats.put( statsKey, new AtomicInteger( 0 ) );
-        }
     }
 
     @Override
@@ -110,14 +106,14 @@ public class HttpClientService implements PwmService
         final PwmHttpClient existingClient = threadLocal.get();
         if ( existingClient != null && !existingClient.isClosed() )
         {
-            stats.get( StatsKey.reusedClients ).incrementAndGet();
+            stats.increment( StatsKey.reusedClients );
             return existingClient;
         }
 
         final PwmHttpClient newClient = new PwmHttpClient( pwmApplication, pwmHttpClientConfiguration );
         issuedClients.put( newClient, null );
         threadLocal.set( newClient );
-        stats.get( StatsKey.createdClients ).incrementAndGet();
+        stats.increment( StatsKey.createdClients );
         return newClient;
     }
 
@@ -130,10 +126,12 @@ public class HttpClientService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo()
     {
-        final Map<String, String> debugMap = new HashMap<>(  );
-        stats.forEach( ( key, value ) -> debugMap.put( key.name(), value.toString() ) );
+        final Map<String, String> debugMap = new HashMap<>( stats.debugStats() );
         debugMap.put( "weakReferences", Integer.toString( issuedClients.size() ) );
         debugMap.put( "referencedConfigs", Integer.toString( clients.size() ) );
-        return new ServiceInfoBean( Collections.emptyList(), debugMap );
+        return ServiceInfoBean.builder()
+                .debugProperties( debugMap )
+                .build();
+
     }
 }

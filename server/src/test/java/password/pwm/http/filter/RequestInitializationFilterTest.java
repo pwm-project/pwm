@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,7 +129,7 @@ public class RequestInitializationFilterTest
             throws PwmUnrecoverableException
     {
         final StoredConfigurationModifier modifier = StoredConfigurationFactory.newModifiableConfig();
-        modifier.writeSetting( PwmSetting.USE_X_FORWARDED_FOR_HEADER, null, new BooleanValue( false ), null );
+        modifier.writeSetting( PwmSetting.USE_X_FORWARDED_FOR_HEADER, null, BooleanValue.of( false ), null );
         final Configuration conf = new Configuration( modifier.newStoredConfiguration() );
         final HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
         Mockito.when( mockRequest.getRemoteAddr() ).thenReturn( "10.1.1.1" );

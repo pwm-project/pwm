@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -136,10 +136,10 @@ public class SessionTrackService implements PwmService
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( "error during session size calculation: " + e.getMessage() );
+                    LOGGER.error( () -> "error during session size calculation: " + e.getMessage() );
                 }
             }
-            final Map<DebugKey, String> returnMap = new HashMap<>();
+            final Map<DebugKey, String> returnMap = new EnumMap<>( DebugKey.class );
             returnMap.put( DebugKey.HttpSessionCount, String.valueOf( sessionCounter ) );
             returnMap.put( DebugKey.HttpSessionTotalSize, String.valueOf( sizeTotal ) );
             returnMap.put( DebugKey.HttpSessionAvgSize,
@@ -148,7 +148,7 @@ public class SessionTrackService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error during session debug generation: " + e.getMessage() );
+            LOGGER.error( () -> "error during session debug generation: " + e.getMessage() );
         }
         return Collections.emptyMap();
     }
@@ -280,7 +280,7 @@ public class SessionTrackService implements PwmService
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( "unexpected error reading username: " + e.getMessage(), e );
+                LOGGER.error( () -> "unexpected error reading username: " + e.getMessage(), e );
             }
         }
 

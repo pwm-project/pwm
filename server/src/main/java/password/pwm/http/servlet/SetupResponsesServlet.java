@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 package password.pwm.http.servlet;
 
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.cr.ChaiChallenge;
 import com.novell.ldapchai.cr.ChaiCrFactory;
 import com.novell.ldapchai.cr.ChaiResponseSet;
 import com.novell.ldapchai.cr.Challenge;
@@ -106,6 +107,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
@@ -210,7 +212,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         try
         {
             final String userGUID = pwmSession.getUserInfo().getUserGuid();
-            final ChaiUser theUser = pwmSession.getSessionManager().getActor( pwmApplication );
+            final ChaiUser theUser = pwmSession.getSessionManager().getActor( );
             pwmApplication.getCrService().clearResponses( pwmRequest.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID );
             pwmSession.reloadUserInfoBean( pwmRequest );
             pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
@@ -431,9 +433,9 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final ChaiUser theUser = pwmSession.getSessionManager().getActor( pwmApplication );
+        final ChaiUser theUser = pwmSession.getSessionManager().getActor( );
         final String userGUID = pwmSession.getUserInfo().getUserGuid();
-        pwmApplication.getCrService().writeResponses( pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID, responseInfoBean );
+        pwmApplication.getCrService().writeResponses( pwmRequest.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID, responseInfoBean );
         pwmSession.reloadUserInfoBean( pwmRequest );
         pwmApplication.getStatisticsManager().incrementValue( Statistic.SETUP_RESPONSES );
         pwmApplication.getAuditManager().submit( AuditEvent.SET_RESPONSES, pwmSession.getUserInfo(), pwmSession );
@@ -476,17 +478,30 @@ public class SetupResponsesServlet extends ControlledPwmServlet
                 if ( loopChallenge.isRequired() || !setupData.isSimpleMode() )
                 {
 
+                    final Challenge newChallenge;
                     if ( !loopChallenge.isAdminDefined() )
                     {
                         final String questionText = inputMap.get( PwmConstants.PARAM_QUESTION_PREFIX + indexKey );
-                        loopChallenge.setChallengeText( questionText );
+                        newChallenge = new ChaiChallenge(
+                                loopChallenge.isRequired(),
+                                questionText,
+                                loopChallenge.getMinLength(),
+                                loopChallenge.getMaxLength(),
+                                loopChallenge.isAdminDefined(),
+                                loopChallenge.getMaxQuestionCharsInAnswer(),
+                                loopChallenge.isEnforceWordlist()
+                        );
+                    }
+                    else
+                    {
+                        newChallenge = loopChallenge;
                     }
 
                     final String answer = inputMap.get( PwmConstants.PARAM_RESPONSE_PREFIX + indexKey );
 
                     if ( answer != null && answer.length() > 0 )
                     {
-                        readResponses.put( loopChallenge, answer );
+                        readResponses.put( newChallenge, answer );
                     }
                 }
             }

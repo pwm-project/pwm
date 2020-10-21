@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -190,7 +190,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
             }
             catch ( final MalformedURLException e )
             {
-                LOGGER.error( pwmRequest, "Invalid CAS clearPassUrl" );
+                LOGGER.error( pwmRequest, () -> "Invalid CAS clearPassUrl" );
             }
 
         }
@@ -249,44 +249,44 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
                     }
                     catch ( final PwmUnrecoverableException e )
                     {
-                        LOGGER.error( "Decryption failed", e );
+                        LOGGER.error( () -> "Decryption failed", e );
                         return password;
                     }
                 }
             }
             catch ( final NoSuchAlgorithmException e1 )
             {
-                LOGGER.error( "Decryption failed", e1 );
+                LOGGER.error( () -> "Decryption failed", e1 );
                 return password;
             }
             catch ( final InvalidKeySpecException e1 )
             {
-                LOGGER.error( "Decryption failed", e1 );
+                LOGGER.error( () -> "Decryption failed", e1 );
                 return password;
             }
             catch ( final NoSuchPaddingException e1 )
             {
-                LOGGER.error( "Decryption failed", e1 );
+                LOGGER.error( () -> "Decryption failed", e1 );
                 return password;
             }
             catch ( final IOException e1 )
             {
-                LOGGER.error( "Decryption failed", e1 );
+                LOGGER.error( () -> "Decryption failed", e1 );
                 return password;
             }
             catch ( final InvalidKeyException e1 )
             {
-                LOGGER.error( "Decryption failed", e1 );
+                LOGGER.error( () -> "Decryption failed", e1 );
                 return password;
             }
             catch ( final IllegalBlockSizeException e )
             {
-                LOGGER.error( "Decryption failed", e );
+                LOGGER.error( () -> "Decryption failed", e );
                 return password;
             }
             catch ( final BadPaddingException e )
             {
-                LOGGER.error( "Decryption failed", e );
+                LOGGER.error( () -> "Decryption failed", e );
                 return password;
             }
         }

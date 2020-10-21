@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 package password.pwm.config.stored;
 
+import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -27,7 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -40,6 +41,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -67,7 +69,6 @@ public class ConfigurationReader
     private StoredConfiguration storedConfiguration;
     private ErrorInformation configFileError;
 
-
     private PwmApplicationMode configMode = PwmApplicationMode.NEW;
 
     private volatile boolean saveInProgress;
@@ -85,7 +86,7 @@ public class ConfigurationReader
         catch ( final PwmUnrecoverableException e )
         {
             this.configFileError = e.getErrorInformation();
-            LOGGER.warn( "error reading configuration file: " + e.getMessage() );
+            LOGGER.warn( () -> "error reading configuration file: " + e.getMessage() );
         }
 
         if ( storedConfiguration == null )
@@ -124,37 +125,44 @@ public class ConfigurationReader
 
         if ( !configFile.exists() )
         {
-            LOGGER.warn( "configuration file '" + configFile.getAbsolutePath() + "' does not exist" );
+            LOGGER.warn( () -> "configuration file '" + configFile.getAbsolutePath() + "' does not exist" );
             return null;
         }
 
+        final StoredConfiguration storedConfiguration;
         final Instant startTime = Instant.now();
 
-        /*
-        try
+        try ( InputStream theFileData = new BufferedInputStream( Files.newInputStream( configFile.toPath() ), 1024_1024 ) )
         {
-            final InputStream theFileData = Files.newInputStream( configFile.toPath() );
-            final StoredConfiguration storedConfiguration = StoredConfigurationFactory.fromXml( theFileData );
+            try
+            {
+                storedConfiguration = StoredConfigurationFactory.input( theFileData );
+            }
+            catch ( final Exception e )
+            {
+                final String errorMsg = "unable to parse configuration file: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
+                        {
+                                errorMsg,
+                                }
+                );
+                this.configMode = PwmApplicationMode.ERROR;
+                e.printStackTrace();
+                throw new PwmUnrecoverableException( errorInformation, e );
+            }
 
-            System.out.println( TimeDuration.compactFromCurrent( startTime ) );
-
-
-            //final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            final FileOutputStream fos = new FileOutputStream( new File( "/tmp/NEWCFG" ) );
-            StoredConfigurationFactory.toXml( storedConfiguration, fos );
-
-            //System.out.println( new String( baos.toByteArray(), "UTF-8" )  );
-        }
-        catch ( final Exception e )
-        {
-            e.printStackTrace(  );
-        }
-        */
-
-        final InputStream theFileData;
-        try
-        {
-            theFileData = Files.newInputStream( configFile.toPath() );
+            final List<String> validationErrorMsgs = StoredConfigurationUtil.validateValues( storedConfiguration );
+            if ( !JavaHelper.isEmpty( validationErrorMsgs ) )
+            {
+                final String errorMsg = "value error in config file, please investigate: " + validationErrorMsgs.get( 0 );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
+                        {
+                                errorMsg,
+                                }
+                );
+                this.configMode = PwmApplicationMode.ERROR;
+                throw new PwmUnrecoverableException( errorInformation );
+            }
         }
         catch ( final Exception e )
         {
@@ -162,42 +170,15 @@ public class ConfigurationReader
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                     {
                             errorMsg,
-                    }
+                            }
             );
             this.configMode = PwmApplicationMode.ERROR;
             throw new PwmUnrecoverableException( errorInformation );
         }
 
-        final StoredConfiguration storedConfiguration;
-        try
-        {
-            storedConfiguration = StoredConfigurationFactory.fromXml( theFileData );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            final String errorMsg = "unable to parse configuration file: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
-                    {
-                            errorMsg,
-                    }
-            );
-            this.configMode = PwmApplicationMode.ERROR;
-            e.printStackTrace(  );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
+        final String fileSize = StringUtil.formatDiskSize( configFile.length() );
+        LOGGER.debug( () -> "configuration reading/parsing of " + fileSize + " complete", () -> TimeDuration.fromCurrent( startTime ) );
 
-        final List<String> validationErrorMsgs = StoredConfigurationUtil.validateValues( storedConfiguration );
-        if ( !JavaHelper.isEmpty( validationErrorMsgs ) )
-        {
-            final String errorMsg = "value error in config file, please investigate: " + validationErrorMsgs.get( 0 );
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
-                    {
-                            errorMsg,
-                    }
-            );
-            this.configMode = PwmApplicationMode.ERROR;
-            throw new PwmUnrecoverableException( errorInformation );
-        }
 
         final Optional<String> configIsEditable = storedConfiguration.readConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE );
         if ( PwmConstants.TRIAL_MODE || ( configIsEditable.isPresent() && "true".equalsIgnoreCase( configIsEditable.get() ) ) )
@@ -208,12 +189,6 @@ public class ConfigurationReader
         {
             this.configMode = PwmApplicationMode.RUNNING;
         }
-
-        final String fileSize = StringUtil.formatDiskSize( configFile.length() );
-        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        LOGGER.debug( () -> "configuration reading/parsing of " + fileSize + " complete in " + timeDuration.asLongString() );
-
-
 
         return storedConfiguration;
     }
@@ -251,7 +226,7 @@ public class ConfigurationReader
             }
             catch ( final Exception e )
             {
-                LOGGER.error( sessionLabel, "error trying to parse previous config epoch property: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "error trying to parse previous config epoch property: " + e.getMessage() );
             }
 
             final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
@@ -327,14 +302,14 @@ public class ConfigurationReader
 
         try ( FileOutputStream fileOutputStream = new FileOutputStream( tempWriteFile, false ) )
         {
-            StoredConfigurationFactory.toXml( storedConfiguration, fileOutputStream );
+            StoredConfigurationFactory.output( storedConfiguration, fileOutputStream );
         }
 
-        LOGGER.info( () -> "saved configuration in " + TimeDuration.compactFromCurrent( saveFileStartTime ) );
+        LOGGER.info( () -> "saved configuration", () -> TimeDuration.fromCurrent( saveFileStartTime ) );
         if ( pwmApplication != null )
         {
             final String actualChecksum = storedConfiguration.valueHash();
-            pwmApplication.writeAppAttribute( PwmApplication.AppAttribute.CONFIG_HASH, actualChecksum );
+            pwmApplication.writeAppAttribute( AppAttribute.CONFIG_HASH, actualChecksum );
         }
 
         LOGGER.trace( () -> "renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath() );
@@ -357,7 +332,7 @@ public class ConfigurationReader
             FileSystemUtility.rotateBackups( backupFile, backupRotations );
             try ( FileOutputStream fileOutputStream = new FileOutputStream( backupFile, false ) )
             {
-                StoredConfigurationFactory.toXml( storedConfiguration, fileOutputStream );
+                StoredConfigurationFactory.output( storedConfiguration, fileOutputStream );
             }
         }
     }
@@ -375,7 +350,7 @@ public class ConfigurationReader
             return "";
         }
 
-        return String.valueOf( file.lastModified() + String.valueOf( file.length() ) );
+        return file.lastModified() + "+" + file.length();
     }
 
     public ErrorInformation getConfigFileError( )

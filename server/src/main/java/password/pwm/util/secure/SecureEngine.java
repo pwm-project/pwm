@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -91,7 +93,7 @@ public class SecureEngine
         {
             final String errorMsg = "unexpected error b64 encoding crypto result: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            LOGGER.error( errorInformation.toDebugStr() );
+            LOGGER.error( () -> errorInformation.toDebugStr() );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }
@@ -157,7 +159,7 @@ public class SecureEngine
         {
             final String errorMsg = "unexpected error performing simple crypt operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            LOGGER.error( errorInformation.toDebugStr() );
+            LOGGER.error( () -> errorInformation.toDebugStr() );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }
@@ -460,6 +462,7 @@ public class SecureEngine
         private final byte[] value;
 
         private final int fixedComponentLength;
+        private final Lock lock = new ReentrantLock();
 
         NonceGenerator( final int fixedComponentLength, final int counterComponentLength )
         {
@@ -470,8 +473,16 @@ public class SecureEngine
 
         public synchronized byte[] nextValue( )
         {
-            increment( value.length - 1 );
-            return Arrays.copyOf( value, value.length );
+            lock.lock();
+            try
+            {
+                increment( value.length - 1 );
+                return Arrays.copyOf( value, value.length );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
         private void increment( final int index )

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ package password.pwm.bean;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.jetbrains.annotations.NotNull;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.profile.LdapProfile;
@@ -31,25 +33,36 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.StringTokenizer;
 
-public class UserIdentity implements Serializable, Comparable
+@SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
+public class UserIdentity implements Serializable, Comparable<UserIdentity>
 {
+    private static final long serialVersionUID = 1L;
+
     private static final String CRYPO_HEADER = "ui_C-";
     private static final String DELIM_SEPARATOR = "|";
 
     private transient String obfuscatedValue;
-    private transient boolean canonicalized;
+    private transient boolean canonical;
 
-    private String userDN;
-    private String ldapProfile;
+    private final String userDN;
+    private final String ldapProfile;
 
     public UserIdentity( final String userDN, final String ldapProfile )
+    {
+        this.userDN = JavaHelper.requireNonEmpty( userDN, "UserIdentity: userDN value cannot be empty" );
+        this.ldapProfile = JavaHelper.requireNonEmpty( ldapProfile, "UserIdentity: ldapProfile value cannot be empty" );
+    }
+
+    public UserIdentity( final String userDN, final String ldapProfile, final boolean canonical )
     {
         if ( userDN == null || userDN.length() < 1 )
         {
@@ -57,6 +70,7 @@ public class UserIdentity implements Serializable, Comparable
         }
         this.userDN = userDN;
         this.ldapProfile = ldapProfile == null ? "" : ldapProfile;
+        this.canonical = canonical;
     }
 
     public String getUserDN( )
@@ -71,11 +85,13 @@ public class UserIdentity implements Serializable, Comparable
 
     public LdapProfile getLdapProfile( final Configuration configuration )
     {
-        if ( configuration == null )
+        Objects.requireNonNull( configuration );
+        final LdapProfile ldapProfile = configuration.getLdapProfiles().get( this.getLdapProfileID() );
+        if ( ldapProfile == null )
         {
-            return null;
+            throw new IllegalStateException( "bogus ldapProfileID on userIdentity: "  + this.getLdapProfileID() );
         }
-        return configuration.getLdapProfiles().getOrDefault( this.getLdapProfileID(), null );
+        return ldapProfile;
     }
 
     public String toString( )
@@ -128,12 +144,11 @@ public class UserIdentity implements Serializable, Comparable
         return this.getUserDN() + ( ( this.getLdapProfileID() != null && !this.getLdapProfileID().isEmpty() ) ? " (" + this.getLdapProfileID() + ")" : "" );
     }
 
-    public static UserIdentity fromObfuscatedKey( final String key, final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public static UserIdentity fromObfuscatedKey( final String key, final PwmApplication pwmApplication )
+            throws PwmUnrecoverableException
     {
-        if ( key == null || key.length() < 1 )
-        {
-            return null;
-        }
+        Objects.requireNonNull( pwmApplication );
+        JavaHelper.requireNonEmpty( key, "key can not be null or empty" );
 
         if ( !key.startsWith( CRYPO_HEADER ) )
         {
@@ -142,7 +157,7 @@ public class UserIdentity implements Serializable, Comparable
 
         try
         {
-            final String input = key.substring( CRYPO_HEADER.length(), key.length() );
+            final String input = key.substring( CRYPO_HEADER.length() );
             final String jsonValue = pwmApplication.getSecureService().decryptStringValue( input );
             return JsonUtil.deserialize( jsonValue, UserIdentity.class );
         }
@@ -152,12 +167,10 @@ public class UserIdentity implements Serializable, Comparable
         }
     }
 
-    public static UserIdentity fromDelimitedKey( final String key ) throws PwmUnrecoverableException
+    public static UserIdentity fromDelimitedKey( final String key )
+            throws PwmUnrecoverableException
     {
-        if ( key == null || key.length() < 1 )
-        {
-            return null;
-        }
+        JavaHelper.requireNonEmpty( key );
 
         final StringTokenizer st = new StringTokenizer( key, DELIM_SEPARATOR );
         if ( st.countTokens() < 2 )
@@ -173,13 +186,10 @@ public class UserIdentity implements Serializable, Comparable
         return new UserIdentity( userDN, profileID );
     }
 
-    public static UserIdentity fromKey( final String key, final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public static UserIdentity fromKey( final String key, final PwmApplication pwmApplication )
+            throws PwmUnrecoverableException
     {
-        if ( key == null || key.length() < 1 )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, "userKey parameter is missing" );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
+        JavaHelper.requireNonEmpty( key );
 
         if ( key.startsWith( CRYPO_HEADER ) )
         {
@@ -237,19 +247,20 @@ public class UserIdentity implements Serializable, Comparable
     }
 
     @Override
-    public int compareTo( final Object o )
+    public int compareTo( @NotNull final UserIdentity otherIdentity )
     {
-        final String thisStr = ( ldapProfile == null ? "_" : ldapProfile ) + userDN;
-        final UserIdentity otherIdentity = ( UserIdentity ) o;
-        final String otherStr = ( otherIdentity.ldapProfile == null ? "_" : otherIdentity.ldapProfile ) + otherIdentity.userDN;
+        return compareString().compareToIgnoreCase( otherIdentity.compareString() );
+    }
 
-        return thisStr.compareTo( otherStr );
+    private String compareString()
+    {
+        return ( ldapProfile == null ? "_" : ldapProfile ) + "_" + userDN;
     }
 
     public UserIdentity canonicalized( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
-        if ( this.canonicalized )
+        if ( this.canonical )
         {
             return this;
         }
@@ -265,7 +276,7 @@ public class UserIdentity implements Serializable, Comparable
             throw PwmUnrecoverableException.fromChaiException( e );
         }
         final UserIdentity canonicalziedIdentity = new UserIdentity( userDN, this.getLdapProfileID() );
-        canonicalziedIdentity.canonicalized = true;
+        canonicalziedIdentity.canonical = true;
         return canonicalziedIdentity;
     }
 }

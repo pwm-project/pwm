@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@
  */
 
 package password.pwm.http;
+
+import java.util.Optional;
 
 public enum HttpMethod
 {
@@ -37,16 +39,16 @@ public enum HttpMethod
         this.idempotent = idempotent;
     }
 
-    public static HttpMethod fromString( final String input )
+    public static Optional<HttpMethod> fromString( final String input )
     {
         for ( final HttpMethod method : HttpMethod.values() )
         {
             if ( method.toString().equalsIgnoreCase( input ) )
             {
-                return method;
+                return Optional.of( method );
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     public boolean isIdempotent( )

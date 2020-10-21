@@ -4,7 +4,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2019 The PWM Project
+  ~ Copyright (c) 2009-2020 The PWM Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@
 
 <FindBugsFilter>
     <Match>
-        <Bug pattern="SE_NO_SERIALVERSIONID,RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE,SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
     <Match>
-        <!-- due to bug https://github.com/spotbugs/spotbugs/issues/493 in spotbugs 3.1.3 -->
-        <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
+        <Bug pattern="SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"/>
     </Match>
     <Match>
         <!-- due to bug with java 11 -->
+        <!-- https://github.com/spotbugs/spotbugs/issues/756 -->
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
     </Match>
 </FindBugsFilter>

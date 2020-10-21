@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@
  */
 
 package password.pwm.onejar;
+
+import org.apache.catalina.LifecycleException;
 
 import javax.servlet.ServletException;
 import java.io.File;
@@ -108,6 +110,7 @@ public class OnejarMain
                 purgeDirectory( onejarConfig.getWorkingPath().toPath() );
                 this.explodeWar( onejarConfig );
                 final TomcatOnejarRunner runner = new TomcatOnejarRunner( this );
+                Runtime.getRuntime().addShutdownHook( new ShutdownThread( runner ) );
                 runner.startTomcat( onejarConfig );
 
             }
@@ -121,16 +124,54 @@ public class OnejarMain
         out( "exiting after " + duration.toString() );
     }
 
-    void out( final String output )
+    class ShutdownThread extends Thread
     {
-        output( output );
+        private final TomcatOnejarRunner runner;
+
+        ShutdownThread( final TomcatOnejarRunner runner )
+        {
+            this.runner = runner;
+        }
+
+        @Override
+        public void run()
+        {
+            final Instant startTime = Instant.now();
+            out( "shutdown process initiated" );
+            try
+            {
+                runner.shutdown();
+            }
+            catch ( final LifecycleException e )
+            {
+                e.printStackTrace();
+            }
+            out( "shutdown complete", startTime );
+        }
     }
 
-    static void output( final String output )
+    void out( final String message )
+    {
+        output( message );
+    }
+
+    void out( final String message, final Instant startTime )
+    {
+        output( message, startTime );
+    }
+
+    static void output( final String message )
     {
         final Instant now = Instant.now().truncatedTo( ChronoUnit.SECONDS );
-        System.out.println( now.toString() + ", OneJar, " + output );
+        System.out.println( now.toString() + ", OneJar, " + message );
     }
+
+    static void output( final String message, final Instant startTime )
+    {
+        final Duration duration = Duration.between( Instant.now(), startTime );
+        output( message + " (" + duration.toString() + ")" );
+    }
+
 
     private void explodeWar( final OnejarConfig onejarConfig ) throws IOException
     {

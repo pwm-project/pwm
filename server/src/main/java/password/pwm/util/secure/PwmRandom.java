@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ public class PwmRandom extends SecureRandom
         return SINGLETON;
     }
 
+    @Override
     public long nextLong( )
     {
         return internalRand.nextLong();
@@ -62,21 +63,25 @@ public class PwmRandom extends SecureRandom
         return randomLong % n;
     }
 
+    @Override
     public int nextInt( )
     {
         return internalRand.nextInt();
     }
 
+    @Override
     public int nextInt( final int n )
     {
         return internalRand.nextInt( n );
     }
 
+    @Override
     public boolean nextBoolean( )
     {
         return internalRand.nextBoolean();
     }
 
+    @Override
     public String getAlgorithm( )
     {
         return internalRand.getAlgorithm();
@@ -111,6 +116,7 @@ public class PwmRandom extends SecureRandom
         return characters.charAt( nextInt( characters.length() ) );
     }
 
+    @Override
     public void nextBytes( final byte[] secArray )
     {
         internalRand.nextBytes( secArray );

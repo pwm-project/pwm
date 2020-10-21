@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ package password.pwm.config.value;
 
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -59,12 +58,13 @@ public class PrivateKeyValue extends AbstractValue
     {
         return new StoredValue.StoredValueFactory()
         {
+            @Override
             public PrivateKeyValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
-                if ( settingElement != null && settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE  ).isPresent() )
+                if ( settingElement != null && settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE  ).isPresent() )
                 {
 
-                    final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                    final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                     if ( valueElement.isPresent() )
                     {
                         final List<X509Certificate> certificates = new ArrayList<>();
@@ -78,7 +78,7 @@ public class PrivateKeyValue extends AbstractValue
                             }
                             catch ( final Exception e )
                             {
-                                LOGGER.error( "error reading certificate: " + e.getMessage(), e );
+                                LOGGER.error( () -> "error reading certificate: " + e.getMessage(), e );
                             }
 
                         }
@@ -100,12 +100,12 @@ public class PrivateKeyValue extends AbstractValue
                             }
                             else
                             {
-                                LOGGER.error( "error reading privateKey for setting: '" + pwmSetting.getKey() + "': missing 'value' element" );
+                                LOGGER.error( () -> "error reading privateKey for setting: '" + pwmSetting.getKey() + "': missing 'value' element" );
                             }
                         }
                         catch ( final Exception e )
                         {
-                            LOGGER.error( "error reading privateKey for setting: '" + pwmSetting.getKey() + "': " + e.getMessage(), e );
+                            LOGGER.error( () -> "error reading privateKey for setting: '" + pwmSetting.getKey() + "': " + e.getMessage(), e );
                         }
 
                         if ( !certificates.isEmpty() && privateKey != null )
@@ -118,9 +118,10 @@ public class PrivateKeyValue extends AbstractValue
                 return new PrivateKeyValue( null );
             }
 
+            @Override
             public X509CertificateValue fromJson( final String input )
             {
-                return new X509CertificateValue( new X509Certificate[ 0 ] );
+                return new X509CertificateValue( Collections.emptyList() );
             }
         };
     }
@@ -154,9 +155,10 @@ public class PrivateKeyValue extends AbstractValue
         return 0;
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final XmlElement valueElement = XmlFactory.getFactory().newElement( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+        final XmlElement valueElement = XmlFactory.getFactory().newElement( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
         if ( privateKeyCertificate != null )
         {
             try
@@ -171,7 +173,7 @@ public class PrivateKeyValue extends AbstractValue
                 }
                 {
                     final XmlElement keyElement = XmlFactory.getFactory().newElement( ELEMENT_NAME_KEY );
-                    final String b64EncodedKey = StringUtil.base64Encode( privateKeyCertificate.getKey().getEncoded() );
+                    final String b64EncodedKey = privateKeyCertificate.getPrivateKey();
                     final String encryptedKey = StoredValueEncoder.encode(
                             b64EncodedKey,
                             xmlOutputProcessData.getStoredValueEncoderMode(),
@@ -189,6 +191,7 @@ public class PrivateKeyValue extends AbstractValue
         return Collections.singletonList( valueElement );
     }
 
+    @Override
     public String toDebugString( final Locale locale )
     {
         if ( privateKeyCertificate != null )

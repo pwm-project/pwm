@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,8 @@ import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecord;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenPayload;
@@ -80,11 +82,13 @@ import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.password.PasswordUtility;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -133,7 +137,8 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         verificationChoice( HttpMethod.POST ),
         enterRemoteResponse( HttpMethod.POST ),
         oauthReturn( HttpMethod.GET ),
-        resendToken( HttpMethod.POST ),;
+        resendToken( HttpMethod.POST ),
+        agree( HttpMethod.POST ),;
 
         private final Collection<HttpMethod> method;
 
@@ -142,6 +147,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             this.method = Collections.unmodifiableList( Arrays.asList( method ) );
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return method;
@@ -564,20 +570,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean( pwmRequest );
         final VerificationMethodSystem remoteRecoveryMethod = forgottenPasswordBean.getProgress().getRemoteRecoveryMethod();
 
-        final Map<String, String> remoteResponses = new LinkedHashMap<>();
-        {
-            final Map<String, String> inputMap = pwmRequest.readParametersAsMap();
-            for ( final Map.Entry<String, String> entry : inputMap.entrySet() )
-            {
-                final String name = entry.getKey();
-                if ( name != null && name.startsWith( prefix ) )
-                {
-                    final String strippedName = name.substring( prefix.length(), name.length() );
-                    final String value = entry.getValue();
-                    remoteResponses.put( strippedName, value );
-                }
-            }
-        }
+        final Map<String, String> remoteResponses = RemoteVerificationMethod.readRemoteResponses( pwmRequest, prefix );
 
         final ErrorInformation errorInformation = remoteRecoveryMethod.respondToPrompts( remoteResponses );
 
@@ -912,7 +905,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                 }
                 catch ( final ChaiOperationException e )
                 {
-                    LOGGER.error( pwmRequest, "error during param validation of '" + attrName + "', error: " + e.getMessage() );
+                    LOGGER.error( pwmRequest, () -> "error during param validation of '" + attrName + "', error: " + e.getMessage() );
                     throw new PwmDataValidationException( new ErrorInformation( PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", new String[]
                             {
                                     formConfiguration.getLabel( pwmRequest.getLocale() ),
@@ -931,6 +924,27 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         return ProcessStatus.Continue;
     }
 
+    @ActionHandler( action = "agree" )
+    ProcessStatus processAgreeAction( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean( pwmRequest );
+
+        LOGGER.debug( pwmRequest, () -> "user accepted forgotten password agreement" );
+        if ( !forgottenPasswordBean.isAgreementPassed() )
+        {
+            forgottenPasswordBean.setAgreementPassed( true );
+            final AuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createUserAuditRecord(
+                    AuditEvent.AGREEMENT_PASSED,
+                    pwmRequest.getUserInfoIfLoggedIn(),
+                    pwmRequest.getLabel(),
+                    "ForgottenPassword"
+            );
+            pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+        }
+
+        return ProcessStatus.Continue;
+    }
 
     @Override
     @SuppressWarnings( "checkstyle:MethodLength" )
@@ -985,6 +999,16 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                     progress.getSatisfiedMethods().add( IdentityVerificationMethod.PREVIOUS_AUTH );
                 }
             }
+        }
+
+        final String agreementMsg = forgottenPasswordProfile.readSettingAsLocalizedString( PwmSetting.RECOVERY_AGREEMENT_MESSAGE, pwmRequest.getLocale() );
+        if ( !StringUtil.isEmpty( agreementMsg ) && !forgottenPasswordBean.isAgreementPassed() )
+        {
+            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+            final String expandedText = macroMachine.expandMacros( agreementMsg );
+            pwmRequest.setAttribute( PwmRequestAttribute.AgreementText, expandedText );
+            pwmRequest.forwardToJsp( JspUrl.RECOVER_USER_AGREEMENT );
+            return;
         }
 
         // dispatch required auth methods.
@@ -1161,7 +1185,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         {
             final String errorMsg = "unable to unlock user " + userIdentity + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNLOCK_FAILURE, errorMsg );
-            LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
             pwmRequest.respondWithError( errorInformation, true );
         }
         finally
@@ -1196,7 +1220,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         {
             final String errorMsg = "unable to unlock user " + theUser.getEntryDN() + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNLOCK_FAILURE, errorMsg );
-            LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
         }
 
         try
@@ -1224,7 +1248,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         catch ( final PwmUnrecoverableException e )
         {
             LOGGER.warn( pwmRequest,
-                    "unexpected error authenticating during forgotten password recovery process user: " + e.getMessage() );
+                    () -> "unexpected error authenticating during forgotten password recovery process user: " + e.getMessage() );
             pwmRequest.respondWithError( e.getErrorInformation() );
         }
         finally
@@ -1296,7 +1320,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                     PwmError.ERROR_INTERNAL,
                     "unexpected error while re-loading user data due to locale change: " + e.getErrorInformation().toDebugStr()
             );
-            LOGGER.error( pwmRequest, errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
             setLastError( pwmRequest, errorInformation );
         }
     }
@@ -1402,8 +1426,8 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                 final List<VerificationMethodSystem.UserPrompt> prompts = remoteMethod.getCurrentPrompts();
                 final String displayInstructions = remoteMethod.getCurrentDisplayInstructions();
 
-                pwmRequest.setAttribute( PwmRequestAttribute.ForgottenPasswordPrompts, new ArrayList<>( prompts ) );
-                pwmRequest.setAttribute( PwmRequestAttribute.ForgottenPasswordInstructions, displayInstructions );
+                pwmRequest.setAttribute( PwmRequestAttribute.ExternalResponsePrompts, new ArrayList<>( prompts ) );
+                pwmRequest.setAttribute( PwmRequestAttribute.ExternalResponseInstructions, displayInstructions );
                 pwmRequest.forwardToJsp( JspUrl.RECOVER_PASSWORD_REMOTE );
             }
             break;

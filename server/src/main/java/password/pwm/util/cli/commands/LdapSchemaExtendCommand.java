@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import password.pwm.ldap.schema.SchemaOperationResult;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.secure.PwmTrustManager;
 import password.pwm.util.secure.X509Utils;
 
 import javax.net.ssl.X509TrustManager;
@@ -47,6 +48,7 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
     private static final String OPTION_BIND_DN = "bindDN";
     private static final String OPTION_BIND_PW = "bindPassword";
 
+    @Override
     public void doCommand( )
             throws Exception
     {
@@ -74,7 +76,7 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
                 out( "canceled" );
                 return;
             }
-            trustManager = new X509Utils.CertMatchingTrustManager( cliEnvironment.getConfig(), certificates );
+            trustManager = PwmTrustManager.createPwmTrustManager( cliEnvironment.getConfig(), certificates );
         }
         else
         {
@@ -132,20 +134,24 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
     }
 
 
+    @Override
     public CliParameters getCliParameters( )
     {
         final CliParameters.Option ldapUrlOption = new CliParameters.Option()
         {
+            @Override
             public boolean isOptional( )
             {
                 return false;
             }
 
+            @Override
             public Type getType( )
             {
                 return Type.STRING;
             }
 
+            @Override
             public String getName( )
             {
                 return OPTION_LDAPURL;
@@ -154,16 +160,19 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
 
         final CliParameters.Option bindDN = new CliParameters.Option()
         {
+            @Override
             public boolean isOptional( )
             {
                 return false;
             }
 
+            @Override
             public Type getType( )
             {
                 return Type.STRING;
             }
 
+            @Override
             public String getName( )
             {
                 return OPTION_BIND_DN;
@@ -172,16 +181,19 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
 
         final CliParameters.Option bindPassword = new CliParameters.Option()
         {
+            @Override
             public boolean isOptional( )
             {
                 return true;
             }
 
+            @Override
             public Type getType( )
             {
                 return Type.STRING;
             }
 
+            @Override
             public String getName( )
             {
                 return OPTION_BIND_PW;

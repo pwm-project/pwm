@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,9 +60,9 @@ public class ResourceServletService implements PwmService
 
     private ResourceServletConfiguration resourceServletConfiguration;
     private Cache<CacheKey, CacheEntry> cache;
-    private MovingAverage cacheHitRatio = new MovingAverage( 60 * 60 * 1000 );
+    private final MovingAverage cacheHitRatio = new MovingAverage( 60 * 60 * 1000 );
     private String resourceNonce;
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
 
     private PwmApplication pwmApplication;
 
@@ -81,7 +81,6 @@ public class ResourceServletService implements PwmService
         return cacheHitRatio;
     }
 
-
     public long bytesInCache( )
     {
         final Map<CacheKey, CacheEntry> cacheCopy = new HashMap<>( cache.asMap() );
@@ -90,7 +89,7 @@ public class ResourceServletService implements PwmService
         {
             if ( cacheEntry != null && cacheEntry.getEntity() != null )
             {
-                cacheByteCount += cacheEntry.getEntity().length;
+                cacheByteCount += cacheEntry.getEntity().size();
             }
         }
         return cacheByteCount;
@@ -119,7 +118,6 @@ public class ResourceServletService implements PwmService
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
         this.pwmApplication = pwmApplication;
-        status = STATUS.OPENING;
         try
         {
             this.resourceServletConfiguration = ResourceServletConfiguration.createResourceServletConfiguration( pwmApplication );
@@ -132,7 +130,7 @@ public class ResourceServletService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error during cache initialization, will remain closed; error: " + e.getMessage() );
+            LOGGER.error( () -> "error during cache initialization, will remain closed; error: " + e.getMessage() );
             status = STATUS.CLOSED;
             return;
         }
@@ -143,7 +141,7 @@ public class ResourceServletService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error during nonce generation, will remain closed; error: " + e.getMessage() );
+            LOGGER.error( () -> "error during nonce generation, will remain closed; error: " + e.getMessage() );
             status = STATUS.CLOSED;
         }
     }
@@ -182,7 +180,7 @@ public class ResourceServletService implements PwmService
 
         final Instant startTime = Instant.now();
         final String nonce = checksumAllResources( pwmApplication );
-        LOGGER.debug( () -> "completed generation of nonce '" + nonce + "' in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        LOGGER.debug( () -> "completed generation of nonce '" + nonce + "'", () ->  TimeDuration.fromCurrent( startTime ) );
 
         final String noncePrefix = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
         return "/" + noncePrefix + nonce;
@@ -203,7 +201,7 @@ public class ResourceServletService implements PwmService
 
         if ( !themeName.matches( pwmRequest.getConfig().readAppProperty( AppProperty.SECURITY_INPUT_THEME_MATCH_REGEX ) ) )
         {
-            LOGGER.warn( pwmRequest, "discarding suspicious theme name in request: " + themeName );
+            LOGGER.warn( pwmRequest, () -> "discarding suspicious theme name in request: " + themeName );
             return false;
         }
 
@@ -294,7 +292,7 @@ public class ResourceServletService implements PwmService
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "unable to generate resource path nonce: " + e.getMessage() );
+                LOGGER.error( () -> "unable to generate resource path nonce: " + e.getMessage() );
             }
         }
     }

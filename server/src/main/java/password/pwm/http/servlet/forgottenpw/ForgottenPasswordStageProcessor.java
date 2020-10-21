@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,13 +38,13 @@ import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.bean.ForgottenPasswordStage;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordUtility;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -91,6 +91,7 @@ class ForgottenPasswordStageProcessor
 
     private static class StageProcessor1 implements  NextStageProcessor
     {
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
         {
             final CommonValues commonValues = stateMachine.getCommonValues();
@@ -130,6 +131,7 @@ class ForgottenPasswordStageProcessor
     private static class StageProcessor2 implements NextStageProcessor
     {
 
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
                 throws PwmUnrecoverableException
         {
@@ -179,6 +181,7 @@ class ForgottenPasswordStageProcessor
 
     static class StageProcessor3 implements NextStageProcessor
     {
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
@@ -212,6 +215,7 @@ class ForgottenPasswordStageProcessor
 
     static class StageProcessor4 implements NextStageProcessor
     {
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
                 throws PwmUnrecoverableException
         {
@@ -235,7 +239,7 @@ class ForgottenPasswordStageProcessor
 
                     // for rest method, fail if any required methods are not supported
                     {
-                        final Set<IdentityVerificationMethod> tempSet = new HashSet<>( remainingAvailableOptionalMethods );
+                        final Set<IdentityVerificationMethod> tempSet = JavaHelper.copiedEnumSet( remainingAvailableOptionalMethods, IdentityVerificationMethod.class );
                         tempSet.removeAll( ForgottenPasswordStateMachine.supportedVerificationMethods() );
                         if ( !tempSet.isEmpty() )
                         {
@@ -273,6 +277,7 @@ class ForgottenPasswordStageProcessor
 
     static class StageProcessor5 implements NextStageProcessor
     {
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
                 throws PwmUnrecoverableException
         {
@@ -312,6 +317,7 @@ class ForgottenPasswordStageProcessor
 
     static class StageProcessor6 implements NextStageProcessor
     {
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
                 throws PwmUnrecoverableException
         {
@@ -356,6 +362,7 @@ class ForgottenPasswordStageProcessor
 
     static class StageProcessor7 implements NextStageProcessor
     {
+        @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
                 throws PwmUnrecoverableException
         {

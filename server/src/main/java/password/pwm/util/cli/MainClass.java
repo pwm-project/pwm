@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -342,7 +342,7 @@ public class MainClass
                 if ( commandStr.equalsIgnoreCase( command.getCliParameters().commandName ) )
                 {
                     commandExceuted = true;
-                    executeCommand( command, commandStr, workingArgs.toArray( new String[ workingArgs.size() ] ) );
+                    executeCommand( command, commandStr, workingArgs.toArray( new String[0] ) );
                     break;
                 }
             }
@@ -360,7 +360,7 @@ public class MainClass
             final String[] args
     )
     {
-        final List<String> argList = new LinkedList<>( Arrays.asList( args ) );
+        final List<String> argList = new ArrayList<>( Arrays.asList( args ) );
         argList.remove( 0 );
 
         final CliEnvironment cliEnvironment;
@@ -372,7 +372,7 @@ public class MainClass
         {
             final String errorMsg = "unable to establish operating environment: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_ENVIRONMENT_ERROR, errorMsg );
-            LOGGER.error( errorInformation.toDebugStr(), e );
+            LOGGER.error( () -> errorInformation.toDebugStr(), e );
             out( "unable to establish operating environment: " + e.getMessage() );
             System.exit( -1 );
             return;
@@ -487,12 +487,15 @@ public class MainClass
             applicationFlags.addAll( flags );
         }
         applicationFlags.add( PwmEnvironment.ApplicationFlag.CommandLineInstance );
-        final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder( config, applicationPath )
-                .setApplicationMode( mode )
-                .setConfigurationFile( configurationFile )
-                .setFlags( applicationFlags )
-                .createPwmEnvironment();
-        final PwmApplication pwmApplication = new PwmApplication( pwmEnvironment );
+        final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
+                .config( config )
+                .applicationPath( applicationPath )
+                .applicationMode( mode )
+                .configurationFile( configurationFile )
+                .flags( applicationFlags )
+                .build();
+
+        final PwmApplication pwmApplication = PwmApplication.createPwmApplication( pwmEnvironment );
         final PwmApplicationMode runningMode = pwmApplication.getApplicationMode();
 
         if ( runningMode != mode )

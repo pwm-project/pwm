@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,22 +24,22 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StoredValueEncoder;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlDocument;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
-import password.pwm.util.localdb.TestHelper;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.InputStream;
-import java.util.Collections;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -53,7 +53,6 @@ public class PwmSettingTest
     @Test
     public void testDefaultValues() throws Exception
     {
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
         final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( "abcdefghijklmnopqrstuvwxyz" );
         final XmlOutputProcessData outputSettings = XmlOutputProcessData.builder()
                 .pwmSecurityKey( pwmSecurityKey )
@@ -61,16 +60,16 @@ public class PwmSettingTest
                 .build();
         for ( final PwmSetting pwmSetting : PwmSetting.values() )
         {
-            for ( final PwmSettingTemplate template : PwmSettingTemplate.values() )
+            for ( final PwmSettingTemplateSet templateSet : PwmSettingTemplateSet.allValues() )
             {
-                final PwmSettingTemplateSet templateSet = new PwmSettingTemplateSet( Collections.singleton( template ) );
                 final StoredValue storedValue = pwmSetting.getDefaultValue( templateSet );
                 storedValue.toNativeObject();
                 storedValue.toDebugString( PwmConstants.DEFAULT_LOCALE );
                 storedValue.toDebugJsonObject( PwmConstants.DEFAULT_LOCALE );
-                storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, outputSettings );
+                storedValue.toXmlValues( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE, outputSettings );
                 storedValue.validateValue( pwmSetting );
                 Assert.assertNotNull( storedValue.valueHash() );
+                JsonUtil.serialize( (Serializable) storedValue.toNativeObject() );
             }
         }
     }
@@ -115,8 +114,8 @@ public class PwmSettingTest
         {
             final String key = result.getAttributeValue( "key" );
             Assert.assertFalse( StringUtil.isEmpty( key ) );
-            final PwmSetting pwmSetting = PwmSetting.forKey( key );
-            Assert.assertNotNull( "unknown PwmSetting.xml setting reference for key " + key );
+            final Optional<PwmSetting> pwmSetting = PwmSetting.forKey( key );
+            Assert.assertTrue( "unknown PwmSetting.xml setting reference for key " + key, pwmSetting.isPresent() );
         }
     }
 
@@ -193,24 +192,16 @@ public class PwmSettingTest
         final Set<String> seenKeys = new HashSet<>();
         for ( final PwmSetting pwmSetting : PwmSetting.values() )
         {
-            // duplicate key foud
-            Assert.assertTrue( !seenKeys.contains( pwmSetting.getKey() ) );
+            // duplicate key found
+            Assert.assertFalse( seenKeys.contains( pwmSetting.getKey() ) );
             seenKeys.add( pwmSetting.getKey() );
         }
     }
 
     @Test
-    public void testMinMaxValueRanges()
+    public void sortedByMenuLocation()
     {
-        for ( final PwmSetting pwmSetting : PwmSetting.values() )
-        {
-            final long minValue = Long.parseLong( pwmSetting.getProperties().getOrDefault( PwmSettingProperty.Minimum, "0" ) );
-            final long maxValue = Long.parseLong( pwmSetting.getProperties().getOrDefault( PwmSettingProperty.Maximum, "0" ) );
-            if ( maxValue != 0 )
-            {
-                Assert.assertTrue( maxValue > minValue );
-            }
-        }
-
+        final Set<PwmSetting> sortedSet = PwmSetting.sortedByMenuLocation( PwmConstants.DEFAULT_LOCALE );
+        Assert.assertEquals( sortedSet.size(), PwmSetting.values().length );
     }
 }

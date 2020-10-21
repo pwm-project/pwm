@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ public class LocalDBStoredQueueExtendedTest
         try
         {
             storedQueue.remove();
-            Assert.assertTrue( false );
+            Assert.fail();
         }
         catch ( final NoSuchElementException e )
         {
@@ -101,7 +101,7 @@ public class LocalDBStoredQueueExtendedTest
         }
         catch ( final Exception e )
         {
-            Assert.assertTrue( false );
+            Assert.fail();
         }
 
         Assert.assertTrue( storedQueue.isEmpty() );
@@ -126,7 +126,7 @@ public class LocalDBStoredQueueExtendedTest
 
         {
             final Iterator<String> iter = storedQueue.iterator();
-            iter.hasNext();
+            Assert.assertTrue( iter.hasNext() );
             Assert.assertEquals( "value0", iter.next() );
             Assert.assertEquals( "value1", iter.next() );
             Assert.assertEquals( "value2", iter.next() );
@@ -136,7 +136,7 @@ public class LocalDBStoredQueueExtendedTest
 
         {
             final Iterator<String> iter = storedQueue.descendingIterator();
-            iter.hasNext();
+            Assert.assertTrue( iter.hasNext() );
             Assert.assertEquals( "value4", iter.next() );
             Assert.assertEquals( "value3", iter.next() );
             Assert.assertEquals( "value2", iter.next() );

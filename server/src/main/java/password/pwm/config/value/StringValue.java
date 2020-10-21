@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,11 @@ package password.pwm.config.value;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
-import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -55,21 +55,24 @@ public class StringValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public StringValue fromJson( final String input )
             {
                 final String newValue = JsonUtil.deserialize( input, String.class );
                 return new StringValue( newValue );
             }
 
+            @Override
             public StringValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
-                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final String value = valueElement.map( XmlElement::getText ).orElse( "" );
                 return new StringValue( value );
             }
         };
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
@@ -77,23 +80,25 @@ public class StringValue extends AbstractValue implements StoredValue
         return Collections.singletonList( valueElement );
     }
 
+    @Override
     public String toNativeObject( )
     {
         return value;
     }
 
+    @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
         if ( pwmSetting.isRequired() )
         {
-            if ( value == null || value.length() < 1 )
+            if ( StringUtil.isEmpty( value ) )
             {
                 return Collections.singletonList( "required value missing" );
             }
         }
 
         final Pattern pattern = pwmSetting.getRegExPattern();
-        if ( pattern != null && value != null )
+        if ( pattern != null )
         {
             final Matcher matcher = pattern.matcher( value );
             if ( value != null && value.length() > 0 && !matcher.matches() )

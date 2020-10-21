@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,20 +21,18 @@
 package password.pwm.config.profile;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
 
 import java.util.Locale;
-import java.util.Map;
 
 public class EmailServerProfile extends AbstractProfile
 {
 
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.EmailServers;
 
-    protected EmailServerProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    protected EmailServerProfile( final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedValueMap );
+        super( identifier, storedConfiguration );
     }
 
     @Override
@@ -55,7 +53,7 @@ public class EmailServerProfile extends AbstractProfile
         @Override
         public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
         {
-            return new EmailServerProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+            return new EmailServerProfile( identifier, storedConfiguration );
         }
     }
 }

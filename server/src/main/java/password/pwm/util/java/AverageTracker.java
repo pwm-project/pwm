@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,17 @@ package password.pwm.util.java;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 import java.util.Queue;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class AverageTracker
 {
     private final int maxSamples;
-    private final Queue<BigInteger> samples = new LinkedList<>();
+    private final Queue<BigInteger> samples = new ArrayDeque<>();
+
+    private final transient ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public AverageTracker( final int maxSamples )
     {
@@ -38,27 +42,39 @@ public class AverageTracker
 
     public void addSample( final long input )
     {
-        samples.add( new BigInteger( Long.toString( input ) ) );
-        while ( samples.size() > maxSamples )
+        lock.writeLock().lock();
+        try
         {
-            samples.remove();
+            samples.add( BigInteger.valueOf( input ) );
+            while ( samples.size() > maxSamples )
+            {
+                samples.remove();
+            }
+        }
+        finally
+        {
+            lock.writeLock().unlock();
         }
     }
 
     public BigDecimal avg( )
     {
-        if ( samples.isEmpty() )
+        lock.readLock().lock();
+        try
         {
-            throw new IllegalStateException( "unable to compute avg without samples" );
-        }
+            if ( samples.isEmpty() )
+            {
+                return BigDecimal.ZERO;
+            }
 
-        BigInteger total = BigInteger.ZERO;
-        for ( final BigInteger sample : samples )
-        {
-            total = total.add( sample );
+            final BigInteger total = samples.stream().reduce( BigInteger::add ).get();
+            final BigDecimal sampleSize = new BigDecimal( samples.size() );
+            return new BigDecimal( total ).divide( sampleSize, MathContext.DECIMAL128 );
         }
-        final BigDecimal maxAsBD = new BigDecimal( Integer.toString( maxSamples ) );
-        return new BigDecimal( total ).divide( maxAsBD, MathContext.DECIMAL32 );
+        finally
+        {
+            lock.readLock().unlock();
+        }
     }
 
     public long avgAsLong( )

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,13 @@ import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class EventRateMeter implements Serializable
 {
     private final TimeDuration maxDuration;
+    private final Lock lock = new ReentrantLock();
 
     private MovingAverage movingAverage;
     private double remainder;
@@ -43,30 +46,54 @@ public class EventRateMeter implements Serializable
         reset();
     }
 
-    public synchronized void reset( )
+    public void reset( )
     {
-        movingAverage = new MovingAverage( maxDuration.asMillis() );
-        remainder = 0;
-    }
-
-    public synchronized void markEvents( final int eventCount )
-    {
-        final long timeSinceLastUpdate = System.currentTimeMillis() - movingAverage.getLastMillis();
-        if ( timeSinceLastUpdate != 0 )
+        lock.lock();
+        try
         {
-            final double eventRate = ( eventCount + remainder ) / timeSinceLastUpdate;
-            movingAverage.update( eventRate * 1000 );
+            movingAverage = new MovingAverage( maxDuration.asMillis() );
             remainder = 0;
         }
-        else
+        finally
         {
-            remainder += eventCount;
+            lock.unlock();
         }
     }
 
-    public synchronized BigDecimal readEventRate( )
+    public void markEvents( final int eventCount )
     {
-        return new BigDecimal( this.movingAverage.getAverage() );
+        lock.lock();
+        try
+        {
+            final long timeSinceLastUpdate = System.currentTimeMillis() - movingAverage.getLastMillis();
+            if ( timeSinceLastUpdate != 0 )
+            {
+                final double eventRate = ( eventCount + remainder ) / timeSinceLastUpdate;
+                movingAverage.update( eventRate * 1000 );
+                remainder = 0;
+            }
+            else
+            {
+                remainder += eventCount;
+            }
+        }
+        finally
+        {
+            lock.unlock();
+        }
+    }
+
+    public BigDecimal readEventRate( )
+    {
+        lock.lock();
+        try
+        {
+            return BigDecimal.valueOf( this.movingAverage.getAverage() );
+        }
+        finally
+        {
+            lock.unlock();
+        }
     }
 
 }

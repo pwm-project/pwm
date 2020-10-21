@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,14 +57,14 @@ public class DatabaseStatusChecker implements HealthChecker
         try
         {
             final PwmEnvironment runtimeEnvironment = pwmApplication.getPwmEnvironment().makeRuntimeInstance( config );
-            runtimeInstance = new PwmApplication( runtimeEnvironment );
+            runtimeInstance = PwmApplication.createPwmApplication( runtimeEnvironment );
             final DatabaseAccessor accessor = runtimeInstance.getDatabaseService().getAccessor();
             accessor.get( DatabaseTable.PWM_META, "test" );
             return runtimeInstance.getDatabaseService().healthCheck();
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( "error during healthcheck: " + e.getMessage() );
+            LOGGER.error( () -> "error during healthcheck: " + e.getMessage() );
             e.printStackTrace();
             return runtimeInstance.getDatabaseService().healthCheck();
         }

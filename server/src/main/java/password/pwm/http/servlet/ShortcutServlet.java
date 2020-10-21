@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,10 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.StringHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.ShortcutItem;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
@@ -34,7 +36,8 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ShortcutsBean;
-import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
+import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
@@ -67,12 +70,14 @@ public class ShortcutServlet extends AbstractPwmServlet
     {
         selectShortcut,;
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( HttpMethod.GET );
         }
     }
 
+    @Override
     protected ShortcutAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
@@ -86,6 +91,7 @@ public class ShortcutServlet extends AbstractPwmServlet
         }
     }
 
+    @Override
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
@@ -182,11 +188,18 @@ public class ShortcutServlet extends AbstractPwmServlet
         {
             for ( final ShortcutItem item : configuredItems )
             {
-                final boolean queryMatch = LdapPermissionTester.testQueryMatch(
-                        pwmRequest.getPwmApplication(),
-                        pwmRequest.getLabel(),
+                final UserIdentity userIdentity = pwmRequest.getPwmSession().getUserInfo().getUserIdentity();
+
+                final UserPermission userPermission = UserPermission.builder()
+                        .type( UserPermissionType.ldapQuery )
+                        .ldapQuery( item.getLdapQuery() )
+                        .ldapBase( userIdentity.getLdapProfileID() )
+                        .build();
+
+                final boolean queryMatch = UserPermissionUtility.testUserPermission(
+                        pwmRequest.commonValues(),
                         pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
-                        item.getLdapQuery()
+                        userPermission
                 );
 
                 if ( queryMatch )
@@ -203,7 +216,7 @@ public class ShortcutServlet extends AbstractPwmServlet
             final PwmRequest pwmRequest,
             final ShortcutsBean shortcutsBean
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
+            throws PwmUnrecoverableException,  IOException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
@@ -211,7 +224,7 @@ public class ShortcutServlet extends AbstractPwmServlet
         final String link = pwmRequest.readParameterAsString( "link" );
         final Map<String, ShortcutItem> visibleItems = shortcutsBean.getVisibleItems();
 
-        if ( link != null && visibleItems.keySet().contains( link ) )
+        if ( link != null && visibleItems.containsKey( link ) )
         {
             final ShortcutItem item = visibleItems.get( link );
 
@@ -223,7 +236,7 @@ public class ShortcutServlet extends AbstractPwmServlet
             return;
         }
 
-        LOGGER.error( pwmRequest, "unknown/unexpected link requested to " + link );
+        LOGGER.error( pwmRequest, () -> "unknown/unexpected link requested to " + link );
         pwmRequest.forwardToJsp( JspUrl.SHORTCUT );
     }
 }

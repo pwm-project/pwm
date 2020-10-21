@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,11 +79,11 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
     {
         final Map<String, StoredNodeData> returnList = new LinkedHashMap<>();
         final DatabaseAccessor databaseAccessor = getDatabaseAccessor();
-        try ( ClosableIterator<String> tableIterator = databaseAccessor.iterator( TABLE ) )
+        try ( ClosableIterator<Map.Entry<String, String>> tableIterator = databaseAccessor.iterator( TABLE ) )
         {
             while ( tableIterator.hasNext() )
             {
-                final String dbKey = tableIterator.next();
+                final String dbKey = tableIterator.next().getKey();
                 if ( dbKey.startsWith( KEY_PREFIX_NODE ) )
                 {
                     final String rawValueInDb = databaseAccessor.get( TABLE, dbKey );

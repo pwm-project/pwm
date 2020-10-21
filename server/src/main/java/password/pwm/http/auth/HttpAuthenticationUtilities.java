@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,14 +35,14 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 public abstract class HttpAuthenticationUtilities
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpAuthenticationUtilities.class );
 
-    private static final Set<AuthenticationMethod> IGNORED_AUTH_METHODS = new HashSet<>();
+    private static final Set<AuthenticationMethod> IGNORED_AUTH_METHODS = EnumSet.noneOf( AuthenticationMethod.class );
 
 
     public static ProcessStatus attemptAuthenticationMethods( final PwmRequest pwmRequest ) throws IOException, ServletException
@@ -88,6 +88,11 @@ public abstract class HttpAuthenticationUtilities
                             return ProcessStatus.Halt;
                         }
 
+                        if ( pwmRequest.isAuthenticated() )
+                        {
+                            return ProcessStatus.Continue;
+                        }
+
                     }
                     catch ( final Exception e )
                     {
@@ -96,13 +101,13 @@ public abstract class HttpAuthenticationUtilities
                         {
                             final String errorMsg = "error during " + authenticationMethod + " authentication attempt: " + e.getMessage();
                             errorInformation = new ErrorInformation( ( ( PwmException ) e ).getError(), errorMsg );
+                            LOGGER.error( pwmRequest, errorInformation );
                         }
                         else
                         {
                             errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
-
+                            LOGGER.error( pwmRequest.getLabel(), errorInformation, e );
                         }
-                        LOGGER.error( pwmRequest, errorInformation );
                         pwmRequest.respondWithError( errorInformation );
                         return ProcessStatus.Halt;
                     }
@@ -151,7 +156,7 @@ public abstract class HttpAuthenticationUtilities
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( pwmRequest, "error while setting authentication record cookie: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error while setting authentication record cookie: " + e.getMessage() );
         }
     }
 

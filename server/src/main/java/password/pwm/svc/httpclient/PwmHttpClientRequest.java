@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,25 +21,25 @@
 package password.pwm.svc.httpclient;
 
 import lombok.Builder;
+import lombok.Singular;
 import lombok.Value;
 import password.pwm.http.HttpEntityDataType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.net.URI;
-import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Value
 @Builder( toBuilder = true )
 public class PwmHttpClientRequest implements Serializable, PwmHttpClientMessage
 {
-    private static final AtomicInteger REQUEST_COUNTER = new AtomicInteger( 0 );
+    private static final AtomicLoopIntIncrementer REQUEST_COUNTER = new AtomicLoopIntIncrementer();
 
-    private final int requestID = REQUEST_COUNTER.incrementAndGet();
+    private final int requestID = REQUEST_COUNTER.next();
 
     @Builder.Default
     private final HttpMethod method = HttpMethod.GET;
@@ -52,8 +52,8 @@ public class PwmHttpClientRequest implements Serializable, PwmHttpClientMessage
 
     private final ImmutableByteArray binaryBody = null;
 
-    @Builder.Default
-    private final Map<String, String> headers = Collections.emptyMap();
+    @Singular
+    private final Map<String, String> headers;
 
     public String toDebugString( final PwmHttpClient pwmHttpClient, final String additionalText )
     {

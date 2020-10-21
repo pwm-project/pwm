@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ package password.pwm.http.servlet.configmanager;
 import com.google.gson.annotations.SerializedName;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Value;
+import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -91,6 +92,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
@@ -184,7 +186,9 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         final String time = TimeDuration.of( persistentSeconds, TimeDuration.Unit.SECONDS ).asLongString( pwmRequest.getLocale() );
 
         final ConfigLoginHistory configLoginHistory = readConfigLoginHistory( pwmRequest );
+        final boolean persistentLoginEnabled = persistentLoginEnabled( pwmRequest );
 
+        pwmRequest.setAttribute( PwmRequestAttribute.ConfigEnablePersistentLogin, persistentLoginEnabled );
         pwmRequest.setAttribute( PwmRequestAttribute.ConfigLoginHistory, configLoginHistory );
         pwmRequest.setAttribute( PwmRequestAttribute.ConfigPasswordRememberTime, time );
         pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_LOGIN );
@@ -193,10 +197,8 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
     private static ConfigLoginHistory readConfigLoginHistory( final PwmRequest pwmRequest )
     {
-        final ConfigLoginHistory configLoginHistory = pwmRequest.getPwmApplication().readAppAttribute( PwmApplication.AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class );
-        return configLoginHistory == null
-                ? new ConfigLoginHistory()
-                : configLoginHistory;
+       return pwmRequest.getPwmApplication().readAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class )
+               .orElseGet( ConfigLoginHistory::new );
     }
 
     private static void updateLoginHistory( final PwmRequest pwmRequest, final UserIdentity userIdentity, final boolean successful )
@@ -209,7 +211,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         );
         final int maxEvents = Integer.parseInt( pwmRequest.getPwmApplication().getConfig().readAppProperty( AppProperty.CONFIG_HISTORY_MAX_ITEMS ) );
         configLoginHistory.addEvent( event, maxEvents, successful );
-        pwmRequest.getPwmApplication().writeAppAttribute( PwmApplication.AppAttribute.CONFIG_LOGIN_HISTORY, configLoginHistory );
+        pwmRequest.getPwmApplication().writeAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, configLoginHistory );
     }
 
     @Value
@@ -375,7 +377,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, "error examining persistent config login cookie: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error examining persistent config login cookie: " + e.getMessage() );
         }
     }
 
@@ -424,7 +426,8 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
     private static boolean persistentLoginEnabled(
             final PwmRequest pwmRequest
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         if ( PwmApplicationMode.RUNNING != pwmRequest.getPwmApplication().getApplicationMode() )
         {

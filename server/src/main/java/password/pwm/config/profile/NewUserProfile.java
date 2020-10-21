@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +29,11 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.password.PasswordUtility;
 
@@ -51,9 +51,9 @@ public class NewUserProfile extends AbstractProfile implements Profile
     private Instant newUserPasswordPolicyCacheTime;
     private final Map<Locale, PwmPasswordPolicy> newUserPasswordPolicyCache = new HashMap<>();
 
-    protected NewUserProfile( final String identifier, final Map<PwmSetting, StoredValue> storedValueMap )
+    protected NewUserProfile( final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedValueMap );
+        super( identifier, storedConfiguration );
     }
 
     @Override
@@ -72,7 +72,6 @@ public class NewUserProfile extends AbstractProfile implements Profile
     public PwmPasswordPolicy getNewUserPasswordPolicy( final PwmApplication pwmApplication, final Locale userLocale )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmApplication.getConfig();
         final long maxNewUserCacheMS = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.CONFIG_NEWUSER_PASSWORD_POLICY_CACHE_MS ) );
         if ( newUserPasswordPolicyCacheTime != null && TimeDuration.fromCurrent( newUserPasswordPolicyCacheTime ).isLongerThan( maxNewUserCacheMS ) )
         {
@@ -87,25 +86,25 @@ public class NewUserProfile extends AbstractProfile implements Profile
         }
 
         final PwmPasswordPolicy thePolicy;
-        final LdapProfile defaultLdapProfile = config.getDefaultLdapProfile();
+        final LdapProfile ldapProfile = getLdapProfile();
         final String configuredNewUserPasswordDN = readSettingAsString( PwmSetting.NEWUSER_PASSWORD_POLICY_USER );
-        if ( configuredNewUserPasswordDN == null || configuredNewUserPasswordDN.length() < 1 )
+        if ( StringUtil.isEmpty( configuredNewUserPasswordDN ) )
         {
-            final String errorMsg = "the setting " + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( this.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
+            final String errorMsg = "the setting "
+                    + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( this.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
                     + " must have a value";
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg ) );
         }
         else
         {
-
             final String lookupDN;
             if ( TEST_USER_CONFIG_VALUE.equalsIgnoreCase( configuredNewUserPasswordDN ) )
             {
-                lookupDN = defaultLdapProfile.readSettingAsString( PwmSetting.LDAP_TEST_USER_DN );
-                if ( lookupDN == null || lookupDN.isEmpty() )
+                lookupDN = ldapProfile.readSettingAsString( PwmSetting.LDAP_TEST_USER_DN );
+                if ( StringUtil.isEmpty( lookupDN ) )
                 {
                     final String errorMsg = "setting "
-                            + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( defaultLdapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
+                            + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
                             + " must be configured since setting "
                             + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( this.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
                             + " is set to " + TEST_USER_CONFIG_VALUE;
@@ -117,7 +116,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
                 lookupDN = configuredNewUserPasswordDN;
             }
 
-            if ( lookupDN.isEmpty() )
+            if ( StringUtil.isEmpty( lookupDN ) )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation(
                         PwmError.ERROR_INVALID_CONFIG,
@@ -130,9 +129,9 @@ public class NewUserProfile extends AbstractProfile implements Profile
             {
                 try
                 {
-                    final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( defaultLdapProfile.getIdentifier() );
+                    final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( ldapProfile.getIdentifier() );
                     final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( lookupDN );
-                    final UserIdentity userIdentity = new UserIdentity( lookupDN, defaultLdapProfile.getIdentifier() );
+                    final UserIdentity userIdentity = new UserIdentity( lookupDN, ldapProfile.getIdentifier() );
                     thePolicy = PasswordUtility.readPasswordPolicyForUser( pwmApplication, null, userIdentity, chaiUser, userLocale );
                 }
                 catch ( final ChaiUnavailableException e )
@@ -172,7 +171,29 @@ public class NewUserProfile extends AbstractProfile implements Profile
         @Override
         public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
         {
-            return new NewUserProfile( identifier, makeValueMap( storedConfiguration, identifier, PROFILE_TYPE.getCategory() ) );
+            return new NewUserProfile( identifier, storedConfiguration );
         }
+    }
+
+    public LdapProfile getLdapProfile()
+            throws PwmUnrecoverableException
+    {
+        final Configuration configuration = new Configuration( getStoredConfiguration() );
+        final String configuredProfile = readSettingAsString( PwmSetting.NEWUSER_LDAP_PROFILE );
+        if ( !StringUtil.isEmpty( configuredProfile ) )
+        {
+            final LdapProfile ldapProfile = configuration.getLdapProfiles().get( configuredProfile );
+            if ( ldapProfile == null )
+            {
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
+                        {
+                                "configured ldap profile for new user profile is invalid.  check setting "
+                                        + PwmSetting.NEWUSER_LDAP_PROFILE.toMenuLocationDebug( this.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
+                                }
+                ) );
+            }
+            return ldapProfile;
+        }
+        return configuration.getDefaultLdapProfile();
     }
 }

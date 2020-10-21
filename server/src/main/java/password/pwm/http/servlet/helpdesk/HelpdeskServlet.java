@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,12 +155,14 @@ public class HelpdeskServlet extends ControlledPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
         }
     }
 
+    @Override
     public Class<? extends ProcessAction> getProcessActionsClass( )
     {
         return HelpdeskAction.class;
@@ -169,7 +171,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
     private HelpdeskProfile getHelpdeskProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( pwmRequest.getPwmApplication() );
+        return pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( );
     }
 
     @Override
@@ -201,12 +203,17 @@ public class HelpdeskServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( pwmApplication );
+        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( );
         if ( helpdeskProfile == null )
         {
             pwmRequest.respondWithError( PwmError.ERROR_UNAUTHORIZED.toInfo() );
             return ProcessStatus.Halt;
         }
+
+        // verify the chaiProvider is available - ie, password is supplied, proxy available etc.
+        // we do this now so redirects can handle properly instead of during a later rest request.
+        final UserIdentity loggedInUser = pwmRequest.getPwmSession().getUserInfo().getUserIdentity();
+        getChaiUser( pwmRequest, helpdeskProfile, loggedInUser ).getChaiProvider();
 
         return ProcessStatus.Continue;
     }
@@ -273,7 +280,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
             final ChaiUser chaiUser = useProxy
                     ? pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity )
-                    : pwmRequest.getPwmSession().getSessionManager().getActor( pwmRequest.getPwmApplication(), userIdentity );
+                    : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
             final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userIdentity );
             final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmRequest.getPwmApplication(), chaiUser )
                     .setExpandPwmMacros( true )
@@ -301,7 +308,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.error( pwmRequest, e.getErrorInformation().toDebugStr() );
+            LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
             final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
             pwmRequest.outputJsonResult( restResultBean );
             return ProcessStatus.Halt;
@@ -346,7 +353,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( pwmRequest, "unable to read username of deleted user while creating audit record" );
+            LOGGER.warn( pwmRequest, () -> "unable to read username of deleted user while creating audit record" );
         }
 
         // execute user delete operation
@@ -630,7 +637,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             final PwmError returnMsg = PwmError.forChaiError( e.getErrorCode() ) == null ? PwmError.ERROR_INTERNAL : PwmError.forChaiError( e.getErrorCode() );
             final ErrorInformation error = new ErrorInformation( returnMsg, e.getMessage() );
             pwmRequest.respondWithError( error );
-            LOGGER.warn( pwmRequest, "error resetting password for user '" + userIdentity.toDisplayString() + "'' " + error.toDebugStr() + ", " + e.getMessage() );
+            LOGGER.warn( pwmRequest, () -> "error resetting password for user '" + userIdentity.toDisplayString() + "'' " + error.toDebugStr() + ", " + e.getMessage() );
             return ProcessStatus.Halt;
         }
 
@@ -921,7 +928,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         {
             final String errorMsg = "clear otp request, but helpdesk clear otp button is not enabled";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
-            LOGGER.error( pwmRequest, errorMsg );
+            LOGGER.error( pwmRequest, () -> errorMsg );
             pwmRequest.respondWithError( errorInformation );
             return ProcessStatus.Halt;
         }
@@ -953,7 +960,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             final PwmError returnMsg = e.getError();
             final ErrorInformation error = new ErrorInformation( returnMsg, e.getMessage() );
             pwmRequest.respondWithError( error );
-            LOGGER.warn( pwmRequest, "error clearing OTP secret for user '" + userIdentity + "'' " + error.toDebugStr() + ", " + e.getMessage() );
+            LOGGER.warn( pwmRequest, () -> "error clearing OTP secret for user '" + userIdentity + "'' " + error.toDebugStr() + ", " + e.getMessage() );
             return ProcessStatus.Halt;
         }
 
@@ -973,7 +980,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final boolean useProxy = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY );
         return useProxy
                 ? pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity )
-                : pwmRequest.getPwmSession().getSessionManager().getActor( pwmRequest.getPwmApplication(), userIdentity );
+                : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
     }
 
 
@@ -1064,7 +1071,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                 }
                 catch ( final ChaiException e )
                 {
-                    LOGGER.error( pwmRequest, "error comparing ldap attribute during verification " + e.getMessage() );
+                    LOGGER.error( pwmRequest, () -> "error comparing ldap attribute during verification " + e.getMessage() );
                 }
             }
             if ( successCount == verificationForms.size() )
@@ -1144,7 +1151,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( pwmRequest.getPwmApplication() );
+        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( );
         HelpdeskServletUtil.checkIfUserIdentityViewable( pwmRequest, helpdeskProfile, userIdentity );
 
         {
@@ -1246,7 +1253,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
     @ActionHandler( action = "setPassword" )
     private ProcessStatus processSetPasswordAction( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( pwmRequest.getPwmApplication() );
+        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( );
 
         final RestSetPasswordServer.JsonInputData jsonInput = JsonUtil.deserialize(
                 pwmRequest.readRequestBodyAsString(),
@@ -1321,7 +1328,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( "error during set password REST operation: " + e.getMessage() );
+            LOGGER.error( () -> "error during set password REST operation: " + e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( e.getErrorInformation(), pwmRequest ) );
             return ProcessStatus.Halt;
         }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,12 +112,14 @@ public class OnejarHelper
         final File configFile = new File( applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
         final ConfigurationReader configReader = new ConfigurationReader( configFile );
         final Configuration config = configReader.getConfiguration();
-        final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder( config, applicationPath )
-                .setApplicationMode( PwmApplicationMode.READ_ONLY )
-                .setConfigurationFile( configFile )
-                .setFlags( Collections.singleton( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
-                .setInternalRuntimeInstance( true )
-                .createPwmEnvironment();
-        return new PwmApplication( pwmEnvironment );
+        final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
+                .config( config )
+                .applicationPath( applicationPath )
+                .applicationMode( PwmApplicationMode.READ_ONLY )
+                .configurationFile( configFile )
+                .flags( Collections.singleton( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
+                .build();
+
+        return PwmApplication.createPwmApplication( pwmEnvironment );
     }
 }

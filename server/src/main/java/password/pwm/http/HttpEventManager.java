@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ public class HttpEventManager implements
     {
     }
 
+    @Override
     public void sessionCreated( final HttpSessionEvent httpSessionEvent )
     {
         final HttpSession httpSession = httpSessionEvent.getSession();
@@ -75,10 +76,11 @@ public class HttpEventManager implements
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( "error during sessionCreated event: " + e.getMessage() );
+            LOGGER.warn( () -> "error during sessionCreated event: " + e.getMessage() );
         }
     }
 
+    @Override
     public void sessionDestroyed( final HttpSessionEvent httpSessionEvent )
     {
         final HttpSession httpSession = httpSessionEvent.getSession();
@@ -109,18 +111,19 @@ public class HttpEventManager implements
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( "error during httpSessionDestroyed: " + e.getMessage() );
+            LOGGER.warn( () -> "error during httpSessionDestroyed: " + e.getMessage() );
         }
     }
 
 
+    @Override
     public void contextInitialized( final ServletContextEvent servletContextEvent )
     {
         Logger.getLogger( "org.glassfish.jersey" ).setLevel( Level.SEVERE );
 
         if ( null != servletContextEvent.getServletContext().getAttribute( PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER ) )
         {
-            LOGGER.warn( "notice, previous servlet ContextManager exists" );
+            LOGGER.warn( () -> "notice, previous servlet ContextManager exists" );
         }
 
         try
@@ -131,18 +134,19 @@ public class HttpEventManager implements
         }
         catch ( final OutOfMemoryError e )
         {
-            LOGGER.fatal( "JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage(), e );
+            LOGGER.fatal( () -> "JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage(), e );
             throw e;
         }
         catch ( final Exception e )
         {
-            LOGGER.fatal( "error initializing context: " + e, e );
+            LOGGER.fatal( () -> "error initializing context: " + e, e );
             System.err.println( "error initializing context: " + e );
             System.out.println( "error initializing context: " + e );
             e.printStackTrace();
         }
     }
 
+    @Override
     public void contextDestroyed( final ServletContextEvent servletContextEvent )
     {
         try
@@ -152,11 +156,12 @@ public class HttpEventManager implements
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "unable to destroy context: " + e.getMessage() );
+            LOGGER.error( () -> "unable to destroy context: " + e.getMessage() );
         }
     }
 
 
+    @Override
     public void sessionWillPassivate( final HttpSessionEvent event )
     {
         try
@@ -166,10 +171,11 @@ public class HttpEventManager implements
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "unable to passivate session: " + e.getMessage() );
+            LOGGER.error( () -> "unable to passivate session: " + e.getMessage() );
         }
     }
 
+    @Override
     public void sessionDidActivate( final HttpSessionEvent event )
     {
         try
@@ -185,7 +191,7 @@ public class HttpEventManager implements
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( "unable to activate (de-passivate) session: " + e.getMessage() );
+            LOGGER.error( () -> "unable to activate (de-passivate) session: " + e.getMessage() );
         }
     }
 

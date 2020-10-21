@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -237,9 +237,9 @@ public class PwmPasswordRuleUtil
             int lastCodePoint = -1;
             int consecutiveCharCount = 1;
 
-            for ( int i = 0; i < codePoints.length; i++ )
+            for ( final int codePoint : codePoints )
             {
-                if ( codePoints[ i ] == lastCodePoint + 1 )
+                if ( codePoint == lastCodePoint + 1 )
                 {
                     consecutiveCharCount++;
                 }
@@ -248,7 +248,7 @@ public class PwmPasswordRuleUtil
                     consecutiveCharCount = 1;
                 }
 
-                lastCodePoint = codePoints[ i ];
+                lastCodePoint = codePoint;
 
                 if ( consecutiveCharCount == maximumConsecutive )
                 {

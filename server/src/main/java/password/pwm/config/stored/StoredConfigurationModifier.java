@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ package password.pwm.config.stored;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
-import password.pwm.config.StoredValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
@@ -39,6 +39,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,6 +72,17 @@ public class StoredConfigurationModifier
     )
             throws PwmUnrecoverableException
     {
+        writeSettingAndMetaData( setting, profileID, value, new ValueMetaData( Instant.now(), userIdentity ) );
+    }
+
+    void writeSettingAndMetaData(
+            final PwmSetting setting,
+            final String profileID,
+            final StoredValue value,
+            final ValueMetaData valueMetaData
+    )
+            throws PwmUnrecoverableException
+    {
         Objects.requireNonNull( setting );
         Objects.requireNonNull( value );
 
@@ -90,7 +102,7 @@ public class StoredConfigurationModifier
 
             return storedConfigData.toBuilder()
                     .storedValue( key, value )
-                    .metaData( key, new ValueMetaData( Instant.now(), userIdentity ) )
+                    .metaData( key, valueMetaData )
                     .build();
         } );
     }
@@ -158,6 +170,25 @@ public class StoredConfigurationModifier
         } );
     }
 
+    public void deleteKey( final StoredConfigItemKey key )
+            throws PwmUnrecoverableException
+    {
+        update( ( storedConfigData ) ->
+        {
+            final Map<StoredConfigItemKey, StoredValue> existingStoredValues = new HashMap<>( storedConfigData.getStoredValues() );
+            final Map<StoredConfigItemKey, ValueMetaData> existingMetaValues = new HashMap<>( storedConfigData.getMetaDatas() );
+
+            existingStoredValues.remove( key );
+            existingMetaValues.remove( key );
+
+            return storedConfigData.toBuilder()
+                    .clearStoredValues()
+                    .storedValues( existingStoredValues )
+                    .metaDatas( existingMetaValues )
+                    .build();
+        } );
+    }
+
     public void writeLocaleBundleMap(
             final PwmLocaleBundle pwmLocaleBundle,
             final String keyName,
@@ -195,7 +226,8 @@ public class StoredConfigurationModifier
         {
             final StoredConfiguration oldStoredConfiguration = new StoredConfigurationImpl( storedConfigData );
 
-            final List<String> existingProfiles = oldStoredConfiguration.profilesForSetting( category.getProfileSetting() );
+            final PwmSetting profileSetting = category.getProfileSetting().orElseThrow( IllegalStateException::new );
+            final List<String> existingProfiles = StoredConfigurationUtil.profilesForSetting( profileSetting, oldStoredConfiguration );
             if ( !existingProfiles.contains( sourceID ) )
             {
                 throw PwmUnrecoverableException.newException(
@@ -209,6 +241,8 @@ public class StoredConfigurationModifier
             }
 
             final Collection<PwmSettingCategory> interestedCategories = PwmSettingCategory.associatedProfileCategories( category );
+            final Map<StoredConfigItemKey, StoredValue> newValues = new LinkedHashMap<>();
+
             for ( final PwmSettingCategory interestedCategory : interestedCategories )
             {
                 for ( final PwmSetting pwmSetting : interestedCategory.getSettings() )
@@ -216,19 +250,25 @@ public class StoredConfigurationModifier
                     if ( !oldStoredConfiguration.isDefaultValue( pwmSetting, sourceID ) )
                     {
                         final StoredValue value = oldStoredConfiguration.readSetting( pwmSetting, sourceID );
-                        writeSetting( pwmSetting, destinationID, value, userIdentity );
+                        final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( pwmSetting, destinationID );
+                        newValues.put( key, value );
                     }
                 }
             }
-            final List<String> newProfileIDList = new ArrayList<>( existingProfiles );
-            newProfileIDList.add( destinationID );
 
-            final StoredValue value = new StringArrayValue( newProfileIDList );
-            final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( category.getProfileSetting(), null );
+            {
+                final List<String> newProfileIDList = new ArrayList<>( existingProfiles );
+                newProfileIDList.add( destinationID );
+                final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( profileSetting, null );
+                final StoredValue value = new StringArrayValue( newProfileIDList );
+                newValues.put( key, value );
+            }
+
+            final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( category.getProfileSetting().orElseThrow( IllegalStateException::new ), null );
             final ValueMetaData valueMetaData = new ValueMetaData( Instant.now(), userIdentity );
 
             return storedConfigData.toBuilder()
-                    .storedValue( key, value )
+                    .storedValues( newValues )
                     .metaData( key, valueMetaData )
                     .build();
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.novell.ldapchai.cr.ChaiResponseSet;
 import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiException;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
@@ -46,11 +47,14 @@ public class LocalDbCrOperator implements CrOperator
         this.localDB = localDB;
     }
 
+    @Override
     public void close( )
     {
     }
 
+    @Override
     public ResponseSet readResponseSet(
+            final SessionLabel sessionLabel,
             final ChaiUser theUser,
             final UserIdentity userIdentity,
             final String userGUID
@@ -77,7 +81,7 @@ public class LocalDbCrOperator implements CrOperator
             if ( responseStringBlob != null && responseStringBlob.length() > 0 )
             {
                 final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML( responseStringBlob, theUser );
-                LOGGER.debug( () -> "found user responses in LocalDB: " + userResponseSet.toString() );
+                LOGGER.debug( sessionLabel, () -> "found user responses in LocalDB: " + userResponseSet.toString() );
                 return userResponseSet;
             }
         }
@@ -96,12 +100,18 @@ public class LocalDbCrOperator implements CrOperator
         return null;
     }
 
-    public ResponseInfoBean readResponseInfo( final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
+    @Override
+    public ResponseInfoBean readResponseInfo(
+            final SessionLabel sessionLabel,
+            final ChaiUser theUser,
+            final UserIdentity userIdentity,
+            final String userGUID
+    )
             throws PwmUnrecoverableException
     {
         try
         {
-            final ResponseSet responseSet = readResponseSet( theUser, userIdentity, userGUID );
+            final ResponseSet responseSet = readResponseSet( sessionLabel, theUser, userIdentity, userGUID );
             return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean( responseSet, DataStorageMethod.LOCALDB );
         }
         catch ( final ChaiException e )
@@ -110,7 +120,8 @@ public class LocalDbCrOperator implements CrOperator
         }
     }
 
-    public void clearResponses( final UserIdentity userIdentity, final ChaiUser theUser, final String userGUID ) throws PwmUnrecoverableException
+    @Override
+    public void clearResponses( final SessionLabel sessionLabel, final UserIdentity userIdentity, final ChaiUser theUser, final String userGUID ) throws PwmUnrecoverableException
     {
         if ( userGUID == null || userGUID.length() < 1 )
         {
@@ -127,18 +138,23 @@ public class LocalDbCrOperator implements CrOperator
         try
         {
             localDB.remove( LocalDB.DB.RESPONSE_STORAGE, userGUID );
-            LOGGER.info( () -> "cleared responses for user " + theUser.getEntryDN() + " in local LocalDB" );
+            LOGGER.info( sessionLabel, () -> "cleared responses for user " + theUser.getEntryDN() + " in local LocalDB" );
         }
         catch ( final LocalDBException e )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CLEARING_RESPONSES, "unexpected LocalDB error clearing responses: " + e.getMessage() );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( e );
-            throw pwmOE;
+            throw new PwmUnrecoverableException( errorInfo, e );
         }
     }
 
-    public void writeResponses( final UserIdentity userIdentity, final ChaiUser theUser, final String userGUID, final ResponseInfoBean responseInfoBean )
+    @Override
+    public void writeResponses(
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity,
+            final ChaiUser theUser,
+            final String userGUID,
+            final ResponseInfoBean responseInfoBean
+    )
             throws PwmUnrecoverableException
     {
         if ( userGUID == null || userGUID.length() < 1 )
@@ -165,21 +181,17 @@ public class LocalDbCrOperator implements CrOperator
             );
 
             localDB.put( LocalDB.DB.RESPONSE_STORAGE, userGUID, responseSet.stringValue() );
-            LOGGER.info( () -> "saved responses for user in LocalDB" );
+            LOGGER.info( sessionLabel, () -> "saved responses for user in LocalDB" );
         }
         catch ( final LocalDBException e )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, "unexpected LocalDB error saving responses to localDB: " + e.getMessage() );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( e );
-            throw pwmOE;
+            throw new PwmUnrecoverableException( errorInfo, e );
         }
         catch ( final ChaiException e )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses to localDB: " + e.getMessage() );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( e );
-            throw pwmOE;
+            throw new PwmUnrecoverableException( errorInfo, e );
         }
     }
 }

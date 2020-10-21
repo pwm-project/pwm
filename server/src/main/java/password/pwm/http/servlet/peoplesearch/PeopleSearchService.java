@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -59,7 +60,6 @@ public class PeopleSearchService implements PwmService
                 new ArrayBlockingQueue<>( 5000 ),
                 threadFactory
         );
-
     }
 
     @Override
@@ -71,13 +71,13 @@ public class PeopleSearchService implements PwmService
     @Override
     public List<HealthRecord> healthCheck()
     {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
     public ServiceInfoBean serviceInfo()
     {
-        return null;
+        return ServiceInfoBean.builder().build();
     }
 
     public ThreadPoolExecutor getJobExecutor()

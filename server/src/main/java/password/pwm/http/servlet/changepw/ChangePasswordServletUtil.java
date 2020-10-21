@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import password.pwm.bean.PasswordStatus;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.RequireCurrentPasswordMode;
+import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
@@ -61,7 +62,8 @@ public class ChangePasswordServletUtil
     )
             throws PwmUnrecoverableException
     {
-        final RequireCurrentPasswordMode currentSetting = pwmRequest.getConfig().readSettingAsEnum( PwmSetting.PASSWORD_REQUIRE_CURRENT, RequireCurrentPasswordMode.class );
+        final ChangePasswordProfile changePasswordProfile = ChangePasswordServlet.getProfile( pwmRequest );
+        final RequireCurrentPasswordMode currentSetting = changePasswordProfile.readSettingAsEnum( PwmSetting.PASSWORD_REQUIRE_CURRENT, RequireCurrentPasswordMode.class );
 
         if ( currentSetting == RequireCurrentPasswordMode.FALSE )
         {
@@ -128,7 +130,7 @@ public class ChangePasswordServletUtil
             }
             catch ( final ChaiOperationException e )
             {
-                LOGGER.error( pwmRequest, "error during param validation of '" + attrName + "', error: " + e.getMessage() );
+                LOGGER.error( pwmRequest, () -> "error during param validation of '" + attrName + "', error: " + e.getMessage() );
                 throw new PwmDataValidationException( new ErrorInformation(
                         PwmError.ERROR_INCORRECT_RESPONSE,
                         "ldap error testing value for '" + attrName + "'",
@@ -161,7 +163,7 @@ public class ChangePasswordServletUtil
                 configuredEmailSetting,
                 pwmRequest.getPwmSession().getUserInfo(),
 
-                pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication ) );
+                pwmRequest.getPwmSession().getSessionManager().getMacroMachine( ) );
     }
 
     static void checkMinimumLifetime(
@@ -222,6 +224,7 @@ public class ChangePasswordServletUtil
             final PasswordChangeProgressChecker.ProgressTracker tracker = new PasswordChangeProgressChecker.ProgressTracker();
             final PasswordChangeProgressChecker checker = new PasswordChangeProgressChecker(
                     pwmApplication,
+                    ChangePasswordServlet.getProfile( pwmRequest ),
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getLabel(),
                     pwmRequest.getLocale()

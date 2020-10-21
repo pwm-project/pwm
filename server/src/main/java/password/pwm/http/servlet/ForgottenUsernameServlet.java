@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,12 +76,14 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
     {
         search,;
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( HttpMethod.POST );
         }
     }
 
+    @Override
     protected ForgottenUsernameAction readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
@@ -95,6 +97,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
         }
     }
 
+    @Override
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, PwmUnrecoverableException
     {

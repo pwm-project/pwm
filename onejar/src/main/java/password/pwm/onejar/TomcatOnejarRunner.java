@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 package password.pwm.onejar;
 
+import org.apache.catalina.LifecycleException;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.util.ServerInfo;
@@ -41,7 +42,6 @@ import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +53,7 @@ import java.util.stream.Collectors;
 public class TomcatOnejarRunner
 {
     private final OnejarMain onejarMain;
+    private Tomcat tomcat;
 
     public TomcatOnejarRunner( final OnejarMain onejarMain )
     {
@@ -72,6 +73,10 @@ public class TomcatOnejarRunner
         }
         catch ( final Exception e )
         {
+            if ( e instanceof InvocationTargetException )
+            {
+                throw new OnejarException( "error generating keystore: " + e.getCause().getMessage() );
+            }
             throw new OnejarException( "error generating keystore: " + e.getMessage() );
         }
 
@@ -79,7 +84,7 @@ public class TomcatOnejarRunner
 
         setupEnv( onejarConfig );
 
-        final Tomcat tomcat = new Tomcat();
+        tomcat = new Tomcat();
         tomcat.setSilent( true );
 
         {
@@ -111,15 +116,13 @@ public class TomcatOnejarRunner
         {
             tomcat.setConnector( makeConnector( onejarConfig, tlsProperties ) );
             tomcat.start();
-            out( "tomcat started in " + Duration.between( Instant.now(), startTime ).toString() );
+            out( "tomcat started", startTime );
         }
         catch ( final Exception e )
         {
             throw new OnejarException( "unable to start tomcat: " + e.getMessage() );
         }
         tomcat.getServer().await();
-
-        System.out.println( "\nexiting..." );
     }
 
     private void deployRedirectConnector( final Tomcat tomcat, final OnejarConfig onejarConfig )
@@ -159,21 +162,22 @@ public class TomcatOnejarRunner
         connector.setSecure( true );
         connector.setScheme( "https" );
         connector.addUpgradeProtocol( new Http2Protocol() );
-        connector.setAttribute( "SSLEnabled", "true" );
-        connector.setAttribute( "keystoreFile", onejarConfig.getKeystoreFile().getAbsolutePath() );
-        connector.setAttribute( "keystorePass", onejarConfig.getKeystorePass() );
-        connector.setAttribute( "keyAlias", OnejarMain.KEYSTORE_ALIAS );
-        connector.setAttribute( "clientAuth", "false" );
+        connector.setProperty( "SSLEnabled", "true" );
+       // connector.setAttribute( "truststoreType", "PKCS12" );
+        connector.setProperty( "keystoreFile", onejarConfig.getKeystoreFile().getAbsolutePath() );
+        connector.setProperty( "keystorePass", onejarConfig.getKeystorePass() );
+        connector.setProperty( "keyAlias", OnejarMain.KEYSTORE_ALIAS );
+        connector.setProperty( "clientAuth", "false" );
 
-        out( "connector maxThreads=" + connector.getAttribute( "maxThreads" ) );
-        out( "connector maxConnections=" + connector.getAttribute( "maxConnections" ) );
+        out( "connector maxThreads=" + connector.getProperty( "maxThreads" ) );
+        out( "connector maxConnections=" + connector.getProperty( "maxConnections" ) );
 
         if ( tlsProperties != null )
         {
             for ( final String key : tlsProperties.stringPropertyNames() )
             {
                 final String value = tlsProperties.getProperty( key );
-                connector.setAttribute( key, value );
+                connector.setProperty( key, value );
             }
         }
 
@@ -210,10 +214,16 @@ public class TomcatOnejarRunner
         onejarMain.out( output );
     }
 
+    void out( final String output, final Instant startTime )
+    {
+        onejarMain.out( output, startTime );
+    }
 
     Properties executeOnejarHelper( final OnejarConfig onejarConfig )
             throws IOException, ClassNotFoundException, IllegalAccessException, NoSuchMethodException, InvocationTargetException
     {
+        final Instant startTime = Instant.now();
+
         try ( URLClassLoader classLoader = warClassLoaderFromConfig( onejarConfig ) )
         {
             final Class pwmMainClass = classLoader.loadClass( "password.pwm.util.OnejarHelper" );
@@ -235,7 +245,7 @@ public class TomcatOnejarRunner
 
             final Object returnObjValue = mainMethod.invoke( null, arguments );
             final Properties returnProps = ( Properties ) returnObjValue;
-            out( "completed read of tlsProperties " );
+            out( "completed read of tlsProperties", startTime );
             return returnProps;
         }
     }
@@ -270,11 +280,11 @@ public class TomcatOnejarRunner
     {
         try ( InputStream inputStream = TomcatOnejarRunner.class.getClassLoader().getResourceAsStream( srcPath ) )
         {
-            try ( BufferedReader reader = new BufferedReader( new InputStreamReader( inputStream, "UTF8" ) ) )
+            try ( BufferedReader reader = new BufferedReader( new InputStreamReader( inputStream, StandardCharsets.UTF_8 ) ) )
             {
                 String contents = reader.lines().collect( Collectors.joining( "\n" ) );
                 contents = contents.replace( "[[[ROOT_CONTEXT]]]", rootcontext );
-                Files.write( Paths.get( destPath ), contents.getBytes( "UTF8" ) );
+                Files.write( Paths.get( destPath ), contents.getBytes( StandardCharsets.UTF_8 ) );
             }
         }
     }
@@ -293,6 +303,17 @@ public class TomcatOnejarRunner
                 jarURLList.add( jarFile.toURI().toURL() );
             }
         }
-        return URLClassLoader.newInstance( jarURLList.toArray( new URL[ jarURLList.size() ] ) );
+        return URLClassLoader.newInstance( jarURLList.toArray( new URL[0] ) );
+    }
+
+    public void shutdown() throws LifecycleException
+    {
+        if ( tomcat != null )
+        {
+            final Tomcat localTomcat = tomcat;
+            localTomcat.stop();
+            localTomcat.destroy();
+            tomcat = null;
+        }
     }
 }

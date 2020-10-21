@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,13 +60,13 @@ public class AuditRecordFactory
     public AuditRecordFactory( final PwmApplication pwmApplication, final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
-        this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication );
+        this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
     }
 
     public AuditRecordFactory( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmRequest.getPwmApplication();
-        this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( pwmApplication );
+        this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
     }
 
     public HelpdeskAuditRecord createHelpdeskAuditRecord(
@@ -242,7 +242,7 @@ public class AuditRecordFactory
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( "unable to read userID for " + userIdentity + ", error: " + e.getMessage() );
+                LOGGER.warn( () -> "unable to read userID for " + userIdentity + ", error: " + e.getMessage() );
             }
         }
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.AccountInformationProfile;
+import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.config.profile.DeleteAccountProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.PeopleSearchProfile;
@@ -39,7 +41,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.PasswordData;
@@ -59,13 +61,14 @@ public class SessionManager
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( SessionManager.class );
 
-    private ChaiProvider chaiProvider;
+    private volatile ChaiProvider chaiProvider;
 
+    private final PwmApplication pwmApplication;
     private final PwmSession pwmSession;
 
-
-    public SessionManager( final PwmSession pwmSession )
+    public SessionManager( final PwmApplication pwmApplication, final PwmSession pwmSession )
     {
+        this.pwmApplication = pwmApplication;
         this.pwmSession = pwmSession;
     }
 
@@ -96,7 +99,7 @@ public class SessionManager
         this.chaiProvider = chaiProvider;
     }
 
-    public void updateUserPassword( final PwmApplication pwmApplication, final UserIdentity userIdentity, final PasswordData userPassword )
+    public void updateUserPassword( final UserIdentity userIdentity, final PasswordData userPassword )
             throws PwmUnrecoverableException
     {
         this.closeConnections();
@@ -136,12 +139,12 @@ public class SessionManager
             }
             catch ( final Exception e )
             {
-                LOGGER.error( pwmSession.getLabel(), "error while closing user connection: " + e.getMessage() );
+                LOGGER.error( pwmSession.getLabel(), () -> "error while closing user connection: " + e.getMessage() );
             }
         }
     }
 
-    public ChaiUser getActor( final PwmApplication pwmApplication )
+    public ChaiUser getActor( )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
 
@@ -160,12 +163,7 @@ public class SessionManager
         return this.getChaiProvider().getEntryFactory().newChaiUser( userDN.getUserDN() );
     }
 
-    public boolean hasActiveLdapConnection( )
-    {
-        return this.chaiProvider != null && this.chaiProvider.isConnected();
-    }
-
-    public ChaiUser getActor( final PwmApplication pwmApplication, final UserIdentity userIdentity )
+    public ChaiUser getActor( final UserIdentity userIdentity )
             throws PwmUnrecoverableException
     {
         try
@@ -228,7 +226,7 @@ public class SessionManager
 
             final PwmSetting setting = permission.getPwmSetting();
             final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission( setting );
-            final boolean result = LdapPermissionTester.testUserPermissions( pwmApplication, pwmSession.getLabel(), pwmSession.getUserInfo().getUserIdentity(), userPermission );
+            final boolean result = UserPermissionUtility.testUserPermission( pwmApplication, pwmSession.getLabel(), pwmSession.getUserInfo().getUserIdentity(), userPermission );
             status = result ? Permission.PermissionStatus.GRANTED : Permission.PermissionStatus.DENIED;
             pwmSession.getUserSessionDataCacheBean().setPermission( permission, status );
 
@@ -246,7 +244,7 @@ public class SessionManager
         return status == Permission.PermissionStatus.GRANTED;
     }
 
-    public MacroMachine getMacroMachine( final PwmApplication pwmApplication )
+    public MacroMachine getMacroMachine( )
             throws PwmUnrecoverableException
     {
         final UserInfo userInfoBean = pwmSession.isAuthenticated()
@@ -259,38 +257,49 @@ public class SessionManager
     {
         if ( profileDefinition.isAuthenticated() && !pwmSession.isAuthenticated() )
         {
-            return null;
+            throw new IllegalStateException( "can not read authenticated profile while session is unauthenticated" );
         }
+
         final String profileID = pwmSession.getUserInfo().getProfileIDs().get( profileDefinition );
         if ( profileID != null )
         {
             return pwmApplication.getConfig().profileMap( profileDefinition ).get( profileID );
         }
-        return null;
+        throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
     }
 
-    public HelpdeskProfile getHelpdeskProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public HelpdeskProfile getHelpdeskProfile() throws PwmUnrecoverableException
     {
         return ( HelpdeskProfile ) getProfile( pwmApplication, ProfileDefinition.Helpdesk );
     }
 
-    public SetupOtpProfile getSetupOTPProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public SetupOtpProfile getSetupOTPProfile() throws PwmUnrecoverableException
     {
         return ( SetupOtpProfile ) getProfile( pwmApplication, ProfileDefinition.SetupOTPProfile );
     }
 
-    public UpdateProfileProfile getUpdateAttributeProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public UpdateProfileProfile getUpdateAttributeProfile() throws PwmUnrecoverableException
     {
         return ( UpdateProfileProfile ) getProfile( pwmApplication, ProfileDefinition.UpdateAttributes );
     }
 
-    public PeopleSearchProfile getPeopleSearchProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public PeopleSearchProfile getPeopleSearchProfile() throws PwmUnrecoverableException
     {
         return ( PeopleSearchProfile ) getProfile( pwmApplication, ProfileDefinition.PeopleSearch );
     }
 
-    public DeleteAccountProfile getSelfDeleteProfile( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public DeleteAccountProfile getSelfDeleteProfile() throws PwmUnrecoverableException
     {
         return ( DeleteAccountProfile ) getProfile( pwmApplication, ProfileDefinition.DeleteAccount );
+    }
+
+    public ChangePasswordProfile getChangePasswordProfile() throws PwmUnrecoverableException
+    {
+        return ( ChangePasswordProfile ) getProfile( pwmApplication, ProfileDefinition.ChangePassword );
+    }
+
+    public AccountInformationProfile getAccountInfoProfile() throws PwmUnrecoverableException
+    {
+        return ( AccountInformationProfile ) getProfile( pwmApplication, ProfileDefinition.AccountInformation );
     }
 }

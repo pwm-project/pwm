@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public class NodeService implements PwmService
     private static final PwmLogger LOGGER = PwmLogger.forClass( NodeService.class );
 
     private PwmApplication pwmApplication;
-    private STATUS status = STATUS.NEW;
+    private STATUS status = STATUS.CLOSED;
     private NodeMachine nodeMachine;
     private DataStorageMethod dataStore;
     private ErrorInformation startupError;
@@ -60,7 +60,6 @@ public class NodeService implements PwmService
     @Override
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
         final boolean serviceEnabled = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.CLUSTER_ENABLED );
@@ -111,7 +110,7 @@ public class NodeService implements PwmService
         catch ( final PwmUnrecoverableException e )
         {
             startupError = e.getErrorInformation();
-            LOGGER.error( "error starting up node service: " + e.getMessage() );
+            LOGGER.error( () -> "error starting up node service: " + e.getMessage() );
         }
         catch ( final Exception e )
         {
@@ -152,7 +151,7 @@ public class NodeService implements PwmService
             return Collections.singletonList( healthRecord );
         }
 
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
@@ -164,7 +163,10 @@ public class NodeService implements PwmService
         {
             props.putAll( JsonUtil.deserializeStringMap( JsonUtil.serialize( nodeMachine.getNodeServiceStatistics() ) ) );
         }
-        return new ServiceInfoBean( Collections.singleton( dataStore ), props );
+        return ServiceInfoBean.builder()
+                .storageMethod( dataStore )
+                .debugProperties( props )
+                .build();
     }
 
     public boolean isMaster( )

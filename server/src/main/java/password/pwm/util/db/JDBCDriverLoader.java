@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,12 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -47,6 +48,7 @@ import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class JDBCDriverLoader
@@ -60,7 +62,7 @@ public class JDBCDriverLoader
     )
             throws DatabaseException
     {
-        final List<ClassLoaderStrategy> strategies = dbConfiguration.getClassLoaderStrategies();
+        final Set<ClassLoaderStrategy> strategies = dbConfiguration.getClassLoaderStrategies();
         LOGGER.trace( () -> "attempting to load jdbc driver using strategies: " + JsonUtil.serializeCollection( strategies ) );
         final List<String> errorMsgs = new ArrayList<>();
         for ( final ClassLoaderStrategy strategy : strategies )
@@ -81,7 +83,7 @@ public class JDBCDriverLoader
         }
         final String errorMsg = " unable to load database driver: " + JsonUtil.serializeCollection( errorMsgs );
         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
-        LOGGER.error( errorMsg );
+        LOGGER.error( () -> errorMsg );
         throw new DatabaseException( errorInformation );
     }
 
@@ -167,7 +169,7 @@ public class JDBCDriverLoader
                 throws DatabaseException
         {
             final String jdbcClassName = dbConfiguration.getDriverClassname();
-            final byte[] jdbcDriverBytes = dbConfiguration.getJdbcDriver();
+            final ImmutableByteArray jdbcDriverBytes = dbConfiguration.getJdbcDriver();
             try
             {
                 LOGGER.debug( () -> "loading JDBC database driver stored in configuration" );
@@ -176,7 +178,7 @@ public class JDBCDriverLoader
                         ( PrivilegedAction<JarClassLoader> ) JarClassLoader::new
                 );
 
-                jarClassLoader.add( new ByteArrayInputStream( jdbcDriverBytes ) );
+                jarClassLoader.add( jdbcDriverBytes.newByteArrayInputStream() );
                 final JclObjectFactory jclObjectFactory = JclObjectFactory.getInstance( true );
 
                 //Create object of loaded class
@@ -216,9 +218,9 @@ public class JDBCDriverLoader
                 throws DatabaseException
         {
             final String jdbcClassName = dbConfiguration.getDriverClassname();
-            final byte[] jdbcDriverBytes = dbConfiguration.getJdbcDriver();
+            final ImmutableByteArray jdbcDriverBytes = dbConfiguration.getJdbcDriver();
 
-            if ( jdbcDriverBytes == null || jdbcDriverBytes.length < 1 )
+            if ( jdbcDriverBytes == null || jdbcDriverBytes.size() < 1 )
             {
                 final String errorMsg = "jdbc driver file not configured, skipping";
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
@@ -237,7 +239,7 @@ public class JDBCDriverLoader
 
                 try ( FileOutputStream fos = new FileOutputStream( tempFile ) )
                 {
-                    fos.write( jdbcDriverBytes );
+                    JavaHelper.copy( jdbcDriverBytes.newByteArrayInputStream(), fos );
                     fos.close();
                 }
 
@@ -251,7 +253,7 @@ public class JDBCDriverLoader
 
                 //Create object of loaded class
                 final Class jdbcDriverClass = urlClassLoader.loadClass( jdbcClassName );
-                final Driver driver = ( Driver ) jdbcDriverClass.newInstance();
+                final Driver driver = ( Driver ) jdbcDriverClass.getDeclaredConstructor().newInstance();
 
                 LOGGER.debug( () -> "successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration" );
 
@@ -296,9 +298,9 @@ public class JDBCDriverLoader
                 throws DatabaseException
         {
             final String jdbcClassName = dbConfiguration.getDriverClassname();
-            final byte[] jdbcDriverBytes = dbConfiguration.getJdbcDriver();
+            final ImmutableByteArray jdbcDriverBytes = dbConfiguration.getJdbcDriver();
 
-            if ( jdbcDriverBytes == null || jdbcDriverBytes.length < 1 )
+            if ( jdbcDriverBytes == null || jdbcDriverBytes.size() < 1 )
             {
                 final String errorMsg = "jdbc driver file not configured, skipping";
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
@@ -308,7 +310,7 @@ public class JDBCDriverLoader
             final String jdbcDriverHash;
             try
             {
-                jdbcDriverHash = pwmApplication.getSecureService().hash( jdbcDriverBytes );
+                jdbcDriverHash = pwmApplication.getSecureService().hash( jdbcDriverBytes.newByteArrayInputStream() );
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -348,7 +350,7 @@ public class JDBCDriverLoader
             {
                 //Create object of loaded class
                 final Class jdbcDriverClass = urlClassLoader.loadClass( jdbcClassName );
-                final Driver driver = ( Driver ) jdbcDriverClass.newInstance();
+                final Driver driver = ( Driver ) jdbcDriverClass.getDeclaredConstructor().newInstance();
                 LOGGER.debug( () -> "successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration" );
                 return driver;
             }
@@ -365,10 +367,10 @@ public class JDBCDriverLoader
         {
         }
 
-        File createOrGetTempJarFile( final PwmApplication pwmApplication, final byte[] jarBytes ) throws PwmUnrecoverableException, IOException
+        File createOrGetTempJarFile( final PwmApplication pwmApplication, final ImmutableByteArray jarBytes ) throws PwmUnrecoverableException, IOException
         {
             final File file = pwmApplication.getTempDirectory();
-            final String jarHash = pwmApplication.getSecureService().hash( jarBytes );
+            final String jarHash = pwmApplication.getSecureService().hash( jarBytes.newByteArrayInputStream() );
             final String tempFileName = "jar-" + jarHash + ".jar";
             final File tempFile = new File( file.getAbsolutePath() + File.separator + tempFileName );
             if ( tempFile.exists() )
@@ -387,7 +389,7 @@ public class JDBCDriverLoader
             {
                 LOGGER.debug( () -> "creating temp jar file " + tempFile.getAbsolutePath() );
                 final OutputStream fos = new BufferedOutputStream( new FileOutputStream( tempFile ) );
-                fos.write( jarBytes );
+                JavaHelper.copy( jarBytes.newByteArrayInputStream(), fos );
                 fos.close();
             }
             else

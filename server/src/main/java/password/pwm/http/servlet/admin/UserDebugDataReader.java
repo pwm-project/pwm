@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.PwmService;
@@ -43,6 +43,7 @@ import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.password.PasswordUtility;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -121,7 +122,7 @@ public class UserDebugDataReader
             if ( !setting.isHidden() && !setting.getCategory().isHidden() && !setting.getCategory().hasProfiles() )
             {
                 final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission( permission.getPwmSetting() );
-                final boolean result = LdapPermissionTester.testUserPermissions(
+                final boolean result = UserPermissionUtility.testUserPermission(
                         pwmApplication,
                         sessionLabel,
                         userIdentity,
@@ -138,23 +139,23 @@ public class UserDebugDataReader
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
-    ) throws PwmUnrecoverableException
+    )
+        throws PwmUnrecoverableException
     {
-        final Map<ProfileDefinition, String> results = new TreeMap<>();
+        final Map<ProfileDefinition, String> results = new TreeMap<>( Comparator.comparing( Enum::name ) );
         for ( final ProfileDefinition profileDefinition : ProfileDefinition.values() )
         {
-            if ( profileDefinition.isAuthenticated() )
+            if ( profileDefinition.getQueryMatch().isPresent() && profileDefinition.getProfileFactoryClass().isPresent() )
             {
-                final String id = ProfileUtility.discoverProfileIDforUser(
+                ProfileUtility.discoverProfileIDForUser(
                         pwmApplication,
                         sessionLabel,
                         userIdentity,
                         profileDefinition
-                );
-
-                results.put( profileDefinition, id );
+                ).ifPresent( ( id ) -> results.put( profileDefinition, id ) );
             }
         }
+
         return Collections.unmodifiableMap( results );
     }
 

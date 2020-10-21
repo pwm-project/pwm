@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ public class MainOptions implements Serializable
                         }
                         else
                         {
-                            final String levelStr = arg.substring( OPT_DEBUG_LEVEL.length() + 1, arg.length() );
+                            final String levelStr = arg.substring( OPT_DEBUG_LEVEL.length() + 1 );
                             try
                             {
                                 pwmLogLevel = PwmLogLevel.valueOf( levelStr.toUpperCase() );
@@ -138,7 +138,7 @@ public class MainOptions implements Serializable
                         }
                         else
                         {
-                            final String pathStr = arg.substring( OPT_APP_PATH.length() + 1, arg.length() );
+                            final String pathStr = arg.substring( OPT_APP_PATH.length() + 1 );
                             applicationPath = new File( pathStr );
                         }
                     }
@@ -155,7 +155,7 @@ public class MainOptions implements Serializable
                         }
                         else
                         {
-                            final String flagStr = arg.substring( OPT_APP_PATH.length() + 1, arg.length() );
+                            final String flagStr = arg.substring( OPT_APP_PATH.length() + 1 );
                             applicationFlags = PwmEnvironment.ParseHelper.parseApplicationFlagValueParameter( flagStr );
                         }
                         outputArgs.add( arg );

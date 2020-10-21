@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class BasicAuthInfo implements Serializable
                 // ***** Get the encoded username/chpass string
                 // Strip off "Basic " from "Basic c2pvaG5zLmNzaTo=bm92ZWxs"
                 final String toStrip = PwmConstants.HTTP_BASIC_AUTH_PREFIX + " ";
-                final String encodedValue = authHeader.substring( toStrip.length(), authHeader.length() );
+                final String encodedValue = authHeader.substring( toStrip.length() );
 
                 try
                 {
@@ -119,7 +119,7 @@ public class BasicAuthInfo implements Serializable
         }
         catch ( final Exception e )
         {
-            LOGGER.error( "error decoding auth header: " + e.getMessage() );
+            LOGGER.error( () -> "error decoding auth header: " + e.getMessage() );
             throw new IllegalArgumentException( "invalid basic authentication input string: " + e.getMessage(), e );
         }
     }

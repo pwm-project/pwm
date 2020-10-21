@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ public class EdirSchemaExtender implements SchemaExtender
     private final StringBuilder activityLog = new StringBuilder();
     private final Map<String, SchemaDefinition.State> stateMap = new HashMap<>();
 
+    @Override
     public void init( final ChaiProvider chaiProvider ) throws PwmUnrecoverableException
     {
         try
@@ -308,7 +309,7 @@ public class EdirSchemaExtender implements SchemaExtender
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error parsing schema attribute definition: " + e.getMessage() );
+                LOGGER.error( () -> "error parsing schema attribute definition: " + e.getMessage() );
             }
             if ( schemaParser != null )
             {
@@ -335,7 +336,7 @@ public class EdirSchemaExtender implements SchemaExtender
             }
             catch ( final Exception e )
             {
-                LOGGER.error( "error parsing schema objectclasses definition: " + e.getMessage() );
+                LOGGER.error( () -> "error parsing schema objectclasses definition: " + e.getMessage() );
             }
             if ( schemaParser != null )
             {

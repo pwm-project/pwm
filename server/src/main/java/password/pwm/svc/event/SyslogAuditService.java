@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.localdb.WorkQueueProcessor;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.X509Utils;
+import password.pwm.util.secure.PwmTrustManager;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
@@ -112,7 +112,7 @@ public class SyslogAuditService
         }
         catch ( final IllegalArgumentException e )
         {
-            LOGGER.error( "error parsing syslog configuration for  syslogConfigStrings ERROR: " + e.getMessage() );
+            LOGGER.error( () -> "error parsing syslog configuration for  syslogConfigStrings ERROR: " + e.getMessage() );
         }
 
         {
@@ -230,7 +230,7 @@ public class SyslogAuditService
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.warn( "unable to add syslog message to queue: " + e.getMessage() );
+            LOGGER.warn( () -> "unable to add syslog message to queue: " + e.getMessage() );
         }
     }
 
@@ -271,7 +271,7 @@ public class SyslogAuditService
                         }
                 );
                 lastError = errorInformation;
-                LOGGER.error( errorInformation.toDebugStr() );
+                LOGGER.error( () -> errorInformation.toDebugStr() );
             }
         }
         return WorkQueueProcessor.ProcessResult.RETRY;
@@ -365,14 +365,14 @@ public class SyslogAuditService
                     final SSLContext sc = SSLContext.getInstance( "SSL" );
                     sc.init( null, new X509TrustManager[]
                                     {
-                                            new X509Utils.CertMatchingTrustManager( configuration, certificates ),
+                                            PwmTrustManager.createPwmTrustManager( configuration, certificates ),
                                     },
                             new java.security.SecureRandom() );
                     return sc.getSocketFactory();
                 }
                 catch ( final NoSuchAlgorithmException | KeyManagementException e )
                 {
-                    LOGGER.error( "unexpected error loading syslog certificates: " + e.getMessage() );
+                    LOGGER.error( () -> "unexpected error loading syslog certificates: " + e.getMessage() );
                 }
             }
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
+import password.pwm.config.profile.ChangePasswordProfile;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -40,12 +42,12 @@ import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.PwmURL;
 import password.pwm.i18n.Display;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -62,7 +64,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -106,7 +107,8 @@ public class ClientApiServlet extends ControlledPwmServlet
         strings( HttpMethod.GET ),
         health( HttpMethod.GET ),
         ping( HttpMethod.GET ),
-        statistics( HttpMethod.GET ),;
+        statistics( HttpMethod.GET ),
+        cspReport( HttpMethod.POST ),;
 
 
         private final HttpMethod method;
@@ -116,6 +118,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             this.method = method;
         }
 
+        @Override
         public Collection<HttpMethod> permittedMethods( )
         {
             return Collections.singletonList( method );
@@ -322,19 +325,18 @@ public class ClientApiServlet extends ControlledPwmServlet
             long idleSeconds = config.readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
             if ( pageUrl == null || pageUrl.isEmpty() )
             {
-                LOGGER.warn( pwmRequest, "request to /client data did not include pageUrl" );
+                LOGGER.warn( pwmRequest, () -> "request to /client data did not include pageUrl" );
             }
             else
             {
                 try
                 {
-                    final PwmURL pwmURL = new PwmURL( new URI( pageUrl ), request.getContextPath() );
                     final TimeDuration maxIdleTime = IdleTimeoutCalculator.idleTimeoutForRequest( pwmRequest );
                     idleSeconds = maxIdleTime.as( TimeDuration.Unit.SECONDS );
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( pwmRequest, "error determining idle timeout time for request: " + e.getMessage() );
+                    LOGGER.error( pwmRequest, () -> "error determining idle timeout time for request: " + e.getMessage() );
                 }
             }
             settingMap.put( "MaxInactiveInterval", idleSeconds );
@@ -350,14 +352,24 @@ public class ClientApiServlet extends ControlledPwmServlet
         settingMap.put( "url-resources", contextPath + "/public/resources" + pwmApplication.getResourceServletService().getResourceNonce() );
         settingMap.put( "url-restservice", contextPath + "/public/rest" );
 
+        if ( pwmRequest.isAuthenticated() )
         {
-            String passwordGuideText = pwmApplication.getConfig().readSettingAsLocalizedString(
-                    PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,
-                    pwmSession.getSessionStateBean().getLocale()
-            );
-            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( pwmApplication );
-            passwordGuideText = macroMachine.expandMacros( passwordGuideText );
-            settingMap.put( "passwordGuideText", passwordGuideText );
+            final String profileID = pwmSession.getUserInfo().getProfileIDs().get( ProfileDefinition.ChangePassword );
+            if ( !StringUtil.isEmpty( profileID ) )
+            {
+                final ChangePasswordProfile changePasswordProfile = pwmRequest.getConfig().getChangePasswordProfile().get( profileID );
+                final String configuredGuideText = changePasswordProfile.readSettingAsLocalizedString(
+                        PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,
+                        pwmSession.getSessionStateBean().getLocale()
+                );
+                if ( !StringUtil.isEmpty( configuredGuideText ) )
+                {
+                    final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine();
+                    final String expandedText = macroMachine.expandMacros( configuredGuideText );
+                    settingMap.put( "passwordGuideText", expandedText );
+                }
+
+            }
         }
 
         {
@@ -431,7 +443,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         final ResourceBundle bundle = ResourceBundle.getBundle( displayClass.getName() );
         try
         {
-            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( pwmApplication );
+            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( );
             for ( final String key : new TreeSet<>( Collections.list( bundle.getKeys() ) ) )
             {
                 String displayValue = LocaleHelper.getLocalizedMessage( userLocale, key, config, displayClass );
@@ -441,11 +453,10 @@ public class ClientApiServlet extends ControlledPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, "error expanding macro display value: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error expanding macro display value: " + e.getMessage() );
         }
         return displayStrings;
     }
-
 
     @ActionHandler( action = "statistics" )
     private ProcessStatus restStatisticsHandler( final PwmRequest pwmRequest )
@@ -473,16 +484,31 @@ public class ClientApiServlet extends ControlledPwmServlet
         final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
+    }
 
+    @ActionHandler( action = "cspReport" )
+    private ProcessStatus restCspReportHandler( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException
+    {
+        if ( !Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.LOGGING_LOG_CSP_REPORT ) ) )
+        {
+            return ProcessStatus.Halt;
+        }
+
+        final String body = pwmRequest.readRequestBodyAsString();
+        LOGGER.trace( () -> body );
+        return ProcessStatus.Halt;
     }
 
     private void precheckPublicHealthAndStats( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        if (
-                pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING
-                        && pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.CONFIGURATION
-        )
+        if ( pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION )
+        {
+            return;
+        }
+
+        if ( pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE );
             throw new PwmUnrecoverableException( errorInformation );

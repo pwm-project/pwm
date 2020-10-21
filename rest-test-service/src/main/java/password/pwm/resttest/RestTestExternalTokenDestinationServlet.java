@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class RestTestExternalTokenDestinationServlet extends HttpServlet
         System.out.println( "--External Token Destination--" );
         final InputStream inputStream = req.getInputStream();
         final String body = IOUtils.toString( inputStream );
-        final JsonObject jsonObject = new JsonParser().parse( body ).getAsJsonObject();
+        final JsonObject jsonObject = JsonParser.parseString( body ).getAsJsonObject();
         final String email = jsonObject.getAsJsonObject( "tokenDestination" ).get( "email" ).getAsString();
         final String sms = jsonObject.getAsJsonObject( "tokenDestination" ).get( "sms" ).getAsString();
         final String displayValue = "YourTokenDestination";

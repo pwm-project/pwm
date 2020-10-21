@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.i18n.Message;
 import password.pwm.util.ServletUtility;
 import password.pwm.util.java.JsonUtil;
@@ -49,23 +50,24 @@ public class TelemetryRestReceiver extends HttpServlet
     protected void doPost( final HttpServletRequest req, final HttpServletResponse resp )
             throws ServletException, IOException
     {
+        final boolean jsonPrettyPrint = PwmHttpRequestWrapper.isPrettyPrintJsonParameterTrue( req );
         try
         {
             resp.setHeader( "Content", "application/json" );
             final String input = ServletUtility.readRequestBodyAsString( req, 1024 * 1024 );
             final TelemetryPublishBean telemetryPublishBean = JsonUtil.deserialize( input, TelemetryPublishBean.class );
-            final Storage stoage = ContextManager.getContextManager( this.getServletContext() ).getApp().getStorage();
-            stoage.store( telemetryPublishBean );
-            resp.getWriter().print( RestResultBean.forSuccessMessage( null, null, null, Message.Success_Unknown ).toJson() );
+            final Storage storage = ContextManager.getContextManager( this.getServletContext() ).getApp().getStorage();
+            storage.store( telemetryPublishBean );
+            resp.getWriter().print( RestResultBean.forSuccessMessage( null, null, null, Message.Success_Unknown ).toJson( jsonPrettyPrint ) );
         }
         catch ( final PwmUnrecoverableException e )
         {
-            resp.getWriter().print( RestResultBean.fromError( e.getErrorInformation() ).toJson() );
+            resp.getWriter().print( RestResultBean.fromError( e.getErrorInformation() ).toJson( jsonPrettyPrint ) );
         }
         catch ( final Exception e )
         {
             final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() ) );
-            resp.getWriter().print( restResultBean.toJson() );
+            resp.getWriter().print( restResultBean.toJson( jsonPrettyPrint ) );
         }
     }
 }

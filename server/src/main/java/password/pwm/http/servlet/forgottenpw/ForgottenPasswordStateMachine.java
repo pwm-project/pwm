@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -472,6 +472,7 @@ public class ForgottenPasswordStateMachine
 
         static class OTPVerificationHandler implements StageHandler
         {
+            @Override
             public void applyForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine, final Map<String, String> formValues )
                     throws PwmUnrecoverableException
             {
@@ -524,6 +525,7 @@ public class ForgottenPasswordStateMachine
                 }
             }
 
+            @Override
             public PresentableForm generateForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine ) throws PwmUnrecoverableException
             {
                 final CommonValues commonValues = forgottenPasswordStateMachine.getCommonValues();
@@ -569,6 +571,7 @@ public class ForgottenPasswordStateMachine
 
         static class TokenVerificationHandler implements StageHandler
         {
+            @Override
             public void applyForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine, final Map<String, String> formValues ) throws PwmUnrecoverableException
             {
                 final CommonValues commonValues = forgottenPasswordStateMachine.getCommonValues();
@@ -621,6 +624,7 @@ public class ForgottenPasswordStateMachine
                 }
             }
 
+            @Override
             public PresentableForm generateForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine )
             {
                 final CommonValues commonValues = forgottenPasswordStateMachine.getCommonValues();
@@ -654,6 +658,7 @@ public class ForgottenPasswordStateMachine
         static class ChallengeResponseHandler implements StageHandler
         {
 
+            @Override
             public void applyForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine, final Map<String, String> formValues )
                     throws PwmUnrecoverableException
             {
@@ -697,6 +702,7 @@ public class ForgottenPasswordStateMachine
                 }
             }
 
+            @Override
             public PresentableForm generateForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine )
             {
                 final CommonValues commonValues = forgottenPasswordStateMachine.getCommonValues();
@@ -726,6 +732,7 @@ public class ForgottenPasswordStateMachine
 
         static class AttributeVerificationHandler implements StageHandler
         {
+            @Override
             public void applyForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine, final Map<String, String> formData )
                     throws PwmUnrecoverableException
             {
@@ -799,7 +806,7 @@ public class ForgottenPasswordStateMachine
                         }
                         catch ( final ChaiOperationException e )
                         {
-                            LOGGER.error( sessionLabel, "error during param validation of '" + attrName + "', error: " + e.getMessage() );
+                            LOGGER.error( sessionLabel, () -> "error during param validation of '" + attrName + "', error: " + e.getMessage() );
                             throw new PwmDataValidationException( new ErrorInformation(
                                     PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", new String[]
                                     {
@@ -824,6 +831,7 @@ public class ForgottenPasswordStateMachine
                 }
             }
 
+            @Override
             public PresentableForm generateForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine )
             {
                 final CommonValues commonValues = forgottenPasswordStateMachine.getCommonValues();
@@ -868,6 +876,7 @@ public class ForgottenPasswordStateMachine
             }
         }
 
+        @Override
         public PresentableForm generateForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine )
         {
             final CommonValues commonValues = forgottenPasswordStateMachine.getCommonValues();
@@ -902,6 +911,7 @@ public class ForgottenPasswordStateMachine
 
     static class IdentificationStageHandler implements StageHandler
     {
+        @Override
         public PresentableForm generateForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine )
                 throws PwmUnrecoverableException
         {
@@ -917,6 +927,7 @@ public class ForgottenPasswordStateMachine
                     .build();
         }
 
+        @Override
         public void applyForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine, final Map<String, String> values )
                 throws PwmUnrecoverableException
         {
@@ -1097,7 +1108,7 @@ public class ForgottenPasswordStateMachine
 
 
         // add a bit of jitter to pretend like we're checking a data source
-        final long jitterMs = 300 + commonValues.getPwmApplication().getSecureService().pwmRandom().nextInt( 700 );
+        final long jitterMs = 300L + commonValues.getPwmApplication().getSecureService().pwmRandom().nextInt( 700 );
         TimeDuration.of( jitterMs, TimeDuration.Unit.MILLISECONDS ).pause();
 
         if ( userIdentity != null )

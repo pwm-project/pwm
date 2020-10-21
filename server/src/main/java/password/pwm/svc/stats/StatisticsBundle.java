@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 package password.pwm.svc.stats;
 
-import password.pwm.util.java.AtomicLoopLongIncrementer;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -30,17 +30,20 @@ import java.math.BigInteger;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class StatisticsBundle
 {
-    private final Map<Statistic, AtomicLoopLongIncrementer> incrementerMap = new EnumMap<>( Statistic.class );
+    private final Map<Statistic, LongAdder> incrementerMap = new EnumMap<>( Statistic.class );
     private final Map<AvgStatistic, AverageBean> avgMap = new EnumMap<>( AvgStatistic.class );
 
     StatisticsBundle( )
     {
         for ( final Statistic statistic : Statistic.values() )
         {
-            incrementerMap.put( statistic, new AtomicLoopLongIncrementer() );
+            incrementerMap.put( statistic, new LongAdder() );
         }
         for ( final AvgStatistic avgStatistic : AvgStatistic.values() )
         {
@@ -54,7 +57,7 @@ public class StatisticsBundle
 
         for ( final Statistic statistic : Statistic.values() )
         {
-            final long currentValue = incrementerMap.get( statistic ).get();
+            final long currentValue = incrementerMap.get( statistic ).longValue();
             if ( currentValue > 0 )
             {
                 outputMap.put( statistic.name(), Long.toString( currentValue ) );
@@ -83,8 +86,9 @@ public class StatisticsBundle
             if ( !StringUtil.isEmpty( value ) )
             {
                 final long longValue = JavaHelper.silentParseLong( value, 0 );
-                final AtomicLoopLongIncrementer incrementer = AtomicLoopLongIncrementer.builder().initial( longValue ).build();
-                bundle.incrementerMap.put( loopStat, incrementer );
+                final LongAdder longAdder = new LongAdder();
+                longAdder.add( longValue );
+                bundle.incrementerMap.put( loopStat, longAdder );
             }
         }
 
@@ -103,7 +107,7 @@ public class StatisticsBundle
 
     void incrementValue( final Statistic statistic )
     {
-        incrementerMap.get( statistic ).next();
+        incrementerMap.get( statistic ).increment();
     }
 
     void updateAverageValue( final AvgStatistic statistic, final long timeDuration )
@@ -113,7 +117,7 @@ public class StatisticsBundle
 
     public String getStatistic( final Statistic statistic )
     {
-        return Long.toString( incrementerMap.get( statistic ).get() );
+        return Long.toString( incrementerMap.get( statistic ).longValue() );
     }
 
     public String getAvgStatistic( final AvgStatistic statistic )
@@ -123,32 +127,60 @@ public class StatisticsBundle
 
     private static class AverageBean implements Serializable
     {
-        BigInteger total = BigInteger.ZERO;
-        BigInteger count = BigInteger.ZERO;
+        private static final long serialVersionUID = 1L;
+
+        private BigInteger total = BigInteger.ZERO;
+        private BigInteger count = BigInteger.ZERO;
+
+        @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
+        private final transient Lock lock = new ReentrantLock();
 
         AverageBean( )
         {
         }
 
-        synchronized BigInteger getAverage( )
+        BigInteger getAverage( )
         {
-            if ( BigInteger.ZERO.equals( count ) )
+            lock.lock();
+            try
             {
-                return BigInteger.ZERO;
+                if ( BigInteger.ZERO.equals( count ) )
+                {
+                    return BigInteger.ZERO;
+                }
+                return total.divide( count );
             }
-
-            return total.divide( count );
+            finally
+            {
+                lock.unlock();
+            }
         }
 
-        synchronized void appendValue( final long value )
+        void appendValue( final long value )
         {
-            count = count.add( BigInteger.ONE );
-            total = total.add( BigInteger.valueOf( value ) );
+            lock.lock();
+            try
+            {
+                count = count.add( BigInteger.ONE );
+                total = total.add( BigInteger.valueOf( value ) );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
 
-        synchronized boolean isZero()
+        boolean isZero()
         {
-            return total.equals( BigInteger.ZERO );
+            lock.lock();
+            try
+            {
+                return total.equals( BigInteger.ZERO );
+            }
+            finally
+            {
+                lock.unlock();
+            }
         }
     }
 }

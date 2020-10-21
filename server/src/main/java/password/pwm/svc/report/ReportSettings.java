@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,9 @@ class ReportSettings implements Serializable
     private int maxSearchSize = 100 * 1000;
 
     @Builder.Default
+    private TimeDuration searchTimeout = TimeDuration.SECONDS_30;
+
+    @Builder.Default
     private List<Integer> trackDays = Collections.emptyList();
 
     @Builder.Default
@@ -81,6 +84,7 @@ class ReportSettings implements Serializable
         builder.searchFilter( config.readSettingAsUserPermission( PwmSetting.REPORTING_USER_MATCH ) );
         builder.maxSearchSize ( ( int ) config.readSettingAsLong( PwmSetting.REPORTING_MAX_QUERY_SIZE ) );
         builder.dailyJobEnabled( config.readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB ) );
+        builder.searchTimeout( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ), TimeDuration.Unit.MILLISECONDS ) );
 
         {
             final List<UserPermission> userMatches = config.readSettingAsUserPermission( PwmSetting.REPORTING_USER_MATCH );
@@ -131,7 +135,7 @@ class ReportSettings implements Serializable
             }
             catch ( final NumberFormatException e )
             {
-                LOGGER.error( "error parsing reporting summary day value '" + splitDay + "', error: " + e.getMessage() );
+                LOGGER.error( () -> "error parsing reporting summary day value '" + splitDay + "', error: " + e.getMessage() );
             }
         }
         Collections.sort( returnValue );

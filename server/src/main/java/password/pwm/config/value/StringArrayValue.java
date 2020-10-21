@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@
 package password.pwm.config.value;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
@@ -50,6 +49,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public StringArrayValue fromJson( final String input )
             {
                 if ( input == null )
@@ -68,9 +68,10 @@ public class StringArrayValue extends AbstractValue implements StoredValue
                 }
             }
 
+            @Override
             public StringArrayValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final List<String> values = new ArrayList<>();
                 for ( final XmlElement loopValueElement : valueElements )
                 {
@@ -82,6 +83,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue
         };
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
@@ -94,11 +96,13 @@ public class StringArrayValue extends AbstractValue implements StoredValue
         return returnList;
     }
 
+    @Override
     public List<String> toNativeObject( )
     {
         return Collections.unmodifiableList( values );
     }
 
+    @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
         if ( pwmSetting.isRequired() )
@@ -122,6 +126,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue
         return Collections.emptyList();
     }
 
+    @Override
     public String toDebugString( final Locale locale )
     {
         if ( values != null && !values.isEmpty() )

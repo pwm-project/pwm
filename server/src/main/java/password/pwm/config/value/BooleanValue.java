@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ package password.pwm.config.value;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.i18n.Display;
 import password.pwm.util.java.JsonUtil;
@@ -39,37 +38,47 @@ import java.util.Optional;
 
 public class BooleanValue implements StoredValue
 {
+    private static final BooleanValue POSITIVE = new BooleanValue( true );
+    private static final BooleanValue NEGATIVE = new BooleanValue( false );
+
     private final boolean value;
 
-    public BooleanValue( final boolean value )
+    private BooleanValue( final boolean value )
     {
         this.value = value;
     }
 
+    public static BooleanValue of( final boolean input )
+    {
+        return input ? POSITIVE : NEGATIVE;
+    }
 
     public static StoredValueFactory factory( )
     {
         return new StoredValueFactory()
         {
+            @Override
             public BooleanValue fromJson( final String value )
             {
-                return new BooleanValue( JsonUtil.deserialize( value, Boolean.class ) );
+                return BooleanValue.of( JsonUtil.deserialize( value, Boolean.class ) );
             }
 
+            @Override
             public BooleanValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
-                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 if ( valueElement.isPresent() )
                 {
                     final String value = valueElement.get().getTextTrim();
-                    return new BooleanValue( Boolean.valueOf( value ) );
+                    return BooleanValue.of( Boolean.parseBoolean( value ) );
                 }
-                return new BooleanValue( false );
+                return BooleanValue.of( false );
             }
 
         };
     }
 
+    @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
         return Collections.emptyList();
@@ -89,6 +98,7 @@ public class BooleanValue implements StoredValue
         return value;
     }
 
+    @Override
     public String toDebugString( final Locale locale )
     {
         final Locale loc = ( locale == null )

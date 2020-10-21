@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,8 @@ public class PwmURL
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmURL.class );
 
-    private URI uri;
-    private String contextPath;
+    private final URI uri;
+    private final String contextPath;
 
     public PwmURL(
             final URI uri,
@@ -67,7 +67,7 @@ public class PwmURL
      *
      * @param uri1 uri to compare
      * @param uri2 uri to compare
-     * @return true if scheama, host and port of uri1 and uri2 are equal.
+     * @return true if schema, host and port of uri1 and uri2 are equal.
      */
     public static boolean compareUriBase( final String uri1, final String uri2 )
     {
@@ -467,7 +467,7 @@ public class PwmURL
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.error( sessionLabel, "error while testing URL match for regex pattern: '" + loopFragment + "', error: " + e.getMessage() );
+                    LOGGER.error( sessionLabel, () -> "error while testing URL match for regex pattern: '" + loopFragment + "', error: " + e.getMessage() );
                 }
 
             }

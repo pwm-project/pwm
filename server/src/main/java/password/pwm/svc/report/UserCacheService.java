@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ import password.pwm.util.secure.SecureService;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class UserCacheService implements PwmService
 {
@@ -52,6 +54,7 @@ public class UserCacheService implements PwmService
     private PwmApplication pwmApplication;
 
 
+    @Override
     public STATUS status( )
     {
         return status;
@@ -70,7 +73,7 @@ public class UserCacheService implements PwmService
         }
         catch ( final LocalDBException e )
         {
-            LOGGER.error( "unable to store user status cache to localdb: " + e.getMessage() );
+            LOGGER.error( () -> "unable to store user status cache to localdb: " + e.getMessage() );
         }
 
         {
@@ -80,7 +83,7 @@ public class UserCacheService implements PwmService
         return null;
     }
 
-    UserCacheRecord readStorageKey( final StorageKey storageKey ) throws LocalDBException
+    Optional<UserCacheRecord> readStorageKey( final StorageKey storageKey ) throws LocalDBException
     {
         return cacheStore.read( storageKey );
     }
@@ -106,7 +109,7 @@ public class UserCacheService implements PwmService
         }
         catch ( final LocalDBException e )
         {
-            LOGGER.error( "unexpected error generating user status iterator: " + e.getMessage() );
+            LOGGER.error( () -> "unexpected error generating user status iterator: " + e.getMessage() );
             return null;
         }
     }
@@ -114,56 +117,63 @@ public class UserCacheService implements PwmService
     public class UserStatusCacheBeanIterator<K extends StorageKey> implements ClosableIterator
     {
 
-        private LocalDB.LocalDBIterator<String> innerIterator;
+        private final LocalDB.LocalDBIterator<Map.Entry<String, String>> innerIterator;
 
         private UserStatusCacheBeanIterator( ) throws LocalDBException
         {
             innerIterator = cacheStore.localDB.iterator( CacheStoreWrapper.DB );
         }
 
+        @Override
         public boolean hasNext( )
         {
             return innerIterator.hasNext();
         }
 
+        @Override
         public StorageKey next( )
         {
-            final String nextKey = innerIterator.next();
+            final String nextKey = innerIterator.next().getKey();
             return new StorageKey( nextKey );
         }
 
+        @Override
         public void remove( )
         {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void close( )
         {
             innerIterator.close();
         }
     }
 
+    @Override
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
         this.cacheStore = new CacheStoreWrapper( pwmApplication.getLocalDB() );
         status = STATUS.OPEN;
     }
 
+    @Override
     public void close( )
     {
         status = STATUS.CLOSED;
     }
 
+    @Override
     public List<HealthRecord> healthCheck( )
     {
         return Collections.emptyList();
     }
 
+    @Override
     public ServiceInfoBean serviceInfo( )
     {
-        return new ServiceInfoBean( Collections.singletonList( DataStorageMethod.LOCALDB ) );
+        return ServiceInfoBean.builder().storageMethod( DataStorageMethod.LOCALDB ).build();
     }
 
     public long size( )
@@ -173,7 +183,7 @@ public class UserCacheService implements PwmService
 
     public static class StorageKey
     {
-        private String key;
+        private final String key;
 
         private StorageKey( final String key )
         {
@@ -229,7 +239,7 @@ public class UserCacheService implements PwmService
             localDB.put( DB, key.getKey(), jsonValue );
         }
 
-        private UserCacheRecord read( final StorageKey key )
+        private Optional<UserCacheRecord> read( final StorageKey key )
                 throws LocalDBException
         {
             final String jsonValue = localDB.get( DB, key.getKey() );
@@ -237,15 +247,15 @@ public class UserCacheService implements PwmService
             {
                 try
                 {
-                    return JsonUtil.deserialize( jsonValue, UserCacheRecord.class );
+                    return Optional.of( JsonUtil.deserialize( jsonValue, UserCacheRecord.class ) );
                 }
                 catch ( final JsonSyntaxException e )
                 {
-                    LOGGER.error( "error reading record from cache store for key=" + key.getKey() + ", error: " + e.getMessage() );
+                    LOGGER.error( () -> "error reading record from cache store for key=" + key.getKey() + ", error: " + e.getMessage() );
                     localDB.remove( DB, key.getKey() );
                 }
             }
-            return null;
+            return Optional.empty();
         }
 
         private boolean remove( final StorageKey key )

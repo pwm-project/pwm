@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,7 @@ package password.pwm.config.value;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.error.PwmOperationalException;
@@ -63,6 +62,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
     {
         return new StoredValueFactory()
         {
+            @Override
             public RemoteWebServiceValue fromJson( final String input )
             {
                 if ( input == null )
@@ -83,6 +83,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
                 }
             }
 
+            @Override
             public RemoteWebServiceValue fromXmlElement(
                     final PwmSetting pwmSetting,
                     final XmlElement settingElement,
@@ -90,7 +91,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
             )
                     throws PwmOperationalException
             {
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final List<RemoteWebServiceConfiguration> values = new ArrayList<>();
                 for ( final XmlElement loopValueElement : valueElements )
                 {
@@ -114,6 +115,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         };
     }
 
+    @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
         final List<XmlElement> returnList = new ArrayList<>();
@@ -131,7 +133,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
             }
             catch ( final PwmOperationalException e )
             {
-                LOGGER.warn( "error decoding stored pw value: " + e.getMessage() );
+                LOGGER.warn( () -> "error decoding stored pw value: " + e.getMessage() );
             }
 
             final RemoteWebServiceConfiguration clonedValue = value.toBuilder().password( encodedValue ).build();
@@ -141,11 +143,13 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         return returnList;
     }
 
+    @Override
     public List<RemoteWebServiceConfiguration> toNativeObject( )
     {
         return Collections.unmodifiableList( values );
     }
 
+    @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
         if ( pwmSetting.isRequired() )
@@ -227,6 +231,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         return output;
     }
     
+    @Override
     public String toDebugString( final Locale locale )
     {
         return JsonUtil.serialize( this.toDebugJsonObject( locale ) );

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ package password.pwm.config.value;
 
 import lombok.Value;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
-import password.pwm.config.stored.StoredConfigXmlConstants;
+import password.pwm.config.stored.StoredConfigXmlSerializer;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -38,7 +38,6 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -49,7 +48,6 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     private static final PwmLogger LOGGER = PwmLogger.forClass( VerificationMethodValue.class );
 
     private final VerificationMethodSettings value;
-
 
     public enum EnabledState
     {
@@ -69,17 +67,18 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
             minOptionalRequired = 0;
         }
 
-        public VerificationMethodSettings( final Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings, final int minOptionalRequired )
+        public VerificationMethodSettings(
+                final Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings,
+                final int minOptionalRequired
+        )
         {
-            this.methodSettings = methodSettings == null ? Collections.emptyMap() : Collections.unmodifiableMap( methodSettings );
+            this.methodSettings = Collections.unmodifiableMap( JavaHelper.copiedEnumMap( methodSettings, IdentityVerificationMethod.class ) );
             this.minOptionalRequired = minOptionalRequired;
         }
 
         public Map<IdentityVerificationMethod, VerificationMethodSetting> getMethodSettings( )
         {
-            final Map<IdentityVerificationMethod, VerificationMethodSetting> tempMap = new LinkedHashMap<>( methodSettings );
-            tempMap.remove( null );
-            return Collections.unmodifiableMap( tempMap );
+            return methodSettings;
         }
 
         public int getMinOptionalRequired( )
@@ -101,20 +100,31 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
     public VerificationMethodValue( final VerificationMethodSettings value )
     {
-        this.value = value;
+        this.value = normalizeSettings( normalizeSettings( value ) );
+    }
+
+    private static VerificationMethodSettings normalizeSettings( final VerificationMethodSettings input )
+    {
+        final Map<IdentityVerificationMethod, VerificationMethodValue.VerificationMethodSetting> tempMap = JavaHelper.copiedEnumMap(
+                input.getMethodSettings(),
+                IdentityVerificationMethod.class );
+
         for ( final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.availableValues() )
         {
-            if ( !value.methodSettings.containsKey( recoveryVerificationMethods ) )
+            if ( !tempMap.containsKey( recoveryVerificationMethods ) )
             {
-                value.methodSettings.put( recoveryVerificationMethods, new VerificationMethodSetting( EnabledState.disabled ) );
+                tempMap.put( recoveryVerificationMethods, new VerificationMethodSetting( EnabledState.disabled ) );
             }
         }
+
+        return new VerificationMethodSettings( tempMap, input.getMinOptionalRequired() );
     }
 
     public static StoredValueFactory factory( )
     {
         return new StoredValueFactory()
         {
+            @Override
             public VerificationMethodValue fromJson( final String input )
             {
                 if ( input == null )
@@ -128,10 +138,11 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
                 }
             }
 
+            @Override
             public VerificationMethodValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
-                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 if ( valueElement.isPresent() )
                 {
                     final String inputStr = valueElement.get().getText();

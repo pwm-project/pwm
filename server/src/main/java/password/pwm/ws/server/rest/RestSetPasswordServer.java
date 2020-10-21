@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -217,14 +217,14 @@ public class RestSetPasswordServer extends RestServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( "error during set password REST operation: " + e.getMessage() );
+            LOGGER.error( () -> "error during set password REST operation: " + e.getMessage() );
             return RestResultBean.fromError( restRequest, e.getErrorInformation() );
         }
         catch ( final Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
-            LOGGER.error( "error during set password REST operation: " + e.getMessage(), e );
+            LOGGER.error( () -> "error during set password REST operation: " + e.getMessage(), e );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }

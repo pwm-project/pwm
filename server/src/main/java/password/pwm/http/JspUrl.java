@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ public enum JspUrl
     PASSWORD_AGREEMENT( "changepassword-agreement.jsp" ),
     PASSWORD_COMPLETE( "changepassword-complete.jsp" ),
     PASSWORD_WARN( "changepassword-warn.jsp" ),
+    RECOVER_USER_AGREEMENT( "forgottenpassword-agreement.jsp" ),
     RECOVER_PASSWORD_SEARCH( "forgottenpassword-search.jsp" ),
     RECOVER_PASSWORD_RESPONSES( "forgottenpassword-responses.jsp" ),
     RECOVER_PASSWORD_ATTRIBUTES( "forgottenpassword-attributes.jsp" ),
@@ -79,6 +80,7 @@ public enum JspUrl
     UPDATE_ATTRIBUTES_CONFIRM( "updateprofile-confirm.jsp" ),
     NEW_USER( "newuser.jsp" ),
     NEW_USER_ENTER_CODE( "newuser-entercode.jsp" ),
+    NEW_USER_REMOTE( "newuser-remote.jsp" ),
     NEW_USER_TOKEN_SUCCESS( "newuser-tokensuccess.jsp" ),
     NEW_USER_WAIT( "newuser-wait.jsp" ),
     NEW_USER_PROFILE_CHOICE( "newuser-profilechoice.jsp" ),
@@ -100,7 +102,7 @@ public enum JspUrl
     HELPDESK_SEARCH( "helpdesk.jsp" ),
     FULL_PAGE_HEALTH( "fullpagehealth.jsp" ),;
 
-    private String path;
+    private final String path;
     private static final String JSP_ROOT_URL = "/WEB-INF/jsp/";
 
     JspUrl( final String path )

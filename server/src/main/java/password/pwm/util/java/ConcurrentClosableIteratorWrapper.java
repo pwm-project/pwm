@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,15 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public class ConcurrentClosableIteratorWrapper<T> implements Iterator<T>, ClosableIterator<T>
 {
     private final AtomicReference<T> nextReference = new AtomicReference<>();
     private final AtomicBoolean completed = new AtomicBoolean( false );
+    private final Lock lock = new ReentrantLock();
 
     private final Supplier<Optional<T>> nextSupplier;
     private final Runnable closeFunction;
@@ -42,37 +45,61 @@ public class ConcurrentClosableIteratorWrapper<T> implements Iterator<T>, Closab
     }
 
     @Override
-    public synchronized boolean hasNext()
+    public boolean hasNext()
     {
-        if ( completed.get() )
+        lock.lock();
+        try
         {
-            return false;
+            if ( completed.get() )
+            {
+                return false;
+            }
+            work();
+            return nextReference.get() != null;
         }
-        work();
-        return nextReference.get() != null;
+        finally
+        {
+            lock.unlock();
+        }
     }
 
     @Override
-    public synchronized T next()
+    public T next()
     {
-        if ( completed.get() )
+        lock.lock();
+        try
         {
-            throw new NoSuchElementException(  );
+            if ( completed.get() )
+            {
+                throw new NoSuchElementException(  );
+            }
+            work();
+            final T fileSummaryInformation = nextReference.get();
+            if ( fileSummaryInformation == null )
+            {
+                throw new NoSuchElementException(  );
+            }
+            nextReference.set( null );
+            return fileSummaryInformation;
         }
-        work();
-        final T fileSummaryInformation = nextReference.get();
-        if ( fileSummaryInformation == null )
+        finally
         {
-            throw new NoSuchElementException(  );
+            lock.unlock();
         }
-        nextReference.set( null );
-        return fileSummaryInformation;
     }
 
     @Override
-    public synchronized void close()
+    public void close()
     {
-        closeImpl();
+        lock.lock();
+        try
+        {
+            closeImpl();
+        }
+        finally
+        {
+            lock.unlock();
+        }
     }
 
     private void closeImpl()

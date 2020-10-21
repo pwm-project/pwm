@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -52,7 +52,7 @@ public class ReportStatusBean implements Serializable
         final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
         final ReportStatusInfo reportInfo = reportService.getReportStatusInfo();
         final List<DisplayElement> presentableMap = new ArrayList<>();
-        final Set<ReportService.ReportCommand> availableCommands = new HashSet<>();
+        final Set<ReportService.ReportCommand> availableCommands = EnumSet.noneOf( ReportService.ReportCommand.class );
 
         presentableMap.add( new DisplayElement( "jobEngine", DisplayElement.Type.string, "Job Engine", reportInfo.getCurrentProcess().getLabel() ) );
 

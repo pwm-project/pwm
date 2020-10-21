@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 package password.pwm.svc.wordlist;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import password.pwm.AppProperty;
@@ -42,10 +43,12 @@ import java.io.InputStream;
 import java.net.URL;
 import java.security.DigestInputStream;
 import java.time.Instant;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
 class WordlistSource
 {
+    private static final AtomicInteger CLOSE_COUNTER = new AtomicInteger();
 
     private final WordlistSourceType wordlistSourceType;
     private final StreamProvider streamProvider;
@@ -153,23 +156,23 @@ class WordlistSource
 
         final long bytes;
         final String hash;
-        try (
-                InputStream inputStream = this.streamProvider.getInputStream();
-                DigestInputStream checksumInputStream = pwmApplication.getSecureService().digestInputStream( WordlistConfiguration.HASH_ALGORITHM, inputStream );
-                CountingInputStream countingInputStream = new CountingInputStream( checksumInputStream );
-        )
+
+        InputStream inputStream = null;
+        DigestInputStream checksumInputStream = null;
+        CountingInputStream countingInputStream = null;
+
+        try
         {
-            final ConditionalTaskExecutor debugOutputter = new ConditionalTaskExecutor(
-                    () -> pwmLogger.debug( () -> "continuing reading file info for " + getWordlistSourceType() + " wordlist"
-                            + " " + StringUtil.formatDiskSizeforDebug( countingInputStream.getByteCount() )
-                            + " (" + TimeDuration.compactFromCurrent( startTime ) + ")" ),
-                    new ConditionalTaskExecutor.TimeDurationPredicate( AbstractWordlist.DEBUG_OUTPUT_FREQUENCY )
-            );
+            inputStream = this.streamProvider.getInputStream();
+            checksumInputStream = pwmApplication.getSecureService().digestInputStream( WordlistConfiguration.HASH_ALGORITHM, inputStream );
+            countingInputStream = new CountingInputStream( checksumInputStream );
+            final ConditionalTaskExecutor debugOutputter = makeDebugLoggerExecutor( pwmLogger, startTime, countingInputStream );
 
             JavaHelper.copyWhilePredicate(
                     countingInputStream,
                     new NullOutputStream(),
-                    WordlistConfiguration.STREAM_BUFFER_SIZE, o -> !cancelFlag.getAsBoolean(),
+                    WordlistConfiguration.STREAM_BUFFER_SIZE,
+                    o -> !cancelFlag.getAsBoolean(),
                     debugOutputter );
 
             bytes = countingInputStream.getByteCount();
@@ -183,6 +186,10 @@ class WordlistSource
             );
             throw new PwmUnrecoverableException( errorInformation );
         }
+        finally
+        {
+            closeStreams( pwmLogger, countingInputStream, checksumInputStream, inputStream );
+        }
 
         if ( cancelFlag.getAsBoolean() )
         {
@@ -195,6 +202,42 @@ class WordlistSource
                 + " " + StringUtil.formatDiskSizeforDebug( bytes )
                 + ", " + JsonUtil.serialize( wordlistSourceInfo )
                 + " (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
+
         return wordlistSourceInfo;
+    }
+
+    private ConditionalTaskExecutor makeDebugLoggerExecutor(
+            final PwmLogger pwmLogger,
+            final Instant startTime,
+            final CountingInputStream countingInputStream
+            )
+    {
+        return new ConditionalTaskExecutor(
+                () -> pwmLogger.debug( () -> "continuing reading file info for " + getWordlistSourceType() + " wordlist"
+                                + " " + StringUtil.formatDiskSizeforDebug( countingInputStream.getByteCount() ),
+                        () -> TimeDuration.fromCurrent( startTime ) ),
+                new ConditionalTaskExecutor.TimeDurationPredicate( AbstractWordlist.DEBUG_OUTPUT_FREQUENCY )
+        );
+    }
+
+    private void closeStreams( final PwmLogger pwmLogger, final InputStream... inputStreams )
+    {
+        // use a thread to close the io tasks as the close will block until the tcp socket is closed
+        final Thread closerThread = new Thread( () ->
+        {
+            final int counter = CLOSE_COUNTER.incrementAndGet();
+
+            final Instant startClose = Instant.now();
+            pwmLogger.trace( () -> "beginning close of remote wordlist read process [" + counter + "]" );
+            for ( final InputStream inputStream : inputStreams )
+            {
+                IOUtils.closeQuietly( inputStream );
+            }
+            pwmLogger.trace( () -> "completed close of remote wordlist read process [" + counter + "]",
+                    () -> TimeDuration.fromCurrent( startClose ) );
+        } );
+        closerThread.setDaemon( true );
+        closerThread.setName( Thread.currentThread().getName() + "-import-close-io" );
+        closerThread.start();
     }
 }

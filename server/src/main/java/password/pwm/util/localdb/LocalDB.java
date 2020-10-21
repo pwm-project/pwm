@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public interface LocalDB
     String get( DB db, String key )
             throws LocalDBException;
 
-    LocalDBIterator<String> iterator( DB db )
+    LocalDBIterator<Map.Entry<String, String>> iterator( DB db )
             throws LocalDBException;
 
     @WriteOperation
@@ -172,7 +172,7 @@ public interface LocalDB
     }
 
 
-    interface LocalDBIterator<K> extends ClosableIterator<String>
+    interface LocalDBIterator<K> extends ClosableIterator<Map.Entry<String, String>>
     {
     }
 }

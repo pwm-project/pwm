@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import lombok.Value;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -41,7 +42,7 @@ class MemoryCacheStore implements CacheStore
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( MemoryCacheStore.class );
     private final Cache<CacheKey, CacheValueWrapper> memoryStore;
-    private final CacheStoreInfo cacheStoreInfo = new CacheStoreInfo();
+    private final StatisticCounterBundle<DebugKey> cacheStoreInfo = new StatisticCounterBundle<>( DebugKey.class );
 
     MemoryCacheStore( final int maxItems )
     {
@@ -54,8 +55,7 @@ class MemoryCacheStore implements CacheStore
     public void store( final CacheKey cacheKey, final Instant expirationDate, final Serializable data )
             throws PwmUnrecoverableException
     {
-        cacheStoreInfo.incrementStoreCount();
-
+        cacheStoreInfo.increment( DebugKey.storeCount );
         final String jsonData = JsonUtil.serialize( data );
         memoryStore.put( cacheKey, new CacheValueWrapper( cacheKey, expirationDate, jsonData ) );
     }
@@ -64,7 +64,7 @@ class MemoryCacheStore implements CacheStore
     public <T extends Serializable> T readAndStore( final CacheKey cacheKey, final Instant expirationDate, final Class<T> classOfT, final CacheLoader<T> cacheLoader )
             throws PwmUnrecoverableException
     {
-        cacheStoreInfo.incrementReadCount();
+        cacheStoreInfo.increment( DebugKey.readCount );
         {
             final CacheValueWrapper valueWrapper = memoryStore.getIfPresent( cacheKey );
             final T extractedValue = extractValue( classOfT, valueWrapper, cacheKey );
@@ -76,7 +76,7 @@ class MemoryCacheStore implements CacheStore
 
         final T data = cacheLoader.read();
         final String jsonIfiedData = JsonUtil.serialize( data );
-        cacheStoreInfo.incrementMissCount();
+        cacheStoreInfo.increment( DebugKey.missCount );
         memoryStore.put( cacheKey, new CacheValueWrapper( cacheKey, expirationDate, jsonIfiedData ) );
         return data;
     }
@@ -89,7 +89,7 @@ class MemoryCacheStore implements CacheStore
             {
                 if ( valueWrapper.getExpirationDate().isAfter( Instant.now() ) )
                 {
-                    cacheStoreInfo.incrementHitCount();
+                    cacheStoreInfo.increment( DebugKey.hitCount );
                     final String jsonValue  = valueWrapper.getPayload();
                     return JsonUtil.deserialize( jsonValue, classOfT );
                 }
@@ -102,7 +102,7 @@ class MemoryCacheStore implements CacheStore
     @Override
     public <T extends Serializable> T read( final CacheKey cacheKey, final Class<T> classOfT )
     {
-        cacheStoreInfo.incrementReadCount();
+        cacheStoreInfo.increment( DebugKey.readCount );
         final CacheValueWrapper valueWrapper = memoryStore.getIfPresent( cacheKey );
         final T extractedValue = extractValue( classOfT, valueWrapper, cacheKey );
         if ( extractedValue != null )
@@ -111,12 +111,12 @@ class MemoryCacheStore implements CacheStore
         }
 
         memoryStore.invalidate( cacheKey );
-        cacheStoreInfo.incrementMissCount();
+        cacheStoreInfo.increment( DebugKey.missCount );
         return null;
     }
 
     @Override
-    public CacheStoreInfo getCacheStoreInfo( )
+    public StatisticCounterBundle<DebugKey> getCacheStoreInfo( )
     {
         return cacheStoreInfo;
     }

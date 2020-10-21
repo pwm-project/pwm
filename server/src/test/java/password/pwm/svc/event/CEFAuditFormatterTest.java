@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,9 @@ public class CEFAuditFormatterTest
         final UserAuditRecord auditRecord = JsonUtil.deserialize( jsonInput, UserAuditRecord.class );
 
         final String appName = PwmConstants.PWM_APP_NAME;
-        final String expectedOutput = "CEF:0|" + appName + "|" + appName + "|v b0 r0|ACTIVATE_USER|Activate Account|Medium| type=USER eventCode=ACTIVATE_USER timestamp="
+        final String versionData = PwmConstants.SERVLET_VERSION;
+        final String expectedOutput = "CEF:0|" + appName + "|" + appName + "|" + versionData
+                + "|ACTIVATE_USER|Activate Account|Medium| type=USER eventCode=ACTIVATE_USER timestamp="
                 + "2000-01-01T00:00:00Z"
                 + " message=message pipe\\|Escape, slash\\\\Escape, equal\\=Escape, \\nsecondLine"
                 + " perpetratorID=per\\|son perpetratorDN=cn\\=per\\|son,o\\=org sourceAddress=2001:DB8:D:B8:35cc::/64 sourceHost=ws31222";

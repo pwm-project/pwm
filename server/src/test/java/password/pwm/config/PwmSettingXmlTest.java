@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import password.pwm.util.java.XmlFactory;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 public class PwmSettingXmlTest
 {
@@ -110,11 +111,11 @@ public class PwmSettingXmlTest
         for ( final XmlElement element : profileElements )
         {
             final String settingKey = element.getAttributeValue( "setting" );
-            final PwmSetting setting = PwmSetting.forKey( settingKey );
+            final Optional<PwmSetting> setting = PwmSetting.forKey( settingKey );
 
             final String errorMsg = "PwmSetting.xml contains category/profile@setting key of '"
                     + settingKey + "' which does not exist in PwmSetting.java";
-            Assert.assertNotNull( errorMsg, setting );
+            Assert.assertTrue( errorMsg, setting.isPresent() );
         }
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import password.pwm.util.java.StringUtil;
 
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Optional;
 
 public enum HttpContentType
 {
@@ -75,11 +76,11 @@ public enum HttpContentType
         return dataType;
     }
 
-    public static HttpContentType fromContentTypeHeader( final String headerValue, final HttpContentType anyMatch )
+    public static Optional<HttpContentType> fromContentTypeHeader( final String headerValue, final HttpContentType anyMatch )
     {
         if ( StringUtil.isEmpty( headerValue ) )
         {
-            return null;
+            return Optional.empty();
         }
 
         final List<String> values = StringUtil.splitAndTrim( headerValue, "," );
@@ -96,7 +97,7 @@ public enum HttpContentType
                 {
                     if ( mimeValue.equalsIgnoreCase( type ) )
                     {
-                        return httpContentType;
+                        return Optional.of( httpContentType );
                     }
                 }
             }
@@ -106,10 +107,10 @@ public enum HttpContentType
         {
             if ( values.contains( "*/*" ) )
             {
-                return anyMatch;
+                return Optional.of ( anyMatch );
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 }

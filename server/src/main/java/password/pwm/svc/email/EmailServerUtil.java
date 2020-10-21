@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,12 +32,17 @@ import password.pwm.config.option.SmtpServerType;
 import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMessage;
+import password.pwm.health.HealthRecord;
 import password.pwm.http.HttpContentType;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.secure.PwmTrustManager;
+import password.pwm.util.secure.CertificateReadingTrustManager;
 import password.pwm.util.secure.X509Utils;
 
 import javax.mail.Message;
@@ -52,6 +57,7 @@ import javax.net.ssl.TrustManager;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -85,7 +91,7 @@ public class EmailServerUtil
         return returnObj;
     }
 
-    private static Optional<EmailServer> makeEmailServer(
+    public static Optional<EmailServer> makeEmailServer(
             final Configuration configuration,
             final EmailServerProfile profile,
             final TrustManager[] trustManagers
@@ -103,7 +109,10 @@ public class EmailServerUtil
                 && port > 0
         )
         {
-            final Properties properties = makeJavaMailProps( configuration, profile, trustManagers );
+            final TrustManager[] effectiveTrustManagers = trustManagers == null
+                    ? trustManagerForProfile( configuration, profile )
+                    : trustManagers;
+            final Properties properties = makeJavaMailProps( configuration, profile, effectiveTrustManagers );
             final javax.mail.Session session = javax.mail.Session.getInstance( properties, null );
             return Optional.of( EmailServer.builder()
                     .id( id )
@@ -118,7 +127,7 @@ public class EmailServerUtil
         }
         else
         {
-            LOGGER.warn( "discarding incompletely configured email address for smtp server profile " + id );
+            LOGGER.warn( () -> "discarding incompletely configured email address for smtp server profile " + id );
         }
 
         return Optional.empty();
@@ -132,7 +141,7 @@ public class EmailServerUtil
         {
             return X509Utils.getDefaultJavaTrustManager( configuration );
         }
-        final TrustManager certMatchingTrustManager = new X509Utils.CertMatchingTrustManager( configuration, configuredCerts );
+        final TrustManager certMatchingTrustManager = PwmTrustManager.createPwmTrustManager( configuration, configuredCerts );
         return new TrustManager[]
                 {
                         certMatchingTrustManager,
@@ -168,22 +177,26 @@ public class EmailServerUtil
         try
         {
             final SmtpServerType smtpServerType = profile.readSettingAsEnum( PwmSetting.EMAIL_SERVER_TYPE, SmtpServerType.class );
-            if ( smtpServerType == SmtpServerType.START_TLS )
+            if ( smtpServerType == SmtpServerType.SMTPS )
             {
-                    properties.put( "mail.smtp.starttls.enable", true );
-                    properties.put( "mail.smtp.starttls.required", true );
+                final MailSSLSocketFactory mailSSLSocketFactory = new MailSSLSocketFactory();
+                mailSSLSocketFactory.setTrustManagers( trustManager );
+                properties.put( "mail.smtp.ssl.socketFactory", mailSSLSocketFactory );
+                properties.put( "mail.smtp.ssl.enable", true );
+                properties.put( "mail.smtp.ssl.checkserveridentity", true );
+                properties.put( "mail.smtp.socketFactory.fallback", false );
+                properties.put( "mail.smtp.ssl.socketFactory.port", port );
             }
-            else if ( smtpServerType == SmtpServerType.SMTPS )
+            else if ( smtpServerType == SmtpServerType.START_TLS )
             {
-                    final MailSSLSocketFactory mailSSLSocketFactory = new MailSSLSocketFactory();
-                    mailSSLSocketFactory.setTrustManagers( trustManager );
-
-                    properties.put( "mail.smtp.ssl.enable", true );
-                    properties.put( "mail.smtp.ssl.checkserveridentity", true );
-                    properties.put( "mail.smtp.socketFactory.fallback", false );
-                    properties.put( "mail.smtp.ssl.socketFactory", mailSSLSocketFactory );
-                    properties.put( "mail.smtp.ssl.socketFactory.port", port );
+                properties.put( "mail.smtp.starttls.enable", true );
+                properties.put( "mail.smtp.starttls.required", true );
             }
+        }
+        catch ( final Exception e )
+        {
+            final String msg = "unable to create message transport properties: " + e.getMessage();
+            throw new PwmUnrecoverableException( PwmError.CONFIG_FORMAT_ERROR, msg );
         }
         catch ( final Exception e )
         {
@@ -223,7 +236,7 @@ public class EmailServerUtil
             }
             catch ( final UnsupportedEncodingException e )
             {
-                LOGGER.error( "unsupported encoding error while parsing internet address '" + input + "', error: " + e.getMessage() );
+                LOGGER.error( () -> "unsupported encoding error while parsing internet address '" + input + "', error: " + e.getMessage() );
             }
             return address;
         }
@@ -355,6 +368,7 @@ public class EmailServerUtil
     static Transport makeSmtpTransport( final EmailServer server )
             throws MessagingException, PwmUnrecoverableException
     {
+        final Instant startTime = Instant.now();
         // Login to SMTP server first if both username and password is given
         final boolean authenticated = !StringUtil.isEmpty( server.getUsername() ) && server.getPassword() != null;
 
@@ -375,7 +389,8 @@ public class EmailServerUtil
             transport.connect();
         }
 
-        LOGGER.debug( () -> "connected to " + server.toDebugString() + " " + ( authenticated ? "(authenticated)" : "(unauthenticated)" ) );
+        LOGGER.debug( () -> "connected to " + server.toDebugString() + " " + ( authenticated ? "(authenticated)" : "(unauthenticated)" ),
+                () -> TimeDuration.fromCurrent( startTime ) );
 
         return transport;
     }
@@ -385,8 +400,8 @@ public class EmailServerUtil
             throws PwmUnrecoverableException
     {
         final EmailServerProfile emailServerProfile = configuration.getEmailServerProfiles().get( profile );
-        final X509Utils.CertReaderTrustManager certReaderTm = new X509Utils.CertReaderTrustManager(
-                new X509Utils.PromiscuousTrustManager(),
+        final CertificateReadingTrustManager certReaderTm = CertificateReadingTrustManager.newCertReaderTrustManager(
+                configuration,
                 X509Utils.ReadCertificateFlag.ReadOnlyRootCA );
         final TrustManager[] trustManagers =  new TrustManager[]
                 {
@@ -395,7 +410,7 @@ public class EmailServerUtil
         final Optional<EmailServer> emailServer = makeEmailServer( configuration, emailServerProfile, trustManagers );
         if ( emailServer.isPresent() )
         {
-            try ( Transport transport = makeSmtpTransport( emailServer.get() ); )
+            try ( Transport transport = makeSmtpTransport( emailServer.get() ) )
             {
                 return certReaderTm.getCertificates();
             }
@@ -411,4 +426,26 @@ public class EmailServerUtil
         return Collections.emptyList();
     }
 
+    static List<HealthRecord> checkAllConfiguredServers( final List<EmailServer> emailServers )
+    {
+        final List<HealthRecord> records = new ArrayList<>();
+        for ( final EmailServer emailServer : emailServers )
+        {
+            try
+            {
+                final Transport transport = EmailServerUtil.makeSmtpTransport( emailServer );
+                if ( !transport.isConnected() )
+                {
+                    records.add( HealthRecord.forMessage( HealthMessage.Email_ConnectFailure, emailServer.getId(), "unable to connect" ) );
+                }
+                transport.close();
+            }
+            catch ( final Exception e )
+            {
+                records.add( HealthRecord.forMessage( HealthMessage.Email_ConnectFailure, emailServer.getId(), e.getMessage() ) );
+            }
+        }
+
+        return Collections.unmodifiableList( records );
+    }
 }

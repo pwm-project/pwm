@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2019 The PWM Project
+ * Copyright (c) 2009-2020 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -402,9 +402,9 @@ public class OAuthMachine
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( sessionLabel, "error while processing oauth token refresh: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "error while processing oauth token refresh: " + e.getMessage() );
         }
-        LOGGER.error( sessionLabel, "unable to refresh oauth token for user, unauthenticated session" );
+        LOGGER.error( sessionLabel, () -> "unable to refresh oauth token for user, unauthenticated session" );
         pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
         return true;
     }
