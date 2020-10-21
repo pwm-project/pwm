@@ -198,11 +198,6 @@ public class EmailServerUtil
             final String msg = "unable to create message transport properties: " + e.getMessage();
             throw new PwmUnrecoverableException( PwmError.CONFIG_FORMAT_ERROR, msg );
         }
-        catch ( final Exception e )
-        {
-            final String msg = "unable to create message transport properties: " + e.getMessage();
-            throw new PwmUnrecoverableException( PwmError.CONFIG_FORMAT_ERROR, msg );
-        }
 
         //Specify configured advanced settings.
         final Map<String, String> advancedSettingValues = StringUtil.convertStringListToNameValuePair( config.readSettingAsStringArray( PwmSetting.EMAIL_ADVANCED_SETTINGS ), "=" );
