@@ -58,12 +58,11 @@ public abstract class AbstractMacro implements Macro
         return result;
     }
 
-    static List<String> splitMacroParameters( final String input, final String... ignoreValues )
+    static List<String> splitMacroParameters( final String input, final List<String> ignoreValueList )
     {
         final String strippedInput = stripMacroDelimiters( input );
         final String[] splitInput = strippedInput.split( PATTERN_PARAMETER_SPLIT );
         final List<String> returnObj = new ArrayList<>();
-        final List<String> ignoreValueList = Arrays.asList( ignoreValues );
         for ( final String value : splitInput )
         {
             if ( !ignoreValueList.contains( value ) )
@@ -114,7 +113,7 @@ public abstract class AbstractMacro implements Macro
         }
     }
 
-    static String processTimeOutputMacro( final Instant timestamp, final String matchValue, final String... ignoreValues )
+    static String processTimeOutputMacro( final Instant timestamp, final String matchValue, final List<String> ignoreValues )
             throws MacroParseException
     {
         if ( timestamp == null )

@@ -401,7 +401,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorString, new String[]
                     {
                             errorString,
-                    }
+                            }
             );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInfo, pwmRequest ) );
             LOGGER.error( pwmRequest, errorInfo );
@@ -526,45 +526,44 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final String searchTerm = valueMap.get( "search" );
         final StoredConfiguration storedConfiguration = configManagerBean.getStoredConfiguration();
 
-        if ( searchTerm != null && !searchTerm.isEmpty() )
+        if ( StringUtil.isEmpty( searchTerm ) )
         {
-            final Set<StoredConfigItemKey> searchResults = StoredConfigurationUtil.search( storedConfiguration, searchTerm, locale );
-            final ConcurrentHashMap<String, Map<String, SearchResultItem>> returnData = new ConcurrentHashMap<>();
-
-            searchResults
-                    .parallelStream()
-                    .filter( key -> key.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
-                    .forEach( recordID ->
-                    {
-                        final PwmSetting setting = recordID.toPwmSetting();
-                        final SearchResultItem item = new SearchResultItem(
-                                setting.getCategory().toString(),
-                                storedConfiguration.readSetting( setting, recordID.getProfileID() ).toDebugString( locale ),
-                                setting.getCategory().toMenuLocationDebug( recordID.getProfileID(), locale ),
-                                storedConfiguration.isDefaultValue( setting, recordID.getProfileID() ),
-                                recordID.getProfileID()
-                        );
-                        final String returnCategory = item.getNavigation();
-
-
-                        returnData.putIfAbsent( returnCategory, new ConcurrentHashMap<>() );
-                        returnData.get( returnCategory ).put( setting.getKey(), item );
-                    } );
-
-            final TreeMap<String, Map<String, SearchResultItem>> outputMap = new TreeMap<>();
-            for ( final String key : returnData.keySet() )
-            {
-                outputMap.put( key, new TreeMap<>( returnData.get( key ) ) );
-            }
-
-            restResultBean = RestResultBean.withData( outputMap );
-            LOGGER.trace( pwmRequest, () -> "finished search operation with " + returnData.size() + " results in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
-        }
-        else
-        {
-            restResultBean = RestResultBean.withData( new ArrayList() );
+            pwmRequest.outputJsonResult( RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, "missing search parameter" ) ) );
+            return ProcessStatus.Halt;
         }
 
+
+        final Set<StoredConfigItemKey> searchResults = StoredConfigurationUtil.search( storedConfiguration, searchTerm, locale );
+        final ConcurrentHashMap<String, Map<String, SearchResultItem>> returnData = new ConcurrentHashMap<>();
+
+        searchResults
+                .parallelStream()
+                .filter( key -> key.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
+                .forEach( recordID ->
+                {
+                    final PwmSetting setting = recordID.toPwmSetting();
+                    final SearchResultItem item = new SearchResultItem(
+                            setting.getCategory().toString(),
+                            storedConfiguration.readSetting( setting, recordID.getProfileID() ).toDebugString( locale ),
+                            setting.getCategory().toMenuLocationDebug( recordID.getProfileID(), locale ),
+                            storedConfiguration.isDefaultValue( setting, recordID.getProfileID() ),
+                            recordID.getProfileID()
+                    );
+                    final String returnCategory = item.getNavigation();
+
+
+                    returnData.putIfAbsent( returnCategory, new ConcurrentHashMap<>() );
+                    returnData.get( returnCategory ).put( setting.getKey(), item );
+                } );
+
+        final TreeMap<String, Map<String, SearchResultItem>> outputMap = new TreeMap<>();
+        for ( final String key : returnData.keySet() )
+        {
+            outputMap.put( key, new TreeMap<>( returnData.get( key ) ) );
+        }
+
+        restResultBean = RestResultBean.withData( outputMap );
+        LOGGER.trace( pwmRequest, () -> "finished search operation with " + returnData.size() + " results", () -> TimeDuration.fromCurrent( startTime ) );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -732,7 +731,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, "unknown format type: " + e.getMessage(), new String[]
                             {
                                     "format",
-                            }
+                                    }
                     ) );
                 }
 

@@ -114,8 +114,16 @@ public class MacroTest
     @Test
     public void testUserIDMacro() throws Exception
     {
-        final String goal = "test jrivard test";
+        final String goal = "test FLast test";
         final String expanded = macroRequest.expandMacros( "test @User:ID@ test" );
+        Assert.assertEquals( goal, expanded );
+    }
+
+    @Test
+    public void testTargetUserIDMacro() throws Exception
+    {
+        final String goal = "test TUser test";
+        final String expanded = macroRequest.expandMacros( "test @TargetUser:ID@ test" );
         Assert.assertEquals( goal, expanded );
     }
 
@@ -143,6 +151,34 @@ public class MacroTest
         {
             final String goal = "UserPwExpireTime 2000.02.03 test";
             final String expanded = macroRequest.expandMacros( "UserPwExpireTime @User:PwExpireTime:yyyy.MM.dd@ test" );
+            Assert.assertEquals( goal, expanded );
+        }
+    }
+
+    @Test
+    public void testTargetUserPwExpireTimeMacro()
+    {
+        {
+            final String goal = "TargetUserPwExpireTime 1973-01-03T22:45:21Z test";
+            final String expanded = macroRequest.expandMacros( "TargetUserPwExpireTime @TargetUser:PwExpireTime@ test" );
+            Assert.assertEquals( goal, expanded );
+        }
+
+        {
+            final String goal = "TargetUserPwExpireTime 10:45 PM, UTC test";
+            final String expanded = macroRequest.expandMacros( "TargetUserPwExpireTime @TargetUser:PwExpireTime:K/:mm a, z@ test" );
+            Assert.assertEquals( goal, expanded );
+        }
+
+        {
+            final String goal = "TargetUserPwExpireTime 4:15 AM, IST test";
+            final String expanded = macroRequest.expandMacros( "TargetUserPwExpireTime @TargetUser:PwExpireTime:K/:mm a, z:IST@ test" );
+            Assert.assertEquals( goal, expanded );
+        }
+
+        {
+            final String goal = "TargetUserPwExpireTime 1973.01.03 test";
+            final String expanded = macroRequest.expandMacros( "TargetUserPwExpireTime @TargetUser:PwExpireTime:yyyy.MM.dd@ test" );
             Assert.assertEquals( goal, expanded );
         }
     }
@@ -214,6 +250,19 @@ public class MacroTest
         Assert.assertEquals( goal, expanded );
     }
 
+
+    @Test
+    public void testTargetUserDaysUntilPwExpireMacro()
+            throws PwmUnrecoverableException
+    {
+        final Duration duration = Duration.between( macroRequest.getTargetUserInfo().getPasswordExpirationTime(), Instant.now() );
+        final long days = TimeUnit.DAYS.convert( duration.toMillis(), TimeUnit.MILLISECONDS );
+
+        final String goal = "TargetUserDaysUntilPwExpire " + days + " test";
+        final String expanded = macroRequest.expandMacros( "TargetUserDaysUntilPwExpire @TargetUser:DaysUntilPwExpire@ test" );
+        Assert.assertEquals( goal, expanded );
+    }
+
     @Test
     public void testPasswordMacro()
     {
@@ -227,16 +276,26 @@ public class MacroTest
     public void testUserEmailMacro()
     {
 
-        final String goal = "UserEmail zippy@example.com test";
+        final String goal = "UserEmail FLast@example.com test";
         final String expanded = macroRequest.expandMacros( "UserEmail @User:Email@ test" );
         Assert.assertEquals( goal, expanded );
     }
 
     @Test
+    public void testTargetUserEmailMacro()
+    {
+
+        final String goal = "TargetUserEmail TUser@example.com test";
+        final String expanded = macroRequest.expandMacros( "TargetUserEmail @TargetUser:Email@ test" );
+        Assert.assertEquals( goal, expanded );
+    }
+
+
+    @Test
     public void testUserDNMacro()
     {
 
-        final String goal = "UserDN cn=test1,ou=test,o=org test";
+        final String goal = "UserDN cn=FLast,ou=test,o=org test";
         final String expanded = macroRequest.expandMacros( "UserDN @LDAP:DN@ test" );
         Assert.assertEquals( goal, expanded );
     }
@@ -255,14 +314,14 @@ public class MacroTest
     {
         // userID macro
         {
-            final String goal = "cn=test1,ou=test,o=org";
+            final String goal = "cn=FLast,ou=test,o=org";
             final String expanded = macroRequest.expandMacros( "@LDAP:dn@" );
             Assert.assertEquals( goal, expanded );
         }
 
 
         {
-            final String goal = "test cn%3Dtest1%2Cou%3Dtest%2Co%3Dorg";
+            final String goal = "test cn%3DFLast%2Cou%3Dtest%2Co%3Dorg";
             final String expanded = macroRequest.expandMacros( "test @Encode:urlPath:[[@LDAP:dn@]]@" );
             Assert.assertEquals( goal, expanded );
         }
@@ -290,18 +349,57 @@ public class MacroTest
     }
 
     @Test
+    public void testTargetUserLdapMacro()
+    {
+        // userID macro
+        {
+            final String goal = "cn=TUser,ou=test,o=org";
+            final String expanded = macroRequest.expandMacros( "@TargetUser:LDAP:dn@" );
+            Assert.assertEquals( goal, expanded );
+        }
+
+
+        {
+            final String goal = "test cn%3DTUser%2Cou%3Dtest%2Co%3Dorg";
+            final String expanded = macroRequest.expandMacros( "test @Encode:urlPath:[[@TargetUser:LDAP:dn@]]@" );
+            Assert.assertEquals( goal, expanded );
+        }
+
+        // user attribute macro
+        {
+            final String goal = "test Target test";
+            final String expanded = macroRequest.expandMacros( "test @TargetUser:LDAP:givenName@ test" );
+            Assert.assertEquals( goal, expanded );
+        }
+
+        // user attribute with max chars macro
+        {
+            final String goal = "test Targ test";
+            final String expanded = macroRequest.expandMacros( "test @TargetUser:LDAP:givenName:4@ test" );
+            Assert.assertEquals( goal, expanded );
+        }
+
+        // user attribute with max chars and pad macro
+        {
+            final String goal = "test Targetoooo test";
+            final String expanded = macroRequest.expandMacros( "test @TargetUser:LDAP:givenName:10:o@ test" );
+            Assert.assertEquals( goal, expanded );
+        }
+    }
+
+    @Test
     public void testUserLdapMacro()
     {
         // userID macro
         {
-            final String goal = "cn=test1,ou=test,o=org";
+            final String goal = "cn=FLast,ou=test,o=org";
             final String expanded = macroRequest.expandMacros( "@User:LDAP:dn@" );
             Assert.assertEquals( goal, expanded );
         }
 
 
         {
-            final String goal = "test cn%3Dtest1%2Cou%3Dtest%2Co%3Dorg";
+            final String goal = "test cn%3DFLast%2Cou%3Dtest%2Co%3Dorg";
             final String expanded = macroRequest.expandMacros( "test @Encode:urlPath:[[@User:LDAP:dn@]]@" );
             Assert.assertEquals( goal, expanded );
         }

@@ -114,7 +114,7 @@ public class HelpdeskDetailInfoBean implements Serializable
         final Instant startTime = Instant.now();
         LOGGER.trace( pwmRequest, () -> "beginning to assemble detail data report for user " + userIdentity );
         final Locale actorLocale = pwmRequest.getLocale();
-        final ChaiUser theUser = HelpdeskServlet.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
+        final ChaiUser theUser = HelpdeskServletUtil.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
 
         if ( !theUser.exists() )
         {

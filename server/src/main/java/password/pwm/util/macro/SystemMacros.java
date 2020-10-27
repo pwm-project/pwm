@@ -114,7 +114,7 @@ public class SystemMacros
         )
                 throws MacroParseException
         {
-            final List<String> parameters = splitMacroParameters( matchValue, "CurrentTime" );
+            final List<String> parameters = splitMacroParameters( matchValue, Collections.singletonList( "CurrentTime" ) );
 
             if ( parameters.size() > 2 )
             {
@@ -152,7 +152,7 @@ public class SystemMacros
         )
                 throws MacroParseException
         {
-            final List<String> parameters = splitMacroParameters( matchValue, "Iso8601" );
+            final List<String> parameters = splitMacroParameters( matchValue, Collections.singletonList( "Iso8601" ) );
 
             if ( JavaHelper.isEmpty(  parameters ) || parameters.size() != 1 )
             {
@@ -270,7 +270,7 @@ public class SystemMacros
                 return "";
             }
 
-            final List<String> parameters = splitMacroParameters( matchValue, "RandomChar" );
+            final List<String> parameters = splitMacroParameters( matchValue, Collections.singletonList( "RandomChar" ) );
             int length = 1;
             if ( parameters.size() > 0 && !parameters.get( 0 ).isEmpty() )
             {
@@ -327,7 +327,7 @@ public class SystemMacros
                 return "";
             }
 
-            final List<String> parameters = splitMacroParameters( matchValue, "RandomNumber" );
+            final List<String> parameters = splitMacroParameters( matchValue, Collections.singletonList( "RandomNumber" ) );
             if ( parameters.size() != 2 )
             {
                 throw new MacroParseException( "incorrect number of parameter of RandomNumber: "

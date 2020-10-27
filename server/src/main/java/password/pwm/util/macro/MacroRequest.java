@@ -54,25 +54,11 @@ public class MacroRequest
     private final UserInfo userInfo;
     private final LoginInfoBean loginInfoBean;
     private final MacroReplacer macroReplacer;
-
-    public MacroRequest(
-            final PwmApplication pwmApplication,
-            final SessionLabel sessionLabel,
-            final UserInfo userInfo,
-            final LoginInfoBean loginInfoBean,
-            final MacroReplacer macroReplacer
-    )
-    {
-        this.pwmApplication = pwmApplication;
-        this.sessionLabel = sessionLabel;
-        this.userInfo = userInfo;
-        this.loginInfoBean = loginInfoBean;
-        this.macroReplacer = macroReplacer;
-    }
+    private final UserInfo targetUserInfo;
 
     public static MacroRequest forStatic( )
     {
-        return new MacroRequest( null, null, null, null, null );
+        return new MacroRequest( null, null, null, null, null, null );
     }
 
     public static MacroRequest forUser(
@@ -110,7 +96,7 @@ public class MacroRequest
             final LoginInfoBean loginInfoBean
     )
     {
-        return new MacroRequest( pwmApplication, sessionLabel, userInfo, loginInfoBean, null );
+        return new MacroRequest( pwmApplication, sessionLabel, userInfo, loginInfoBean, null, null );
     }
 
     public static MacroRequest forUser(
@@ -121,7 +107,7 @@ public class MacroRequest
             final MacroReplacer macroReplacer
     )
     {
-        return new MacroRequest( pwmApplication, sessionLabel, userInfo, loginInfoBean, macroReplacer );
+        return new MacroRequest( pwmApplication, sessionLabel, userInfo, loginInfoBean, macroReplacer, null );
     }
 
     public static MacroRequest forUser(
@@ -133,7 +119,7 @@ public class MacroRequest
             throws PwmUnrecoverableException
     {
         final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, sessionLabel, userIdentity, userLocale );
-        return new MacroRequest( pwmApplication, sessionLabel, userInfoBean, null, null );
+        return new MacroRequest( pwmApplication, sessionLabel, userInfoBean, null, null, null );
     }
 
     public static MacroRequest forUser(
@@ -146,7 +132,7 @@ public class MacroRequest
             throws PwmUnrecoverableException
     {
         final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, sessionLabel, userIdentity, userLocale );
-        return new MacroRequest( pwmApplication, sessionLabel, userInfoBean, null, macroReplacer );
+        return new MacroRequest( pwmApplication, sessionLabel, userInfoBean, null, macroReplacer, null );
     }
 
     public static MacroRequest forNonUserSpecific(
@@ -154,7 +140,7 @@ public class MacroRequest
             final SessionLabel sessionLabel
     )
     {
-        return new MacroRequest( pwmApplication, sessionLabel, null, null, null );
+        return new MacroRequest( pwmApplication, sessionLabel, null, null, null, null );
     }
 
     public String expandMacros( final String input )
@@ -165,63 +151,117 @@ public class MacroRequest
     public static MacroRequest sampleMacroRequest( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
-        final Map<String, String> attributes = new LinkedHashMap<>();
-        attributes.put( "givenName", "First" );
-        attributes.put( "sn", "Last" );
-        attributes.put( "cn", "FLast" );
-        attributes.put( "fullname", "First Last" );
-        attributes.put( "uid", "FLast" );
-        attributes.put( "mail", "FLast@example.com" );
-        attributes.put( "carLicense", "6YJ S32" );
-        attributes.put( "mobile", "800-555-1212" );
-        attributes.put( "objectClass", "inetOrgPerson" );
-        attributes.put( "personalMobile", "800-555-1313" );
-        attributes.put( "title", "Title" );
-        attributes.put( "c", "USA" );
-        attributes.put( "co", "County" );
-        attributes.put( "description", "User Description" );
-        attributes.put( "department", "Department" );
-        attributes.put( "initials", "M" );
-        attributes.put( "postalcode", "12345-6789" );
-        attributes.put( "samaccountname", "FLast" );
-        attributes.put( "userprincipalname", "FLast" );
+        final UserInfoBean userInfoBean;
+        {
+            final Map<String, String> userAttributes = new LinkedHashMap<>();
+            userAttributes.put( "givenName", "First" );
+            userAttributes.put( "sn", "Last" );
+            userAttributes.put( "cn", "FLast" );
+            userAttributes.put( "fullname", "First Last" );
+            userAttributes.put( "uid", "FLast" );
+            userAttributes.put( "mail", "FLast@example.com" );
+            userAttributes.put( "carLicense", "6YJ S32" );
+            userAttributes.put( "mobile", "800-555-1212" );
+            userAttributes.put( "objectClass", "inetOrgPerson" );
+            userAttributes.put( "personalMobile", "800-555-1313" );
+            userAttributes.put( "title", "Title" );
+            userAttributes.put( "c", "USA" );
+            userAttributes.put( "co", "County" );
+            userAttributes.put( "description", "User Description" );
+            userAttributes.put( "department", "Department" );
+            userAttributes.put( "initials", "M" );
+            userAttributes.put( "postalcode", "12345-6789" );
+            userAttributes.put( "samaccountname", "FLast" );
+            userAttributes.put( "userprincipalname", "FLast" );
 
 
-        final UserIdentity userIdentity = new UserIdentity( "cn=test1,ou=test,o=org", "profile1" );
-        final OTPUserRecord otpUserRecord = new OTPUserRecord();
-        otpUserRecord.setTimestamp( Instant.ofEpochSecond( 941259364 ) );
-        final ResponseInfoBean responseInfoBean = new ResponseInfoBean(
-                Collections.emptyMap(),
-                Collections.emptyMap(),
-                PwmConstants.DEFAULT_LOCALE,
-                8 + 3,
-                null,
-                DataStorageMethod.LOCALDB,
-                Answer.FormatType.PBKDF2
-        );
-        responseInfoBean.setTimestamp( Instant.ofEpochSecond( 941246275 ) );
-        final UserInfoBean userInfoBean = UserInfoBean.builder()
-                .userIdentity( userIdentity )
-                .username( "jrivard" )
-                .userEmailAddress( "zippy@example.com" )
-                .attributes( attributes )
-                .passwordExpirationTime( Instant.ofEpochSecond( 949539661 ) )
-                .responseInfoBean( responseInfoBean )
-                .otpUserRecord( otpUserRecord )
-                .cachedAttributeValues( Collections.singletonMap( "givenName", "Jason" ) )
-                .build();
+            final OTPUserRecord otpUserRecord = new OTPUserRecord();
+            otpUserRecord.setTimestamp( Instant.ofEpochSecond( 941259364 ) );
+            final ResponseInfoBean responseInfoBean = new ResponseInfoBean(
+                    Collections.emptyMap(),
+                    Collections.emptyMap(),
+                    PwmConstants.DEFAULT_LOCALE,
+                    8 + 3,
+                    null,
+                    DataStorageMethod.LOCALDB,
+                    Answer.FormatType.PBKDF2
+            );
+            responseInfoBean.setTimestamp( Instant.ofEpochSecond( 941246275 ) );
+
+            final UserIdentity userIdentity = new UserIdentity( "cn=FLast,ou=test,o=org", "profile1" );
+
+            userInfoBean = UserInfoBean.builder()
+                    .userIdentity( userIdentity )
+                    .username( "FLast" )
+                    .userEmailAddress( "FLast@example.com" )
+                    .attributes( userAttributes )
+                    .passwordExpirationTime( Instant.ofEpochSecond( 949539661 ) )
+                    .responseInfoBean( responseInfoBean )
+                    .otpUserRecord( otpUserRecord )
+                    .build();
+        }
+
+        final UserInfoBean targetUserInfoBean;
+        {
+            final Map<String, String> userAttributes = new LinkedHashMap<>();
+            userAttributes.put( "givenName", "Target" );
+            userAttributes.put( "sn", "User" );
+            userAttributes.put( "cn", "TUser" );
+            userAttributes.put( "fullname", "Target User" );
+            userAttributes.put( "uid", "TUser" );
+            userAttributes.put( "mail", "TUser@example.com" );
+            userAttributes.put( "carLicense", "6YJ S32" );
+            userAttributes.put( "mobile", "800-555-1212" );
+            userAttributes.put( "objectClass", "inetOrgPerson" );
+            userAttributes.put( "personalMobile", "800-555-1313" );
+            userAttributes.put( "title", "Title" );
+            userAttributes.put( "c", "USA" );
+            userAttributes.put( "co", "County" );
+            userAttributes.put( "description", "Target User Description" );
+            userAttributes.put( "department", "Department" );
+            userAttributes.put( "initials", "M" );
+            userAttributes.put( "postalcode", "12345-6789" );
+            userAttributes.put( "samaccountname", "TUser" );
+            userAttributes.put( "userprincipalname", "TUser" );
+
+
+            final OTPUserRecord otpUserRecord = new OTPUserRecord();
+            otpUserRecord.setTimestamp( Instant.ofEpochSecond( 941252344 ) );
+            final ResponseInfoBean responseInfoBean = new ResponseInfoBean(
+                    Collections.emptyMap(),
+                    Collections.emptyMap(),
+                    PwmConstants.DEFAULT_LOCALE,
+                    8 + 3,
+                    null,
+                    DataStorageMethod.LOCALDB,
+                    Answer.FormatType.PBKDF2
+            );
+            responseInfoBean.setTimestamp( Instant.ofEpochSecond( 941244474 ) );
+
+            final UserIdentity userIdentity = new UserIdentity( "cn=TUser,ou=test,o=org", "profile1" );
+
+            targetUserInfoBean = UserInfoBean.builder()
+                    .userIdentity( userIdentity )
+                    .username( "TUser" )
+                    .userEmailAddress( "TUser@example.com" )
+                    .attributes( userAttributes )
+                    .passwordExpirationTime( Instant.ofEpochSecond( 94949121 ) )
+                    .responseInfoBean( responseInfoBean )
+                    .otpUserRecord( otpUserRecord )
+                    .build();
+        }
 
         final LoginInfoBean loginInfoBean = new LoginInfoBean();
         loginInfoBean.setAuthenticated( true );
-        loginInfoBean.setUserIdentity( userIdentity );
+        loginInfoBean.setUserIdentity( userInfoBean.getUserIdentity() );
         loginInfoBean.setUserCurrentPassword( PasswordData.forStringValue( "PaSSw0rd" ) );
 
         return MacroRequest.builder()
                 .pwmApplication( pwmApplication )
                 .userInfo( userInfoBean )
+                .targetUserInfo( targetUserInfoBean )
                 .loginInfoBean( loginInfoBean )
                 .build();
 
     }
-
 }

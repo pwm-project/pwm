@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 public enum PwmAboutProperty
 {
@@ -111,17 +112,12 @@ public enum PwmAboutProperty
             pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseAboutProperty.databaseProductVersion ) ),;
 
     private final String label;
-    private final ValueProvider valueProvider;
+    private final transient Function<PwmApplication, String> value;
 
-    PwmAboutProperty( final String label, final ValueProvider valueProvider )
+    PwmAboutProperty( final String label, final Function<PwmApplication, String> value )
     {
         this.label = label;
-        this.valueProvider = valueProvider;
-    }
-
-    private interface ValueProvider
-    {
-        String value( PwmApplication pwmApplication );
+        this.value = value;
     }
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmAboutProperty.class );
@@ -134,12 +130,12 @@ public enum PwmAboutProperty
 
         for ( final PwmAboutProperty pwmAboutProperty : PwmAboutProperty.values() )
         {
-            final ValueProvider valueProvider = pwmAboutProperty.valueProvider;
+            final Function<PwmApplication, String> valueProvider = pwmAboutProperty.value;
             if ( valueProvider != null )
             {
                 try
                 {
-                    final String value = valueProvider.value( pwmApplication );
+                    final String value = valueProvider.apply( pwmApplication );
                     aboutMap.put( pwmAboutProperty.name(), value == null ? "" : value );
                 }
                 catch ( final Throwable t )

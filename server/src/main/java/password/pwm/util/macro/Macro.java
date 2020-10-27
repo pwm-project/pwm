@@ -30,6 +30,7 @@ public interface Macro
         Static,
         System,
         User,
+        TargetUser,
     }
 
     enum Sequence

@@ -213,7 +213,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         // verify the chaiProvider is available - ie, password is supplied, proxy available etc.
         // we do this now so redirects can handle properly instead of during a later rest request.
         final UserIdentity loggedInUser = pwmRequest.getPwmSession().getUserInfo().getUserIdentity();
-        getChaiUser( pwmRequest, helpdeskProfile, loggedInUser ).getChaiProvider();
+        HelpdeskServletUtil.getChaiUser( pwmRequest, helpdeskProfile, loggedInUser ).getChaiProvider();
 
         return ProcessStatus.Continue;
     }
@@ -246,8 +246,8 @@ public class HelpdeskServlet extends ControlledPwmServlet
             pwmRequest.respondWithError( errorInformation, false );
             return ProcessStatus.Halt;
         }
-        final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
-        LOGGER.debug( pwmRequest, () -> "received executeAction request for user " + userIdentity.toString() );
+        final UserIdentity targetUserIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
+        LOGGER.debug( pwmRequest, () -> "received executeAction request for user " + targetUserIdentity.toString() );
 
         final List<ActionConfiguration> actionConfigurations = helpdeskProfile.readSettingAsAction( PwmSetting.HELPDESK_ACTIONS );
         final String requestedName = pwmRequest.readParameterAsString( "name" );
@@ -271,17 +271,14 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
 
         // check if user should be seen by actor
-        HelpdeskServletUtil.checkIfUserIdentityViewable( pwmRequest, helpdeskProfile, userIdentity );
+        HelpdeskServletUtil.checkIfUserIdentityViewable( pwmRequest, helpdeskProfile, targetUserIdentity );
 
-        final boolean useProxy = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY );
         try
         {
             final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-            final ChaiUser chaiUser = useProxy
-                    ? pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity )
-                    : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
-            final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, userIdentity );
+            final ChaiUser chaiUser = HelpdeskServletUtil.getChaiUser( pwmRequest, helpdeskProfile, targetUserIdentity );
+            final MacroRequest macroRequest = HelpdeskServletUtil.getTargetUserMacroRequest( pwmRequest, helpdeskProfile, targetUserIdentity );
             final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmRequest.getPwmApplication(), chaiUser )
                     .setExpandPwmMacros( true )
                     .setMacroMachine( macroRequest )
@@ -295,7 +292,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                         AuditEvent.HELPDESK_ACTION,
                         pwmSession.getUserInfo().getUserIdentity(),
                         action.getName(),
-                        userIdentity,
+                        targetUserIdentity,
                         pwmSession.getSessionStateBean().getSrcAddress(),
                         pwmSession.getSessionStateBean().getSrcHostname()
                 );
@@ -517,7 +514,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             {
                 final UserIdentity loggedInUser = pwmRequest.getPwmSession().getUserInfo().getUserIdentity();
                 builder.ldapProfile( loggedInUser.getLdapProfileID() );
-                builder.chaiProvider( getChaiUser( pwmRequest, helpdeskProfile, loggedInUser ).getChaiProvider() );
+                builder.chaiProvider( HelpdeskServletUtil.getChaiUser( pwmRequest, helpdeskProfile, loggedInUser ).getChaiProvider() );
             }
 
             switch ( searchMode )
@@ -605,7 +602,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
         try
         {
-            final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
+            final ChaiUser chaiUser = HelpdeskServletUtil.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
 
             // send notice email
             HelpdeskServletUtil.sendUnlockNoticeEmail( pwmRequest, helpdeskProfile, userIdentity, chaiUser );
@@ -743,14 +740,8 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final Configuration config = pwmRequest.getConfig();
         final Map<String, String> bodyParams = pwmRequest.readBodyAsJsonStringMap();
 
-        final UserIdentity userIdentity = UserIdentity.fromKey( bodyParams.get( PwmConstants.PARAM_USERKEY ), pwmRequest.getPwmApplication() );
-        final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                pwmRequest.getPwmApplication(),
-                pwmRequest.getLabel(),
-                pwmRequest.getLocale(),
-                userIdentity,
-                getChaiUser( pwmRequest, helpdeskProfile, userIdentity ).getChaiProvider()
-        );
+        final UserIdentity targetUserIdentity = UserIdentity.fromKey( bodyParams.get( PwmConstants.PARAM_USERKEY ), pwmRequest.getPwmApplication() );
+        final UserInfo targetUserInfo = HelpdeskServletUtil.getTargetUserInfo( pwmRequest, helpdeskProfile, targetUserIdentity );
 
         final String requestedTokenID = bodyParams.get( "id" );
 
@@ -760,7 +751,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                     pwmRequest.getPwmApplication(),
                     pwmRequest.getLabel(),
                     pwmRequest.getLocale(),
-                    userInfo,
+                    targetUserInfo,
                     MessageSendMethod.CHOICE_SMS_EMAIL  );
 
             final Optional<TokenDestinationItem> selectedTokenDest = TokenDestinationItem.tokenDestinationItemForID( items, requestedTokenID );
@@ -775,7 +766,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             }
         }
 
-        final HelpdeskDetailInfoBean helpdeskDetailInfoBean = HelpdeskDetailInfoBean.makeHelpdeskDetailInfo( pwmRequest, helpdeskProfile, userIdentity );
+        final HelpdeskDetailInfoBean helpdeskDetailInfoBean = HelpdeskDetailInfoBean.makeHelpdeskDetailInfo( pwmRequest, helpdeskProfile, targetUserIdentity );
         if ( helpdeskDetailInfoBean == null )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, "unable to read helpdesk detail data for specified user" );
@@ -783,12 +774,12 @@ public class HelpdeskServlet extends ControlledPwmServlet
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             return ProcessStatus.Halt;
         }
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
+        final MacroRequest macroRequest = HelpdeskServletUtil.getTargetUserMacroRequest( pwmRequest, helpdeskProfile, targetUserIdentity );
         final String configuredTokenString = config.readAppProperty( AppProperty.HELPDESK_TOKEN_VALUE );
         final String tokenKey = macroRequest.expandMacros( configuredTokenString );
         final EmailItemBean emailItemBean = config.readSettingAsEmail( PwmSetting.EMAIL_HELPDESK_TOKEN, pwmRequest.getLocale() );
 
-        LOGGER.debug( pwmRequest, () -> "generated token code for " + userIdentity.toDelimitedKey() );
+        LOGGER.debug( pwmRequest, () -> "generated token code for " + targetUserIdentity.toDelimitedKey() );
 
         final String smsMessage = config.readSettingAsLocalizedString( PwmSetting.SMS_HELPDESK_TOKEN_TEXT, pwmRequest.getLocale() );
 
@@ -797,7 +788,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             TokenService.TokenSender.sendToken(
                     TokenService.TokenSendInfo.builder()
                             .pwmApplication( pwmRequest.getPwmApplication() )
-                            .userInfo( userInfo )
+                            .userInfo( targetUserInfo )
                             .macroRequest( macroRequest )
                             .configuredEmailSetting( emailItemBean )
                             .tokenDestinationItem( tokenDestinationItem )
@@ -831,7 +822,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         LOGGER.debug( pwmRequest, () -> "helpdesk operator "
                 + pwmRequest.getUserInfoIfLoggedIn().toDisplayString()
                 + " issued token for verification against user "
-                + userIdentity.toDisplayString()
+                + targetUserIdentity.toDisplayString()
                 + " sent to destination(s) "
                 + tokenDestinationItem.getDisplay()
                 + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
@@ -940,7 +931,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         {
 
             final OtpService service = pwmRequest.getPwmApplication().getOtpService();
-            final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
+            final ChaiUser chaiUser = HelpdeskServletUtil.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
             service.clearOTPUserConfiguration( pwmRequest, userIdentity, chaiUser );
             {
                 // mark the event log
@@ -967,20 +958,6 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
-    }
-
-
-    static ChaiUser getChaiUser(
-            final PwmRequest pwmRequest,
-            final HelpdeskProfile helpdeskProfile,
-            final UserIdentity userIdentity
-    )
-            throws PwmUnrecoverableException
-    {
-        final boolean useProxy = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY );
-        return useProxy
-                ? pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity )
-                : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
     }
 
 
@@ -1055,7 +1032,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             }
 
             final Map<String, String> bodyMap = JsonUtil.deserializeStringMap( bodyString );
-            final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
+            final ChaiUser chaiUser = HelpdeskServletUtil.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
 
             int successCount = 0;
             for ( final FormConfiguration formConfiguration : verificationForms )
@@ -1167,7 +1144,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             }
         }
 
-        final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
+        final ChaiUser chaiUser = HelpdeskServletUtil.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
         final String userGUID = LdapOperationsHelper.readLdapGuidValue(
                 pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),
@@ -1213,7 +1190,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
         HelpdeskServletUtil.checkIfUserIdentityViewable( pwmRequest, helpdeskProfile, userIdentity );
 
-        final ChaiUser chaiUser = getChaiUser( pwmRequest, getHelpdeskProfile( pwmRequest ), userIdentity );
+        final ChaiUser chaiUser = HelpdeskServletUtil.getChaiUser( pwmRequest, getHelpdeskProfile( pwmRequest ), userIdentity );
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),
@@ -1261,7 +1238,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         );
 
         final UserIdentity userIdentity = UserIdentity.fromKey( jsonInput.getUsername(), pwmRequest.getPwmApplication() );
-        final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
+        final ChaiUser chaiUser = HelpdeskServletUtil.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),
@@ -1347,7 +1324,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
         HelpdeskServletUtil.checkIfUserIdentityViewable( pwmRequest, helpdeskProfile, userIdentity );
 
-        final ChaiUser chaiUser = getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
+        final ChaiUser chaiUser = HelpdeskServletUtil.getChaiUser( pwmRequest, helpdeskProfile, userIdentity );
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),
@@ -1408,7 +1385,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final PhotoDataReader.Settings settings = PhotoDataReader.Settings.builder()
                 .enabled( enabled )
                 .photoPermissions( null )
-                .chaiProvider( getChaiUser( pwmRequest, helpdeskProfile, userIdentity ).getChaiProvider() )
+                .chaiProvider( HelpdeskServletUtil.getChaiUser( pwmRequest, helpdeskProfile, userIdentity ).getChaiProvider() )
                 .build();
 
         return new PhotoDataReader( pwmRequest, settings, userIdentity );

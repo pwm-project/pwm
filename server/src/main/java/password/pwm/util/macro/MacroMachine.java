@@ -270,6 +270,11 @@ public class MacroMachine
             scopes.add( Macro.Scope.User );
         }
 
+        if ( macroRequestInfo.getTargetUserInfo() != null )
+        {
+            scopes.add( Macro.Scope.TargetUser );
+        }
+
         return Collections.unmodifiableSet( scopes );
     }
 }
