@@ -497,7 +497,7 @@ public class ForgottenPasswordUtil
                         userIdentity,
                         pwmRequest.getLabel()
                 );
-                pwmApplication.getAuditManager().submit( auditRecord );
+                pwmApplication.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
             }
 
             final MessageSendMethod messageSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_SENDNEWPW_METHOD, MessageSendMethod.class );

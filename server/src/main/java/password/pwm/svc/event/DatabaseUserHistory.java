@@ -21,6 +21,7 @@
 package password.pwm.svc.event;
 
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -31,6 +32,7 @@ import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseService;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -53,7 +55,7 @@ class DatabaseUserHistory implements UserHistoryStore
     }
 
     @Override
-    public void updateUserHistory( final UserAuditRecord auditRecord ) throws PwmUnrecoverableException
+    public void updateUserHistory( final SessionLabel sessionLabel, final UserAuditRecord auditRecord ) throws PwmUnrecoverableException
     {
         // user info
         final UserIdentity userIdentity;
@@ -83,7 +85,7 @@ class DatabaseUserHistory implements UserHistoryStore
     }
 
     @Override
-    public List<UserAuditRecord> readUserHistory( final UserInfo userInfo ) throws PwmUnrecoverableException
+    public List<UserAuditRecord> readUserHistory( final SessionLabel sessionLabel, final UserInfo userInfo ) throws PwmUnrecoverableException
     {
         final String userGuid = userInfo.getUserGuid();
         try
@@ -99,7 +101,7 @@ class DatabaseUserHistory implements UserHistoryStore
     private StoredHistory readStoredHistory( final String guid ) throws DatabaseException, PwmUnrecoverableException
     {
         final String str = this.databaseService.getAccessor().get( TABLE, guid );
-        if ( str == null || str.length() < 1 )
+        if ( StringUtil.isEmpty( str ) )
         {
             return new StoredHistory();
         }

@@ -390,7 +390,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
                     pwmRequest.getLabel(),
                     "ActivateUser"
             );
-            pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+            pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         return ProcessStatus.Continue;

@@ -332,7 +332,7 @@ public class PwmApplication
                     AuditEvent.STARTUP,
                     null
             );
-            getAuditManager().submit( auditRecord );
+            getAuditManager().submit( null, auditRecord );
         }
         catch ( final PwmException e )
         {
@@ -823,7 +823,7 @@ public class PwmApplication
                 );
                 if ( getAuditManager() != null )
                 {
-                    getAuditManager().submit( auditRecord );
+                    getAuditManager().submit( null, auditRecord );
                 }
             }
             catch ( final PwmException e )

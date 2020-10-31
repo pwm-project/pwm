@@ -369,7 +369,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                 sessionLabel.getSourceAddress(),
                 sessionLabel.getSourceHostname()
         );
-        pwmApplication.getAuditManager().submit( auditRecord );
+        pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
         pwmApplication.getSessionTrackService().addRecentLogin( userIdentity );
 
 

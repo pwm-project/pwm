@@ -940,7 +940,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                     pwmRequest.getLabel(),
                     "ForgottenPassword"
             );
-            pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+            pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         return ProcessStatus.Continue;

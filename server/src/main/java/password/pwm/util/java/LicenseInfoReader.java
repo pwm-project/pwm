@@ -30,7 +30,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class LicenseInfoReader
 {
@@ -56,31 +56,7 @@ public class LicenseInfoReader
 
                     for ( final XmlElement dependency : dependenciesElement.getChildren( "dependency" ) )
                     {
-                        final String projectUrl = dependency.getChildText( "projectUrl" );
-                        final String name = dependency.getChildText( "name" );
-                        final String artifactId = dependency.getChildText( "artifactId" );
-                        final String version = dependency.getChildText( "version" );
-                        final String type = dependency.getChildText( "type" );
-
-                        final List<LicenseInfo> licenseInfos = new ArrayList<>();
-                        {
-                            final Optional<XmlElement> licenses = dependency.getChild( "licenses" );
-                            if ( licenses.isPresent() )
-                            {
-                                final List<XmlElement> licenseList = licenses.get().getChildren( "license" );
-                                for ( final XmlElement license : licenseList )
-                                {
-                                    final String licenseUrl = license.getChildText( "url" );
-                                    final String licenseName = license.getChildText( "name" );
-                                    final LicenseInfo licenseInfo = new LicenseInfo( licenseUrl, licenseName );
-                                    licenseInfos.add( licenseInfo );
-                                }
-                            }
-                        }
-
-                        final DependencyInfo dependencyInfo = new DependencyInfo( projectUrl, name, artifactId, version, type,
-                                Collections.unmodifiableList( licenseInfos ) );
-
+                        final DependencyInfo dependencyInfo = readDependencyInfo( dependency );
                         returnList.add( dependencyInfo );
                     }
                 }
@@ -92,7 +68,38 @@ public class LicenseInfoReader
                 throw new PwmUnrecoverableException( errorInfo );
             }
         }
+
         return Collections.unmodifiableList( returnList );
+    }
+
+    private static DependencyInfo readDependencyInfo( final XmlElement dependency )
+    {
+        final String projectUrl = dependency.getChildText( "projectUrl" );
+        final String name = dependency.getChildText( "name" );
+        final String artifactId = dependency.getChildText( "artifactId" );
+        final String version = dependency.getChildText( "version" );
+        final String type = dependency.getChildText( "type" );
+
+        final List<LicenseInfo> licenseInfos = dependency.getChild( "licenses" )
+                .map( LicenseInfoReader::readLicenses )
+                .orElse( Collections.emptyList() );
+
+        return new DependencyInfo( projectUrl, name, artifactId, version, type, licenseInfos );
+    }
+
+    private static List<LicenseInfo> readLicenses( final XmlElement licenses )
+    {
+        return Collections.unmodifiableList( licenses.getChildren( "license" )
+                .stream()
+                .map( LicenseInfoReader::readLicenseInfo )
+                .collect( Collectors.toList() ) );
+    }
+
+    private static LicenseInfo readLicenseInfo( final XmlElement license )
+    {
+        final String licenseUrl = license.getChildText( "url" );
+        final String licenseName = license.getChildText( "name" );
+        return new LicenseInfo( licenseUrl, licenseName );
     }
 
 

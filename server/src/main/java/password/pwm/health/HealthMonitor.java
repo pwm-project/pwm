@@ -310,7 +310,7 @@ public class HealthMonitor implements PwmService
             {
                 final Instant startTime = Instant.now();
                 doHealthChecks();
-                LOGGER.trace( () -> "completed health check dredge ", () -> TimeDuration.fromCurrent( startTime ) );
+                LOGGER.trace( () -> "completed health check dredge", () -> TimeDuration.fromCurrent( startTime ) );
             }
             catch ( final Throwable e )
             {

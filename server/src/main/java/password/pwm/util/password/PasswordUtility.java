@@ -540,7 +540,7 @@ public class PasswordUtility
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress(),
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcHostname()
             );
-            pwmApplication.getAuditManager().submit( auditRecord );
+            pwmApplication.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         // update statistics
@@ -592,7 +592,7 @@ public class PasswordUtility
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress(),
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcHostname()
             );
-            pwmApplication.getAuditManager().submit( auditRecord );
+            pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
         }
 
         // send email notification

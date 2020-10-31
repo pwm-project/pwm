@@ -254,7 +254,7 @@ public class TokenService implements PwmService
                 sessionLabel,
                 JsonUtil.serialize( tokenPayload )
         );
-        pwmApplication.getAuditManager().submit( auditRecord );
+        pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
         return tokenKey;
     }
 
@@ -292,7 +292,7 @@ public class TokenService implements PwmService
                 sessionLabel,
                 JsonUtil.serialize( tokenPayload )
         );
-        pwmApplication.getAuditManager().submit( auditRecord );
+        pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
 
         StatisticsManager.incrementStat( pwmApplication, Statistic.TOKENS_PASSSED );
     }

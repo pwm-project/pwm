@@ -275,7 +275,7 @@ public class ConfigurationReader
                     final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
                     final String modifyMessage = "configuration record '" + key.getLabel( PwmConstants.DEFAULT_LOCALE )
                             + "' has been modified, new value: " + storedValue.get().toDebugString( PwmConstants.DEFAULT_LOCALE );
-                    pwmApplication.getAuditManager().submit( new AuditRecordFactory( pwmApplication ).createUserAuditRecord(
+                    pwmApplication.getAuditManager().submit( sessionLabel, new AuditRecordFactory( pwmApplication ).createUserAuditRecord(
                             AuditEvent.MODIFY_CONFIGURATION,
                             userIdentity,
                             sessionLabel,

@@ -290,7 +290,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
                     pwmRequest.getLabel(),
                     "UpdateProfile"
             );
-            pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+            pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         return ProcessStatus.Continue;

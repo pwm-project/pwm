@@ -70,6 +70,7 @@ import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * @author Menno Pieters, Jason D. Rivard
@@ -356,13 +357,12 @@ public class OtpService implements PwmService
 
         {
             final OTPUserRecord finalOtpConfig = otpConfig;
-            LOGGER.trace( sessionLabel, () -> "readOTPUserConfiguration completed in "
-                    + TimeDuration.fromCurrent( methodStartTime ).asCompactString()
-                    + ( finalOtpConfig == null
-                    ? ", no otp record found"
-                    : ", recordType=" + finalOtpConfig.getType() + ", identifier=" + finalOtpConfig.getIdentifier() + ", timestamp="
-                    + JavaHelper.toIsoDate( finalOtpConfig.getTimestamp() ) )
-            );
+            final Supplier<CharSequence> msg = () -> finalOtpConfig == null
+                    ? "no otp record found for user " + userIdentity.toDisplayString()
+                    : "loaded otp record for user " + userIdentity.toDisplayString()
+                    + " [recordType=" + finalOtpConfig.getType() + ", identifier=" + finalOtpConfig.getIdentifier() + ", timestamp="
+                    + JavaHelper.toIsoDate( finalOtpConfig.getTimestamp() ) + "]";
+            LOGGER.trace( sessionLabel, msg, () -> TimeDuration.fromCurrent(  methodStartTime ) );
         }
         return otpConfig;
     }
@@ -464,7 +464,7 @@ public class OtpService implements PwmService
                 }
                 else
                 {
-                    LOGGER.warn( pwmRequest, () -> String.format( "Storage location %s not implemented", otpSecretStorageLocation.toString() ) );
+                    LOGGER.warn( pwmRequest, () -> String.format( "storage location %s not implemented", otpSecretStorageLocation.toString() ) );
                 }
             }
         }

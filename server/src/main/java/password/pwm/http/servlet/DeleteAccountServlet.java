@@ -184,7 +184,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
                     pwmRequest.getLabel(),
                     ProfileDefinition.DeleteAccount.toString()
             );
-            pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+            pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         return ProcessStatus.Continue;

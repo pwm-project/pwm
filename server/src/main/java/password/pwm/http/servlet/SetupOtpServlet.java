@@ -196,7 +196,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                         pwmSession.getUserInfo(),
                         pwmSession
                 );
-                pwmApplication.getAuditManager().submit( auditRecord );
+                pwmApplication.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
 
 
                 if ( pwmApplication.getStatisticsManager() != null && pwmApplication.getStatisticsManager().status() == PwmService.STATUS.OPEN )

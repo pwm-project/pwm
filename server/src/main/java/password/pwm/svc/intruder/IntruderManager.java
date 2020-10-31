@@ -366,13 +366,13 @@ public class IntruderManager implements PwmService
                 final InetAddress inetAddress = InetAddress.getByName( subject );
                 if ( inetAddress.isAnyLocalAddress() || inetAddress.isLoopbackAddress() || inetAddress.isLinkLocalAddress() )
                 {
-                    LOGGER.debug( () -> "disregarding local address intruder attempt from: " + subject );
+                    LOGGER.debug( sessionLabel, () -> "disregarding local address intruder attempt from: " + subject );
                     return;
                 }
             }
             catch ( final Exception e )
             {
-                LOGGER.error( () -> "error examining address: " + subject );
+                LOGGER.error( sessionLabel, () -> "error examining address: " + subject );
             }
         }
 
@@ -387,7 +387,7 @@ public class IntruderManager implements PwmService
                     userIdentity,
                     sessionLabel
             );
-            pwmApplication.getAuditManager().submit( auditRecord );
+            pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
         }
         else
         {
@@ -397,7 +397,7 @@ public class IntruderManager implements PwmService
             messageObj.put( "subject", subject );
             final String message = JsonUtil.serializeMap( messageObj );
             final SystemAuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createSystemAuditRecord( AuditEvent.INTRUDER_ATTEMPT, message );
-            pwmApplication.getAuditManager().submit( auditRecord );
+            pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
         }
 
         try
@@ -416,7 +416,7 @@ public class IntruderManager implements PwmService
                             userIdentity,
                             sessionLabel
                     );
-                    pwmApplication.getAuditManager().submit( auditRecord );
+                    pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
                     sendAlert( manager.readIntruderRecord( subject ), sessionLabel );
                 }
                 else
@@ -427,7 +427,7 @@ public class IntruderManager implements PwmService
                     messageObj.put( "subject", subject );
                     final String message = JsonUtil.serializeMap( messageObj );
                     final SystemAuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createSystemAuditRecord( AuditEvent.INTRUDER_LOCK, message );
-                    pwmApplication.getAuditManager().submit( auditRecord );
+                    pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
                 }
 
 
@@ -488,7 +488,7 @@ public class IntruderManager implements PwmService
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( () -> "unable to send intruder mail, can't read userDN/ldapProfile from stored record: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "unable to send intruder mail, can't read userDN/ldapProfile from stored record: " + e.getMessage() );
             }
         }
     }
@@ -708,7 +708,7 @@ public class IntruderManager implements PwmService
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( () -> "error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage() );
         }
 
     }

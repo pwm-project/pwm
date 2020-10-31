@@ -246,7 +246,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                     pwmRequest.getLabel(),
                     "ChangePassword"
             );
-            pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+            pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         return ProcessStatus.Continue;

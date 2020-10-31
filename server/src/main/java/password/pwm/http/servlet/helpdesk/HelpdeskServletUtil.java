@@ -241,7 +241,7 @@ public class HelpdeskServletUtil
                 pwmRequest.getLabel().getSourceAddress(),
                 pwmRequest.getLabel().getSourceHostname()
         );
-        pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+        pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
 
         StatisticsManager.incrementStat( pwmRequest, Statistic.HELPDESK_USER_LOOKUP );
         return helpdeskDetailInfoBean;

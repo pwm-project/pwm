@@ -296,7 +296,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                         pwmSession.getSessionStateBean().getSrcAddress(),
                         pwmSession.getSessionStateBean().getSrcHostname()
                 );
-                pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+                pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
             }
             final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest.getLocale(), pwmRequest.getConfig(), Message.Success_Action, action.getName() );
 
@@ -389,7 +389,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                     pwmSession.getSessionStateBean().getSrcAddress(),
                     pwmSession.getSessionStateBean().getSrcHostname()
             );
-            pwmApplication.getAuditManager().submit( auditRecord );
+            pwmApplication.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         LOGGER.info( pwmRequest, () -> "user " + userIdentity + " has been deleted" );
@@ -618,7 +618,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                         pwmRequest.getLabel().getSourceAddress(),
                         pwmRequest.getLabel().getSourceHostname()
                 );
-                pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+                pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
             }
         }
         catch ( final ChaiPasswordPolicyException e )
@@ -700,7 +700,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                         pwmSession.getSessionStateBean().getSrcAddress(),
                         pwmSession.getSessionStateBean().getSrcHostname()
                 );
-                pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+                pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
 
                 StatisticsManager.incrementStat( pwmRequest, Statistic.HELPDESK_VERIFY_OTP );
                 verificationStateBean.addRecord( userIdentity, IdentityVerificationMethod.OTP );
@@ -716,7 +716,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                         pwmSession.getSessionStateBean().getSrcAddress(),
                         pwmSession.getSessionStateBean().getSrcHostname()
                 );
-                pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+                pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
             }
 
             return outputVerificationResponseBean( pwmRequest, passed, verificationStateBean );
@@ -884,7 +884,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                     pwmSession.getSessionStateBean().getSrcAddress(),
                     pwmSession.getSessionStateBean().getSrcHostname()
             );
-            pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+            pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
             verificationStateBean.addRecord( userIdentity, IdentityVerificationMethod.TOKEN );
         }
         else
@@ -898,7 +898,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                     pwmSession.getSessionStateBean().getSrcAddress(),
                     pwmSession.getSessionStateBean().getSrcHostname()
             );
-            pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+            pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         return outputVerificationResponseBean( pwmRequest, passed, verificationStateBean );
@@ -943,7 +943,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                         pwmRequest.getLabel().getSourceAddress(),
                         pwmRequest.getLabel().getSourceHostname()
                 );
-                pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+                pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
             }
         }
         catch ( final PwmOperationalException e )
@@ -1073,7 +1073,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                     pwmSession.getSessionStateBean().getSrcAddress(),
                     pwmSession.getSessionStateBean().getSrcHostname()
             );
-            pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+            pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
             verificationStateBean.addRecord( userIdentity, IdentityVerificationMethod.ATTRIBUTES );
         }
         else
@@ -1087,7 +1087,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                     pwmSession.getSessionStateBean().getSrcAddress(),
                     pwmSession.getSessionStateBean().getSrcHostname()
             );
-            pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+            pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         return outputVerificationResponseBean( pwmRequest, passed, verificationStateBean );
@@ -1169,7 +1169,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress(),
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcHostname()
             );
-            pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+            pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );

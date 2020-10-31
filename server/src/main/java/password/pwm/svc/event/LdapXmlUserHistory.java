@@ -27,6 +27,7 @@ import com.novell.ldapchai.util.ConfigObjectRecord;
 import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
@@ -80,7 +81,7 @@ class LdapXmlUserHistory implements UserHistoryStore
     }
 
     @Override
-    public void updateUserHistory( final UserAuditRecord auditRecord )
+    public void updateUserHistory( final SessionLabel sessionLabel, final UserAuditRecord auditRecord )
             throws PwmUnrecoverableException
     {
         try
@@ -176,13 +177,13 @@ class LdapXmlUserHistory implements UserHistoryStore
     }
 
     @Override
-    public List<UserAuditRecord> readUserHistory( final UserInfo userInfo )
+    public List<UserAuditRecord> readUserHistory( final SessionLabel sessionLabel, final UserInfo userInfo )
             throws PwmUnrecoverableException
     {
         try
         {
             final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userInfo.getUserIdentity() );
-            final StoredHistory storedHistory = readUserHistory( pwmApplication, userInfo.getUserIdentity(), theUser );
+            final StoredHistory storedHistory = readUserHistory( pwmApplication, sessionLabel, userInfo.getUserIdentity(), theUser );
             return storedHistory.asAuditRecords( userInfo );
         }
         catch ( final ChaiUnavailableException e )
@@ -193,6 +194,7 @@ class LdapXmlUserHistory implements UserHistoryStore
 
     private StoredHistory readUserHistory(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final ChaiUser chaiUser
     )
@@ -203,7 +205,7 @@ class LdapXmlUserHistory implements UserHistoryStore
 
         if ( corAttribute == null || corAttribute.length() < 1 )
         {
-            LOGGER.trace( () -> "no user event log attribute configured, skipping read of log data" );
+            LOGGER.trace( sessionLabel, () -> "no user event log attribute configured, skipping read of log data" );
             return new StoredHistory();
         }
 
@@ -219,7 +221,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         }
         catch ( final ChaiOperationException e )
         {
-            LOGGER.error( () -> "ldap error reading user event log: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "ldap error reading user event log: " + e.getMessage() );
         }
         return new StoredHistory();
     }
