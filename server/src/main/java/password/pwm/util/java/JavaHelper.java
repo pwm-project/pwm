@@ -28,6 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
+import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
@@ -279,12 +280,19 @@ public class JavaHelper
         return IOUtils.copyLarge( input, output, 0, -1, buffer );
     }
 
-    public static String copy( final InputStream input )
+    public static String copyToString( final InputStream input )
             throws IOException
     {
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         JavaHelper.copy( input, byteArrayOutputStream );
         return new String( byteArrayOutputStream.toByteArray(), PwmConstants.DEFAULT_CHARSET );
+    }
+
+    public static ImmutableByteArray copyToBytes( final InputStream inputStream )
+            throws IOException
+    {
+        final byte[] bytes = IOUtils.toByteArray( inputStream );
+        return ImmutableByteArray.of( bytes );
     }
 
     public static void copy( final String input, final OutputStream output )
@@ -715,4 +723,5 @@ public class JavaHelper
         }
         return returnMap;
     }
+    
 }

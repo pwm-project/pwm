@@ -24,14 +24,9 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.ConfigObjectRecord;
-import org.jdom2.CDATA;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
+import lombok.Value;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
@@ -39,11 +34,18 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.XmlDocument;
+import password.pwm.util.java.XmlElement;
+import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
-import java.io.StringReader;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -122,7 +124,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         // read current value;
         final StoredHistory storedHistory;
         final ConfigObjectRecord theCor;
-        final List corList;
+        final List<ConfigObjectRecord> corList;
         try
         {
             corList = ConfigObjectRecord.readRecordFromLDAP( theUser, corAttribute, corRecordIdentifer, null, null );
@@ -131,7 +133,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         {
             final String errorMsg = "error reading LDAP user event history for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-            LOGGER.error( () -> errorInformation.toDebugStr(), e );
+            LOGGER.error( errorInformation::toDebugStr, e );
             throw new PwmUnrecoverableException( errorInformation, e );
         }
 
@@ -194,7 +196,7 @@ class LdapXmlUserHistory implements UserHistoryStore
             final UserIdentity userIdentity,
             final ChaiUser chaiUser
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws ChaiUnavailableException
     {
         final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
         final String corAttribute = ldapProfile.readSettingAsString( PwmSetting.EVENTS_LDAP_ATTRIBUTE );
@@ -207,11 +209,11 @@ class LdapXmlUserHistory implements UserHistoryStore
 
         try
         {
-            final List corList = ConfigObjectRecord.readRecordFromLDAP( chaiUser, corAttribute, COR_RECORD_ID, null, null );
+            final List<ConfigObjectRecord> corList = ConfigObjectRecord.readRecordFromLDAP( chaiUser, corAttribute, COR_RECORD_ID, null, null );
 
-            if ( !corList.isEmpty() )
+            if ( !JavaHelper.isEmpty( corList ) )
             {
-                final ConfigObjectRecord theCor = ( ConfigObjectRecord ) corList.get( 0 );
+                final ConfigObjectRecord theCor = corList.get( 0 );
                 return StoredHistory.fromXml( theCor.getPayload() );
             }
         }
@@ -222,7 +224,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         return new StoredHistory();
     }
 
-    private static class StoredHistory
+    public static class StoredHistory
     {
         private final Deque<StoredEvent> records = new ArrayDeque<>();
 
@@ -249,15 +251,16 @@ class LdapXmlUserHistory implements UserHistoryStore
             return Collections.unmodifiableList( returnList );
         }
 
-        String toXml( )
+        public String toXml( )
         {
-            final Element rootElement = new Element( XML_NODE_ROOT );
+            final XmlFactory xmlFactory = XmlFactory.getFactory();
+            final XmlDocument doc = xmlFactory.newDocument( XML_NODE_ROOT );
 
             for ( final StoredEvent loopEvent : records )
             {
                 if ( loopEvent.getAuditEvent() != null )
                 {
-                    final Element hrElement = new Element( XML_NODE_RECORD );
+                    final XmlElement hrElement = xmlFactory.newElement( XML_NODE_RECORD );
                     hrElement.setAttribute( XML_ATTR_TIMESTAMP, String.valueOf( loopEvent.getTimestamp() ) );
                     hrElement.setAttribute( XML_ATTR_TRANSACTION, loopEvent.getAuditEvent().getMessage().getKey() );
                     if ( loopEvent.getSourceAddress() != null && loopEvent.getSourceAddress().length() > 0 )
@@ -270,48 +273,54 @@ class LdapXmlUserHistory implements UserHistoryStore
                     }
                     if ( loopEvent.getMessage() != null )
                     {
-                        hrElement.setContent( new CDATA( loopEvent.getMessage() ) );
+                        hrElement.addText( loopEvent.getMessage() );
                     }
-                    rootElement.addContent( hrElement );
+                    doc.getRootElement().addContent( hrElement );
                 }
             }
 
-            final Document doc = new Document( rootElement );
-            final XMLOutputter outputter = new XMLOutputter();
-            outputter.setFormat( Format.getCompactFormat() );
-            return outputter.outputString( doc );
+            try ( ByteArrayOutputStream outputStream = new ByteArrayOutputStream() )
+            {
+                xmlFactory.outputDocument( doc,  outputStream, XmlFactory.OutputFlag.Compact );
+                return new String( outputStream.toByteArray(), PwmConstants.DEFAULT_CHARSET );
+            }
+            catch ( final IOException e )
+            {
+                throw new IllegalStateException( "error converting xml to string data: " + e.getMessage() );
+            }
         }
 
-        static StoredHistory fromXml( final String input )
+        public static StoredHistory fromXml( final String input )
         {
             final StoredHistory returnHistory = new StoredHistory();
 
-            if ( input == null || input.length() < 1 )
+            if ( StringUtil.isEmpty( input ) )
             {
                 return returnHistory;
             }
 
-            try
+            try ( InputStream inputStream = new ByteArrayInputStream( input.getBytes( PwmConstants.DEFAULT_CHARSET ) ) )
             {
-                final SAXBuilder builder = new SAXBuilder();
-                final Document doc = builder.build( new StringReader( input ) );
-                final Element rootElement = doc.getRootElement();
+                final XmlFactory xmlFactory = XmlFactory.getFactory();
+                final XmlDocument xmlDocument = xmlFactory.parseXml( inputStream );
+                final XmlElement rootElement = xmlDocument.getRootElement();
 
-                for ( final Element hrElement : rootElement.getChildren( XML_NODE_RECORD ) )
+                for ( final XmlElement hrElement : rootElement.getChildren( XML_NODE_RECORD ) )
                 {
-                    final long timeStamp = hrElement.getAttribute( XML_ATTR_TIMESTAMP ).getLongValue();
-                    final String transactionCode = hrElement.getAttribute( XML_ATTR_TRANSACTION ).getValue();
+                    final String timeStampStr = hrElement.getAttributeValue( XML_ATTR_TIMESTAMP );
+                    final long timeStamp = Long.parseLong( timeStampStr );
+                    final String transactionCode = hrElement.getAttributeValue( XML_ATTR_TRANSACTION );
                     AuditEvent.forKey( transactionCode ).ifPresent( ( eventCode ) ->
                     {
-                        final String srcAddr = hrElement.getAttribute( XML_ATTR_SRC_IP ) != null ? hrElement.getAttribute( XML_ATTR_SRC_IP ).getValue() : "";
-                        final String srcHost = hrElement.getAttribute( XML_ATTR_SRC_HOST ) != null ? hrElement.getAttribute( XML_ATTR_SRC_HOST ).getValue() : "";
+                        final String srcAddr = hrElement.getAttributeValue( XML_ATTR_SRC_IP ) != null ? hrElement.getAttributeValue( XML_ATTR_SRC_IP ) : "";
+                        final String srcHost = hrElement.getAttributeValue( XML_ATTR_SRC_HOST ) != null ? hrElement.getAttributeValue( XML_ATTR_SRC_HOST ) : "";
                         final String message = hrElement.getText();
                         final StoredEvent storedEvent = new StoredEvent( eventCode, timeStamp, message, srcAddr, srcHost );
                         returnHistory.addEvent( storedEvent );
                     } );
                 }
             }
-            catch ( final JDOMException | IOException e )
+            catch ( final PwmUnrecoverableException | IOException e )
             {
                 LOGGER.error( () -> "error parsing user event history record: " + e.getMessage() );
             }
@@ -319,48 +328,14 @@ class LdapXmlUserHistory implements UserHistoryStore
         }
     }
 
-    private static class StoredEvent implements Serializable
+    @Value
+    public static class StoredEvent implements Serializable
     {
-        private AuditEvent auditEvent;
-        private long timestamp;
-        private String message;
-        private String sourceAddress;
-        private String sourceHost;
-
-
-        private StoredEvent( final AuditEvent auditEvent, final long timestamp, final String message, final String sourceAddress, final String sourceHost )
-        {
-            this.auditEvent = auditEvent;
-            this.timestamp = timestamp;
-            this.message = message;
-            this.sourceAddress = sourceAddress;
-            this.sourceHost = sourceHost;
-        }
-
-        AuditEvent getAuditEvent( )
-        {
-            return auditEvent;
-        }
-
-        public long getTimestamp( )
-        {
-            return timestamp;
-        }
-
-        public String getMessage( )
-        {
-            return message;
-        }
-
-        String getSourceAddress( )
-        {
-            return sourceAddress;
-        }
-
-        String getSourceHost( )
-        {
-            return sourceHost;
-        }
+        private final AuditEvent auditEvent;
+        private final long timestamp;
+        private final String message;
+        private final String sourceAddress;
+        private final String sourceHost;
 
         static StoredEvent fromAuditRecord( final UserAuditRecord auditRecord )
         {

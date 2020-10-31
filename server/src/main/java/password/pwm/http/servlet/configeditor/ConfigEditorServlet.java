@@ -70,6 +70,7 @@ import password.pwm.svc.email.EmailServer;
 import password.pwm.svc.email.EmailServerUtil;
 import password.pwm.svc.email.EmailService;
 import password.pwm.util.PasswordData;
+import password.pwm.util.SampleDataGenerator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -883,7 +884,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 return ProcessStatus.Halt;
             }
 
-            final MacroRequest macroRequest = MacroRequest.sampleMacroRequest( pwmRequest.getPwmApplication() );
+            final MacroRequest macroRequest = SampleDataGenerator.sampleMacroRequest( pwmRequest.getPwmApplication() );
             final String input = inputMap.get( "input" );
             final String output = macroRequest.expandMacros( input );
             pwmRequest.outputJsonResult( RestResultBean.withData( output ) );

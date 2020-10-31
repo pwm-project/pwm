@@ -61,10 +61,15 @@ public interface XmlFactory
         W3C,
     }
 
+    enum OutputFlag
+    {
+        Compact,
+    }
+
     XmlDocument parseXml( InputStream inputStream )
             throws PwmUnrecoverableException;
 
-    void outputDocument( XmlDocument document, OutputStream outputStream )
+    void outputDocument( XmlDocument document, OutputStream outputStream, OutputFlag... outputFlags )
             throws IOException;
 
     XmlDocument newDocument( String rootElementName );
@@ -133,7 +138,7 @@ public interface XmlFactory
         }
 
         @Override
-        public void outputDocument( final XmlDocument document, final OutputStream outputStream )
+        public void outputDocument( final XmlDocument document, final OutputStream outputStream, final OutputFlag... outputFlags )
                 throws IOException
         {
             final Document jdomDoc =  ( ( XmlDocument.XmlDocumentJDOM )  document ).document;
@@ -226,18 +231,20 @@ public interface XmlFactory
         }
 
         @Override
-        public void outputDocument( final XmlDocument document, final OutputStream outputStream )
+        public void outputDocument( final XmlDocument document, final OutputStream outputStream, final OutputFlag... outputFlags )
                 throws IOException
         {
             final Lock lock = ( ( XmlDocument.XmlDocumentW3c ) document ).lock;
+            final boolean compact = JavaHelper.enumArrayContainsValue( outputFlags, OutputFlag.Compact );
 
             lock.lock();
             try
             {
                 final Transformer tr = TransformerFactory.newInstance().newTransformer();
-                tr.setOutputProperty( OutputKeys.INDENT, "yes" );
+                tr.setOutputProperty( OutputKeys.INDENT, compact ? "no" : "yes" );
                 tr.setOutputProperty( OutputKeys.METHOD, "xml" );
                 tr.setOutputProperty( OutputKeys.ENCODING, STORAGE_CHARSET.toString() );
+
                 tr.transform( new DOMSource( ( ( XmlDocument.XmlDocumentW3c ) document ).document ), new StreamResult( outputStream ) );
             }
             catch ( final TransformerException e )
@@ -273,6 +280,7 @@ public interface XmlFactory
         {
             final DocumentBuilder documentBuilder = getBuilder();
             final org.w3c.dom.Document document = documentBuilder.newDocument();
+            document.setXmlStandalone( true );
             final org.w3c.dom.Element rootElement = document.createElement( rootElementName );
             document.appendChild( rootElement );
             return new XmlDocument.XmlDocumentW3c( document );

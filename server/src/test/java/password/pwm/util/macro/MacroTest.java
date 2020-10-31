@@ -28,6 +28,7 @@ import org.junit.rules.TemporaryFolder;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.SampleDataGenerator;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -43,7 +44,7 @@ public class MacroTest
     @Before
     public void setUp() throws PwmUnrecoverableException
     {
-        macroRequest = MacroRequest.sampleMacroRequest( null );
+        macroRequest = SampleDataGenerator.sampleMacroRequest( null );
     }
 
 
