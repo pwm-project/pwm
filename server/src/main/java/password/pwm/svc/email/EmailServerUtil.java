@@ -41,18 +41,18 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
-import password.pwm.util.secure.PwmTrustManager;
 import password.pwm.util.secure.CertificateReadingTrustManager;
+import password.pwm.util.secure.PwmTrustManager;
 import password.pwm.util.secure.X509Utils;
 
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
 import javax.net.ssl.TrustManager;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -113,7 +113,7 @@ public class EmailServerUtil
                     ? trustManagerForProfile( configuration, profile )
                     : trustManagers;
             final Properties properties = makeJavaMailProps( configuration, profile, effectiveTrustManagers );
-            final javax.mail.Session session = javax.mail.Session.getInstance( properties, null );
+            final jakarta.mail.Session session = jakarta.mail.Session.getInstance( properties, null );
             return Optional.of( EmailServer.builder()
                     .id( id )
                     .host( address )

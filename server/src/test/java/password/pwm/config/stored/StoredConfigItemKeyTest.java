@@ -103,7 +103,7 @@ public class StoredConfigItemKeyTest
 
         Collections.shuffle( list );
         Collections.sort( list );
-        System.out.println( list.size() );
+        //System.out.println( list.size() );
         //list.forEach( System.out::println );
     }
 }

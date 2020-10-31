@@ -23,8 +23,8 @@ package password.pwm.svc.email;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
 
 /**
  * Tests to ensure the email address parsing from javax.mail.internet.InternetAddress is what we

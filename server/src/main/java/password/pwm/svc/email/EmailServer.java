@@ -45,12 +45,12 @@ public class EmailServer
     private String username;
     private PasswordData password;
     private Properties javaMailProps;
-    private javax.mail.Session session;
+    private jakarta.mail.Session session;
     private SmtpServerType type;
 
     private final StatisticCounterBundle<ServerStat> connectionStats = new StatisticCounterBundle<>( ServerStat.class );
     private final MovingAverage averageSendTime = new MovingAverage( TimeDuration.MINUTE );
-    private final AtomicReference<ErrorInformation> lastConnectError = new AtomicReference();
+    private final AtomicReference<ErrorInformation> lastConnectError = new AtomicReference<>();
 
 
     enum ServerStat

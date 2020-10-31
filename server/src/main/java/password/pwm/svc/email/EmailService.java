@@ -20,6 +20,10 @@
 
 package password.pwm.svc.email;
 
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Transport;
+
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.bean.EmailItemBean;
@@ -48,9 +52,6 @@ import password.pwm.util.localdb.WorkQueueProcessor;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Transport;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -427,28 +428,37 @@ public class EmailService implements PwmService
             final EmailItemBean emailItem,
             final MacroRequest macroRequest
     )
-            throws PwmOperationalException, PwmUnrecoverableException, MessagingException
+            throws PwmOperationalException, PwmUnrecoverableException
 
     {
-        validateEmailItem( emailItem );
-        EmailItemBean workingItemBean = emailItem;
-        if ( macroRequest != null )
+        try
         {
-            workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroRequest );
-        }
-        final Transport transport = EmailServerUtil.makeSmtpTransport( emailServer );
-        final List<Message> messages = EmailServerUtil.convertEmailItemToMessages(
-                workingItemBean,
-                configuration,
-                emailServer
-        );
+            validateEmailItem( emailItem );
+            EmailItemBean workingItemBean = emailItem;
+            if ( macroRequest != null )
+            {
+                workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroRequest );
+            }
+            final Transport transport = EmailServerUtil.makeSmtpTransport( emailServer );
+            final List<Message> messages = EmailServerUtil.convertEmailItemToMessages(
+                    workingItemBean,
+                    configuration,
+                    emailServer
+            );
 
-        for ( final Message message : messages )
-        {
-            message.saveChanges();
-            transport.sendMessage( message, message.getAllRecipients() );
+            for ( final Message message : messages )
+            {
+                message.saveChanges();
+                transport.sendMessage( message, message.getAllRecipients() );
+            }
+            transport.close();
         }
-        transport.close();
+        catch ( final MessagingException e )
+        {
+            final String errorMsg = "error sending message: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_EMAIL_SEND_FAILURE, errorMsg );
+            throw new PwmUnrecoverableException( errorInformation );
+        }
     }
 
     private WorkQueueProcessor.ProcessResult sendItem( final EmailItemBean emailItemBean )

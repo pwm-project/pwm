@@ -20,7 +20,6 @@
 
 package password.pwm.http.servlet.configeditor;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
@@ -84,7 +83,6 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestRandomPasswordServer;
 import password.pwm.ws.server.rest.bean.HealthData;
 
-import javax.mail.MessagingException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
@@ -186,7 +184,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @Override
-    protected void nextStep( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    protected void nextStep( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
         pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_EDITOR );
     }
@@ -683,7 +681,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                     EmailService.sendEmailSynchronous( emailServer.get(), testConfiguration, testEmailItem, macroRequest );
                     returnRecords.add( new HealthRecord( HealthStatus.INFO, HealthTopic.Email, "message sent" ) );
                 }
-                catch ( final MessagingException | PwmException e )
+                catch ( final PwmException e )
                 {
                     returnRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Email, JavaHelper.readHostileExceptionMessage( e ) ) );
                 }
