@@ -18,24 +18,26 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.configeditor;
+package password.pwm.http.servlet.configeditor.data;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.PwmSettingProperty;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplateSet;
-import password.pwm.util.macro.MacroRequest;
+import password.pwm.util.java.JavaHelper;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
-@Data
+@Value
+@Builder
 public class SettingInfo implements Serializable
 {
     private String key;
@@ -50,29 +52,28 @@ public class SettingInfo implements Serializable
     private String pattern;
     private String placeholder;
     private int level;
-    private List<PwmSettingFlag> flags;
+    private Set<PwmSettingFlag> flags;
 
     static SettingInfo forSetting(
             final PwmSetting setting,
             final PwmSettingTemplateSet template,
-            final MacroRequest macroRequest,
             final Locale locale
     )
     {
-        final SettingInfo settingInfo = new SettingInfo();
-        settingInfo.key = setting.getKey();
-        settingInfo.description = macroRequest.expandMacros( setting.getDescription( locale ) );
-        settingInfo.level = setting.getLevel();
-        settingInfo.label = setting.getLabel( locale );
-        settingInfo.syntax = setting.getSyntax();
-        settingInfo.category = setting.getCategory();
-        settingInfo.properties = setting.getProperties();
-        settingInfo.required = setting.isRequired();
-        settingInfo.hidden = setting.isHidden();
-        settingInfo.options = setting.getOptions();
-        settingInfo.pattern = setting.getRegExPattern().toString();
-        settingInfo.placeholder = setting.getExample( template );
-        settingInfo.flags = new ArrayList<>( setting.getFlags() );
-        return settingInfo;
+        return SettingInfo.builder()
+                .key( setting.getKey() )
+                .description( setting.getDescription( locale ) )
+                .level( setting.getLevel() )
+                .label( setting.getLabel( locale ) )
+                .syntax( setting.getSyntax() )
+                .category( setting.getCategory() )
+                .properties( setting.getProperties() )
+                .required( setting.isRequired() )
+                .hidden( setting.isHidden() )
+                .options( setting.getOptions() )
+                .pattern( setting.getRegExPattern().toString() )
+                .placeholder( setting.getExample( template ) )
+                .flags( Collections.unmodifiableSet( JavaHelper.copiedEnumSet( setting.getFlags(), PwmSettingFlag.class ) ) )
+                .build();
     }
 }

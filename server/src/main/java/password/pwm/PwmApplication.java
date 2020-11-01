@@ -35,7 +35,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
-import password.pwm.http.servlet.configeditor.ConfigEditorServletUtils;
+import password.pwm.http.servlet.configeditor.data.SettingDataMaker;
 import password.pwm.http.servlet.peoplesearch.PeopleSearchService;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.http.state.SessionStateService;
@@ -392,7 +392,7 @@ public class PwmApplication
 
         try
         {
-            ConfigEditorServletUtils.generateSettingData( this, this.getConfig().getStoredConfiguration(), null, PwmConstants.DEFAULT_LOCALE );
+            SettingDataMaker.generateSettingData( this.getConfig().getStoredConfiguration(), null, PwmConstants.DEFAULT_LOCALE );
         }
         catch ( final Exception e )
         {

@@ -59,6 +59,8 @@ import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.configeditor.ConfigEditorServletUtils;
+import password.pwm.http.servlet.configeditor.data.SettingData;
+import password.pwm.http.servlet.configeditor.data.SettingDataMaker;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaOperationResult;
@@ -610,8 +612,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
         final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
 
-        final ConfigEditorServletUtils.SettingData settingData = ConfigEditorServletUtils.generateSettingData(
-                pwmRequest.getPwmApplication(),
+        final SettingData settingData = SettingDataMaker.generateSettingData(
                 storedConfiguration,
                 pwmRequest.getLabel(),
                 pwmRequest.getLocale()

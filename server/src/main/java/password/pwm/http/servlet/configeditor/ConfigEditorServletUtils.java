@@ -20,18 +20,14 @@
 
 package password.pwm.http.servlet.configeditor;
 
-import lombok.Builder;
-import lombok.Value;
-import password.pwm.PwmApplication;
+import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.stored.ValueMetaData;
 import password.pwm.config.value.ActionValue;
@@ -47,17 +43,19 @@ import password.pwm.health.ConfigurationChecker;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.ConfigManagerBean;
+import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
+import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroRequest;
+import password.pwm.util.secure.HttpsServerCertificateManager;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.bean.HealthData;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.io.Serializable;
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -78,7 +76,7 @@ public class ConfigEditorServletUtils
             final PwmRequest pwmRequest,
             final int maxFileSize
     )
-            throws PwmUnrecoverableException, IOException, ServletException
+            throws IOException
     {
 
         final Map<String, PwmRequest.FileUploadItem> fileUploads;
@@ -183,73 +181,6 @@ public class ConfigEditorServletUtils
         }
 
         return HealthData.builder().build();
-    }
-
-    @Value
-    @Builder
-    public static class SettingData implements Serializable
-    {
-        private final Map<String, Object> settings;
-        private final Map<String, Object> categories;
-        private final Map<String, Object> locales;
-        private final Object ldapProfileIds;
-        private final PwmSettingTemplateSet currentTemplate;
-        private final Map<String, Object> var;
-
-    }
-
-    public static SettingData generateSettingData(
-            final PwmApplication pwmApplication,
-            final StoredConfiguration storedConfiguration,
-            final SessionLabel sessionLabel,
-            final Locale locale
-
-    )
-            throws PwmUnrecoverableException
-    {
-        final Instant startTime = Instant.now();
-        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, sessionLabel );
-        final PwmSettingTemplateSet template = storedConfiguration.getTemplateSet();
-        final SettingData.SettingDataBuilder builder = SettingData.builder();
-
-        {
-            final LinkedHashMap<String, Object> settingMap = new LinkedHashMap<>();
-            for ( final PwmSetting setting : PwmSetting.values() )
-            {
-
-                settingMap.put( setting.getKey(), SettingInfo.forSetting( setting, template, macroRequest, locale ) );
-            }
-            builder.settings( settingMap );
-        }
-        {
-            final LinkedHashMap<String, Object> categoryMap = new LinkedHashMap<>();
-            for ( final PwmSettingCategory category : PwmSettingCategory.values() )
-            {
-                categoryMap.put( category.getKey(), CategoryInfo.forCategory( category, macroRequest, locale ) );
-            }
-            builder.categories( categoryMap );
-        }
-        {
-            final LinkedHashMap<String, Object> labelMap = new LinkedHashMap<>();
-            for ( final PwmLocaleBundle localeBundle : PwmLocaleBundle.values() )
-            {
-                final LocaleInfo localeInfo = new LocaleInfo();
-                localeInfo.description = localeBundle.getTheClass().getSimpleName();
-                localeInfo.key = localeBundle.toString();
-                localeInfo.adminOnly = localeBundle.isAdminOnly();
-                labelMap.put( localeBundle.getTheClass().getSimpleName(), localeInfo );
-            }
-            builder.locales( labelMap );
-        }
-        {
-            final LinkedHashMap<String, Object> varMap = new LinkedHashMap<>();
-            varMap.put( "ldapProfileIds", storedConfiguration.readSetting( PwmSetting.LDAP_PROFILE_LIST, null ).toNativeObject() );
-            varMap.put( "currentTemplate", storedConfiguration.getTemplateSet() );
-            builder.var( varMap );
-        }
-        LOGGER.trace( sessionLabel, () -> "generated settingData", () -> TimeDuration.fromCurrent( startTime ) );
-        return builder.build();
-
     }
 
     static ConfigEditorServlet.ReadSettingResponse handleLocaleBundleReadSetting(
@@ -368,5 +299,53 @@ public class ConfigEditorServletUtils
         builder.category( theSetting.getCategory().toString() );
         builder.syntax( theSetting.getSyntax().toString() );
         return builder.build();
+    }
+
+    static void processHttpsCertificateUpload(
+            final PwmRequest pwmRequest,
+            final ConfigManagerBean configManagerBean
+    )
+            throws IOException, ServletException
+    {
+        try
+        {
+            final PasswordData passwordData = pwmRequest.readParameterAsPassword( "password" );
+            final String alias = pwmRequest.readParameterAsString( "alias" );
+            final HttpsServerCertificateManager.KeyStoreFormat keyStoreFormat;
+            try
+            {
+                keyStoreFormat = HttpsServerCertificateManager.KeyStoreFormat.valueOf( pwmRequest.readParameterAsString( "format" ) );
+            }
+            catch ( final IllegalArgumentException e )
+            {
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, "unknown format type: " + e.getMessage(), new String[]
+                        {
+                                "format",
+                                }
+                ) );
+            }
+
+            final int maxFileSize = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.CONFIG_MAX_JDBC_JAR_SIZE ) );
+            final Map<String, PwmRequest.FileUploadItem> fileUploads = pwmRequest.readFileUploads( maxFileSize, 1 );
+            final InputStream fileIs = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD ).getContent().newByteArrayInputStream();
+
+            final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( configManagerBean.getStoredConfiguration() );
+
+            HttpsServerCertificateManager.importKey(
+                    modifier,
+                    keyStoreFormat,
+                    fileIs,
+                    passwordData,
+                    alias
+            );
+
+            configManagerBean.setStoredConfiguration( modifier.newStoredConfiguration() );
+            pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
+        }
+        catch ( final PwmException e )
+        {
+            LOGGER.error( pwmRequest, () -> "error during https certificate upload: " + e.getMessage() );
+            pwmRequest.respondWithError( e.getErrorInformation(), false );
+        }
     }
 }

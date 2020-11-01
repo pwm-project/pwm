@@ -20,21 +20,22 @@
 
 package password.pwm.config;
 
+import password.pwm.PwmConstants;
 import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.XmlElement;
+import password.pwm.util.macro.MacroRequest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.function.Supplier;
 
 public enum PwmSettingCategory
@@ -197,10 +198,12 @@ public enum PwmSettingCategory
 
     private final PwmSettingCategory parent;
 
-    private transient Supplier<Optional<PwmSetting>> profileSetting = new LazySupplier<>( () -> XmlReader.readProfileSettingFromXml( this, true ) );
-    private transient Supplier<Integer> level = new LazySupplier<>( () -> XmlReader.readLevel( this ) );
-    private transient Supplier<Boolean> hidden = new LazySupplier<>( () -> XmlReader.readHidden( this ) );
-    private transient Supplier<Boolean> isTopLevelProfile = new LazySupplier<>( () -> XmlReader.readIsTopLevelProfile( this ) );
+    private final Supplier<Optional<PwmSetting>> profileSetting = new LazySupplier<>( () -> XmlReader.readProfileSettingFromXml( this, true ) );
+    private final Supplier<Integer> level = new LazySupplier<>( () -> XmlReader.readLevel( this ) );
+    private final Supplier<Boolean> hidden = new LazySupplier<>( () -> XmlReader.readHidden( this ) );
+    private final Supplier<Boolean> isTopLevelProfile = new LazySupplier<>( () -> XmlReader.readIsTopLevelProfile( this ) );
+    private final Supplier<String> defaultLocaleLabel = new LazySupplier<>( () -> XmlReader.readLabel( this, PwmConstants.DEFAULT_LOCALE ) );
+    private final Supplier<String> defaultLocaleDescription = new LazySupplier<>( () -> XmlReader.readDescription( this, PwmConstants.DEFAULT_LOCALE ) );
 
 
     PwmSettingCategory( final PwmSettingCategory parent )
@@ -235,14 +238,22 @@ public enum PwmSettingCategory
 
     public String getLabel( final Locale locale )
     {
-        final String key = password.pwm.i18n.PwmSetting.CATEGORY_LABEL_PREFIX + this.getKey();
-        return LocaleHelper.getLocalizedMessage( locale, key, null, password.pwm.i18n.PwmSetting.class );
+        if ( PwmConstants.DEFAULT_LOCALE.equals( locale ) )
+        {
+            return defaultLocaleLabel.get();
+        }
+
+        return XmlReader.readLabel( this, locale );
     }
 
     public String getDescription( final Locale locale )
     {
-        final String key = password.pwm.i18n.PwmSetting.CATEGORY_DESCRIPTION_PREFIX + this.getKey();
-        return LocaleHelper.getLocalizedMessage( locale, key, null, password.pwm.i18n.PwmSetting.class );
+        if ( PwmConstants.DEFAULT_LOCALE.equals( locale ) )
+        {
+            return defaultLocaleDescription.get();
+        }
+
+        return XmlReader.readDescription( this, locale );
     }
 
     public int getLevel( )
@@ -313,7 +324,6 @@ public enum PwmSettingCategory
             final Locale locale
     )
     {
-
         final String parentValue = category.getParent() == null
                 ? ""
                 : toMenuLocationDebug( category.getParent(), profileID, locale );
@@ -349,18 +359,21 @@ public enum PwmSettingCategory
     {
         if ( cachedSortedSettings == null )
         {
-            // prevents dupes from being eliminated;
-            int counter = 0;
-
-            final Map<String, PwmSettingCategory> sortedCategories = new TreeMap<>();
-            for ( final PwmSettingCategory category : PwmSettingCategory.values() )
-            {
-                final String sortValue = category.toMenuLocationDebug( null, locale ) + ( counter++ );
-                sortedCategories.put( sortValue, category );
-            }
-            cachedSortedSettings = Collections.unmodifiableList( new ArrayList<>( sortedCategories.values() ) );
+            final List<PwmSettingCategory> tempList = new ArrayList<>( Arrays.asList( PwmSettingCategory.values() ) );
+            tempList.sort( menuLocationComparator( locale ) );
+            cachedSortedSettings = Collections.unmodifiableList( tempList );
         }
         return cachedSortedSettings;
+    }
+
+    private static Comparator<PwmSettingCategory> menuLocationComparator( final Locale locale )
+    {
+        return ( o1, o2 ) ->
+        {
+            final String selfValue = o1.toMenuLocationDebug( null, locale );
+            final String otherValue = o2.toMenuLocationDebug( null, locale );
+            return selfValue.compareTo( otherValue );
+        };
     }
 
     public static List<PwmSettingCategory> valuesForReferenceDoc( final Locale locale )
@@ -403,6 +416,23 @@ public enum PwmSettingCategory
         return Arrays.stream( values() )
                 .filter( loopValue -> loopValue.getKey().equals( key ) )
                 .findFirst();
+    }
+
+    public static Optional<PwmSettingCategory> forProfileSetting( final PwmSetting setting )
+    {
+        for ( final PwmSettingCategory loopCategory : PwmSettingCategory.values() )
+        {
+            if ( loopCategory.hasProfiles() )
+            {
+                final Optional<PwmSetting> profileSetting = loopCategory.getProfileSetting();
+                if ( profileSetting.isPresent() && profileSetting.get() == setting )
+                {
+                    return Optional.of( loopCategory );
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 
     private static class XmlReader
@@ -467,6 +497,23 @@ public enum PwmSettingCategory
         private static boolean readIsTopLevelProfile( final PwmSettingCategory category )
         {
             return readProfileSettingFromXml( category, false ).isPresent();
+        }
+
+        private static String readLabel( final PwmSettingCategory category, final Locale locale )
+        {
+            return readStringProperty( password.pwm.i18n.PwmSetting.CATEGORY_LABEL_PREFIX + category.getKey(), locale );
+        }
+
+        private static String readDescription( final PwmSettingCategory category, final Locale locale )
+        {
+            return readStringProperty( password.pwm.i18n.PwmSetting.CATEGORY_DESCRIPTION_PREFIX + category.getKey(), locale );
+        }
+
+        private static String readStringProperty( final String key, final Locale locale )
+        {
+            final String storedText = LocaleHelper.getLocalizedMessage( locale, key, null, password.pwm.i18n.PwmSetting.class );
+            final MacroRequest macroRequest = MacroRequest.forStatic();
+            return macroRequest.expandMacros( storedText );
         }
     }
 }

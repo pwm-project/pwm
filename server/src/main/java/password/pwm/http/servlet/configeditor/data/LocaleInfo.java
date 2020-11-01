@@ -18,13 +18,28 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.configeditor;
+package password.pwm.http.servlet.configeditor.data;
+
+import lombok.Builder;
+import lombok.Value;
+import password.pwm.i18n.PwmLocaleBundle;
 
 import java.io.Serializable;
 
+@Value
+@Builder
 public class LocaleInfo implements Serializable
 {
     public String description;
     public String key;
     public boolean adminOnly;
+
+    public static LocaleInfo forBundle( final PwmLocaleBundle pwmLocaleBundle )
+    {
+        return LocaleInfo.builder()
+                    .description( pwmLocaleBundle.getTheClass().getSimpleName() )
+                    .key( pwmLocaleBundle.toString() )
+                    .adminOnly( pwmLocaleBundle.isAdminOnly() )
+                    .build();
+    }
 }
