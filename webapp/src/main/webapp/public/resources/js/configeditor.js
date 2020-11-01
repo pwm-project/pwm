@@ -641,63 +641,55 @@ PWM_CFGEDIT.showMacroHelp = function() {
         };
         PWM_MAIN.ajaxRequest(url,loadFunction,{content:sendData});
     };
-    require(["dijit/Dialog"],function(Dialog) {
-        var idName = 'macroPopup';
-        PWM_MAIN.clearDijitWidget(idName);
-        var theDialog = new Dialog({
-            id: idName,
-            title: 'Macro Help',
-            style: "width: 750px",
-            href: PWM_GLOBAL['url-resources'] + "/text/macroHelp.html"
-        });
-        var attempts = 0;
-        // iframe takes indeterminate amount of time to load, so just retry till it appears
-        var loadFunction = function() {
-            if (PWM_MAIN.getObject('input-testMacroInput')) {
-                console.log('connected to macroHelpDiv');
-                setTimeout(function(){
-                    PWM_MAIN.getObject('input-testMacroInput').focus();
-                    PWM_MAIN.addEventHandler('input-testMacroInput','input',processExampleFunction);
-                    processExampleFunction();
-                },500);
-            } else {
-                if (attempts < 50) {
-                    attempts++;
-                    setTimeout(loadFunction,100);
-                }
+
+    var loadFunction = function() {
+        if (PWM_MAIN.getObject('input-testMacroInput')) {
+            console.log('connected to macroHelpDiv');
+            setTimeout(function(){
+                PWM_MAIN.addEventHandler('input-testMacroInput','input',processExampleFunction);
+                processExampleFunction();
+                PWM_MAIN.getObject('input-testMacroInput').focus();
+                PWM_MAIN.getObject('input-testMacroInput').setSelectionRange(-1, -1);
+            },500);
+        } else {
+            if (attempts < 50) {
+                attempts++;
+                setTimeout(loadFunction,100);
             }
-        };
-        theDialog.show();
-        loadFunction();
-    });
+        }
+    };
+
+    var options = {};
+    options['title'] = 'Macro Help'
+    options['id'] = 'id-dialog-macroHelp'
+    options['dialogClass'] = 'wide';
+    options['dojoStyle'] = 'width: 750px';
+    options['showClose'] = true;
+    options['href'] = PWM_GLOBAL['url-resources'] + "/text/macroHelp.html"
+    options['loadFunction'] = loadFunction;
+    PWM_MAIN.showDialog( options );
 };
 
 PWM_CFGEDIT.showTimezoneList = function() {
-    require(["dijit/Dialog"],function(Dialog) {
-        var idName = 'timezonePopup';
-        PWM_MAIN.clearDijitWidget(idName);
-        var theDialog = new Dialog({
-            id: idName,
-            title: 'Timezones',
-            style: "width: 750px",
-            href: PWM_GLOBAL['url-context'] + "/public/reference/timezones.jsp"
-        });
-        theDialog.show();
-    });
+    var options = {};
+    options['title'] = 'Timezones'
+    options['id'] = 'id-dialog-timeZoneHelp'
+    options['dialogClass'] = 'wide';
+    options['dojoStyle'] = 'width: 750px';
+    options['showClose'] = true;
+    options['href'] = PWM_GLOBAL['url-context'] + "/public/reference/timezones.jsp"
+    PWM_MAIN.showDialog( options );
 };
 
 PWM_CFGEDIT.showDateTimeFormatHelp = function() {
-    require(["dijit/Dialog"],function(Dialog) {
-        var idName = 'dateTimePopup';
-        PWM_MAIN.clearDijitWidget(idName);
-        var theDialog = new Dialog({
-            id: idName,
-            title: 'Macro Help',
-            style: "width: 700px",
-            href: PWM_GLOBAL['url-resources'] + "/text/datetimeFormatHelp.html"
-        });
-        theDialog.show();
-    });
+    var options = {};
+    options['title'] = 'Date & Time Formatting'
+    options['id'] = 'id-dialog-dateTimePopup'
+    options['dialogClass'] = 'wide';
+    options['dojoStyle'] = 'width: 750px';
+    options['showClose'] = true;
+    options['href'] = PWM_GLOBAL['url-resources'] + "/text/datetimeFormatHelp.html"
+    PWM_MAIN.showDialog( options );
 };
 
 PWM_CFGEDIT.ldapHealthCheck = function() {
@@ -754,59 +746,55 @@ PWM_CFGEDIT.httpsCertificateView = function() {
 };
 
 PWM_CFGEDIT.smsHealthCheck = function() {
-    require(["dojo/dom-form"], function(domForm){
-        var dialogBody = '<p>' + PWM_CONFIG.showString('Warning_SmsTestData') + '</p><form id="smsCheckParametersForm"><table>';
-        dialogBody += '<tr><td>To</td><td><input name="to" type="text" value="555-1212"/></td></tr>';
-        dialogBody += '<tr><td>Message</td><td><input name="message" type="text" value="Test Message"/></td></tr>';
-        dialogBody += '</table></form>';
-        PWM_MAIN.showDialog({text:dialogBody,showCancel:true,title:'Test SMS connection',closeOnOk:false,okAction:function(){
-                var formElement = PWM_MAIN.getObject("smsCheckParametersForm");
-                var formData = domForm.toObject(formElement);
-                var url =  "editor?processAction=smsHealthCheck";
-                PWM_MAIN.showWaitDialog({loadFunction:function(){
-                        var loadFunction = function(data) {
-                            if (data['error']) {
-                                PWM_MAIN.showErrorDialog(data);
-                            } else {
-                                var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
-                                var titleText = 'SMS Send Message Status';
-                                PWM_MAIN.showDialog({text:bodyText,title:titleText,showCancel:true});
-                            }
+    var dialogBody = '<p>' + PWM_CONFIG.showString('Warning_SmsTestData') + '</p><form id="smsCheckParametersForm"><table>';
+    dialogBody += '<tr><td>To</td><td><input name="to" type="text" value="555-1212"/></td></tr>';
+    dialogBody += '<tr><td>Message</td><td><input name="message" type="text" value="Test Message"/></td></tr>';
+    dialogBody += '</table></form>';
+    PWM_MAIN.showDialog({text:dialogBody,showCancel:true,title:'Test SMS connection',closeOnOk:false,okAction:function(){
+            var formElement = PWM_MAIN.getObject("smsCheckParametersForm");
+            var formData = PWM_MAIN.JSLibrary.formToValueMap(formElement);
+            var url =  "editor?processAction=smsHealthCheck";
+            PWM_MAIN.showWaitDialog({loadFunction:function(){
+                    var loadFunction = function(data) {
+                        if (data['error']) {
+                            PWM_MAIN.showErrorDialog(data);
+                        } else {
+                            var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
+                            var titleText = 'SMS Send Message Status';
+                            PWM_MAIN.showDialog({text:bodyText,title:titleText,showCancel:true});
+                        }
 
-                        };
-                        PWM_MAIN.ajaxRequest(url,loadFunction,{content:formData});
-                    }});
-            }});
-    });
+                    };
+                    PWM_MAIN.ajaxRequest(url,loadFunction,{content:formData});
+                }});
+        }});
 };
 
 PWM_CFGEDIT.emailHealthCheck = function() {
-    require(["dojo/dom-form"], function(domForm){
-        var dialogBody = '<p>' + PWM_CONFIG.showString('Warning_EmailTestData') + '</p><form id="emailCheckParametersForm"><table>';
-        dialogBody += '<tr><td>To</td><td><input name="to" type="text" value="test@example.com"/></td></tr>';
-        dialogBody += '<tr><td>From</td><td><input name="from" type="text" value="@DefaultEmailFromAddress@"/></td></tr>';
-        dialogBody += '<tr><td>Subject</td><td><input name="subject" type="text" value="Test Email"/></td></tr>';
-        dialogBody += '<tr><td>Body</td><td><input name="body" type="text" value="Test Email""/></td></tr>';
-        dialogBody += '</table></form>';
-        PWM_MAIN.showDialog({text:dialogBody,showCancel:true,title:'Test Email Connection',closeOnOk:false,okAction:function(){
-                var formElement = PWM_MAIN.getObject("emailCheckParametersForm");
-                var formData = domForm.toObject(formElement);
-                var url =  "editor?processAction=emailHealthCheck";
-                url = PWM_MAIN.addParamToUrl(url,'profile',PWM_CFGEDIT.readCurrentProfile());
-                PWM_MAIN.showWaitDialog({loadFunction:function(){
-                        var loadFunction = function(data) {
-                            if (data['error']) {
-                                PWM_MAIN.showErrorDialog(data);
-                            } else {
-                                var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
-                                var titleText = 'Email Send Message Status';
-                                PWM_MAIN.showDialog({text:bodyText,title:titleText,showCancel:true});
-                            }
-                        };
-                        PWM_MAIN.ajaxRequest(url,loadFunction,{content:formData});
-                    }});
-            }});
-    });
+    var dialogBody = '<p>' + PWM_CONFIG.showString('Warning_EmailTestData') + '</p><form id="emailCheckParametersForm"><table>';
+    dialogBody += '<tr><td>To</td><td><input name="to" type="text" value="test@example.com"/></td></tr>';
+    dialogBody += '<tr><td>From</td><td><input name="from" type="text" value="@DefaultEmailFromAddress@"/></td></tr>';
+    dialogBody += '<tr><td>Subject</td><td><input name="subject" type="text" value="Test Email"/></td></tr>';
+    dialogBody += '<tr><td>Body</td><td><input name="body" type="text" value="Test Email""/></td></tr>';
+    dialogBody += '</table></form>';
+    PWM_MAIN.showDialog({text:dialogBody,showCancel:true,title:'Test Email Connection',closeOnOk:false,okAction:function(){
+            var formElement = PWM_MAIN.getObject("emailCheckParametersForm");
+            var formData = PWM_MAIN.JSLibrary.formToValueMap(formElement);
+            var url = "editor?processAction=emailHealthCheck";
+            url = PWM_MAIN.addParamToUrl(url,'profile',PWM_CFGEDIT.readCurrentProfile());
+            PWM_MAIN.showWaitDialog({loadFunction:function(){
+                    var loadFunction = function(data) {
+                        if (data['error']) {
+                            PWM_MAIN.showErrorDialog(data);
+                        } else {
+                            var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
+                            var titleText = 'Email Send Message Status';
+                            PWM_MAIN.showDialog({text:bodyText,title:titleText,showCancel:true});
+                        }
+                    };
+                    PWM_MAIN.ajaxRequest(url,loadFunction,{content:formData});
+                }});
+        }});
 };
 
 PWM_CFGEDIT.selectTemplate = function(newTemplate) {

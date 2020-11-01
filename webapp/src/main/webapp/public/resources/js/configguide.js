@@ -41,7 +41,7 @@ PWM_GUIDE.selectTemplate = function(template) {
 };
 
 PWM_GUIDE.updateForm = function() {
-    require(["dojo","dijit/registry","dojo/dom-form"],function(dojo,registry,domForm){
+    require(["dojo"],function(dojo){
         var formJson = dojo.formToJson('configForm');
         var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','updateForm');
         url = PWM_MAIN.addPwmFormIDtoURL(url);

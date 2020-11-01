@@ -1041,8 +1041,7 @@ progress[value] {
 }
 
 .dialogBody.wide {
-    width: 95%;
-    max-width: 100%;
+    width: 750vw;
     min-width: 800px;
 }
 

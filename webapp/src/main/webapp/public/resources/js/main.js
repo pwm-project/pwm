@@ -376,45 +376,43 @@ PWM_MAIN.handleLoginFormSubmit = function(form, event) {
     PWM_MAIN.log('entering handleLoginFormSubmit');
     PWM_MAIN.cancelEvent(event);
 
-    require(["dojo","dojo/dom-form"], function(dojo, domForm) {
-        PWM_MAIN.showWaitDialog({loadFunction: function () {
-                var options = {};
-                options['content'] = domForm.toObject(form);
-                delete options['content']['processAction'];
-                delete options['content']['pwmFormID'];
-                var url = 'login?processAction=restLogin';
-                if (options['content']['skipCaptcha'])
-                {
-                    PWM_MAIN.addParamToUrl( url, 'skipCaptcha', options['content']['skipCaptcha']);
+    PWM_MAIN.showWaitDialog({loadFunction: function () {
+            var options = {};
+            options['content'] = PWM_MAIN.JSLibrary.formToValueMap(form);
+            delete options['content']['processAction'];
+            delete options['content']['pwmFormID'];
+            var url = 'login?processAction=restLogin';
+            if (options['content']['skipCaptcha'])
+            {
+                PWM_MAIN.addParamToUrl( url, 'skipCaptcha', options['content']['skipCaptcha']);
+            }
+            var loadFunction = function(data) {
+                if (data['error'] === true) {
+                    PWM_MAIN.getObject('password').value = '';
+                    PWM_MAIN.showErrorDialog(data,{
+                        okAction:function(){
+                            setTimeout(function(){
+                                PWM_MAIN.getObject('password').focus();
+                            },50);
+                        }
+                    });
+                    return;
                 }
-                var loadFunction = function(data) {
-                    if (data['error'] === true) {
-                        PWM_MAIN.getObject('password').value = '';
-                        PWM_MAIN.showErrorDialog(data,{
-                            okAction:function(){
-                                setTimeout(function(){
-                                    PWM_MAIN.getObject('password').focus();
-                                },50);
-                            }
-                        });
-                        return;
-                    }
-                    PWM_MAIN.log('authentication success');
-                    var nextURL = data['data']['nextURL'];
-                    if (nextURL) {
-                        PWM_MAIN.gotoUrl(nextURL, {noContext: true});
-                    }
-                };
-                PWM_MAIN.ajaxRequest(url,loadFunction,options);
-                if(typeof grecaptcha !== 'undefined'){
-                    try {
-                        grecaptcha.reset(); // reset the
-                    } catch (e) {
-                        PWM_MAIN.log("error resetting the captcha: " + e)
-                    }
+                PWM_MAIN.log('authentication success');
+                var nextURL = data['data']['nextURL'];
+                if (nextURL) {
+                    PWM_MAIN.gotoUrl(nextURL, {noContext: true});
                 }
-            }});
-    });
+            };
+            PWM_MAIN.ajaxRequest(url,loadFunction,options);
+            if(typeof grecaptcha !== 'undefined'){
+                try {
+                    grecaptcha.reset(); // reset the
+                } catch (e) {
+                    PWM_MAIN.log("error resetting the captcha: " + e)
+                }
+            }
+        }});
 };
 
 PWM_MAIN.log = function(text) {
@@ -794,8 +792,10 @@ PWM_MAIN.showDialog = function(options) {
     var allowMove = 'allowMove' in options ? options['allowMove'] : false;
     var idName = 'id' in options ? options['id'] : 'dialogPopup';
     var dialogClass = 'dialogClass' in options ? options['dialogClass'] : null;
+    var dojoStyle = 'dojoStyle' in options ? options['dojoStyle'] : null;
     var okLabel = 'okLabel' in options ? options['okLabel'] : PWM_MAIN.showString('Button_OK');
     var buttonHtml = 'buttonHtml' in options ? options['buttonHtml'] : '';
+    var href = 'href' in options ? options['href'] : null;
 
     var okAction = function(){
         if (closeOnOk) {
@@ -843,38 +843,51 @@ PWM_MAIN.showDialog = function(options) {
     bodyText = '<div class="' + dialogClassText + '">' + bodyText + '</div>';
 
     if (html5Dialog) {
-        PWM_MAIN.closeWaitDialog();
-        var dialogElement = document.createElement("dialog");
-        dialogElement.setAttribute("id", 'html5Dialog');
-        //dialogElement.setAttribute("draggable","true");
-        var html5DialogHtml = '<div class="titleBar">' + title;
-        if (showClose) {
-            html5DialogHtml += '<div id="icon-closeDialog" class="closeIcon pwm-icon pwm-icon-times"></div>'
-        }
-        html5DialogHtml += '</div><div class="body">' + bodyText + '</div>';
-        dialogElement.innerHTML = html5DialogHtml;
-        document.body.appendChild(dialogElement);
-        dialogElement.showModal();
-
-        setTimeout(function () {
-            if (showOk) {
-                PWM_MAIN.addEventHandler('dialog_ok_button', 'click', function () {
-                    okAction()
-                });
-            }
+        var doDialogDisplay = function(){
+            PWM_MAIN.closeWaitDialog();
+            var dialogElement = document.createElement("dialog");
+            dialogElement.setAttribute("id", 'html5Dialog');
+            var html5DialogHtml = '<div class="titleBar">' + title;
             if (showClose) {
-                PWM_MAIN.addEventHandler('icon-closeDialog', 'click', function () {
-                    PWM_MAIN.closeWaitDialog();
-                });
+                html5DialogHtml += '<div id="icon-closeDialog" class="closeIcon pwm-icon pwm-icon-times"></div>'
             }
+            html5DialogHtml += '</div><div class="body">' + bodyText + '</div>';
+            dialogElement.innerHTML = html5DialogHtml;
+            document.body.appendChild(dialogElement);
+            dialogElement.showModal();
 
-            if (showCancel) {
-                PWM_MAIN.addEventHandler('dialog_cancel_button', 'click', function () {
-                    cancelAction()
-                });
-            }
-            setTimeout(loadFunction, 100);
-        }, 100);
+            setTimeout(function () {
+                if (showOk) {
+                    PWM_MAIN.addEventHandler('dialog_ok_button', 'click', function () {
+                        okAction()
+                    });
+                }
+                if (showClose) {
+                    PWM_MAIN.addEventHandler('icon-closeDialog', 'click', function () {
+                        PWM_MAIN.closeWaitDialog();
+                    });
+                }
+
+                if (showCancel) {
+                    PWM_MAIN.addEventHandler('dialog_cancel_button', 'click', function () {
+                        cancelAction()
+                    });
+                }
+                setTimeout(loadFunction, 100);
+            }, 100);
+        }
+
+        if (href) {
+            var hrefContentHandler = function( value ) {
+                bodyText = '<div class="' + dialogClassText + '">' + value + '</div>';
+                doDialogDisplay();
+            };
+            PWM_MAIN.showWaitDialog({loadFunction:function(){
+                    PWM_MAIN.ajaxRequest(href,hrefContentHandler,{method:'GET',responseMimeType:'text/html',handleAs:'html'});
+                }});
+        } else {
+            doDialogDisplay();
+        }
     } else {
         require(["dojo", "dijit/Dialog"], function (dojo, Dialog) {
             PWM_MAIN.clearDijitWidget(idName);
@@ -883,7 +896,9 @@ PWM_MAIN.showDialog = function(options) {
                 closable: showClose,
                 draggable: allowMove,
                 title: title,
-                content: bodyText
+                style: dojoStyle,
+                content: bodyText,
+                href: href
             });
             if (!showClose) {
                 dojo.style(theDialog.closeButtonNode, "display", "none");
@@ -1356,6 +1371,23 @@ PWM_MAIN.JSLibrary.setValueOfSelectElement = function(nodeID, value) {
     }
 };
 
+PWM_MAIN.JSLibrary.formToValueMap = function(formElement) {
+    var formData = new FormData( formElement );
+    var returnData = {};
+    formData.forEach((value, key) => {
+        // Reflect.has in favor of: object.hasOwnProperty(key)
+        if(!Reflect.has(returnData, key)){
+            returnData[key] = value;
+            return;
+        }
+        if(!Array.isArray(returnData[key])){
+            returnData[key] = [returnData[key]];
+        }
+        returnData[key].push(value);
+    });
+    return returnData;
+};
+
 PWM_MAIN.JSLibrary.removeElementFromDom = function(elementID) {
     var element = PWM_MAIN.getObject(elementID);
     if (element) {
@@ -1801,6 +1833,8 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
     options = options === undefined ? {} : options;
     var content = 'content' in options ? options['content'] : null;
     var method = 'method' in options ? options['method'] : 'POST';
+    var responseMimeType = 'responseMimeType' in options ? options['responseMimeType'] : 'application/json';
+    var handleAs = 'handleAs' in options ? options['handleAs'] : 'json';
     var errorFunction = 'errorFunction' in options ? options['errorFunction'] : function(error){
         var status = error['response']['status'];
         if (status === 0 || status < 200 || status >= 300) {
@@ -1816,9 +1850,9 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
     var addPwmFormID = 'addPwmFormID' in options ? options['addPwmFormID'] : true;
     var ajaxTimeout = options['ajaxTimeout'] ? options['ajaxTimeout'] : PWM_MAIN.ajaxTimeout;
     var requestHeaders = {};
-    requestHeaders['Accept'] = "application/json";
+    requestHeaders['Accept'] = responseMimeType;
     if (hasContent) {
-        requestHeaders['Content-Type'] = "application/json";
+        requestHeaders['Content-Type'] = responseMimeType;
     }
 
     require(["dojo/request/xhr","dojo","dojo/json"], function (xhr,dojo,dojoJson) {
@@ -1836,7 +1870,7 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
             //encoding: "utf-8",
             method: method,
             preventCache: false,
-            handleAs: "json",
+            handleAs: handleAs,
             timeout: ajaxTimeout
         };
 

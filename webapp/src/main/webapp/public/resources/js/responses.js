@@ -30,28 +30,26 @@ PWM_VAR['simpleRandomOptions'] = [];
 // takes response values in the fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
 PWM_RESPONSES.validateResponses=function() {
-    require(["dojo/dom-form"], function(domForm){
-        var serviceUrl = PWM_MAIN.addParamToUrl(window.location.href,"processAction","validateResponses");
-        if (PWM_GLOBAL['responseMode']) {
-            serviceUrl += "&responseMode=" + PWM_GLOBAL['responseMode'];
+    var serviceUrl = PWM_MAIN.addParamToUrl(window.location.href,"processAction","validateResponses");
+    if (PWM_GLOBAL['responseMode']) {
+        serviceUrl += "&responseMode=" + PWM_GLOBAL['responseMode'];
+    }
+    var validationProps = {};
+    validationProps['messageWorking'] = PWM_MAIN.showString('Display_CheckingResponses');
+    validationProps['serviceURL'] = serviceUrl;
+    validationProps['readDataFunction'] = function(){
+        return PWM_MAIN.JSLibrary.formToValueMap(PWM_MAIN.getObject('form-setupResponses'));
+    };
+    validationProps['processResultsFunction'] = function(data){
+        if (data) {
+            PWM_RESPONSES.updateDisplay(data['data']);
+        } else {
+            console.log('did not receive valid response for validation check from server');
+            PWM_MAIN.getObject("button-setResponses").disabled = false;
         }
-        var validationProps = {};
-        validationProps['messageWorking'] = PWM_MAIN.showString('Display_CheckingResponses');
-        validationProps['serviceURL'] = serviceUrl;
-        validationProps['readDataFunction'] = function(){
-            return domForm.toObject('form-setupResponses');
-        };
-        validationProps['processResultsFunction'] = function(data){
-            if (data) {
-                PWM_RESPONSES.updateDisplay(data['data']);
-            } else {
-                console.log('did not receive valid response for validation check from server');
-                PWM_MAIN.getObject("button-setResponses").disabled = false;
-            }
-        };
+    };
 
-        PWM_MAIN.pwmFormValidator(validationProps);
-    });
+    PWM_MAIN.pwmFormValidator(validationProps);
 };
 
 PWM_RESPONSES.updateDisplay=function(resultInfo) {
