@@ -85,52 +85,43 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
     // texts that are in use
     var currentlySelectedTexts = [];
 
-    for (var loopID in simpleRandomSelectElements) {
-        (function(iterID){
-            var questionID = simpleRandomSelectElements[iterID];
-            var selectedElement = PWM_MAIN.getObject(questionID);
-            var selectedIndex = selectedElement.selectedIndex;
-            var selectedValue = selectedElement.options[selectedIndex].value;
-            if ('UNSELECTED' !== selectedValue) {
-                currentlySelectedTexts.push(selectedValue);
-            }
-        }(loopID));
-    }
+    PWM_MAIN.JSLibrary.forEachInArray(simpleRandomSelectElements,function(questionID){
+        var selectedElement = PWM_MAIN.getObject(questionID);
+        var selectedIndex = selectedElement.selectedIndex;
+        var selectedValue = selectedElement.options[selectedIndex].value;
+        if ('UNSELECTED' !== selectedValue) {
+            currentlySelectedTexts.push(selectedValue);
+        }
+    });
 
     // repopulate the select elements
-    for (var loopID in simpleRandomSelectElements) {
-        (function(iterID){
-            var questionID = simpleRandomSelectElements[iterID];
-            var selectedElement = PWM_MAIN.getObject(questionID);
-            var selectedIndex = selectedElement.selectedIndex;
-            var selectedValue = selectedElement.options[selectedIndex].value;
-            var responseID = selectedElement.getAttribute('data-response-id');
-            selectedElement.innerHTML = '';
-            if (selectedValue === 'UNSELECTED') {
-                var unselectedOption = document.createElement('option');
-                unselectedOption.value = 'UNSELECTED';
-                unselectedOption.innerHTML = '&nbsp;&mdash;&nbsp;' + initialChoiceText + '&nbsp;&mdash;&nbsp;';
-                unselectedOption.selected = true;
-                selectedElement.appendChild(unselectedOption);
-            }
+    PWM_MAIN.JSLibrary.forEachInArray(simpleRandomSelectElements,function(questionID){
+        var selectedElement = PWM_MAIN.getObject(questionID);
+        var selectedIndex = selectedElement.selectedIndex;
+        var selectedValue = selectedElement.options[selectedIndex].value;
+        var responseID = selectedElement.getAttribute('data-response-id');
+        selectedElement.innerHTML = '';
+        if (selectedValue === 'UNSELECTED') {
+            var unselectedOption = document.createElement('option');
+            unselectedOption.value = 'UNSELECTED';
+            unselectedOption.innerHTML = '&nbsp;&mdash;&nbsp;' + initialChoiceText + '&nbsp;&mdash;&nbsp;';
+            unselectedOption.selected = true;
+            selectedElement.appendChild(unselectedOption);
+        }
 
-            for (var i = 0; i < allPossibleTexts.length; i++) {
-                var loopText = allPossibleTexts[i];
-                var optionElement = document.createElement('option');
-                optionElement.value = loopText;
-                optionElement.innerHTML = loopText;
+        PWM_MAIN.JSLibrary.forEachInArray(allPossibleTexts,function(loopText){
+            var optionElement = document.createElement('option');
+            optionElement.value = loopText;
+            optionElement.innerHTML = loopText;
 
-                require(["dojo/_base/array"], function(array){
-                    if (loopText === selectedValue || array.indexOf(currentlySelectedTexts,loopText) === -1) {
-                        if (loopText === selectedValue) {
-                            optionElement.selected = true;
-                        }
-                        selectedElement.appendChild(optionElement);
-                    }
-                });
+            if (loopText === selectedValue || !PWM_MAIN.JSLibrary.arrayContains(currentlySelectedTexts,loopText)) {
+                if (loopText === selectedValue) {
+                    optionElement.selected = true;
+                }
+                selectedElement.appendChild(optionElement);
             }
-        }(loopID));
-    }
+        });
+    });
 
     console.log('exiting makeSelectOptionsDistinct(), duration:' + (((new Date()).getTime()) - startTime) + "ms");
 };

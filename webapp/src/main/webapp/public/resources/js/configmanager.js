@@ -158,7 +158,6 @@ PWM_CONFIG.uploadLocalDB=function() {
 
 PWM_CONFIG.closeHeaderWarningPanel = function() {
     console.log('action closeHeader');
-    PWM_CONFIG.headerResizeListener.pause();
 
     PWM_MAIN.addCssClass('header-warning','nodisplay');
     PWM_MAIN.addCssClass('header-warning-backdrop','nodisplay');
@@ -167,17 +166,14 @@ PWM_CONFIG.closeHeaderWarningPanel = function() {
 
 PWM_CONFIG.openHeaderWarningPanel = function() {
     console.log('action openHeader');
-    if (PWM_CONFIG.headerResizeListener) {
-        PWM_CONFIG.headerResizeListener.resume();
-    }
 
-    require(['dojo/dom','dijit/place','dojo/on'], function(dom, place, on) {
+    require(['dojo/dom','dijit/place'], function(dom, place) {
         PWM_MAIN.removeCssClass('header-warning-backdrop','nodisplay');
         PWM_MAIN.removeCssClass('header-warning','nodisplay');
         //PWM_MAIN.addCssClass('button-openHeader','nodisplay');
         place.around(PWM_MAIN.getObject("header-warning"), PWM_MAIN.getObject("header-username-caret"), ["below-alt"], false);
 
-        on.once(PWM_MAIN.getObject("header-warning-backdrop"), "click", function(event) {
+        PWM_MAIN.addEventHandler("header-warning-backdrop", "click", function(event) {
             PWM_CONFIG.closeHeaderWarningPanel();
         });
     });
@@ -336,14 +332,12 @@ PWM_CONFIG.initConfigHeader = function() {
         PWM_CONFIG.openHeaderWarningPanel();
     });
 
-    require(["dojo/dom-construct", "dojo/_base/window", "dojo/dom", "dijit/place", "dojo/on"], function(domConstruct, win, dom, place, on){
+    require(["dojo/dom-construct", "dojo/_base/window", "dojo/dom", "dijit/place"], function(domConstruct, win, dom, place){
         domConstruct.create("div", { id: "header-warning-backdrop", "class":"nodisplay" }, win.body());
 
-        PWM_CONFIG.headerResizeListener = on.pausable(window, "resize", function () {
+        PWM_MAIN.addEventHandler(window, "resize", function () {
             place.around(dom.byId("header-warning"), dom.byId("header-username-caret"), ["below-alt"], false);
         });
-
-        PWM_CONFIG.headerResizeListener.pause();
     });
 
     PWM_CONFIG.showHeaderHealth();

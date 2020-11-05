@@ -862,25 +862,21 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
     }
 
     PWM_VAR['skippedSettingCount'] = 0;
-    for (var loopSetting in PWM_SETTINGS['settings']) {
-        (function(settingKey) {
-            var settingInfo = PWM_SETTINGS['settings'][settingKey];
-            if (settingInfo['category'] === category && !settingInfo['hidden']) {
-                htmlSettingBody += PWM_CFGEDIT.drawHtmlOutlineForSetting(settingInfo);
-            }
-        })(loopSetting);
-    }
-    htmlSettingBody += '<div class="footnote" id="panel-skippedSettingInfo">';
+    PWM_MAIN.JSLibrary.forEachInObject(PWM_SETTINGS['settings'],function(key,settingInfo){
+        if (settingInfo['category'] === category && !settingInfo['hidden']) {
+            htmlSettingBody += PWM_CFGEDIT.drawHtmlOutlineForSetting(settingInfo);
+        }
+    });
 
+    htmlSettingBody += '<div class="footnote" id="panel-skippedSettingInfo">';
     settingsPanel.innerHTML = htmlSettingBody;
-    for (var loopSetting in PWM_SETTINGS['settings']) {
-        (function(settingKey) {
-            var settingInfo = PWM_SETTINGS['settings'][settingKey];
-            if (settingInfo['category'] === category && !settingInfo['hidden']) {
-                PWM_CFGEDIT.initSettingDisplay(settingInfo);
-            }
-        })(loopSetting);
-    }
+
+    PWM_MAIN.JSLibrary.forEachInObject(PWM_SETTINGS['settings'],function(key,settingInfo) {
+        if (settingInfo['category'] === category && !settingInfo['hidden']) {
+            PWM_CFGEDIT.initSettingDisplay(settingInfo);
+        }
+    });
+
     if (category === 'LDAP_BASE') {
         PWM_MAIN.addEventHandler('button-test-LDAP_BASE', 'click', function(){PWM_CFGEDIT.ldapHealthCheck();});
     } else if (category === 'DATABASE_SETTINGS') {

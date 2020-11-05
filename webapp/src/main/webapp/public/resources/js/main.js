@@ -32,48 +32,53 @@ PWM_API.formatDate = function(dateObj) {
 PWM_MAIN.ajaxTimeout = 60 * 1000;
 
 PWM_MAIN.pageLoadHandler = function() {
-    PWM_GLOBAL['localeBundle']=PWM_GLOBAL['localeBundle'] || [];
-    PWM_GLOBAL['url-context']=PWM_MAIN.getObject('application-info').getAttribute('data-url-context');
-    PWM_GLOBAL['pwmFormID']=PWM_MAIN.getObject('application-info').getAttribute('data-pwmFormID');
-    PWM_GLOBAL['clientEtag']=PWM_MAIN.getObject('application-info').getAttribute('data-clientEtag');
+    PWM_GLOBAL['localeBundle'] = PWM_GLOBAL['localeBundle'] || [];
+    PWM_GLOBAL['url-context'] = PWM_MAIN.getObject('application-info').getAttribute('data-url-context');
+    PWM_GLOBAL['pwmFormID'] = PWM_MAIN.getObject('application-info').getAttribute('data-pwmFormID');
+    PWM_GLOBAL['clientEtag'] = PWM_MAIN.getObject('application-info').getAttribute('data-clientEtag');
 
-    require(["dojo/_base/array","dojo/_base/Deferred","dojo/promise/all"], function(array,Deferred,all){
-        var promises = [];
-        {
-            var clientLoadDeferred = new Deferred();
-            PWM_MAIN.loadClientData(function(){clientLoadDeferred.resolve()});
-            promises.push(clientLoadDeferred.promise);
-        }
-        if (typeof PWM_CONFIG !== 'undefined') {
-            PWM_GLOBAL['localeBundle'].push('Config');
-        }
-        if (typeof PWM_SETTINGS !== 'undefined' && typeof PWM_CFGEDIT !== 'undefined') {
-            var clientConfigLoadDeferred = new Deferred();
-            PWM_CFGEDIT.initConfigSettingsDefinition(function(){clientConfigLoadDeferred.resolve()});
-            promises.push(clientConfigLoadDeferred.promise);
-        }
-        if (typeof PWM_ADMIN !== 'undefined') {
-            PWM_GLOBAL['localeBundle'].push('Admin');
+    var finishInitCounter = 0;
+    var initFunctions = [];
 
-            var adminLoadDeferred = new Deferred();
-            PWM_ADMIN.initAdminPage(function(){adminLoadDeferred.resolve()});
-            promises.push(adminLoadDeferred.promise);
-        }
-        {
-            var seenBundles = [];
-            PWM_GLOBAL['localeBundle'].push('Display');
-            array.forEach(PWM_GLOBAL['localeBundle'], function(bundleName){
-                if (array.indexOf(seenBundles, bundleName)  === -1) {
-                    var displayLoadDeferred = new Deferred();
-                    PWM_MAIN.loadLocaleBundle(bundleName,function(){displayLoadDeferred.resolve()});
-                    promises.push(displayLoadDeferred.promise);
-                    seenBundles.push(bundleName);
-                }
-            });
-        }
-        all(promises).then(function () {
+    var completeFunction = function () {
+        finishInitCounter++;
+        if ( finishInitCounter === initFunctions.length ) {
             PWM_MAIN.initPage();
+        }
+    };
+
+    initFunctions.push(function () {
+        PWM_MAIN.loadClientData(completeFunction);
+    });
+    if (typeof PWM_CONFIG !== 'undefined') {
+        PWM_GLOBAL['localeBundle'].push('Config');
+    }
+    if (typeof PWM_SETTINGS !== 'undefined' && typeof PWM_CFGEDIT !== 'undefined') {
+        initFunctions.push(function () {
+            PWM_CFGEDIT.initConfigSettingsDefinition(completeFunction);
         });
+    }
+    if (typeof PWM_ADMIN !== 'undefined') {
+        PWM_GLOBAL['localeBundle'].push('Admin');
+
+        initFunctions.push(function () {
+            PWM_ADMIN.initAdminPage(completeFunction);
+        });
+    }
+    {
+        var seenBundles = [];
+        PWM_GLOBAL['localeBundle'].push('Display');
+        PWM_MAIN.JSLibrary.forEachInArray(PWM_GLOBAL['localeBundle'], function (bundleName) {
+            if (!PWM_MAIN.JSLibrary.arrayContains(seenBundles, bundleName)) {
+                initFunctions.push(function () {
+                    PWM_MAIN.loadLocaleBundle(bundleName, completeFunction);
+                });
+            }
+        });
+    }
+
+    PWM_MAIN.JSLibrary.forEachInArray(initFunctions,function(initFunction){
+        initFunction();
     });
 };
 
@@ -82,9 +87,9 @@ PWM_MAIN.loadClientData=function(completeFunction) {
     var url = PWM_GLOBAL['url-context'] + "/public/api?processAction=clientData&etag=" + PWM_GLOBAL['clientEtag'];
     url = PWM_MAIN.addParamToUrl(url,'pageUrl',window.location.href);
     var loadFunction = function(data) {
-        for (var globalProp in data['data']['PWM_GLOBAL']) {
-            PWM_GLOBAL[globalProp] = data['data']['PWM_GLOBAL'][globalProp];
-        }
+        PWM_MAIN.JSLibrary.forEachInObject(data['data']['PWM_GLOBAL'],function(key,value){
+            PWM_GLOBAL[key] = value;
+        })
         PWM_MAIN.log('loaded client data');
         if (completeFunction) completeFunction();
     };
@@ -164,14 +169,9 @@ PWM_MAIN.initPage = function() {
     }
 
     if (PWM_GLOBAL['pageLeaveNotice'] > 0) {
-        require(["dojo"], function(dojo){
-            PWM_MAIN.addEventHandler(document, "beforeunload", function(){
-                dojo.xhrPost({
-                    url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                    preventCache: true,
-                    sync: true
-                });
-            });
+        PWM_MAIN.addEventHandler(document, "beforeunload", function(){
+            var url = PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+            PWM_MAIN.ajaxRequest(url,function(){},{preventCache:true});
         });
     }
 
@@ -296,8 +296,7 @@ PWM_MAIN.applyFormAttributes = function() {
 };
 
 PWM_MAIN.preloadAll = function(nextFunction) {
-    require(["dijit/Dialog","dijit/ProgressBar","dijit/registry","dojo/_base/array","dojo/data/ObjectStore",
-        "dojo/store/Memory","dijit/Tooltip","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator"],function(){
+    require(["dijit/Dialog"],function(){
         if (nextFunction) {
             nextFunction();
         }
@@ -324,14 +323,26 @@ PWM_MAIN.showString = function (key, options) {
     }
 };
 
-PWM_MAIN.addEventHandler = function(nodeId,eventType,functionToAdd) {
+PWM_MAIN.addEventHandler = function(nodeId,events,theFunction) {
     var element = PWM_MAIN.getObject(nodeId);
-    if (element) {
-        //element.addEventListener(eventType, functionToAdd);
-        require(["dojo", "dojo/on"], function (dojo, on) {
-            on(element, eventType, functionToAdd);
+    if (element && events) {
+        var eventArray = Array.isArray(events) ? events : events.split(',');
+        PWM_MAIN.JSLibrary.forEachInArray(eventArray,function(event){
+            if (element.addEventListener){
+                element.addEventListener(event, theFunction, false);
+            } else if (element.attachEvent){
+                element.attachEvent('on'+event, theFunction);
+            }
         });
     }
+};
+
+PWM_MAIN.addOneTimeEventHandler = function(nodeId,events,theFunctions) {
+    var oneTimeFunction = function() {
+        element.removeEventListener(events, oneTimeFunction);
+        theFunctions();
+    }
+    PWM_MAIN.addEventHandler(nodeId,events,oneTimeFunction)
 };
 
 
@@ -950,22 +961,13 @@ PWM_MAIN.showEula = function(requireAgreement, agreeFunction) {
 
     var eulaLocation = PWM_GLOBAL['url-resources'] + '/text/eula.txt';
 
-    require(["dojo/request/xhr"], function (xhr) {
-        var loadFunction = function (data) {
-            displayEula(data);
-        };
-        var postOptions = {
-            method: 'GET'
-        };
-
-        var errorFunction = function(e) {
-            alert('error loading eula text:' + e);
-        };
-
-        xhr(eulaLocation, postOptions).then(loadFunction, errorFunction, function(evt){});
-    });
-
-
+    var options = {};
+    options['method'] = 'GET';
+    options['handleAs'] = 'text';
+    var loadFunction = function (data) {
+        displayEula(data);
+    };
+    PWM_MAIN.ajaxRequest(eulaLocation, loadFunction, options);
 };
 
 PWM_MAIN.showConfirmDialog = function(options) {
@@ -1356,13 +1358,15 @@ PWM_MAIN.JSLibrary.removeFromArray = function(array,element) {
 };
 
 PWM_MAIN.JSLibrary.readValueOfSelectElement = function(nodeID) {
-    var element = document.getElementById(nodeID);
-    var stringValue = element.options[element.selectedIndex].value;
-    return stringValue;
+    var element = PWM_MAIN.getObject(nodeID);
+    if (element && element.options && element.selectedIndex >= 0) {
+        return element.options[element.selectedIndex].value;
+    }
+    return "";
 };
 
 PWM_MAIN.JSLibrary.setValueOfSelectElement = function(nodeID, value) {
-    var element = document.getElementById(nodeID);
+    var element = PWM_MAIN.getObject(nodeID);
     for(var i=0; i < element.options.length; i++) {
         if (element.options[i].value === value) {
             element.selectedIndex = i;
@@ -1372,21 +1376,41 @@ PWM_MAIN.JSLibrary.setValueOfSelectElement = function(nodeID, value) {
 };
 
 PWM_MAIN.JSLibrary.formToValueMap = function(formElement) {
-    var formData = new FormData( formElement );
     var returnData = {};
-    formData.forEach((value, key) => {
-        // Reflect.has in favor of: object.hasOwnProperty(key)
-        if(!Reflect.has(returnData, key)){
-            returnData[key] = value;
-            return;
+    if ( formElement.elements ) {
+        var formElements = formElement.elements;
+        for (var i = 0; i < formElements.length; i++) {
+            var field = formElements[i];
+            if (field.disabled !== true) {
+                if (field.tagName && field.tagName.toLowerCase() === 'input') {
+                    var name = field.name;
+                    var value = field.value;
+                    returnData[name] = value;
+                } else if (field.tagName && field.tagName.toLowerCase() === 'select') {
+                    var name = field.name;
+                    var value = PWM_MAIN.JSLibrary.readValueOfSelectElement(field);
+                    returnData[name] = value;
+                }
+            }
         }
-        if(!Array.isArray(returnData[key])){
-            returnData[key] = [returnData[key]];
-        }
-        returnData[key].push(value);
-    });
+    }
+
     return returnData;
 };
+
+PWM_MAIN.JSLibrary.forEachInArray = function(array,forEachFunction) {
+    for (var i=0, l=array.length; i<l; i++) {
+        forEachFunction(array[i]);
+    }
+}
+
+PWM_MAIN.JSLibrary.forEachInObject = function(object,forEachFunction) {
+    for (var key in object) {
+        if (object.hasOwnProperty(key)) {
+            forEachFunction(key,object[key]);
+        }
+    }
+}
 
 PWM_MAIN.JSLibrary.removeElementFromDom = function(elementID) {
     var element = PWM_MAIN.getObject(elementID);
@@ -1481,7 +1505,7 @@ ShowHidePasswordHandler.init = function(nodeName) {
         return;
     }
 
-    require(["dojo/dom-construct", "dojo/on", "dojo/dom-attr"], function(domConstruct, on, attr){
+    require(["dojo/dom-construct", "dojo/dom-attr"], function(domConstruct, attr){
         var defaultType = attr.get(node, "type");
         attr.set(node, "data-originalType", defaultType);
         attr.set(node, "data-managedByShowHidePasswordHandler","true");
@@ -1538,7 +1562,7 @@ ShowHidePasswordHandler.show = function(nodeName) {
 
     var node = PWM_MAIN.getObject(nodeName);
     node.focus();
-    require(["dojo/dom-construct", "dojo/on", "dojo/dom-attr"], function(domConstruct, on, attr) {
+    require(["dojo/dom-construct", "dojo/dom-attr"], function(domConstruct, attr) {
         var defaultType = attr.get(nodeName, "data-originalType");
         if (defaultType === 'password') {
             setTimeout(function () {
@@ -1773,14 +1797,13 @@ PWM_MAIN.TimestampHandler.initElement = function(element) {
 };
 
 PWM_MAIN.TimestampHandler.updateAllElements = function() {
-    for (var el in PWM_MAIN.TimestampHandler.ElementList) {
-        var element = PWM_MAIN.TimestampHandler.ElementList[el];
+    PWM_MAIN.JSLibrary.forEachInArray(PWM_MAIN.TimestampHandler.ElementList,function(element){
         if (document.body.contains(element)) {
             PWM_MAIN.TimestampHandler.updateElement(element);
         } else {
-            delete PWM_MAIN.TimestampHandler.ElementList[el];
+            PWM_MAIN.JSLibrary.removeFromArray(PWM_MAIN.TimestampHandler.ElementList,element);
         }
-    }
+    });
 };
 
 PWM_MAIN.TimestampHandler.updateElement = function(element) {
@@ -1855,31 +1878,41 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
         requestHeaders['Content-Type'] = responseMimeType;
     }
 
-    require(["dojo/request/xhr","dojo","dojo/json"], function (xhr,dojo,dojoJson) {
-        loadFunction = loadFunction !== undefined ? loadFunction : function (data) {
-            alert('missing load function, return results:' + dojo.toJson(data))
-        };
-        if (addPwmFormID) {
-            url = PWM_MAIN.addPwmFormIDtoURL(url);
-        }
-        if (preventCache) {
-            url = PWM_MAIN.addParamToUrl(url, 'preventCache', (new Date).valueOf());
-        }
-        var postOptions = {
-            headers: requestHeaders,
-            //encoding: "utf-8",
-            method: method,
-            preventCache: false,
-            handleAs: handleAs,
-            timeout: ajaxTimeout
-        };
+    if (addPwmFormID) {
+        url = PWM_MAIN.addPwmFormIDtoURL(url);
+    }
+    if (preventCache) {
+        url = PWM_MAIN.addParamToUrl(url, 'preventCache', (new Date).valueOf());
+    }
 
-        if (hasContent) {
-            postOptions['data'] = dojoJson.stringify(content);
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+        if ( loadFunction === undefined ) {
+            alert('missing load function, return results:' + xhr.response)
+        } else {
+            var response = xhr.response;
+            // run parser for IE
+            if ( typeof response === "string" && handleAs === "json") {
+                response = JSON.parse( response );
+            }
+            loadFunction(response);
         }
+    };
+    xhr.onerror = errorFunction;
+    xhr.ontimeout = errorFunction;
+    xhr.open(method, url);
+    xhr.responseType = handleAs;
+    xhr.timeout = ajaxTimeout;
 
-        xhr(url, postOptions).then(loadFunction, errorFunction, function(evt){});
-    });
+    for (var headerKey in requestHeaders) {
+        xhr.setRequestHeader( headerKey, requestHeaders[headerKey]);
+    }
+
+    if ( hasContent ) {
+        xhr.send( JSON.stringify( content ) );
+    } else {
+        xhr.send();
+    }
 };
 
 PWM_MAIN.convertSecondsToDisplayTimeDuration = function(amount, fullLength) {
