@@ -20,8 +20,6 @@
 
 package password.pwm.http.servlet.configeditor.data;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
@@ -36,7 +34,7 @@ import password.pwm.util.logging.PwmLogger;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -59,17 +57,23 @@ public class SettingDataMaker
         final Map<String, SettingInfo> settingMap = Collections.unmodifiableMap( Arrays.stream( PwmSetting.values() )
                 .collect( Collectors.toMap(
                         PwmSetting::getKey,
-                        pwmSetting -> SettingInfo.forSetting( pwmSetting, templateSet, locale ) ) ) );
+                        pwmSetting -> SettingInfo.forSetting( pwmSetting, templateSet, locale ),
+                        ( u, v ) -> v,
+                        LinkedHashMap::new ) ) );
 
         final Map<String, CategoryInfo> categoryInfoMap = Collections.unmodifiableMap( Arrays.stream( PwmSettingCategory.values() )
                 .collect( Collectors.toMap(
                         PwmSettingCategory::getKey,
-                        pwmSettingCategory -> CategoryInfo.forCategory( pwmSettingCategory, locale ) ) ) );
+                        pwmSettingCategory -> CategoryInfo.forCategory( pwmSettingCategory, locale ),
+                        ( u, v ) -> v,
+                        LinkedHashMap::new ) ) );
 
         final Map<String, LocaleInfo> labelMap = Collections.unmodifiableMap( Arrays.stream( PwmLocaleBundle.values() )
                 .collect( Collectors.toMap(
                         pwmLocaleBundle ->  pwmLocaleBundle.getTheClass().getSimpleName(),
-                        LocaleInfo::forBundle ) ) );
+                        LocaleInfo::forBundle,
+                        ( u, v ) -> v,
+                        LinkedHashMap::new ) ) );
 
         final VarData varMap = VarData.builder()
                 .ldapProfileIds( ValueTypeConverter.valueToStringArray( storedConfiguration.readSetting( PwmSetting.LDAP_PROFILE_LIST, null ) ) )
@@ -88,13 +92,5 @@ public class SettingDataMaker
                 + settingData.getCategories().size() + " categories", () -> TimeDuration.fromCurrent( startGenerateTime ) );
 
         return settingData;
-    }
-
-    @Value
-    @Builder
-    static class VarData
-    {
-        private final List<String> ldapProfileIds;
-        private final PwmSettingTemplateSet currentTemplate;
     }
 }
