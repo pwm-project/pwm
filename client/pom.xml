@@ -39,7 +39,7 @@
                             <outputDirectory>${project.build.outputDirectory}/META-INF/resources/webjars/${project.artifactId}/${project.version}</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>dist</directory>
+                                    <directory>angular/dist</directory>
                                 </resource>
                             </resources>
                         </configuration>
@@ -59,13 +59,13 @@
                         <configuration>
                             <filesets>
                                 <fileset>
-                                    <directory>.node</directory>
+                                    <directory>angular/.node</directory>
                                 </fileset>
                                 <fileset>
-                                    <directory>dist</directory>
+                                    <directory>angular/dist</directory>
                                 </fileset>
                                 <fileset>
-                                    <directory>node_modules</directory>
+                                    <directory>angular/node_modules</directory>
                                 </fileset>
                             </filesets>
                         </configuration>
@@ -79,6 +79,7 @@
                 <configuration>
                     <nodeVersion>v12.13.1</nodeVersion>
                     <npmVersion>6.13.4</npmVersion>
+                    <workingDirectory>angular/</workingDirectory>
                     <installDirectory>target/node-executable</installDirectory>
                 </configuration>
                 <executions>
