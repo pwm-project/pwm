@@ -1073,6 +1073,7 @@
         <default>
             <value><![CDATA[Your username is @User:ID@]]></value>
         </default>
+        <flag>MacroSupport</flag>
     </setting>
     <setting hidden="false" key="sms.updateProfile.token.message" level="1" required="true">
         <default>

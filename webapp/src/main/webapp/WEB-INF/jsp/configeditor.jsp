@@ -47,21 +47,11 @@
             <div id="header-title">
                 <span id="currentPageDisplay"></span>
                 <span style="visibility: hidden" id="working_icon" class="headerIcon pwm-icon pwm-icon-cog pwm-icon-spin"></span>
-                <div class="headerIcon" id="cancelButton_icon" title="<pwm:display key="Tooltip_CancelEditorButton" bundle="Config"/>">
-                    <span class="pwm-icon pwm-icon-times"></span>
-                </div>
-                <div class="headerIcon" id="saveButton_icon" title="<pwm:display key="Tooltip_SaveEditorButton" bundle="Config"/>">
-                    <span class="pwm-icon pwm-icon-save"></span>
-                </div>
-                <div class="headerIcon" id="setPassword_icon" title="<pwm:display key="Tooltip_SetConfigPasswordButton" bundle="Config"/>">
-                    <span class="pwm-icon pwm-icon-key"></span>
-                </div>
+
                 <div class="headerIcon" id="referenceDoc_icon" title="<pwm:display key="Tooltip_OpenReferenceDocButton" bundle="Config"/>">
                     <span class="pwm-icon pwm-icon-book"></span>
                 </div>
-                <div class="headerIcon" id="macroDoc_icon" title="<pwm:display key="Tooltip_OpenMacroHelpButton" bundle="Config"/>">
-                    <span class="pwm-icon pwm-icon-magic"></span>
-                </div>
+
                 <span id="idle_status" class="editorIdleStatus">
                     <%--idle timeout text --%>
                 </span>
@@ -69,52 +59,100 @@
         </div>
     </div>
     <div id="centerbody-config" class="centerbody-config" ng-app="configeditor.module" ng-controller="ConfigEditorController as $ctrl">
+
         <div id="settingSearchPanel">
-            <table class="noborder settingSearchPanelTable">
-                <colgroup>
-                    <col class="settingSearchPanelTable_Col1">
-                    <col class="settingSearchPanelTable_Col2">
-                    <col class="settingSearchPanelTable_Col3">
-                </colgroup>
-                <tr>
-                    <td>
-                        <span id="settingSearchIcon" class="pwm-icon pwm-icon-search" title="<pwm:display key="Tooltip_IconSettingsSearch" bundle="Config"/>"></span>
-                    </td>
-                    <td>
-                        <input placeholder="<pwm:display key="Placeholder_Search"/>" type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" placeholder="Search Configuration" <pwm:autofocus/>/>
-                    </td>
-                    <td>
-                        <div style="margin-top:5px; width:20px; max-width: 20px;">
-                            <div id="indicator-searching" style="display: none">
-                                <span style="" class="pwm-icon pwm-icon-lg pwm-icon-spin pwm-icon-spinner"></span>
+            <div style="float:left; width: 49%">
+                <table class="noborder settingSearchPanelTable">
+                    <colgroup>
+                        <col class="settingSearchPanelTable_Col1">
+                        <col class="settingSearchPanelTable_Col2">
+                        <col class="settingSearchPanelTable_Col3">
+                    </colgroup>
+                    <tr>
+                        <td>
+                            <span id="settingSearchIcon" class="pwm-icon pwm-icon-search" title="<pwm:display key="Tooltip_IconSettingsSearch" bundle="Config"/>"></span>
+                        </td>
+                        <td>
+                            <input placeholder="<pwm:display key="Placeholder_Search"/>" type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" placeholder="Search Configuration" autocomplete="off" <pwm:autofocus/>/>
+                        </td>
+                        <td>
+                            <div style="margin-top:5px; width:20px; max-width: 20px;">
+                                <div id="indicator-searching" class="hidden">
+                                    <span style="" class="pwm-icon pwm-icon-lg pwm-icon-spin pwm-icon-spinner"></span>
+                                </div>
+                                <div id="indicator-noResults" class="hidden" title="<pwm:display key="Tooltip_IconSearchNoResults" bundle="Config"/>">
+                                    <span style="color: #ffcd59;" class="pwm-icon pwm-icon-lg pwm-icon-ban"></span>
+                                </div>
                             </div>
-                            <div id="indicator-noResults" style="display: none;" title="<pwm:display key="Tooltip_IconSearchNoResults" bundle="Config"/>">
-                                <span style="color: #ffcd59;" class="pwm-icon pwm-icon-lg pwm-icon-ban"></span>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-            <div id="searchResults" style="visibility: hidden">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div style="float: right;">
+                <table class="noborder nopadding nomargin" width="5%">
+                    <tr>
+                        <td>
+                            <a id="macroDoc_icon" class="configLightText">Macro Help</a><br/>
+                            <a id="setPassword_icon" class="configLightText">Config Password</a>
+                        </td>
+                        <td>
+                            <label title="<pwm:display key="Tooltip_SaveEditorButton" bundle="Config"/>">
+                                <button id="saveButton_icon">Save</button>
+                            </label>
+                        </td>
+                        <td>
+                            <label title="<pwm:display key="Tooltip_CancelEditorButton" bundle="Config"/>">
+                                <button  id="cancelButton_icon">Cancel</button>
+                            </label>
+                        </td>
+
+                    </tr>
+                </table>
+            </div>
+            <div id="searchResults" class="hidden">
                 <%-- search results inserted here --%>
             </div>
         </div>
-        <div id="navigationTreeWrapper" style="display:none">
+        <div id="navigationTreeWrapper">
             <div id="navigationTree">
                 <%-- navtree goes here --%>
             </div>
+
+
             <div id="navTreeExpanderButtons">
-                <span id="button-navigationExpandAll" class="pwm-icon pwm-icon-plus-square" title="<pwm:display key="Tooltip_IconExpandAll" bundle="Config"/>"></span>
-                &nbsp;&nbsp;
-                <span id="button-navigationCollapseAll" class="pwm-icon pwm-icon-minus-square" title="<pwm:display key="Tooltip_IconCollapseAll" bundle="Config"/>"></span>
-                &nbsp;&nbsp;
-                <div class="headerIcon" id="settingFilter_icon" title="<pwm:display key="Tooltip_IconFilterSettings" bundle="Config"/>">
-                    <span class="pwm-icon pwm-icon-filter"></span>
+                <div>
+                    <span id="button-navigationExpandAll" class="pwm-icon pwm-icon-plus-square" title="<pwm:display key="Tooltip_IconExpandAll" bundle="Config"/>"></span>
+                    &nbsp;&nbsp;
+                    <span id="button-navigationCollapseAll" class="pwm-icon pwm-icon-minus-square" title="<pwm:display key="Tooltip_IconCollapseAll" bundle="Config"/>"></span>
+                </div>
+                <div>
+                    <div class="toggleWrapper">
+                        <div class="toggle" id="radio-setting-level">
+                            <input type="radio" name="radio-setting-level" value="2" id="radio-setting-level-2" />
+                            <label for="radio-setting-level-2"><pwm:display key="Display_SettingFilter_Level_2" bundle="Config"/></label>
+                            <input type="radio" name="radio-setting-level" value="1" id="radio-setting-level-1" />
+                            <label for="radio-setting-level-1"><pwm:display key="Display_SettingFilter_Level_1" bundle="Config"/></label>
+                            <input type="radio" name="radio-setting-level" value="0" id="radio-setting-level-0" />
+                            <label for="radio-setting-level-0"><pwm:display key="Display_SettingFilter_Level_0" bundle="Config"/></label>
+                        </div>
+
+                    </div>
+                    <div style="text-align: center; display: inline-block">
+                        <div class="toggle" id="radio-modified-only" >
+                            <input type="radio" name="radio-modified-only" value="all" id="radio-modified-only-all" />
+                            <label for="radio-modified-only-all">All Settings</label>
+                            <input type="radio" name="radio-modified-only" value="modified" id="radio-modified-only-modified" />
+                            <label for="radio-modified-only-modified">Modified Only</label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div id="settingsPanel">
             <%-- settings content goes here --%>
+        </div>
+        <div id="infoPanel">
+            <%-- info panel goes here --%>
         </div>
         <div id="config-infoPanel"></div>
     </div>

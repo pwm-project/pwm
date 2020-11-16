@@ -29,6 +29,87 @@ var PWM_SETTINGS = PWM_SETTINGS || {};
 PWM_VAR['outstandingOperations'] = 0;
 PWM_VAR['skippedSettingCount'] = 0;
 
+PWM_CFGEDIT.syntaxFunctionMap = {
+    FORM: function (settingKey) {
+        FormTableHandler.init(settingKey, {});
+    },
+    OPTIONLIST: function (settingKey) {
+        OptionListHandler.init(settingKey);
+    },
+    CUSTOMLINKS: function (settingKey) {
+        CustomLinkHandler.init(settingKey, {});
+    },
+    EMAIL: function (settingKey) {
+        EmailTableHandler.init(settingKey);
+    },
+    ACTION: function (settingKey) {
+        ActionHandler.init(settingKey);
+    },
+    PASSWORD: function (settingKey) {
+        ChangePasswordHandler.init(settingKey);
+    },
+    NAMED_SECRET: function (settingKey) {
+        NamedSecretHandler.init(settingKey);
+    },
+    NUMERIC: function (settingKey) {
+        NumericValueHandler.init(settingKey);
+    },
+    DURATION: function (settingKey) {
+        DurationValueHandler.init(settingKey);
+    },
+    DURATION_ARRAY: function (settingKey) {
+        DurationArrayValueHandler.init(settingKey);
+    },
+    STRING: function (settingKey) {
+        StringValueHandler.init(settingKey);
+    },
+    TEXT_AREA: function (settingKey) {
+        TextAreaValueHandler.init(settingKey)
+    },
+    SELECT: function (settingKey) {
+        SelectValueHandler.init(settingKey);
+    },
+    BOOLEAN: function (settingKey) {
+        BooleanHandler.init(settingKey);
+    },
+    LOCALIZED_STRING_ARRAY: function (settingKey) {
+        MultiLocaleTableHandler.initMultiLocaleTable(settingKey);
+    },
+    STRING_ARRAY: function (settingKey) {
+        StringArrayValueHandler.init(settingKey);
+    },
+    PROFILE: function (settingKey) {
+        StringArrayValueHandler.init(settingKey);
+    },
+    LOCALIZED_STRING: function (settingKey) {
+        LocalizedStringValueHandler.init(settingKey);
+    },
+    LOCALIZED_TEXT_AREA: function (settingKey) {
+        LocalizedStringValueHandler.init(settingKey);
+    },
+    CHALLENGE: function (settingKey) {
+        ChallengeSettingHandler.init(settingKey);
+    },
+    X509CERT: function (settingKey) {
+        X509CertificateHandler.init(settingKey);
+    },
+    PRIVATE_KEY: function (settingKey) {
+        PrivateKeyHandler.init(settingKey);
+    },
+    FILE: function (settingKey) {
+        FileValueHandler.init(settingKey);
+    },
+    VERIFICATION_METHOD: function (settingKey) {
+        VerificationMethodHandler.init(settingKey);
+    },
+    REMOTE_WEB_SERVICE: function (settingKey) {
+        RemoteWebServiceHandler.init(settingKey);
+    },
+    USER_PERMISSION: function (settingKey) {
+        UserPermissionHandler.init(settingKey);
+    }
+};
+
 
 PWM_CFGEDIT.readSetting = function(keyName, valueWriter) {
     var modifiedOnly = PWM_CFGEDIT.readNavigationFilters()['modifiedSettingsOnly'];
@@ -313,6 +394,8 @@ function handleResetClick(settingKey) {
 }
 
 PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
+    PWM_CFGEDIT.applyStoredSettingFilterPrefs();
+
     PWM_MAIN.addEventHandler('homeSettingSearch',['input','focus'],function(){PWM_CFGEDIT.processSettingSearch(PWM_MAIN.getObject('searchResults'));});
     PWM_MAIN.addEventHandler('button-navigationExpandAll','click',function(){PWM_VAR['navigationTree'].expandAll()});
     PWM_MAIN.addEventHandler('button-navigationCollapseAll','click',function(){PWM_VAR['navigationTree'].collapseAll()});
@@ -324,13 +407,18 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
         PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/','referencedoc');
     });
     PWM_MAIN.addEventHandler('macroDoc_icon','click',function(){ PWM_CFGEDIT.showMacroHelp(); });
-    PWM_MAIN.addEventHandler('settingFilter_icon','click',function(){ PWM_CFGEDIT.showSettingFilter(); });
 
     PWM_MAIN.addEventHandler('button-closeMenu','click',function(){
         PWM_CFGEDIT.closeMenuPanel();
     });
     PWM_MAIN.addEventHandler('button-openMenu','click',function(){
         PWM_CFGEDIT.openMenuPanel();
+    });
+    PWM_MAIN.addEventHandler('radio-setting-level','change',function(){
+        PWM_CFGEDIT.handleSettingsFilterLevelRadioClick();
+    });
+    PWM_MAIN.addEventHandler('radio-modified-only','change',function(){
+        PWM_CFGEDIT.handleModifiedSettingsRadioClick();
     });
 
 
@@ -421,9 +509,9 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
     PWM_VAR['settingSearchIteration'] = iteration;
 
     var resetDisplay = function() {
-        PWM_MAIN.getObject('indicator-noResults').style.display = 'none';
-        PWM_MAIN.getObject('indicator-searching').style.display = 'none';
-        destinationDiv.style.visibility = 'hidden';
+        PWM_MAIN.addCssClass('indicator-noResults',"hidden");
+        PWM_MAIN.addCssClass('indicator-searching',"hidden");
+        PWM_MAIN.addCssClass(destinationDiv.id,"hidden");
         destinationDiv.innerHTML = '';
     };
 
@@ -458,14 +546,13 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
             var resultCount = 0;
             var elapsedTime = (new Date().getTime()) - startTime;
             if (PWM_MAIN.JSLibrary.isEmpty(data['data'])) {
-                PWM_MAIN.getObject('indicator-noResults').style.display = 'inline';
+                PWM_MAIN.removeCssClass('indicator-noResults','hidden')
                 console.log('search #' + iteration + ', 0 results, ' + elapsedTime + 'ms');
             } else {
-                for (var categoryIter in data['data']) {
-                    var category = data['data'][categoryIter];
+                PWM_MAIN.addCssClass('indicator-noResults','hidden')
+                PWM_MAIN.JSLibrary.forEachInObject(data['data'], function (categoryIter, category) {
                     bodyText += '<div class="panel-searchResultCategory">' + categoryIter + '</div>';
-                    for (var settingIter in category) {
-                        var setting = category[settingIter];
+                    PWM_MAIN.JSLibrary.forEachInObject(category, function (settingIter, setting) {
                         var profileID = setting['profile'];
                         var linkID = 'link-' + setting['category'] + '-' + settingIter + (profileID ? profileID : '');
                         var settingID = "search_" + (profileID ? profileID + '_' : '') + settingIter;
@@ -477,44 +564,40 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
                         }
                         bodyText += '</div>';
                         resultCount++;
-                    }
-                }
+                    });
+                });
                 console.log('search #' + iteration + ', ' + resultCount + ' results, ' + elapsedTime + 'ms');
-                destinationDiv.style.visibility = 'visible';
+                PWM_MAIN.removeCssClass(destinationDiv.id, "hidden");
                 destinationDiv.innerHTML = bodyText;
-                for (var categoryIter in data['data']) {
-                    var category = data['data'][categoryIter];
-                    for (var iter in category) {
-                        (function (settingKey) {
-                            var setting = category[settingKey];
-                            var profileID = setting['profile'];
-                            var settingID = "search_" + (profileID ? profileID + '_' : '') + settingKey;
-                            var value = setting['value'];
-                            var toolBody = '<span style="font-weight: bold">Setting</span>';
-                            toolBody += '<br/>' + PWM_SETTINGS['settings'][settingKey]['label'] + '<br/><br/>';
-                            toolBody += '<span style="font-weight: bold">Description</span>';
-                            toolBody += '<br/>' + PWM_SETTINGS['settings'][settingKey]['description'] + '<br/><br/>';
-                            toolBody += '<span style="font-weight: bold">Value</span>';
-                            toolBody += '<br/>' + value.replace('\n', '<br/>') + '<br/>';
-                            PWM_MAIN.showDijitTooltip({
-                                id: settingID + '_popup',
-                                text: toolBody,
-                                width: 500
+                PWM_MAIN.JSLibrary.forEachInObject(data['data'], function (categoryIter, category) {
+                    PWM_MAIN.JSLibrary.forEachInObject(category, function (settingKey, setting) {
+                        var profileID = setting['profile'];
+                        var settingID = "search_" + (profileID ? profileID + '_' : '') + settingKey;
+                        var value = setting['value'];
+                        var toolBody = '<span style="font-weight: bold">Setting</span>';
+                        toolBody += '<br/>' + PWM_SETTINGS['settings'][settingKey]['label'] + '<br/><br/>';
+                        toolBody += '<span style="font-weight: bold">Description</span>';
+                        toolBody += '<br/>' + PWM_SETTINGS['settings'][settingKey]['description'] + '<br/><br/>';
+                        toolBody += '<span style="font-weight: bold">Value</span>';
+                        toolBody += '<br/>' + value.replace('\n', '<br/>') + '<br/>';
+                        PWM_MAIN.showDijitTooltip({
+                            id: settingID + '_popup',
+                            text: toolBody,
+                            width: 500
+                        });
+                        var linkID = 'link-' + setting['category'] + '-' + settingKey + (profileID ? profileID : '');
+                        PWM_MAIN.addEventHandler(linkID, 'click', function () {
+                            resetDisplay();
+                            PWM_MAIN.Preferences.writeSessionStorage('configEditor-lastSelected', {
+                                type: 'category',
+                                category: setting['category'],
+                                setting: settingKey,
+                                profile: profileID
                             });
-                            var linkID = 'link-' + setting['category'] + '-' + settingKey + (profileID ? profileID : '');
-                            PWM_MAIN.addEventHandler(linkID ,'click',function(){
-                                resetDisplay();
-                                PWM_MAIN.Preferences.writeSessionStorage('configEditor-lastSelected',{
-                                    type:'category',
-                                    category:setting['category'],
-                                    setting:settingKey,
-                                    profile:profileID
-                                });
-                                PWM_CFGEDIT.gotoSetting(setting['category'],settingKey,profileID);
-                            });
-                        }(iter));
-                    }
-                }
+                            PWM_CFGEDIT.gotoSetting(setting['category'], settingKey, profileID);
+                        });
+                    });
+                });
             }
         }
     };
@@ -522,13 +605,13 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
     validationProps['serviceURL'] = url;
     validationProps['readDataFunction'] = function(){
         resetDisplay();
-        PWM_MAIN.getObject('indicator-searching').style.display = 'inline';
+        PWM_MAIN.removeCssClass('indicator-searching','hidden');
 
         var value = readSearchTerm();
         return {search:value,key:value};
     };
     validationProps['completeFunction'] = function() {
-        PWM_MAIN.getObject('indicator-searching').style.display = 'none';
+        PWM_MAIN.addCssClass('indicator-searching','hidden');
     };
     validationProps['processResultsFunction'] = loadFunction;
     PWM_MAIN.pwmFormValidator(validationProps);
@@ -811,24 +894,26 @@ PWM_CFGEDIT.selectTemplate = function(newTemplate) {
 
 PWM_CFGEDIT.loadMainPageBody = function() {
 
-    PWM_CFGEDIT.drawNavigationMenu();
+    var drawSettingsFunction = function () {
+        var lastSelected = PWM_MAIN.Preferences.readSessionStorage('configEditor-lastSelected', null);
+        if (lastSelected) {
+            PWM_CFGEDIT.dispatchNavigationItem(lastSelected);
+        } else {
+            PWM_CFGEDIT.dispatchNavigationItem({id: 'TEMPLATES', type: 'category', category: 'TEMPLATES'});
+        }
 
-    var lastSelected = PWM_MAIN.Preferences.readSessionStorage('configEditor-lastSelected',null);
-    if (lastSelected) {
-        PWM_CFGEDIT.dispatchNavigationItem(lastSelected);
-    } else {
-        PWM_CFGEDIT.dispatchNavigationItem({id:'TEMPLATES',type:'category',category:'TEMPLATES'});
+        require(["dojo/io-query"], function (ioQuery) {
+            var uri = window.location.href;
+            var queryString = uri.substring(uri.indexOf("?") + 1, uri.length);
+            var queryParams = ioQuery.queryToObject(queryString);
+            if (queryParams['processAction'] === 'gotoSetting') {
+                PWM_CFGEDIT.gotoSetting(queryParams['category'], queryParams['settingKey'], queryParams['profile']);
+                return;
+            }
+        });
     }
 
-    require(["dojo/io-query"],function(ioQuery){
-        var uri = window.location.href;
-        var queryString = uri.substring(uri.indexOf("?") + 1, uri.length);
-        var queryParams = ioQuery.queryToObject(queryString);
-        if (queryParams['processAction'] === 'gotoSetting') {
-            PWM_CFGEDIT.gotoSetting(queryParams['category'],queryParams['settingKey'],queryParams['profile']);
-            return;
-        }
-    });
+    PWM_CFGEDIT.drawNavigationMenu( drawSettingsFunction );
 };
 
 PWM_CFGEDIT.displaySettingsCategory = function(category) {
@@ -954,115 +1039,14 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
         handleResetClick(settingKey);
     });
 
-    switch (setting['syntax']) {
-        case 'FORM':
-            FormTableHandler.init(settingKey,{});
-            break;
+    var syntax = setting['syntax'];
+    var syntaxFunction = PWM_CFGEDIT.syntaxFunctionMap[syntax];
+    syntaxFunction(settingKey);
 
-        case 'OPTIONLIST':
-            OptionListHandler.init(settingKey);
-            break;
-
-        case 'CUSTOMLINKS':
-            CustomLinkHandler.init(settingKey, {});
-            break;
-
-        case 'EMAIL':
-            EmailTableHandler.init(settingKey);
-            break;
-
-        case 'ACTION':
-            ActionHandler.init(settingKey);
-            break;
-
-        case 'PASSWORD':
-            ChangePasswordHandler.init(settingKey);
-            break;
-
-        case 'NAMED_SECRET':
-            NamedSecretHandler.init(settingKey);
-            break;
-
-        case 'NUMERIC':
-            NumericValueHandler.init(settingKey);
-            break;
-
-        case 'DURATION':
-            DurationValueHandler.init(settingKey);
-            break;
-
-        case 'DURATION_ARRAY':
-            DurationArrayValueHandler.init(settingKey);
-            break;
-
-        case 'STRING':
-            StringValueHandler.init(settingKey);
-            break;
-
-        case 'TEXT_AREA':
-            TextAreaValueHandler.init(settingKey);
-            break;
-
-        case 'SELECT':
-            SelectValueHandler.init(settingKey);
-            break;
-
-        case 'BOOLEAN':
-            BooleanHandler.init(settingKey);
-            break;
-
-        case 'LOCALIZED_STRING_ARRAY':
-            MultiLocaleTableHandler.initMultiLocaleTable(settingKey);
-            break;
-
-        case 'STRING_ARRAY':
-        case 'PROFILE':
-            StringArrayValueHandler.init(settingKey);
-            break;
-
-        case 'LOCALIZED_STRING':
-        case 'LOCALIZED_TEXT_AREA':
-            LocalizedStringValueHandler.init(settingKey);
-            break;
-
-        case 'USER_PERMISSION':
-            UserPermissionHandler.init(settingKey);
-            break;
-
-        case 'CHALLENGE':
-            ChallengeSettingHandler.init(settingKey);
-            break;
-
-        case 'X509CERT':
-            X509CertificateHandler.init(settingKey);
-            break;
-
-        case 'PRIVATE_KEY':
-            PrivateKeyHandler.init(settingKey);
-            break;
-
-        case 'FILE':
-            FileValueHandler.init(settingKey);
-            break;
-
-        case 'VERIFICATION_METHOD':
-            VerificationMethodHandler.init(settingKey);
-            break;
-
-        case 'REMOTE_WEB_SERVICE':
-            RemoteWebServiceHandler.init(settingKey);
-            break;
-
-        case 'NONE':
-            break;
-
-        default:
-            console.log ('unknown setting syntax type: ' + setting['syntax']);
-
-    }
 };
 
-PWM_CFGEDIT.drawNavigationMenu = function() {
+PWM_CFGEDIT.drawNavigationMenu = function(nextFunction) {
+    console.log('drawNavigationMenu')
     PWM_MAIN.getObject('navigationTree').innerHTML = '';
     PWM_MAIN.setStyle('navigationTreeWrapper','display','none');
 
@@ -1128,7 +1112,10 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
     PWM_MAIN.ajaxRequest(url,function(data){
         var menuTreeData = data['data'];
         makeTreeFunction(menuTreeData);
-    },{content:filterParams});
+        if (nextFunction) {
+            nextFunction();
+        }
+    },{content:filterParams,preventCache:true});
 };
 
 PWM_CFGEDIT.readNavigationFilters = function() {
@@ -1259,52 +1246,30 @@ PWM_CFGEDIT.displaySettingHelp = function(settingKey) {
     }
 };
 
-PWM_CFGEDIT.showSettingFilter = function() {
-    var currentValues = PWM_CFGEDIT.readNavigationFilters();
+PWM_CFGEDIT.applyStoredSettingFilterPrefs = function() {
+    var level = PWM_MAIN.Preferences.readSessionStorage('settingFilter_level',2);
+    PWM_MAIN.getObject('radio-setting-level-' + level).checked = true;
+    PWM_VAR['settingFilter_level'] = level;
 
-    var dialogBody = '<div><form id="form-settingFilter"><table class="" style="table-layout: fixed">';
-    dialogBody += '<tr><td>Setting Level</td><td><label>';
-    dialogBody += '<input type="range" min="0" max="2" name="input-settingLevel" id="input-settingLevel" value="' + currentValues['level'] + '" style="width:100px"/>';
-    dialogBody += '<span id="panel-settingLevelDescription"></span></label></td></tr>';
-    dialogBody += '<tr><td>Modified</td><td>';
-    dialogBody += '<input type="radio" name="input-modifiedSettingsOnly" id="input-modifiedSettingsOnly-all" ' + (!currentValues['modifiedSettingsOnly'] ? 'checked' : '') + '>All';
-    dialogBody += '<input type="radio" name="input-modifiedSettingsOnly" id="input-modifiedSettingsOnly-modified" ' + (currentValues['modifiedSettingsOnly'] ? 'checked' : '') + '>Modified';
-    //dialogBody += '</td></tr><tr><td>Text';
-    //dialogBody += '</td><td><input type="text" id="input-settingFilterText" class="inputfield" id="input-settingFilterText"/>';
-    dialogBody += '</td></tr>';
-    dialogBody += '</table></div></div>';
-    var updateSettingLevelDescription = function() {
-        var value = parseInt(PWM_MAIN.getObject('input-settingLevel').value);
-        var descriptionText = PWM_CONFIG.showString('Display_SettingFilter_Level_' + value);
-        PWM_MAIN.getObject('panel-settingLevelDescription').innerHTML = descriptionText;
-    };
-    var updateIcon = function() {
-        var isDefault = PWM_VAR['settingFilter_modifiedSettingsOnly'] === false && PWM_VAR['settingFilter_level'] === 2;
-        if (isDefault) {
-            PWM_MAIN.removeCssClass('settingFilter_icon', "modified");
-        } else {
-            PWM_MAIN.addCssClass('settingFilter_icon', "modified");
-        }
-    };
-    var updateVars = function() {
-        PWM_VAR['settingFilter_modifiedSettingsOnly'] = PWM_MAIN.getObject('input-modifiedSettingsOnly-modified').checked;
-        PWM_VAR['settingFilter_level'] = parseInt(PWM_MAIN.getObject('input-settingLevel').value);
-        //PWM_VAR['settingFilter_text'] = PWM_MAIN.getObject('input-settingFilterText').value;
-        updateSettingLevelDescription();
-    };
-
-    PWM_MAIN.showDialog({title:'Setting Filters',text:dialogBody,loadFunction:function(){
-            //PWM_MAIN.getObject('input-settingFilterText').value = currentValues['text'];
-            PWM_MAIN.addEventHandler('form-settingFilter','change',function(){
-                updateVars();
-            });
-            updateSettingLevelDescription();
-        },okAction:function(){
-            updateIcon();
-            PWM_CFGEDIT.loadMainPageBody();
-        }});
+    var modified = PWM_MAIN.Preferences.readSessionStorage('settingFilter_modifiedSettingsOnly',false);
+    var idSuffix = modified ? 'modified' : 'all';
+    PWM_MAIN.getObject('radio-modified-only-' + idSuffix).checked = true;
+    PWM_VAR['settingFilter_modifiedSettingsOnly'] = modified;
 };
 
+PWM_CFGEDIT.handleSettingsFilterLevelRadioClick = function (){
+    var value = parseInt(PWM_MAIN.JSLibrary.readValueOfRadioFormInput('radio-setting-level'));
+    PWM_VAR['settingFilter_level'] = value;
+    PWM_MAIN.Preferences.writeSessionStorage('settingFilter_level',value);
+    PWM_CFGEDIT.loadMainPageBody();
+};
+
+PWM_CFGEDIT.handleModifiedSettingsRadioClick = function (){
+    var value = PWM_MAIN.JSLibrary.readValueOfRadioFormInput('radio-modified-only') === 'modified';
+    PWM_VAR['settingFilter_modifiedSettingsOnly'] = value ;
+    PWM_MAIN.Preferences.writeSessionStorage('settingFilter_modifiedSettingsOnly',value);
+    PWM_CFGEDIT.loadMainPageBody();
+};
 
 PWM_CFGEDIT.readCurrentProfile = function() {
     return PWM_VAR['currentProfile'];
@@ -1340,5 +1305,24 @@ PWM_CFGEDIT.openMenuPanel = function() {
 };
 
 
+PWM_CFGEDIT.drawInfoPage = function(settingInfo) {
+    var categoryInfo = PWM_SETTINGS['categories'][settingInfo['category']];
+    var macroSupport = PWM_MAIN.JSLibrary.arrayContains(settingInfo['flags'],'MacroSupport');
+    var infoPanelElement = PWM_MAIN.getObject('infoPanel');
+
+    var text = '<div class="setting_outline">';
+    text += '<div class="setting-title">' + categoryInfo['label'] + '</div>';
+    text += '<div class="pane-help">' + categoryInfo['description'] + '</div>';
+    text += '</div><br/>';
+
+    text += '<div class="setting_outline">';
+    text += '<div class="setting-title">' + settingInfo['label'] + '</div>';
+    text += '<div class="pane-help">' + settingInfo['description'] + '</div>';
+    if (macroSupport) {
+        text += '<div>This setting has support for using <a>Macros</a><div>';
+    }
+    text += '</div>';
+    infoPanelElement.innerHTML = text;
+};
 
 

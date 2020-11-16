@@ -31,7 +31,10 @@ import java.util.Locale;
 public class NavTreeSettings
 {
     private final boolean modifiedSettingsOnly;
-    private final int level;
+
+    @Builder.Default
+    private final int level = 2;
+
     private final String filterText;
 
     @Builder.Default
