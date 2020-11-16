@@ -84,7 +84,7 @@
                         <td><b>Secure (SSL) Connection</b>
                         </td>
                         <td>
-                            <%if (Boolean.parseBoolean(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_SECURE))) {%>
+                            <%if (ConfigGuideForm.readCheckedFormField(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_SECURE))) {%>
                             <pwm:display key="Value_True"/>
                             <% } else { %>
                             <pwm:display key="Value_False"/>

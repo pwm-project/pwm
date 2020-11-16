@@ -26,65 +26,50 @@ var PWM_GLOBAL = PWM_GLOBAL || {};
 
 PWM_GUIDE.selectTemplate = function(template) {
     PWM_MAIN.showWaitDialog({title:'Loading...',loadFunction:function() {
-        var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','selectTemplate');
-        url = PWM_MAIN.addParamToUrl(url, 'template', template);
-        PWM_MAIN.showDialog(url,function(result){
-            if (!result['error']) {
-                PWM_MAIN.getObject('button_next').disabled = template === "NOTSELECTED";
-                PWM_MAIN.closeWaitDialog();
-            } else {
-                PWM_MAIN.showError(result['errorDetail']);
-            }
+            var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','selectTemplate');
+            url = PWM_MAIN.addParamToUrl(url, 'template', template);
+            PWM_MAIN.showDialog(url,function(result){
+                if (!result['error']) {
+                    PWM_MAIN.getObject('button_next').disabled = template === "NOTSELECTED";
+                    PWM_MAIN.closeWaitDialog();
+                } else {
+                    PWM_MAIN.showError(result['errorDetail']);
+                }
 
-        },{method:'GET'});
-    }});
+            },{method:'GET'});
+        }});
 };
 
 PWM_GUIDE.updateForm = function() {
-    require(["dojo"],function(dojo){
-        var formJson = dojo.formToJson('configForm');
-        var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','updateForm');
-        url = PWM_MAIN.addPwmFormIDtoURL(url);
-        dojo.xhrPost({
-            url: url,
-            postData: formJson,
-            headers: {"Accept":"application/json"},
-            contentType: "application/json;charset=utf-8",
-            encoding: "utf-8",
-            handleAs: "json",
-            dataType: "json",
-            preventCache: true,
-            error: function(errorObj) {
-                PWM_MAIN.showError("error reaching server: " + errorObj);
-            },
-            load: function(result) {
-                console.log("sent form params to server: " + formJson);
-            }
-        });
-    });
+    var formJson = PWM_MAIN.JSLibrary.formToValueMap('configForm');
+    var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','updateForm');
+    var loadFunction = function() {
+        PWM_MAIN.log("sent form params to server: " + formJson);
+    }
+    PWM_MAIN.ajaxRequest(url,loadFunction,{content:formJson});
 };
 
 PWM_GUIDE.gotoStep = function(step) {
     PWM_MAIN.showWaitDialog({loadFunction:function(){
-        //preload in case of server restart
-        PWM_MAIN.preloadAll(function(){
-            var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','gotoStep');
-            url = PWM_MAIN.addParamToUrl(url, 'step', step);
-            var loadFunction = function(result) {
-                if (result['error']) {
-                    PWM_MAIN.showErrorDialog(result);
-                    return;
-                } else if (result['data']) {
-                    if (result['data']['serverRestart']) {
-                        PWM_CONFIG.waitForRestart();
+            //preload in case of server restart
+            PWM_MAIN.preloadAll(function(){
+                var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','gotoStep');
+                url = PWM_MAIN.addParamToUrl(url, 'step', step);
+                var loadFunction = function(result) {
+                    if (result['error']) {
+                        PWM_MAIN.showErrorDialog(result);
                         return;
+                    } else if (result['data']) {
+                        if (result['data']['serverRestart']) {
+                            PWM_CONFIG.waitForRestart();
+                            return;
+                        }
                     }
-                }
-                PWM_MAIN.gotoUrl('config-guide');
-            };
-            PWM_MAIN.ajaxRequest(url,loadFunction);
-        });
-    }});
+                    PWM_MAIN.gotoUrl('config-guide');
+                };
+                PWM_MAIN.ajaxRequest(url,loadFunction);
+            });
+        }});
 };
 
 PWM_GUIDE.setUseConfiguredCerts = function(value) {
@@ -100,45 +85,45 @@ PWM_GUIDE.setUseConfiguredCerts = function(value) {
 
 PWM_GUIDE.extendSchema = function() {
     PWM_MAIN.showConfirmDialog({text:"Are you sure you want to extend the LDAP schema?",okAction:function(){
-        PWM_MAIN.showWaitDialog({loadFunction:function() {
-            var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','extendSchema');
-            var loadFunction = function(result) {
-                if (result['error']) {
-                    PWM_MAIN.showError(result['errorDetail']);
-                } else {
-                    var output = '<pre>' + result['data'] + '</pre>';
-                    PWM_MAIN.showDialog({title:"Results",text:output,okAction:function(){
-                        window.location.reload();
-                    }});
-                }
-            };
-            PWM_MAIN.ajaxRequest(url,loadFunction);
+            PWM_MAIN.showWaitDialog({loadFunction:function() {
+                    var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','extendSchema');
+                    var loadFunction = function(result) {
+                        if (result['error']) {
+                            PWM_MAIN.showError(result['errorDetail']);
+                        } else {
+                            var output = '<pre>' + result['data'] + '</pre>';
+                            PWM_MAIN.showDialog({title:"Results",text:output,okAction:function(){
+                                    window.location.reload();
+                                }});
+                        }
+                    };
+                    PWM_MAIN.ajaxRequest(url,loadFunction);
+                }});
         }});
-    }});
 };
 
 PWM_GUIDE.skipGuide = function() {
     PWM_MAIN.preloadAll(function(){
         PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('Confirm_SkipGuide'),okAction:function() {
-            
-            var skipGuideFunction = function(password) {
-                var contents = {};
-                contents['password'] = password;
-                var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','skipGuide');
-                var loadFunction = function(result) {
-                    if (result['error']) {
-                        PWM_MAIN.showError(result['errorDetail']);
-                    } else {
-                        PWM_MAIN.showWaitDialog({loadFunction:function(){
-                            PWM_CONFIG.waitForRestart();
-                        }});
-                    }
-                };
-                PWM_MAIN.ajaxRequest(url,loadFunction,{content:contents});
-            };
 
-            var text = 'Set Configuration Password';
-            UILibrary.passwordDialogPopup({minimumLength:8, title:text, writeFunction:skipGuideFunction});
-        }});
+                var skipGuideFunction = function(password) {
+                    var contents = {};
+                    contents['password'] = password;
+                    var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','skipGuide');
+                    var loadFunction = function(result) {
+                        if (result['error']) {
+                            PWM_MAIN.showError(result['errorDetail']);
+                        } else {
+                            PWM_MAIN.showWaitDialog({loadFunction:function(){
+                                    PWM_CONFIG.waitForRestart();
+                                }});
+                        }
+                    };
+                    PWM_MAIN.ajaxRequest(url,loadFunction,{content:contents});
+                };
+
+                var text = 'Set Configuration Password';
+                UILibrary.passwordDialogPopup({minimumLength:8, title:text, writeFunction:skipGuideFunction});
+            }});
     });
 };

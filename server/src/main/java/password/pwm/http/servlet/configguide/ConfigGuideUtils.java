@@ -136,7 +136,7 @@ public class ConfigGuideUtils
     )
     {
         final Map<ConfigGuideFormField, String> form = configGuideBean.getFormData();
-        final boolean ldapServerSecure = "true".equalsIgnoreCase( form.get( ConfigGuideFormField.PARAM_LDAP_SECURE ) );
+        final boolean ldapServerSecure = ConfigGuideForm.readCheckedFormField( form.get( ConfigGuideFormField.PARAM_LDAP_SECURE ) );
         final String ldapUrl = "ldap" + ( ldapServerSecure ? "s" : "" )
                 + "://"
                 + form.get( ConfigGuideFormField.PARAM_LDAP_HOST )

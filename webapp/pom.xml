@@ -96,7 +96,7 @@
                     <archiveClasses>false</archiveClasses>
                     <packagingExcludes>**/*.jsp</packagingExcludes>
                     <!-- remove/comment the next line to prevent pre-compiled JSPs from being used in the output WAR -->
-                    <webXml>${project.build.directory}/web.xml</webXml>
+                    <!--<webXml>${project.build.directory}/web.xml</webXml>-->
                     <archive>
                         <manifestEntries>
                             <Implementation-Archive-Name>${warArtifactID}</Implementation-Archive-Name>

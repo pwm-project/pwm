@@ -1375,20 +1375,36 @@ PWM_MAIN.JSLibrary.setValueOfSelectElement = function(nodeID, value) {
     }
 };
 
+PWM_MAIN.JSLibrary.readValueOfRadioFormInput = function(name){
+    var value = '';
+    var query = "input[name='" + name + "'"
+    PWM_MAIN.doQuery(query, function(element){
+        if( element.checked ) {
+            value = element.value;
+        }
+    });
+    console.log('radioRead name=' + name + ' value=' + value);
+    return value;
+};
+
 PWM_MAIN.JSLibrary.formToValueMap = function(formElement) {
+    formElement = PWM_MAIN.getObject(formElement);
     var returnData = {};
     if ( formElement.elements ) {
         var formElements = formElement.elements;
         for (var i = 0; i < formElements.length; i++) {
             var field = formElements[i];
             if (field.disabled !== true) {
-                if (field.tagName && field.tagName.toLowerCase() === 'input') {
-                    var name = field.name;
-                    var value = field.value;
-                    returnData[name] = value;
+                var name = field.name;
+                var value = field.value;
+                if (field.tagName && field.tagName.toLowerCase() === 'input' && field.type === 'radio' ) {
+                    value = PWM_MAIN.JSLibrary.readValueOfRadioFormInput(name);
                 } else if (field.tagName && field.tagName.toLowerCase() === 'select') {
-                    var name = field.name;
-                    var value = PWM_MAIN.JSLibrary.readValueOfSelectElement(field);
+                    value = PWM_MAIN.JSLibrary.readValueOfSelectElement(field);
+                } else if (field.type === "checkbox") {
+                    value = field.checked.toString();
+                }
+                if ( name && value ) {
                     returnData[name] = value;
                 }
             }
