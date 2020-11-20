@@ -25,22 +25,22 @@ var PWM_GLOBAL = PWM_GLOBAL || {};
 
 PWM_CONFIG.lockConfiguration=function() {
     PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('Confirm_LockConfig'),okAction:function(){
-        PWM_MAIN.showWaitDialog({loadFunction:function() {
-            var url = 'ConfigManager?processAction=lockConfiguration';
-            var loadFunction = function(data) {
-                if (data['error'] === true) {
-                    PWM_MAIN.closeWaitDialog();
-                    PWM_MAIN.showDialog({
-                        title: PWM_MAIN.showString('Title_Error'),
-                        text: data['errorDetail']
-                    });
-                } else {
-                    PWM_CONFIG.waitForRestart();
-                }
-            };
-            PWM_MAIN.ajaxRequest(url,loadFunction);
+            PWM_MAIN.showWaitDialog({loadFunction:function() {
+                    var url = 'ConfigManager?processAction=lockConfiguration';
+                    var loadFunction = function(data) {
+                        if (data['error'] === true) {
+                            PWM_MAIN.closeWaitDialog();
+                            PWM_MAIN.showDialog({
+                                title: PWM_MAIN.showString('Title_Error'),
+                                text: data['errorDetail']
+                            });
+                        } else {
+                            PWM_CONFIG.waitForRestart();
+                        }
+                    };
+                    PWM_MAIN.ajaxRequest(url,loadFunction);
+                }});
         }});
-    }});
 };
 
 PWM_CONFIG.waitForRestart=function(options) {
@@ -103,19 +103,19 @@ PWM_CONFIG.waitForRestart=function(options) {
 
 PWM_CONFIG.startNewConfigurationEditor=function(template) {
     PWM_MAIN.showWaitDialog({title:'Loading...',loadFunction:function(){
-        require(["dojo"],function(dojo){
-            dojo.xhrGet({
-                url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&getTemplate=" + template,
-                preventCache: true,
-                error: function(errorObj) {
-                    PWM_MAIN.showError("error starting configuration editor: " + errorObj);
-                },
-                load: function() {
-                    window.location = "ConfigManager?processAction=editMode&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + '&mode=SETTINGS';
-                }
+            require(["dojo"],function(dojo){
+                dojo.xhrGet({
+                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&getTemplate=" + template,
+                    preventCache: true,
+                    error: function(errorObj) {
+                        PWM_MAIN.showError("error starting configuration editor: " + errorObj);
+                    },
+                    load: function() {
+                        window.location = "ConfigManager?processAction=editMode&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + '&mode=SETTINGS';
+                    }
+                });
             });
-        });
-    }});
+        }});
 };
 
 PWM_CONFIG.uploadConfigDialog=function() {
@@ -332,13 +332,18 @@ PWM_CONFIG.initConfigHeader = function() {
         PWM_CONFIG.openHeaderWarningPanel();
     });
 
-    require(["dojo/dom-construct", "dojo/_base/window", "dojo/dom", "dijit/place"], function(domConstruct, win, dom, place){
-        domConstruct.create("div", { id: "header-warning-backdrop", "class":"nodisplay" }, win.body());
+    var newElement = document.createElement('div');
+    newElement.id =  "header-warning-backdrop";
+    newElement.setAttribute('class','nodisplay');
+    document.body.appendChild(newElement);
 
+    /*
+    require(["dojo/dom-construct", "dojo/_base/window", "dojo/dom", "dijit/place"], function(domConstruct, win, dom, place){
         PWM_MAIN.addEventHandler(window, "resize", function () {
             place.around(dom.byId("header-warning"), dom.byId("header-username-caret"), ["below-alt"], false);
         });
     });
+     */
 
     PWM_CONFIG.showHeaderHealth();
 

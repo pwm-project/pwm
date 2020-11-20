@@ -135,9 +135,8 @@
                             <input type="radio" name="radio-setting-level" value="0" id="radio-setting-level-0" />
                             <label for="radio-setting-level-0"><pwm:display key="Display_SettingFilter_Level_0" bundle="Config"/></label>
                         </div>
-
                     </div>
-                    <div style="text-align: center; display: inline-block">
+                    <div class="toggleWrapper">
                         <div class="toggle" id="radio-modified-only" >
                             <input type="radio" name="radio-modified-only" value="all" id="radio-modified-only-all" />
                             <label for="radio-modified-only-all">All Settings</label>

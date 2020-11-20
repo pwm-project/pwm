@@ -131,20 +131,11 @@ PWM_MAIN.initPage = function() {
     PWM_MAIN.applyFormAttributes();
     PWM_MAIN.initDisplayTabPreferences();
 
-    require(["dojo"], function (dojo) {
-        if (dojo.isIE) {
-            document.body.setAttribute('data-browserType','ie');
-        } else if (dojo.isFF) {
-            document.body.setAttribute('data-browserType','ff');
-        } else if (dojo.isWebKit) {
-            document.body.setAttribute('data-browserType','webkit');
-        }
-    });
+    document.body.setAttribute( 'data-browserType', PWM_GLOBAL['browserType']);
 
     PWM_MAIN.addEventHandler(document, "keypress", function (event) {
         PWM_MAIN.checkForCapsLock(event);
     });
-
 
     PWM_MAIN.doQuery('.pwm-link-print',function(element){
         PWM_MAIN.addEventHandler(element, "click", function(){ window.print(); });
@@ -177,22 +168,14 @@ PWM_MAIN.initPage = function() {
 
     if (PWM_MAIN.getObject('message')) {
         PWM_GLOBAL['message_originalStyle'] = PWM_MAIN.getObject('message').style;
-        require(["dojo"], function(dojo){
-            if(dojo.isIE <= 8){
-                return;
-            }
-
-            PWM_MAIN.addEventHandler(window, "resize", function(){ PWM_MAIN.messageDivFloatHandler() });
-            PWM_MAIN.addEventHandler(window, "scroll", function(){ PWM_MAIN.messageDivFloatHandler() });
-        });
+        PWM_MAIN.addEventHandler(window, "resize", function(){ PWM_MAIN.messageDivFloatHandler() });
+        PWM_MAIN.addEventHandler(window, "scroll", function(){ PWM_MAIN.messageDivFloatHandler() });
     }
 
-    require(["dojo/domReady!"],function(){
-        if (PWM_GLOBAL['enableIdleTimeout']) {
-            PWM_MAIN.IdleTimeoutHandler.initCountDownTimer(PWM_GLOBAL['MaxInactiveInterval']);
-        }
-        PWM_MAIN.initLocaleSelectorMenu('localeSelectionMenu');
-    });
+    if (PWM_GLOBAL['enableIdleTimeout']) {
+        PWM_MAIN.IdleTimeoutHandler.initCountDownTimer(PWM_GLOBAL['MaxInactiveInterval']);
+    }
+    PWM_MAIN.initLocaleSelectorMenu('localeSelectionMenu');
 
     if (PWM_MAIN.getObject('LogoutButton')) {
         PWM_MAIN.showTooltip({
@@ -280,27 +263,32 @@ PWM_MAIN.applyFormAttributes = function() {
     });
 
     // handle html5 form attribute in JS in case browser (IE) doesn't support it.
-    require(["dojo"], function (dojo) {
-        if(dojo.isIE){
-            PWM_MAIN.doQuery("button[type=submit][form]",function(element){
-                PWM_MAIN.log('added IE event handler for submit button with form attribute ' + element.id);
-                PWM_MAIN.addEventHandler(element,'click',function(e){
-                    e.preventDefault();
-                    PWM_MAIN.log('IE event handler intercepted submit for referenced form attribute ' + element.id);
-                    var formID = element.getAttribute('form');
-                    PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject(formID));
-                });
+    if(PWM_MAIN.isIE()){
+        PWM_MAIN.doQuery("button[type=submit][form]",function(element){
+            PWM_MAIN.log('added IE event handler for submit button with form attribute ' + element.id);
+            PWM_MAIN.addEventHandler(element,'click',function(e){
+                e.preventDefault();
+                PWM_MAIN.log('IE event handler intercepted submit for referenced form attribute ' + element.id);
+                var formID = element.getAttribute('form');
+                PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject(formID));
             });
-        }
-    });
+        });
+    }
 };
 
+PWM_MAIN.isIE = function() {
+    var browserType = document.body.getAttribute('data-browserType');
+    return browserType && "ie" === browserType.toLowerCase();
+}
+
 PWM_MAIN.preloadAll = function(nextFunction) {
-    require(["dijit/Dialog"],function(){
-        if (nextFunction) {
-            nextFunction();
-        }
-    });
+    if (!PWM_MAIN.html5DialogSupport()) {
+        require(["dijit/Dialog"], function () {
+            if (nextFunction) { nextFunction(); }
+        });
+    } else {
+        if (nextFunction) { nextFunction(); }
+    }
 };
 
 PWM_MAIN.showString = function (key, options) {
@@ -454,67 +442,42 @@ PWM_MAIN.handleFormSubmit = function(form, event) {
 
 
 PWM_MAIN.checkForCapsLock = function(e) {
-    require(["dojo","dojo/_base/fx","dojo/domReady!"],function(dojo,fx){
-        var capsLockWarningElement = PWM_MAIN.getObject('capslockwarning');
-        if (capsLockWarningElement === null || capsLockWarningElement === undefined) {
-            return;
-        }
+    var capsLockWarningElement = PWM_MAIN.getObject('capslockwarning');
+    if (capsLockWarningElement === null || capsLockWarningElement === undefined) {
+        return;
+    }
 
-        var capsLockKeyDetected = false;
-        {
-            var elementTarget = null;
-            if (e.target) {
-                elementTarget = e.target;
-            } else if (e.srcElement) {
-                elementTarget = e.srcElement;
-            }
-            if (elementTarget) {
-                if (elementTarget.nodeName === 'input' || elementTarget.nodeName === 'INPUT') {
-                    var kc = e.keyCode ? e.keyCode : e.which;
-                    var sk = e.shiftKey ? e.shiftKey : ((kc === 16));
-                    if (((kc >= 65 && kc <= 90) && !sk) || ((kc >= 97 && kc <= 122) && sk)) {
-                        capsLockKeyDetected = true;
-                    }
+    var capsLockKeyDetected = false;
+    {
+        var elementTarget = null;
+        if (e.target) {
+            elementTarget = e.target;
+        } else if (e.srcElement) {
+            elementTarget = e.srcElement;
+        }
+        if (elementTarget) {
+            if (elementTarget.nodeName === 'input' || elementTarget.nodeName === 'INPUT') {
+                var kc = e.keyCode ? e.keyCode : e.which;
+                var sk = e.shiftKey ? e.shiftKey : ((kc === 16));
+                if (((kc >= 65 && kc <= 90) && !sk) || ((kc >= 97 && kc <= 122) && sk)) {
+                    capsLockKeyDetected = true;
                 }
             }
         }
+    }
 
-        var displayDuration = 5 * 1000;
-        var fadeOutArgs = { node: "capslockwarning", duration: 3 * 1000 };
-        var fadeInArgs = { node: "capslockwarning", duration: 200 };
-
-        if(dojo.isIE){
-            if (capsLockKeyDetected) {
-                PWM_MAIN.removeCssClass('capslockwarning','display-none');
-                PWM_GLOBAL['lastCapsLockErrorTime'] = (new Date().getTime());
-                setTimeout(function(){
-                    if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
-                        PWM_MAIN.addCssClass('capslockwarning','display-none');
-                    }
-                },displayDuration + 500);
-            } else {
+    var displayDuration = 5 * 1000;
+    if (capsLockKeyDetected) {
+        PWM_MAIN.removeCssClass('capslockwarning','display-none');
+        PWM_GLOBAL['lastCapsLockErrorTime'] = (new Date().getTime());
+        setTimeout(function(){
+            if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
                 PWM_MAIN.addCssClass('capslockwarning','display-none');
             }
-        } else {
-            if (capsLockKeyDetected) {
-                PWM_MAIN.removeCssClass('capslockwarning','display-none');
-                fx.fadeIn(fadeInArgs).play();
-                PWM_GLOBAL['lastCapsLockErrorTime'] = (new Date().getTime());
-                setTimeout(function(){
-                    if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
-                        dojo.fadeOut(fadeOutArgs).play();
-                        setTimeout(function(){
-                            if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
-                                PWM_MAIN.addCssClass('capslockwarning','display-none');
-                            }
-                        },5 * 1000);
-                    }
-                },displayDuration + 500);
-            } else {
-                fx.fadeOut(fadeOutArgs).play();
-            }
-        }
-    });
+        },displayDuration + 500);
+    } else {
+        PWM_MAIN.addCssClass('capslockwarning','display-none');
+    }
 };
 
 PWM_MAIN.getObject = function(name) {
@@ -526,7 +489,7 @@ PWM_MAIN.getObject = function(name) {
         return name;
     }
 
-    if (name === document) {
+    if (name === document || name === window) {
         return name;
     }
 
@@ -630,20 +593,14 @@ PWM_MAIN.showLocaleSelectionMenu = function(nextFunction, options) {
     var excludeLocales = 'excludeLocales' in options ? options['excludeLocales'] : [];
 
     var localeData = PWM_GLOBAL['localeInfo'];
-    var localeIterator = function(f) {
-        for (var iter in localeData)
-            f(iter);
-
-    };
 
     var bodyHtml = '<table class="noborder" style="width:auto;margin-right:auto;margin-left:auto;overflow-x:scroll">';
-    localeIterator(function(localeKey){
+    PWM_MAIN.JSLibrary.forEachInObject(localeData, function (localeKey, loopDisplayName) {
         if (!PWM_MAIN.JSLibrary.arrayContains(excludeLocales, localeKey)) {
-            var loopDisplayName = localeData[localeKey];
             var flagCode = PWM_GLOBAL['localeFlags'][localeKey];
             var flagUrl = PWM_GLOBAL['url-resources'] + '/webjars/famfamfam-flags/dist/png/' + flagCode + '.png';
             bodyHtml += '<tr style="cursor:pointer" id="locale-row-' + localeKey + '">';
-            bodyHtml += '<td><img src="' + flagUrl + '"/></td>';
+            bodyHtml += '<td><img alt="Flag Image" src="' + flagUrl + '"/></td>';
             bodyHtml += '<td>' + loopDisplayName + '</td>';
             bodyHtml += '</tr>';
         }
@@ -651,12 +608,12 @@ PWM_MAIN.showLocaleSelectionMenu = function(nextFunction, options) {
     bodyHtml += '</table>';
 
     PWM_MAIN.showDialog({
-        showClose:true,
-        showOk:false,
-        text:bodyHtml,
-        title:PWM_MAIN.showString('Title_LocaleSelect'),
-        loadFunction:function(){
-            localeIterator(function(localeKey) {
+        showClose: true,
+        showOk: false,
+        text: bodyHtml,
+        title: PWM_MAIN.showString('Title_LocaleSelect'),
+        loadFunction: function () {
+            PWM_MAIN.JSLibrary.forEachInObject(localeData, function (localeKey, loopDisplayName) {
                 PWM_MAIN.addEventHandler('locale-row-' + localeKey, 'click', function () {
                     PWM_MAIN.closeWaitDialog();
                     nextFunction(localeKey);
@@ -666,11 +623,9 @@ PWM_MAIN.showLocaleSelectionMenu = function(nextFunction, options) {
     });
 };
 
-
 PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
     PWM_MAIN.addEventHandler(attachNode,'click',function(){
         PWM_MAIN.showLocaleSelectionMenu(function(localeKey){
-
             PWM_MAIN.showWaitDialog({loadFunction:function(){
                     var url = PWM_GLOBAL['url-context'] + '/public/api?locale=' + localeKey;
                     PWM_MAIN.ajaxRequest(url, function(){
@@ -1004,55 +959,25 @@ PWM_MAIN.doShow = function(destClass, message, fromFloatHandler) {
         return;
     }
 
+    // clear existing status
+    PWM_MAIN.removeCssClass(messageElement,'message-info');
+    PWM_MAIN.removeCssClass(messageElement,'message-error');
+    PWM_MAIN.removeCssClass(messageElement,'message-success');
+
     if (destClass === '') {
-        require(["dojo/dom", "dojo/_base/fx"],function(dom, fx){
-            var fadeArgs = { node: "message", duration: 500 };
-            fx.fadeOut(fadeArgs).play();
-        });
+        PWM_MAIN.addCssClass(messageElement, "nodisplay")
         return;
+    } else {
+        PWM_MAIN.removeCssClass(messageElement, "nodisplay")
     }
+
     messageElement.firstChild.nodeValue = message;
 
-    try {
-        messageElement.style.display = 'inherit'; // doesn't work in older ie browsers
-    } catch (e) {
-        messageElement.style.display = 'block';
+    PWM_MAIN.addCssClass(messageElement,destClass);
+
+    if (!fromFloatHandler) {
+        PWM_MAIN.messageDivFloatHandler();
     }
-
-    messageElement.style.opacity = '1';
-    require(["dojo","dojo/dom-style"],function(dojo,domStyle){
-        if(dojo.isIE <= 8){ // only IE7 and below
-
-            messageElement.className = "message " + destClass;
-        } else {
-            try {
-                // create a temp element and place it on the page to figure out what the destination color should be
-                var tempDivElement = document.createElement('div');
-                tempDivElement.className = "message " + destClass;
-                tempDivElement.style.display = "none";
-                tempDivElement.id = "tempDivElement";
-                messageElement.appendChild(tempDivElement);
-                var destStyle = window.getComputedStyle(tempDivElement, null);
-                var destBackground = destStyle.backgroundColor;
-                var destColor = destStyle.color;
-                messageElement.removeChild(tempDivElement);
-
-                dojo.animateProperty({
-                    node:"message",
-                    duration: 500,
-                    properties: {
-                        backgroundColor: destBackground,
-                        color: destColor
-                    }
-                }).play();
-            } catch (e) {
-                messageElement.className = "message " + destClass;
-            }
-            if (!fromFloatHandler) {
-                PWM_MAIN.messageDivFloatHandler();
-            }
-        }
-    });
 };
 
 PWM_MAIN.createCSSClass = function(selector, style) {
@@ -1144,6 +1069,15 @@ PWM_MAIN.createCSSClass = function(selector, style) {
 };
 
 PWM_MAIN.flashDomElement = function(flashColor,elementName,durationMS) {
+    var element = PWM_MAIN.getObject(elementName);
+    if ( element ) {
+        PWM_MAIN.addCssClass(element,'background-alert-flash');
+        setTimeout(function(){
+      //      PWM_MAIN.removeCssClass(element, 'background-alert-flash');
+        },5000)
+    }
+    /*
+
     if (!PWM_MAIN.getObject(elementName)) {
         PWM_MAIN.log('cant flash non-existing element id ' + elementName);
         return;
@@ -1158,6 +1092,7 @@ PWM_MAIN.flashDomElement = function(flashColor,elementName,durationMS) {
             properties: { backgroundColor: originalBGColor}
         }).play();
     });
+     */
 };
 
 PWM_MAIN.getRenderedStyle = function(el,styleProp) {
@@ -1204,7 +1139,7 @@ PWM_MAIN.messageDivFloatHandler = function() {
         return;
     }
 
-    if (messageObj.style.display === 'none') {
+    if (PWM_MAIN.hasCssClass('message','nodisplay')) {
         return;
     }
 
@@ -1214,16 +1149,10 @@ PWM_MAIN.messageDivFloatHandler = function() {
         PWM_GLOBAL['message_scrollToggle'] = doFloatDisplay;
 
         if (doFloatDisplay) {
-            messageObj.style.position = 'fixed';
-            messageObj.style.top = '-3px';
-            messageObj.style.left = '0';
-            messageObj.style.width = '100%';
-            messageObj.style.zIndex = "100";
-            messageObj.style.textAlign = "center";
-            messageObj.style.backgroundColor = 'black';
+            PWM_MAIN.addCssClass(messageObj,'message-scrollFloat');
             PWM_MAIN.doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML,true);
         } else {
-            messageObj.style.cssText = '';
+            PWM_MAIN.removeCssClass(messageObj,'message-scrollFloat');
             PWM_MAIN.doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML,true);
         }
     }
@@ -1348,6 +1277,14 @@ PWM_MAIN.JSLibrary.arrayContains = function(array,element) {
 
     return array.indexOf(element) > -1;
 };
+
+PWM_MAIN.JSLibrary.getAttribute = function(element,attribute) {
+    return PWM_MAIN.getObject(element).getAttribute(attribute);
+};
+
+PWM_MAIN.JSLibrary.setAttribute = function(element,attribute,value) {
+    PWM_MAIN.getObject(element).setAttribute(attribute,value);
+}
 
 PWM_MAIN.JSLibrary.removeFromArray = function(array,element) {
     for(var i = array.length - 1; i >= 0; i--) {
@@ -1521,23 +1458,21 @@ ShowHidePasswordHandler.init = function(nodeName) {
         return;
     }
 
-    require(["dojo/dom-construct", "dojo/dom-attr"], function(domConstruct, attr){
-        var defaultType = attr.get(node, "type");
-        attr.set(node, "data-originalType", defaultType);
-        attr.set(node, "data-managedByShowHidePasswordHandler","true");
+    var defaultType = PWM_MAIN.JSLibrary.getAttribute(node, "type");
+    PWM_MAIN.JSLibrary.setAttribute(node, "data-originalType", defaultType);
+    PWM_MAIN.JSLibrary.setAttribute(node, "data-managedByShowHidePasswordHandler","true");
 
-        var divElement = document.createElement('div');
-        divElement.id = eyeId;
-        divElement.onclick = function(){ShowHidePasswordHandler.toggle(nodeName)};
-        divElement.style.cursor = 'pointer';
-        divElement.style.visibility = 'hidden';
-        divElement.setAttribute('class','pwm-icon icon-showhidepassword');
-        domConstruct.place(divElement,node,'after');
+    var divElement = document.createElement('div');
+    divElement.id = eyeId;
+    divElement.onclick = function(){ShowHidePasswordHandler.toggle(nodeName)};
+    divElement.style.cursor = 'pointer';
+    divElement.style.visibility = 'hidden';
+    divElement.setAttribute('class','pwm-icon icon-showhidepassword');
+    node.parentNode.insertBefore(divElement, node.nextSibling);
 
-        ShowHidePasswordHandler.state[nodeName] = (defaultType === "password");
-        ShowHidePasswordHandler.setupTooltip(nodeName, false);
-        ShowHidePasswordHandler.addInputEvents(nodeName);
-    });
+    ShowHidePasswordHandler.state[nodeName] = (defaultType === "password");
+    ShowHidePasswordHandler.setupTooltip(nodeName, false);
+    ShowHidePasswordHandler.addInputEvents(nodeName);
 };
 
 ShowHidePasswordHandler.renderIcon = function(nodeName) {
@@ -1719,8 +1654,9 @@ PWM_MAIN.IdleTimeoutHandler.pollActivity = function() {
 
 PWM_MAIN.IdleTimeoutHandler.pingServer = function() {
     PWM_MAIN.IdleTimeoutHandler.lastPingTime = new Date();
-    var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&time=" + new Date().getTime() + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-    PWM_MAIN.ajaxRequest(pingURL, function(){},{method:'POST'});
+    console.log("idle timeout ping at " + PWM_MAIN.IdleTimeoutHandler.lastPingTime.toISOString());
+    var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&j=1";
+    PWM_MAIN.ajaxRequest(pingURL, function(){},{method:'POST',preventCache:true});
 };
 
 PWM_MAIN.IdleTimeoutHandler.calcSecondsRemaining = function() {
@@ -1757,7 +1693,6 @@ PWM_MAIN.IdleTimeoutHandler.showIdleWarning = function() {
 };
 
 PWM_MAIN.IdleTimeoutHandler.closeIdleWarning = function() {
-    PWM_MAIN.clearDijitWidget('idleDialog');
     document.title = PWM_MAIN.IdleTimeoutHandler.realWindowTitle;
     PWM_MAIN.IdleTimeoutHandler.warningDisplayed = false;
 };
@@ -2038,11 +1973,22 @@ PWM_MAIN.setStyle = function(elementID, property, value) {
 };
 
 PWM_MAIN.addCssClass = function(elementID, className) {
-    require(["dojo"], function (dojo) { dojo.addClass(elementID, className); });
+    var element = PWM_MAIN.getObject(elementID);
+    if (element) {
+        element.classList.add(className);
+    }
 };
 
 PWM_MAIN.removeCssClass = function(elementID, className) {
-    require(["dojo"], function (dojo) { dojo.removeClass(elementID, className) });
+    var element = PWM_MAIN.getObject(elementID);
+    if (element) {
+        element.classList.remove(className);
+    }
+};
+
+PWM_MAIN.hasCssClass = function(elementID, className) {
+    var element = PWM_MAIN.getObject(elementID);
+    return element && element.classList.contains(className);
 };
 
 PWM_MAIN.newWindowOpen=function(windowUrl,windowName) {
@@ -2093,24 +2039,12 @@ PWM_MAIN.submitPostAction = function(actionUrl,actionValue,additionalValues) {
 };
 
 PWM_MAIN.doQuery = function(queryString, resultFunction) {
-    require(["dojo/query"], function (query) {
-        var results = query(queryString);
-        for (var i = 0; i < results.length; i++) {
-            (function(iterator){
-                var result = results[iterator];
-                resultFunction(result)
-            })(i);
-        }
-    });
+    var results = document.querySelectorAll(queryString);
+    PWM_MAIN.JSLibrary.forEachInArray(results,resultFunction);
 };
 
 PWM_MAIN.doIfQueryHasResults = function(queryString, trueFunction) {
-    require(["dojo/query"], function (query) {
-        var results = query(queryString);
-        if (results && results.length > 0) {
-            trueFunction();
-        }
-    });
+    if (document.querySelector(queryString)) trueFunction();
 };
 
 PWM_MAIN.stopEvent = function(e) {

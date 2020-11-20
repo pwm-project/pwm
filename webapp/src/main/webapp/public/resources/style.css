@@ -660,18 +660,56 @@ html[dir="rtl"] #header-center-right {
     width: 90%;
     background-color: inherit;
     border-radius: 3px;
+    font-size: 1.1em;
 }
 
 .message-info {
     background-color: #dae1e1;
+    transition: background-color 1s ease;
 }
 
 .message-error {
     background-color: #FFCD59;
+    transition: background-color 1s ease;
 }
 
 .message-success {
     background-color: #70cff0;
+    transition: background-color 1s ease;
+}
+
+.message-scrollFloat {
+    position: fixed;
+    top: -3px;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    text-align: center;
+    transition: all 1s ;
+    border-bottom: 10px inherit solid;
+}
+
+.background-alert-flash {
+    background-color: red !important;
+    transition: all step-end;
+    animation-name: alert-flash2;
+    animation-duration: 1s;
+    animation-iteration-count: 5;
+}
+
+@keyframes alert-flash {
+    0%   {background-color:red !important; }
+    25%  {background-color:inherit !important; }
+    50%  {background-color:red !important; }
+    75%  {background-color:inherit !important;}
+    100% {background-color:red !important;}
+}
+@keyframes alert-flash2 {
+    0%   {background-color:red; }
+    25%  {background-color:inherit;  }
+    50%  {background-color:red; }
+    75%  {background-color:inherit;}
+    100% {background-color:red;}
 }
 
 .push, #footer {
@@ -718,6 +756,7 @@ html[dir="rtl"] #header-center-right {
     margin-bottom: 2px;
     background-color: #d20734;
     border-radius: 3px;
+    animation: fadein 2s;
 }
 
 .agreementText {
