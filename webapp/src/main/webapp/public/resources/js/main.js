@@ -727,10 +727,11 @@ PWM_MAIN.closeWaitDialog = function(idName) {
         if (PWM_MAIN.getObject('html5Dialog')) {
             PWM_MAIN.getObject('html5Dialog').parentNode.removeChild(PWM_MAIN.getObject('html5Dialog'));
         }
+    } else {
+        idName = idName === undefined ? 'dialogPopup' : idName;
+        PWM_MAIN.clearDijitWidget(idName);
     }
 
-    idName = idName === undefined ? 'dialogPopup' : idName;
-    PWM_MAIN.clearDijitWidget(idName);
     PWM_MAIN.JSLibrary.removeElementFromDom('wait-overlay');
     PWM_MAIN.JSLibrary.removeElementFromDom('wait-overlay-message');
 };

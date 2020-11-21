@@ -40,6 +40,8 @@
 <style nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" type="text/css">
     html { overflow-y: scroll; } <%-- always add verticle scrollbar to page --%>
 </style>
+<link href="<pwm:url url='/public/resources/webjars/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
+<link href="<pwm:url url='/public/resources/webjars/dgrid/css/dgrid.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
 
     <div class="configeditor-header" id="header" >

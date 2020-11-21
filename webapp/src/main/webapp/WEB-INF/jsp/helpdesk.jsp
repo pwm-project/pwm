@@ -34,7 +34,7 @@
     <%@ include file="/WEB-INF/jsp/fragment/header-common.jsp" %>
     <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ias-icons.css' addContext="true"/>"/>
 </head>
-<body class="nihilo">
+<body>
 <div id="wrapper" class="helpdesk-wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
