@@ -36,6 +36,9 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.javadoc.skip>true</maven.javadoc.skip>
 
+        <!-- profile managed values -->
+        <spotbugs.skip>false</spotbugs.skip>
+        <checkstyle.skip>false</checkstyle.skip>
         <skipTests>false</skipTests>
 
         <!-- git.commit.time is populated via git-commit-id-plugin and results in a (hopefully) reproducible maven build -->
