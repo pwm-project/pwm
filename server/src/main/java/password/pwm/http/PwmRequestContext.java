@@ -29,7 +29,7 @@ import password.pwm.http.servlet.PwmRequestID;
 import java.util.Locale;
 
 @Value
-public class CommonValues
+public class PwmRequestContext
 {
     final PwmApplication pwmApplication;
     final SessionLabel sessionLabel;

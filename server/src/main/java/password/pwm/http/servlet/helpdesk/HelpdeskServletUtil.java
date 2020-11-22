@@ -189,7 +189,7 @@ public class HelpdeskServletUtil
                 .build();
 
         final boolean match = UserPermissionUtility.testUserPermission(
-                pwmRequest.commonValues(),
+                pwmRequest.getPwmRequestContext(),
                 userIdentity,
                 userPermission
         );

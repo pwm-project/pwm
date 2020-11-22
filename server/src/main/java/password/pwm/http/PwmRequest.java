@@ -597,9 +597,9 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return false;
     }
 
-    public CommonValues commonValues()
+    public PwmRequestContext getPwmRequestContext()
     {
-        return new CommonValues( pwmApplication, this.getLabel(), this.getLocale(), pwmRequestID );
+        return new PwmRequestContext( pwmApplication, this.getLabel(), this.getLocale(), pwmRequestID );
     }
 
     public String getPwmRequestID()

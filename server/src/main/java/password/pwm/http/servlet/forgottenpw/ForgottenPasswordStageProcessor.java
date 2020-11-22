@@ -32,7 +32,7 @@ import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.CommonValues;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.bean.ForgottenPasswordStage;
@@ -94,7 +94,7 @@ class ForgottenPasswordStageProcessor
         @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
         {
-            final CommonValues commonValues = stateMachine.getCommonValues();
+            final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
 
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
             stateMachine.getRequestFlags().clear();
@@ -108,12 +108,12 @@ class ForgottenPasswordStageProcessor
             // check locale
             if ( forgottenPasswordBean.getUserLocale() == null )
             {
-                forgottenPasswordBean.setUserLocale( commonValues.getLocale() );
+                forgottenPasswordBean.setUserLocale( pwmRequestContext.getLocale() );
             }
 
-            if ( !Objects.equals( forgottenPasswordBean.getUserLocale(), commonValues.getLocale() ) )
+            if ( !Objects.equals( forgottenPasswordBean.getUserLocale(), pwmRequestContext.getLocale() ) )
             {
-                LOGGER.debug( commonValues.getSessionLabel(), () -> "user locale has changed, resetting forgotten password state" );
+                LOGGER.debug( pwmRequestContext.getSessionLabel(), () -> "user locale has changed, resetting forgotten password state" );
                 stateMachine.clear();
                 return Optional.of( ForgottenPasswordStage.IDENTIFICATION );
             }
@@ -136,9 +136,9 @@ class ForgottenPasswordStageProcessor
                 throws PwmUnrecoverableException
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
-            final CommonValues commonValues = stateMachine.getCommonValues();
-            final PwmApplication pwmApplication = commonValues.getPwmApplication();
-            final SessionLabel sessionLabel = commonValues.getSessionLabel();
+            final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
+            final PwmApplication pwmApplication = pwmRequestContext.getPwmApplication();
+            final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
             final Configuration config = pwmApplication.getConfig();
 
             final ForgottenPasswordBean.RecoveryFlags recoveryFlags = forgottenPasswordBean.getRecoveryFlags();
@@ -220,8 +220,8 @@ class ForgottenPasswordStageProcessor
                 throws PwmUnrecoverableException
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
-            final CommonValues commonValues = stateMachine.getCommonValues();
-            final SessionLabel sessionLabel = commonValues.getSessionLabel();
+            final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
+            final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
 
             final ForgottenPasswordBean.RecoveryFlags recoveryFlags = forgottenPasswordBean.getRecoveryFlags();
             final ForgottenPasswordBean.Progress progress = forgottenPasswordBean.getProgress();
@@ -233,7 +233,7 @@ class ForgottenPasswordStageProcessor
                 if ( satisfiedOptionalMethods.size() < recoveryFlags.getMinimumOptionalAuthMethods() )
                 {
                     final Set<IdentityVerificationMethod> remainingAvailableOptionalMethods = ForgottenPasswordUtil.figureRemainingAvailableOptionalAuthMethods(
-                            commonValues,
+                            pwmRequestContext,
                             forgottenPasswordBean
                     );
 
@@ -282,8 +282,8 @@ class ForgottenPasswordStageProcessor
                 throws PwmUnrecoverableException
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
-            final CommonValues commonValues = stateMachine.getCommonValues();
-            final SessionLabel sessionLabel = commonValues.getSessionLabel();
+            final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
+            final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
 
             final ForgottenPasswordBean.RecoveryFlags recoveryFlags = forgottenPasswordBean.getRecoveryFlags();
             final ForgottenPasswordBean.Progress progress = forgottenPasswordBean.getProgress();
@@ -322,9 +322,9 @@ class ForgottenPasswordStageProcessor
                 throws PwmUnrecoverableException
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
-            final CommonValues commonValues = stateMachine.getCommonValues();
-            final PwmApplication pwmApplication = commonValues.getPwmApplication();
-            final SessionLabel sessionLabel = commonValues.getSessionLabel();
+            final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
+            final PwmApplication pwmApplication = pwmRequestContext.getPwmApplication();
+            final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
 
             if ( !forgottenPasswordBean.getProgress().isAllPassed() )
             {
@@ -332,7 +332,7 @@ class ForgottenPasswordStageProcessor
                 pwmApplication.getStatisticsManager().incrementValue( Statistic.RECOVERY_SUCCESSES );
             }
 
-            final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( commonValues, forgottenPasswordBean );
+            final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean );
             if ( userInfo == null )
             {
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unable to load userInfo while processing forgotten password controller" );
@@ -367,12 +367,12 @@ class ForgottenPasswordStageProcessor
                 throws PwmUnrecoverableException
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
-            final CommonValues commonValues = stateMachine.getCommonValues();
-            final PwmApplication pwmApplication = commonValues.getPwmApplication();
-            final SessionLabel sessionLabel = commonValues.getSessionLabel();
+            final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
+            final PwmApplication pwmApplication = pwmRequestContext.getPwmApplication();
+            final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
             final Configuration config = pwmApplication.getConfig();
 
-            final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( commonValues, forgottenPasswordBean );
+            final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean );
 
             final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile( pwmApplication, forgottenPasswordBean );
 

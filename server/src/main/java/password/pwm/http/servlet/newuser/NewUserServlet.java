@@ -485,7 +485,7 @@ public class NewUserServlet extends ControlledPwmServlet
         try
         {
             tokenPayload = TokenUtil.checkEnteredCode(
-                    pwmRequest.commonValues(),
+                    pwmRequest.getPwmRequestContext(),
                     userEnteredCode,
                     tokenDestinationItem,
                     null,

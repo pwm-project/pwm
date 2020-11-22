@@ -39,7 +39,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.CommonValues;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
@@ -251,14 +251,14 @@ public class SessionAuthenticator
     )
             throws PwmUnrecoverableException
     {
-        final CommonValues commonValues = new CommonValues( pwmApplication, sessionLabel, null, null );
-        simulateBadPassword( commonValues, userIdentity );
+        final PwmRequestContext pwmRequestContext = new PwmRequestContext( pwmApplication, sessionLabel, null, null );
+        simulateBadPassword( pwmRequestContext, userIdentity );
     }
 
-    public static void simulateBadPassword( final CommonValues commonValues, final UserIdentity userIdentity ) throws PwmUnrecoverableException
+    public static void simulateBadPassword( final PwmRequestContext pwmRequestContext, final UserIdentity userIdentity ) throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = commonValues.getPwmApplication();
-        final SessionLabel sessionLabel = commonValues.getSessionLabel();
+        final PwmApplication pwmApplication = pwmRequestContext.getPwmApplication();
+        final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
 
         if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.SECURITY_SIMULATE_LDAP_BAD_PASSWORD ) )
         {

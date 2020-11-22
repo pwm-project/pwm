@@ -711,7 +711,7 @@ public class PasswordUtility
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final UserIdentity userIdentity = pwmRequest.getUserInfoIfLoggedIn();
         final AbstractProfile activateUserProfile = ProfileUtility.profileForUser(
-                pwmRequest.commonValues(),
+                pwmRequest.getPwmRequestContext(),
                 userIdentity,
                 profileDefinition,
                 AbstractProfile.class );

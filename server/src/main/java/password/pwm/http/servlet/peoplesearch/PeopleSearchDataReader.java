@@ -623,7 +623,7 @@ class PeopleSearchDataReader
                     .ldapProfileID( userIdentity.getLdapProfileID() )
                     .build();
 
-            return UserPermissionUtility.testUserPermission( pwmRequest.commonValues(), userIdentity, userPermission );
+            return UserPermissionUtility.testUserPermission( pwmRequest.getPwmRequestContext(), userIdentity, userPermission );
         };
 
         final boolean result = storeDataInCache( CacheIdentifier.checkIfViewable, userIdentity.toDelimitedKey(), Boolean.class, cacheLoader );

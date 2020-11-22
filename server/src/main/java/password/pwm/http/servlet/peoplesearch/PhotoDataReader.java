@@ -267,7 +267,7 @@ public class PhotoDataReader
 
         if ( !StringUtil.isEmpty( configuredUrl ) )
         {
-            final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.commonValues(), userIdentity );
+            final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmRequestContext(), userIdentity );
             return Optional.of( macroRequest.expandMacros( configuredUrl ) );
 
         }

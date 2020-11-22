@@ -25,7 +25,7 @@ import password.pwm.AppProperty;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.CommonValues;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -40,22 +40,22 @@ public class BeanCryptoMachine<T extends Serializable>
     private static final PwmLogger LOGGER = PwmLogger.forClass( BeanCryptoMachine.class );
     private static final String DELIMITER = ".";
 
-    private final CommonValues commonValues;
+    private final PwmRequestContext pwmRequestContext;
     private final TimeDuration maxIdleTimeout;
 
     private String key;
 
-    public BeanCryptoMachine( final CommonValues commonValues, final TimeDuration maxIdleTimeout )
+    public BeanCryptoMachine( final PwmRequestContext pwmRequestContext, final TimeDuration maxIdleTimeout )
     {
-        this.commonValues = commonValues;
+        this.pwmRequestContext = pwmRequestContext;
         this.maxIdleTimeout = maxIdleTimeout;
     }
 
     private String newKey()
     {
-        final int length = Integer.parseInt( commonValues.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
+        final int length = Integer.parseInt( pwmRequestContext.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
 
-        final String random = commonValues.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
+        final String random = pwmRequestContext.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
 
         // timestamp component for uniqueness
         final String prefix = Long.toString( System.currentTimeMillis(), Character.MAX_RADIX );
@@ -73,7 +73,7 @@ public class BeanCryptoMachine<T extends Serializable>
             return Optional.empty();
         }
 
-        final SecureService secureService = commonValues.getPwmApplication().getSecureService();
+        final SecureService secureService = pwmRequestContext.getPwmApplication().getSecureService();
         final int delimiterIndex = input.indexOf( DELIMITER );
         final String key = input.substring( 0, delimiterIndex );
         final String payload = input.substring( delimiterIndex + 1 );
@@ -83,7 +83,7 @@ public class BeanCryptoMachine<T extends Serializable>
         final TimeDuration stateAge = TimeDuration.fromCurrent( wrapper.getTimestamp() );
         if ( stateAge.isLongerThan( maxIdleTimeout ) )
         {
-            LOGGER.trace( commonValues.getSessionLabel(), () -> "state in request is " + stateAge.asCompactString() + " old" );
+            LOGGER.trace( pwmRequestContext.getSessionLabel(), () -> "state in request is " + stateAge.asCompactString() + " old" );
             return Optional.empty();
         }
 
@@ -109,7 +109,7 @@ public class BeanCryptoMachine<T extends Serializable>
             this.key = newKey();
         }
 
-        final SecureService secureService = commonValues.getPwmApplication().getSecureService();
+        final SecureService secureService = pwmRequestContext.getPwmApplication().getSecureService();
         final PwmSecurityKey pwmSecurityKey = secureService.appendedSecurityKey( key );
         final String className = bean.getClass().getName();
         final String jsonBean = JsonUtil.serialize( bean );

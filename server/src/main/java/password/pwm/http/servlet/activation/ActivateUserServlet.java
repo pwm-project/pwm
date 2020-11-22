@@ -330,7 +330,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
         try
         {
             final TokenPayload tokenPayload = TokenUtil.checkEnteredCode(
-                    pwmRequest.commonValues(),
+                    pwmRequest.getPwmRequestContext(),
                     userEnteredCode,
                     activateUserBean.getTokenDestination(),
                     activateUserBean.getUserIdentity(),
@@ -440,7 +440,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
             if ( !activateUserBean.isTokenSent() && activateUserBean.getTokenDestination() != null )
             {
                 TokenUtil.initializeAndSendToken(
-                        pwmRequest.commonValues(),
+                        pwmRequest.getPwmRequestContext(),
                         TokenUtil.TokenInitAndSendRequest.builder()
                                 .userInfo( userInfo )
                                 .tokenDestinationItem( activateUserBean.getTokenDestination() )

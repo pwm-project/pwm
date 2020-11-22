@@ -28,7 +28,7 @@ import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.CommonValues;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.bean.ForgottenPasswordBean;
@@ -105,9 +105,9 @@ public class RestForgottenPasswordServer extends RestServlet
     public RestResultBean doRestForgottenPasswordService( final RestRequest restRequest )
             throws PwmUnrecoverableException, IOException
     {
-        final CommonValues commonValues = restRequest.commonValues();
+        final PwmRequestContext pwmRequestContext = restRequest.commonValues();
         final JsonInput jsonInput = restRequest.readBodyAsJsonObject( JsonInput.class );
-        final BeanCryptoMachine<ForgottenPasswordBean> beanBeanCryptoMachine = new BeanCryptoMachine<>( commonValues, figureMaxIdleTimeout( commonValues ) );
+        final BeanCryptoMachine<ForgottenPasswordBean> beanBeanCryptoMachine = new BeanCryptoMachine<>( pwmRequestContext, figureMaxIdleTimeout( pwmRequestContext ) );
         final ForgottenPasswordStateMachine stateMachine;
 
         final boolean newState;
@@ -156,9 +156,9 @@ public class RestForgottenPasswordServer extends RestServlet
         return restResultBean;
     }
 
-    private TimeDuration figureMaxIdleTimeout( final CommonValues commonValues )
+    private TimeDuration figureMaxIdleTimeout( final PwmRequestContext pwmRequestContext )
     {
-        final long idleSeconds = commonValues.getConfig().readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
+        final long idleSeconds = pwmRequestContext.getConfig().readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
         return TimeDuration.of( idleSeconds, TimeDuration.Unit.SECONDS );
     }
 

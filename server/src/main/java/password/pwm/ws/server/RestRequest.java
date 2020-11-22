@@ -25,7 +25,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.CommonValues;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmHttpRequestWrapper;
@@ -124,9 +124,9 @@ public class RestRequest extends PwmHttpRequestWrapper
         return getPwmApplication().getProxyChaiProvider( ldapProfileID );
     }
 
-    public CommonValues commonValues()
+    public PwmRequestContext commonValues()
     {
-        return new CommonValues( pwmApplication, this.getSessionLabel(), this.getLocale(), requestID );
+        return new PwmRequestContext( pwmApplication, this.getSessionLabel(), this.getLocale(), requestID );
     }
 }
 

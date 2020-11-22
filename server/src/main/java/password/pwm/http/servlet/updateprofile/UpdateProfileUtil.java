@@ -319,7 +319,7 @@ public class UpdateProfileUtil
                             : updateProfileProfile.getTokenDurationSMS( pwmRequest.getConfig() );
 
                     TokenUtil.initializeAndSendToken(
-                            pwmRequest.commonValues(),
+                            pwmRequest.getPwmRequestContext(),
                             TokenUtil.TokenInitAndSendRequest.builder()
                                     .userInfo( pwmRequest.getPwmSession().getUserInfo() )
                                     .tokenDestinationItem( tokenDestinationItem )

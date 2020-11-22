@@ -27,7 +27,7 @@ import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.CommonValues;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
@@ -51,12 +51,12 @@ public class MacroRequest
     }
 
     public static MacroRequest forUser(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
-        return forUser( commonValues.getPwmApplication(), commonValues.getLocale(), commonValues.getSessionLabel(), userIdentity );
+        return forUser( pwmRequestContext.getPwmApplication(), pwmRequestContext.getLocale(), pwmRequestContext.getSessionLabel(), userIdentity );
     }
 
     public static MacroRequest forUser(

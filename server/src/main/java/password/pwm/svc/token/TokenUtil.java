@@ -34,7 +34,7 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.CommonValues;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -140,7 +140,7 @@ public class TokenUtil
     }
 
     public static TokenPayload checkEnteredCode(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final String userEnteredCode,
             final TokenDestinationItem tokenDestinationItem,
             final UserIdentity userIdentity,
@@ -149,12 +149,12 @@ public class TokenUtil
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = commonValues.getPwmApplication();
+        final PwmApplication pwmApplication = pwmRequestContext.getPwmApplication();
 
         try
         {
             final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
-                    commonValues,
+                    pwmRequestContext,
                     userIdentity,
                     tokenType,
                     userEnteredCode,
@@ -207,12 +207,12 @@ public class TokenUtil
     }
 
     public static void initializeAndSendToken(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final TokenInitAndSendRequest tokenInitAndSendRequest
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = commonValues.getConfig();
+        final Configuration config = pwmRequestContext.getConfig();
         final UserInfo userInfo = tokenInitAndSendRequest.getUserInfo();
         final Map<String, String> tokenMapData = new LinkedHashMap<>();
         final MacroRequest macroRequest;
@@ -224,9 +224,9 @@ public class TokenUtil
             else if ( tokenInitAndSendRequest.getUserInfo() != null )
             {
                 macroRequest = MacroRequest.forUser(
-                        commonValues.getPwmApplication(),
-                        commonValues.getLocale(),
-                        commonValues.getSessionLabel(),
+                        pwmRequestContext.getPwmApplication(),
+                        pwmRequestContext.getLocale(),
+                        pwmRequestContext.getSessionLabel(),
                         userInfo.getUserIdentity(),
                         makeTokenDestStringReplacer( tokenInitAndSendRequest.getTokenDestinationItem() ) );
             }
@@ -262,14 +262,14 @@ public class TokenUtil
 
             try
             {
-                tokenPayload = commonValues.getPwmApplication().getTokenService().createTokenPayload(
+                tokenPayload = pwmRequestContext.getPwmApplication().getTokenService().createTokenPayload(
                         tokenInitAndSendRequest.getTokenType(),
                         tokenLifetime,
                         tokenMapData,
                         userInfo == null ? null : userInfo.getUserIdentity(),
                         tokenInitAndSendRequest.getTokenDestinationItem()
                 );
-                tokenKey = commonValues.getPwmApplication().getTokenService().generateNewToken( tokenPayload, commonValues.getSessionLabel() );
+                tokenKey = pwmRequestContext.getPwmApplication().getTokenService().generateNewToken( tokenPayload, pwmRequestContext.getSessionLabel() );
             }
             catch ( final PwmOperationalException e )
             {
@@ -279,22 +279,22 @@ public class TokenUtil
 
         final EmailItemBean emailItemBean = tokenInitAndSendRequest.getEmailToSend() == null
                 ? null
-                : config.readSettingAsEmail( tokenInitAndSendRequest.getEmailToSend(), commonValues.getLocale() );
+                : config.readSettingAsEmail( tokenInitAndSendRequest.getEmailToSend(), pwmRequestContext.getLocale() );
 
         final String smsMessage = tokenInitAndSendRequest.getSmsToSend() == null
                 ? null
-                : config.readSettingAsLocalizedString( tokenInitAndSendRequest.getSmsToSend(), commonValues.getLocale() );
+                : config.readSettingAsLocalizedString( tokenInitAndSendRequest.getSmsToSend(), pwmRequestContext.getLocale() );
 
         TokenService.TokenSender.sendToken(
                 TokenService.TokenSendInfo.builder()
-                        .pwmApplication( commonValues.getPwmApplication() )
+                        .pwmApplication( pwmRequestContext.getPwmApplication() )
                         .userInfo( userInfo )
                         .macroRequest( macroRequest )
                         .configuredEmailSetting( emailItemBean )
                         .tokenDestinationItem( tokenInitAndSendRequest.getTokenDestinationItem() )
                         .smsMessage( smsMessage )
                         .tokenKey( tokenKey )
-                        .sessionLabel( commonValues.getSessionLabel() )
+                        .sessionLabel( pwmRequestContext.getSessionLabel() )
                         .build()
         );
     }

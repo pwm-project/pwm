@@ -29,7 +29,7 @@ import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.CommonValues;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.util.logging.PwmLogger;
 
@@ -42,29 +42,29 @@ public class ProfileUtility
     private static final PwmLogger LOGGER = PwmLogger.forClass( ProfileUtility.class );
 
     public static Optional<String> discoverProfileIDForUser(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final UserIdentity userIdentity,
             final ProfileDefinition profileDefinition
     )
             throws PwmUnrecoverableException
     {
-        return discoverProfileIDForUser( commonValues.getPwmApplication(), commonValues.getSessionLabel(), userIdentity, profileDefinition );
+        return discoverProfileIDForUser( pwmRequestContext.getPwmApplication(), pwmRequestContext.getSessionLabel(), userIdentity, profileDefinition );
     }
 
     public static <T extends Profile> T profileForUser(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final UserIdentity userIdentity,
             final ProfileDefinition profileDefinition,
             final Class<T> classOfT
     )
             throws PwmUnrecoverableException
     {
-        final Optional<String> profileID = discoverProfileIDForUser( commonValues, userIdentity, profileDefinition );
+        final Optional<String> profileID = discoverProfileIDForUser( pwmRequestContext, userIdentity, profileDefinition );
         if ( !profileID.isPresent() )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "profile of type " + profileDefinition + " is required but not assigned" );
         }
-        final Profile profileImpl = commonValues.getConfig().profileMap( profileDefinition ).get( profileID.get() );
+        final Profile profileImpl = pwmRequestContext.getConfig().profileMap( profileDefinition ).get( profileID.get() );
         return ( T ) profileImpl;
     }
 

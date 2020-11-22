@@ -28,7 +28,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.CommonValues;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.util.PasswordData;
 
 import java.util.Locale;
@@ -74,13 +74,13 @@ public class UserInfoFactory
     }
 
     public static UserInfo newUserInfoUsingProxy(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
-        final ChaiProvider provider = commonValues.getPwmApplication().getProxyChaiProvider( userIdentity.getLdapProfileID() );
-        return newUserInfo( commonValues.getPwmApplication(), commonValues.getSessionLabel(), commonValues.getLocale(), userIdentity, provider, null );
+        final ChaiProvider provider = pwmRequestContext.getPwmApplication().getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        return newUserInfo( pwmRequestContext.getPwmApplication(), pwmRequestContext.getSessionLabel(), pwmRequestContext.getLocale(), userIdentity, provider, null );
     }
 
     public static UserInfo newUserInfoUsingProxy(
