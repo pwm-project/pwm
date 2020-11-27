@@ -283,6 +283,18 @@ PWM_MAIN.isIE = function() {
 
 PWM_MAIN.preloadAll = function(nextFunction) {
     if (!PWM_MAIN.html5DialogSupport()) {
+        if (!PWM_MAIN.getObject('css-nihilo')) {
+            PWM_MAIN.log('adding nihilo to body class css');
+            document.body.classList.add("nihilo");
+            PWM_MAIN.addCssClass()
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = PWM_GLOBAL['url-context'] + '/public/resources/webjars/dijit/themes/nihilo/nihilo.css';
+            link.id = 'css-nihilo'
+            document.getElementsByTagName('HEAD')[0].appendChild(link);
+        }
+
         require(["dijit/Dialog"], function () {
             if (nextFunction) { nextFunction(); }
         });
@@ -856,6 +868,7 @@ PWM_MAIN.showDialog = function(options) {
             doDialogDisplay();
         }
     } else {
+        PWM_MAIN.preloadAll();
         require(["dojo", "dijit/Dialog"], function (dojo, Dialog) {
             PWM_MAIN.clearDijitWidget(idName);
             var theDialog = new Dialog({
@@ -1074,7 +1087,7 @@ PWM_MAIN.flashDomElement = function(flashColor,elementName,durationMS) {
     if ( element ) {
         PWM_MAIN.addCssClass(element,'background-alert-flash');
         setTimeout(function(){
-      //      PWM_MAIN.removeCssClass(element, 'background-alert-flash');
+            //      PWM_MAIN.removeCssClass(element, 'background-alert-flash');
         },5000)
     }
     /*
