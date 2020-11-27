@@ -1041,8 +1041,9 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
 
     var syntax = setting['syntax'];
     var syntaxFunction = PWM_CFGEDIT.syntaxFunctionMap[syntax];
-    syntaxFunction(settingKey);
-
+    if ( syntaxFunction ) {
+        syntaxFunction(settingKey);
+    }
 };
 
 PWM_CFGEDIT.drawNavigationMenu = function(nextFunction) {
