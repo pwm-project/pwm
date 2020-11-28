@@ -47,8 +47,8 @@ public class SettingReader
     public SettingReader( final StoredConfiguration storedConfiguration, final String profileID, final String domainID )
     {
         this.storedConfiguration = Objects.requireNonNull( storedConfiguration );
-        this.profileID = Objects.requireNonNull( profileID );
-        this.domainID = Objects.requireNonNull( domainID );
+        this.profileID = profileID;
+        this.domainID = domainID;
     }
 
     public List<UserPermission> readSettingAsUserPermission( final PwmSetting setting )
