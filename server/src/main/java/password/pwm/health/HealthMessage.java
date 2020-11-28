@@ -131,7 +131,10 @@ public enum HealthMessage
         return HealthMessage.class.getSimpleName() + "_" + this.toString();
     }
 
-    public String getDescription( final Locale locale, final password.pwm.config.Configuration config, final String[] fields )
+    public String getDescription(
+            final Locale locale,
+            final password.pwm.config.Configuration config,
+            final String[] fields )
     {
         return LocaleHelper.getLocalizedMessage( locale, this.getKey(), config, Health.class, fields );
     }

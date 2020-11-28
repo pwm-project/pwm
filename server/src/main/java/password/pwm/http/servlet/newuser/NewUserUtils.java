@@ -308,7 +308,7 @@ class NewUserUtils
         remoteWriteFormData( pwmRequest, newUserForm );
 
         // authenticate the user to pwm
-        final UserIdentity userIdentity = new UserIdentity( newUserDN, newUserProfile.getLdapProfile().getIdentifier() );
+        final UserIdentity userIdentity = UserIdentity.createUserIdentity( newUserDN, newUserProfile.getLdapProfile().getIdentifier() );
         final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmApplication, pwmRequest, PwmAuthenticationSource.NEW_USER_REGISTRATION );
         sessionAuthenticator.authenticateUser( userIdentity, userPassword );
 

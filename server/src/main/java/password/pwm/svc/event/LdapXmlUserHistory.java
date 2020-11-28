@@ -102,11 +102,11 @@ class LdapXmlUserHistory implements UserHistoryStore
         if ( auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEvent.Type.HELPDESK )
         {
             final HelpdeskAuditRecord helpdeskAuditRecord = ( HelpdeskAuditRecord ) auditRecord;
-            userIdentity = new UserIdentity( helpdeskAuditRecord.getTargetDN(), helpdeskAuditRecord.getTargetLdapProfile() );
+            userIdentity = UserIdentity.createUserIdentity( helpdeskAuditRecord.getTargetDN(), helpdeskAuditRecord.getTargetLdapProfile() );
         }
         else
         {
-            userIdentity = new UserIdentity( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile() );
+            userIdentity = UserIdentity.createUserIdentity( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile() );
         }
         final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
 

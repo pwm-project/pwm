@@ -426,7 +426,7 @@ public class PasswordUtility
         {
             final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
             bindDN = chaiProvider.getChaiConfiguration().getSetting( ChaiSetting.BIND_DN );
-            bindIsSelf = userIdentity.canonicalEquals( new UserIdentity( bindDN, userIdentity.getLdapProfileID() ), pwmApplication );
+            bindIsSelf = userIdentity.canonicalEquals( UserIdentity.createUserIdentity( bindDN, userIdentity.getLdapProfileID() ), pwmApplication );
 
             LOGGER.trace( sessionLabel, () -> "preparing to setActorPassword for '" + theUser.getEntryDN() + "', using bind DN: " + bindDN );
 

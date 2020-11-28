@@ -21,10 +21,10 @@
 package password.pwm.config;
 
 import lombok.Value;
+import password.pwm.PwmConstants;
 import password.pwm.config.value.StoredValue;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.logging.PwmLogger;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,7 +36,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -1284,17 +1283,21 @@ public enum PwmSetting
             "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE ),;
 
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSetting.class );
-
     private static final Map<String, PwmSetting> KEY_MAP = Collections.unmodifiableMap( Arrays.stream( values() )
             .collect( Collectors.toMap( PwmSetting::getKey, pwmSetting -> pwmSetting ) ) );
+
+    private static final Comparator<PwmSetting> MENU_LOCATION_COMPARATOR = Comparator.comparing(
+            pwmSetting -> pwmSetting.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ),
+            Comparator.nullsLast( Comparator.naturalOrder() ) );
+
+    private static final List<PwmSetting> SORTED_VALUES = Collections.unmodifiableList( Arrays.stream( values() )
+            .sorted( MENU_LOCATION_COMPARATOR )
+            .collect( Collectors.toList() ) );
 
     private final String key;
     private final PwmSettingSyntax syntax;
     private final PwmSettingCategory category;
     private final PwmSettingMetaDataReader pwmSettingMetaDataReader;
-
-
 
     PwmSetting(
             final String key,
@@ -1306,6 +1309,11 @@ public enum PwmSetting
         this.syntax = syntax;
         this.category = category;
         this.pwmSettingMetaDataReader = new PwmSettingMetaDataReader( this );
+    }
+
+    public static Comparator<PwmSetting> menuLocationComparator()
+    {
+        return MENU_LOCATION_COMPARATOR;
     }
 
     public String getKey( )
@@ -1385,7 +1393,7 @@ public enum PwmSetting
     public boolean isRequired( )
     {
         return pwmSettingMetaDataReader.isRequired();
-     }
+    }
 
     public boolean isHidden( )
     {
@@ -1420,43 +1428,9 @@ public enum PwmSetting
         return pwmSettingMetaDataReader.getLDAPPermissionInfo();
     }
 
-    public enum SettingStat
+    public static List<PwmSetting> sortedValues()
     {
-        Total,
-        hasProfile,
-        syntaxCounts,
-    }
-
-    public static Map<SettingStat, Object> getStats( )
-    {
-        final Map<SettingStat, Object> returnObj = new LinkedHashMap<>();
-        {
-            returnObj.put( SettingStat.Total, password.pwm.config.PwmSetting.values().length );
-        }
-        {
-            int hasProfile = 0;
-            for ( final PwmSetting pwmSetting : values() )
-            {
-                if ( pwmSetting.getCategory().hasProfiles() )
-                {
-                    hasProfile++;
-                }
-            }
-            returnObj.put( SettingStat.hasProfile, hasProfile );
-        }
-        {
-            final Map<PwmSettingSyntax, Integer> syntaxCounts = new LinkedHashMap<>();
-            for ( final PwmSettingSyntax syntax : PwmSettingSyntax.values() )
-            {
-                syntaxCounts.put( syntax, 0 );
-            }
-            for ( final PwmSetting pwmSetting : values() )
-            {
-                syntaxCounts.put( pwmSetting.getSyntax(), syntaxCounts.get( pwmSetting.getSyntax() ) + 1 );
-            }
-            returnObj.put( SettingStat.syntaxCounts, syntaxCounts );
-        }
-        return returnObj;
+        return SORTED_VALUES;
     }
 
     @Value
@@ -1496,22 +1470,5 @@ public enum PwmSetting
 
             return templateSetReferences.iterator().next().getReference();
         }
-    }
-
-    public static Set<PwmSetting> sortedByMenuLocation( final Locale locale )
-    {
-        final Set<PwmSetting> sortedSet = new TreeSet<>( menuLocationComparator( locale ) );
-        sortedSet.addAll( KEY_MAP.values() );
-        return Collections.unmodifiableSet( sortedSet );
-    }
-
-    public static Comparator<PwmSetting> menuLocationComparator( final Locale locale )
-    {
-        return ( o1, o2 ) ->
-        {
-            final String selfValue = o1.toMenuLocationDebug( null, locale );
-            final String otherValue = o2.toMenuLocationDebug( null, locale );
-            return selfValue.compareTo( otherValue );
-        };
     }
 }

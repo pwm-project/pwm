@@ -465,7 +465,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             LOGGER.info( pwmRequest, () -> "created user object: " + guestUserDN );
 
             final ChaiUser theUser = provider.getEntryFactory().newChaiUser( guestUserDN );
-            final UserIdentity userIdentity = new UserIdentity( guestUserDN, pwmSession.getUserInfo().getUserIdentity().getLdapProfileID() );
+            final UserIdentity userIdentity = UserIdentity.createUserIdentity( guestUserDN, pwmSession.getUserInfo().getUserIdentity().getLdapProfileID() );
 
             // write the expiration date:
             if ( expirationDate != null )

@@ -532,6 +532,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return null;
     }
 
+    @Override
     public String toString( )
     {
         return this.getClass().getSimpleName() + " "
@@ -610,5 +611,10 @@ public class PwmRequest extends PwmHttpRequestWrapper
     public Instant getRequestStartTime()
     {
         return requestStartTime;
+    }
+
+    public String getDomainID()
+    {
+        return PwmConstants.DOMAIN_ID_DEFAULT;
     }
 }

@@ -201,7 +201,7 @@ public class PwmSettingTest
     @Test
     public void sortedByMenuLocation()
     {
-        final Set<PwmSetting> sortedSet = PwmSetting.sortedByMenuLocation( PwmConstants.DEFAULT_LOCALE );
-        Assert.assertEquals( sortedSet.size(), PwmSetting.values().length );
+        final List<PwmSetting> list = PwmSetting.sortedValues();
+        Assert.assertEquals( list.size(), PwmSetting.values().length );
     }
 }

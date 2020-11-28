@@ -306,7 +306,6 @@ public class PwmApplication
             LOGGER.error( () -> "error outputting log to debug: " + e.getMessage() );
         }
 
-
         if ( this.getConfig() != null )
         {
             final Map<AppProperty, String> nonDefaultProperties = getConfig().readAllNonDefaultAppProperties();
@@ -392,13 +391,14 @@ public class PwmApplication
 
         try
         {
+            final Instant itemStartTime = Instant.now();
             SettingDataMaker.generateSettingData( this.getConfig().getStoredConfiguration(), null, PwmConstants.DEFAULT_LOCALE );
+            LOGGER.trace( () -> "completed setting data cache loading", () -> TimeDuration.fromCurrent( itemStartTime ) );
         }
         catch ( final Exception e )
         {
             LOGGER.debug( () -> "error initializing generateSettingData: " + e.getMessage() );
         }
-
 
         {
             final ExecutorService executorService = PwmScheduler.makeSingleThreadExecutorService( this, PwmApplication.class );

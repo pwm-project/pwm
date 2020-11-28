@@ -23,24 +23,25 @@ package password.pwm.config;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.macro.MacroRequest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public enum PwmSettingCategory
 {
-
     TEMPLATES( null ),
     NOTES( null ),
 
@@ -193,18 +194,24 @@ public enum PwmSettingCategory
 
     INTERNAL( SETTINGS ),;
 
+    private static final Comparator<PwmSettingCategory> MENU_LOCATION_COMPARATOR = Comparator.comparing(
+            ( pwmSettingCategory ) -> pwmSettingCategory.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ) );
 
-    private static List<PwmSettingCategory> cachedSortedSettings;
+    private static final Supplier<List<PwmSettingCategory>> SORTED_VALUES = new LazySupplier<>( () -> Collections.unmodifiableList( Arrays.stream( values() )
+            .sorted( MENU_LOCATION_COMPARATOR )
+            .collect( Collectors.toList() ) ) );
 
     private final PwmSettingCategory parent;
 
-    private final Supplier<Optional<PwmSetting>> profileSetting = new LazySupplier<>( () -> XmlReader.readProfileSettingFromXml( this, true ) );
-    private final Supplier<Integer> level = new LazySupplier<>( () -> XmlReader.readLevel( this ) );
-    private final Supplier<Boolean> hidden = new LazySupplier<>( () -> XmlReader.readHidden( this ) );
-    private final Supplier<Boolean> isTopLevelProfile = new LazySupplier<>( () -> XmlReader.readIsTopLevelProfile( this ) );
-    private final Supplier<String> defaultLocaleLabel = new LazySupplier<>( () -> XmlReader.readLabel( this, PwmConstants.DEFAULT_LOCALE ) );
-    private final Supplier<String> defaultLocaleDescription = new LazySupplier<>( () -> XmlReader.readDescription( this, PwmConstants.DEFAULT_LOCALE ) );
-
+    private final transient Supplier<Optional<PwmSetting>> profileSetting = new LazySupplier<>( () -> DataReader.readProfileSettingFromXml( this, true ) );
+    private final transient Supplier<Integer> level = new LazySupplier<>( () -> DataReader.readLevel( this ) );
+    private final transient Supplier<Boolean> hidden = new LazySupplier<>( () -> DataReader.readHidden( this ) );
+    private final transient Supplier<Boolean> isTopLevelProfile = new LazySupplier<>( () -> DataReader.readIsTopLevelProfile( this ) );
+    private final transient Supplier<String> defaultLocaleLabel = new LazySupplier<>( () -> DataReader.readLabel( this, PwmConstants.DEFAULT_LOCALE ) );
+    private final transient Supplier<String> defaultLocaleDescription = new LazySupplier<>( () -> DataReader.readDescription( this, PwmConstants.DEFAULT_LOCALE ) );
+    private final transient Supplier<PwmSettingScope> scope = new LazySupplier<>( () -> DataReader.readScope( this ) );
+    private final transient Supplier<Set<PwmSettingCategory>> children = new LazySupplier<>( () -> DataReader.readChildren( this ) );
+    private final transient Supplier<Set<PwmSetting>> settings = new LazySupplier<>( () -> DataReader.readSettings( this ) );
 
     PwmSettingCategory( final PwmSettingCategory parent )
     {
@@ -243,7 +250,7 @@ public enum PwmSettingCategory
             return defaultLocaleLabel.get();
         }
 
-        return XmlReader.readLabel( this, locale );
+        return DataReader.readLabel( this, locale );
     }
 
     public String getDescription( final Locale locale )
@@ -253,14 +260,13 @@ public enum PwmSettingCategory
             return defaultLocaleDescription.get();
         }
 
-        return XmlReader.readDescription( this, locale );
+        return DataReader.readDescription( this, locale );
     }
 
     public int getLevel( )
     {
         return level.get();
     }
-
 
     public boolean isHidden( )
     {
@@ -272,42 +278,24 @@ public enum PwmSettingCategory
         return getParent() == null;
     }
 
-    public Collection<PwmSettingCategory> getParents( )
+    public PwmSettingScope getScope()
     {
-        final ArrayList<PwmSettingCategory> returnObj = new ArrayList<>();
-        PwmSettingCategory currentCategory = this.getParent();
-        while ( currentCategory != null )
-        {
-            returnObj.add( 0, currentCategory );
-            currentCategory = currentCategory.getParent();
-        }
-        return returnObj;
+        return scope.get();
     }
 
-    public Collection<PwmSettingCategory> getChildCategories( )
+    public boolean hasChildren()
     {
-        final ArrayList<PwmSettingCategory> returnObj = new ArrayList<>();
-        for ( final PwmSettingCategory category : values() )
-        {
-            if ( this == category.getParent() )
-            {
-                returnObj.add( category );
-            }
-        }
-        return returnObj;
+        return !getChildren().isEmpty();
     }
 
-    public List<PwmSetting> getSettings( )
+    public Set<PwmSettingCategory> getChildren( )
     {
-        final List<password.pwm.config.PwmSetting> returnList = new ArrayList<>();
-        for ( final password.pwm.config.PwmSetting setting : password.pwm.config.PwmSetting.values() )
-        {
-            if ( setting.getCategory() == this )
-            {
-                returnList.add( setting );
-            }
-        }
-        return Collections.unmodifiableList( returnList );
+        return children.get();
+    }
+
+    public Set<PwmSetting> getSettings( )
+    {
+        return settings.get();
     }
 
     public String toMenuLocationDebug(
@@ -355,72 +343,51 @@ public enum PwmSettingCategory
         return sb.toString();
     }
 
-    public static List<PwmSettingCategory> sortedValues( final Locale locale )
+    public static List<PwmSettingCategory> sortedValues( )
     {
-        if ( cachedSortedSettings == null )
-        {
-            final List<PwmSettingCategory> tempList = new ArrayList<>( Arrays.asList( PwmSettingCategory.values() ) );
-            tempList.sort( menuLocationComparator( locale ) );
-            cachedSortedSettings = Collections.unmodifiableList( tempList );
-        }
-        return cachedSortedSettings;
+        return SORTED_VALUES.get();
     }
 
-    private static Comparator<PwmSettingCategory> menuLocationComparator( final Locale locale )
+    public static List<PwmSettingCategory> valuesForReferenceDoc()
     {
-        return ( o1, o2 ) ->
-        {
-            final String selfValue = o1.toMenuLocationDebug( null, locale );
-            final String otherValue = o2.toMenuLocationDebug( null, locale );
-            return selfValue.compareTo( otherValue );
-        };
-    }
+        final List<PwmSettingCategory> values = sortedValues().stream()
+                .filter( ( category ) -> !category.isHidden() )
+                .filter( ( category ) -> !category.getSettings().isEmpty() )
+                .collect( Collectors.toList( ) );
 
-    public static List<PwmSettingCategory> valuesForReferenceDoc( final Locale locale )
-    {
-        final List<PwmSettingCategory> values = new ArrayList<>( sortedValues( locale ) );
-        for ( final Iterator<PwmSettingCategory> iterator = values.iterator(); iterator.hasNext(); )
-        {
-            final PwmSettingCategory category = iterator.next();
-            if ( category.isHidden() )
-            {
-                iterator.remove();
-            }
-            else if ( category.getSettings().isEmpty() )
-            {
-                iterator.remove();
-            }
-        }
         return Collections.unmodifiableList( values );
     }
 
-    public static Collection<PwmSettingCategory> associatedProfileCategories( final PwmSettingCategory inputCategory )
+    public static List<PwmSettingCategory> associatedProfileCategories( final PwmSettingCategory inputCategory )
     {
-        final Collection<PwmSettingCategory> returnValues = new ArrayList<>();
-        if ( inputCategory != null && inputCategory.hasProfiles() )
+        if ( inputCategory == null || !inputCategory.hasProfiles() )
         {
-            PwmSettingCategory topLevelCategory = inputCategory;
-            while ( !topLevelCategory.isTopLevelProfile() )
-            {
-                topLevelCategory = topLevelCategory.getParent();
-            }
-            returnValues.add( topLevelCategory );
-            returnValues.addAll( topLevelCategory.getChildCategories() );
+            return Collections.emptyList();
         }
 
-        return Collections.unmodifiableCollection( returnValues );
+        final List<PwmSettingCategory> returnValues = new ArrayList<>();
+
+        PwmSettingCategory topLevelCategory = inputCategory;
+        while ( !topLevelCategory.isTopLevelProfile() )
+        {
+            topLevelCategory = topLevelCategory.getParent();
+        }
+        returnValues.add( topLevelCategory );
+        returnValues.addAll( topLevelCategory.getChildren() );
+
+        return Collections.unmodifiableList( returnValues );
     }
 
     public static Optional<PwmSettingCategory> forKey( final String key )
     {
-        return Arrays.stream( values() )
+        return sortedValues().stream()
                 .filter( loopValue -> loopValue.getKey().equals( key ) )
                 .findFirst();
     }
 
     public static Optional<PwmSettingCategory> forProfileSetting( final PwmSetting setting )
     {
-        for ( final PwmSettingCategory loopCategory : PwmSettingCategory.values() )
+        for ( final PwmSettingCategory loopCategory : sortedValues() )
         {
             if ( loopCategory.hasProfiles() )
             {
@@ -435,9 +402,8 @@ public enum PwmSettingCategory
         return Optional.empty();
     }
 
-    private static class XmlReader
+    private static class DataReader
     {
-
         private static Optional<PwmSetting> readProfileSettingFromXml( final PwmSettingCategory category, final boolean nested )
         {
             PwmSettingCategory nextCategory = category;
@@ -469,29 +435,41 @@ public enum PwmSettingCategory
         private static int readLevel( final PwmSettingCategory category )
         {
             final XmlElement settingElement = PwmSettingXml.readCategoryXml( category );
-            final String levelAttribute = settingElement.getAttributeValue( "level" );
+            final String levelAttribute = settingElement.getAttributeValue( PwmSettingXml.XML_ELEMENT_LEVEL );
             return levelAttribute != null ? Integer.parseInt( levelAttribute ) : 0;
+        }
+
+        private static PwmSettingScope readScope( final PwmSettingCategory category )
+        {
+            final String attributeValue = readAttributeFromCategoryOrParent( category, PwmSettingXml.XML_ELEMENT_SCOPE );
+            return JavaHelper.readEnumFromString( PwmSettingScope.class, attributeValue ).orElseThrow( () -> new IllegalStateException(
+                    "unable to parse value for PwmSettingCategory '" + category + "' scope attribute" ) );
         }
 
         private static boolean readHidden( final PwmSettingCategory category )
         {
-            final XmlElement settingElement = PwmSettingXml.readCategoryXml( category );
-            final String hiddenElement = settingElement.getAttributeValue( "hidden" );
-            if ( hiddenElement != null && "true".equalsIgnoreCase( hiddenElement ) )
+            final String attributeValue = readAttributeFromCategoryOrParent( category, PwmSettingXml.XML_ELEMENT_HIDDEN );
+            return "true".equalsIgnoreCase( attributeValue );
+        }
+
+        private static String readAttributeFromCategoryOrParent(
+                final PwmSettingCategory category,
+                final String attribute
+        )
+        {
+            PwmSettingCategory nextCategory = category;
+            while ( nextCategory != null )
             {
-                return true;
-            }
-            else
-            {
-                for ( final PwmSettingCategory parentCategory : category.getParents() )
+                final XmlElement settingElement = PwmSettingXml.readCategoryXml( category );
+                final String attributeValue = settingElement.getAttributeValue( attribute );
+                if ( !StringUtil.isEmpty( attributeValue ) )
                 {
-                    if ( parentCategory.isHidden() )
-                    {
-                        return true;
-                    }
+                    return attributeValue;
                 }
+                nextCategory = nextCategory.getParent();
             }
-            return false;
+            throw new IllegalStateException( "can't read attribute '"
+                    + attribute + "' from category '" + category + "' or ancestor." );
         }
 
         private static boolean readIsTopLevelProfile( final PwmSettingCategory category )
@@ -514,6 +492,22 @@ public enum PwmSettingCategory
             final String storedText = LocaleHelper.getLocalizedMessage( locale, key, null, password.pwm.i18n.PwmSetting.class );
             final MacroRequest macroRequest = MacroRequest.forStatic();
             return macroRequest.expandMacros( storedText );
+        }
+
+        public static Set<PwmSettingCategory> readChildren( final PwmSettingCategory category )
+        {
+            final Set<PwmSettingCategory> categories = Arrays.stream( PwmSettingCategory.values() )
+                    .filter( ( loopCategory ) -> loopCategory.getParent() == category )
+                    .collect( Collectors.toSet() );
+            return Collections.unmodifiableSet( JavaHelper.copiedEnumSet( categories, PwmSettingCategory.class ) );
+        }
+
+        public static Set<PwmSetting> readSettings( final PwmSettingCategory category )
+        {
+            final Set<PwmSetting> settings = Arrays.stream( PwmSetting.values() )
+                    .filter( ( setting ) -> setting.getCategory() == category )
+                    .collect( Collectors.toSet() );
+            return Collections.unmodifiableSet( JavaHelper.copiedEnumSet( settings, PwmSetting.class ) );
         }
     }
 }

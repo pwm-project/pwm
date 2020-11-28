@@ -682,7 +682,7 @@ public class JavaHelper
 
     public static <E extends Enum<E>> EnumSet<E> copiedEnumSet( final Collection<E> source, final Class<E> classOfT )
     {
-        return source == null || source.isEmpty()
+        return JavaHelper.isEmpty( source )
                 ? EnumSet.noneOf( classOfT )
                 : EnumSet.copyOf( source );
     }

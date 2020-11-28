@@ -426,7 +426,7 @@ public abstract class StoredConfigurationUtil
             }
         };
 
-        return Collections.unmodifiableSet( Stream.of( PwmSetting.values() )
+        return Collections.unmodifiableSet( PwmSetting.sortedValues().stream()
                 .parallel()
                 .flatMap( function )
                 .collect( Collectors.collectingAndThen( Collectors.toSet(), Collections::unmodifiableSet ) ) );

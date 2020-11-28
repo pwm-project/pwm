@@ -26,9 +26,9 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
@@ -51,6 +51,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -149,7 +150,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
             }
         }
 
-        Collections.sort( certificateDebugDataItems );
+        certificateDebugDataItems.sort( CertificateDebugDataItem.getExpirationComparator() );
         return Collections.unmodifiableList( certificateDebugDataItems );
     }
 
@@ -201,7 +202,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
 
     @Value
     @Builder
-    public static class CertificateDebugDataItem implements Serializable, Comparable<CertificateDebugDataItem>
+    public static class CertificateDebugDataItem implements Serializable
     {
         private String menuLocation;
         private String subject;
@@ -211,15 +212,14 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
         private Instant issueDate;
         private String detail;
 
-        @Override
-        public int compareTo( final CertificateDebugDataItem o )
-        {
-            if ( this == o || this.equals( o ) )
-            {
-                return 0;
-            }
+        private static final Comparator<CertificateDebugDataItem> EXPIRATION_COMPARATOR = Comparator.comparing(
+                CertificateDebugDataItem::getExpirationDate,
+                Comparator.nullsLast( Comparator.naturalOrder() )
+        );
 
-            return expirationDate.compareTo( o.getExpirationDate() );
+        public static Comparator<CertificateDebugDataItem> getExpirationComparator()
+        {
+            return EXPIRATION_COMPARATOR;
         }
     }
 }

@@ -64,11 +64,13 @@ public class PwmSettingXml
     static final String XML_ELEMENT_VALUE = "value";
     static final String XML_ELEMENT_OPTION = "option";
     static final String XML_ELEMENT_OPTIONS = "options";
+    static final String XML_ELEMENT_SCOPE = "scope";
+
 
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSettingXml.class );
 
-    private static final LazySoftReference<XmlDocument> XML_DOC_CACHE = new LazySoftReference<>( () -> readXml() );
+    private static final LazySoftReference<XmlDocument> XML_DOC_CACHE = new LazySoftReference<>( PwmSettingXml::readXml );
     private static final AtomicInteger LOAD_COUNTER = new AtomicInteger( 0 );
 
     private static XmlDocument readXml( )

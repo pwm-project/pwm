@@ -286,7 +286,7 @@ public class ConfigGuideUtils
                     pwmRequest.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( new Configuration( storedConfiguration ) ) );
 
             final String adminDN = form.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_USER );
-            final UserIdentity adminIdentity = new UserIdentity( adminDN, PwmConstants.PROFILE_ID_DEFAULT );
+            final UserIdentity adminIdentity = UserIdentity.createUserIdentity( adminDN, PwmConstants.PROFILE_ID_DEFAULT );
 
             final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
             final Collection<UserIdentity> results = userMatchViewerFunction.discoverMatchingUsers(

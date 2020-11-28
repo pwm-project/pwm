@@ -94,6 +94,9 @@ public abstract class PwmConstants
     public static final String PROFILE_ID_ALL = "all";
     public static final String PROFILE_ID_DEFAULT = "default";
 
+    public static final String DOMAIN_ID_DEFAULT = "default";
+    public static final String DOMAIN_ID_PLACEHOLDER = "default";
+
     public static final String TOKEN_KEY_PWD_CHG_DATE = "_lastPwdChange";
 
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle( "httpHeaderAuthorizationBasic" );

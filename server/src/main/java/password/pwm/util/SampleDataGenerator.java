@@ -77,7 +77,7 @@ public class SampleDataGenerator
         );
         responseInfoBean.setTimestamp( Instant.ofEpochSecond( 941246275 ) );
 
-        final UserIdentity userIdentity = new UserIdentity( "cn=FLast,ou=test,o=org", "profile1" );
+        final UserIdentity userIdentity = UserIdentity.createUserIdentity( "cn=FLast,ou=test,o=org", "profile1" );
 
         return UserInfoBean.builder()
                 .userIdentity( userIdentity )
@@ -128,7 +128,7 @@ public class SampleDataGenerator
             );
             responseInfoBean.setTimestamp( Instant.ofEpochSecond( 941244474 ) );
 
-            final UserIdentity userIdentity = new UserIdentity( "cn=TUser,ou=test,o=org", "profile1" );
+            final UserIdentity userIdentity = UserIdentity.createUserIdentity( "cn=TUser,ou=test,o=org", "profile1" );
 
             return UserInfoBean.builder()
                     .userIdentity( userIdentity )

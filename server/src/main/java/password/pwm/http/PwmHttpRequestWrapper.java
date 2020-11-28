@@ -32,7 +32,6 @@ import password.pwm.util.Validator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -52,8 +51,6 @@ import java.util.Set;
 
 public class PwmHttpRequestWrapper
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmHttpRequestWrapper.class );
-
     private final HttpServletRequest httpServletRequest;
     private final Configuration configuration;
 
@@ -306,7 +303,7 @@ public class PwmHttpRequestWrapper
             }
         }
 
-        return resultSet;
+        return Collections.unmodifiableList( resultSet );
     }
 
     public String readHeaderValueAsString( final HttpHeader headerName )
@@ -411,9 +408,7 @@ public class PwmHttpRequestWrapper
 
     private static String decodeStringToDefaultCharSet( final String input )
     {
-        String decodedValue = input;
-        decodedValue = new String( input.getBytes( StandardCharsets.ISO_8859_1 ), PwmConstants.DEFAULT_CHARSET );
-        return decodedValue;
+        return new String( input.getBytes( StandardCharsets.ISO_8859_1 ), PwmConstants.DEFAULT_CHARSET );
     }
 
     public HttpMethod getMethod( )

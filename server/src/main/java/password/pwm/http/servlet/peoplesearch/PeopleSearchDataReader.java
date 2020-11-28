@@ -431,7 +431,7 @@ class PeopleSearchDataReader
         final boolean checkUserDNValues = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN ) );
         for ( final String userDN : ldapValues )
         {
-            final UserIdentity loopIdentity = new UserIdentity( userDN, userIdentity.getLdapProfileID() );
+            final UserIdentity loopIdentity = UserIdentity.createUserIdentity( userDN, userIdentity.getLdapProfileID() );
             if ( returnObj.size() < maxValues )
             {
                 if ( checkUserDNValues )

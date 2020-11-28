@@ -27,6 +27,7 @@ import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
+import java.util.Comparator;
 
 @Value
 @Builder
@@ -41,6 +42,19 @@ public class UserPermission implements Serializable, Comparable<UserPermission>
     private String ldapProfileID;
     private String ldapQuery;
     private String ldapBase;
+
+    private static final Comparator<UserPermission> COMPARATOR = Comparator.comparing(
+            UserPermission::getType,
+            Comparator.nullsLast( Comparator.naturalOrder() ) )
+            .thenComparing(
+                    UserPermission::getLdapProfileID,
+                    Comparator.nullsLast( Comparator.naturalOrder() ) )
+            .thenComparing(
+                    UserPermission::getLdapBase,
+                    Comparator.nullsLast( Comparator.naturalOrder() ) )
+            .thenComparing(
+                    UserPermission::getLdapQuery,
+                    Comparator.nullsLast( Comparator.naturalOrder() ) );
 
     public UserPermissionType getType( )
     {
@@ -60,11 +74,6 @@ public class UserPermission implements Serializable, Comparable<UserPermission>
     @Override
     public int compareTo( @NotNull final UserPermission o )
     {
-        return makeComparisonString().compareTo( o.makeComparisonString() );
-    }
-
-    private String makeComparisonString()
-    {
-        return getType().ordinal() + "-" + getLdapProfileID() + "-" + getLdapBase() + "-" + getLdapQuery();
+        return COMPARATOR.compare( this, o );
     }
 }

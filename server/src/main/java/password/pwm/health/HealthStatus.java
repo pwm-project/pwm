@@ -22,24 +22,21 @@ package password.pwm.health;
 
 import password.pwm.i18n.Health;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Locale;
+import java.util.Optional;
 
 public enum HealthStatus
 {
-    WARN( 4 ),
-    CAUTION( 3 ),
-    CONFIG( 2 ),
-    GOOD( 1 ),
-    INFO( 0 ),
-    DEBUG( -1 ),;
-
-    private int severityLevel;
-
-    HealthStatus( final int severityLevel )
-    {
-        this.severityLevel = severityLevel;
-    }
+    WARN,
+    CAUTION,
+    CONFIG,
+    GOOD,
+    INFO,
+    DEBUG,;
 
     public String getKey( )
     {
@@ -51,8 +48,14 @@ public enum HealthStatus
         return LocaleHelper.getLocalizedMessage( locale, this.getKey(), config, Health.class );
     }
 
-    public int getSeverityLevel( )
+    public static Optional<HealthStatus> mostSevere( final Collection<HealthStatus> healthStatuses )
     {
-        return severityLevel;
+        // enumset will sort in natural order, with most severe first.
+        final EnumSet<HealthStatus> sortedSet = JavaHelper.copiedEnumSet( healthStatuses, HealthStatus.class );
+        if ( sortedSet.isEmpty() )
+        {
+            return Optional.empty();
+        }
+        return Optional.of( sortedSet.iterator().next() );
     }
 }

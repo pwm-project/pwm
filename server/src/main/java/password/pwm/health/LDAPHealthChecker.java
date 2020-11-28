@@ -289,7 +289,7 @@ public class LDAPHealthChecker implements HealthChecker
                 else
                 {
                     final Locale locale = PwmConstants.DEFAULT_LOCALE;
-                    final UserIdentity userIdentity = new UserIdentity( testUserDN, ldapProfile.getIdentifier() );
+                    final UserIdentity userIdentity = UserIdentity.createUserIdentity( testUserDN, ldapProfile.getIdentifier() );
 
                     final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
                             pwmApplication, null, userIdentity, theUser, locale );
@@ -365,7 +365,7 @@ public class LDAPHealthChecker implements HealthChecker
 
             try
             {
-                final UserIdentity userIdentity = new UserIdentity( theUser.getEntryDN(), ldapProfile.getIdentifier() );
+                final UserIdentity userIdentity = UserIdentity.createUserIdentity( theUser.getEntryDN(), ldapProfile.getIdentifier() );
                 final UserInfo userInfo = UserInfoFactory.newUserInfo(
                         pwmApplication,
                         SessionLabel.HEALTH_SESSION_LABEL,
@@ -933,7 +933,7 @@ public class LDAPHealthChecker implements HealthChecker
                     }
                 }
 
-                final UserIdentity newUserTemplateIdentity = new UserIdentity( policyUserStr, ldapProfile.getIdentifier() );
+                final UserIdentity newUserTemplateIdentity = UserIdentity.createUserIdentity( policyUserStr, ldapProfile.getIdentifier() );
 
                 final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( newUserTemplateIdentity );
 

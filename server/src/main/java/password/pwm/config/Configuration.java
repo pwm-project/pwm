@@ -104,7 +104,7 @@ public class Configuration
     public Configuration( final StoredConfiguration storedConfiguration )
     {
         this.storedConfiguration = storedConfiguration;
-        this.settingReader = new SettingReader( storedConfiguration, null );
+        this.settingReader = new SettingReader( storedConfiguration, null, PwmConstants.DOMAIN_ID_PLACEHOLDER );
     }
 
     public static void deprecatedSettingException( final PwmSetting pwmSetting, final String profile, final MessageSendMethod value )

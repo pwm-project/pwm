@@ -20,6 +20,7 @@
 
 package password.pwm.util;
 
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -38,9 +39,9 @@ import java.io.Serializable;
  *
  * @author Jason D. Rivard
  */
+@Value
 public class BasicAuthInfo implements Serializable
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( BasicAuthInfo.class );
 
     private final String username;
@@ -137,55 +138,6 @@ public class BasicAuthInfo implements Serializable
         sb.insert( 0, PwmConstants.HTTP_BASIC_AUTH_PREFIX + " " );
 
         return sb.toString();
-    }
-
-    public BasicAuthInfo(
-            final String username,
-            final PasswordData password
-    )
-    {
-        this.username = username;
-        this.password = password;
-    }
-
-    public PasswordData getPassword( )
-    {
-        return password;
-    }
-
-    public String getUsername( )
-    {
-        return username;
-    }
-
-    public boolean equals( final Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-        if ( !( o instanceof BasicAuthInfo ) )
-        {
-            return false;
-        }
-
-        final BasicAuthInfo basicAuthInfo = ( BasicAuthInfo ) o;
-
-        return !( password != null
-                ? !password.equals( basicAuthInfo.password )
-                : basicAuthInfo.password != null )
-                &&
-                !( username != null
-                        ? !username.equals( basicAuthInfo.username )
-                        : basicAuthInfo.username != null );
-    }
-
-    public int hashCode( )
-    {
-        int result;
-        result = ( username != null ? username.hashCode() : 0 );
-        result = 29 * result + ( password != null ? password.hashCode() : 0 );
-        return result;
     }
 }
 
