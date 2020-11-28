@@ -24,11 +24,12 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
 
+import java.io.Serializable;
 import java.util.Locale;
 
 @Value
 @Builder
-public class NavTreeSettings
+public class NavTreeSettings implements Serializable
 {
     private final boolean modifiedSettingsOnly;
 

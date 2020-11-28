@@ -734,19 +734,23 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             throws IOException, PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
+        final ConfigManagerBean configManagerBean = getBean( pwmRequest );
 
-        final Map<String, String> inputParameters = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
+        final Map<String, Object> inputParameters = pwmRequest.readBodyAsJsonMap( PwmHttpRequestWrapper.Flag.BypassValidation );
+        final boolean modifiedSettingsOnly = ( boolean ) inputParameters.get( "modifiedSettingsOnly" );
+        final int level = ( int ) ( ( double ) inputParameters.get( "level" ) );
+        final String filterText = ( String ) inputParameters.get( "text" );
 
         final NavTreeSettings navTreeSettings = NavTreeSettings.builder()
-                .modifiedSettingsOnly( Boolean.parseBoolean( inputParameters.get( "modifiedSettingsOnly" ) ) )
-                .level( JavaHelper.silentParseInt( inputParameters.get( "level" ), 0 ) )
-                .filterText( inputParameters.get( "text" ) )
+                .modifiedSettingsOnly( modifiedSettingsOnly )
+                .level( level )
+                .filterText( filterText )
                 .locale( pwmRequest.getLocale() )
                 .build();
 
-        final StoredConfiguration storedConfiguration = getBean( pwmRequest ).getStoredConfiguration();
+        final StoredConfiguration storedConfiguration = configManagerBean.getStoredConfiguration();
 
-        final List<NavTreeItem> navigationData = NavTreeDataMaker.makeNavTreeData(
+        final List<NavTreeItem> navigationData = NavTreeDataMaker.makeNavTreeItems(
                 pwmRequest.getPwmApplication(),
                 storedConfiguration,
                 navTreeSettings );

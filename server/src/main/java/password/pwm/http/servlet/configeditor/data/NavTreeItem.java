@@ -24,7 +24,7 @@ import lombok.Builder;
 import lombok.Value;
 
 import java.io.Serializable;
-import java.util.Set;
+import java.util.List;
 
 @Value
 @Builder( toBuilder = true )
@@ -34,11 +34,11 @@ public class NavTreeItem implements Serializable
     private final String name;
     private final String parent;
     private final String category;
+    private final String profile;
     private final NavItemType type;
     private final String profileSetting;
     private final String menuLocation;
-    private final Set<String> keys;
-    private final String profile;
+    private final List<String> keys;
 
     public enum NavItemType
     {
