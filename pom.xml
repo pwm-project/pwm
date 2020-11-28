@@ -32,8 +32,8 @@
 
         <pwm.minimum.maven.version>3.5</pwm.minimum.maven.version>
         <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <maven.javadoc.skip>true</maven.javadoc.skip>
 
         <!-- profile managed values -->
@@ -319,7 +319,7 @@
                     <dependency>
                         <groupId>com.github.spotbugs</groupId>
                         <artifactId>spotbugs</artifactId>
-                        <version>4.1.4</version>
+                        <version>4.2.0</version>
                     </dependency>
                 </dependencies>
                 <configuration>
@@ -389,7 +389,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.1.4</version>
+            <version>4.2.0</version>
             <scope>provided</scope>
         </dependency>
 
@@ -403,7 +403,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>3.6.0</version>
+            <version>3.6.28</version>
             <scope>test</scope>
         </dependency>
         <dependency>
