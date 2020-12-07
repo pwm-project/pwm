@@ -36,9 +36,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
-import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.UserInfo;
@@ -231,7 +230,10 @@ public class AuditService implements PwmService
 
         if ( lastError != null )
         {
-            healthRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Audit, lastError.toDebugStr() ) );
+            healthRecords.add( HealthRecord.forMessage(
+                    HealthMessage.ServiceClosed,
+                    this.getClass().getSimpleName(),
+                    lastError.toDebugStr() ) );
         }
 
         return Collections.unmodifiableList( healthRecords );

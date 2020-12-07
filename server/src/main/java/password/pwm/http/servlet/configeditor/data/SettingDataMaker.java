@@ -20,11 +20,13 @@
 
 package password.pwm.http.servlet.configeditor.data;
 
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
@@ -42,6 +44,18 @@ import java.util.stream.Collectors;
 public class SettingDataMaker
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SettingDataMaker.class );
+
+    public static void initializeCache()
+    {
+            try
+            {
+                SettingDataMaker.generateSettingData( StoredConfigurationFactory.newConfig(), null, PwmConstants.DEFAULT_LOCALE );
+            }
+            catch ( final Exception e )
+            {
+                LOGGER.debug( () -> "error initializing generateSettingData: " + e.getMessage() );
+            }
+    }
 
     public static SettingData generateSettingData(
             final StoredConfiguration storedConfiguration,

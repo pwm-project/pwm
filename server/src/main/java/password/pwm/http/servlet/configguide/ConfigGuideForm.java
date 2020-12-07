@@ -53,6 +53,8 @@ public class ConfigGuideForm
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigGuideForm.class );
 
+    static final String LDAP_PROFILE_NAME = "default";
+
     public static Map<ConfigGuideFormField, String> defaultForm( )
     {
         final Map<ConfigGuideFormField, String> defaultLdapForm = new EnumMap<>( ConfigGuideFormField.class );
@@ -85,8 +87,6 @@ public class ConfigGuideForm
             modifier.writeSetting( pwmSetting, null, new StringValue( template.toString() ), null );
         }
     }
-
-    private static final String LDAP_PROFILE_NAME = "default";
 
     public static StoredConfiguration generateStoredConfig(
             final ConfigGuideBean configGuideBean

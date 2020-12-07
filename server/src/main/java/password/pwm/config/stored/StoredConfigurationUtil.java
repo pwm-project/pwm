@@ -27,14 +27,17 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplateSet;
+import password.pwm.config.value.LocalizedStringArrayValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.StoredValue;
+import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -52,7 +55,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -366,44 +368,18 @@ public abstract class StoredConfigurationUtil
         LOGGER.debug( () -> "initialized new random security key" );
     }
 
-
     public static Map<String, String> makeDebugMap(
             final StoredConfiguration storedConfiguration,
             final Collection<StoredConfigItemKey> interestedItems,
             final Locale locale
     )
     {
-        final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSet();
-
-        final Map<String, String> output = new TreeMap<>();
-
-        for ( final StoredConfigItemKey key : interestedItems )
-        {
-            if ( !StoredConfigItemKey.RecordType.PROPERTY.equals( key.getRecordType() ) )
-            {
-                final Optional<StoredValue> storedValue = storedConfiguration.readStoredValue( key );
-
-                String debugOutput = null;
-                if ( storedValue.isPresent() )
-                {
-                    debugOutput = storedValue.get().toDebugString( locale );
-                }
-                else
-                {
-                    if ( StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() ) )
-                    {
-                        debugOutput = key.toPwmSetting().getDefaultValue( templateSet ).toDebugString( locale );
-                    }
-                }
-
-                if ( debugOutput != null )
-                {
-                    output.put( key.getLabel( locale ), debugOutput );
-                }
-            }
-        }
-
-        return Collections.unmodifiableMap( output );
+        return interestedItems.stream()
+                .filter( ( key ) -> !key.isRecordType( StoredConfigItemKey.RecordType.PROPERTY ) )
+                .collect( Collectors.toUnmodifiableMap(
+                        ( key ) -> key.getLabel( locale ),
+                        ( key ) -> StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key ).toDebugString( locale )
+                ) );
     }
 
     public static Set<StoredConfigItemKey> allPossibleSettingKeysForConfiguration(
@@ -426,10 +402,10 @@ public abstract class StoredConfigurationUtil
             }
         };
 
-        return Collections.unmodifiableSet( PwmSetting.sortedValues().stream()
+        return PwmSetting.sortedValues().stream()
                 .parallel()
                 .flatMap( function )
-                .collect( Collectors.collectingAndThen( Collectors.toSet(), Collections::unmodifiableSet ) ) );
+                .collect( Collectors.toUnmodifiableSet() );
     }
 
     public static Set<StoredConfigItemKey> changedValues (
@@ -455,5 +431,40 @@ public abstract class StoredConfigurationUtil
         LOGGER.trace( () -> "generated changeLog items via compare", () -> TimeDuration.fromCurrent( startTime ) );
 
         return Collections.unmodifiableSet( deltaReferences );
+    }
+
+    public static StoredValue getValueOrDefault(
+            final StoredConfiguration storedConfiguration,
+            final StoredConfigItemKey key
+    )
+    {
+        final Optional<StoredValue> storedValue = storedConfiguration.readStoredValue( key );
+
+        if ( storedValue.isPresent() )
+        {
+            return storedValue.get();
+        }
+
+        switch ( key.getRecordType() )
+        {
+            case SETTING:
+            {
+                final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSet();
+                return key.toPwmSetting().getDefaultValue( templateSet );
+            }
+
+            case LOCALE_BUNDLE:
+            {
+                return new LocalizedStringArrayValue( Collections.emptyMap() );
+            }
+
+            case PROPERTY:
+                return new StringValue( "" );
+
+            default:
+                JavaHelper.unhandledSwitchStatement( key );
+        }
+
+        throw new IllegalStateException();
     }
 }

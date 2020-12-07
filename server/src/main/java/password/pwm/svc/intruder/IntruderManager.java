@@ -34,9 +34,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
-import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.UserInfo;
@@ -52,9 +51,9 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.DataStore;
 import password.pwm.util.DataStoreFactory;
 import password.pwm.util.PwmScheduler;
-import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -285,7 +284,10 @@ public class IntruderManager implements PwmService
     {
         if ( startupError != null && status != STATUS.OPEN )
         {
-            return Collections.singletonList( new HealthRecord( HealthStatus.WARN, HealthTopic.Application, "unable to start: " + startupError.toDebugStr() ) );
+            return Collections.singletonList( HealthRecord.forMessage(
+                    HealthMessage.ServiceClosed,
+                    this.getClass().getSimpleName(),
+                    startupError.toDebugStr() ) );
         }
         return Collections.emptyList();
     }

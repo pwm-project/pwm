@@ -23,7 +23,6 @@ package password.pwm.util.db;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
-import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -31,9 +30,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
-import password.pwm.health.HealthTopic;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -233,7 +231,10 @@ public class DatabaseService implements PwmService
 
         if ( !initialized )
         {
-            returnRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Database, makeUninitializedError().getDetailedErrorMsg() ) );
+            returnRecords.add( HealthRecord.forMessage(
+                    HealthMessage.ServiceClosed,
+                    this.getClass().getSimpleName(),
+                    makeUninitializedError().getDetailedErrorMsg() ) );
             return returnRecords;
         }
 
@@ -246,26 +247,35 @@ public class DatabaseService implements PwmService
         }
         catch ( final PwmException e )
         {
-            returnRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Database, "Error writing to database: " + e.getErrorInformation().toDebugStr() ) );
+            returnRecords.add( HealthRecord.forMessage(
+                    HealthMessage.ServiceClosed,
+                    this.getClass().getSimpleName(),
+                    "error writing to database: " + e.getMessage() ) );
             return returnRecords;
         }
 
         if ( lastError != null )
         {
             final TimeDuration errorAge = TimeDuration.fromCurrent( lastError.getDate() );
+            final long cautionDurationMS = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_DB_CAUTION_DURATION_MS ) );
 
-            if ( errorAge.isShorterThan( TimeDuration.HOUR ) )
+            if ( errorAge.isShorterThan( cautionDurationMS ) )
             {
-                final String msg = "Database server was recently unavailable ("
-                        + errorAge.asLongString( PwmConstants.DEFAULT_LOCALE )
-                        + " ago at " + lastError.getDate().toString() + "): " + lastError.toDebugStr();
-                returnRecords.add( new HealthRecord( HealthStatus.CAUTION, HealthTopic.Database, msg ) );
+                final String ageString = errorAge.asLongString();
+                final String errorDate = JavaHelper.toIsoDate( lastError.getDate() );
+                final String errorMsg = lastError.toDebugStr();
+                returnRecords.add( HealthRecord.forMessage(
+                        HealthMessage.Database_RecentlyUnreachable,
+                        ageString,
+                        errorDate,
+                        errorMsg
+                ) );
             }
         }
 
         if ( returnRecords.isEmpty() )
         {
-            returnRecords.add( new HealthRecord( HealthStatus.GOOD, HealthTopic.Database, "Database connection to " + this.dbConfiguration.getConnectionString() + " okay" ) );
+            returnRecords.add( HealthRecord.forMessage( HealthMessage.Database_OK, this.dbConfiguration.getConnectionString() ) );
         }
 
         return returnRecords;

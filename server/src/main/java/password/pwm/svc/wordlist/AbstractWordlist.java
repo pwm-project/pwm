@@ -30,8 +30,6 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
-import password.pwm.health.HealthTopic;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
@@ -309,7 +307,10 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         if ( lastError != null )
         {
-            final HealthRecord healthRecord = new HealthRecord( HealthStatus.WARN, HealthTopic.Application, this.getClass().getName() + " error: " + lastError.toDebugStr() );
+            final HealthRecord healthRecord = HealthRecord.forMessage(
+                    HealthMessage.ServiceClosed,
+                    this.getClass().getSimpleName(),
+                    lastError.toDebugStr() );
             returnList.add( healthRecord );
         }
         return Collections.unmodifiableList( returnList );

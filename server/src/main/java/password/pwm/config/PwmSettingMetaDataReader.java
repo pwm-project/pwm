@@ -117,8 +117,7 @@ public class PwmSettingMetaDataReader
 
     public String getExample( final PwmSettingTemplateSet template )
     {
-        return null;
-       // return PwmSetting.TemplateSetReference.referenceForTempleSet( examples.get(), template );
+         return PwmSetting.TemplateSetReference.referenceForTempleSet( examples.get(), template );
     }
 
     public boolean isRequired( )

@@ -101,13 +101,13 @@ import java.security.KeyStore;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -277,7 +277,7 @@ public class PwmApplication
             StatisticsManager.incrementStat( this, Statistic.PWM_STARTUPS );
             LOGGER.debug( () -> "buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
-            pwmScheduler.immediateExecuteInNewThread( this::postInitTasks );
+            pwmScheduler.immediateExecuteInNewThread( this::postInitTasks, this.getClass().getSimpleName() + " postInit tasks" );
         }
     }
 
@@ -297,32 +297,12 @@ public class PwmApplication
     {
         final Instant startTime = Instant.now();
 
-        try
-        {
-            outputConfigurationToLog( this );
-        }
-        catch ( final PwmException e )
-        {
-            LOGGER.error( () -> "error outputting log to debug: " + e.getMessage() );
-        }
+        getPwmScheduler().immediateExecuteInNewThread( UserAgentUtils::initializeCache, "initialize useragent cache" );
+        getPwmScheduler().immediateExecuteInNewThread( SettingDataMaker::initializeCache, "initialize PwmSetting metadata" );
 
-        if ( this.getConfig() != null )
-        {
-            final Map<AppProperty, String> nonDefaultProperties = getConfig().readAllNonDefaultAppProperties();
-            if ( nonDefaultProperties != null && !nonDefaultProperties.isEmpty() )
-            {
-                final Map<String, String> tempMap = new LinkedHashMap<>();
-                for ( final Map.Entry<AppProperty, String> entry : nonDefaultProperties.entrySet() )
-                {
-                    tempMap.put( entry.getKey().getKey(), entry.getValue() );
-                }
-                LOGGER.trace( () -> "non-default app properties read from configuration: " + JsonUtil.serializeMap( tempMap ) );
-            }
-            else
-            {
-                LOGGER.trace( () -> "no non-default app properties in configuration" );
-            }
-        }
+        outputConfigurationToLog( this );
+
+        outputNonDefaultPropertiesToLog( this );
 
         // send system audit event
         try
@@ -379,26 +359,6 @@ public class PwmApplication
         }
 
         MBeanUtility.registerMBean( this );
-
-        try
-        {
-            UserAgentUtils.initializeCache();
-        }
-        catch ( final Exception e )
-        {
-            LOGGER.debug( () -> "error initializing UserAgentUtils: " + e.getMessage() );
-        }
-
-        try
-        {
-            final Instant itemStartTime = Instant.now();
-            SettingDataMaker.generateSettingData( this.getConfig().getStoredConfiguration(), null, PwmConstants.DEFAULT_LOCALE );
-            LOGGER.trace( () -> "completed setting data cache loading", () -> TimeDuration.fromCurrent( itemStartTime ) );
-        }
-        catch ( final Exception e )
-        {
-            LOGGER.debug( () -> "error initializing generateSettingData: " + e.getMessage() );
-        }
 
         {
             final ExecutorService executorService = PwmScheduler.makeSingleThreadExecutorService( this, PwmApplication.class );
@@ -496,29 +456,46 @@ public class PwmApplication
     }
 
     private static void outputConfigurationToLog( final PwmApplication pwmApplication )
-            throws PwmUnrecoverableException
     {
-        if ( !LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        final Instant startTime = Instant.now();
+
+        final Function<Map.Entry<String, String>, String> valueFormatter = entry ->
         {
-            return;
-        }
+            final String spacedValue = entry.getValue().replace( "\n", "\n   " );
+            return " " + entry.getKey() + "\n   " + spacedValue + "\n";
+        };
 
         final StoredConfiguration storedConfiguration = pwmApplication.getConfig().getStoredConfiguration();
         final Map<String, String> debugStrings = StoredConfigurationUtil.makeDebugMap( storedConfiguration, storedConfiguration.modifiedItems(), PwmConstants.DEFAULT_LOCALE );
-        final List<Supplier<CharSequence>> outputStrings = new ArrayList<>();
-
-        for ( final Map.Entry<String, String> entry : debugStrings.entrySet() )
-        {
-            final String spacedValue = entry.getValue().replace( "\n", "\n   " );
-            final String output = " " + entry.getKey() + "\n   " + spacedValue + "\n";
-            outputStrings.add( () -> output );
-        }
 
         LOGGER.trace( () -> "--begin current configuration output--" );
-        outputStrings.forEach( LOGGER::trace );
-        LOGGER.trace( () -> "--end current configuration output--" );
+        debugStrings.entrySet().stream()
+                .map( valueFormatter )
+                .map( s -> ( Supplier<CharSequence> ) () -> s )
+                .forEach( LOGGER::trace );
+        LOGGER.trace( () -> "--end current configuration output--", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
+    private static void outputNonDefaultPropertiesToLog( final PwmApplication pwmApplication )
+    {
+        final Instant startTime = Instant.now();
+
+        final Map<AppProperty, String> nonDefaultProperties = pwmApplication.getConfig().readAllNonDefaultAppProperties();
+        if ( !JavaHelper.isEmpty( nonDefaultProperties ) )
+        {
+            LOGGER.trace( () -> "--begin non-default app properties output--" );
+            nonDefaultProperties.entrySet().stream()
+                    .map( entry -> "AppProperty: " + entry.getKey().getKey() + " -> " + entry.getValue() )
+                    .map( s -> ( Supplier<CharSequence> ) () -> s )
+                    .forEach( LOGGER::trace );
+            LOGGER.trace( () -> "--end non-default app properties output--", () -> TimeDuration.fromCurrent( startTime ) );
+        }
+        else
+        {
+            LOGGER.trace( () -> "no non-default app properties in configuration" );
+
+        }
+    }
 
     public String getInstanceID( )
     {

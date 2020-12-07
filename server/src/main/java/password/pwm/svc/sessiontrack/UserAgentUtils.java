@@ -90,7 +90,7 @@ public class UserAgentUtils
         return null;
     }
 
-    public static void initializeCache() throws PwmUnrecoverableException
+    public static void initializeCache()
     {
         final Instant startTime = Instant.now();
         CACHED_PARSER.get();

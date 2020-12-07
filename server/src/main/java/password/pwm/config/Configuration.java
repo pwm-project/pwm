@@ -75,6 +75,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -569,12 +570,12 @@ public class Configuration
 
     public Map<AppProperty, String> readAllNonDefaultAppProperties( )
     {
-        final LinkedHashMap<AppProperty, String> nonDefaultProperties = new LinkedHashMap<>();
+        final Map<AppProperty, String> nonDefaultProperties = new EnumMap<>( AppProperty.class );
         for ( final AppProperty loopProperty : AppProperty.values() )
         {
             final String configuredValue = readAppProperty( loopProperty );
             final String defaultValue = loopProperty.getDefaultValue();
-            if ( configuredValue != null && !configuredValue.equals( defaultValue ) )
+            if ( !Objects.equals(  configuredValue, defaultValue ) )
             {
                 nonDefaultProperties.put( loopProperty, configuredValue );
             }

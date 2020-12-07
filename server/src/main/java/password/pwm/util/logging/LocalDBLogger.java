@@ -488,7 +488,7 @@ public class LocalDBLogger implements PwmService
 
         if ( status != STATUS.OPEN )
         {
-            healthRecords.add( HealthRecord.forMessage( HealthMessage.LocalDBLogger_NOTOPEN, status.toString() ) );
+            healthRecords.add( HealthRecord.forMessage( HealthMessage.LocalDBLogger_Closed, status.toString() ) );
             return healthRecords;
         }
 

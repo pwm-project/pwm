@@ -42,9 +42,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
-import password.pwm.health.HealthTopic;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
@@ -302,22 +301,24 @@ public class ConfigGuideUtils
                 final UserIdentity foundIdentity = results.iterator().next();
                 if ( foundIdentity.canonicalEquals( adminIdentity, tempApplication ) )
                 {
-                    records.add( new HealthRecord( HealthStatus.GOOD, HealthTopic.LDAP, "Admin user validated." ) );
+                    records.add( HealthRecord.forMessage( HealthMessage.LDAP_AdminUserOk ) );
                 }
             }
         }
-        catch ( final PwmException e )
-        {
-            records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Error during admin user validation: " + e.getErrorInformation().toDebugStr() ) );
-        }
         catch ( final Exception e )
         {
-            records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Error during admin user validation: " + e.getMessage() ) );
+            records.add( HealthRecord.forMessage(
+                    HealthMessage.Config_SettingIssue,
+                    PwmSetting.LDAP_PROXY_USER_DN.getLabel( pwmRequest.getLocale() ),
+                    e.getMessage() ) );
         }
 
         if ( records.isEmpty() )
         {
-            records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Admin user not found." ) );
+            records.add( HealthRecord.forMessage(
+                    HealthMessage.Config_SettingIssue,
+                    PwmSetting.LDAP_PROXY_USER_DN.getLabel( pwmRequest.getLocale() ),
+                    "User not found" ) );
         }
 
         return records;

@@ -49,8 +49,6 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.DatabaseStatusChecker;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
-import password.pwm.health.HealthTopic;
 import password.pwm.health.LDAPHealthChecker;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
@@ -606,12 +604,13 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         LOGGER.debug( pwmRequest, () -> "beginning restSmsHealthCheck" );
 
-        final List<HealthRecord> returnRecords = new ArrayList<>();
         final Configuration config = new Configuration( configManagerBean.getStoredConfiguration() );
+        final StringBuilder output = new StringBuilder();
+        output.append( "beginning SMS send process:\n" );
 
         if ( !SmsQueueManager.smsIsConfigured( config ) )
         {
-            returnRecords.add( new HealthRecord( HealthStatus.INFO, HealthTopic.SMS, "SMS not configured" ) );
+            output.append( "SMS not configured." );
         }
         else
         {
@@ -625,17 +624,16 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                         pwmRequest.getLabel(),
                         testSmsItem
                 );
-                returnRecords.add( new HealthRecord( HealthStatus.INFO, HealthTopic.SMS, "message sent" ) );
-                returnRecords.add( new HealthRecord( HealthStatus.INFO, HealthTopic.SMS, "response body: \n" + StringUtil.escapeHtml( responseBody ) ) );
+                output.append( "message sent:\n" );
+                output.append( "response body: \n" ).append( StringUtil.escapeHtml( responseBody ) );
             }
             catch ( final PwmException e )
             {
-                returnRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.SMS, "unable to send message: " + e.getMessage() ) );
+                output.append( "unable to send message: " ).append( StringUtil.escapeHtml( e.getMessage() ) );
             }
         }
 
-        final HealthData healthData = HealthRecord.asHealthDataBean( config, pwmRequest.getLocale(), returnRecords );
-        final RestResultBean restResultBean = RestResultBean.withData( healthData );
+        final RestResultBean restResultBean = RestResultBean.withData( output.toString() );
         pwmRequest.outputJsonResult( restResultBean );
         LOGGER.debug( pwmRequest, () -> "completed restSmsHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;
@@ -656,7 +654,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final Map<String, String> params = pwmRequest.readBodyAsJsonStringMap();
         final EmailItemBean testEmailItem = new EmailItemBean( params.get( "to" ), params.get( "from" ), params.get( "subject" ), params.get( "body" ), null );
 
-        final List<HealthRecord> returnRecords = new ArrayList<>();
+        final StringBuilder output = new StringBuilder();
+        output.append( "beginning EMail send process:\n" );
 
         final Configuration testConfiguration = new Configuration( configManagerBean.getStoredConfiguration() );
 
@@ -671,22 +670,20 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 try
                 {
                     EmailService.sendEmailSynchronous( emailServer.get(), testConfiguration, testEmailItem, macroRequest );
-                    returnRecords.add( new HealthRecord( HealthStatus.INFO, HealthTopic.Email, "message sent" ) );
+                   output.append( "message delivered" );
                 }
                 catch ( final PwmException e )
                 {
-                    returnRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Email, JavaHelper.readHostileExceptionMessage( e ) ) );
+                    output.append( "error: " + StringUtil.escapeHtml( JavaHelper.readHostileExceptionMessage( e ) ) );
                 }
             }
         }
-
-        if ( returnRecords.isEmpty() )
+        else
         {
-            returnRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Email, "smtp service is not configured." ) );
+            output.append( "smtp service is not configured." );
         }
 
-        final HealthData healthData = HealthRecord.asHealthDataBean( testConfiguration, pwmRequest.getLocale(), returnRecords );
-        final RestResultBean restResultBean = RestResultBean.withData( healthData );
+        final RestResultBean restResultBean = RestResultBean.withData( output.toString() );
         pwmRequest.outputJsonResult( restResultBean );
         LOGGER.debug( pwmRequest, () -> "completed restEmailHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;

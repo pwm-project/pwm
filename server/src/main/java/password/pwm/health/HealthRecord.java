@@ -21,12 +21,12 @@
 package password.pwm.health;
 
 import lombok.EqualsAndHashCode;
+import org.jetbrains.annotations.NotNull;
 import password.pwm.config.Configuration;
 import password.pwm.ws.server.rest.bean.HealthData;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -44,10 +44,6 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
     private final HealthMessage message;
     private final List<String> fields;
 
-    // old fields
-    private final String oldTopic;
-    private final String oldDetail;
-
     private static final Comparator<HealthRecord> COMPARATOR = Comparator.comparing(
             HealthRecord::getStatus,
             Comparator.nullsLast( Comparator.naturalOrder() ) )
@@ -59,64 +55,32 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
                     Comparator.nullsLast( Comparator.naturalOrder() ) );
 
 
-    @Deprecated
-    public HealthRecord(
-            final HealthStatus status,
-            final String topic,
-            final String detail
-    )
-    {
-        this.status = Objects.requireNonNull( status,  "status cannot be null" );
-
-        this.oldTopic = topic;
-        this.oldDetail = detail;
-
-        this.topic = null;
-        this.message = null;
-        this.fields = null;
-    }
-
-    @Deprecated
-    public HealthRecord(
-            final HealthStatus status,
-            final HealthTopic topic,
-            final String detail
-    )
-    {
-        this.status = Objects.requireNonNull( status,  "status cannot be null" );
-        this.oldTopic = null;
-        this.oldDetail = detail;
-
-        this.topic = topic;
-        this.message = null;
-        this.fields = null;
-    }
-
     private HealthRecord(
             final HealthStatus status,
             final HealthTopic topicEnum,
             final HealthMessage message,
-            final List<String> fields
+            final String... fields
     )
     {
         this.status = Objects.requireNonNull( status,  "status cannot be null" );
         this.topic = Objects.requireNonNull( topicEnum,  "topic cannot be null" );
         this.message = Objects.requireNonNull( message,  "message cannot be null" );
-        this.fields = fields == null ? Collections.emptyList() : Collections.unmodifiableList( new ArrayList<>( fields ) );
-
-        this.oldTopic = null;
-        this.oldDetail = null;
+        this.fields = fields == null ? Collections.emptyList() : List.copyOf( Arrays.asList( fields ) );
     }
 
     public static HealthRecord forMessage( final HealthMessage message )
     {
-        return new HealthRecord( message.getStatus(), message.getTopic(), message, Collections.emptyList() );
+        return new HealthRecord( message.getStatus(), message.getTopic(), message );
     }
 
     public static HealthRecord forMessage( final HealthMessage message, final String... fields )
     {
-        final List<String> fieldList = fields == null ? Collections.emptyList() : Arrays.asList( fields );
-        return new HealthRecord( message.getStatus(), message.getTopic(), message, fieldList );
+        return new HealthRecord( message.getStatus(), message.getTopic(), message, fields );
+    }
+
+    public static HealthRecord forMessage( final HealthMessage message, final HealthTopic healthTopic, final String... fields )
+    {
+        return new HealthRecord( message.getStatus(), healthTopic, message, fields );
     }
 
     public HealthStatus getStatus( )
@@ -126,10 +90,6 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
 
     public String getTopic( final Locale locale, final Configuration config )
     {
-        if ( oldTopic != null )
-        {
-            return oldTopic;
-        }
         if ( topic != null )
         {
             return this.topic.getDescription( locale, config );
@@ -139,10 +99,6 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
 
     public String getDetail( final Locale locale, final Configuration config )
     {
-        if ( oldDetail != null )
-        {
-            return oldDetail;
-        }
         if ( message != null )
         {
             return this.message.getDescription( locale, config, fields.toArray( new String[0] ) );
@@ -157,7 +113,7 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
     }
 
     @Override
-    public int compareTo( final HealthRecord otherHealthRecord )
+    public int compareTo( @NotNull final HealthRecord otherHealthRecord )
     {
         return COMPARATOR.compare( this, otherHealthRecord );
     }
