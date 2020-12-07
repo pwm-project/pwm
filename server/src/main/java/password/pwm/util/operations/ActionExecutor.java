@@ -23,7 +23,7 @@ package password.pwm.util.operations;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.ActionConfiguration;
@@ -53,12 +53,12 @@ public class ActionExecutor
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ActionExecutor.class );
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final ActionExecutorSettings settings;
 
-    private ActionExecutor( final PwmApplication pwmApplication, final ActionExecutorSettings settings )
+    private ActionExecutor( final PwmDomain pwmDomain, final ActionExecutorSettings settings )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.settings = settings;
     }
 
@@ -118,7 +118,7 @@ public class ActionExecutor
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                 throw new PwmUnrecoverableException( errorInformation );
             }
-            theUser = pwmApplication.getProxiedChaiUser( settings.getUserIdentity() );
+            theUser = pwmDomain.getProxiedChaiUser( settings.getUserIdentity() );
         }
 
         if ( settings.isExpandPwmMacros() )
@@ -216,11 +216,11 @@ public class ActionExecutor
                             .certificates( webAction.getCertificates() )
                             .build();
 
-                    client = pwmApplication.getHttpClientService().getPwmHttpClient( clientConfiguration );
+                    client = pwmDomain.getHttpClientService().getPwmHttpClient( clientConfiguration );
                 }
                 else
                 {
-                    client = pwmApplication.getHttpClientService().getPwmHttpClient( );
+                    client = pwmDomain.getHttpClientService().getPwmHttpClient( );
                 }
             }
             final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, sessionLabel );
@@ -340,22 +340,22 @@ public class ActionExecutor
     public static class ActionExecutorSettings
     {
         private final UserIdentity userIdentity;
-        private final PwmApplication pwmApplication;
+        private final PwmDomain pwmDomain;
         private final ChaiUser chaiUser;
 
         private boolean expandPwmMacros = true;
         private MacroRequest macroRequest;
 
-        public ActionExecutorSettings( final PwmApplication pwmApplication, final ChaiUser chaiUser )
+        public ActionExecutorSettings( final PwmDomain pwmDomain, final ChaiUser chaiUser )
         {
-            this.pwmApplication = pwmApplication;
+            this.pwmDomain = pwmDomain;
             this.chaiUser = chaiUser;
             this.userIdentity = null;
         }
 
-        public ActionExecutorSettings( final PwmApplication pwmApplication, final UserIdentity userIdentity )
+        public ActionExecutorSettings( final PwmDomain pwmDomain, final UserIdentity userIdentity )
         {
-            this.pwmApplication = pwmApplication;
+            this.pwmDomain = pwmDomain;
             this.userIdentity = userIdentity;
             this.chaiUser = null;
         }
@@ -395,7 +395,7 @@ public class ActionExecutor
 
         public ActionExecutor createActionExecutor( )
         {
-            return new ActionExecutor( this.pwmApplication, this );
+            return new ActionExecutor( this.pwmDomain, this );
         }
     }
 

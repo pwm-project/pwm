@@ -24,7 +24,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -300,7 +300,7 @@ public class FormConfiguration implements Serializable
     }
 
 
-    public void checkValue( final Configuration config, final String value, final Locale locale )
+    public void checkValue( final DomainConfig config, final String value, final Locale locale )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
 
@@ -428,7 +428,7 @@ public class FormConfiguration implements Serializable
      *
      * @return true if the email address is valid.
      */
-    public static boolean testEmailAddress( final Configuration config, final String address )
+    public static boolean testEmailAddress( final DomainConfig config, final String address )
     {
         final String patternStr;
         if ( config != null )
@@ -445,7 +445,7 @@ public class FormConfiguration implements Serializable
         return matcher.matches();
     }
 
-    public String displayValue( final String value, final Locale locale, final Configuration config )
+    public String displayValue( final String value, final Locale locale, final DomainConfig config )
     {
         if ( value == null )
         {

@@ -21,7 +21,7 @@
 package password.pwm.svc.cache;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
@@ -60,10 +60,10 @@ public class CacheService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication )
+    public void init( final PwmDomain pwmDomain )
             throws PwmException
     {
-        final boolean enabled = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_ENABLE ) );
+        final boolean enabled = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.CACHE_ENABLE ) );
         if ( !enabled )
         {
             LOGGER.debug( () -> "skipping cache service init due to app property setting" );
@@ -71,7 +71,7 @@ public class CacheService implements PwmService
             return;
         }
 
-        final int maxMemItems = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_MEMORY_MAX_ITEMS ) );
+        final int maxMemItems = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.CACHE_MEMORY_MAX_ITEMS ) );
         memoryCacheStore = new MemoryCacheStore( maxMemItems );
         this.traceDebugOutputter = new ConditionalTaskExecutor(
                 ( ) -> outputTraceInfo(),

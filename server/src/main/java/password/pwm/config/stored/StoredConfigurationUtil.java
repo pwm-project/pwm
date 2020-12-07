@@ -22,7 +22,7 @@ package password.pwm.config.stored;
 
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingSyntax;
@@ -317,7 +317,7 @@ public abstract class StoredConfigurationUtil
             return false;
         }
         final Optional<String> passwordHash = storedConfiguration.readConfigProperty( ConfigurationProperty.PASSWORD_HASH );
-        return passwordHash.isPresent() && BCrypt.testAnswer( password, passwordHash.get(), new Configuration( storedConfiguration ) );
+        return passwordHash.isPresent() && BCrypt.testAnswer( password, passwordHash.get(), new DomainConfig( storedConfiguration ) );
     }
 
     public static boolean hasPassword( final StoredConfiguration storedConfiguration )

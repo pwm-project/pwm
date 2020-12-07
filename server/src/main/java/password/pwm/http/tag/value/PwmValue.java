@@ -23,7 +23,7 @@ package password.pwm.http.tag.value;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
@@ -253,8 +253,8 @@ public enum PwmValue
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
         {
             final Locale locale = pwmRequest.getLocale();
-            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-            final LocaleHelper.TextDirection textDirection = LocaleHelper.textDirectionForLocale( pwmApplication, locale );
+            final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+            final LocaleHelper.TextDirection textDirection = LocaleHelper.textDirectionForLocale( pwmDomain, locale );
             return textDirection.name();
         }
     }

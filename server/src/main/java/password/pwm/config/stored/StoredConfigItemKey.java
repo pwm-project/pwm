@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 
 public class StoredConfigItemKey implements Serializable
 {
+    private static final Comparator<StoredConfigItemKey> COMPARATOR = makeComparator();
+
     public enum RecordType
     {
         SETTING( "Setting" ),
@@ -277,10 +279,10 @@ public class StoredConfigItemKey implements Serializable
 
     public static Set<StoredConfigItemKey> filterBySettingSyntax( final PwmSettingSyntax pwmSettingSyntax, final Set<StoredConfigItemKey> input )
     {
-        return Collections.unmodifiableSet( filterByType( RecordType.SETTING, input )
+        return filterByType( RecordType.SETTING, input )
                 .stream()
                 .filter( ( k ) -> k.toPwmSetting().getSyntax() == pwmSettingSyntax )
-                .collect( Collectors.toSet() ) );
+                .collect( Collectors.toUnmodifiableSet() );
     }
 
     public static Set<StoredConfigItemKey> filterByType( final RecordType recordType, final Set<StoredConfigItemKey> input )
@@ -290,10 +292,17 @@ public class StoredConfigItemKey implements Serializable
             return Collections.emptySet();
         }
 
-        return Collections.unmodifiableSet( input.stream().filter( ( k ) -> k.isRecordType( recordType ) ).collect( Collectors.toSet() ) );
+        return input.stream()
+                .filter( ( k ) -> k.isRecordType( recordType ) )
+                .collect( Collectors.toUnmodifiableSet() );
     }
 
-    public static Comparator<StoredConfigItemKey> comparator( final Locale locale )
+    public static Comparator<StoredConfigItemKey> comparator()
+    {
+        return COMPARATOR;
+    }
+
+    private static Comparator<StoredConfigItemKey> makeComparator()
     {
         final Comparator<StoredConfigItemKey> typeComparator = Comparator.comparing(
                 StoredConfigItemKey::getRecordType,
@@ -316,7 +325,8 @@ public class StoredConfigItemKey implements Serializable
             }
         };
 
-        final Comparator<StoredConfigItemKey> profileComparator = Comparator.comparing( StoredConfigItemKey::getProfileID,
+        final Comparator<StoredConfigItemKey> profileComparator = Comparator.comparing(
+                StoredConfigItemKey::getProfileID,
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
 
         return typeComparator
@@ -324,6 +334,5 @@ public class StoredConfigItemKey implements Serializable
                 .thenComparing( recordComparator )
                 .thenComparing( profileComparator );
     }
-
 
 }

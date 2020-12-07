@@ -25,7 +25,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Data;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.config.PwmSetting;
@@ -334,7 +334,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     protected void nextStep( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
         final UpdateProfileProfile updateProfileProfile = getProfile( pwmRequest );
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -424,10 +424,10 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             pwmSession.reloadUserInfoBean( pwmRequest );
 
             // mark the event log
-            pwmApplication.getAuditManager().submit( AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfo(), pwmSession );
+            pwmDomain.getAuditManager().submit( AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfo(), pwmSession );
 
             // clear the bean
-            pwmApplication.getSessionStateService().clearBean( pwmRequest, UpdateProfileBean.class );
+            pwmDomain.getSessionStateService().clearBean( pwmRequest, UpdateProfileBean.class );
 
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_UpdateProfile );
             return;

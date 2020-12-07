@@ -23,7 +23,7 @@ package password.pwm.health;
 import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
 
@@ -49,11 +49,11 @@ public class HealthMessageTest
     @Test
     public void testHealthMessageDescription() throws PwmUnrecoverableException
     {
-        final Configuration configuration = new Configuration( StoredConfigurationFactory.newConfig() );
+        final DomainConfig domainConfig = new DomainConfig( StoredConfigurationFactory.newConfig() );
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
         for ( final HealthMessage healthMessage : HealthMessage.values() )
         {
-            healthMessage.getDescription( locale, configuration, new String[] {"field1", "field2"} );
+            healthMessage.getDescription( locale, domainConfig, new String[] {"field1", "field2"} );
         }
     }
 }

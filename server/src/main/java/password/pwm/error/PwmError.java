@@ -21,7 +21,7 @@
 package password.pwm.error;
 
 import com.novell.ldapchai.exception.ChaiError;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 
@@ -380,7 +380,7 @@ public enum PwmError
 
     }
 
-    public String getLocalizedMessage( final Locale locale, final Configuration config, final String... fieldValue )
+    public String getLocalizedMessage( final Locale locale, final DomainConfig config, final String... fieldValue )
     {
         return LocaleHelper.getLocalizedMessage( locale, this.getResourceKey(), config, password.pwm.i18n.Error.class, fieldValue );
     }

@@ -20,7 +20,7 @@
 
 package password.pwm.svc.token;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
@@ -43,15 +43,15 @@ public class DataStoreTokenMachine implements TokenMachine
 
     private final DataStore dataStore;
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
 
     DataStoreTokenMachine(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final TokenService tokenService,
             final DataStore dataStore
     )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.tokenService = tokenService;
         this.dataStore = dataStore;
     }
@@ -59,7 +59,7 @@ public class DataStoreTokenMachine implements TokenMachine
     @Override
     public TokenKey keyFromKey( final String key ) throws PwmUnrecoverableException
     {
-        return StoredTokenKey.fromKeyValue( pwmApplication, key );
+        return StoredTokenKey.fromKeyValue( pwmDomain, key );
     }
 
     @Override

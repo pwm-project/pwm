@@ -22,7 +22,7 @@ package password.pwm.ldap;
 
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.ResponseInfoBean;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ViewStatusFields;
 import password.pwm.error.PwmUnrecoverableException;
@@ -49,7 +49,7 @@ public final class ViewableUserInfoDisplayReader
     @SuppressWarnings( "checkstyle:MethodLength" )
     public static List<DisplayElement> makeDisplayData(
             final Set<ViewStatusFields> viewStatusFields,
-            final Configuration config,
+            final DomainConfig config,
             final UserInfo userInfo,
             final LocalSessionStateBean localSessionStateBean,
             final Locale locale
@@ -276,12 +276,12 @@ public final class ViewableUserInfoDisplayReader
 
     private static class DataElementMaker
     {
-        private final Configuration config;
+        private final DomainConfig config;
         private final Set<ViewStatusFields> viewStatusFields;
         private final Locale locale;
         private final List<DisplayElement> list;
 
-        DataElementMaker( final Set<ViewStatusFields> viewStatusFields, final Configuration config, final Locale locale, final List<DisplayElement> list )
+        DataElementMaker( final Set<ViewStatusFields> viewStatusFields, final DomainConfig config, final Locale locale, final List<DisplayElement> list )
         {
             this.config = config;
             this.viewStatusFields = viewStatusFields;

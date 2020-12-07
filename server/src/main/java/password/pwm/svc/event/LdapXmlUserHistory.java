@@ -25,7 +25,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.ConfigObjectRecord;
 import lombok.Value;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -73,11 +73,11 @@ class LdapXmlUserHistory implements UserHistoryStore
 
     private static final String COR_RECORD_ID = "0001";
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
 
-    LdapXmlUserHistory( final PwmApplication pwmApplication )
+    LdapXmlUserHistory( final PwmDomain pwmDomain )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
     }
 
     @Override
@@ -108,11 +108,11 @@ class LdapXmlUserHistory implements UserHistoryStore
         {
             userIdentity = UserIdentity.createUserIdentity( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile() );
         }
-        final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
+        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
 
         // settings
         final String corRecordIdentifer = COR_RECORD_ID;
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getConfig() );
         final String corAttribute = ldapProfile.readSettingAsString( PwmSetting.EVENTS_LDAP_ATTRIBUTE );
 
         // quit if settings no good;
@@ -162,7 +162,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         storedHistory.addEvent( storedEvent );
 
         // trim the blob.
-        final int maxUserEvents = ( int ) pwmApplication.getConfig().readSettingAsLong( PwmSetting.EVENTS_LDAP_MAX_EVENTS );
+        final int maxUserEvents = ( int ) pwmDomain.getConfig().readSettingAsLong( PwmSetting.EVENTS_LDAP_MAX_EVENTS );
         storedHistory.trim( maxUserEvents );
 
         // write the blob.
@@ -182,8 +182,8 @@ class LdapXmlUserHistory implements UserHistoryStore
     {
         try
         {
-            final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userInfo.getUserIdentity() );
-            final StoredHistory storedHistory = readUserHistory( pwmApplication, sessionLabel, userInfo.getUserIdentity(), theUser );
+            final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userInfo.getUserIdentity() );
+            final StoredHistory storedHistory = readUserHistory( pwmDomain, sessionLabel, userInfo.getUserIdentity(), theUser );
             return storedHistory.asAuditRecords( userInfo );
         }
         catch ( final ChaiUnavailableException e )
@@ -193,14 +193,14 @@ class LdapXmlUserHistory implements UserHistoryStore
     }
 
     private StoredHistory readUserHistory(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final ChaiUser chaiUser
     )
             throws ChaiUnavailableException
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getConfig() );
         final String corAttribute = ldapProfile.readSettingAsString( PwmSetting.EVENTS_LDAP_ATTRIBUTE );
 
         if ( corAttribute == null || corAttribute.length() < 1 )

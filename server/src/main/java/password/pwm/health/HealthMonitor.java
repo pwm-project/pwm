@@ -22,7 +22,7 @@ package password.pwm.health;
 
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -86,7 +86,7 @@ public class HealthMonitor implements PwmService
     private final AtomicInteger healthCheckCount = new AtomicInteger( 0 );
 
     private STATUS status = STATUS.CLOSED;
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
     private volatile HealthData healthData = emptyHealthData();
 
     enum HealthMonitorFlag
@@ -100,30 +100,30 @@ public class HealthMonitor implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.healthData = emptyHealthData();
-        settings = HealthMonitorSettings.fromConfiguration( pwmApplication.getConfig() );
+        settings = HealthMonitorSettings.fromConfiguration( pwmDomain.getConfig() );
 
-        if ( !Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTHCHECK_ENABLED ) ) )
+        if ( !Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTHCHECK_ENABLED ) ) )
         {
             LOGGER.debug( () -> "health monitor will remain inactive due to AppProperty " + AppProperty.HEALTHCHECK_ENABLED.getKey() );
             status = STATUS.CLOSED;
             return;
         }
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
-        supportZipWriterService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
+        supportZipWriterService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
         scheduleNextZipOutput();
 
         {
-            final int threadDumpIntervalSeconds = JavaHelper.silentParseInt( pwmApplication.getConfig().readAppProperty(
+            final int threadDumpIntervalSeconds = JavaHelper.silentParseInt( pwmDomain.getConfig().readAppProperty(
                     AppProperty.LOGGING_EXTRA_PERIODIC_THREAD_DUMP_INTERVAL ), 0 );
             if ( threadDumpIntervalSeconds > 0 )
             {
                 final TimeDuration interval =  TimeDuration.of( threadDumpIntervalSeconds, TimeDuration.Unit.SECONDS );
-                pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ThreadDumpLogger(), executorService, TimeDuration.SECOND, interval );
+                pwmDomain.getPwmScheduler().scheduleFixedRateJob( new ThreadDumpLogger(), executorService, TimeDuration.SECOND, interval );
             }
         }
 
@@ -179,12 +179,12 @@ public class HealthMonitor implements PwmService
         {
             final Instant startTime = Instant.now();
             LOGGER.trace( () ->  "begin force immediate check" );
-            final Future future = pwmApplication.getPwmScheduler().scheduleJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
+            final Future future = pwmDomain.getPwmScheduler().scheduleJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
             settings.getMaximumForceCheckWait().pause( future::isDone );
             LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone(), () -> TimeDuration.fromCurrent( startTime ) );
         }
 
-        pwmApplication.getPwmScheduler().scheduleJob( new UpdateJob(), executorService, settings.getNominalCheckInterval() );
+        pwmDomain.getPwmScheduler().scheduleJob( new UpdateJob(), executorService, settings.getNominalCheckInterval() );
 
         {
             final HealthData localHealthData = this.healthData;
@@ -239,7 +239,7 @@ public class HealthMonitor implements PwmService
         {
             try
             {
-                final List<HealthRecord> loopResults = loopChecker.doHealthCheck( pwmApplication );
+                final List<HealthRecord> loopResults = loopChecker.doHealthCheck( pwmDomain );
                 if ( loopResults != null )
                 {
                     tempResults.addAll( loopResults );
@@ -253,7 +253,7 @@ public class HealthMonitor implements PwmService
                 }
             }
         }
-        for ( final PwmService service : pwmApplication.getPwmServices() )
+        for ( final PwmService service : pwmDomain.getPwmServices() )
         {
             try
             {
@@ -336,21 +336,21 @@ public class HealthMonitor implements PwmService
 
     private void scheduleNextZipOutput()
     {
-        final int intervalSeconds = JavaHelper.silentParseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_SUPPORT_BUNDLE_WRITE_INTERVAL_SECONDS ), 0 );
+        final int intervalSeconds = JavaHelper.silentParseInt( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTH_SUPPORT_BUNDLE_WRITE_INTERVAL_SECONDS ), 0 );
         if ( intervalSeconds > 0 )
         {
             final TimeDuration intervalDuration = TimeDuration.of( intervalSeconds, TimeDuration.Unit.SECONDS );
-            pwmApplication.getPwmScheduler().scheduleJob( new SupportZipFileWriter( pwmApplication ), supportZipWriterService, intervalDuration );
+            pwmDomain.getPwmScheduler().scheduleJob( new SupportZipFileWriter( pwmDomain ), supportZipWriterService, intervalDuration );
         }
     }
 
     private class SupportZipFileWriter implements Runnable
     {
-        private final PwmApplication pwmApplication;
+        private final PwmDomain pwmDomain;
 
-        SupportZipFileWriter( final PwmApplication pwmApplication )
+        SupportZipFileWriter( final PwmDomain pwmDomain )
         {
-            this.pwmApplication = pwmApplication;
+            this.pwmDomain = pwmDomain;
         }
 
         @Override
@@ -371,14 +371,14 @@ public class HealthMonitor implements PwmService
         private void writeSupportZipToAppPath()
                 throws IOException, PwmUnrecoverableException
         {
-            final File appPath = pwmApplication.getPwmEnvironment().getApplicationPath();
+            final File appPath = pwmDomain.getPwmEnvironment().getApplicationPath();
             if ( !appPath.exists() )
             {
                 return;
             }
 
-            final int rotationCount = JavaHelper.silentParseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_SUPPORT_BUNDLE_FILE_WRITE_COUNT ), 10 );
-            final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmApplication, SessionLabel.HEALTH_SESSION_LABEL );
+            final int rotationCount = JavaHelper.silentParseInt( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTH_SUPPORT_BUNDLE_FILE_WRITE_COUNT ), 10 );
+            final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmDomain, SessionLabel.HEALTH_SESSION_LABEL );
 
             final File supportPath = new File( appPath.getPath() + File.separator + "support" );
 

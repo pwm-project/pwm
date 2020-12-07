@@ -22,7 +22,7 @@ package password.pwm.http.servlet.admin;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.pub.PublicUserInfoBean;
@@ -55,7 +55,7 @@ public class UserDebugDataReader
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserDebugDataReader.class );
 
     public static UserDebugDataBean readUserDebugData(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final Locale locale,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
@@ -64,16 +64,16 @@ public class UserDebugDataReader
     {
 
 
-        final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxyForOfflineUser( pwmApplication, sessionLabel, userIdentity );
+        final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxyForOfflineUser( pwmDomain, sessionLabel, userIdentity );
 
-        final Map<Permission, String> permissions = UserDebugDataReader.permissionMap( pwmApplication, sessionLabel, userIdentity );
+        final Map<Permission, String> permissions = UserDebugDataReader.permissionMap( pwmDomain, sessionLabel, userIdentity );
 
-        final Map<ProfileDefinition, String> profiles = UserDebugDataReader.profileMap( pwmApplication, sessionLabel, userIdentity );
+        final Map<ProfileDefinition, String> profiles = UserDebugDataReader.profileMap( pwmDomain, sessionLabel, userIdentity );
 
-        final PwmPasswordPolicy ldapPasswordPolicy = PasswordUtility.readLdapPasswordPolicy( pwmApplication, pwmApplication.getProxiedChaiUser( userIdentity ) );
+        final PwmPasswordPolicy ldapPasswordPolicy = PasswordUtility.readLdapPasswordPolicy( pwmDomain, pwmDomain.getProxiedChaiUser( userIdentity ) );
 
         final PwmPasswordPolicy configPasswordPolicy = PasswordUtility.determineConfiguredPolicyProfileForUser(
-                pwmApplication,
+                pwmDomain,
                 sessionLabel,
                 userIdentity,
                 locale
@@ -82,20 +82,20 @@ public class UserDebugDataReader
         boolean readablePassword = false;
         try
         {
-            readablePassword = null != LdapOperationsHelper.readLdapPassword( pwmApplication, sessionLabel, userIdentity );
+            readablePassword = null != LdapOperationsHelper.readLdapPassword( pwmDomain, sessionLabel, userIdentity );
         }
         catch ( final ChaiUnavailableException e )
         {
             /* disregard */
         }
 
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, locale, sessionLabel, userIdentity );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, locale, sessionLabel, userIdentity );
 
-        final PwNotifyUserStatus pwNotifyUserStatus = readPwNotifyUserStatus( pwmApplication, userIdentity, sessionLabel );
+        final PwNotifyUserStatus pwNotifyUserStatus = readPwNotifyUserStatus( pwmDomain, userIdentity, sessionLabel );
 
         return UserDebugDataBean.builder()
                 .userInfo( userInfo )
-                .publicUserInfoBean( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), locale, macroRequest ) )
+                .publicUserInfoBean( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmDomain.getConfig(), locale, macroRequest ) )
                 .permissions( permissions )
                 .profiles( profiles )
                 .ldapPasswordPolicy( ldapPasswordPolicy )
@@ -108,7 +108,7 @@ public class UserDebugDataReader
 
 
     private static Map<Permission, String> permissionMap(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
 
@@ -121,9 +121,9 @@ public class UserDebugDataReader
             final PwmSetting setting = permission.getPwmSetting();
             if ( !setting.isHidden() && !setting.getCategory().isHidden() && !setting.getCategory().hasProfiles() )
             {
-                final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission( permission.getPwmSetting() );
+                final List<UserPermission> userPermission = pwmDomain.getConfig().readSettingAsUserPermission( permission.getPwmSetting() );
                 final boolean result = UserPermissionUtility.testUserPermission(
-                        pwmApplication,
+                        pwmDomain,
                         sessionLabel,
                         userIdentity,
                         userPermission
@@ -136,7 +136,7 @@ public class UserDebugDataReader
     }
 
     private static Map<ProfileDefinition, String> profileMap(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
     )
@@ -148,7 +148,7 @@ public class UserDebugDataReader
             if ( profileDefinition.getQueryMatch().isPresent() && profileDefinition.getProfileFactoryClass().isPresent() )
             {
                 ProfileUtility.discoverProfileIDForUser(
-                        pwmApplication,
+                        pwmDomain,
                         sessionLabel,
                         userIdentity,
                         profileDefinition
@@ -160,16 +160,16 @@ public class UserDebugDataReader
     }
 
     private static PwNotifyUserStatus readPwNotifyUserStatus(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final UserIdentity userIdentity,
             final SessionLabel sessionLabel
     )
     {
-        if ( pwmApplication.getPwNotifyService().status() == PwmService.STATUS.OPEN )
+        if ( pwmDomain.getPwNotifyService().status() == PwmService.STATUS.OPEN )
         {
             try
             {
-                final Optional<PwNotifyUserStatus> value = pwmApplication.getPwNotifyService().readUserNotificationState( userIdentity, sessionLabel );
+                final Optional<PwNotifyUserStatus> value = pwmDomain.getPwNotifyService().readUserNotificationState( userIdentity, sessionLabel );
                 if ( value.isPresent() )
                 {
                     return value.get();

@@ -22,12 +22,12 @@ package password.pwm.http.servlet.updateprofile;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
@@ -119,7 +119,7 @@ public class UpdateProfileUtil
     }
 
     static void verifyFormAttributes(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final UserIdentity userIdentity,
             final Locale userLocale,
             final Map<FormConfiguration, String> formValues,
@@ -128,7 +128,7 @@ public class UpdateProfileUtil
             throws PwmOperationalException, PwmUnrecoverableException
     {
         // see if the values meet form requirements.
-        FormUtility.validateFormValues( pwmApplication.getConfig(), formValues, userLocale );
+        FormUtility.validateFormValues( pwmDomain.getConfig(), formValues, userLocale );
 
         final List<FormUtility.ValidationFlag> validationFlags = new ArrayList<>();
         if ( allowResultCaching )
@@ -138,7 +138,7 @@ public class UpdateProfileUtil
 
         // check unique fields against ldap
         FormUtility.validateFormValueUniqueness(
-                pwmApplication,
+                pwmDomain,
                 formValues,
                 userLocale,
                 Collections.singletonList( userIdentity ),
@@ -147,7 +147,7 @@ public class UpdateProfileUtil
     }
 
     static void sendProfileUpdateEmailNotice(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final MacroRequest macroRequest,
             final UserInfo userInfo,
             final Locale locale,
@@ -155,10 +155,10 @@ public class UpdateProfileUtil
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
 
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_UPDATEPROFILE, locale );
-        pwmApplication.getEmailQueue().submitEmail(
+        pwmDomain.getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 userInfo,
                 macroRequest
@@ -343,7 +343,7 @@ public class UpdateProfileUtil
 
     @SuppressWarnings( "checkstyle:ParameterNumber" )
     public static void doProfileUpdate(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final Locale locale,
             final UserInfo userInfo,
@@ -358,21 +358,21 @@ public class UpdateProfileUtil
         final Map<FormConfiguration, String> formMap = FormUtility.readFormValuesFromMap( formValues, formFields, locale );
 
         // verify form meets the form requirements (may be redundant, but shouldn't hurt)
-        verifyFormAttributes( pwmApplication, userInfo.getUserIdentity(), locale, formMap, false );
+        verifyFormAttributes( pwmDomain, userInfo.getUserIdentity(), locale, formMap, false );
 
         // write values.
         LOGGER.info( () -> "updating profile for " + userInfo.getUserIdentity() );
 
         LdapOperationsHelper.writeFormValuesToLdap( theUser, formMap, macroRequest, false );
 
-        postUpdateActionsAndEmail( pwmApplication, sessionLabel, locale, userInfo.getUserIdentity(), updateProfileProfile );
+        postUpdateActionsAndEmail( pwmDomain, sessionLabel, locale, userInfo.getUserIdentity(), updateProfileProfile );
 
         // success, so forward to success page
-        pwmApplication.getStatisticsManager().incrementValue( Statistic.UPDATE_ATTRIBUTES );
+        pwmDomain.getStatisticsManager().incrementValue( Statistic.UPDATE_ATTRIBUTES );
     }
 
     private static void postUpdateActionsAndEmail(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final Locale locale,
             final UserIdentity userIdentity,
@@ -382,12 +382,12 @@ public class UpdateProfileUtil
     {
         // obtain new macro machine (with a new UserInfo) so old cached values won't be used for next op
         final UserInfo reloadedUserInfo = UserInfoFactory.newUserInfo(
-                pwmApplication,
+                pwmDomain,
                 sessionLabel,
                 locale,
                 userIdentity,
-                pwmApplication.getProxiedChaiUser( userIdentity ).getChaiProvider() );
-        final MacroRequest reloadedMacroRequest = MacroRequest.forUser( pwmApplication, sessionLabel, reloadedUserInfo, null, null );
+                pwmDomain.getProxiedChaiUser( userIdentity ).getChaiProvider() );
+        final MacroRequest reloadedMacroRequest = MacroRequest.forUser( pwmDomain, sessionLabel, reloadedUserInfo, null, null );
 
         {
             // execute configured actions
@@ -396,7 +396,7 @@ public class UpdateProfileUtil
             {
                 LOGGER.debug( sessionLabel, () -> "executing configured actions to user " + reloadedUserInfo.getUserIdentity() );
 
-                final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, reloadedUserInfo.getUserIdentity() )
+                final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmDomain, reloadedUserInfo.getUserIdentity() )
                         .setExpandPwmMacros( true )
                         .setMacroMachine( reloadedMacroRequest )
                         .createActionExecutor();
@@ -405,7 +405,7 @@ public class UpdateProfileUtil
             }
         }
 
-        sendProfileUpdateEmailNotice( pwmApplication, reloadedMacroRequest, reloadedUserInfo, locale, sessionLabel );
+        sendProfileUpdateEmailNotice( pwmDomain, reloadedMacroRequest, reloadedUserInfo, locale, sessionLabel );
     }
 
     static TokenDestinationItem tokenDestinationItemForCurrentValidation(

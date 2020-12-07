@@ -20,7 +20,7 @@
 
 package password.pwm.svc.node;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -43,7 +43,7 @@ class NodeMachine
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( NodeMachine.class );
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final ExecutorService executorService;
     private final NodeDataServiceProvider clusterDataServiceProvider;
 
@@ -55,18 +55,18 @@ class NodeMachine
     private final NodeServiceStatistics nodeServiceStatistics = new NodeServiceStatistics();
 
     NodeMachine(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final NodeDataServiceProvider clusterDataServiceProvider,
             final NodeServiceSettings nodeServiceSettings
     )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.clusterDataServiceProvider = clusterDataServiceProvider;
         this.settings = nodeServiceSettings;
 
-        this.executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, NodeMachine.class );
+        this.executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, NodeMachine.class );
 
-        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new HeartbeatProcess(), executorService, settings.getHeartbeatInterval(), settings.getHeartbeatInterval() );
+        pwmDomain.getPwmScheduler().scheduleFixedRateJob( new HeartbeatProcess(), executorService, settings.getHeartbeatInterval(), settings.getHeartbeatInterval() );
     }
 
     public void close( )
@@ -78,7 +78,7 @@ class NodeMachine
     public List<NodeInfo> nodes( ) throws PwmUnrecoverableException
     {
         final Map<String, NodeInfo> returnObj = new TreeMap<>();
-        final String configHash = pwmApplication.getConfig().configurationHash( pwmApplication.getSecureService() );
+        final String configHash = pwmDomain.getConfig().configurationHash( pwmDomain.getSecureService() );
         for ( final StoredNodeData storedNodeData : knownNodes.values() )
         {
             final boolean configMatch = configHash.equals( storedNodeData.getConfigHash() );
@@ -136,7 +136,7 @@ class NodeMachine
 
     public boolean isMaster( )
     {
-        final String myID = pwmApplication.getInstanceID();
+        final String myID = pwmDomain.getInstanceID();
         final String masterID = masterInstanceId();
         return myID.equals( masterID );
     }
@@ -172,7 +172,7 @@ class NodeMachine
         {
             try
             {
-                final StoredNodeData storedNodeData = StoredNodeData.makeNew( pwmApplication );
+                final StoredNodeData storedNodeData = StoredNodeData.makeNew( pwmDomain );
                 clusterDataServiceProvider.writeNodeStatus( storedNodeData );
                 nodeServiceStatistics.getClusterWrites().incrementAndGet();
             }

@@ -28,7 +28,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
@@ -64,18 +64,18 @@ public class SessionAuthenticator
 {
     private static final PwmLogger LOGGER = PwmLogger.getLogger( SessionAuthenticator.class.getName() );
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final SessionLabel sessionLabel;
     private final PwmRequest pwmRequest;
     private final PwmAuthenticationSource authenticationSource;
 
     public SessionAuthenticator(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final PwmRequest pwmRequest,
             final PwmAuthenticationSource authenticationSource
     )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.pwmRequest = pwmRequest;
         this.sessionLabel = pwmRequest.getLabel();
         this.authenticationSource = authenticationSource;
@@ -89,15 +89,15 @@ public class SessionAuthenticator
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
-        pwmApplication.getIntruderManager().check( RecordType.USERNAME, username );
+        pwmDomain.getIntruderManager().check( RecordType.USERNAME, username );
         UserIdentity userIdentity = null;
         try
         {
-            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
             userIdentity = userSearchEngine.resolveUsername( username, context, ldapProfile, sessionLabel );
 
             final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
-                    pwmApplication,
+                    pwmDomain,
                     sessionLabel,
                     userIdentity,
                     AuthenticationType.AUTHENTICATED,
@@ -112,7 +112,7 @@ public class SessionAuthenticator
 
             if ( readHiddenErrorTypes().contains( e.getError() ) )
             {
-                if ( pwmApplication.determineIfDetailErrorMsgShown() )
+                if ( pwmDomain.determineIfDetailErrorMsgShown() )
                 {
                     LOGGER.debug( pwmRequest, () -> "allowing error " + e.getError() + " to be returned though it is configured as a hidden type; "
                             + "app is currently permitting detailed error messages" );
@@ -132,7 +132,7 @@ public class SessionAuthenticator
 
     private Set<PwmError> readHiddenErrorTypes( )
     {
-        final String appProperty = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES );
+        final String appProperty = pwmDomain.getConfig().readAppProperty( AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES );
         final Set<PwmError> returnSet = EnumSet.noneOf( PwmError.class );
         if ( !StringUtil.isEmpty( appProperty ) )
         {
@@ -166,7 +166,7 @@ public class SessionAuthenticator
         try
         {
             final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
-                    pwmApplication,
+                    pwmDomain,
                     sessionLabel,
                     userIdentity,
                     AuthenticationType.AUTHENTICATED,
@@ -193,16 +193,16 @@ public class SessionAuthenticator
     )
             throws ImpossiblePasswordPolicyException, PwmUnrecoverableException, PwmOperationalException
     {
-        pwmApplication.getIntruderManager().check( RecordType.USERNAME, username );
+        pwmDomain.getIntruderManager().check( RecordType.USERNAME, username );
 
         UserIdentity userIdentity = null;
         try
         {
-            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
             userIdentity = userSearchEngine.resolveUsername( username, null, null, sessionLabel );
 
             final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
-                    pwmApplication,
+                    pwmDomain,
                     sessionLabel,
                     userIdentity,
                     requestedAuthType,
@@ -231,7 +231,7 @@ public class SessionAuthenticator
         try
         {
             final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
-                    pwmApplication,
+                    pwmDomain,
                     sessionLabel,
                     userIdentity,
                     requestedAuthType,
@@ -251,16 +251,16 @@ public class SessionAuthenticator
     )
             throws PwmUnrecoverableException
     {
-        final PwmRequestContext pwmRequestContext = new PwmRequestContext( pwmApplication, sessionLabel, null, null );
+        final PwmRequestContext pwmRequestContext = new PwmRequestContext( pwmDomain, sessionLabel, null, null );
         simulateBadPassword( pwmRequestContext, userIdentity );
     }
 
     public static void simulateBadPassword( final PwmRequestContext pwmRequestContext, final UserIdentity userIdentity ) throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequestContext.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequestContext.getPwmDomain();
         final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
 
-        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.SECURITY_SIMULATE_LDAP_BAD_PASSWORD ) )
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.SECURITY_SIMULATE_LDAP_BAD_PASSWORD ) )
         {
             return;
         }
@@ -289,10 +289,10 @@ public class SessionAuthenticator
             //read a provider using the user's DN and password.
 
             provider = LdapOperationsHelper.createChaiProvider(
-                    pwmApplication,
+                    pwmDomain,
                     sessionLabel,
-                    userIdentity.getLdapProfile( pwmApplication.getConfig() ),
-                    pwmApplication.getConfig(),
+                    userIdentity.getLdapProfile( pwmDomain.getConfig() ),
+                    pwmDomain.getConfig(),
                     userIdentity.getUserDN(),
                     bogusPassword
             );
@@ -340,7 +340,7 @@ public class SessionAuthenticator
     {
         LOGGER.error( sessionLabel, () -> "ldap error during search: " + exception.getMessage() );
 
-        final IntruderManager intruderManager = pwmApplication.getIntruderManager();
+        final IntruderManager intruderManager = pwmDomain.getIntruderManager();
         if ( intruderManager != null )
         {
             intruderManager.convenience().markAddressAndSession( pwmRequest );
@@ -363,7 +363,7 @@ public class SessionAuthenticator
     )
             throws PwmUnrecoverableException
     {
-        final IntruderManager intruderManager = pwmApplication.getIntruderManager();
+        final IntruderManager intruderManager = pwmDomain.getIntruderManager();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         final LoginInfoBean loginInfoBean = pwmRequest.getPwmSession().getLoginInfoBean();
@@ -381,17 +381,17 @@ public class SessionAuthenticator
             if ( authenticationResult.getAuthenticationType() == AuthenticationType.AUTH_BIND_INHIBIT )
             {
                 userInfoBean = UserInfoFactory.newUserInfo(
-                        pwmApplication,
+                        pwmDomain,
                         pwmRequest.getLabel(),
                         ssBean.getLocale(),
                         userIdentity,
-                        pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() )
+                        pwmDomain.getProxyChaiProvider( userIdentity.getLdapProfileID() )
                 );
             }
             else
             {
                 userInfoBean = UserInfoFactory.newUserInfoUsingProxy(
-                        pwmApplication,
+                        pwmDomain,
                         pwmRequest.getLabel(),
                         userIdentity,
                         ssBean.getLocale(),
@@ -418,9 +418,9 @@ public class SessionAuthenticator
         intruderManager.convenience().clearUserIdentity( userIdentity );
         intruderManager.convenience().clearAddressAndSession( pwmSession );
 
-        if ( pwmApplication.getStatisticsManager() != null )
+        if ( pwmDomain.getStatisticsManager() != null )
         {
-            final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
+            final StatisticsManager statisticsManager = pwmDomain.getStatisticsManager();
             if ( pwmSession.getUserInfo().getPasswordStatus().isWarnPeriod() )
             {
                 statisticsManager.incrementValue( Statistic.AUTHENTICATION_EXPIRED_WARNING );
@@ -440,6 +440,6 @@ public class SessionAuthenticator
         pwmSession.getUserSessionDataCacheBean().clearPermissions();
 
         // update the users ldap attribute.
-        LdapOperationsHelper.processAutoUpdateLanguageAttribute( pwmApplication, sessionLabel, ssBean.getLocale(), userIdentity );
+        LdapOperationsHelper.processAutoUpdateLanguageAttribute( pwmDomain, sessionLabel, ssBean.getLocale(), userIdentity );
     }
 }

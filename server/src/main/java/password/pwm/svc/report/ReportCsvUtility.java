@@ -23,8 +23,8 @@ package password.pwm.svc.report;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.csv.CSVPrinter;
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.PwmDomain;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
@@ -41,19 +41,19 @@ import java.util.Locale;
 public class ReportCsvUtility
 {
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final ReportService reportService;
 
-    public ReportCsvUtility( final PwmApplication pwmApplication )
+    public ReportCsvUtility( final PwmDomain pwmDomain )
     {
-        this.pwmApplication = pwmApplication;
-        this.reportService = pwmApplication.getReportService();
+        this.pwmDomain = pwmDomain;
+        this.reportService = pwmDomain.getReportService();
     }
 
     public void outputSummaryToCsv( final OutputStream outputStream, final Locale locale )
             throws IOException
     {
-        final List<ReportSummaryData.PresentationRow> outputList = reportService.getSummaryData().asPresentableCollection( pwmApplication.getConfig(), locale );
+        final List<ReportSummaryData.PresentationRow> outputList = reportService.getSummaryData().asPresentableCollection( pwmDomain.getConfig(), locale );
         final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
 
         for ( final ReportSummaryData.PresentationRow presentationRow : outputList )
@@ -71,12 +71,12 @@ public class ReportCsvUtility
     public void outputToCsv( final OutputStream outputStream, final boolean includeHeader, final Locale locale )
             throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
     {
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
 
         outputToCsv( outputStream, includeHeader, locale, config );
     }
 
-    public void outputToCsv( final OutputStream outputStream, final boolean includeHeader, final Locale locale, final Configuration config )
+    public void outputToCsv( final OutputStream outputStream, final boolean includeHeader, final Locale locale, final DomainConfig config )
             throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
     {
         final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
@@ -134,7 +134,7 @@ public class ReportCsvUtility
     }
 
     private void outputRecordRow(
-            final Configuration config,
+            final DomainConfig config,
             final Locale locale,
             final UserCacheRecord userCacheRecord,
             final CSVPrinter csvPrinter

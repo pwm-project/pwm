@@ -23,7 +23,7 @@ package password.pwm.svc.httpclient;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
@@ -40,16 +40,16 @@ import java.util.Iterator;
 
 class HttpTrustManagerHelper
 {
-    private final Configuration configuration;
+    private final DomainConfig domainConfig;
     private final PwmHttpClientConfiguration pwmHttpClientConfiguration;
     private final PwmHttpClientConfiguration.TrustManagerType trustManagerType;
 
     HttpTrustManagerHelper(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final PwmHttpClientConfiguration pwmHttpClientConfiguration
     )
     {
-        this.configuration = configuration;
+        this.domainConfig = domainConfig;
         this.pwmHttpClientConfiguration = pwmHttpClientConfiguration;
         this.trustManagerType = pwmHttpClientConfiguration.getTrustManagerType();
     }
@@ -68,7 +68,7 @@ class HttpTrustManagerHelper
             return NoopHostnameVerifier.INSTANCE;
         }
 
-        if ( !Boolean.parseBoolean( configuration.readAppProperty( AppProperty.HTTP_CLIENT_ENABLE_HOSTNAME_VERIFICATION ) ) )
+        if ( !Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.HTTP_CLIENT_ENABLE_HOSTNAME_VERIFICATION ) ) )
         {
             return NoopHostnameVerifier.INSTANCE;
         }
@@ -93,20 +93,20 @@ class HttpTrustManagerHelper
             case promiscuousCertReader:
                 return new TrustManager[]
                         {
-                                CertificateReadingTrustManager.newCertReaderTrustManager( configuration ),
+                                CertificateReadingTrustManager.newCertReaderTrustManager( domainConfig ),
                         };
 
             case configuredCertificates:
             {
                 return new TrustManager[]
                         {
-                                PwmTrustManager.createPwmTrustManager( configuration, pwmHttpClientConfiguration.getCertificates() ),
+                                PwmTrustManager.createPwmTrustManager( domainConfig, pwmHttpClientConfiguration.getCertificates() ),
                         };
             }
 
             case defaultJava:
             {
-                return X509Utils.getDefaultJavaTrustManager( configuration );
+                return X509Utils.getDefaultJavaTrustManager( domainConfig );
             }
 
             default:

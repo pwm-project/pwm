@@ -33,6 +33,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideUtils" %>
+<%@ page import="password.pwm.PwmDomain" %>
 
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
@@ -45,8 +46,8 @@
     boolean existingSchemaGood = false;
     String schemaActivityLog = "";
     try {
-        final PwmApplication pwmApplication = JspUtility.getPwmRequest(pageContext).getPwmApplication();
-        final SchemaOperationResult schemaManager = ConfigGuideUtils.extendSchema(pwmApplication, configGuideBean, false);
+        final PwmDomain pwmDomain = JspUtility.getPwmRequest(pageContext).getPwmApplication();
+        final SchemaOperationResult schemaManager = ConfigGuideUtils.extendSchema( pwmDomain, configGuideBean, false);
         existingSchemaGood = schemaManager.isSuccess();
         schemaActivityLog = schemaManager.getOperationLog();
     } catch (Exception e) {

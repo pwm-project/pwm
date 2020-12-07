@@ -23,7 +23,7 @@ package password.pwm.util.cli.commands;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
@@ -57,12 +57,12 @@ public class ResponseStatsCommand extends AbstractCliCommand
     void doCommand( )
             throws Exception
     {
-        final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
+        final PwmDomain pwmDomain = cliEnvironment.getPwmDomain();
         out( "searching for users" );
-        final List<UserIdentity> userIdentities = readAllUsersFromLdap( pwmApplication );
+        final List<UserIdentity> userIdentities = readAllUsersFromLdap( pwmDomain );
         out( "found " + userIdentities.size() + " users, reading...." );
 
-        final ResponseStats responseStats = makeStatistics( pwmApplication, userIdentities );
+        final ResponseStats responseStats = makeStatistics( pwmDomain, userIdentities );
 
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
         final long startTime = System.currentTimeMillis();
@@ -83,7 +83,7 @@ public class ResponseStatsCommand extends AbstractCliCommand
     static int userCounter = 0;
 
     ResponseStats makeStatistics(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final List<UserIdentity> userIdentities
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
@@ -98,11 +98,11 @@ public class ResponseStatsCommand extends AbstractCliCommand
                 out( "processing...  " + userCounter + " users read" );
             }
         }, 30 * 1000, 30 * 1000 );
-        final CrService crService = pwmApplication.getCrService();
+        final CrService crService = pwmDomain.getCrService();
         for ( final UserIdentity userIdentity : userIdentities )
         {
             userCounter++;
-            final ResponseInfoBean responseInfoBean = crService.readUserResponseInfo( null, userIdentity, pwmApplication.getProxiedChaiUser( userIdentity ) );
+            final ResponseInfoBean responseInfoBean = crService.readUserResponseInfo( null, userIdentity, pwmDomain.getProxiedChaiUser( userIdentity ) );
             makeStatistics( responseStats, responseInfoBean );
         }
         timer.cancel();
@@ -156,17 +156,17 @@ public class ResponseStatsCommand extends AbstractCliCommand
     }
 
     private static List<UserIdentity> readAllUsersFromLdap(
-            final PwmApplication pwmApplication
+            final PwmDomain pwmDomain
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
         final List<UserIdentity> returnList = new ArrayList<>();
 
-        for ( final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values() )
+        for ( final LdapProfile ldapProfile : pwmDomain.getConfig().getLdapProfiles().values() )
         {
-            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
             final TimeDuration searchTimeout = TimeDuration.of(
-                    Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ),
+                    Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ),
                     TimeDuration.Unit.MILLISECONDS );
 
             final SearchConfiguration searchConfiguration = SearchConfiguration.builder()

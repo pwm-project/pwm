@@ -21,7 +21,7 @@
 package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -221,7 +221,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
     private boolean processUnrecoverableException(
             final HttpServletRequest req,
             final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final PwmRequest pwmRequest,
             final PwmUnrecoverableException e
     )
@@ -233,7 +233,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 LOGGER.fatal( pwmRequest.getLabel(), () -> e.getErrorInformation().toDebugStr() );
                 try
                 {
-                    pwmApplication.getStatisticsManager().incrementValue( Statistic.LDAP_UNAVAILABLE_COUNT );
+                    pwmDomain.getStatisticsManager().incrementValue( Statistic.LDAP_UNAVAILABLE_COUNT );
                 }
                 catch ( final Throwable e1 )
                 {
@@ -265,9 +265,9 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 try
                 {
                     // try to update stats
-                    if ( pwmApplication != null )
+                    if ( pwmDomain != null )
                     {
-                        pwmApplication.getStatisticsManager().incrementValue( Statistic.PWM_UNKNOWN_ERRORS );
+                        pwmDomain.getStatisticsManager().incrementValue( Statistic.PWM_UNKNOWN_ERRORS );
                     }
                 }
                 catch ( final Throwable e1 )

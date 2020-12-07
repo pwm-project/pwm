@@ -20,7 +20,7 @@
 
 package password.pwm.ldap.permission;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -41,7 +41,7 @@ class LdapGroupTypeHelper implements PermissionTypeHelper
 
     @Override
     public boolean testMatch(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final UserPermission userPermission
@@ -65,10 +65,10 @@ class LdapGroupTypeHelper implements PermissionTypeHelper
         }
         else
         {
-            final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+            final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getConfig() );
             final String filterString = "(" + ldapProfile.readSettingAsString( PwmSetting.LDAP_USER_GROUP_ATTRIBUTE ) + "=" + groupDN + ")";
             LOGGER.trace( sessionLabel, () -> "checking ldap to see if " + userIdentity + " matches group '" + groupDN + "' using filter '" + filterString + "'" );
-            result = LdapQueryHelper.selfUserSearch( pwmApplication, sessionLabel, userIdentity, filterString );
+            result = LdapQueryHelper.selfUserSearch( pwmDomain, sessionLabel, userIdentity, filterString );
 
         }
 

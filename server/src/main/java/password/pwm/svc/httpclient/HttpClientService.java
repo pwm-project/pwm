@@ -20,7 +20,7 @@
 
 package password.pwm.svc.httpclient;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
@@ -41,7 +41,7 @@ public class HttpClientService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpClientService.class );
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
 
     private final Map<PwmHttpClientConfiguration, ThreadLocal<PwmHttpClient>> clients = new ConcurrentHashMap<>(  );
     private final Map<PwmHttpClient, Object> issuedClients = Collections.synchronizedMap( new WeakHashMap<>(  ) );
@@ -66,10 +66,10 @@ public class HttpClientService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication )
+    public void init( final PwmDomain pwmDomain )
             throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
     }
 
     @Override
@@ -110,7 +110,7 @@ public class HttpClientService implements PwmService
             return existingClient;
         }
 
-        final PwmHttpClient newClient = new PwmHttpClient( pwmApplication, pwmHttpClientConfiguration );
+        final PwmHttpClient newClient = new PwmHttpClient( pwmDomain, pwmHttpClientConfiguration );
         issuedClients.put( newClient, null );
         threadLocal.set( newClient );
         stats.increment( StatsKey.createdClients );

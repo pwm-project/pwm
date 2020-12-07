@@ -21,11 +21,11 @@
 package password.pwm.svc.intruder;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.IntruderStorageMethod;
@@ -79,7 +79,7 @@ public class IntruderManager implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( IntruderManager.class );
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
     private STATUS status = STATUS.CLOSED;
     private ErrorInformation startupError;
     private Timer timer;
@@ -103,12 +103,12 @@ public class IntruderManager implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication )
+    public void init( final PwmDomain pwmDomain )
             throws PwmException
     {
-        this.pwmApplication = pwmApplication;
-        final Configuration config = pwmApplication.getConfig();
-        if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
+        this.pwmDomain = pwmDomain;
+        final DomainConfig config = pwmDomain.getConfig();
+        if ( pwmDomain.getLocalDB() == null || pwmDomain.getLocalDB().status() != LocalDB.Status.OPEN )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "unable to start IntruderManager, LocalDB unavailable" );
             LOGGER.error( () -> errorInformation.toDebugStr() );
@@ -116,7 +116,7 @@ public class IntruderManager implements PwmService
             status = STATUS.CLOSED;
             return;
         }
-        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.INTRUDER_ENABLE ) )
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.INTRUDER_ENABLE ) )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "intruder module not enabled" );
             LOGGER.debug( () -> errorInformation.toDebugStr() );
@@ -125,13 +125,13 @@ public class IntruderManager implements PwmService
         }
         final DataStore dataStore;
         {
-            final IntruderStorageMethod intruderStorageMethod = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.INTRUDER_STORAGE_METHOD, IntruderStorageMethod.class );
+            final IntruderStorageMethod intruderStorageMethod = pwmDomain.getConfig().readSettingAsEnum( PwmSetting.INTRUDER_STORAGE_METHOD, IntruderStorageMethod.class );
             final String debugMsg;
             final DataStorageMethod storageMethodUsed;
             switch ( intruderStorageMethod )
             {
                 case AUTO:
-                    dataStore = DataStoreFactory.autoDbOrLocalDBstore( pwmApplication, DatabaseTable.INTRUDER, LocalDB.DB.INTRUDER );
+                    dataStore = DataStoreFactory.autoDbOrLocalDBstore( pwmDomain, DatabaseTable.INTRUDER, LocalDB.DB.INTRUDER );
                     if ( dataStore instanceof DatabaseDataStore )
                     {
                         debugMsg = "starting using auto-configured data store, Remote Database selected";
@@ -145,13 +145,13 @@ public class IntruderManager implements PwmService
                     break;
 
                 case DATABASE:
-                    dataStore = new DatabaseDataStore( pwmApplication.getDatabaseService(), DatabaseTable.INTRUDER );
+                    dataStore = new DatabaseDataStore( pwmDomain.getDatabaseService(), DatabaseTable.INTRUDER );
                     debugMsg = "starting using Remote Database data store";
                     storageMethodUsed = DataStorageMethod.DB;
                     break;
 
                 case LOCALDB:
-                    dataStore = new LocalDBDataStore( pwmApplication.getLocalDB(), LocalDB.DB.INTRUDER );
+                    dataStore = new LocalDBDataStore( pwmDomain.getLocalDB(), LocalDB.DB.INTRUDER );
                     debugMsg = "starting using LocalDB data store";
                     storageMethodUsed = DataStorageMethod.LOCALDB;
                     break;
@@ -167,10 +167,10 @@ public class IntruderManager implements PwmService
         final RecordStore recordStore;
         {
             recordStore = new DataStoreRecordStore( dataStore, this );
-            final String threadName = PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + " timer";
+            final String threadName = PwmScheduler.makeThreadName( pwmDomain, this.getClass() ) + " timer";
             timer = new Timer( threadName, true );
-            final long maxRecordAge = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_RETENTION_TIME_MS ) );
-            final long cleanerRunFrequency = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_CLEANUP_FREQUENCY_MS ) );
+            final long maxRecordAge = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.INTRUDER_RETENTION_TIME_MS ) );
+            final long cleanerRunFrequency = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.INTRUDER_CLEANUP_FREQUENCY_MS ) );
             timer.schedule( new TimerTask()
             {
                 @Override
@@ -202,7 +202,7 @@ public class IntruderManager implements PwmService
         }
     }
 
-    private void initializeRecordManagers( final Configuration config, final RecordStore recordStore )
+    private void initializeRecordManagers( final DomainConfig config, final RecordStore recordStore )
     {
         {
             final IntruderSettings settings = new IntruderSettings();
@@ -383,13 +383,13 @@ public class IntruderManager implements PwmService
 
         if ( recordType == RecordType.USER_ID )
         {
-            final UserIdentity userIdentity = UserIdentity.fromKey( subject, pwmApplication );
-            final UserAuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createUserAuditRecord(
+            final UserIdentity userIdentity = UserIdentity.fromKey( subject, pwmDomain );
+            final UserAuditRecord auditRecord = new AuditRecordFactory( pwmDomain ).createUserAuditRecord(
                     AuditEvent.INTRUDER_USER_ATTEMPT,
                     userIdentity,
                     sessionLabel
             );
-            pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
+            pwmDomain.getAuditManager().submit( sessionLabel, auditRecord );
         }
         else
         {
@@ -398,8 +398,8 @@ public class IntruderManager implements PwmService
             messageObj.put( "type", recordType );
             messageObj.put( "subject", subject );
             final String message = JsonUtil.serializeMap( messageObj );
-            final SystemAuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createSystemAuditRecord( AuditEvent.INTRUDER_ATTEMPT, message );
-            pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
+            final SystemAuditRecord auditRecord = new AuditRecordFactory( pwmDomain ).createSystemAuditRecord( AuditEvent.INTRUDER_ATTEMPT, message );
+            pwmDomain.getAuditManager().submit( sessionLabel, auditRecord );
         }
 
         try
@@ -412,13 +412,13 @@ public class IntruderManager implements PwmService
             {
                 if ( recordType == RecordType.USER_ID )
                 {
-                    final UserIdentity userIdentity = UserIdentity.fromKey( subject, pwmApplication );
-                    final UserAuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createUserAuditRecord(
+                    final UserIdentity userIdentity = UserIdentity.fromKey( subject, pwmDomain );
+                    final UserAuditRecord auditRecord = new AuditRecordFactory( pwmDomain ).createUserAuditRecord(
                             AuditEvent.INTRUDER_USER_LOCK,
                             userIdentity,
                             sessionLabel
                     );
-                    pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
+                    pwmDomain.getAuditManager().submit( sessionLabel, auditRecord );
                     sendAlert( manager.readIntruderRecord( subject ), sessionLabel );
                 }
                 else
@@ -428,13 +428,13 @@ public class IntruderManager implements PwmService
                     messageObj.put( "type", recordType );
                     messageObj.put( "subject", subject );
                     final String message = JsonUtil.serializeMap( messageObj );
-                    final SystemAuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createSystemAuditRecord( AuditEvent.INTRUDER_LOCK, message );
-                    pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
+                    final SystemAuditRecord auditRecord = new AuditRecordFactory( pwmDomain ).createSystemAuditRecord( AuditEvent.INTRUDER_LOCK, message );
+                    pwmDomain.getAuditManager().submit( sessionLabel, auditRecord );
                 }
 
 
                 manager.markAlerted( subject );
-                final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
+                final StatisticsManager statisticsManager = pwmDomain.getStatisticsManager();
                 if ( statisticsManager != null && statisticsManager.status() == STATUS.OPEN )
                 {
                     statisticsManager.incrementValue( Statistic.INTRUDER_ATTEMPTS );
@@ -456,13 +456,13 @@ public class IntruderManager implements PwmService
             points += intruderRecord.getAttemptCount();
 
             // minimum
-            long delayPenalty = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_MIN_DELAY_PENALTY_MS ) );
-            delayPenalty += points * Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_DELAY_PER_COUNT_MS ) );
+            long delayPenalty = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.INTRUDER_MIN_DELAY_PENALTY_MS ) );
+            delayPenalty += points * Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.INTRUDER_DELAY_PER_COUNT_MS ) );
 
             // add some randomness;
-            delayPenalty += PwmRandom.getInstance().nextInt( ( int ) Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_DELAY_MAX_JITTER_MS ) ) );
-            delayPenalty = delayPenalty > Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS ) )
-                    ? Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS ) )
+            delayPenalty += PwmRandom.getInstance().nextInt( ( int ) Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.INTRUDER_DELAY_MAX_JITTER_MS ) ) );
+            delayPenalty = delayPenalty > Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS ) )
+                    ? Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS ) )
                     : delayPenalty;
 
             {
@@ -486,7 +486,7 @@ public class IntruderManager implements PwmService
             try
             {
                 final UserIdentity identity = UserIdentity.fromDelimitedKey( intruderRecord.getSubject() );
-                sendIntruderNoticeEmail( pwmApplication, sessionLabel, identity );
+                sendIntruderNoticeEmail( pwmDomain, sessionLabel, identity );
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -566,7 +566,7 @@ public class IntruderManager implements PwmService
             {
                 final String subject = pwmSession.getSessionStateBean().getSrcAddress();
                 check( RecordType.ADDRESS, subject );
-                final int maxAllowedAttempts = ( int ) pwmApplication.getConfig().readSettingAsLong( PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS );
+                final int maxAllowedAttempts = ( int ) pwmDomain.getConfig().readSettingAsLong( PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS );
                 if ( maxAllowedAttempts != 0 && pwmSession.getSessionStateBean().getIntruderAttempts().get() > maxAllowedAttempts )
                 {
                     throw new PwmUnrecoverableException( PwmError.ERROR_INTRUDER_SESSION );
@@ -677,13 +677,13 @@ public class IntruderManager implements PwmService
     }
 
     private static void sendIntruderNoticeEmail(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
     )
     {
-        final Locale locale = LocaleHelper.getLocaleForSessionID( pwmApplication, sessionLabel.getSessionID() );
-        final Configuration config = pwmApplication.getConfig();
+        final Locale locale = LocaleHelper.getLocaleForSessionID( pwmDomain, sessionLabel.getSessionID() );
+        final DomainConfig config = pwmDomain.getConfig();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_INTRUDERNOTICE, locale );
 
         if ( configuredEmailSetting == null )
@@ -694,19 +694,19 @@ public class IntruderManager implements PwmService
         try
         {
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
-                    pwmApplication,
+                    pwmDomain,
                     SessionLabel.SYSTEM_LABEL,
                     userIdentity, locale
             );
 
             final MacroRequest macroRequest = MacroRequest.forUser(
-                    pwmApplication,
+                    pwmDomain,
                     sessionLabel,
                     userInfo,
                     null
             );
 
-            pwmApplication.getEmailQueue().submitEmail( configuredEmailSetting, userInfo, macroRequest );
+            pwmDomain.getEmailQueue().submitEmail( configuredEmailSetting, userInfo, macroRequest );
         }
         catch ( final PwmUnrecoverableException e )
         {

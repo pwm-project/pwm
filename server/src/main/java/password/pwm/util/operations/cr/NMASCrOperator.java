@@ -60,12 +60,12 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
@@ -116,7 +116,7 @@ public class NMASCrOperator implements CrOperator
 
     private final AtomicLoopIntIncrementer threadCounter = new AtomicLoopIntIncrementer();
     private final List<NMASSessionThread> sessionMonitorThreads = Collections.synchronizedList( new ArrayList<NMASSessionThread>() );
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final TimeDuration maxThreadIdleTime;
     private final int maxThreadCount;
 
@@ -136,14 +136,14 @@ public class NMASCrOperator implements CrOperator
         CR_OPTIONS_MAP = Collections.unmodifiableMap( crOptionsMap );
     }
 
-    public NMASCrOperator( final PwmApplication pwmApplication )
+    public NMASCrOperator( final PwmDomain pwmDomain )
     {
-        this.pwmApplication = pwmApplication;
-        maxThreadCount = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.NMAS_THREADS_MAX_COUNT ) );
-        final int maxSeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.NMAS_THREADS_MAX_SECONDS ) );
-        final int minSeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.NMAS_THREADS_MIN_SECONDS ) );
+        this.pwmDomain = pwmDomain;
+        maxThreadCount = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.NMAS_THREADS_MAX_COUNT ) );
+        final int maxSeconds = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.NMAS_THREADS_MAX_SECONDS ) );
+        final int minSeconds = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.NMAS_THREADS_MIN_SECONDS ) );
 
-        int maxNmasIdleSeconds = ( int ) pwmApplication.getConfig().readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
+        int maxNmasIdleSeconds = ( int ) pwmDomain.getConfig().readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
         if ( maxNmasIdleSeconds > maxSeconds )
         {
             maxNmasIdleSeconds = maxSeconds;
@@ -159,7 +159,7 @@ public class NMASCrOperator implements CrOperator
 
     private void registerSaslProvider( )
     {
-        final boolean forceRegistration = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.NMAS_FORCE_SASL_FACTORY_REGISTRATION ) );
+        final boolean forceRegistration = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.NMAS_FORCE_SASL_FACTORY_REGISTRATION ) );
 
         if ( Security.getProvider( NMASCrPwmSaslProvider.SASL_PROVIDER_NAME ) != null )
         {
@@ -179,7 +179,7 @@ public class NMASCrOperator implements CrOperator
             LOGGER.trace( () -> "pre-existing SASL provider for " + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + " has not been detected" );
         }
 
-        final boolean useLocalProvider = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.NMAS_USE_LOCAL_SASL_FACTORY ) );
+        final boolean useLocalProvider = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.NMAS_USE_LOCAL_SASL_FACTORY ) );
 
         try
         {
@@ -249,8 +249,8 @@ public class NMASCrOperator implements CrOperator
                 {
                     LOGGER.debug( () -> "starting NMASCrOperator watchdog timer, maxIdleThreadTime=" + maxThreadIdleTime.asCompactString() );
                     timer = new Timer( PwmConstants.PWM_APP_NAME + "-NMASCrOperator watchdog timer", true );
-                    final long frequency = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.NMAS_THREADS_WATCHDOG_FREQUENCY ) );
-                    final boolean debugOutput = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.NMAS_THREADS_WATCHDOG_DEBUG ) );
+                    final long frequency = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.NMAS_THREADS_WATCHDOG_FREQUENCY ) );
+                    final boolean debugOutput = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.NMAS_THREADS_WATCHDOG_DEBUG ) );
                     timer.schedule( new ThreadWatchdogTask( debugOutput ), frequency, frequency );
                 }
             }
@@ -279,7 +279,7 @@ public class NMASCrOperator implements CrOperator
     )
             throws PwmUnrecoverableException
     {
-        pwmApplication.getIntruderManager().convenience().checkUserIdentity( userIdentity );
+        pwmDomain.getIntruderManager().convenience().checkUserIdentity( userIdentity );
 
         try
         {
@@ -288,7 +288,7 @@ public class NMASCrOperator implements CrOperator
                 return null;
             }
 
-            final ResponseSet responseSet = new NMASCRResponseSet( pwmApplication, userIdentity );
+            final ResponseSet responseSet = new NMASCRResponseSet( pwmDomain, userIdentity );
             if ( responseSet.getChallengeSet() == null )
             {
                 return null;
@@ -442,7 +442,7 @@ public class NMASCrOperator implements CrOperator
 
     public class NMASCRResponseSet implements ResponseSet
     {
-        private final PwmApplication pwmApplication;
+        private final PwmDomain pwmDomain;
         private final UserIdentity userIdentity;
 
         private final ChaiConfiguration chaiConfiguration;
@@ -450,15 +450,15 @@ public class NMASCrOperator implements CrOperator
         private transient NMASResponseSession ldapChallengeSession;
         boolean passed;
 
-        private NMASCRResponseSet( final PwmApplication pwmApplication, final UserIdentity userIdentity )
+        private NMASCRResponseSet( final PwmDomain pwmDomain, final UserIdentity userIdentity )
                 throws Exception
         {
-            this.pwmApplication = pwmApplication;
+            this.pwmDomain = pwmDomain;
             this.userIdentity = userIdentity;
 
-            final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
+            final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
 
-            final Configuration config = pwmApplication.getConfig();
+            final DomainConfig config = pwmDomain.getConfig();
             final List<String> ldapURLs = ldapProfile.readSettingAsStringArray( PwmSetting.LDAP_SERVER_URLS );
             final String proxyDN = ldapProfile.readSettingAsString( PwmSetting.LDAP_PROXY_USER_DN );
             final PasswordData proxyPW = ldapProfile.readSettingAsPassword( PwmSetting.LDAP_PROXY_USER_PASSWORD );
@@ -487,7 +487,7 @@ public class NMASCrOperator implements CrOperator
 
         private LDAPConnection makeLdapConnection( ) throws Exception
         {
-            final ChaiProviderFactory chaiProviderFactory = pwmApplication.getLdapConnectionService().getChaiProviderFactory();
+            final ChaiProviderFactory chaiProviderFactory = pwmDomain.getLdapConnectionService().getChaiProviderFactory();
             final ChaiProvider chaiProvider = chaiProviderFactory.newProvider( chaiConfiguration );
             final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
             try
@@ -599,7 +599,7 @@ public class NMASCrOperator implements CrOperator
                 try
                 {
                     cycle();
-                    pwmApplication.getIntruderManager().convenience().checkUserIdentity( userIdentity );
+                    pwmDomain.getIntruderManager().convenience().checkUserIdentity( userIdentity );
                     if ( challengeSet == null )
                     {
                         final String errorMsg = "unable to load next challenge set";

@@ -25,7 +25,7 @@ import password.pwm.config.option.DataStorageMethod;
 import java.util.List;
 
 /**
- * Static helper methods for reading {@link Configuration} values.
+ * Static helper methods for reading {@link DomainConfig} values.
  */
 public class ConfigurationUtil
 {
@@ -33,13 +33,13 @@ public class ConfigurationUtil
     {
     }
 
-    public static List<DataStorageMethod> getCrReadPreference( final Configuration configuration )
+    public static List<DataStorageMethod> getCrReadPreference( final DomainConfig domainConfig )
     {
-        final List<DataStorageMethod> readPreferences = configuration.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE );
+        final List<DataStorageMethod> readPreferences = domainConfig.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE );
         if ( readPreferences.size() == 1 && readPreferences.iterator().next() == DataStorageMethod.AUTO )
         {
             readPreferences.clear();
-            if ( configuration.hasDbConfigured() )
+            if ( domainConfig.hasDbConfigured() )
             {
                 readPreferences.add( DataStorageMethod.DB );
             }
@@ -50,7 +50,7 @@ public class ConfigurationUtil
         }
 
 
-        if ( configuration.readSettingAsBoolean( PwmSetting.EDIRECTORY_USE_NMAS_RESPONSES ) )
+        if ( domainConfig.readSettingAsBoolean( PwmSetting.EDIRECTORY_USE_NMAS_RESPONSES ) )
         {
             readPreferences.add( DataStorageMethod.NMAS );
         }
@@ -58,13 +58,13 @@ public class ConfigurationUtil
         return readPreferences;
     }
 
-    public static List<DataStorageMethod> getCrWritePreference( final Configuration configuration )
+    public static List<DataStorageMethod> getCrWritePreference( final DomainConfig domainConfig )
     {
-        final List<DataStorageMethod> writeMethods = configuration.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE );
+        final List<DataStorageMethod> writeMethods = domainConfig.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE );
         if ( writeMethods.size() == 1 && writeMethods.get( 0 ) == DataStorageMethod.AUTO )
         {
             writeMethods.clear();
-            if ( configuration.hasDbConfigured() )
+            if ( domainConfig.hasDbConfigured() )
             {
                 writeMethods.add( DataStorageMethod.DB );
             }
@@ -73,7 +73,7 @@ public class ConfigurationUtil
                 writeMethods.add( DataStorageMethod.LDAP );
             }
         }
-        if ( configuration.readSettingAsBoolean( PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES ) )
+        if ( domainConfig.readSettingAsBoolean( PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES ) )
         {
             writeMethods.add( DataStorageMethod.NMAS );
         }

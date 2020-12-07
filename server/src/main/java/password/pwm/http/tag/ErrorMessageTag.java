@@ -21,7 +21,7 @@
 package password.pwm.http.tag;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -51,17 +51,17 @@ public class ErrorMessageTag extends PwmAbstractTag
         try
         {
             final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
-            PwmApplication pwmApplication = null;
+            PwmDomain pwmDomain = null;
             try
             {
-                pwmApplication = ContextManager.getPwmApplication( pageContext.getRequest() );
+                pwmDomain = ContextManager.getPwmApplication( pageContext.getRequest() );
             }
             catch ( final PwmException e )
             {
                 /* noop */
             }
 
-            if ( pwmRequest == null || pwmApplication == null )
+            if ( pwmRequest == null || pwmDomain == null )
             {
                 return EVAL_PAGE;
             }
@@ -71,9 +71,9 @@ public class ErrorMessageTag extends PwmAbstractTag
             if ( error != null )
             {
                 final boolean allowHtml = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_ERRORS_ALLOW_HTML ) );
-                final boolean showErrorDetail = pwmApplication.determineIfDetailErrorMsgShown();
+                final boolean showErrorDetail = pwmDomain.determineIfDetailErrorMsgShown();
 
-                String outputMsg = error.toUserStr( pwmRequest.getPwmSession(), pwmApplication );
+                String outputMsg = error.toUserStr( pwmRequest.getPwmSession(), pwmDomain );
                 if ( !allowHtml )
                 {
                     outputMsg = StringUtil.escapeHtml( outputMsg );

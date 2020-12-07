@@ -82,6 +82,6 @@ public interface VerificationMethodSystem
 
     VerificationState getVerificationState( );
 
-    void init( PwmApplication pwmApplication, UserInfo userInfoBean, SessionLabel sessionLabel, Locale locale )
+    void init( PwmDomain pwmDomain, UserInfo userInfoBean, SessionLabel sessionLabel, Locale locale )
             throws PwmUnrecoverableException;
 }

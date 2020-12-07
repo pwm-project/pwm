@@ -22,10 +22,10 @@ package password.pwm.http.servlet.configmanager;
 
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -159,10 +159,10 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
             throws IOException, ServletException, PwmUnrecoverableException
 
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
-        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING )
+        if ( pwmDomain.getApplicationMode() == PwmApplicationMode.RUNNING )
         {
             final String errorMsg = "database upload is not permitted when in running mode";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_UPLOAD_FAILURE, errorMsg, new String[]
@@ -188,13 +188,13 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
         LocalDB localDB = null;
         try
         {
-            localDB = pwmApplication.getLocalDB();
-            final File localDBLocation = pwmApplication.getLocalDB().getFileLocation();
-            final Configuration configuration = pwmApplication.getConfig();
+            localDB = pwmDomain.getLocalDB();
+            final File localDBLocation = pwmDomain.getLocalDB().getFileLocation();
+            final DomainConfig domainConfig = pwmDomain.getConfig();
             contextManager.shutdown();
 
             localDB.close();
-            localDB = LocalDBFactory.getInstance( localDBLocation, false, null, configuration );
+            localDB = LocalDBFactory.getInstance( localDBLocation, false, null, domainConfig );
 
             final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
             LOGGER.info( pwmRequest, () -> "beginning LocalDB import" );

@@ -27,7 +27,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingTemplate;
@@ -567,7 +567,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         LOGGER.debug( pwmRequest, () -> "beginning restLdapHealthCheck" );
         final String profileID = pwmRequest.readParameterAsString( "profile" );
-        final Configuration config = new Configuration( configManagerBean.getStoredConfiguration() );
+        final DomainConfig config = new DomainConfig( configManagerBean.getStoredConfiguration() );
         final HealthData healthData = LDAPHealthChecker.healthForNewConfiguration( pwmRequest.getPwmApplication(), config, pwmRequest.getLocale(), profileID, true, true );
         final RestResultBean restResultBean = RestResultBean.withData( healthData );
 
@@ -585,7 +585,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         LOGGER.debug( pwmRequest, () -> "beginning restDatabaseHealthCheck" );
-        final Configuration config = new Configuration( configManagerBean.getStoredConfiguration() );
+        final DomainConfig config = new DomainConfig( configManagerBean.getStoredConfiguration() );
         final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmApplication(), config );
         final HealthData healthData = HealthRecord.asHealthDataBean( config, pwmRequest.getLocale(), healthRecords );
         final RestResultBean restResultBean = RestResultBean.withData( healthData );
@@ -604,7 +604,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         LOGGER.debug( pwmRequest, () -> "beginning restSmsHealthCheck" );
 
-        final Configuration config = new Configuration( configManagerBean.getStoredConfiguration() );
+        final DomainConfig config = new DomainConfig( configManagerBean.getStoredConfiguration() );
         final StringBuilder output = new StringBuilder();
         output.append( "beginning SMS send process:\n" );
 
@@ -657,19 +657,19 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final StringBuilder output = new StringBuilder();
         output.append( "beginning EMail send process:\n" );
 
-        final Configuration testConfiguration = new Configuration( configManagerBean.getStoredConfiguration() );
+        final DomainConfig testDomainConfig = new DomainConfig( configManagerBean.getStoredConfiguration() );
 
-        final EmailServerProfile emailServerProfile = testConfiguration.getEmailServerProfiles().get( profileID );
+        final EmailServerProfile emailServerProfile = testDomainConfig.getEmailServerProfiles().get( profileID );
         if ( emailServerProfile != null )
         {
-            final Optional<EmailServer> emailServer = EmailServerUtil.makeEmailServer( testConfiguration, emailServerProfile, null );
+            final Optional<EmailServer> emailServer = EmailServerUtil.makeEmailServer( testDomainConfig, emailServerProfile, null );
             if ( emailServer.isPresent() )
             {
                 final MacroRequest macroRequest = SampleDataGenerator.sampleMacroRequest( pwmRequest.getPwmApplication() );
 
                 try
                 {
-                    EmailService.sendEmailSynchronous( emailServer.get(), testConfiguration, testEmailItem, macroRequest );
+                    EmailService.sendEmailSynchronous( emailServer.get(), testDomainConfig, testEmailItem, macroRequest );
                    output.append( "message delivered" );
                 }
                 catch ( final PwmException e )

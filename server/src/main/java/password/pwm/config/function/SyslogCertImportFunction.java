@@ -20,9 +20,9 @@
 
 package password.pwm.config.function;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -57,7 +57,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
     {
         boolean error = false;
         Exception exeception = null;
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
@@ -77,7 +77,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
                             final List<X509Certificate> certs = X509Utils.readRemoteCertificates(
                                     syslogConfig.getHost(),
                                     syslogConfig.getPort(),
-                                    new Configuration( modifier.newStoredConfiguration() )
+                                    new DomainConfig( modifier.newStoredConfiguration() )
                             );
                             if ( certs != null )
                             {
@@ -99,7 +99,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
         {
             final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
             modifier.writeSetting( setting, null, X509CertificateValue.fromX509( resultCertificates ), userIdentity );
-            return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig() );
+            return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmDomain.getConfig() );
         }
         else
         {

@@ -25,7 +25,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.RecoveryMinLifetimeOption;
@@ -42,7 +42,7 @@ import java.util.Set;
 
 public class ConfigurationCleanerTest
 {
-    private static Configuration configuration;
+    private static DomainConfig domainConfig;
 
     @BeforeClass
     public static void setUp() throws Exception
@@ -52,27 +52,27 @@ public class ConfigurationCleanerTest
         try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ) )
         {
             final StoredConfiguration storedConfiguration = StoredConfigurationFactory.input( xmlFile );
-            configuration = new Configuration( storedConfiguration );
+            domainConfig = new DomainConfig( storedConfiguration );
         }
     }
 
     @AfterClass
     public static void tearDown()
     {
-        configuration = null;
+        domainConfig = null;
     }
 
     @Test
     public void testCleaningConfigFileLoaded()
     {
-        final String notesText = configuration.readSettingAsString( PwmSetting.NOTES );
+        final String notesText = domainConfig.readSettingAsString( PwmSetting.NOTES );
         Assert.assertEquals( "deprecated-test-configuration-file", notesText );
     }
 
     @Test
     public void testProfiledSettings()
     {
-        final PeopleSearchProfile peopleSearchProfile = configuration.getPeopleSearchProfiles().get( PwmConstants.PROFILE_ID_DEFAULT );
+        final PeopleSearchProfile peopleSearchProfile = domainConfig.getPeopleSearchProfiles().get( PwmConstants.PROFILE_ID_DEFAULT );
         final List<UserPermission> userPermissionList = peopleSearchProfile.readSettingAsUserPermission( PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER );
         final UserPermission userPermission = userPermissionList.iterator().next();
         Assert.assertEquals( "(|(cn=*smith*)(cn=*blake*)(givenName=*Margo*))", userPermission.getLdapQuery() );
@@ -83,7 +83,7 @@ public class ConfigurationCleanerTest
     {        PwmLogger.disableAllLogging();
 
         {
-            final Set<WebServiceUsage> usages = configuration.readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class );
+            final Set<WebServiceUsage> usages = domainConfig.readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class );
             Assert.assertEquals( usages.size(), 2 );
             Assert.assertTrue( usages.contains( WebServiceUsage.Statistics ) );
             Assert.assertTrue( usages.contains( WebServiceUsage.Health ) );
@@ -93,7 +93,7 @@ public class ConfigurationCleanerTest
     @Test
     public void testDeprecatedMinLifetimeSetting()
     {
-        for ( final ForgottenPasswordProfile profile : configuration.getForgottenPasswordProfiles().values() )
+        for ( final ForgottenPasswordProfile profile : domainConfig.getForgottenPasswordProfiles().values() )
         {
             final RecoveryMinLifetimeOption minLifetimeOption = profile.readSettingAsEnum(
                     PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS,
@@ -106,9 +106,9 @@ public class ConfigurationCleanerTest
     @Test
     public void testDeprecatedAdComplexitySettings()
     {
-        for ( final String profile : configuration.getPasswordProfileIDs() )
+        for ( final String profile : domainConfig.getPasswordProfileIDs() )
         {
-            final PwmPasswordPolicy pwmPasswordPolicy = configuration.getPasswordPolicy( profile, PwmConstants.DEFAULT_LOCALE );
+            final PwmPasswordPolicy pwmPasswordPolicy = domainConfig.getPasswordPolicy( profile, PwmConstants.DEFAULT_LOCALE );
             final ADPolicyComplexity adPolicyComplexity = pwmPasswordPolicy.getRuleHelper().getADComplexityLevel();
 
             Assert.assertEquals( ADPolicyComplexity.AD2003, adPolicyComplexity );

@@ -22,7 +22,7 @@ package password.pwm.ws.client.rest;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Value;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -50,7 +50,7 @@ public class RestTokenDataClient implements RestClient
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestTokenDataClient.class );
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
 
     @Value
     public static class TokenDestinationData implements Serializable
@@ -60,9 +60,9 @@ public class RestTokenDataClient implements RestClient
         private String displayValue;
     }
 
-    public RestTokenDataClient( final PwmApplication pwmApplication )
+    public RestTokenDataClient( final PwmDomain pwmDomain )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
     }
 
     private TokenDestinationData invoke(
@@ -84,19 +84,19 @@ public class RestTokenDataClient implements RestClient
         if ( userIdentity != null )
         {
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
-                    pwmApplication,
+                    pwmDomain,
                     sessionLabel,
                     userIdentity, locale
             );
 
-            final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity() );
-            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE, macroRequest );
+            final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity() );
+            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean( userInfo, pwmDomain.getConfig(), PwmConstants.DEFAULT_LOCALE, macroRequest );
             sendData.put( RestClient.DATA_KEY_USERINFO, publicUserInfoBean );
         }
 
 
         final String jsonRequestData = JsonUtil.serializeMap( sendData );
-        final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmApplication, locale, url, jsonRequestData );
+        final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmDomain, locale, url, jsonRequestData );
         return JsonUtil.deserialize( responseBody, TokenDestinationData.class );
     }
 
@@ -108,7 +108,7 @@ public class RestTokenDataClient implements RestClient
     )
             throws PwmUnrecoverableException
     {
-        final String configuredUrl = pwmApplication.getConfig().readSettingAsString( PwmSetting.EXTERNAL_MACROS_DEST_TOKEN_URLS );
+        final String configuredUrl = pwmDomain.getConfig().readSettingAsString( PwmSetting.EXTERNAL_MACROS_DEST_TOKEN_URLS );
         if ( configuredUrl != null && !configuredUrl.isEmpty() )
         {
             try
@@ -129,7 +129,7 @@ public class RestTokenDataClient implements RestClient
     private TokenDestinationData builtInService( final TokenDestinationData tokenDestinationData )
     {
 
-        final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( pwmApplication.getConfig() );
+        final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( pwmDomain.getConfig() );
 
         final StringBuilder tokenSendDisplay = new StringBuilder();
 

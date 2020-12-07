@@ -21,7 +21,7 @@
 package password.pwm.util.cli.commands;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
@@ -52,9 +52,9 @@ public class UserReportCommand extends AbstractCliCommand
         try ( OutputStream outputFileStream = new BufferedOutputStream( new FileOutputStream( outputFile ) ) )
         {
 
-            final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
+            final PwmDomain pwmDomain = cliEnvironment.getPwmDomain();
 
-            final ReportService userReport = pwmApplication.getReportService();
+            final ReportService userReport = pwmDomain.getReportService();
             if ( userReport.status() != PwmService.STATUS.OPEN )
             {
                 out( "report service is not open or enabled" );
@@ -63,13 +63,13 @@ public class UserReportCommand extends AbstractCliCommand
                 {
                     for ( final HealthRecord record : healthIssues )
                     {
-                        out( "report health status: " + record.toDebugString( Locale.getDefault(), pwmApplication.getConfig() ) );
+                        out( "report health status: " + record.toDebugString( Locale.getDefault(), pwmDomain.getConfig() ) );
                     }
                 }
                 return;
             }
 
-            final ReportCsvUtility reportCsvUtility = new ReportCsvUtility( pwmApplication );
+            final ReportCsvUtility reportCsvUtility = new ReportCsvUtility( pwmDomain );
             reportCsvUtility.outputToCsv( outputFileStream, true, PwmConstants.DEFAULT_LOCALE );
         }
         catch ( final IOException e )

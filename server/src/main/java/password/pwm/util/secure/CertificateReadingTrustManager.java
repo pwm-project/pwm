@@ -20,7 +20,7 @@
 
 package password.pwm.util.secure;
 
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
@@ -46,18 +46,18 @@ public class CertificateReadingTrustManager implements X509TrustManager
 
     private List<X509Certificate> certificates = new ArrayList<>();
 
-    CertificateReadingTrustManager( final Configuration configuration, final X509TrustManager wrappedTrustManager, final X509Utils.ReadCertificateFlag... readCertificateFlags )
+    CertificateReadingTrustManager( final DomainConfig domainConfig, final X509TrustManager wrappedTrustManager, final X509Utils.ReadCertificateFlag... readCertificateFlags )
     {
         this.readCertificateFlags = readCertificateFlags;
         this.wrappedTrustManager = wrappedTrustManager;
-        this.trustManagerSettings = TrustManagerSettings.fromConfiguration( configuration );
+        this.trustManagerSettings = TrustManagerSettings.fromConfiguration( domainConfig );
     }
 
     public static CertificateReadingTrustManager newCertReaderTrustManager(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final X509Utils.ReadCertificateFlag... readCertificateFlags )
     {
-        return new CertificateReadingTrustManager( configuration, PromiscuousTrustManager.createPromiscuousTrustManager(), readCertificateFlags );
+        return new CertificateReadingTrustManager( domainConfig, PromiscuousTrustManager.createPromiscuousTrustManager(), readCertificateFlags );
     }
 
     @Override

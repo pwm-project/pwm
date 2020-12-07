@@ -30,9 +30,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
@@ -62,7 +62,7 @@ public class PwmHttpClientTest
 
 
     // Create a few mock objects, in case they're needed by the tests
-    private Configuration configuration = Mockito.spy( new Configuration( StoredConfigurationFactory.newConfig() ) );
+    private DomainConfig domainConfig = Mockito.spy( new DomainConfig( StoredConfigurationFactory.newConfig() ) );
 
     public PwmHttpClientTest() throws PwmUnrecoverableException
     {
@@ -81,8 +81,8 @@ public class PwmHttpClientTest
                         .withBody( "PwmAbout from the local mock server" ) ) );
 
         // Obtain the HTTP client
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
-        final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(  );
+        final PwmDomain pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
+        final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(  );
 
         // Execute the HTTP request
         final String url = String.format( "http://localhost:%d/simpleHello", wireMockRule.port() );
@@ -114,8 +114,8 @@ public class PwmHttpClientTest
                         .withBody( "PwmAbout from the local mock server" ) ) );
 
         // Obtain the HTTP client
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
-        final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(  );
+        final PwmDomain pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
+        final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(  );
 
         // Execute the HTTP request
         final String url = String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() );
@@ -139,11 +139,11 @@ public class PwmHttpClientTest
                         .withBody( "PwmAbout from the local mock server" ) ) );
 
         // Stub out some mock object behavior
-        Mockito.when( configuration.readAppProperty( AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE ) ).thenReturn( "true" );
+        Mockito.when( domainConfig.readAppProperty( AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE ) ).thenReturn( "true" );
 
         // Obtain the HTTP client
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
-        final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(
+        final PwmDomain pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
+        final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(
                 PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous ).build()
         );
 
@@ -172,11 +172,11 @@ public class PwmHttpClientTest
                         .withHeader( HttpHeader.ContentType.getHttpName(), ContentType.TEXT_PLAIN.getMimeType() )
                         .withBody( "PwmAbout from the local mock server" ) ) );
 
-        Mockito.when( configuration.readAppProperty( AppProperty.HTTP_CLIENT_ENABLE_HOSTNAME_VERIFICATION ) ).thenReturn( "false" );
+        Mockito.when( domainConfig.readAppProperty( AppProperty.HTTP_CLIENT_ENABLE_HOSTNAME_VERIFICATION ) ).thenReturn( "false" );
 
         // Obtain the HTTP client
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), configuration );
-        final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(
+        final PwmDomain pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), domainConfig );
+        final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(
                 PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
                         .certificates( getWireMockSelfSignedCertificate() ).build()
         );
@@ -207,12 +207,12 @@ public class PwmHttpClientTest
                         .withBody( "PwmAbout from the local mock server" ) ) );
 
         // Stub out some mock object behavior
-        Mockito.when( configuration.readSettingAsString( PwmSetting.HTTP_PROXY_URL ) )
+        Mockito.when( domainConfig.readSettingAsString( PwmSetting.HTTP_PROXY_URL ) )
                 .thenReturn( String.format( "http://localhost:%d/simpleHello", wireMockRule.port() ) );
 
         // Obtain the HTTP client
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), configuration );
-        final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(
+        final PwmDomain pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), domainConfig );
+        final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(
                 PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
                         .certificates( getWireMockSelfSignedCertificate() ).build()
         );

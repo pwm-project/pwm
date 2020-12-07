@@ -26,7 +26,7 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
@@ -81,7 +81,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     private final PwmURL pwmURL;
     private final PwmRequestID pwmRequestID;
 
-    private final transient PwmApplication pwmApplication;
+    private final transient PwmDomain pwmDomain;
     private final transient PwmSession pwmSession;
     private final transient Supplier<SessionLabel> sessionLabelLazySupplier = new LazySupplier<>( this::makeSessionLabel );
 
@@ -99,8 +99,8 @@ public class PwmRequest extends PwmHttpRequestWrapper
         if ( pwmRequest == null )
         {
             final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( request );
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication( request );
-            pwmRequest = new PwmRequest( request, response, pwmApplication, pwmSession );
+            final PwmDomain pwmDomain = ContextManager.getPwmApplication( request );
+            pwmRequest = new PwmRequest( request, response, pwmDomain, pwmSession );
             request.setAttribute( PwmRequestAttribute.PwmRequest.toString(), pwmRequest );
         }
         return pwmRequest;
@@ -109,22 +109,22 @@ public class PwmRequest extends PwmHttpRequestWrapper
     private PwmRequest(
             final HttpServletRequest httpServletRequest,
             final HttpServletResponse httpServletResponse,
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final PwmSession pwmSession
     )
             throws PwmUnrecoverableException
     {
-        super( httpServletRequest, pwmApplication.getConfig() );
+        super( httpServletRequest, pwmDomain.getConfig() );
         this.pwmRequestID = PwmRequestID.next();
-        this.pwmResponse = new PwmResponse( httpServletResponse, this, pwmApplication.getConfig() );
+        this.pwmResponse = new PwmResponse( httpServletResponse, this, pwmDomain.getConfig() );
         this.pwmSession = pwmSession;
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.pwmURL = new PwmURL( this.getHttpServletRequest() );
     }
 
-    public PwmApplication getPwmApplication( )
+    public PwmDomain getPwmApplication( )
     {
-        return pwmApplication;
+        return pwmDomain;
     }
 
     public PwmSession getPwmSession( )
@@ -495,7 +495,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     )
     {
         final LocalSessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
-        return ssBean.getLogoutURL() == null ? pwmApplication.getConfig().readSettingAsString( PwmSetting.URL_LOGOUT ) : ssBean.getLogoutURL();
+        return ssBean.getLogoutURL() == null ? pwmDomain.getConfig().readSettingAsString( PwmSetting.URL_LOGOUT ) : ssBean.getLogoutURL();
     }
 
     public String getCspNonce( )
@@ -506,7 +506,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
             if ( getAttribute( PwmRequestAttribute.CspNonce ) == null )
             {
                 final int nonceLength = Integer.parseInt( getConfig().readAppProperty( AppProperty.HTTP_HEADER_CSP_NONCE_BYTES ) );
-                final byte[] cspNonce = pwmApplication.getSecureService().pwmRandom().newBytes( nonceLength );
+                final byte[] cspNonce = pwmDomain.getSecureService().pwmRandom().newBytes( nonceLength );
                 final String cspString = StringUtil.base64Encode( cspNonce );
                 setAttribute( PwmRequestAttribute.CspNonce, cspString );
             }
@@ -526,7 +526,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         if ( strValue != null && !strValue.isEmpty() )
         {
             final PwmSecurityKey pwmSecurityKey = pwmSession.getSecurityKey( this );
-            return pwmApplication.getSecureService().decryptObject( strValue, pwmSecurityKey, returnClass );
+            return pwmDomain.getSecureService().decryptObject( strValue, pwmSecurityKey, returnClass );
         }
 
         return null;
@@ -582,7 +582,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public boolean endUserFunctionalityAvailable( )
     {
-        final PwmApplicationMode mode = pwmApplication.getApplicationMode();
+        final PwmApplicationMode mode = pwmDomain.getApplicationMode();
         if ( mode == PwmApplicationMode.NEW )
         {
             return false;
@@ -600,7 +600,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public PwmRequestContext getPwmRequestContext()
     {
-        return new PwmRequestContext( pwmApplication, this.getLabel(), this.getLocale(), pwmRequestID );
+        return new PwmRequestContext( pwmDomain, this.getLabel(), this.getLocale(), pwmRequestID );
     }
 
     public String getPwmRequestID()

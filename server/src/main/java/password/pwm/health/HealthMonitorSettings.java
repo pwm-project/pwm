@@ -23,7 +23,7 @@ package password.pwm.health;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
@@ -37,7 +37,7 @@ class HealthMonitorSettings implements Serializable
     private TimeDuration maximumRecordAge;
     private TimeDuration maximumForceCheckWait;
 
-    static HealthMonitorSettings fromConfiguration( final Configuration config )
+    static HealthMonitorSettings fromConfiguration( final DomainConfig config )
     {
         return HealthMonitorSettings.builder()
                 .nominalCheckInterval( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_NOMINAL_CHECK_INTERVAL ) ), TimeDuration.Unit.SECONDS ) )

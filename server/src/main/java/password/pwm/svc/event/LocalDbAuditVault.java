@@ -21,7 +21,7 @@
 package password.pwm.svc.event;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
@@ -61,23 +61,23 @@ public class LocalDbAuditVault implements AuditVault
 
     @Override
     public void init(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final LocalDB localDB,
             final Settings settings
     )
             throws PwmException
     {
         this.settings = settings;
-        this.auditDB = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, localDB, LocalDB.DB.AUDIT_EVENTS );
-        this.maxBulkRemovals = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_LOCALDB_MAX_BULK_REMOVALS ) );
+        this.auditDB = LocalDBStoredQueue.createLocalDBStoredQueue( pwmDomain, localDB, LocalDB.DB.AUDIT_EVENTS );
+        this.maxBulkRemovals = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_LOCALDB_MAX_BULK_REMOVALS ) );
 
         readOldestRecord();
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
 
         status = PwmService.STATUS.OPEN;
         final TimeDuration jobFrequency = TimeDuration.of( 10, TimeDuration.Unit.MINUTES );
-        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new TrimmerThread(), executorService, TimeDuration.SECONDS_10, jobFrequency );
+        pwmDomain.getPwmScheduler().scheduleFixedRateJob( new TrimmerThread(), executorService, TimeDuration.SECONDS_10, jobFrequency );
     }
 
     @Override

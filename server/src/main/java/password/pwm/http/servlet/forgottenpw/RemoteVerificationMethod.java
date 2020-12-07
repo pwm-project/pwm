@@ -20,7 +20,7 @@
 
 package password.pwm.http.servlet.forgottenpw;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.RemoteVerificationRequestBean;
@@ -61,7 +61,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
 
     private RemoteVerificationResponseBean lastResponse;
     private PwmHttpClient pwmHttpClient;
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
 
     private UserInfo userInfo;
     private SessionLabel sessionLabel;
@@ -111,16 +111,16 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final UserInfo userInfo, final SessionLabel sessionLabel, final Locale locale )
+    public void init( final PwmDomain pwmDomain, final UserInfo userInfo, final SessionLabel sessionLabel, final Locale locale )
             throws PwmUnrecoverableException
     {
-        pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( );
-        this.remoteSessionID = pwmApplication.getSecureService().pwmRandom().randomUUID().toString();
+        pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( );
+        this.remoteSessionID = pwmDomain.getSecureService().pwmRandom().randomUUID().toString();
         this.userInfo = userInfo;
         this.sessionLabel = sessionLabel;
         this.locale = locale;
-        this.pwmApplication = pwmApplication;
-        this.url = pwmApplication.getConfig().readSettingAsString( PwmSetting.EXTERNAL_MACROS_REMOTE_RESPONSES_URL );
+        this.pwmDomain = pwmDomain;
+        this.url = pwmDomain.getConfig().readSettingAsString( PwmSetting.EXTERNAL_MACROS_REMOTE_RESPONSES_URL );
 
         if ( url == null || url.isEmpty() )
         {
@@ -142,11 +142,11 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
         headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
         headers.put( HttpHeader.AcceptLanguage.getHttpName(), locale.toLanguageTag() );
 
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, sessionLabel, userInfo, null );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, sessionLabel, userInfo, null );
 
         final RemoteVerificationRequestBean remoteVerificationRequestBean = RemoteVerificationRequestBean.builder()
             .responseSessionID( this.remoteSessionID )
-            .userInfo( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), locale, macroRequest ) )
+            .userInfo( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmDomain.getConfig(), locale, macroRequest ) )
             .userResponses( userResponses )
             .build();
 

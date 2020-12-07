@@ -22,11 +22,11 @@ package password.pwm.http.servlet.helpdesk;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.profile.HelpdeskProfile;
@@ -60,7 +60,7 @@ public class HelpdeskServletUtil
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskServletUtil.class );
 
-    static String makeAdvancedSearchFilter( final Configuration configuration, final HelpdeskProfile helpdeskProfile )
+    static String makeAdvancedSearchFilter( final DomainConfig domainConfig, final HelpdeskProfile helpdeskProfile )
     {
         final String configuredFilter = helpdeskProfile.readSettingAsString( PwmSetting.HELPDESK_SEARCH_FILTER );
         if ( configuredFilter != null && !configuredFilter.isEmpty() )
@@ -68,7 +68,7 @@ public class HelpdeskServletUtil
             return configuredFilter;
         }
 
-        final List<String> defaultObjectClasses = configuration.readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
+        final List<String> defaultObjectClasses = domainConfig.readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
         final List<FormConfiguration> searchAttributes = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM );
         final StringBuilder filter = new StringBuilder();
 
@@ -101,12 +101,12 @@ public class HelpdeskServletUtil
     }
 
     static String makeAdvancedSearchFilter(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final HelpdeskProfile helpdeskProfile,
             final Map<String, String> attributesInSearchRequest
     )
     {
-        final List<String> defaultObjectClasses = configuration.readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
+        final List<String> defaultObjectClasses = domainConfig.readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
         final List<FormConfiguration> searchAttributes = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM );
         return makeAdvancedSearchFilter( defaultObjectClasses, searchAttributes, attributesInSearchRequest );
     }
@@ -292,8 +292,8 @@ public class HelpdeskServletUtil
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final Configuration config = pwmRequest.getConfig();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final DomainConfig config = pwmRequest.getConfig();
         final Locale locale = pwmRequest.getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_HELPDESK_UNLOCK, locale );
 
@@ -313,7 +313,7 @@ public class HelpdeskServletUtil
 
         final MacroRequest macroRequest = getTargetUserMacroRequest( pwmRequest, helpdeskProfile, userIdentity );
 
-        pwmApplication.getEmailQueue().submitEmail(
+        pwmDomain.getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 userInfo,
                 macroRequest

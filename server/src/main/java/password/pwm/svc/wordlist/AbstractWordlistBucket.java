@@ -20,7 +20,7 @@
 
 package password.pwm.svc.wordlist;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.AtomicLoopLongIncrementer;
@@ -34,13 +34,13 @@ import java.util.TreeMap;
 
 public abstract class AbstractWordlistBucket implements WordlistBucket
 {
-    protected final PwmApplication pwmApplication;
+    protected final PwmDomain pwmDomain;
     protected final WordlistConfiguration wordlistConfiguration;
     protected final WordlistType type;
 
-    public AbstractWordlistBucket( final PwmApplication pwmApplication, final WordlistConfiguration wordlistConfiguration, final WordlistType type )
+    public AbstractWordlistBucket( final PwmDomain pwmDomain, final WordlistConfiguration wordlistConfiguration, final WordlistType type )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.wordlistConfiguration = wordlistConfiguration;
         this.type = type;
     }
@@ -121,7 +121,7 @@ public abstract class AbstractWordlistBucket implements WordlistBucket
             final long seedCount = size();
             if ( seedCount > 1000 )
             {
-                final long randomKey = pwmApplication.getSecureService().pwmRandom().nextLong( seedCount );
+                final long randomKey = pwmDomain.getSecureService().pwmRandom().nextLong( seedCount );
                 return getValue( seedlistLongToKey( randomKey ) );
             }
         }

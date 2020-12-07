@@ -21,7 +21,7 @@
 package password.pwm.ws.server;
 
 import com.google.gson.stream.MalformedJsonException;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -70,7 +70,7 @@ public class RestUtility
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = restRequest.getPwmApplication();
+        final PwmDomain pwmDomain = restRequest.getPwmApplication();
 
         if ( StringUtil.isEmpty( username ) )
         {
@@ -115,15 +115,15 @@ public class RestUtility
 
         try
         {
-            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
             final UserIdentity userIdentity = userSearchEngine.resolveUsername( effectiveUsername, null, ldapProfileID, restRequest.getSessionLabel() );
 
-            final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
+            final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
             if ( ldapProfile != null )
             {
                 {
-                    final UserIdentity testUser = ldapProfile.getTestUser( pwmApplication );
-                    if ( testUser != null && testUser.canonicalEquals( userIdentity, pwmApplication ) )
+                    final UserIdentity testUser = ldapProfile.getTestUser( pwmDomain );
+                    if ( testUser != null && testUser.canonicalEquals( userIdentity, pwmDomain ) )
                     {
                         final String msg = "rest services can not be invoked against the configured LDAP profile test user";
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg );
@@ -132,8 +132,8 @@ public class RestUtility
                 }
 
                 {
-                    final UserIdentity proxyUser = ldapProfile.getProxyUser( pwmApplication );
-                    if ( proxyUser != null && proxyUser.canonicalEquals( userIdentity, pwmApplication ) )
+                    final UserIdentity proxyUser = ldapProfile.getProxyUser( pwmDomain );
+                    if ( proxyUser != null && proxyUser.canonicalEquals( userIdentity, pwmDomain ) )
                     {
                         final String msg = "rest services can not be invoked against the configured LDAP profile proxy user";
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg );

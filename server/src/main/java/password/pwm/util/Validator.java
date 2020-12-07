@@ -21,10 +21,10 @@
 package password.pwm.util;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.FormNonce;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -53,11 +53,11 @@ public class Validator
             throws PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
 
         final String submittedPwmFormID = pwmRequest.readParameterAsString( PwmConstants.PARAM_FORM_ID );
 
-        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.SECURITY_ENABLE_FORM_NONCE ) )
+        if ( pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.SECURITY_ENABLE_FORM_NONCE ) )
         {
             final FormNonce formNonce = pwmRequest.getPwmApplication().getSecureService().decryptObject(
                     submittedPwmFormID,
@@ -116,7 +116,7 @@ public class Validator
 
 
     public static String sanitizeInputValue(
-            final Configuration config,
+            final DomainConfig config,
             final String input,
             final int maxLength
     )
@@ -153,14 +153,14 @@ public class Validator
     }
 
 
-    public static String sanitizeHeaderValue( final Configuration configuration, final String input )
+    public static String sanitizeHeaderValue( final DomainConfig domainConfig, final String input )
     {
         if ( input == null )
         {
             return null;
         }
 
-        final String regexStripPatternStr = configuration.readAppProperty( AppProperty.SECURITY_HTTP_STRIP_HEADER_REGEX );
+        final String regexStripPatternStr = domainConfig.readAppProperty( AppProperty.SECURITY_HTTP_STRIP_HEADER_REGEX );
         if ( regexStripPatternStr != null && !regexStripPatternStr.isEmpty() )
         {
             final Pattern pattern = Pattern.compile( regexStripPatternStr );

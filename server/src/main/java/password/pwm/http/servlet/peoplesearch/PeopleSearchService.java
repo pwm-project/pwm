@@ -20,7 +20,7 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 public class PeopleSearchService implements PwmService
 {
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
     private ThreadPoolExecutor threadPoolExecutor;
 
     @Override
@@ -45,13 +45,13 @@ public class PeopleSearchService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
 
         final int maxThreadCount = 5;
 
-        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, PeopleSearchService.class ), true );
+        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmDomain, PeopleSearchService.class ), true );
         threadPoolExecutor = new ThreadPoolExecutor(
                 maxThreadCount,
                 maxThreadCount,

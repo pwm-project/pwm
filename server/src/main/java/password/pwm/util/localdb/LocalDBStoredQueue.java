@@ -20,7 +20,7 @@
 
 package password.pwm.util.localdb;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
@@ -70,7 +70,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
     }
 
     public static LocalDBStoredQueue createLocalDBStoredQueue(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final LocalDB pwmDB,
             final LocalDB.DB db
     )
@@ -80,7 +80,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
         boolean developerDebug = false;
         try
         {
-            developerDebug = pwmApplication.getConfig().isDevDebugMode();
+            developerDebug = pwmDomain.getConfig().isDevDebugMode();
         }
         catch ( final Exception e )
         {

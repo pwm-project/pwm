@@ -21,7 +21,7 @@
 package password.pwm.util.macro;
 
 import com.google.gson.reflect.TypeToken;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.pub.PublicUserInfoBean;
@@ -66,7 +66,7 @@ class ExternalRestMacro extends AbstractMacro
             final MacroRequest macroRequestInfo
     )
     {
-        final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
+        final PwmDomain pwmDomain = macroRequestInfo.getPwmDomain();
         final UserInfo userInfoBean = macroRequestInfo.getUserInfo();
 
         final String inputString = matchValue.substring( 11, matchValue.length() - 1 );
@@ -76,10 +76,10 @@ class ExternalRestMacro extends AbstractMacro
         {
             if ( userInfoBean != null )
             {
-                final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity() );
+                final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity() );
                 final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(
                         userInfoBean,
-                        pwmApplication.getConfig(),
+                        pwmDomain.getConfig(),
                         PwmConstants.DEFAULT_LOCALE,
                         macroRequest
                 );
@@ -88,7 +88,7 @@ class ExternalRestMacro extends AbstractMacro
             sendData.put( "input", inputString );
 
             final String requestBody = JsonUtil.serializeMap( sendData );
-            final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmApplication,
+            final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmDomain,
                     PwmConstants.DEFAULT_LOCALE, url,
                     requestBody );
             final Map<String, Object> responseMap = JsonUtil.deserialize( responseBody,

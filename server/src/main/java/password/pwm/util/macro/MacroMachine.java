@@ -22,7 +22,7 @@ package password.pwm.util.macro;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
@@ -87,12 +87,12 @@ public class MacroMachine
 
     }
 
-    private static Map<Pattern, Macro> makeExternalImplementations( final PwmApplication pwmApplication )
+    private static Map<Pattern, Macro> makeExternalImplementations( final PwmDomain pwmDomain )
     {
         final LinkedHashMap<Pattern, Macro> map = new LinkedHashMap<>();
-        final List<String> externalMethods = ( pwmApplication == null )
+        final List<String> externalMethods = ( pwmDomain == null )
                 ? Collections.emptyList()
-                : pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.EXTERNAL_MACROS_REST_URLS );
+                : pwmDomain.getConfig().readSettingAsStringArray( PwmSetting.EXTERNAL_MACROS_REST_URLS );
 
         int iteration = 0;
         for ( final String url : externalMethods )
@@ -128,7 +128,7 @@ public class MacroMachine
         //First the User macros
         if ( scopes.contains( Macro.Scope.User ) )
         {
-            macroImplementations.putAll( makeExternalImplementations( macroRequest.getPwmApplication() ) );
+            macroImplementations.putAll( makeExternalImplementations( macroRequest.getPwmDomain() ) );
         }
 
         final ReplaceWorkData workData = new ReplaceWorkData( input, input, macroRequest );
@@ -187,7 +187,7 @@ public class MacroMachine
     )
     {
         final SessionLabel sessionLabel = macroRequestInfo.getSessionLabel();
-        final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
+        final PwmDomain pwmDomain = macroRequestInfo.getPwmDomain();
         final Instant startTime = Instant.now();
         final String matchedStr = matcher.group();
         final int startPos = matcher.start();
@@ -201,9 +201,9 @@ public class MacroMachine
         catch ( final MacroParseException e )
         {
             LOGGER.debug( sessionLabel, () -> "macro parse error replacing macro '" + matchedStr + "', error: " + e.getMessage() );
-            if ( pwmApplication != null )
+            if ( pwmDomain != null )
             {
-                replaceStr = "[" + e.getErrorInformation().toUserStr( PwmConstants.DEFAULT_LOCALE, macroRequestInfo.getPwmApplication().getConfig() ) + "]";
+                replaceStr = "[" + e.getErrorInformation().toUserStr( PwmConstants.DEFAULT_LOCALE, macroRequestInfo.getPwmDomain().getConfig() ) + "]";
             }
             else
             {
@@ -238,7 +238,7 @@ public class MacroMachine
         {
             final boolean sensitive = macroImplementation.flags().contains( Macro.MacroDefinitionFlag.SensitiveValue );
             final boolean debugOnlyLogging = macroImplementation.flags().contains( Macro.MacroDefinitionFlag.OnlyDebugLogging );
-            if ( !debugOnlyLogging || ( pwmApplication != null && pwmApplication.getConfig().isDevDebugMode() ) )
+            if ( !debugOnlyLogging || ( pwmDomain != null && pwmDomain.getConfig().isDevDebugMode() ) )
             {
                 final String finalReplaceStr = replaceStr;
                 LOGGER.trace( sessionLabel, () -> "replaced macro " + matchedStr + " with value: "
@@ -254,8 +254,8 @@ public class MacroMachine
         final Set<Macro.Scope> scopes = EnumSet.noneOf( Macro.Scope.class );
         scopes.add( Macro.Scope.Static );
 
-        final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
-        final PwmApplicationMode mode = pwmApplication != null ? pwmApplication.getApplicationMode() : PwmApplicationMode.ERROR;
+        final PwmDomain pwmDomain = macroRequestInfo.getPwmDomain();
+        final PwmApplicationMode mode = pwmDomain != null ? pwmDomain.getApplicationMode() : PwmApplicationMode.ERROR;
 
         if (
                 mode == PwmApplicationMode.RUNNING

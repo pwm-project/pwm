@@ -26,7 +26,7 @@ import com.sun.mail.util.MailSSLSocketFactory;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SmtpServerType;
 import password.pwm.config.profile.EmailServerProfile;
@@ -72,18 +72,18 @@ public class EmailServerUtil
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( EmailServerUtil.class );
 
-    static List<EmailServer> makeEmailServersMap( final Configuration configuration )
+    static List<EmailServer> makeEmailServersMap( final DomainConfig domainConfig )
             throws PwmUnrecoverableException
     {
         final List<EmailServer> returnObj = new ArrayList<>(  );
 
-        final Collection<EmailServerProfile> profiles = configuration.getEmailServerProfiles().values();
+        final Collection<EmailServerProfile> profiles = domainConfig.getEmailServerProfiles().values();
 
         for ( final EmailServerProfile profile : profiles )
         {
-            final TrustManager[] trustManager = trustManagerForProfile( configuration, profile );
+            final TrustManager[] trustManager = trustManagerForProfile( domainConfig, profile );
 
-            final Optional<EmailServer> emailServer = makeEmailServer( configuration, profile, trustManager );
+            final Optional<EmailServer> emailServer = makeEmailServer( domainConfig, profile, trustManager );
 
             emailServer.ifPresent( returnObj::add );
         }
@@ -92,7 +92,7 @@ public class EmailServerUtil
     }
 
     public static Optional<EmailServer> makeEmailServer(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final EmailServerProfile profile,
             final TrustManager[] trustManagers
     )
@@ -110,9 +110,9 @@ public class EmailServerUtil
         )
         {
             final TrustManager[] effectiveTrustManagers = trustManagers == null
-                    ? trustManagerForProfile( configuration, profile )
+                    ? trustManagerForProfile( domainConfig, profile )
                     : trustManagers;
-            final Properties properties = makeJavaMailProps( configuration, profile, effectiveTrustManagers );
+            final Properties properties = makeJavaMailProps( domainConfig, profile, effectiveTrustManagers );
             final jakarta.mail.Session session = jakarta.mail.Session.getInstance( properties, null );
             return Optional.of( EmailServer.builder()
                     .id( id )
@@ -133,15 +133,15 @@ public class EmailServerUtil
         return Optional.empty();
     }
 
-    private static TrustManager[] trustManagerForProfile( final Configuration configuration, final EmailServerProfile emailServerProfile )
+    private static TrustManager[] trustManagerForProfile( final DomainConfig domainConfig, final EmailServerProfile emailServerProfile )
             throws PwmUnrecoverableException
     {
         final List<X509Certificate> configuredCerts = emailServerProfile.readSettingAsCertificate( PwmSetting.EMAIL_SERVER_CERTS );
         if ( JavaHelper.isEmpty( configuredCerts ) )
         {
-            return X509Utils.getDefaultJavaTrustManager( configuration );
+            return X509Utils.getDefaultJavaTrustManager( domainConfig );
         }
-        final TrustManager certMatchingTrustManager = PwmTrustManager.createPwmTrustManager( configuration, configuredCerts );
+        final TrustManager certMatchingTrustManager = PwmTrustManager.createPwmTrustManager( domainConfig, configuredCerts );
         return new TrustManager[]
                 {
                         certMatchingTrustManager,
@@ -150,7 +150,7 @@ public class EmailServerUtil
 
 
     private static Properties makeJavaMailProps(
-            final Configuration config,
+            final DomainConfig config,
             final EmailServerProfile profile,
             final TrustManager[] trustManager
     )
@@ -307,7 +307,7 @@ public class EmailServerUtil
 
     public static List<Message> convertEmailItemToMessages(
             final EmailItemBean emailItemBean,
-            final Configuration config,
+            final DomainConfig config,
             final EmailServer emailServer
     )
             throws MessagingException
@@ -397,18 +397,18 @@ public class EmailServerUtil
     }
 
 
-    public static List<X509Certificate> readCertificates( final Configuration configuration, final String profile )
+    public static List<X509Certificate> readCertificates( final DomainConfig domainConfig, final String profile )
             throws PwmUnrecoverableException
     {
-        final EmailServerProfile emailServerProfile = configuration.getEmailServerProfiles().get( profile );
+        final EmailServerProfile emailServerProfile = domainConfig.getEmailServerProfiles().get( profile );
         final CertificateReadingTrustManager certReaderTm = CertificateReadingTrustManager.newCertReaderTrustManager(
-                configuration,
+                domainConfig,
                 X509Utils.ReadCertificateFlag.ReadOnlyRootCA );
         final TrustManager[] trustManagers =  new TrustManager[]
                 {
                         certReaderTm,
                 };
-        final Optional<EmailServer> emailServer = makeEmailServer( configuration, emailServerProfile, trustManagers );
+        final Optional<EmailServer> emailServer = makeEmailServer( domainConfig, emailServerProfile, trustManagers );
         if ( emailServer.isPresent() )
         {
             try ( Transport transport = makeSmtpTransport( emailServer.get() ) )

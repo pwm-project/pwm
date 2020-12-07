@@ -21,11 +21,11 @@
 package password.pwm.http.servlet.newuser;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.TokenDestinationItem;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.value.data.FormConfiguration;
@@ -147,21 +147,21 @@ public class NewUserServlet extends ControlledPwmServlet
     @Override
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
 
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
 
         if ( !config.readSettingAsBoolean( PwmSetting.NEWUSER_ENABLE ) )
         {
             throw new PwmUnrecoverableException( PwmError.ERROR_SERVICE_NOT_AVAILABLE );
         }
 
-        final NewUserBean newUserBean = pwmApplication.getSessionStateService().getBean( pwmRequest, NewUserBean.class );
+        final NewUserBean newUserBean = pwmDomain.getSessionStateService().getBean( pwmRequest, NewUserBean.class );
 
         final String signedFormData = pwmRequest.readParameterAsString( PwmConstants.PARAM_SIGNED_FORM, PwmHttpRequestWrapper.Flag.BypassValidation );
         if ( !StringUtil.isEmpty( signedFormData ) )
         {
-            final Map<String, String> jsonForm = RestFormSigningServer.readSignedFormValue( pwmApplication, signedFormData );
+            final Map<String, String> jsonForm = RestFormSigningServer.readSignedFormValue( pwmDomain, signedFormData );
             LOGGER.trace( () -> "detected signedForm parameter in request, will read and place in bean; keys=" + JsonUtil.serializeCollection( jsonForm.keySet() ) );
             newUserBean.setRemoteInputData( jsonForm );
         }
@@ -199,12 +199,12 @@ public class NewUserServlet extends ControlledPwmServlet
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         if ( newUserBean.getProfileID() == null )
         {
-            final Set<String> newUserProfileIDs = pwmApplication.getConfig().getNewUserProfiles().keySet();
+            final Set<String> newUserProfileIDs = pwmDomain.getConfig().getNewUserProfiles().keySet();
             if ( newUserProfileIDs.isEmpty() )
             {
                 pwmRequest.respondWithError( new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, "no new user profiles are defined" ) );
@@ -239,7 +239,7 @@ public class NewUserServlet extends ControlledPwmServlet
         // try to read the new user policy to make sure it's readable, that way an exception is thrown here instead of by the jsp
         {
             final Instant startTime = Instant.now();
-            newUserProfile.getNewUserPasswordPolicy( pwmApplication, pwmSession.getSessionStateBean().getLocale() );
+            newUserProfile.getNewUserPasswordPolicy( pwmDomain, pwmSession.getSessionStateBean().getLocale() );
             LOGGER.trace( () -> "read new user password policy in ", () -> TimeDuration.fromCurrent( startTime ) );
         }
 
@@ -283,7 +283,7 @@ public class NewUserServlet extends ControlledPwmServlet
             if ( !newUserBean.isAgreementPassed() )
             {
                 final MacroRequest macroRequest = NewUserUtils.createMacroMachineForNewUser(
-                        pwmApplication,
+                        pwmDomain,
                         newUserProfile,
                         pwmRequest.getLabel(),
                         newUserBean.getNewUserForm(),
@@ -370,7 +370,7 @@ public class NewUserServlet extends ControlledPwmServlet
     )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final Locale locale = pwmRequest.getLocale();
 
         try
@@ -382,7 +382,7 @@ public class NewUserServlet extends ControlledPwmServlet
             {
                 passwordCheckInfo = new PasswordUtility.PasswordCheckInfo(
                         Message.getLocalizedMessage( locale,
-                                Message.Success_NewUserForm, pwmApplication.getConfig() ),
+                                Message.Success_NewUserForm, pwmDomain.getConfig() ),
                         passwordCheckInfo.isPassed(),
                         passwordCheckInfo.getStrength(),
                         passwordCheckInfo.getMatch(),
@@ -414,12 +414,12 @@ public class NewUserServlet extends ControlledPwmServlet
     {
         final Instant startTime = Instant.now();
         final Locale locale = pwmRequest.getLocale();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final NewUserProfile newUserProfile = getNewUserProfile( pwmRequest );
         final List<FormConfiguration> formDefinition = newUserProfile.readSettingAsForm( PwmSetting.NEWUSER_FORM );
         final Map<FormConfiguration, String> formValueData = FormUtility.readFormValuesFromMap( newUserForm.getFormData(), formDefinition, locale );
 
-        FormUtility.validateFormValues( pwmApplication.getConfig(), formValueData, locale );
+        FormUtility.validateFormValues( pwmDomain.getConfig(), formValueData, locale );
         final List<FormUtility.ValidationFlag> validationFlags = new ArrayList<>();
         validationFlags.add( FormUtility.ValidationFlag.checkReadOnlyAndHidden );
         if ( allowResultCaching )
@@ -427,7 +427,7 @@ public class NewUserServlet extends ControlledPwmServlet
             validationFlags.add( FormUtility.ValidationFlag.allowResultCaching );
         }
         FormUtility.validateFormValueUniqueness(
-                pwmApplication,
+                pwmDomain,
                 formValueData,
                 locale,
                 Collections.emptyList(),
@@ -438,7 +438,7 @@ public class NewUserServlet extends ControlledPwmServlet
 
         final UserInfo uiBean = UserInfoBean.builder()
                 .cachedPasswordRuleAttributes( FormUtility.asStringMap( formValueData ) )
-                .passwordPolicy( newUserProfile.getNewUserPasswordPolicy( pwmApplication, locale ) )
+                .passwordPolicy( newUserProfile.getNewUserPasswordPolicy( pwmDomain, locale ) )
                 .build();
 
         final boolean promptForPassword = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD );
@@ -448,7 +448,7 @@ public class NewUserServlet extends ControlledPwmServlet
         if ( promptForPassword )
         {
             passwordCheckInfo =  PasswordUtility.checkEnteredPassword(
-                    pwmApplication,
+                    pwmDomain,
                     locale,
                     null,
                     uiBean,

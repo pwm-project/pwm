@@ -21,7 +21,7 @@
 package password.pwm.http.state;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -53,9 +53,9 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
     private String cookieName = "SESSION";
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        cookieName = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_LOGIN_NAME );
+        cookieName = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_LOGIN_NAME );
     }
 
     @Override

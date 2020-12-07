@@ -23,11 +23,11 @@ package password.pwm.http.servlet;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.DeleteAccountProfile;
 import password.pwm.config.profile.ProfileDefinition;
@@ -108,10 +108,10 @@ public class DeleteAccountServlet extends ControlledPwmServlet
     @Override
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final DeleteAccountProfile deleteAccountProfile = getProfile( pwmRequest );
 
-        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.DELETE_ACCOUNT_ENABLE ) )
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.DELETE_ACCOUNT_ENABLE ) )
         {
             throw new PwmUnrecoverableException( new ErrorInformation(
                     PwmError.ERROR_SERVICE_NOT_AVAILABLE,
@@ -196,7 +196,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final DeleteAccountProfile deleteAccountProfile = getProfile( pwmRequest );
         final UserIdentity userIdentity = pwmRequest.getUserInfoIfLoggedIn();
 
@@ -209,7 +209,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
                 LOGGER.debug( pwmRequest, () -> "executing configured actions to user " + userIdentity );
 
 
-                final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
+                final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmDomain, userIdentity )
                         .setExpandPwmMacros( true )
                         .setMacroMachine( pwmRequest.getPwmSession().getSessionManager().getMacroMachine( ) )
                         .createActionExecutor();
@@ -230,7 +230,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
         sendProfileUpdateEmailNotice( pwmRequest );
 
         // mark the event log
-        pwmApplication.getAuditManager().submit( AuditEvent.DELETE_ACCOUNT, pwmRequest.getPwmSession().getUserInfo(), pwmRequest.getPwmSession() );
+        pwmDomain.getAuditManager().submit( AuditEvent.DELETE_ACCOUNT, pwmRequest.getPwmSession().getUserInfo(), pwmRequest.getPwmSession() );
 
         final String nextUrl = deleteAccountProfile.readSettingAsString( PwmSetting.DELETE_ACCOUNT_NEXT_URL );
         if ( nextUrl != null && !nextUrl.isEmpty() )
@@ -244,7 +244,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
         // perform ldap entry delete.
         if ( deleteAccountProfile.readSettingAsBoolean( PwmSetting.DELETE_ACCOUNT_DELETE_USER_ENTRY ) )
         {
-            final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( pwmRequest.getUserInfoIfLoggedIn() );
+            final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( pwmRequest.getUserInfoIfLoggedIn() );
             try
             {
                 chaiUser.getChaiProvider().deleteEntry( chaiUser.getEntryDN() );
@@ -258,7 +258,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
         }
 
         // clear the delete bean
-        pwmApplication.getSessionStateService().clearBean( pwmRequest, DeleteAccountBean.class );
+        pwmDomain.getSessionStateService().clearBean( pwmRequest, DeleteAccountBean.class );
 
         // delete finished, so logout and redirect.
         pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
@@ -271,7 +271,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getConfig();
         final Locale locale = pwmRequest.getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_DELETEACCOUNT, locale );
 

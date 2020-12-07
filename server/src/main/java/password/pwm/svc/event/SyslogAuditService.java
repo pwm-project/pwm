@@ -36,9 +36,9 @@ import org.graylog2.syslog4j.impl.net.tcp.ssl.SSLTCPNetSyslogWriter;
 import org.graylog2.syslog4j.impl.net.udp.UDPNetSyslog;
 import org.graylog2.syslog4j.impl.net.udp.UDPNetSyslogConfig;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SyslogOutputFormat;
 import password.pwm.error.ErrorInformation;
@@ -87,19 +87,19 @@ public class SyslogAuditService
 
     private List<SyslogIF> syslogInstances = new ArrayList<>();
 
-    private final Configuration configuration;
-    private final PwmApplication pwmApplication;
+    private final DomainConfig domainConfig;
+    private final PwmDomain pwmDomain;
     private final AuditFormatter auditFormatter;
 
 
-    SyslogAuditService( final PwmApplication pwmApplication )
+    SyslogAuditService( final PwmDomain pwmDomain )
             throws LocalDBException
     {
-        this.pwmApplication = pwmApplication;
-        this.configuration = pwmApplication.getConfig();
-        this.certificates = configuration.readSettingAsCertificate( PwmSetting.AUDIT_SYSLOG_CERTIFICATES );
+        this.pwmDomain = pwmDomain;
+        this.domainConfig = pwmDomain.getConfig();
+        this.certificates = domainConfig.readSettingAsCertificate( PwmSetting.AUDIT_SYSLOG_CERTIFICATES );
 
-        final List<String> syslogConfigStringArray = configuration.readSettingAsStringArray( PwmSetting.AUDIT_SYSLOG_SERVERS );
+        final List<String> syslogConfigStringArray = domainConfig.readSettingAsStringArray( PwmSetting.AUDIT_SYSLOG_SERVERS );
         try
         {
             for ( final String entry : syslogConfigStringArray )
@@ -116,7 +116,7 @@ public class SyslogAuditService
         }
 
         {
-            final SyslogOutputFormat syslogOutputFormat = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.AUDIT_SYSLOG_OUTPUT_FORMAT, SyslogOutputFormat.class );
+            final SyslogOutputFormat syslogOutputFormat = pwmDomain.getConfig().readSettingAsEnum( PwmSetting.AUDIT_SYSLOG_OUTPUT_FORMAT, SyslogOutputFormat.class );
             switch ( syslogOutputFormat )
             {
                 case JSON:
@@ -134,14 +134,14 @@ public class SyslogAuditService
         }
 
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
-                .maxEvents( Integer.parseInt( configuration.readAppProperty( AppProperty.QUEUE_SYSLOG_MAX_COUNT ) ) )
-                .retryDiscardAge( TimeDuration.of( Long.parseLong( configuration.readAppProperty( AppProperty.QUEUE_SYSLOG_MAX_AGE_MS ) ), TimeDuration.Unit.MILLISECONDS ) )
-                .retryInterval( TimeDuration.of( Long.parseLong( configuration.readAppProperty( AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS ) ), TimeDuration.Unit.MILLISECONDS ) )
+                .maxEvents( Integer.parseInt( domainConfig.readAppProperty( AppProperty.QUEUE_SYSLOG_MAX_COUNT ) ) )
+                .retryDiscardAge( TimeDuration.of( Long.parseLong( domainConfig.readAppProperty( AppProperty.QUEUE_SYSLOG_MAX_AGE_MS ) ), TimeDuration.Unit.MILLISECONDS ) )
+                .retryInterval( TimeDuration.of( Long.parseLong( domainConfig.readAppProperty( AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS ) ), TimeDuration.Unit.MILLISECONDS ) )
                 .build();
 
-        final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE );
+        final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmDomain, pwmDomain.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE );
 
-        workQueueProcessor = new WorkQueueProcessor<>( pwmApplication, localDBStoredQueue, settings, new SyslogItemProcessor(), this.getClass() );
+        workQueueProcessor = new WorkQueueProcessor<>( pwmDomain, localDBStoredQueue, settings, new SyslogItemProcessor(), this.getClass() );
     }
 
     private class SyslogItemProcessor implements WorkQueueProcessor.ItemProcessor<String>
@@ -195,7 +195,7 @@ public class SyslogAuditService
                 throw new IllegalArgumentException( "unknown protocol type" );
         }
 
-        final int maxLength = Integer.parseInt( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_MAX_MESSAGE_LENGTH ) );
+        final int maxLength = Integer.parseInt( domainConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_MAX_MESSAGE_LENGTH ) );
 
         syslogConfigIF.setThreaded( false );
         syslogConfigIF.setMaxQueueSize( 0 );
@@ -213,7 +213,7 @@ public class SyslogAuditService
         final String syslogMsg;
         try
         {
-            syslogMsg = auditFormatter.convertAuditRecordToMessage( pwmApplication, event );
+            syslogMsg = auditFormatter.convertAuditRecordToMessage( pwmDomain, event );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -246,7 +246,7 @@ public class SyslogAuditService
                         HealthMessage.ServiceError,
                         HealthTopic.Audit,
                         this.getClass().getSimpleName(),
-                        errorInformation.toUserStr( PwmConstants.DEFAULT_LOCALE, configuration ) ) );
+                        errorInformation.toUserStr( PwmConstants.DEFAULT_LOCALE, domainConfig ) ) );
             }
         }
         return healthRecords;
@@ -262,7 +262,7 @@ public class SyslogAuditService
                 syslogInstance.info( auditRecord );
                 LOGGER.trace( () -> "delivered syslog audit event: " + auditRecord );
                 lastError = null;
-                StatisticsManager.incrementStat( this.pwmApplication, Statistic.SYSLOG_MESSAGES_SENT );
+                StatisticsManager.incrementStat( this.pwmDomain, Statistic.SYSLOG_MESSAGES_SENT );
                 return WorkQueueProcessor.ProcessResult.SUCCESS;
             }
             catch ( final Exception e )
@@ -368,7 +368,7 @@ public class SyslogAuditService
                     final SSLContext sc = SSLContext.getInstance( "SSL" );
                     sc.init( null, new X509TrustManager[]
                                     {
-                                            PwmTrustManager.createPwmTrustManager( configuration, certificates ),
+                                            PwmTrustManager.createPwmTrustManager( domainConfig, certificates ),
                                     },
                             new java.security.SecureRandom() );
                     return sc.getSocketFactory();

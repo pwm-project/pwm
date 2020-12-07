@@ -20,7 +20,7 @@
 
 package password.pwm.ws.server.rest;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
@@ -88,14 +88,14 @@ public class RestHealthServer extends RestServlet
     }
 
     public static HealthData processGetHealthCheckData(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final Locale locale
     )
     {
-        final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
+        final HealthMonitor healthMonitor = pwmDomain.getHealthMonitor();
         final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>( healthMonitor.getHealthRecords() );
         final List<HealthRecord> healthRecordBeans = HealthRecord.fromHealthRecords( healthRecords, locale,
-                pwmApplication.getConfig() );
+                pwmDomain.getConfig() );
         return HealthData.builder()
                 .timestamp( healthMonitor.getLastHealthCheckTime() )
                 .overall( healthMonitor.getMostSevereHealthStatus().toString() )

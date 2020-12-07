@@ -21,8 +21,8 @@
 package password.pwm.http.tag;
 
 import lombok.Value;
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.PwmDomain;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
@@ -63,7 +63,7 @@ public class PasswordRequirementsTag extends TagSupport
 
     public static List<String> getPasswordRequirementsStrings(
             final PwmPasswordPolicy passwordPolicy,
-            final Configuration config,
+            final DomainConfig config,
             final Locale locale,
             final MacroRequest macroRequest
     )
@@ -113,7 +113,7 @@ public class PasswordRequirementsTag extends TagSupport
         private PwmPasswordPolicy passwordPolicy;
         private PasswordRuleReaderHelper ruleHelper;
         private Locale locale;
-        private Configuration config;
+        private DomainConfig config;
         private MacroRequest macroRequest;
     }
 
@@ -570,8 +570,8 @@ public class PasswordRequirementsTag extends TagSupport
         {
             final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-            final Configuration config = pwmApplication.getConfig();
+            final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+            final DomainConfig config = pwmDomain.getConfig();
             final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
             pwmSession.getSessionManager().getMacroMachine( );
@@ -580,7 +580,7 @@ public class PasswordRequirementsTag extends TagSupport
             if ( getForm() != null && getForm().equalsIgnoreCase( "newuser" ) )
             {
                 final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
-                passwordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmApplication, locale );
+                passwordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmDomain, locale );
             }
             else
             {

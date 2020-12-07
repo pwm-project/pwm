@@ -22,7 +22,7 @@ package password.pwm.health;
 
 import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.ws.server.rest.bean.HealthData;
 
 import java.io.Serializable;
@@ -88,7 +88,7 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
         return status;
     }
 
-    public String getTopic( final Locale locale, final Configuration config )
+    public String getTopic( final Locale locale, final DomainConfig config )
     {
         if ( topic != null )
         {
@@ -97,7 +97,7 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
         return "";
     }
 
-    public String getDetail( final Locale locale, final Configuration config )
+    public String getDetail( final Locale locale, final DomainConfig config )
     {
         if ( message != null )
         {
@@ -106,7 +106,7 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
         return "";
     }
 
-    public String toDebugString( final Locale locale, final Configuration config )
+    public String toDebugString( final Locale locale, final DomainConfig config )
     {
         return HealthRecord.class.getSimpleName() + " " + status.getDescription( locale, config ) + " " + this.getTopic(
                 locale, config ) + " " + this.getDetail( locale, config );
@@ -124,13 +124,13 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
     }
 
     public static HealthData asHealthDataBean(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final Locale locale,
             final List<HealthRecord> profileRecords
     )
     {
         final List<password.pwm.ws.server.rest.bean.HealthRecord> healthRecordBeans = password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords(
-                profileRecords, locale, configuration );
+                profileRecords, locale, domainConfig );
         return HealthData.builder()
                 .timestamp( Instant.now() )
                 .overall( HealthMonitor.getMostSevereHealthStatus( profileRecords ).toString() )

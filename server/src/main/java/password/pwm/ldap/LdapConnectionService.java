@@ -30,7 +30,7 @@ import lombok.Data;
 import lombok.Value;
 import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -80,7 +80,7 @@ public class LdapConnectionService implements PwmService
     private final ConditionalTaskExecutor debugLogger = ConditionalTaskExecutor.forPeriodicTask( this::conditionallyLogDebugInfo, TimeDuration.MINUTE );
     private final Map<String, Map<Integer, ChaiProvider>> proxyChaiProviders = new HashMap<>();
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
     private ExecutorService executorService;
     private ChaiProviderFactory chaiProviderFactory;
     private AtomicLoopIntIncrementer slotIncrementer;
@@ -122,30 +122,30 @@ public class LdapConnectionService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication )
+    public void init( final PwmDomain pwmDomain )
             throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.chaiProviderFactory = ChaiProviderFactory.newProviderFactory();
 
-        useThreadLocal = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PROXY_USE_THREAD_LOCAL ) );
+        useThreadLocal = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_USE_THREAD_LOCAL ) );
         LOGGER.trace( () -> "threadLocal enabled: " + useThreadLocal );
 
         // read the lastLoginTime
-        this.lastLdapErrors.putAll( readLastLdapFailure( pwmApplication ) );
+        this.lastLdapErrors.putAll( readLastLdapFailure( pwmDomain ) );
 
         final long idleWeakTimeoutMS = JavaHelper.silentParseLong(
-                pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PROXY_IDLE_THREAD_LOCAL_TIMEOUT_MS ),
+                pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_IDLE_THREAD_LOCAL_TIMEOUT_MS ),
                 60_000 );
         final TimeDuration idleWeakTimeout = TimeDuration.of( idleWeakTimeoutMS, TimeDuration.Unit.MILLISECONDS );
-        this.executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
-        this.pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ThreadLocalCleaner(), executorService, idleWeakTimeout, idleWeakTimeout );
+        this.executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
+        this.pwmDomain.getPwmScheduler().scheduleFixedRateJob( new ThreadLocalCleaner(), executorService, idleWeakTimeout, idleWeakTimeout );
 
-        final int connectionsPerProfile = maxSlotsPerProfile( pwmApplication );
+        final int connectionsPerProfile = maxSlotsPerProfile( pwmDomain );
         LOGGER.trace( () -> "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
         slotIncrementer = AtomicLoopIntIncrementer.builder().ceiling( connectionsPerProfile ).build();
 
-        for ( final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values() )
+        for ( final LdapProfile ldapProfile : pwmDomain.getConfig().getLdapProfiles().values() )
         {
             proxyChaiProviders.put( ldapProfile.getIdentifier(), new ConcurrentHashMap<>() );
         }
@@ -198,7 +198,7 @@ public class LdapConnectionService implements PwmService
     public ChaiProvider getProxyChaiProvider( final String identifier )
             throws PwmUnrecoverableException
     {
-        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get( identifier );
+        final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( identifier );
         return getProxyChaiProvider( ldapProfile );
     }
 
@@ -213,7 +213,7 @@ public class LdapConnectionService implements PwmService
         debugLogger.conditionallyExecuteTask();
 
         final LdapProfile effectiveProfile = ldapProfile == null
-                ? pwmApplication.getConfig().getDefaultLdapProfile()
+                ? pwmDomain.getConfig().getDefaultLdapProfile()
                 : ldapProfile;
 
         if ( useThreadLocal )
@@ -280,11 +280,11 @@ public class LdapConnectionService implements PwmService
         try
         {
             final ChaiProvider chaiProvider = LdapOperationsHelper.openProxyChaiProvider(
-                    pwmApplication,
+                    pwmDomain,
                     null,
                     ldapProfile,
-                    pwmApplication.getConfig(),
-                    pwmApplication.getStatisticsManager()
+                    pwmDomain.getConfig(),
+                    pwmDomain.getStatisticsManager()
             );
             LOGGER.trace( () -> "created new system proxy chaiProvider id=" + chaiProvider.toString()
                     + " for ldap profile '" + ldapProfile.getIdentifier() + "'"
@@ -310,7 +310,7 @@ public class LdapConnectionService implements PwmService
     {
         lastLdapErrors.put( ldapProfile.getIdentifier(), errorInformation );
         final String jsonString = JsonUtil.serializeMap( lastLdapErrors );
-        pwmApplication.writeAppAttribute( AppAttribute.LAST_LDAP_ERROR, jsonString );
+        pwmDomain.writeAppAttribute( AppAttribute.LAST_LDAP_ERROR, jsonString );
     }
 
     public Map<String, ErrorInformation> getLastLdapFailure( )
@@ -328,12 +328,12 @@ public class LdapConnectionService implements PwmService
         return null;
     }
 
-    private static Map<String, ErrorInformation> readLastLdapFailure( final PwmApplication pwmApplication )
+    private static Map<String, ErrorInformation> readLastLdapFailure( final PwmDomain pwmDomain )
     {
         String lastLdapFailureStr = null;
         try
         {
-            final Optional<String> optionalLastLdapError = pwmApplication.readAppAttribute( AppAttribute.LAST_LDAP_ERROR, String.class );
+            final Optional<String> optionalLastLdapError = pwmDomain.readAppAttribute( AppAttribute.LAST_LDAP_ERROR, String.class );
             if ( optionalLastLdapError.isPresent() )
             {
                 lastLdapFailureStr = optionalLastLdapError.get();
@@ -343,7 +343,7 @@ public class LdapConnectionService implements PwmService
                     {
                     } );
                     final Map<String, ErrorInformation> returnMap = new HashMap<>( fromJson );
-                    returnMap.keySet().retainAll( pwmApplication.getConfig().getLdapProfiles().keySet() );
+                    returnMap.keySet().retainAll( pwmDomain.getConfig().getLdapProfiles().keySet() );
                     return returnMap;
                 }
             }
@@ -356,11 +356,11 @@ public class LdapConnectionService implements PwmService
         return Collections.emptyMap();
     }
 
-    private int maxSlotsPerProfile( final PwmApplication pwmApplication )
+    private int maxSlotsPerProfile( final PwmDomain pwmDomain )
     {
-        final int maxConnections = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PROXY_MAX_CONNECTIONS ) );
-        final int perProfile = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PROXY_CONNECTION_PER_PROFILE ) );
-        final int profileCount = pwmApplication.getConfig().getLdapProfiles().size();
+        final int maxConnections = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_MAX_CONNECTIONS ) );
+        final int perProfile = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_CONNECTION_PER_PROFILE ) );
+        final int profileCount = pwmDomain.getConfig().getLdapProfiles().size();
 
         if ( ( perProfile * profileCount ) >= maxConnections )
         {

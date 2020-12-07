@@ -21,10 +21,10 @@
 package password.pwm.util.i18n;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.pub.SessionStateInfoBean;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.value.StringArrayValue;
@@ -81,12 +81,12 @@ public class LocaleHelper
         }
     }
 
-    public static String getLocalizedMessage( final Locale locale, final PwmDisplayBundle key, final Configuration config )
+    public static String getLocalizedMessage( final Locale locale, final PwmDisplayBundle key, final DomainConfig config )
     {
         return getLocalizedMessage( locale, key.getKey(), config, key.getClass() );
     }
 
-    public static String getLocalizedMessage( final Locale locale, final PwmDisplayBundle key, final Configuration config, final String[] args )
+    public static String getLocalizedMessage( final Locale locale, final PwmDisplayBundle key, final DomainConfig config, final String[] args )
     {
         return getLocalizedMessage( locale, key.getKey(), config, key.getClass(), args );
     }
@@ -102,12 +102,12 @@ public class LocaleHelper
         );
     }
 
-    public static String getLocalizedMessage( final String key, final Configuration config, final Class bundleClass )
+    public static String getLocalizedMessage( final String key, final DomainConfig config, final Class bundleClass )
     {
         return getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, key, config, bundleClass );
     }
 
-    public static String getLocalizedMessage( final Locale locale, final String key, final Configuration config, final Class bundleClass )
+    public static String getLocalizedMessage( final Locale locale, final String key, final DomainConfig config, final Class bundleClass )
     {
         return getLocalizedMessage( locale, key, config, bundleClass, null );
     }
@@ -115,7 +115,7 @@ public class LocaleHelper
     public static String getLocalizedMessage(
             final Locale locale,
             final String key,
-            final Configuration config,
+            final DomainConfig config,
             final Class bundleClass,
             final String[] values
     )
@@ -301,40 +301,40 @@ public class LocaleHelper
 
     public static class DisplayMaker
     {
-        private final PwmApplication pwmApplication;
+        private final PwmDomain pwmDomain;
         private final Class<? extends PwmDisplayBundle> bundleClass;
         private final Locale locale;
 
         public DisplayMaker(
                 final Locale locale,
                 final Class<? extends PwmDisplayBundle> bundleClass,
-                final PwmApplication pwmApplication
+                final PwmDomain pwmDomain
         )
         {
             this.locale = locale;
             this.bundleClass = bundleClass;
-            this.pwmApplication = pwmApplication;
+            this.pwmDomain = pwmDomain;
         }
 
         public String forKey( final String input, final String... values )
         {
-            return LocaleHelper.getLocalizedMessage( locale, input, pwmApplication.getConfig(), bundleClass, values );
+            return LocaleHelper.getLocalizedMessage( locale, input, pwmDomain.getConfig(), bundleClass, values );
         }
     }
 
     public static Map<Locale, String> getUniqueLocalizations(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final Class<? extends PwmDisplayBundle> bundleClass,
             final String key,
             final Locale defaultLocale
     )
     {
         final Map<Locale, String> returnObj = new LinkedHashMap<>();
-        final Collection<Locale> localeList = configuration == null
+        final Collection<Locale> localeList = domainConfig == null
                 ? new ArrayList<>( PwmConstants.INCLUDED_LOCALES )
-                : new ArrayList<>( configuration.getKnownLocales() );
+                : new ArrayList<>( domainConfig.getKnownLocales() );
 
-        final String defaultValue = getLocalizedMessage( defaultLocale, key, configuration, bundleClass );
+        final String defaultValue = getLocalizedMessage( defaultLocale, key, domainConfig, bundleClass );
         returnObj.put( defaultLocale, defaultValue );
 
         for ( final Locale loopLocale : localeList )
@@ -367,32 +367,32 @@ public class LocaleHelper
                 : Display.getLocalizedMessage( pwmRequest.getLocale(), key, pwmRequest.getConfig() );
     }
 
-    public static String booleanString( final boolean input, final Locale locale, final Configuration configuration )
+    public static String booleanString( final boolean input, final Locale locale, final DomainConfig domainConfig )
     {
         final Display key = input ? Display.Value_True : Display.Value_False;
-        return Display.getLocalizedMessage( locale, key, configuration );
+        return Display.getLocalizedMessage( locale, key, domainConfig );
     }
 
-    public static String instantString ( final Instant input, final Locale locale, final Configuration configuration )
+    public static String instantString ( final Instant input, final Locale locale, final DomainConfig domainConfig )
     {
         if ( input == null )
         {
-            return LocaleHelper.getLocalizedMessage( locale, Display.Value_NotApplicable, configuration );
+            return LocaleHelper.getLocalizedMessage( locale, Display.Value_NotApplicable, domainConfig );
         }
         return JavaHelper.toIsoDate( input );
     }
 
-    public static Map<PwmLocaleBundle, Map<String, List<Locale>>> getModifiedKeysInConfig( final Configuration configuration )
+    public static Map<PwmLocaleBundle, Map<String, List<Locale>>> getModifiedKeysInConfig( final DomainConfig domainConfig )
     {
         final Map<PwmLocaleBundle, Map<String, List<Locale>>> returnObj = new LinkedHashMap<>();
         for ( final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.values() )
         {
             for ( final String key : pwmLocaleBundle.getDisplayKeys() )
             {
-                for ( final Locale locale : configuration.getKnownLocales() )
+                for ( final Locale locale : domainConfig.getKnownLocales() )
                 {
                     final String defaultValue = LocaleHelper.getLocalizedMessage( locale, key, null, pwmLocaleBundle.getTheClass() );
-                    final String customizedValue = LocaleHelper.getLocalizedMessage( locale, key, configuration, pwmLocaleBundle.getTheClass() );
+                    final String customizedValue = LocaleHelper.getLocalizedMessage( locale, key, domainConfig, pwmLocaleBundle.getTheClass() );
                     if ( defaultValue != null && !defaultValue.equals( customizedValue ) )
                     {
                         if ( !returnObj.containsKey( pwmLocaleBundle ) )
@@ -412,11 +412,11 @@ public class LocaleHelper
         return returnObj;
     }
 
-    public static Locale getLocaleForSessionID( final PwmApplication pwmApplication, final String sessionID )
+    public static Locale getLocaleForSessionID( final PwmDomain pwmDomain, final String sessionID )
     {
-        if ( pwmApplication != null && !StringUtil.isEmpty( sessionID ) )
+        if ( pwmDomain != null && !StringUtil.isEmpty( sessionID ) )
         {
-            final Iterator<SessionStateInfoBean> sessionInfoIterator = pwmApplication.getSessionTrackService().getSessionInfoIterator();
+            final Iterator<SessionStateInfoBean> sessionInfoIterator = pwmDomain.getSessionTrackService().getSessionInfoIterator();
             while ( sessionInfoIterator.hasNext() )
             {
                 final SessionStateInfoBean sessionStateInfoBean = sessionInfoIterator.next();
@@ -490,9 +490,9 @@ public class LocaleHelper
         return getLocalizedMessage( locale, Display.Value_NotApplicable, null );
     }
 
-    public static TextDirection textDirectionForLocale( final PwmApplication pwmApplication, final Locale locale )
+    public static TextDirection textDirectionForLocale( final PwmDomain pwmDomain, final Locale locale )
     {
-        final String rtlRegex = pwmApplication.getConfig().readAppProperty( AppProperty.L10N_RTL_REGEX );
+        final String rtlRegex = pwmDomain.getConfig().readAppProperty( AppProperty.L10N_RTL_REGEX );
         final Pattern rtlPattern = Pattern.compile( rtlRegex );
         final String languageString = locale.getLanguage();
         return languageString != null && rtlPattern.matcher( languageString ).find()

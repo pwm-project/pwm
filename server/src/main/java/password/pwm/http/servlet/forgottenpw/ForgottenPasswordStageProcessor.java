@@ -20,10 +20,10 @@
 
 package password.pwm.http.servlet.forgottenpw;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.RecoveryAction;
@@ -137,9 +137,9 @@ class ForgottenPasswordStageProcessor
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
             final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
-            final PwmApplication pwmApplication = pwmRequestContext.getPwmApplication();
+            final PwmDomain pwmDomain = pwmRequestContext.getPwmDomain();
             final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
-            final Configuration config = pwmApplication.getConfig();
+            final DomainConfig config = pwmDomain.getConfig();
 
             final ForgottenPasswordBean.RecoveryFlags recoveryFlags = forgottenPasswordBean.getRecoveryFlags();
             final ForgottenPasswordBean.Progress progress = forgottenPasswordBean.getProgress();
@@ -149,7 +149,7 @@ class ForgottenPasswordStageProcessor
                 return Optional.of( ForgottenPasswordStage.VERIFICATION );
             }
 
-            final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile( pwmApplication, forgottenPasswordBean );
+            final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile( pwmDomain, forgottenPasswordBean );
             {
                 final Map<String, ForgottenPasswordProfile> profileIDList = config.getForgottenPasswordProfiles();
                 final String profileDebugMsg = forgottenPasswordProfile != null && profileIDList != null && profileIDList.size() > 1
@@ -323,13 +323,13 @@ class ForgottenPasswordStageProcessor
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
             final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
-            final PwmApplication pwmApplication = pwmRequestContext.getPwmApplication();
+            final PwmDomain pwmDomain = pwmRequestContext.getPwmDomain();
             final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
 
             if ( !forgottenPasswordBean.getProgress().isAllPassed() )
             {
                 forgottenPasswordBean.getProgress().setAllPassed( true );
-                pwmApplication.getStatisticsManager().incrementValue( Statistic.RECOVERY_SUCCESSES );
+                pwmDomain.getStatisticsManager().incrementValue( Statistic.RECOVERY_SUCCESSES );
             }
 
             final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean );
@@ -339,7 +339,7 @@ class ForgottenPasswordStageProcessor
             }
 
             // check if user's pw is within min lifetime window
-            final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile( pwmApplication, forgottenPasswordBean );
+            final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile( pwmDomain, forgottenPasswordBean );
             final RecoveryMinLifetimeOption minLifetimeOption = forgottenPasswordProfile.readSettingAsEnum(
                     PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS,
                     RecoveryMinLifetimeOption.class
@@ -368,13 +368,13 @@ class ForgottenPasswordStageProcessor
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
             final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
-            final PwmApplication pwmApplication = pwmRequestContext.getPwmApplication();
+            final PwmDomain pwmDomain = pwmRequestContext.getPwmDomain();
             final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
-            final Configuration config = pwmApplication.getConfig();
+            final DomainConfig config = pwmDomain.getConfig();
 
             final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean );
 
-            final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile( pwmApplication, forgottenPasswordBean );
+            final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile( pwmDomain, forgottenPasswordBean );
 
             final RecoveryMinLifetimeOption minLifetimeOption = forgottenPasswordProfile.readSettingAsEnum(
                     PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS,

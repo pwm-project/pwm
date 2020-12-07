@@ -20,7 +20,7 @@
 
 package password.pwm.svc.node;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
@@ -42,13 +42,13 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
     private static final DatabaseTable TABLE = DatabaseTable.CLUSTER_STATE;
     private static final String KEY_PREFIX_NODE = "node-";
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
 
-    DatabaseNodeDataService( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    DatabaseNodeDataService( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
 
-        if ( pwmApplication.getDatabaseService().status() != PwmService.STATUS.OPEN )
+        if ( pwmDomain.getDatabaseService().status() != PwmService.STATUS.OPEN )
         {
             throw new PwmUnrecoverableException( PwmError.ERROR_NODE_SERVICE_ERROR, "database service is not available" );
         }
@@ -57,14 +57,14 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
     private DatabaseAccessor getDatabaseAccessor()
             throws PwmUnrecoverableException
     {
-        return pwmApplication.getDatabaseService().getAccessor();
+        return pwmDomain.getDatabaseService().getAccessor();
     }
 
     private String localKeyForStoredNode( final StoredNodeData storedNodeData )
             throws PwmUnrecoverableException
     {
         final String instanceID = storedNodeData.getInstanceID();
-        final String hash = pwmApplication.getSecureService().hash( instanceID );
+        final String hash = pwmDomain.getSecureService().hash( instanceID );
         final String truncatedHash = hash.length() > 64
                 ? hash.substring( 0, 64 )
                 : hash;

@@ -32,7 +32,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -75,7 +75,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPAuthenticationRequest.class );
     private static final String ORACLE_ATTR_PW_ALLOW_CHG_TIME = "passwordAllowChangeTime";
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final SessionLabel sessionLabel;
     private final UserIdentity userIdentity;
     private final AuthenticationType requestedAuthType;
@@ -90,14 +90,14 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
 
 
     LDAPAuthenticationRequest(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final AuthenticationType requestedAuthType,
             final PwmAuthenticationSource authenticationSource
     )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.sessionLabel = sessionLabel;
         this.userIdentity = userIdentity;
         this.requestedAuthType = requestedAuthType;
@@ -107,14 +107,14 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     }
 
     static AuthenticationRequest createLDAPAuthenticationRequest(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final AuthenticationType requestedAuthType,
             final PwmAuthenticationSource authenticationSource
     )
     {
-        return new LDAPAuthenticationRequest( pwmApplication, sessionLabel, userIdentity, requestedAuthType, authenticationSource );
+        return new LDAPAuthenticationRequest( pwmDomain, sessionLabel, userIdentity, requestedAuthType, authenticationSource );
     }
 
     @Override
@@ -126,7 +126,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
         log( PwmLogLevel.TRACE, () -> "beginning authentication using unknown password procedure" );
 
         PasswordData userPassword = null;
-        final boolean configAlwaysUseProxy = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN );
+        final boolean configAlwaysUseProxy = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN );
         if ( configAlwaysUseProxy )
         {
             strategy = AuthenticationStrategy.ADMIN_PROXY;
@@ -186,7 +186,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
 
     private AuthenticationResult authenticateUserWithoutPassword() throws PwmUnrecoverableException
     {
-        if ( !Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.AUTH_ALLOW_SSO_WITH_UNKNOWN_PW ) ) )
+        if ( !Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.AUTH_ALLOW_SSO_WITH_UNKNOWN_PW ) ) )
         {
             log( PwmLogLevel.TRACE, () -> "AppProperty " + AppProperty.AUTH_ALLOW_SSO_WITH_UNKNOWN_PW + " is not true, thus prohibiting auth with unknown password" );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "no available unknown-pw authentication method" ) );
@@ -209,12 +209,12 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     {
         log( PwmLogLevel.DEBUG, () -> "preparing to authenticate user using authenticationType=" + this.requestedAuthType + " using strategy " + this.strategy );
 
-        final IntruderManager intruderManager = pwmApplication.getIntruderManager();
+        final IntruderManager intruderManager = pwmDomain.getIntruderManager();
         intruderManager.convenience().checkUserIdentity( userIdentity );
         intruderManager.check( RecordType.ADDRESS, sessionLabel.getSourceAddress() );
 
         // verify user is not account disabled
-        AuthenticationUtility.checkIfUserEligibleToAuthentication( pwmApplication, userIdentity );
+        AuthenticationUtility.checkIfUserEligibleToAuthentication( pwmDomain, userIdentity );
 
     }
 
@@ -246,13 +246,13 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             catch ( final PwmOperationalException e )
             {
                 boolean permitAuthDespiteError = false;
-                final DirectoryVendor vendor = pwmApplication.getProxyChaiProvider(
+                final DirectoryVendor vendor = pwmDomain.getProxyChaiProvider(
                         userIdentity.getLdapProfileID() ).getDirectoryVendor();
                 if ( PwmError.PASSWORD_NEW_PASSWORD_REQUIRED == e.getError() )
                 {
                     if ( vendor == DirectoryVendor.ACTIVE_DIRECTORY )
                     {
-                        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD ) )
+                        if ( pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD ) )
                         {
                             log( PwmLogLevel.DEBUG,
                                     () -> "auth bind failed, but will allow login due to 'must change password on next login AD error', error: "
@@ -263,7 +263,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                     }
                     else if ( vendor == DirectoryVendor.ORACLE_DS )
                     {
-                        if ( pwmApplication.getConfig().readSettingAsBoolean(
+                        if ( pwmDomain.getConfig().readSettingAsBoolean(
                                 PwmSetting.ORACLE_DS_ALLOW_AUTH_REQUIRE_NEW_PWD ) )
                         {
                             log( PwmLogLevel.DEBUG,
@@ -279,9 +279,9 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                     // handle ad case where password is expired
                     if ( vendor == DirectoryVendor.ACTIVE_DIRECTORY )
                     {
-                        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD ) )
+                        if ( pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD ) )
                         {
-                            if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.AD_ALLOW_AUTH_EXPIRED ) )
+                            if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.AD_ALLOW_AUTH_EXPIRED ) )
                             {
                                 throw e;
                             }
@@ -296,7 +296,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                 if ( !permitAuthDespiteError )
                 {
                     // auth failed, presumably due to wrong password.
-                    StatisticsManager.incrementStat( pwmApplication, Statistic.AUTHENTICATION_FAILURES );
+                    StatisticsManager.incrementStat( pwmDomain, Statistic.AUTHENTICATION_FAILURES );
                     throw e;
                 }
             }
@@ -345,7 +345,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     )
             throws PwmUnrecoverableException
     {
-        final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
+        final StatisticsManager statisticsManager = pwmDomain.getStatisticsManager();
         statisticsManager.incrementValue( Statistic.AUTHENTICATIONS );
         statisticsManager.updateEps( EpsStatistic.AUTHENTICATION, 1 );
         statisticsManager.updateAverageValue( AvgStatistic.AVG_AUTHENTICATION_TIME,
@@ -361,16 +361,16 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                 ? "none"
                 : authenticationResult.getUserProvider().getChaiConfiguration().getSetting( ChaiSetting.BIND_DN ) ) );
 
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, PwmConstants.DEFAULT_LOCALE, sessionLabel, userIdentity );
-        final AuditRecord auditRecord = new AuditRecordFactory( pwmApplication, macroRequest ).createUserAuditRecord(
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, PwmConstants.DEFAULT_LOCALE, sessionLabel, userIdentity );
+        final AuditRecord auditRecord = new AuditRecordFactory( pwmDomain, macroRequest ).createUserAuditRecord(
                 AuditEvent.AUTHENTICATE,
                 this.userIdentity,
                 makeAuditLogMessage( authenticationResult.getAuthenticationType() ),
                 sessionLabel.getSourceAddress(),
                 sessionLabel.getSourceHostname()
         );
-        pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
-        pwmApplication.getSessionTrackService().addRecentLogin( userIdentity );
+        pwmDomain.getAuditManager().submit( sessionLabel, auditRecord );
+        pwmDomain.getSessionTrackService().addRecentLogin( userIdentity );
 
 
     }
@@ -414,10 +414,10 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
         {
             //read a provider using the user's DN and password.
             userProvider = LdapOperationsHelper.createChaiProvider(
-                    pwmApplication,
+                    pwmDomain,
                     sessionLabel,
-                    userIdentity.getLdapProfile( pwmApplication.getConfig() ),
-                    pwmApplication.getConfig(),
+                    userIdentity.getLdapProfile( pwmDomain.getConfig() ),
+                    pwmDomain.getConfig(),
                     userIdentity.getUserDN(),
                     password
             );
@@ -470,7 +470,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         log( PwmLogLevel.TRACE, () -> "beginning auth processes for user with unknown password" );
-        return LdapOperationsHelper.readLdapPassword( pwmApplication, sessionLabel, userIdentity );
+        return LdapOperationsHelper.readLdapPassword( pwmDomain, sessionLabel, userIdentity );
     }
 
     private PasswordData setTempUserPassword(
@@ -478,9 +478,9 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             throws ChaiUnavailableException, ImpossiblePasswordPolicyException, PwmUnrecoverableException
     {
 
-        final boolean configAlwaysUseProxy = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN );
+        final boolean configAlwaysUseProxy = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN );
 
-        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( userIdentity.getLdapProfileID() );
         final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
 
         // try setting a random password on the account to authenticate.
@@ -489,7 +489,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             log( PwmLogLevel.DEBUG, () -> "attempting to set temporary random password" );
 
             final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
-                    pwmApplication,
+                    pwmDomain,
                     sessionLabel,
                     userIdentity,
                     chaiUser,
@@ -502,7 +502,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                     .passwordPolicy( passwordPolicy )
                     .build();
 
-            final PasswordData currentPass = RandomPasswordGenerator.createRandomPassword( sessionLabel, randomGeneratorConfig, pwmApplication );
+            final PasswordData currentPass = RandomPasswordGenerator.createRandomPassword( sessionLabel, randomGeneratorConfig, pwmDomain );
 
             try
             {
@@ -534,7 +534,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, ChaiOperationException
     {
-        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.ORACLE_DS_ENABLE_MANIP_ALLOWCHANGETIME ) )
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.ORACLE_DS_ENABLE_MANIP_ALLOWCHANGETIME ) )
         {
             return null;
         }
@@ -556,7 +556,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             final Instant date = OracleDSEntries.convertZuluToDate( oracleDSPrePasswordAllowChangeTime );
 
             final boolean enforceFromForgotten = !ForgottenPasswordUtil.permitPwChangeDuringMinLifetime(
-                    pwmApplication,
+                    pwmDomain,
                     sessionLabel,
                     userIdentity
             );
@@ -583,7 +583,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     )
             throws ChaiUnavailableException, ChaiOperationException
     {
-        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.ORACLE_DS_ENABLE_MANIP_ALLOWCHANGETIME ) )
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.ORACLE_DS_ENABLE_MANIP_ALLOWCHANGETIME ) )
         {
             return;
         }
@@ -611,7 +611,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                     ORACLE_ATTR_PW_ALLOW_CHG_TIME );
             if ( oracleDSPostPasswordAllowChangeTime != null && !oracleDSPostPasswordAllowChangeTime.isEmpty() )
             {
-                final boolean postTempUseCurrentTime = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_ORACLE_POST_TEMPPW_USE_CURRENT_TIME ) );
+                final boolean postTempUseCurrentTime = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_ORACLE_POST_TEMPPW_USE_CURRENT_TIME ) );
                 if ( postTempUseCurrentTime )
                 {
                     log( PwmLogLevel.TRACE, () -> "a new value for passwordAllowChangeTime attribute to user "
@@ -646,7 +646,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
 
         final boolean authIsBindInhibit = authenticationType == AuthenticationType.AUTH_BIND_INHIBIT;
         final boolean authIsFromForgottenPw = authenticationType == AuthenticationType.AUTH_FROM_PUBLIC_MODULE;
-        final boolean alwaysUseProxyIsEnabled = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN );
+        final boolean alwaysUseProxyIsEnabled = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN );
         final boolean passwordNotPresent = userPassword == null;
 
         return authIsBindInhibit || authIsFromForgottenPw && ( alwaysUseProxyIsEnabled || passwordNotPresent );
@@ -656,10 +656,10 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     private ChaiProvider makeProxyProvider( )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final LdapProfile profile = pwmApplication.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
+        final LdapProfile profile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
         final String proxyDN = profile.readSettingAsString( PwmSetting.LDAP_PROXY_USER_DN );
         final PasswordData proxyPassword = profile.readSettingAsPassword( PwmSetting.LDAP_PROXY_USER_PASSWORD );
-        return LdapOperationsHelper.createChaiProvider( pwmApplication, sessionLabel, profile, pwmApplication.getConfig(), proxyDN, proxyPassword );
+        return LdapOperationsHelper.createChaiProvider( pwmDomain, sessionLabel, profile, pwmDomain.getConfig(), proxyDN, proxyPassword );
     }
 
     private void log( final PwmLogLevel level, final Supplier<CharSequence> message )

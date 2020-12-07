@@ -21,9 +21,9 @@
 package password.pwm.health;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.profile.LdapProfile;
@@ -53,12 +53,12 @@ public class CertificateChecker implements HealthChecker
     private static final PwmLogger LOGGER = PwmLogger.forClass( CertificateChecker.class );
 
     @Override
-    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
+    public List<HealthRecord> doHealthCheck( final PwmDomain pwmDomain )
     {
-        final List<HealthRecord> records = new ArrayList<>( doHealthCheck( pwmApplication.getConfig() ) );
+        final List<HealthRecord> records = new ArrayList<>( doHealthCheck( pwmDomain.getConfig() ) );
         try
         {
-            records.addAll( doActionHealthCheck( pwmApplication.getConfig() ) );
+            records.addAll( doActionHealthCheck( pwmDomain.getConfig() ) );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -67,7 +67,7 @@ public class CertificateChecker implements HealthChecker
         return records;
     }
 
-    private static List<HealthRecord> doHealthCheck( final Configuration configuration )
+    private static List<HealthRecord> doHealthCheck( final DomainConfig domainConfig )
     {
         final List<HealthRecord> returnList = new ArrayList<>();
         for ( final PwmSetting setting : PwmSetting.values() )
@@ -76,23 +76,23 @@ public class CertificateChecker implements HealthChecker
             {
                 if ( setting != PwmSetting.LDAP_SERVER_CERTS )
                 {
-                    final List<X509Certificate> certs = configuration.readSettingAsCertificate( setting );
-                    returnList.addAll( doHealthCheck( configuration, setting, null, certs ) );
+                    final List<X509Certificate> certs = domainConfig.readSettingAsCertificate( setting );
+                    returnList.addAll( doHealthCheck( domainConfig, setting, null, certs ) );
                 }
             }
         }
-        for ( final LdapProfile ldapProfile : configuration.getLdapProfiles().values() )
+        for ( final LdapProfile ldapProfile : domainConfig.getLdapProfiles().values() )
         {
-            final List<X509Certificate> certificates = configuration.getLdapProfiles().get( ldapProfile.getIdentifier() ).readSettingAsCertificate( PwmSetting.LDAP_SERVER_CERTS );
-            returnList.addAll( doHealthCheck( configuration, PwmSetting.LDAP_SERVER_CERTS, ldapProfile.getIdentifier(), certificates ) );
+            final List<X509Certificate> certificates = domainConfig.getLdapProfiles().get( ldapProfile.getIdentifier() ).readSettingAsCertificate( PwmSetting.LDAP_SERVER_CERTS );
+            returnList.addAll( doHealthCheck( domainConfig, PwmSetting.LDAP_SERVER_CERTS, ldapProfile.getIdentifier(), certificates ) );
         }
         return Collections.unmodifiableList( returnList );
     }
 
-    private static List<HealthRecord> doActionHealthCheck( final Configuration configuration ) throws PwmUnrecoverableException
+    private static List<HealthRecord> doActionHealthCheck( final DomainConfig domainConfig ) throws PwmUnrecoverableException
     {
 
-        final StoredConfiguration storedConfiguration = configuration.getStoredConfiguration();
+        final StoredConfiguration storedConfiguration = domainConfig.getStoredConfiguration();
 
         final List<HealthRecord> returnList = new ArrayList<>();
         final Set<StoredConfigItemKey> modifiedReferences = storedConfiguration.modifiedItems();
@@ -111,7 +111,7 @@ public class CertificateChecker implements HealthChecker
                             for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
                             {
                                 final List<X509Certificate> certificates = webAction.getCertificates();
-                                returnList.addAll( doHealthCheck( configuration, pwmSetting, storedConfigItemKey.getProfileID(), certificates ) );
+                                returnList.addAll( doHealthCheck( domainConfig, pwmSetting, storedConfigItemKey.getProfileID(), certificates ) );
                             }
                         }
                     }
@@ -123,13 +123,13 @@ public class CertificateChecker implements HealthChecker
     }
 
     private static List<HealthRecord> doHealthCheck(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final PwmSetting setting,
             final String profileID,
             final List<X509Certificate> certificates
     )
     {
-        final long warnDurationMs = 1000 * Long.parseLong( configuration.readAppProperty( AppProperty.HEALTH_CERTIFICATE_WARN_SECONDS ) );
+        final long warnDurationMs = 1000 * Long.parseLong( domainConfig.readAppProperty( AppProperty.HEALTH_CERTIFICATE_WARN_SECONDS ) );
 
         if ( certificates != null )
         {

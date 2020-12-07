@@ -24,11 +24,11 @@ import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiSetting;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.function.UserMatchViewerFunction;
 import password.pwm.config.stored.ConfigurationProperty;
@@ -105,7 +105,7 @@ public class ConfigGuideUtils
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final ConfigurationReader configReader = contextManager.getConfigReader();
-        final PwmApplication pwmApplication = contextManager.getPwmApplication();
+        final PwmDomain pwmDomain = contextManager.getPwmApplication();
 
         try
         {
@@ -113,7 +113,7 @@ public class ConfigGuideUtils
             // add a random security key
             StoredConfigurationUtil.initNewRandomSecurityKey( modifier );
 
-            configReader.saveConfiguration( modifier.newStoredConfiguration(), pwmApplication, null );
+            configReader.saveConfiguration( modifier.newStoredConfiguration(), pwmDomain, null );
 
             contextManager.requestPwmApplicationRestart();
         }
@@ -129,7 +129,7 @@ public class ConfigGuideUtils
     }
 
     public static SchemaOperationResult extendSchema(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final ConfigGuideBean configGuideBean,
             final boolean doSchemaExtension
     )
@@ -151,7 +151,7 @@ public class ConfigGuideUtils
                     .setSetting( ChaiSetting.PROMISCUOUS_SSL, "true" )
                     .build();
 
-            final ChaiProvider chaiProvider = pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfiguration );
+            final ChaiProvider chaiProvider = pwmDomain.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfiguration );
             if ( doSchemaExtension )
             {
                 return SchemaManager.extendSchema( chaiProvider );
@@ -214,7 +214,7 @@ public class ConfigGuideUtils
 
         if ( Boolean.parseBoolean( formData.get( ConfigGuideFormField.PARAM_LDAP_SECURE ) ) )
         {
-            final Configuration tempConfig = new Configuration( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
+            final DomainConfig tempConfig = new DomainConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
             X509Utils.readRemoteCertificates( host, port, tempConfig );
         }
     }
@@ -223,10 +223,10 @@ public class ConfigGuideUtils
     public static void restUploadConfig( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
-        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING )
+        if ( pwmDomain.getApplicationMode() == PwmApplicationMode.RUNNING )
         {
             final String errorMsg = "config upload is not permitted when in running mode";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_UPLOAD_FAILURE, errorMsg, new String[]
@@ -281,8 +281,8 @@ public class ConfigGuideUtils
         {
             final ConfigGuideBean configGuideBean = ConfigGuideServlet.getBean( pwmRequest );
             final Map<ConfigGuideFormField, String> form = configGuideBean.getFormData();
-            final PwmApplication tempApplication = PwmApplication.createPwmApplication(
-                    pwmRequest.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( new Configuration( storedConfiguration ) ) );
+            final PwmDomain tempApplication = PwmDomain.createPwmApplication(
+                    pwmRequest.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( new DomainConfig( storedConfiguration ) ) );
 
             final String adminDN = form.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_USER );
             final UserIdentity adminIdentity = UserIdentity.createUserIdentity( adminDN, PwmConstants.PROFILE_ID_DEFAULT );

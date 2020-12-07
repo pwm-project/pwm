@@ -20,6 +20,7 @@
 
 package password.pwm.health;
 
+import password.pwm.config.DomainConfig;
 import password.pwm.i18n.Health;
 import password.pwm.util.i18n.LocaleHelper;
 
@@ -140,7 +141,7 @@ public enum HealthMessage
 
     public String getDescription(
             final Locale locale,
-            final password.pwm.config.Configuration config,
+            final DomainConfig config,
             final String[] fields )
     {
         return LocaleHelper.getLocalizedMessage( locale, this.getKey(), config, Health.class, fields );

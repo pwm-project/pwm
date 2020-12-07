@@ -24,7 +24,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.PwmUnrecoverableException;
@@ -47,7 +47,7 @@ public class RandomPasswordGeneratorTest
     public void generateRandomPasswordsTest()
             throws PwmUnrecoverableException, IOException
     {
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
+        final PwmDomain pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
         final Map<String, String> policyMap = new HashMap<>( PwmPasswordPolicy.defaultPolicy().getPolicyMap() );
         policyMap.put( PwmPasswordRule.AllowNumeric.getKey(), "true" );
         final PwmPasswordPolicy pwmPasswordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy( policyMap );
@@ -60,7 +60,7 @@ public class RandomPasswordGeneratorTest
             final PasswordData passwordData = RandomPasswordGenerator.createRandomPassword(
                     null,
                     pwmPasswordPolicy,
-                    pwmApplication );
+                    pwmDomain );
 
             final String passwordString = passwordData.getStringValue();
             if ( seenValues.contains( passwordString ) )

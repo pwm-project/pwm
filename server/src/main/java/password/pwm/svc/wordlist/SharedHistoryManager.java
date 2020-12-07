@@ -21,7 +21,7 @@
 package password.pwm.svc.wordlist;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
@@ -192,7 +192,7 @@ public class SharedHistoryManager implements PwmService
         return result;
     }
 
-    private void init( final PwmApplication pwmApplication, final long maxAgeMs )
+    private void init( final PwmDomain pwmDomain, final long maxAgeMs )
     {
         final Instant startTime = Instant.now();
 
@@ -247,15 +247,15 @@ public class SharedHistoryManager implements PwmService
         status = STATUS.OPEN;
         //populateFromWordlist();  //only used for debugging!!!
 
-        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING || pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
+        if ( pwmDomain.getApplicationMode() == PwmApplicationMode.RUNNING || pwmDomain.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
         {
             long frequencyMs = maxAgeMs > MAX_CLEANER_FREQUENCY ? MAX_CLEANER_FREQUENCY : maxAgeMs;
             frequencyMs = frequencyMs < MIN_CLEANER_FREQUENCY ? MIN_CLEANER_FREQUENCY : frequencyMs;
             final TimeDuration frequency = TimeDuration.of( frequencyMs, TimeDuration.Unit.MILLISECONDS );
 
             LOGGER.debug( () -> "scheduling cleaner task to run once every " + frequency.asCompactString() );
-            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
-            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), executorService, null, frequency );
+            executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
+            pwmDomain.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), executorService, null, frequency );
         }
     }
 
@@ -447,18 +447,18 @@ public class SharedHistoryManager implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication )
+    public void init( final PwmDomain pwmDomain )
             throws PwmException
     {
         // convert to MS;
-        settings.maxAgeMs = 1000 * pwmApplication.getConfig().readSettingAsLong( PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE );
-        settings.caseInsensitive = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_CASE_INSENSITIVE ) );
-        settings.hashName = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_HASH_NAME );
-        settings.hashIterations = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_HASH_ITERATIONS ) );
+        settings.maxAgeMs = 1000 * pwmDomain.getConfig().readSettingAsLong( PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE );
+        settings.caseInsensitive = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_CASE_INSENSITIVE ) );
+        settings.hashName = pwmDomain.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_HASH_NAME );
+        settings.hashIterations = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_HASH_ITERATIONS ) );
         settings.version = "2" + "_" + settings.hashName + "_" + settings.hashIterations + "_" + settings.caseInsensitive;
 
-        final int saltLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_SALT_LENGTH ) );
-        this.localDB = pwmApplication.getLocalDB();
+        final int saltLength = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_SALT_LENGTH ) );
+        this.localDB = pwmDomain.getLocalDB();
 
         boolean needsClearing = false;
         if ( localDB == null )
@@ -504,9 +504,9 @@ public class SharedHistoryManager implements PwmService
             public void run( )
             {
                 LOGGER.debug( () -> "starting up in background thread" );
-                init( pwmApplication, settings.maxAgeMs );
+                init( pwmDomain, settings.maxAgeMs );
             }
-        }, PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + " initializer" ).start();
+        }, PwmScheduler.makeThreadName( pwmDomain, this.getClass() ) + " initializer" ).start();
     }
 
     private static class Settings

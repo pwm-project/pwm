@@ -20,7 +20,7 @@
 
 package password.pwm.svc.stats;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
@@ -130,13 +130,13 @@ public enum Statistic
         return key;
     }
 
-    public boolean isActive( final PwmApplication pwmApplication )
+    public boolean isActive( final PwmDomain pwmDomain )
     {
         if ( statDetail == null )
         {
             return true;
         }
-        return statDetail.isActive( pwmApplication );
+        return statDetail.isActive( pwmDomain );
     }
 
     public static SortedSet<Statistic> sortedValues( final Locale locale )
@@ -180,7 +180,7 @@ public enum Statistic
 
     interface StatDetail
     {
-        boolean isActive( PwmApplication pwmApplication );
+        boolean isActive( PwmDomain pwmDomain );
     }
 
     static class ConfigSettingDetail implements StatDetail
@@ -193,9 +193,9 @@ public enum Statistic
         }
 
         @Override
-        public boolean isActive( final PwmApplication pwmApplication )
+        public boolean isActive( final PwmDomain pwmDomain )
         {
-            return pwmApplication.getConfig().readSettingAsBoolean( pwmSetting );
+            return pwmDomain.getConfig().readSettingAsBoolean( pwmSetting );
         }
     }
 

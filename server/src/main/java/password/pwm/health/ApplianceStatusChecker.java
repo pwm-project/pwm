@@ -21,7 +21,7 @@
 package password.pwm.health;
 
 import org.apache.commons.io.FileUtils;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
@@ -57,9 +57,9 @@ public class ApplianceStatusChecker implements HealthChecker
     }
 
     @Override
-    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
+    public List<HealthRecord> doHealthCheck( final PwmDomain pwmDomain )
     {
-        final boolean isApplianceAvailable = pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Appliance );
+        final boolean isApplianceAvailable = pwmDomain.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Appliance );
 
         if ( !isApplianceAvailable )
         {
@@ -70,7 +70,7 @@ public class ApplianceStatusChecker implements HealthChecker
 
         try
         {
-            healthRecords.addAll( readApplianceHealthStatus( pwmApplication ) );
+            healthRecords.addAll( readApplianceHealthStatus( pwmDomain ) );
         }
         catch ( final Exception e )
         {
@@ -80,18 +80,18 @@ public class ApplianceStatusChecker implements HealthChecker
         return healthRecords;
     }
 
-    private List<HealthRecord> readApplianceHealthStatus( final PwmApplication pwmApplication ) throws IOException, PwmUnrecoverableException, PwmOperationalException
+    private List<HealthRecord> readApplianceHealthStatus( final PwmDomain pwmDomain ) throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
         final List<HealthRecord> healthRecords = new ArrayList<>();
 
-        final String url = figureUrl( pwmApplication );
-        final Map<String, String> requestHeaders = Collections.singletonMap( "sspr-authorization-token", getApplianceAccessToken( pwmApplication ) );
+        final String url = figureUrl( pwmDomain );
+        final Map<String, String> requestHeaders = Collections.singletonMap( "sspr-authorization-token", getApplianceAccessToken( pwmDomain ) );
 
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
                 .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
                 .build();
 
-        final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
+        final PwmHttpClient pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder()
                 .method( HttpMethod.GET )
                 .url( url )
@@ -127,9 +127,9 @@ public class ApplianceStatusChecker implements HealthChecker
 
     }
 
-    private String getApplianceAccessToken( final PwmApplication pwmApplication ) throws IOException, PwmOperationalException
+    private String getApplianceAccessToken( final PwmDomain pwmDomain ) throws IOException, PwmOperationalException
     {
-        final String tokenFile = pwmApplication.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.ApplianceTokenFile );
+        final String tokenFile = pwmDomain.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.ApplianceTokenFile );
         if ( StringUtil.isEmpty( tokenFile ) )
         {
             final String msg = "unable to determine appliance token, token file environment param "
@@ -144,9 +144,9 @@ public class ApplianceStatusChecker implements HealthChecker
         return "";
     }
 
-    private String figureUrl( final PwmApplication pwmApplication ) throws IOException, PwmOperationalException
+    private String figureUrl( final PwmDomain pwmDomain ) throws IOException, PwmOperationalException
     {
-        final String hostnameFile = pwmApplication.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.ApplianceHostnameFile );
+        final String hostnameFile = pwmDomain.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.ApplianceHostnameFile );
         if ( StringUtil.isEmpty( hostnameFile ) )
         {
             final String msg = "unable to determine appliance hostname, hostname file environment param "
@@ -155,7 +155,7 @@ public class ApplianceStatusChecker implements HealthChecker
         }
 
         final String hostname = readFileContents( hostnameFile );
-        final String port = pwmApplication.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.AppliancePort );
+        final String port = pwmDomain.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.AppliancePort );
 
         final String url = "https://" + hostname + ":" + port + "/sspr/appliance-update-status";
         LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "calculated appliance host url as: " + url );

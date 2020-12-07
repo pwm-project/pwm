@@ -29,7 +29,7 @@ import lombok.Value;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.ViewStatusFields;
@@ -368,7 +368,7 @@ public class HelpdeskDetailInfoBean implements Serializable
     private static Map<String, String> makePasswordPolicyRules(
             final UserInfo userInfo,
             final Locale locale,
-            final Configuration configuration
+            final DomainConfig domainConfig
     )
             throws PwmUnrecoverableException
     {
@@ -382,12 +382,12 @@ public class HelpdeskDetailInfoBean implements Serializable
                     if ( ChaiPasswordRule.RuleType.BOOLEAN == rule.getRuleType() )
                     {
                         final boolean value = Boolean.parseBoolean( userInfo.getPasswordPolicy().getValue( rule ) );
-                        final String sValue = LocaleHelper.booleanString( value, locale, configuration );
-                        passwordRules.put( rule.getLabel( locale, configuration ), sValue );
+                        final String sValue = LocaleHelper.booleanString( value, locale, domainConfig );
+                        passwordRules.put( rule.getLabel( locale, domainConfig ), sValue );
                     }
                     else
                     {
-                        passwordRules.put( rule.getLabel( locale, configuration ),
+                        passwordRules.put( rule.getLabel( locale, domainConfig ),
                                 userInfo.getPasswordPolicy().getValue( rule ) );
                     }
                 }

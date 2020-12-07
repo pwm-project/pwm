@@ -23,10 +23,10 @@ package password.pwm.svc.event;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
@@ -88,21 +88,21 @@ public class CEFAuditFormatter implements AuditFormatter
 
     @Override
     public String convertAuditRecordToMessage(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final AuditRecord auditRecord
     )
             throws PwmUnrecoverableException
     {
-        final Configuration configuration = pwmApplication.getConfig();
-        final Settings settings = Settings.fromConfiguration( configuration );
+        final DomainConfig domainConfig = pwmDomain.getConfig();
+        final Settings settings = Settings.fromConfiguration( domainConfig );
         final Map<String, Object> auditRecordMap = JsonUtil.deserializeMap( JsonUtil.serialize( auditRecord ) );
 
-        final Optional<String> srcHost = JavaHelper.deriveLocalServerHostname( configuration );
+        final Optional<String> srcHost = JavaHelper.deriveLocalServerHostname( domainConfig );
 
         final StringBuilder cefOutput = new StringBuilder(  );
 
         // cef header
-        cefOutput.append( makeCefHeader( pwmApplication, settings, auditRecord ) );
+        cefOutput.append( makeCefHeader( pwmDomain, settings, auditRecord ) );
 
 
         cefOutput.append( CEFAuditFormatter.CEF_EXTENSION_SEPARATOR );
@@ -137,7 +137,7 @@ public class CEFAuditFormatter implements AuditFormatter
         return cefOutput.toString();
     }
 
-    private String makeCefHeader( final PwmApplication pwmApplication, final Settings settings, final AuditRecord auditRecord )
+    private String makeCefHeader( final PwmDomain pwmDomain, final Settings settings, final AuditRecord auditRecord )
             throws PwmUnrecoverableException
     {
         final StringBuilder cefOutput = new StringBuilder(  );
@@ -146,34 +146,34 @@ public class CEFAuditFormatter implements AuditFormatter
         cefOutput.append( "CEF:0" );
 
         // Device Vendor
-        appendCefHeader( pwmApplication, cefOutput, settings.getHeaderVendor() );
+        appendCefHeader( pwmDomain, cefOutput, settings.getHeaderVendor() );
 
         // Device Product
-        appendCefHeader( pwmApplication, cefOutput, settings.getHeaderProduct() );
+        appendCefHeader( pwmDomain, cefOutput, settings.getHeaderProduct() );
 
         // Device Version
-        appendCefHeader( pwmApplication, cefOutput, PwmConstants.SERVLET_VERSION );
+        appendCefHeader( pwmDomain, cefOutput, PwmConstants.SERVLET_VERSION );
 
         // Device Event Class ID
-        appendCefHeader( pwmApplication, cefOutput, String.valueOf( auditRecord.getEventCode() ) );
+        appendCefHeader( pwmDomain, cefOutput, String.valueOf( auditRecord.getEventCode() ) );
 
         // field name
-        appendCefHeader( pwmApplication, cefOutput, LocaleHelper.getLocalizedMessage(
+        appendCefHeader( pwmDomain, cefOutput, LocaleHelper.getLocalizedMessage(
                 PwmConstants.DEFAULT_LOCALE,
                 auditRecord.getEventCode().getMessage(),
-                pwmApplication.getConfig()
+                pwmDomain.getConfig()
         ) );
 
         // severity
-        appendCefHeader( pwmApplication, cefOutput, settings.getHeaderSeverity() );
+        appendCefHeader( pwmDomain, cefOutput, settings.getHeaderSeverity() );
 
         return cefOutput.toString();
     }
 
-    private void appendCefHeader( final PwmApplication pwmApplication, final StringBuilder cefOutput, final String value )
+    private void appendCefHeader( final PwmDomain pwmDomain, final StringBuilder cefOutput, final String value )
             throws PwmUnrecoverableException
     {
-        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, SessionLabel.SYSTEM_LABEL );
+        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmDomain, SessionLabel.SYSTEM_LABEL );
         cefOutput.append( CEFAuditFormatter.CEF_EXTENSION_SEPARATOR );
         cefOutput.append( macroRequest.expandMacros( value ) );
     }
@@ -222,14 +222,14 @@ public class CEFAuditFormatter implements AuditFormatter
         private String headerProduct;
         private String headerVendor;
 
-        static Settings fromConfiguration( final Configuration configuration )
+        static Settings fromConfiguration( final DomainConfig domainConfig )
         {
             return Settings.builder()
-                    .cefMaxExtensionChars( JavaHelper.silentParseInt( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_MAX_EXTENSION_CHARS ), 1023 ) )
-                    .cefTimezone( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_TIMEZONE ) )
-                    .headerSeverity( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_SEVERITY ) )
-                    .headerProduct( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_PRODUCT ) )
-                    .headerVendor( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_VENDOR ) )
+                    .cefMaxExtensionChars( JavaHelper.silentParseInt( domainConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_MAX_EXTENSION_CHARS ), 1023 ) )
+                    .cefTimezone( domainConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_TIMEZONE ) )
+                    .headerSeverity( domainConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_SEVERITY ) )
+                    .headerProduct( domainConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_PRODUCT ) )
+                    .headerVendor( domainConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_VENDOR ) )
                     .build();
         }
     }

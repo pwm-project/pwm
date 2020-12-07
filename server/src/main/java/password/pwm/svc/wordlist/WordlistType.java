@@ -20,22 +20,22 @@
 
 package password.pwm.svc.wordlist;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 
 public enum WordlistType
 {
     WORDLIST,
     SEEDLIST,;
 
-    public Wordlist forType( final PwmApplication pwmApplication )
+    public Wordlist forType( final PwmDomain pwmDomain )
     {
         switch ( this )
         {
             case WORDLIST:
-                return pwmApplication.getWordlistService();
+                return pwmDomain.getWordlistService();
 
             case SEEDLIST:
-                return pwmApplication.getSeedlistManager();
+                return pwmDomain.getSeedlistManager();
 
             default:
                 throw new IllegalStateException( "unhandled wordlistType" );

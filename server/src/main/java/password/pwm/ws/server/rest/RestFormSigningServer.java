@@ -22,7 +22,7 @@ package password.pwm.ws.server.rest;
 
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
@@ -122,11 +122,11 @@ public class RestFormSigningServer extends RestServlet
         }
     }
 
-    public static Map<String, String> readSignedFormValue( final PwmApplication pwmApplication, final String input ) throws PwmUnrecoverableException
+    public static Map<String, String> readSignedFormValue( final PwmDomain pwmDomain, final String input ) throws PwmUnrecoverableException
     {
-        final int maxAgeSeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS ) );
+        final int maxAgeSeconds = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS ) );
         final TimeDuration maxAge = TimeDuration.of( maxAgeSeconds, TimeDuration.Unit.SECONDS );
-        final SignedFormData signedFormData = pwmApplication.getSecureService().decryptObject( input, SignedFormData.class );
+        final SignedFormData signedFormData = pwmDomain.getSecureService().decryptObject( input, SignedFormData.class );
 
         if ( signedFormData == null )
         {

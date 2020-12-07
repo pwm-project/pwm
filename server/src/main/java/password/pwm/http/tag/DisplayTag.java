@@ -21,7 +21,7 @@
 package password.pwm.http.tag;
 
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
@@ -182,7 +182,7 @@ public class DisplayTag extends PwmAbstractTag
         return Display.class;
     }
 
-    private String figureDisplayMessage( final Locale locale, final Configuration config, final Class bundleClass )
+    private String figureDisplayMessage( final Locale locale, final DomainConfig config, final Class bundleClass )
     {
         try
         {

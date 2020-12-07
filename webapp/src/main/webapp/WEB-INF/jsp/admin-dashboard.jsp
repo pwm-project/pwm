@@ -39,12 +39,13 @@
 <%@ page import="password.pwm.http.servlet.admin.AppDashboardData" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page import="password.pwm.http.bean.DisplayElement" %>
+<%@ page import="password.pwm.PwmDomain" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final AppDashboardData appDashboardData = (AppDashboardData)JspUtility.getAttribute(pageContext, PwmRequestAttribute.AppDashboardData); %>
 <% final PwmRequest dashboard_pwmRequest = JspUtility.getPwmRequest(pageContext); %>
-<% final PwmApplication dashboard_pwmApplication = dashboard_pwmRequest.getPwmApplication(); %>
+<% final PwmDomain dashboard_pwmDomain = dashboard_pwmRequest.getPwmApplication(); %>
 <% final Locale locale = JspUtility.locale(request); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <% final String PageName = JspUtility.localizedString(pageContext,"Title_Dashboard",Admin.class);%>
@@ -105,7 +106,8 @@
                         </td>
                     </tr>
                     <% for (final EpsStatistic loopEpsType : EpsStatistic.values()) { %>
-                    <% if ((loopEpsType != EpsStatistic.DB_READS && loopEpsType != EpsStatistic.DB_WRITES) || dashboard_pwmApplication.getConfig().hasDbConfigured()) { %>
+                    <% if ((loopEpsType != EpsStatistic.DB_READS && loopEpsType != EpsStatistic.DB_WRITES) || dashboard_pwmDomain
+                            .getConfig().hasDbConfigured()) { %>
                     <tr>
                         <td class="key">
                             <%= loopEpsType.getLabel(locale) %> / Minute
@@ -202,10 +204,11 @@
                             <td class="key">
                                 Last LDAP Unavailable Time
                             </td>
-                            <% final Collection<LdapProfile> ldapProfiles = dashboard_pwmApplication.getConfig().getLdapProfiles().values(); %>
+                            <% final Collection<LdapProfile> ldapProfiles = dashboard_pwmDomain.getConfig().getLdapProfiles().values(); %>
                             <td>
                                 <% if (ldapProfiles.size() < 2) { %>
-                                <% final Instant lastError = dashboard_pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfiles.iterator().next()); %>
+                                <% final Instant lastError = dashboard_pwmDomain
+                                        .getLdapConnectionService().getLastLdapFailureTime(ldapProfiles.iterator().next()); %>
                                 <span class="timestamp">
                                 <%= lastError == null ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable) :JavaHelper.toIsoDate(lastError) %>
                                 </span>
@@ -215,7 +218,7 @@
                                     <tr>
                                         <td><%=ldapProfile.getDisplayName(locale)%></td>
                                         <td class="timestamp">
-                                            <% final Instant lastError = dashboard_pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfile); %>
+                                            <% final Instant lastError = dashboard_pwmDomain.getLdapConnectionService().getLastLdapFailureTime(ldapProfile); %>
                                             <%= lastError == null ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable) :JavaHelper.toIsoDate(lastError) %>
                                         </td>
                                     </tr>
@@ -293,8 +296,8 @@
                             <td>
                                 <% if (!JavaHelper.isEmpty(loopService.getHealth())) { %>
                                 <% for (final HealthRecord loopRecord : loopService.getHealth()) { %>
-                                <%= loopRecord.getTopic(locale, dashboard_pwmApplication.getConfig()) %> - <%= loopRecord.getStatus().toString() %> - <%= loopRecord.getDetail(locale,
-                                    dashboard_pwmApplication.getConfig()) %>
+                                <%= loopRecord.getTopic(locale, dashboard_pwmDomain.getConfig()) %> - <%= loopRecord.getStatus().toString() %> - <%= loopRecord.getDetail(locale,
+                                    dashboard_pwmDomain.getConfig()) %>
                                 <br/>
                                 <% } %>
                                 <% } else { %>

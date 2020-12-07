@@ -20,7 +20,7 @@
 
 package password.pwm.http.filter;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
@@ -93,8 +93,8 @@ public class ApplicationModeFilter extends AbstractPwmFilter
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PwmApplicationMode mode = pwmApplication.getApplicationMode();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmApplicationMode mode = pwmDomain.getApplicationMode();
 
         final PwmURL pwmURL = pwmRequest.getURL();
 

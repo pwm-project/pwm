@@ -20,7 +20,7 @@
 
 package password.pwm.util.localdb;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
@@ -33,14 +33,14 @@ import java.util.Map;
 
 public class LocalDBService implements PwmService
 {
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
 
     @Override
     public STATUS status( )
     {
-        if ( pwmApplication != null
-                && pwmApplication.getLocalDB() != null
-                && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN )
+        if ( pwmDomain != null
+                && pwmDomain.getLocalDB() != null
+                && pwmDomain.getLocalDB().status() == LocalDB.Status.OPEN )
         {
             return STATUS.OPEN;
         }
@@ -49,9 +49,9 @@ public class LocalDBService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
     }
 
     @Override
@@ -72,7 +72,7 @@ public class LocalDBService implements PwmService
         final Map<String, String> returnInfo = new LinkedHashMap<>();
         if ( status() == STATUS.OPEN )
         {
-            final Map<String, Serializable> localDbInfo = pwmApplication.getLocalDB().debugInfo();
+            final Map<String, Serializable> localDbInfo = pwmDomain.getLocalDB().debugInfo();
             for ( final Map.Entry<String, Serializable> entry : localDbInfo.entrySet() )
             {
                 returnInfo.put( entry.getKey(), String.valueOf( entry.getValue() ) );

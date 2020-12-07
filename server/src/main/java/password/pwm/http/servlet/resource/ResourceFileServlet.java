@@ -21,7 +21,7 @@
 package password.pwm.http.servlet.resource;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -140,11 +140,11 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                     "unable to process resource request for request method " + pwmRequest.getMethod() ) );
         }
 
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final ResourceServletService resourceService = pwmApplication.getResourceServletService();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final ResourceServletService resourceService = pwmDomain.getResourceServletService();
         final ResourceServletConfiguration resourceConfiguration = resourceService.getResourceServletConfiguration();
 
-        final ResourceFileRequest resourceFileRequest = new ResourceFileRequest( pwmApplication.getConfig(), resourceConfiguration, pwmRequest.getHttpServletRequest() );
+        final ResourceFileRequest resourceFileRequest = new ResourceFileRequest( pwmDomain.getConfig(), resourceConfiguration, pwmRequest.getHttpServletRequest() );
         final String requestURI = resourceFileRequest.getRequestURI();
 
         final FileResource file;
@@ -214,7 +214,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             pwmRequest.debugHttpRequestToLog( debugText, () -> TimeDuration.fromCurrent( pwmRequest.getRequestStartTime() ) );
 
             final MovingAverage cacheHitRatio = resourceService.getCacheHitRatio();
-            StatisticsManager.incrementStat( pwmApplication, Statistic.HTTP_RESOURCE_REQUESTS );
+            StatisticsManager.incrementStat( pwmDomain, Statistic.HTTP_RESOURCE_REQUESTS );
             cacheHitRatio.update( fromCache ? 1 : 0 );
         }
         catch ( final Exception e )

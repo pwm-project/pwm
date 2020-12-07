@@ -25,11 +25,11 @@ import org.apache.log4j.EnhancedPatternLayout;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Logger;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -197,24 +197,24 @@ public class MainClass
         final File configurationFile = locateConfigurationFile( applicationPath );
 
         final ConfigurationReader configReader = loadConfiguration( configurationFile );
-        final Configuration config = configReader.getConfiguration();
+        final DomainConfig config = configReader.getConfiguration();
 
-        final PwmApplication pwmApplication;
+        final PwmDomain pwmDomain;
         final LocalDB localDB;
 
         if ( parameters.needsPwmApplication )
         {
-            pwmApplication = loadPwmApplication( applicationPath, mainOptions.getApplicationFlags(), config, configurationFile, parameters.readOnly );
-            localDB = pwmApplication.getLocalDB();
+            pwmDomain = loadPwmApplication( applicationPath, mainOptions.getApplicationFlags(), config, configurationFile, parameters.readOnly );
+            localDB = pwmDomain.getLocalDB();
         }
         else if ( parameters.needsLocalDB )
         {
-            pwmApplication = null;
+            pwmDomain = null;
             localDB = loadPwmDB( config, parameters.readOnly, applicationPath );
         }
         else
         {
-            pwmApplication = null;
+            pwmDomain = null;
             localDB = null;
         }
 
@@ -227,7 +227,7 @@ public class MainClass
                 .configurationFile( configurationFile )
                 .config( config )
                 .applicationPath( applicationPath )
-                .pwmApplication( pwmApplication )
+                .pwmDomain( pwmDomain )
                 .localDB( localDB )
                 .debugWriter( outputStream )
                 .options( options )
@@ -389,11 +389,11 @@ public class MainClass
             return;
         }
 
-        if ( cliEnvironment.getPwmApplication() != null )
+        if ( cliEnvironment.getPwmDomain() != null )
         {
             try
             {
-                cliEnvironment.getPwmApplication().shutdown();
+                cliEnvironment.getPwmDomain().shutdown();
             }
             catch ( final Exception e )
             {
@@ -441,7 +441,7 @@ public class MainClass
     }
 
     private static LocalDB loadPwmDB(
-            final Configuration config,
+            final DomainConfig config,
             final boolean readonly,
             final File applicationPath
     )
@@ -467,10 +467,10 @@ public class MainClass
         return reader;
     }
 
-    private static PwmApplication loadPwmApplication(
+    private static PwmDomain loadPwmApplication(
             final File applicationPath,
             final Collection<PwmEnvironment.ApplicationFlag> flags,
-            final Configuration config,
+            final DomainConfig config,
             final File configurationFile,
             final boolean readonly
     )
@@ -495,15 +495,15 @@ public class MainClass
                 .flags( applicationFlags )
                 .build();
 
-        final PwmApplication pwmApplication = PwmApplication.createPwmApplication( pwmEnvironment );
-        final PwmApplicationMode runningMode = pwmApplication.getApplicationMode();
+        final PwmDomain pwmDomain = PwmDomain.createPwmApplication( pwmEnvironment );
+        final PwmApplicationMode runningMode = pwmDomain.getApplicationMode();
 
         if ( runningMode != mode )
         {
             out( "application is in non running state: " + runningMode );
         }
 
-        return pwmApplication;
+        return pwmDomain;
     }
 
     private static File locateConfigurationFile( final File applicationPath )

@@ -45,6 +45,8 @@ public enum PwmSettingCategory
     TEMPLATES( null ),
     NOTES( null ),
 
+    DOMAINS( null ),
+
     LDAP( null ),
     SETTINGS( null ),
     PROFILES( null ),
@@ -350,12 +352,10 @@ public enum PwmSettingCategory
 
     public static List<PwmSettingCategory> valuesForReferenceDoc()
     {
-        final List<PwmSettingCategory> values = sortedValues().stream()
+        return sortedValues().stream()
                 .filter( ( category ) -> !category.isHidden() )
                 .filter( ( category ) -> !category.getSettings().isEmpty() )
-                .collect( Collectors.toList( ) );
-
-        return Collections.unmodifiableList( values );
+                .collect( Collectors.toUnmodifiableList( ) );
     }
 
     public static List<PwmSettingCategory> associatedProfileCategories( final PwmSettingCategory inputCategory )
@@ -375,7 +375,7 @@ public enum PwmSettingCategory
         returnValues.add( topLevelCategory );
         returnValues.addAll( topLevelCategory.getChildren() );
 
-        return Collections.unmodifiableList( returnValues );
+        return List.copyOf( returnValues );
     }
 
     public static Optional<PwmSettingCategory> forKey( final String key )
@@ -498,7 +498,7 @@ public enum PwmSettingCategory
         {
             final Set<PwmSettingCategory> categories = Arrays.stream( PwmSettingCategory.values() )
                     .filter( ( loopCategory ) -> loopCategory.getParent() == category )
-                    .collect( Collectors.toSet() );
+                    .collect( Collectors.toUnmodifiableSet() );
             return Collections.unmodifiableSet( JavaHelper.copiedEnumSet( categories, PwmSettingCategory.class ) );
         }
 

@@ -21,7 +21,7 @@
 package password.pwm.http.servlet;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
@@ -132,7 +132,7 @@ public class LogoutServlet extends ControlledPwmServlet
                 + ( logoutDueToIdle ? " due to client idle timeout" : "" ) );
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
 
         pwmSession.unauthenticateUser( pwmRequest );
 
@@ -150,7 +150,7 @@ public class LogoutServlet extends ControlledPwmServlet
 
         {
             // if the logout url hasn't been set then try seeing if one has been configured.
-            final String configuredLogoutURL = pwmApplication.getConfig().readSettingAsString( PwmSetting.URL_LOGOUT );
+            final String configuredLogoutURL = pwmDomain.getConfig().readSettingAsString( PwmSetting.URL_LOGOUT );
             if ( configuredLogoutURL != null && configuredLogoutURL.length() > 0 )
             {
 
@@ -165,7 +165,7 @@ public class LogoutServlet extends ControlledPwmServlet
                     if ( sessionForwardURL != null && sessionForwardURL.length() > 0 )
                     {
                         logoutUrlParameters.put(
-                                pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_PARAM_NAME_FORWARD_URL ),
+                                pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_PARAM_NAME_FORWARD_URL ),
                                 sessionForwardURL
                         );
                     }

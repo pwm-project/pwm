@@ -23,7 +23,7 @@ package password.pwm.svc.report;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
@@ -77,7 +77,7 @@ class ReportSettings implements Serializable
         HIGH,
     }
 
-    static ReportSettings readSettingsFromConfig( final Configuration config )
+    static ReportSettings readSettingsFromConfig( final DomainConfig config )
     {
         final ReportSettings.ReportSettingsBuilder builder = ReportSettings.builder();
         builder.maxCacheAge( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.REPORTING_MAX_REPORT_AGE_SECONDS ) ), TimeDuration.Unit.SECONDS ) );
@@ -114,12 +114,12 @@ class ReportSettings implements Serializable
         return builder.build();
     }
 
-    private static List<Integer> parseDayIntervalStr( final Configuration configuration )
+    private static List<Integer> parseDayIntervalStr( final DomainConfig domainConfig )
     {
         final List<String> configuredValues = new ArrayList<>();
-        if ( configuration != null )
+        if ( domainConfig != null )
         {
-            configuredValues.addAll( configuration.readSettingAsStringArray( PwmSetting.REPORTING_SUMMARY_DAY_VALUES ) );
+            configuredValues.addAll( domainConfig.readSettingAsStringArray( PwmSetting.REPORTING_SUMMARY_DAY_VALUES ) );
         }
         if ( configuredValues.isEmpty() )
         {

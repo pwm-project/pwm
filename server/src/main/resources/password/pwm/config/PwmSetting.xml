@@ -55,6 +55,12 @@
             <property key="ModificationWarning">Changing this setting will change default values throughout the configuration.  Are you sure you wish to modify this setting?</property>
         </properties>
     </setting>
+    <setting hidden="false" key="domain.list" level="0">
+        <regex>^(?!.*system.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
     <setting hidden="false" key="notes.noteText" level="0">
         <flag>NoDefault</flag>
         <default/>
@@ -4151,13 +4157,15 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="NOTES">
     </category>
+    <category hidden="false" scope="SYSTEM" key="DOMAINS">
+    </category>
     <category hidden="false" scope="DOMAIN" key="SETTINGS">
     </category>
     <category hidden="false" scope="DOMAIN" key="PROFILES">
     </category>
     <category hidden="false" scope="DOMAIN" key="MODULES">
     </category>
-    <category hidden="false" scope="DOMAIN" key="HTTPS_SERVER">
+    <category hidden="false" scope="SYSTEM" key="HTTPS_SERVER">
     </category>
     <category hidden="false" scope="DOMAIN" key="LDAP">
     </category>
@@ -4240,7 +4248,7 @@
     <category hidden="false" scope="DOMAIN" key="OTP_PROFILE">
         <profile setting="otp.profile.list"/>
     </category>
-    <category hidden="false" scope="DOMAIN"  key="LOGGING">
+    <category hidden="false" scope="SYSTEM"  key="LOGGING">
     </category>
     <category hidden="false" scope="DOMAIN" key="AUDITING">
     </category>

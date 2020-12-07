@@ -20,7 +20,7 @@
 
 package password.pwm.config.function;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
@@ -50,7 +50,7 @@ public class LdapCertImportFunction implements SettingUIFunction
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final StringArrayValue ldapUrlsValue = ( StringArrayValue ) modifier.newStoredConfiguration().readSetting( PwmSetting.LDAP_SERVER_URLS, profile );
@@ -63,7 +63,7 @@ public class LdapCertImportFunction implements SettingUIFunction
 
         final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
         modifier.writeSetting( setting, profile, X509CertificateValue.fromX509( resultCertificates ), userIdentity );
-        return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig() );
+        return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmDomain.getConfig() );
     }
 
 }

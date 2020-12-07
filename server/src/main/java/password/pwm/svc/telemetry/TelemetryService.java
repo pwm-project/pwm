@@ -26,12 +26,12 @@ import lombok.Getter;
 import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
 import password.pwm.PwmAboutProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TelemetryPublishBean;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -73,7 +73,7 @@ public class TelemetryService implements PwmService
     private static final PwmLogger LOGGER = PwmLogger.forClass( TelemetryService.class );
 
     private ExecutorService executorService;
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
     private Settings settings;
 
     private Instant lastPublishTime;
@@ -90,39 +90,39 @@ public class TelemetryService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
 
-        if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING )
+        if ( pwmDomain.getApplicationMode() != PwmApplicationMode.RUNNING )
         {
             LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "will remain closed, app is not running" );
             status = STATUS.CLOSED;
             return;
         }
 
-        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PUBLISH_STATS_ENABLE ) )
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.PUBLISH_STATS_ENABLE ) )
         {
             LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "will remain closed, publish stats not enabled" );
             status = STATUS.CLOSED;
             return;
         }
 
-        if ( pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
+        if ( pwmDomain.getLocalDB().status() != LocalDB.Status.OPEN )
         {
             LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "will remain closed, localdb not enabled" );
             status = STATUS.CLOSED;
             return;
         }
 
-        if ( pwmApplication.getStatisticsManager().status() != STATUS.OPEN )
+        if ( pwmDomain.getStatisticsManager().status() != STATUS.OPEN )
         {
             LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "will remain closed, statistics manager is not enabled" );
             status = STATUS.CLOSED;
             return;
         }
 
-        settings = Settings.fromConfig( pwmApplication.getConfig() );
+        settings = Settings.fromConfig( pwmDomain.getConfig() );
         try
         {
             initSender();
@@ -134,11 +134,11 @@ public class TelemetryService implements PwmService
             return;
         }
 
-        lastPublishTime = pwmApplication.readAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, Instant.class )
-                .orElse( pwmApplication.getInstallTime() );
+        lastPublishTime = pwmDomain.readAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, Instant.class )
+                .orElse( pwmDomain.getInstallTime() );
         LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "last publish time was " + JavaHelper.toIsoDate( lastPublishTime ) );
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, TelemetryService.class );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, TelemetryService.class );
 
         scheduleNextJob();
 
@@ -168,8 +168,8 @@ public class TelemetryService implements PwmService
 
         try
         {
-            final String macrodSettings = MacroRequest.forNonUserSpecific( pwmApplication, null ).expandMacros( settings.getSenderSettings() );
-            telemetrySender.init( pwmApplication, macrodSettings );
+            final String macrodSettings = MacroRequest.forNonUserSpecific( pwmDomain, null ).expandMacros( settings.getSenderSettings() );
+            telemetrySender.init( pwmDomain, macrodSettings );
         }
         catch ( final Exception e )
         {
@@ -181,7 +181,7 @@ public class TelemetryService implements PwmService
 
     private void executePublishJob( ) throws PwmUnrecoverableException, IOException, URISyntaxException
     {
-        final String authValue = pwmApplication.getStatisticsManager().getStatBundleForKey( StatisticsManager.KEY_CUMULATIVE ).getStatistic( Statistic.AUTHENTICATIONS );
+        final String authValue = pwmDomain.getStatisticsManager().getStatBundleForKey( StatisticsManager.KEY_CUMULATIVE ).getStatistic( Statistic.AUTHENTICATIONS );
         if ( StringUtil.isEmpty( authValue ) || Integer.parseInt( authValue ) < settings.getMinimumAuthentications() )
         {
             LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "skipping telemetry send, authentication count is too low" );
@@ -202,14 +202,14 @@ public class TelemetryService implements PwmService
         }
 
         lastPublishTime = Instant.now();
-        pwmApplication.writeAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, lastPublishTime );
+        pwmDomain.writeAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, lastPublishTime );
         scheduleNextJob();
     }
 
     private void scheduleNextJob( )
     {
         final TimeDuration durationUntilNextPublish = durationUntilNextPublish();
-        pwmApplication.getPwmScheduler().scheduleJob( new PublishJob(), executorService, durationUntilNextPublish );
+        pwmDomain.getPwmScheduler().scheduleJob( new PublishJob(), executorService, durationUntilNextPublish );
         LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "next publish time: " + durationUntilNextPublish().asCompactString() );
     }
 
@@ -261,9 +261,9 @@ public class TelemetryService implements PwmService
     public TelemetryPublishBean generatePublishableBean( )
             throws URISyntaxException, IOException, PwmUnrecoverableException
     {
-        final StatisticsBundle bundle = pwmApplication.getStatisticsManager().getStatBundleForKey( StatisticsManager.KEY_CUMULATIVE );
-        final Configuration config = pwmApplication.getConfig();
-        final Map<PwmAboutProperty, String> aboutPropertyStringMap = PwmAboutProperty.makeInfoBean( pwmApplication );
+        final StatisticsBundle bundle = pwmDomain.getStatisticsManager().getStatBundleForKey( StatisticsManager.KEY_CUMULATIVE );
+        final DomainConfig config = pwmDomain.getConfig();
+        final Map<PwmAboutProperty, String> aboutPropertyStringMap = PwmAboutProperty.makeInfoBean( pwmDomain );
 
         final Map<String, String> statData = new TreeMap<>();
         for ( final Statistic loopStat : Statistic.values() )
@@ -287,7 +287,7 @@ public class TelemetryService implements PwmService
             {
                 try
                 {
-                    final DirectoryVendor directoryVendor = ldapProfile.getProxyChaiProvider( pwmApplication ).getDirectoryVendor();
+                    final DirectoryVendor directoryVendor = ldapProfile.getProxyChaiProvider( pwmDomain ).getDirectoryVendor();
                     final PwmLdapVendor pwmLdapVendor = PwmLdapVendor.fromChaiVendor( directoryVendor );
                     if ( pwmLdapVendor != null )
                     {
@@ -314,9 +314,9 @@ public class TelemetryService implements PwmService
 
         final TelemetryPublishBean.TelemetryPublishBeanBuilder builder = TelemetryPublishBean.builder();
         builder.timestamp( Instant.now() );
-        builder.id( makeId( pwmApplication ) );
-        builder.instanceHash( pwmApplication.getSecureService().hash( pwmApplication.getInstanceID() ) );
-        builder.installTime( pwmApplication.getInstallTime() );
+        builder.id( makeId( pwmDomain ) );
+        builder.instanceHash( pwmDomain.getSecureService().hash( pwmDomain.getInstanceID() ) );
+        builder.installTime( pwmDomain.getInstallTime() );
         builder.siteDescription( config.readSettingAsString( PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION ) );
         builder.versionBuild( PwmConstants.BUILD_NUMBER );
         builder.versionVersion( PwmConstants.BUILD_VERSION );
@@ -327,22 +327,22 @@ public class TelemetryService implements PwmService
         return builder.build();
     }
 
-    private static String makeId( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    private static String makeId( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
     {
         final String separator = "-";
         final String datetimePattern = "yyyyMMdd-HHmmss'Z'";
         final String timestamp = DateTimeFormatter.ofPattern( datetimePattern ).format( ZonedDateTime.now( ZoneId.of( "Zulu" ) ) );
         return PwmConstants.PWM_APP_NAME.toLowerCase()
-                + separator + instanceHash( pwmApplication )
+                + separator + instanceHash( pwmDomain )
                 + separator + timestamp;
 
     }
 
-    private static String instanceHash( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    private static String instanceHash( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
     {
         final int maxHashLength = 64;
-        final String instanceID = pwmApplication.getInstanceID();
-        final String hash = pwmApplication.getSecureService().hash( instanceID );
+        final String instanceID = pwmDomain.getInstanceID();
+        final String hash = pwmDomain.getSecureService().hash( instanceID );
         return hash.length() > 64
                 ? hash.substring( 0, maxHashLength )
                 : hash;
@@ -357,7 +357,7 @@ public class TelemetryService implements PwmService
         private String senderImplementation;
         private String senderSettings;
 
-        static Settings fromConfig( final Configuration config )
+        static Settings fromConfig( final DomainConfig config )
         {
             return Settings.builder()
                     .minimumAuthentications( Integer.parseInt( config.readAppProperty( AppProperty.TELEMETRY_MIN_AUTHENTICATIONS ) ) )

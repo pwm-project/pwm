@@ -91,9 +91,9 @@ import java.util.stream.Collectors;
 /**
  * @author Jason D. Rivard
  */
-public class Configuration
+public class DomainConfig
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( Configuration.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( DomainConfig.class );
 
     private final StoredConfiguration storedConfiguration;
 
@@ -102,7 +102,7 @@ public class Configuration
     private final DataCache dataCache = new DataCache();
     private final SettingReader settingReader;
 
-    public Configuration( final StoredConfiguration storedConfiguration )
+    public DomainConfig( final StoredConfiguration storedConfiguration )
     {
         this.storedConfiguration = storedConfiguration;
         this.settingReader = new SettingReader( storedConfiguration, null, PwmConstants.DOMAIN_ID_PLACEHOLDER );

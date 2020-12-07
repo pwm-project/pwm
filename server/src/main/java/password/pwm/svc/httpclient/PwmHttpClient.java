@@ -55,10 +55,10 @@ import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -103,7 +103,7 @@ public class PwmHttpClient implements AutoCloseable
     private static final AtomicInteger CLIENT_COUNTER = new AtomicInteger( 0 );
 
     private final int clientID = CLIENT_COUNTER.getAndIncrement();
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final PwmHttpClientConfiguration pwmHttpClientConfiguration;
 
     private final TrustManager[] trustManagers;
@@ -111,14 +111,14 @@ public class PwmHttpClient implements AutoCloseable
 
     private volatile boolean open = true;
 
-    PwmHttpClient( final PwmApplication pwmApplication, final PwmHttpClientConfiguration pwmHttpClientConfiguration )
+    PwmHttpClient( final PwmDomain pwmDomain, final PwmHttpClientConfiguration pwmHttpClientConfiguration )
             throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.pwmHttpClientConfiguration = pwmHttpClientConfiguration;
 
-        this.trustManagers = makeTrustManager( pwmApplication.getConfig(), pwmHttpClientConfiguration );
-        this.httpClient = makeHttpClient( pwmApplication, pwmHttpClientConfiguration, this.trustManagers );
+        this.trustManagers = makeTrustManager( pwmDomain.getConfig(), pwmHttpClientConfiguration );
+        this.httpClient = makeHttpClient( pwmDomain, pwmHttpClientConfiguration, this.trustManagers );
     }
 
     @Override
@@ -136,26 +136,26 @@ public class PwmHttpClient implements AutoCloseable
     }
 
     private static TrustManager[] makeTrustManager(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final PwmHttpClientConfiguration pwmHttpClientConfiguration
     )
             throws PwmUnrecoverableException
     {
-        final HttpTrustManagerHelper httpTrustManagerHelper = new HttpTrustManagerHelper( configuration, pwmHttpClientConfiguration );
+        final HttpTrustManagerHelper httpTrustManagerHelper = new HttpTrustManagerHelper( domainConfig, pwmHttpClientConfiguration );
         return httpTrustManagerHelper.makeTrustManager();
     }
 
     private static CloseableHttpClient makeHttpClient(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final PwmHttpClientConfiguration pwmHttpClientConfiguration,
             final TrustManager[] trustManagers
     )
             throws PwmUnrecoverableException
     {
-        final Configuration configuration = pwmApplication.getConfig();
+        final DomainConfig domainConfig = pwmDomain.getConfig();
         final HttpClientBuilder clientBuilder = HttpClientBuilder.create();
         clientBuilder.setUserAgent( PwmConstants.PWM_APP_NAME );
-        final HttpTrustManagerHelper httpTrustManagerHelper = new HttpTrustManagerHelper( configuration, pwmHttpClientConfiguration );
+        final HttpTrustManagerHelper httpTrustManagerHelper = new HttpTrustManagerHelper( domainConfig, pwmHttpClientConfiguration );
 
         try
         {
@@ -181,7 +181,7 @@ public class PwmHttpClient implements AutoCloseable
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error creating promiscuous https client: " + e.getMessage() ) );
         }
 
-        final String proxyUrl = configuration.readSettingAsString( PwmSetting.HTTP_PROXY_URL );
+        final String proxyUrl = domainConfig.readSettingAsString( PwmSetting.HTTP_PROXY_URL );
         if ( proxyUrl != null && proxyUrl.length() > 0 )
         {
             final URI proxyURI = URI.create( proxyUrl );
@@ -204,13 +204,13 @@ public class PwmHttpClient implements AutoCloseable
                 clientBuilder.setProxyAuthenticationStrategy( new ProxyAuthenticationStrategy() );
             }
 
-            clientBuilder.setRoutePlanner( new ProxyRoutePlanner( proxyHost, configuration ) );
+            clientBuilder.setRoutePlanner( new ProxyRoutePlanner( proxyHost, domainConfig ) );
         }
 
         clientBuilder.setDefaultRequestConfig( RequestConfig.copy( RequestConfig.DEFAULT )
-                .setSocketTimeout( Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_CLIENT_SOCKET_TIMEOUT_MS ) ) )
-                .setConnectTimeout( Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_CLIENT_CONNECT_TIMEOUT_MS ) ) )
-                .setConnectionRequestTimeout( Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_CLIENT_REQUEST_TIMEOUT_MS ) ) )
+                .setSocketTimeout( Integer.parseInt( domainConfig.readAppProperty( AppProperty.HTTP_CLIENT_SOCKET_TIMEOUT_MS ) ) )
+                .setConnectTimeout( Integer.parseInt( domainConfig.readAppProperty( AppProperty.HTTP_CLIENT_CONNECT_TIMEOUT_MS ) ) )
+                .setConnectionRequestTimeout( Integer.parseInt( domainConfig.readAppProperty( AppProperty.HTTP_CLIENT_REQUEST_TIMEOUT_MS ) ) )
                 .build() );
 
         return clientBuilder.build();
@@ -274,7 +274,7 @@ public class PwmHttpClient implements AutoCloseable
         {
             msg.append( "\n  body: " );
 
-            final boolean alwaysOutput = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_ALWAYS_LOG_ENTITIES ) );
+            final boolean alwaysOutput = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_ALWAYS_LOG_ENTITIES ) );
 
 
             if ( isBinary )
@@ -341,7 +341,7 @@ public class PwmHttpClient implements AutoCloseable
             final String sslDebugText;
             if ( clientRequest.isHttps() )
             {
-                final HttpTrustManagerHelper httpTrustManagerHelper = new HttpTrustManagerHelper( pwmApplication.getConfig(), pwmHttpClientConfiguration );
+                final HttpTrustManagerHelper httpTrustManagerHelper = new HttpTrustManagerHelper( pwmDomain.getConfig(), pwmHttpClientConfiguration );
                 sslDebugText = "using " + httpTrustManagerHelper.debugText();
             }
             else
@@ -490,12 +490,12 @@ public class PwmHttpClient implements AutoCloseable
     private static class ProxyRoutePlanner implements HttpRoutePlanner
     {
         private final HttpHost proxyServer;
-        private final Configuration configuration;
+        private final DomainConfig domainConfig;
 
-        ProxyRoutePlanner( final HttpHost proxyServer, final Configuration configuration )
+        ProxyRoutePlanner( final HttpHost proxyServer, final DomainConfig domainConfig )
         {
             this.proxyServer = proxyServer;
-            this.configuration = configuration;
+            this.domainConfig = domainConfig;
         }
 
         @Override
@@ -507,7 +507,7 @@ public class PwmHttpClient implements AutoCloseable
         {
             final String targetUri = target.toURI();
 
-            final List<String> proxyExceptionUrls = configuration.readSettingAsStringArray( PwmSetting.HTTP_PROXY_EXCEPTIONS );
+            final List<String> proxyExceptionUrls = domainConfig.readSettingAsStringArray( PwmSetting.HTTP_PROXY_EXCEPTIONS );
 
             if ( PwmURL.testIfUrlMatchesAllowedPattern( targetUri, proxyExceptionUrls, null ) )
             {
@@ -554,7 +554,7 @@ public class PwmHttpClient implements AutoCloseable
     private ImmutableByteArray readBinaryEntityBody( final HttpEntity httpEntity )
             throws IOException
     {
-        final long maxSize = JavaHelper.silentParseLong( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_RESPONSE_MAX_SIZE ), 100_000_000L );
+        final long maxSize = JavaHelper.silentParseLong( pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_RESPONSE_MAX_SIZE ), 100_000_000L );
         try ( CountingInputStream contentStream = new CountingInputStream( httpEntity.getContent() ) )
         {
             final ByteArrayOutputStream baos = new ByteArrayOutputStream(  );

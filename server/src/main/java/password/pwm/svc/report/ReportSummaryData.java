@@ -23,7 +23,7 @@ package password.pwm.svc.report;
 import com.novell.ldapchai.cr.Answer;
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
@@ -247,7 +247,7 @@ public class ReportSummaryData
     }
 
 
-    public List<PresentationRow> asPresentableCollection( final Configuration config, final Locale locale )
+    public List<PresentationRow> asPresentableCollection( final DomainConfig config, final Locale locale )
     {
         final ArrayList<PresentationRow> returnCollection = new ArrayList<>();
         final PresentationRowBuilder builder = new PresentationRowBuilder( config, this.totalUsers.sum(), locale );
@@ -369,7 +369,7 @@ public class ReportSummaryData
     @Value
     public static class PresentationRowBuilder
     {
-        private final Configuration config;
+        private final DomainConfig config;
         private final long totalUsers;
         private final Locale locale;
 

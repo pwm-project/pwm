@@ -21,7 +21,7 @@
 package password.pwm.http.servlet.resource;
 
 import org.webjars.WebJarAssetLocator;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -56,18 +56,18 @@ class ResourceFileRequest
     private static final Collection<String> WEB_JAR_ASSET_LIST = Collections.unmodifiableCollection( new ArrayList<>( new WebJarAssetLocator().listAssets() ) );
 
     private final HttpServletRequest httpServletRequest;
-    private final Configuration configuration;
+    private final DomainConfig domainConfig;
     private final ResourceServletConfiguration resourceServletConfiguration;
 
     private FileResource fileResource;
 
     ResourceFileRequest(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final ResourceServletConfiguration resourceServletConfiguration,
             final HttpServletRequest httpServletRequest
     )
     {
-        this.configuration = configuration;
+        this.domainConfig = domainConfig;
         this.resourceServletConfiguration = resourceServletConfiguration;
         this.httpServletRequest = httpServletRequest;
     }
@@ -102,7 +102,7 @@ class ResourceFileRequest
         {
             final String resourcePathUri = this.getRequestURI();
             final ServletContext servletContext = this.getHttpServletRequest().getServletContext();
-            fileResource = resolveRequestedResource( configuration, servletContext, resourcePathUri, resourceServletConfiguration );
+            fileResource = resolveRequestedResource( domainConfig, servletContext, resourcePathUri, resourceServletConfiguration );
         }
         return fileResource;
     }
@@ -136,7 +136,7 @@ class ResourceFileRequest
             final String contentType = getRawMimeType();
             if ( contentType.startsWith( "text" ) || contentType.contains( "javascript" ) )
             {
-                final PwmHttpRequestWrapper pwmHttpRequestWrapper = new PwmHttpRequestWrapper( httpServletRequest, configuration );
+                final PwmHttpRequestWrapper pwmHttpRequestWrapper = new PwmHttpRequestWrapper( httpServletRequest, domainConfig );
                 final String acceptEncoding = pwmHttpRequestWrapper.readHeaderValueAsString( HttpHeader.AcceptEncoding );
                 return acceptEncoding != null && accepts( acceptEncoding, "gzip" );
             }
@@ -170,7 +170,7 @@ class ResourceFileRequest
     }
 
     static FileResource resolveRequestedResource(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final ServletContext servletContext,
             final String resourcePathUri,
             final ResourceServletConfiguration resourceServletConfiguration
@@ -203,11 +203,11 @@ class ResourceFileRequest
 
             if ( filename.equalsIgnoreCase( embedThemeUrl ) )
             {
-                return new ConfigSettingFileResource( PwmSetting.DISPLAY_CSS_EMBED, configuration, filename );
+                return new ConfigSettingFileResource( PwmSetting.DISPLAY_CSS_EMBED, domainConfig, filename );
             }
             else if ( filename.equalsIgnoreCase( embedThemeMobileUrl ) )
             {
-                return new ConfigSettingFileResource( PwmSetting.DISPLAY_CSS_MOBILE_EMBED, configuration, filename );
+                return new ConfigSettingFileResource( PwmSetting.DISPLAY_CSS_MOBILE_EMBED, domainConfig, filename );
             }
         }
 

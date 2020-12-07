@@ -20,11 +20,11 @@
 
 package password.pwm.health;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 
 import java.util.List;
 
 public interface HealthChecker
 {
-    List<HealthRecord> doHealthCheck( PwmApplication pwmApplication );
+    List<HealthRecord> doHealthCheck( PwmDomain pwmDomain );
 }

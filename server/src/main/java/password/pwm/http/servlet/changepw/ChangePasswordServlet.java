@@ -23,7 +23,7 @@ package password.pwm.http.servlet.changepw;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.config.PwmSetting;
@@ -508,8 +508,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     private void forwardToWaitPage( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, ServletException, IOException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final ChangePasswordBean changePasswordBean = pwmApplication.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final ChangePasswordBean changePasswordBean = pwmDomain.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
         final Instant maxCompleteTime = changePasswordBean.getChangePasswordMaxCompletion();
         pwmRequest.setAttribute(
                 PwmRequestAttribute.ChangePassword_MaxWaitSeconds,
@@ -529,10 +529,10 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             throws PwmUnrecoverableException, IOException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final ChangePasswordBean changePasswordBean = pwmApplication.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final ChangePasswordBean changePasswordBean = pwmDomain.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
 
-        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.CHANGE_PASSWORD_ENABLE ) )
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.CHANGE_PASSWORD_ENABLE ) )
         {
             pwmRequest.respondWithError( new ErrorInformation(
                     PwmError.ERROR_SERVICE_NOT_AVAILABLE,

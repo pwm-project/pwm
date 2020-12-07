@@ -24,9 +24,9 @@ import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
@@ -79,7 +79,7 @@ public class RandomPasswordGenerator
     public static PasswordData createRandomPassword(
             final SessionLabel sessionLabel,
             final PwmPasswordPolicy passwordPolicy,
-            final PwmApplication pwmApplication
+            final PwmDomain pwmDomain
     )
             throws PwmUnrecoverableException
     {
@@ -90,7 +90,7 @@ public class RandomPasswordGenerator
         return createRandomPassword(
                 sessionLabel,
                 randomGeneratorConfig,
-                pwmApplication
+                pwmDomain
         );
     }
 
@@ -104,7 +104,7 @@ public class RandomPasswordGenerator
      *
      * @param sessionLabel          A valid pwmSession
      * @param randomGeneratorConfig Policy to be used during generation
-     * @param pwmApplication        Used to read configuration, seedmanager and other services.
+     * @param pwmDomain        Used to read configuration, seedmanager and other services.
      * @return A randomly generated password value that meets the requirements of this {@code PasswordPolicy}
      * @throws ImpossiblePasswordPolicyException If there is no way to create a password using the configured rules and
      *                                        default seed phrase
@@ -113,14 +113,14 @@ public class RandomPasswordGenerator
     public static PasswordData createRandomPassword(
             final SessionLabel sessionLabel,
             final RandomGeneratorConfig randomGeneratorConfig,
-            final PwmApplication pwmApplication
+            final PwmDomain pwmDomain
     )
             throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
-        final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
+        final PwmRandom pwmRandom = pwmDomain.getSecureService().pwmRandom();
 
-        randomGeneratorConfig.validateSettings( pwmApplication );
+        randomGeneratorConfig.validateSettings( pwmDomain );
 
         final RandomGeneratorConfig effectiveConfig;
         {
@@ -128,7 +128,7 @@ public class RandomPasswordGenerator
             {
                 Set<String> seeds = DEFAULT_SEED_PHRASES;
 
-                final SeedlistService seedlistManager = pwmApplication.getSeedlistManager();
+                final SeedlistService seedlistManager = pwmDomain.getSeedlistManager();
                 if ( seedlistManager != null && seedlistManager.status() == PwmService.STATUS.OPEN && seedlistManager.size() > 0 )
                 {
                     seeds = new HashSet<>();
@@ -188,8 +188,8 @@ public class RandomPasswordGenerator
 
 
         // modify until it passes all the rules
-        final int maxTryCount = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_ATTEMPTS ) );
-        final int jitterCount = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_JITTER_COUNT ) );
+        final int maxTryCount = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_ATTEMPTS ) );
+        final int jitterCount = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_JITTER_COUNT ) );
         boolean validPassword = false;
         while ( !validPassword && tryCount < maxTryCount )
         {
@@ -202,7 +202,7 @@ public class RandomPasswordGenerator
                 password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
             }
 
-            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmApplication, randomGenPolicy, PwmPasswordRuleValidator.Flag.FailFast );
+            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmDomain, randomGenPolicy, PwmPasswordRuleValidator.Flag.FailFast );
             final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(
                     password.toString(), null, null );
             if ( errors != null && !errors.isEmpty() )
@@ -210,7 +210,7 @@ public class RandomPasswordGenerator
                 validPassword = false;
                 modifyPasswordBasedOnErrors( pwmRandom, password, errors, seedMachine );
             }
-            else if ( checkPasswordAgainstDisallowedHttpValues( pwmApplication.getConfig(), password.toString() ) )
+            else if ( checkPasswordAgainstDisallowedHttpValues( pwmDomain.getConfig(), password.toString() ) )
             {
                 validPassword = false;
                 password.delete( 0, password.length() );
@@ -221,7 +221,7 @@ public class RandomPasswordGenerator
         // report outcome
         {
             final TimeDuration td = TimeDuration.fromCurrent( startTime );
-            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmApplication, randomGenPolicy );
+            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmDomain, randomGenPolicy );
             if ( validPassword )
             {
                 final int finalTryCount = tryCount;
@@ -231,7 +231,7 @@ public class RandomPasswordGenerator
             else
             {
                 final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator( password.toString(), null, null );
-                final int judgeLevel = PasswordUtility.judgePasswordStrength( pwmApplication.getConfig(), password.toString() );
+                final int judgeLevel = PasswordUtility.judgePasswordStrength( pwmDomain.getConfig(), password.toString() );
                 final StringBuilder sb = new StringBuilder();
                 sb.append( "failed random password generation after " ).append( td.asCompactString() ).append( " after " ).append( tryCount ).append( " tries. " );
                 sb.append( "(errors=" ).append( errors.size() ).append( ", judgeLevel=" ).append( judgeLevel );
@@ -239,7 +239,7 @@ public class RandomPasswordGenerator
             }
         }
 
-        StatisticsManager.incrementStat( pwmApplication, Statistic.GENERATED_PASSWORDS );
+        StatisticsManager.incrementStat( pwmDomain, Statistic.GENERATED_PASSWORDS );
 
         final String logText = "real-time random password generator called"
                 + " (" + TimeDuration.compactFromCurrent( startTime ) + ")";
@@ -451,7 +451,7 @@ public class RandomPasswordGenerator
         }
     }
 
-    private static boolean checkPasswordAgainstDisallowedHttpValues( final Configuration config, final String password )
+    private static boolean checkPasswordAgainstDisallowedHttpValues( final DomainConfig config, final String password )
     {
         if ( config != null && password != null )
         {
@@ -682,11 +682,11 @@ public class RandomPasswordGenerator
             return Math.max( this.minimumStrength, policyMin );
         }
 
-        void validateSettings( final PwmApplication pwmApplication )
+        void validateSettings( final PwmDomain pwmDomain )
                 throws PwmUnrecoverableException
         {
             final int maxLength = Integer.parseInt(
-                    pwmApplication.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_LENGTH ) );
+                    pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_LENGTH ) );
             if ( this.getMinimumLength() > maxLength )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation(

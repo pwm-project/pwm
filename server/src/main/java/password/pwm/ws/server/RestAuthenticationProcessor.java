@@ -21,7 +21,7 @@
 package password.pwm.ws.server;
 
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -51,17 +51,17 @@ public class RestAuthenticationProcessor
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestAuthentication.class );
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final HttpServletRequest httpServletRequest;
     private final SessionLabel sessionLabel;
 
     public RestAuthenticationProcessor(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final HttpServletRequest httpServletRequest
     )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.sessionLabel = sessionLabel;
         this.httpServletRequest = httpServletRequest;
     }
@@ -76,7 +76,7 @@ public class RestAuthenticationProcessor
                 LOGGER.trace( sessionLabel, () -> "authenticating with named secret '" + namedSecretName + "'" );
                 final Set<WebServiceUsage> usages = JavaHelper.copiedEnumSet( JavaHelper.readEnumSetFromStringCollection(
                         WebServiceUsage.class,
-                        pwmApplication.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET ).get( namedSecretName ).getUsage()
+                        pwmDomain.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET ).get( namedSecretName ).getUsage()
                 ), WebServiceUsage.class );
                 return new RestAuthentication(
                         RestAuthenticationType.NAMED_SECRET,
@@ -95,8 +95,8 @@ public class RestAuthenticationProcessor
             if ( userIdentity != null )
             {
                 {
-                    final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.WEBSERVICES_QUERY_MATCH );
-                    final boolean result = UserPermissionUtility.testUserPermission( pwmApplication, sessionLabel, userIdentity, userPermission );
+                    final List<UserPermission> userPermission = pwmDomain.getConfig().readSettingAsUserPermission( PwmSetting.WEBSERVICES_QUERY_MATCH );
+                    final boolean result = UserPermissionUtility.testUserPermission( pwmDomain, sessionLabel, userIdentity, userPermission );
                     if ( !result )
                     {
                         final String errorMsg = "user does not have webservice permission due to setting "
@@ -107,8 +107,8 @@ public class RestAuthenticationProcessor
 
                 final boolean thirdParty;
                 {
-                    final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.WEBSERVICES_THIRDPARTY_QUERY_MATCH );
-                    thirdParty = UserPermissionUtility.testUserPermission( pwmApplication, sessionLabel, userIdentity, userPermission );
+                    final List<UserPermission> userPermission = pwmDomain.getConfig().readSettingAsUserPermission( PwmSetting.WEBSERVICES_THIRDPARTY_QUERY_MATCH );
+                    thirdParty = UserPermissionUtility.testUserPermission( pwmDomain, sessionLabel, userIdentity, userPermission );
                 }
 
                 final ChaiProvider chaiProvider = authenticateUser( userIdentity );
@@ -128,7 +128,7 @@ public class RestAuthenticationProcessor
 
         final Set<WebServiceUsage> publicUsages = WebServiceUsage.forType( RestAuthenticationType.PUBLIC );
         final Set<WebServiceUsage> enabledUsages = JavaHelper.copiedEnumSet(
-                pwmApplication.getConfig().readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class ), WebServiceUsage.class );
+                pwmDomain.getConfig().readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class ), WebServiceUsage.class );
         enabledUsages.retainAll( publicUsages );
 
         return new RestAuthentication(
@@ -143,11 +143,11 @@ public class RestAuthenticationProcessor
 
     private String readNamedSecretName( ) throws PwmUnrecoverableException
     {
-        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmApplication, httpServletRequest );
+        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmDomain, httpServletRequest );
         if ( basicAuthInfo != null )
         {
             final String basicAuthUsername = basicAuthInfo.getUsername();
-            final Map<String, NamedSecretData> secrets = pwmApplication.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET );
+            final Map<String, NamedSecretData> secrets = pwmDomain.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET );
             final NamedSecretData namedSecretData = secrets.get( basicAuthUsername );
             if ( namedSecretData != null )
             {
@@ -164,12 +164,12 @@ public class RestAuthenticationProcessor
     private void verifyAuthUserIsNotSystemUser( final UserIdentity userIdentity )
             throws PwmUnrecoverableException
     {
-        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
+        final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
         if ( ldapProfile != null )
         {
             {
-                final UserIdentity testUser = ldapProfile.getTestUser( pwmApplication );
-                if ( testUser != null && testUser.canonicalEquals( userIdentity, pwmApplication ) )
+                final UserIdentity testUser = ldapProfile.getTestUser( pwmDomain );
+                if ( testUser != null && testUser.canonicalEquals( userIdentity, pwmDomain ) )
                 {
                     final String msg = "rest services can not be authenticated using the configured LDAP profile test user";
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg );
@@ -178,8 +178,8 @@ public class RestAuthenticationProcessor
             }
 
             {
-                final UserIdentity testUser = ldapProfile.getTestUser( pwmApplication );
-                if ( testUser != null && testUser.canonicalEquals( userIdentity, pwmApplication ) )
+                final UserIdentity testUser = ldapProfile.getTestUser( pwmDomain );
+                if ( testUser != null && testUser.canonicalEquals( userIdentity, pwmDomain ) )
                 {
                     final String msg = "rest services can not be authenticated using the configured LDAP profile proxy user";
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg );
@@ -191,13 +191,13 @@ public class RestAuthenticationProcessor
 
     private UserIdentity readLdapUserIdentity( ) throws PwmUnrecoverableException
     {
-        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmApplication, httpServletRequest );
+        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmDomain, httpServletRequest );
         if ( basicAuthInfo == null )
         {
             return null;
         }
 
-        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+        final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
         try
         {
             return userSearchEngine.resolveUsername( basicAuthInfo.getUsername(), null, null, sessionLabel );
@@ -210,9 +210,9 @@ public class RestAuthenticationProcessor
 
     private ChaiProvider authenticateUser( final UserIdentity userIdentity ) throws PwmUnrecoverableException
     {
-        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmApplication, httpServletRequest );
+        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmDomain, httpServletRequest );
 
-        final AuthenticationResult authenticationResult = SimpleLdapAuthenticator.authenticateUser( pwmApplication, sessionLabel, userIdentity, basicAuthInfo.getPassword() );
+        final AuthenticationResult authenticationResult = SimpleLdapAuthenticator.authenticateUser( pwmDomain, sessionLabel, userIdentity, basicAuthInfo.getPassword() );
         return authenticationResult.getUserProvider();
 
     }

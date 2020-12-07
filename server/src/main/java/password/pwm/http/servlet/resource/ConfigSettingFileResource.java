@@ -21,7 +21,7 @@
 package password.pwm.http.servlet.resource;
 
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.java.StringUtil;
 
@@ -34,9 +34,9 @@ public class ConfigSettingFileResource implements FileResource
     private final String bodyText;
     private final String requestURI;
 
-    public ConfigSettingFileResource( final PwmSetting pwmSetting, final Configuration configuration, final String requestURI )
+    public ConfigSettingFileResource( final PwmSetting pwmSetting, final DomainConfig domainConfig, final String requestURI )
     {
-        this.bodyText = configuration.readSettingAsString( pwmSetting );
+        this.bodyText = domainConfig.readSettingAsString( pwmSetting );
         this.requestURI = requestURI;
     }
 

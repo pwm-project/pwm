@@ -20,13 +20,13 @@
 
 package password.pwm.svc.telemetry;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.error.PwmUnrecoverableException;
 
 public interface TelemetrySender
 {
-    void init( PwmApplication pwmApplication, String initString );
+    void init( PwmDomain pwmDomain, String initString );
 
     void publish( TelemetryPublishBean statsPublishBean ) throws PwmUnrecoverableException;
 }

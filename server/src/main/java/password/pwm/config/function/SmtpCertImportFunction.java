@@ -21,7 +21,7 @@
 package password.pwm.config.function;
 
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -50,8 +50,8 @@ public class SmtpCertImportFunction implements SettingUIFunction
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        final Configuration configuration = new Configuration( modifier.newStoredConfiguration() );
-        final List<X509Certificate> certs = EmailServerUtil.readCertificates( configuration, profile );
+        final DomainConfig domainConfig = new DomainConfig( modifier.newStoredConfiguration() );
+        final List<X509Certificate> certs = EmailServerUtil.readCertificates( domainConfig, profile );
         if ( !JavaHelper.isEmpty( certs ) )
         {
             final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;

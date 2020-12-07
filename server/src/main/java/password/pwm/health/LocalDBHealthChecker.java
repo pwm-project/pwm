@@ -21,8 +21,8 @@
 package password.pwm.health;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.PwmDomain;
+import password.pwm.config.DomainConfig;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
@@ -35,20 +35,20 @@ import java.util.List;
 public class LocalDBHealthChecker implements HealthChecker
 {
     @Override
-    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
+    public List<HealthRecord> doHealthCheck( final PwmDomain pwmDomain )
     {
-        if ( pwmApplication == null )
+        if ( pwmDomain == null )
         {
             return null;
         }
 
         final List<HealthRecord> healthRecords = new ArrayList<>();
 
-        final LocalDB localDB = pwmApplication.getLocalDB();
+        final LocalDB localDB = pwmDomain.getLocalDB();
 
         if ( localDB == null )
         {
-            final String detailedError = pwmApplication.getLastLocalDBFailure() == null ? "unknown, check logs" : pwmApplication.getLastLocalDBFailure().toDebugStr();
+            final String detailedError = pwmDomain.getLastLocalDBFailure() == null ? "unknown, check logs" : pwmDomain.getLastLocalDBFailure().toDebugStr();
             healthRecords.add( HealthRecord.forMessage( HealthMessage.LocalDB_BAD, detailedError ) );
             return healthRecords;
         }
@@ -65,7 +65,7 @@ public class LocalDBHealthChecker implements HealthChecker
             return healthRecords;
         }
 
-        healthRecords.addAll( checkSpaceRemaining( pwmApplication ) );
+        healthRecords.addAll( checkSpaceRemaining( pwmDomain ) );
 
         if ( healthRecords.isEmpty() )
         {
@@ -75,11 +75,11 @@ public class LocalDBHealthChecker implements HealthChecker
         return healthRecords;
     }
 
-    private List<HealthRecord> checkSpaceRemaining( final PwmApplication pwmApplication )
+    private List<HealthRecord> checkSpaceRemaining( final PwmDomain pwmDomain )
     {
-        final Configuration configuration = pwmApplication.getConfig();
-        final long minFreeSpace = JavaHelper.silentParseLong( configuration.readAppProperty( AppProperty.HEALTH_DISK_MIN_FREE_WARNING ), 500_000_000 );
-        final long freeSpace = FileSystemUtility.diskSpaceRemaining( pwmApplication.getLocalDB().getFileLocation() );
+        final DomainConfig domainConfig = pwmDomain.getConfig();
+        final long minFreeSpace = JavaHelper.silentParseLong( domainConfig.readAppProperty( AppProperty.HEALTH_DISK_MIN_FREE_WARNING ), 500_000_000 );
+        final long freeSpace = FileSystemUtility.diskSpaceRemaining( pwmDomain.getLocalDB().getFileLocation() );
 
         if ( freeSpace < minFreeSpace )
         {

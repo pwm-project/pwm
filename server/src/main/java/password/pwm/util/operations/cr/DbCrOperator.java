@@ -26,7 +26,7 @@ import com.novell.ldapchai.cr.ChaiResponseSet;
 import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiValidationException;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -46,11 +46,11 @@ public class DbCrOperator implements CrOperator
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( DbCrOperator.class );
 
-    final PwmApplication pwmApplication;
+    final PwmDomain pwmDomain;
 
-    public DbCrOperator( final PwmApplication pwmApplication )
+    public DbCrOperator( final PwmDomain pwmDomain )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
     }
 
     @Override
@@ -76,7 +76,7 @@ public class DbCrOperator implements CrOperator
 
         try
         {
-            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
+            final DatabaseAccessor databaseAccessor = pwmDomain.getDatabaseService().getAccessor();
             final String responseStringBlob = databaseAccessor.get( DatabaseTable.PWM_RESPONSES, userGUID );
             if ( responseStringBlob != null && responseStringBlob.length() > 0 )
             {
@@ -141,7 +141,7 @@ public class DbCrOperator implements CrOperator
 
         try
         {
-            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
+            final DatabaseAccessor databaseAccessor = pwmDomain.getDatabaseService().getAccessor();
             databaseAccessor.remove( DatabaseTable.PWM_RESPONSES, userGUID );
             LOGGER.info( sessionLabel, () -> "cleared responses for user " + theUser.getEntryDN() + " in remote database" );
         }
@@ -186,7 +186,7 @@ public class DbCrOperator implements CrOperator
                     responseInfoBean.getCsIdentifier()
             );
 
-            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseService().getAccessor();
+            final DatabaseAccessor databaseAccessor = pwmDomain.getDatabaseService().getAccessor();
             databaseAccessor.put( DatabaseTable.PWM_RESPONSES, userGUID, responseSet.stringValue() );
             LOGGER.info( sessionLabel, () -> "saved responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")" );
         }

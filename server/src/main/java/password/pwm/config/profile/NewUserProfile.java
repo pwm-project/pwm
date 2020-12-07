@@ -24,10 +24,10 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -69,10 +69,10 @@ public class NewUserProfile extends AbstractProfile implements Profile
         return value != null && !value.isEmpty() ? value : this.getIdentifier();
     }
 
-    public PwmPasswordPolicy getNewUserPasswordPolicy( final PwmApplication pwmApplication, final Locale userLocale )
+    public PwmPasswordPolicy getNewUserPasswordPolicy( final PwmDomain pwmDomain, final Locale userLocale )
             throws PwmUnrecoverableException
     {
-        final long maxNewUserCacheMS = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.CONFIG_NEWUSER_PASSWORD_POLICY_CACHE_MS ) );
+        final long maxNewUserCacheMS = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.CONFIG_NEWUSER_PASSWORD_POLICY_CACHE_MS ) );
         if ( newUserPasswordPolicyCacheTime != null && TimeDuration.fromCurrent( newUserPasswordPolicyCacheTime ).isLongerThan( maxNewUserCacheMS ) )
         {
             newUserPasswordPolicyCacheTime = Instant.now();
@@ -129,10 +129,10 @@ public class NewUserProfile extends AbstractProfile implements Profile
             {
                 try
                 {
-                    final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( ldapProfile.getIdentifier() );
+                    final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( ldapProfile.getIdentifier() );
                     final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( lookupDN );
                     final UserIdentity userIdentity = UserIdentity.createUserIdentity( lookupDN, ldapProfile.getIdentifier() );
-                    thePolicy = PasswordUtility.readPasswordPolicyForUser( pwmApplication, null, userIdentity, chaiUser, userLocale );
+                    thePolicy = PasswordUtility.readPasswordPolicyForUser( pwmDomain, null, userIdentity, chaiUser, userLocale );
                 }
                 catch ( final ChaiUnavailableException e )
                 {
@@ -144,23 +144,23 @@ public class NewUserProfile extends AbstractProfile implements Profile
         return thePolicy;
     }
 
-    public TimeDuration getTokenDurationEmail( final Configuration configuration )
+    public TimeDuration getTokenDurationEmail( final DomainConfig domainConfig )
     {
         final long newUserDuration = readSettingAsLong( PwmSetting.NEWUSER_TOKEN_LIFETIME_EMAIL );
         if ( newUserDuration < 1 )
         {
-            final long defaultDuration = configuration.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
+            final long defaultDuration = domainConfig.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
             return TimeDuration.of( defaultDuration, TimeDuration.Unit.SECONDS );
         }
         return TimeDuration.of( newUserDuration, TimeDuration.Unit.SECONDS );
     }
 
-    public TimeDuration getTokenDurationSMS( final Configuration configuration )
+    public TimeDuration getTokenDurationSMS( final DomainConfig domainConfig )
     {
         final long newUserDuration = readSettingAsLong( PwmSetting.NEWUSER_TOKEN_LIFETIME_SMS );
         if ( newUserDuration < 1 )
         {
-            final long defaultDuration = configuration.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
+            final long defaultDuration = domainConfig.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
             return TimeDuration.of( defaultDuration, TimeDuration.Unit.SECONDS );
         }
         return TimeDuration.of( newUserDuration, TimeDuration.Unit.SECONDS );
@@ -178,11 +178,11 @@ public class NewUserProfile extends AbstractProfile implements Profile
     public LdapProfile getLdapProfile()
             throws PwmUnrecoverableException
     {
-        final Configuration configuration = new Configuration( getStoredConfiguration() );
+        final DomainConfig domainConfig = new DomainConfig( getStoredConfiguration() );
         final String configuredProfile = readSettingAsString( PwmSetting.NEWUSER_LDAP_PROFILE );
         if ( !StringUtil.isEmpty( configuredProfile ) )
         {
-            final LdapProfile ldapProfile = configuration.getLdapProfiles().get( configuredProfile );
+            final LdapProfile ldapProfile = domainConfig.getLdapProfiles().get( configuredProfile );
             if ( ldapProfile == null )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
@@ -194,6 +194,6 @@ public class NewUserProfile extends AbstractProfile implements Profile
             }
             return ldapProfile;
         }
-        return configuration.getDefaultLdapProfile();
+        return domainConfig.getDefaultLdapProfile();
     }
 }

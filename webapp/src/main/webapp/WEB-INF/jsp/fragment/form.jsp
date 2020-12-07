@@ -23,7 +23,7 @@
 --%>
 
 
-<%@ page import="password.pwm.PwmApplication" %>
+<%@ page import="password.pwm.PwmDomain" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.value.data.FormConfiguration" %>
@@ -55,7 +55,7 @@
     final boolean showPasswordFields = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormShowPasswordFields);
     final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormData);
 
-    final PwmApplication pwmApplication = formPwmRequest.getPwmApplication();
+    final PwmDomain pwmDomain = formPwmRequest.getPwmApplication();
     for (final FormConfiguration loopConfiguration : formConfigurationList) {
         String currentValue = formDataMap != null ? formDataMap.get(loopConfiguration) : "";
         currentValue = currentValue == null ? "" : currentValue;
@@ -220,7 +220,7 @@
             PWM_GLOBAL['startupFunctions'].push(function(){
                 PWM_MAIN.showTooltip({
                     id: "label_required_<%=loopConfiguration.getName()%>",
-                    text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmApplication.getConfig(),new String[]{loopConfiguration.getLabel(formLocale)})%>',
+                    text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmDomain.getConfig(),new String[]{loopConfiguration.getLabel(formLocale)})%>',
                     position: ['above']
                 });
             });
@@ -238,7 +238,7 @@
                 PWM_GLOBAL['startupFunctions'].push(function(){
                     PWM_MAIN.showTooltip({
                         id: "label_required_password",
-                        text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmApplication.getConfig(),new String[]{JspUtility.getMessage(pageContext,Display.Field_NewPassword)})%>',
+                        text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmDomain.getConfig(),new String[]{JspUtility.getMessage(pageContext,Display.Field_NewPassword)})%>',
                         position: ['above']
                     });
                 });

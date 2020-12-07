@@ -25,7 +25,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
@@ -226,7 +226,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     private void restLockConfiguration( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         if ( PwmConstants.TRIAL_MODE )
@@ -240,7 +240,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         }
 
         if ( !pwmSession.isAuthenticated()
-                || !pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN ) )
+                || !pwmSession.getSessionManager().checkPermission( pwmDomain, Permission.PWMADMIN ) )
         {
             final ErrorInformation errorInfo = new ErrorInformation(
                     PwmError.ERROR_AUTHENTICATION_REQUIRED,

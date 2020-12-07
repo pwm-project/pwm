@@ -20,7 +20,7 @@
 
 package password.pwm.http;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -43,7 +43,7 @@ public class PwmSessionWrapper
     }
 
     public static void sessionMerge(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final PwmSession pwmSession,
             final HttpSession httpSession
     )
@@ -51,7 +51,7 @@ public class PwmSessionWrapper
     {
         httpSession.setAttribute( PwmConstants.SESSION_ATTR_PWM_SESSION, pwmSession );
 
-        setHttpSessionIdleTimeout( pwmApplication, pwmSession, httpSession );
+        setHttpSessionIdleTimeout( pwmDomain, pwmSession, httpSession );
     }
 
 
@@ -75,13 +75,13 @@ public class PwmSessionWrapper
     }
 
     public static void setHttpSessionIdleTimeout(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final PwmSession pwmSession,
             final HttpSession httpSession
     )
             throws PwmUnrecoverableException
     {
-        final IdleTimeoutCalculator.MaxIdleTimeoutResult result = IdleTimeoutCalculator.figureMaxSessionTimeout( pwmApplication, pwmSession );
+        final IdleTimeoutCalculator.MaxIdleTimeoutResult result = IdleTimeoutCalculator.figureMaxSessionTimeout( pwmDomain, pwmSession );
         if ( httpSession.getMaxInactiveInterval() != result.getIdleTimeout().as( TimeDuration.Unit.SECONDS ) )
         {
             httpSession.setMaxInactiveInterval( ( int ) result.getIdleTimeout().as( TimeDuration.Unit.SECONDS ) );

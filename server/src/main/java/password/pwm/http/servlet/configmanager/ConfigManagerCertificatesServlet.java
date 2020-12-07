@@ -23,7 +23,7 @@ package password.pwm.http.servlet.configmanager;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.stored.StoredConfigItemKey;
@@ -116,9 +116,9 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
         pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_CERTIFICATES );
     }
 
-    List<CertificateDebugDataItem> makeCertificateDebugData( final Configuration configuration ) throws PwmUnrecoverableException
+    List<CertificateDebugDataItem> makeCertificateDebugData( final DomainConfig domainConfig ) throws PwmUnrecoverableException
     {
-        final StoredConfiguration storedConfiguration = configuration.getStoredConfiguration();
+        final StoredConfiguration storedConfiguration = domainConfig.getStoredConfiguration();
         final Set<StoredConfigItemKey> modifiedSettings = storedConfiguration.modifiedItems();
 
         final List<CertificateDebugDataItem> certificateDebugDataItems = new ArrayList<>();

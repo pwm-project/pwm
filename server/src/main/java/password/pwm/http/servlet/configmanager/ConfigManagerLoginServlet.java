@@ -25,7 +25,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Value;
 import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
@@ -135,7 +135,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     protected void processLoginRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final ConfigurationReader runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
         final StoredConfiguration storedConfig = runningConfigReader.getStoredConfiguration();
 
@@ -152,8 +152,8 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             else
             {
                 LOGGER.trace( pwmRequest, () -> "configuration password is not correct" );
-                pwmApplication.getIntruderManager().convenience().markAddressAndSession( pwmRequest );
-                pwmApplication.getIntruderManager().mark( RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmRequest.getLabel() );
+                pwmDomain.getIntruderManager().convenience().markAddressAndSession( pwmRequest );
+                pwmDomain.getIntruderManager().mark( RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmRequest.getLabel() );
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_PASSWORD_ONLY_BAD );
                 updateLoginHistory( pwmRequest, pwmRequest.getUserInfoIfLoggedIn(), false );
                 setLastError( pwmRequest, errorInformation );
@@ -256,12 +256,12 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             throws PwmUnrecoverableException, IOException
     {
         final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         configManagerBean.setPasswordVerified( true );
-        pwmApplication.getIntruderManager().convenience().clearAddressAndSession( pwmSession );
-        pwmApplication.getIntruderManager().clear( RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME );
+        pwmDomain.getIntruderManager().convenience().clearAddressAndSession( pwmSession );
+        pwmDomain.getIntruderManager().clear( RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME );
         pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded( true );
         if ( persistentLoginEnabled && "on".equals( pwmRequest.readParameterAsString( "remember" ) ) )
         {

@@ -22,8 +22,8 @@ package password.pwm.util.cli;
 
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.PwmDomain;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.util.localdb.LocalDB;
 
@@ -37,9 +37,9 @@ public class CliEnvironment
 {
     final ConfigurationReader configurationReader;
     final File configurationFile;
-    final Configuration config;
+    final DomainConfig config;
     final File applicationPath;
-    final PwmApplication pwmApplication;
+    final PwmDomain pwmDomain;
     final LocalDB localDB;
     final Writer debugWriter;
     final Map<String, Object> options;

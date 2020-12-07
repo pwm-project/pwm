@@ -24,8 +24,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.PwmDomain;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.PwmUnrecoverableException;
@@ -95,15 +95,15 @@ public class TokenDestinationItem implements Serializable
     }
 
     public static List<TokenDestinationItem> allFromConfig(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final UserInfo userInfo
     )
             throws PwmUnrecoverableException
     {
-        final Configuration configuration = pwmApplication.getConfig();
-        final SecureService secureService = pwmApplication.getSecureService();
+        final DomainConfig domainConfig = pwmDomain.getConfig();
+        final SecureService secureService = pwmDomain.getSecureService();
 
-        final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( configuration );
+        final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( domainConfig );
 
         final Map<String, TokenDestinationItem> results = new LinkedHashMap<>(  );
 
@@ -191,14 +191,14 @@ public class TokenDestinationItem implements Serializable
         return returnList;
     }
 
-    public String longDisplay( final Locale locale, final Configuration configuration )
+    public String longDisplay( final Locale locale, final DomainConfig domainConfig )
     {
         final Map<String, String> tokens = new HashMap<>();
-        tokens.put( "%LABEL%", LocaleHelper.getLocalizedMessage( locale, getType().getButtonLocalization(), configuration ) );
-        tokens.put( "%MESSAGE%", LocaleHelper.getLocalizedMessage( locale, getType().getDisplayLocalization(), configuration ) );
+        tokens.put( "%LABEL%", LocaleHelper.getLocalizedMessage( locale, getType().getButtonLocalization(), domainConfig ) );
+        tokens.put( "%MESSAGE%", LocaleHelper.getLocalizedMessage( locale, getType().getDisplayLocalization(), domainConfig ) );
         tokens.put( "%VALUE%", this.getDisplay() );
 
-        String output = configuration.readAppProperty( AppProperty.REST_SERVER_FORGOTTEN_PW_TOKEN_DISPLAY );
+        String output = domainConfig.readAppProperty( AppProperty.REST_SERVER_FORGOTTEN_PW_TOKEN_DISPLAY );
         for ( final Map.Entry<String, String> entry : tokens.entrySet() )
         {
             output = output.replace( entry.getKey(), entry.getValue() );

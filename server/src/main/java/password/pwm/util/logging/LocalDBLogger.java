@@ -21,7 +21,7 @@
 package password.pwm.util.logging;
 
 import password.pwm.AppAttribute;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthMessage;
@@ -76,7 +76,7 @@ public class LocalDBLogger implements PwmService
     private static final String STORAGE_FORMAT_VERSION = "4";
 
     public LocalDBLogger(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final LocalDB localDB,
             final LocalDBLoggerSettings settings
     )
@@ -92,7 +92,7 @@ public class LocalDBLogger implements PwmService
 
         this.localDB = localDB;
         this.localDBListQueue = LocalDBStoredQueue.createLocalDBStoredQueue(
-                pwmApplication,
+                pwmDomain,
                 localDB,
                 LocalDB.DB.EVENTLOG_EVENTS
         );
@@ -106,9 +106,9 @@ public class LocalDBLogger implements PwmService
 
         eventQueue = new ArrayBlockingQueue<>( this.settings.getMaxBufferSize(), true );
 
-        if ( pwmApplication != null )
+        if ( pwmDomain != null )
         {
-            pwmApplication.readAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, String.class )
+            pwmDomain.readAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, String.class )
                     .ifPresent( ( currentFormat ) ->
                     {
                         if ( !STORAGE_FORMAT_VERSION.equals( currentFormat ) )
@@ -117,7 +117,7 @@ public class LocalDBLogger implements PwmService
                                     + currentFormat + "', current='" + STORAGE_FORMAT_VERSION + "')" );
 
                             localDBListQueue.clear();
-                            pwmApplication.writeAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, STORAGE_FORMAT_VERSION );
+                            pwmDomain.writeAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, STORAGE_FORMAT_VERSION );
                         }
                     } );
         }
@@ -126,13 +126,13 @@ public class LocalDBLogger implements PwmService
 
         cleanerService = Executors.newSingleThreadScheduledExecutor(
                 PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-cleaner-",
+                        PwmScheduler.makeThreadName( pwmDomain, this.getClass() ) + "-cleaner-",
                         true
                 ) );
 
         writerService = Executors.newSingleThreadScheduledExecutor(
                 PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-writer-",
+                        PwmScheduler.makeThreadName( pwmDomain, this.getClass() ) + "-writer-",
                         true
                 ) );
 
@@ -519,7 +519,7 @@ public class LocalDBLogger implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
     }
 

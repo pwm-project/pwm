@@ -20,7 +20,7 @@
 
 package password.pwm.ws.server.rest.bean;
 
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.health.HealthStatus;
 
 import java.io.Serializable;
@@ -34,7 +34,7 @@ public class HealthRecord implements Serializable
     public String topic;
     public String detail;
 
-    public static HealthRecord fromHealthRecord( final password.pwm.health.HealthRecord healthRecord, final Locale locale, final Configuration config )
+    public static HealthRecord fromHealthRecord( final password.pwm.health.HealthRecord healthRecord, final Locale locale, final DomainConfig config )
     {
         final HealthRecord bean = new HealthRecord();
         bean.status = healthRecord.getStatus();
@@ -43,7 +43,7 @@ public class HealthRecord implements Serializable
         return bean;
     }
 
-    public static List<HealthRecord> fromHealthRecords( final List<password.pwm.health.HealthRecord> healthRecords, final Locale locale, final Configuration config )
+    public static List<HealthRecord> fromHealthRecords( final List<password.pwm.health.HealthRecord> healthRecords, final Locale locale, final DomainConfig config )
     {
         final List<HealthRecord> beanList = new ArrayList<>();
         for ( final password.pwm.health.HealthRecord record : healthRecords )

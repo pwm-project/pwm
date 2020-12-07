@@ -24,7 +24,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -122,7 +122,7 @@ class HelpdeskVerificationStateBean implements Serializable
     }
 
     List<ViewableValidationRecord> asViewableValidationRecords(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final Locale locale
     )
             throws ChaiOperationException, ChaiUnavailableException, PwmUnrecoverableException
@@ -130,10 +130,10 @@ class HelpdeskVerificationStateBean implements Serializable
         final Map<Instant, ViewableValidationRecord> returnRecords = new TreeMap<>();
         for ( final HelpdeskValidationRecord record : records )
         {
-            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, SessionLabel.SYSTEM_LABEL, record.getIdentity(), PwmConstants.DEFAULT_LOCALE );
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmDomain, SessionLabel.SYSTEM_LABEL, record.getIdentity(), PwmConstants.DEFAULT_LOCALE );
             final String username = userInfo.getUsername();
-            final String profile = pwmApplication.getConfig().getLdapProfiles().get( record.getIdentity().getLdapProfileID() ).getDisplayName( locale );
-            final String method = record.getMethod().getLabel( pwmApplication.getConfig(), locale );
+            final String profile = pwmDomain.getConfig().getLdapProfiles().get( record.getIdentity().getLdapProfileID() ).getDisplayName( locale );
+            final String method = record.getMethod().getLabel( pwmDomain.getConfig(), locale );
             returnRecords.put( record.getTimestamp(), new ViewableValidationRecord( record.getTimestamp(), profile, username, method ) );
         }
         return Collections.unmodifiableList( new ArrayList<>( returnRecords.values() ) );
@@ -156,9 +156,9 @@ class HelpdeskVerificationStateBean implements Serializable
         private IdentityVerificationMethod method;
     }
 
-    String toClientString( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    String toClientString( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
     {
-        return pwmApplication.getSecureService().encryptObjectToString( this );
+        return pwmDomain.getSecureService().encryptObjectToString( this );
     }
 
     static HelpdeskVerificationStateBean fromClientString(

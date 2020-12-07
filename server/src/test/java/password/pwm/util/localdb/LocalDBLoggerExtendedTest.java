@@ -25,7 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.EventRateMeter;
@@ -63,7 +63,7 @@ public class LocalDBLoggerExtendedTest
 
     private LocalDBLogger localDBLogger;
     private LocalDB localDB;
-    private Configuration config;
+    private DomainConfig config;
 
     private final AtomicInteger eventsAdded = new AtomicInteger( 0 );
 
@@ -81,7 +81,7 @@ public class LocalDBLoggerExtendedTest
     {
         TestHelper.setupLogging();
         final File localDBPath = testFolder.newFolder( "localdb-logger-test" );
-        config = new Configuration( StoredConfigurationFactory.newConfig() );
+        config = new DomainConfig( StoredConfigurationFactory.newConfig() );
 
         localDB = LocalDBFactory.getInstance(
                 localDBPath,

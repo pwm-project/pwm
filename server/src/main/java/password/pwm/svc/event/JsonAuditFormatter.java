@@ -21,9 +21,9 @@
 package password.pwm.svc.event;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
 
@@ -31,13 +31,13 @@ public class JsonAuditFormatter implements AuditFormatter
 {
     @Override
     public String convertAuditRecordToMessage(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final AuditRecord auditRecord
     )
             throws PwmUnrecoverableException
     {
-        final Configuration configuration = pwmApplication.getConfig();
-        final int maxLength = Integer.parseInt( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_MAX_MESSAGE_LENGTH ) );
+        final DomainConfig domainConfig = pwmDomain.getConfig();
+        final int maxLength = Integer.parseInt( domainConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_MAX_MESSAGE_LENGTH ) );
         String jsonValue = "";
         final StringBuilder message = new StringBuilder();
         message.append( PwmConstants.PWM_APP_NAME );
@@ -55,7 +55,7 @@ public class JsonAuditFormatter implements AuditFormatter
             inputRecord.message = inputRecord.message == null ? "" : inputRecord.message;
             inputRecord.narrative = inputRecord.narrative == null ? "" : inputRecord.narrative;
 
-            final String truncateMessage = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_TRUNCATE_MESSAGE );
+            final String truncateMessage = domainConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_TRUNCATE_MESSAGE );
             final AuditRecord copiedRecord = JsonUtil.cloneUsingJson( auditRecord, auditRecord.getClass() );
             copiedRecord.message = "";
             copiedRecord.narrative = "";

@@ -20,8 +20,8 @@
 
 package password.pwm.error;
 
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.PwmDomain;
+import password.pwm.config.DomainConfig;
 import password.pwm.http.PwmSession;
 
 import java.io.Serializable;
@@ -120,7 +120,7 @@ public class ErrorInformation implements Serializable
         return sb.toString();
     }
 
-    public String toUserStr( final PwmSession pwmSession, final PwmApplication pwmApplication )
+    public String toUserStr( final PwmSession pwmSession, final PwmDomain pwmDomain )
     {
 
         if ( userStrOverride != null )
@@ -128,12 +128,12 @@ public class ErrorInformation implements Serializable
             return userStrOverride;
         }
 
-        Configuration config = null;
+        DomainConfig config = null;
         Locale userLocale = null;
 
-        if ( pwmSession != null && pwmApplication.getConfig() != null )
+        if ( pwmSession != null && pwmDomain.getConfig() != null )
         {
-            config = pwmApplication.getConfig();
+            config = pwmDomain.getConfig();
         }
 
         if ( pwmSession != null )
@@ -144,7 +144,7 @@ public class ErrorInformation implements Serializable
         return toUserStr( userLocale, config );
     }
 
-    public String toUserStr( final Locale userLocale, final Configuration config )
+    public String toUserStr( final Locale userLocale, final DomainConfig config )
     {
         if ( userStrOverride != null )
         {

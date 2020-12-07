@@ -21,9 +21,9 @@
 package password.pwm.http;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.filter.CookieManagementFilter;
 import password.pwm.util.Validator;
@@ -44,7 +44,7 @@ public class PwmHttpResponseWrapper
 
     private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
-    private final Configuration configuration;
+    private final DomainConfig domainConfig;
 
     public enum CookiePath
     {
@@ -85,12 +85,12 @@ public class PwmHttpResponseWrapper
     protected PwmHttpResponseWrapper(
             final HttpServletRequest request,
             final HttpServletResponse response,
-            final Configuration configuration
+            final DomainConfig domainConfig
     )
     {
         this.httpServletRequest = request;
         this.httpServletResponse = response;
-        this.configuration = configuration;
+        this.domainConfig = domainConfig;
     }
 
     public HttpServletResponse getHttpServletResponse( )
@@ -101,7 +101,7 @@ public class PwmHttpResponseWrapper
     public void sendRedirect( final String url )
             throws IOException
     {
-        this.httpServletResponse.sendRedirect( Validator.sanitizeHeaderValue( configuration, url ) );
+        this.httpServletResponse.sendRedirect( Validator.sanitizeHeaderValue( domainConfig, url ) );
     }
 
     public boolean isCommitted( )
@@ -112,8 +112,8 @@ public class PwmHttpResponseWrapper
     public void setHeader( final HttpHeader headerName, final String value )
     {
         this.httpServletResponse.setHeader(
-                Validator.sanitizeHeaderValue( configuration, headerName.getHttpName() ),
-                Validator.sanitizeHeaderValue( configuration, value )
+                Validator.sanitizeHeaderValue( domainConfig, headerName.getHttpName() ),
+                Validator.sanitizeHeaderValue( domainConfig, value )
         );
     }
 
@@ -164,7 +164,7 @@ public class PwmHttpResponseWrapper
 
         final boolean secureFlag;
         {
-            final String configValue = configuration.readAppProperty( AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG );
+            final String configValue = domainConfig.readAppProperty( AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG );
             if ( configValue == null || "auto".equalsIgnoreCase( configValue ) )
             {
                 secureFlag = this.httpServletRequest.isSecure();
@@ -175,7 +175,7 @@ public class PwmHttpResponseWrapper
             }
         }
 
-        final boolean httpOnlyEnabled = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.HTTP_COOKIE_HTTPONLY_ENABLE ) );
+        final boolean httpOnlyEnabled = Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.HTTP_COOKIE_HTTPONLY_ENABLE ) );
         final boolean httpOnly = httpOnlyEnabled && !JavaHelper.enumArrayContainsValue( flags, Flag.NonHttpOnly );
 
         final String value;
@@ -193,7 +193,7 @@ public class PwmHttpResponseWrapper
                 else
                 {
                     value = StringUtil.urlEncode(
-                            Validator.sanitizeHeaderValue( configuration, cookieValue )
+                            Validator.sanitizeHeaderValue( domainConfig, cookieValue )
                     );
                 }
             }
@@ -215,11 +215,11 @@ public class PwmHttpResponseWrapper
 
     void addSameSiteCookieAttribute( )
     {
-        final PwmApplication pwmApplication;
+        final PwmDomain pwmDomain;
         try
         {
-            pwmApplication = ContextManager.getPwmApplication( this.httpServletRequest );
-            final String value = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_SAMESITE_VALUE );
+            pwmDomain = ContextManager.getPwmApplication( this.httpServletRequest );
+            final String value = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_SAMESITE_VALUE );
             CookieManagementFilter.addSameSiteCookieAttribute( httpServletResponse, value );
         }
         catch ( final PwmUnrecoverableException e )

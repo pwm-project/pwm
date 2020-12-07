@@ -24,10 +24,10 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Data;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
 import password.pwm.config.profile.ChangePasswordProfile;
@@ -255,7 +255,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     }
 
     public static String makeClientEtag(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final PwmSession pwmSession,
             final HttpServletRequest httpServletRequest
     )
@@ -263,9 +263,9 @@ public class ClientApiServlet extends ControlledPwmServlet
     {
         final StringBuilder inputString = new StringBuilder();
         inputString.append( PwmConstants.BUILD_NUMBER );
-        inputString.append( pwmApplication.getStartupTime().toEpochMilli() );
+        inputString.append( pwmDomain.getStartupTime().toEpochMilli() );
         inputString.append( httpServletRequest.getSession().getMaxInactiveInterval() );
-        inputString.append( pwmApplication.getRuntimeNonce() );
+        inputString.append( pwmDomain.getRuntimeNonce() );
 
         if ( pwmSession.getSessionStateBean().getLocale() != null )
         {
@@ -283,7 +283,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     }
 
     private AppData makeAppData(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final PwmRequest pwmSession,
             final HttpServletRequest request,
             final HttpServletResponse response,
@@ -292,12 +292,12 @@ public class ClientApiServlet extends ControlledPwmServlet
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final AppData appData = new AppData();
-        appData.PWM_GLOBAL = makeClientData( pwmApplication, pwmSession, request, response, pageUrl );
+        appData.PWM_GLOBAL = makeClientData( pwmDomain, pwmSession, request, response, pageUrl );
         return appData;
     }
 
     private static Map<String, Object> makeClientData(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final PwmRequest pwmRequest,
             final HttpServletRequest request,
             final HttpServletResponse response,
@@ -308,7 +308,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
 
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
         final TreeMap<String, Object> settingMap = new TreeMap<>();
 
         settingMap.put( "client.ajaxTypingTimeout", Integer.parseInt( config.readAppProperty( AppProperty.CLIENT_AJAX_TYPING_TIMEOUT ) ) );
@@ -319,7 +319,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         settingMap.put( "client.pwShowRevertTimeout", Integer.parseInt( config.readAppProperty( AppProperty.CLIENT_PW_SHOW_REVERT_TIMEOUT ) ) );
         settingMap.put( "enableIdleTimeout", config.readSettingAsBoolean( PwmSetting.DISPLAY_IDLE_TIMEOUT ) );
         settingMap.put( "pageLeaveNotice", config.readSettingAsLong( PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT ) );
-        settingMap.put( "setting-showHidePasswordFields", pwmApplication.getConfig().readSettingAsBoolean( password.pwm.config.PwmSetting.DISPLAY_SHOW_HIDE_PASSWORD_FIELDS ) );
+        settingMap.put( "setting-showHidePasswordFields", pwmDomain.getConfig().readSettingAsBoolean( password.pwm.config.PwmSetting.DISPLAY_SHOW_HIDE_PASSWORD_FIELDS ) );
         settingMap.put( "setting-displayEula", PwmConstants.ENABLE_EULA_DISPLAY );
         settingMap.put( "setting-showStrengthMeter", config.readSettingAsBoolean( PwmSetting.PASSWORD_SHOW_STRENGTH_METER ) );
 
@@ -350,14 +350,14 @@ public class ClientApiServlet extends ControlledPwmServlet
             settingMap.put( "MaxInactiveInterval", idleSeconds );
         }
         settingMap.put( "paramName.locale", config.readAppProperty( AppProperty.HTTP_PARAM_NAME_LOCALE ) );
-        settingMap.put( "runtimeNonce", pwmApplication.getRuntimeNonce() );
-        settingMap.put( "applicationMode", pwmApplication.getApplicationMode() );
+        settingMap.put( "runtimeNonce", pwmDomain.getRuntimeNonce() );
+        settingMap.put( "applicationMode", pwmDomain.getApplicationMode() );
 
         final String contextPath = request.getContextPath();
         settingMap.put( "url-context", contextPath );
         settingMap.put( "url-logout", contextPath + PwmServletDefinition.Logout.servletUrl() );
         settingMap.put( "url-command", contextPath + PwmServletDefinition.PublicCommand.servletUrl() );
-        settingMap.put( "url-resources", contextPath + "/public/resources" + pwmApplication.getResourceServletService().getResourceNonce() );
+        settingMap.put( "url-resources", contextPath + "/public/resources" + pwmDomain.getResourceServletService().getResourceNonce() );
         settingMap.put( "url-restservice", contextPath + "/public/rest" );
 
         if ( pwmRequest.isAuthenticated() )
@@ -403,12 +403,12 @@ public class ClientApiServlet extends ControlledPwmServlet
             final Map<String, String> localeDisplayNames = new LinkedHashMap<>();
             final Map<String, String> localeFlags = new LinkedHashMap<>();
 
-            final List<Locale> knownLocales = new ArrayList<>( pwmApplication.getConfig().getKnownLocales() );
+            final List<Locale> knownLocales = new ArrayList<>( pwmDomain.getConfig().getKnownLocales() );
             knownLocales.sort( LocaleHelper.localeComparator( PwmConstants.DEFAULT_LOCALE ) );
 
             for ( final Locale locale : knownLocales )
             {
-                final String flagCode = pwmApplication.getConfig().getKnownLocaleFlagMap().get( locale );
+                final String flagCode = pwmDomain.getConfig().getKnownLocaleFlagMap().get( locale );
                 localeFlags.put( locale.toString(), flagCode );
                 localeInfo.put( locale.toString(), locale.getDisplayName( PwmConstants.DEFAULT_LOCALE ) + " - " + locale.getDisplayLanguage( userLocale ) );
                 localeDisplayNames.put( locale.toString(), locale.getDisplayLanguage() );
@@ -420,12 +420,12 @@ public class ClientApiServlet extends ControlledPwmServlet
             settingMap.put( "defaultLocale", PwmConstants.DEFAULT_LOCALE.toString() );
         }
 
-        if ( pwmApplication.getConfig().readSettingAsEnum( PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE, SelectableContextMode.class ) != SelectableContextMode.NONE )
+        if ( pwmDomain.getConfig().readSettingAsEnum( PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE, SelectableContextMode.class ) != SelectableContextMode.NONE )
         {
             final Map<String, Map<String, String>> ldapProfiles = new LinkedHashMap<>();
-            for ( final String ldapProfile : pwmApplication.getConfig().getLdapProfiles().keySet() )
+            for ( final String ldapProfile : pwmDomain.getConfig().getLdapProfiles().keySet() )
             {
-                final Map<String, String> contexts = pwmApplication.getConfig().getLdapProfiles().get( ldapProfile ).getSelectableContexts( pwmApplication );
+                final Map<String, String> contexts = pwmDomain.getConfig().getLdapProfiles().get( ldapProfile ).getSelectableContexts( pwmDomain );
                 ldapProfiles.put( ldapProfile, contexts );
             }
             settingMap.put( "ldapProfiles", ldapProfiles );
@@ -436,7 +436,7 @@ public class ClientApiServlet extends ControlledPwmServlet
 
 
     private Map<String, String> makeDisplayData(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final PwmRequest pwmRequest,
             final String bundleName
     )
@@ -446,7 +446,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         displayClass = displayClass == null ? Display.class : displayClass;
 
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
         final TreeMap<String, String> displayStrings = new TreeMap<>();
         final ResourceBundle bundle = ResourceBundle.getBundle( displayClass.getName() );
         try

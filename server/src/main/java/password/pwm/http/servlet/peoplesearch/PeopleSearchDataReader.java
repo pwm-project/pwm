@@ -28,7 +28,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Value;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -455,12 +455,12 @@ class PeopleSearchDataReader
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final TimeDuration maxCacheTime = this.peopleSearchConfiguration.getMaxCacheTime();
         if ( !maxCacheTime.isZero() )
         {
             final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( maxCacheTime );
-            pwmApplication.getCacheService().put( cacheKey, cachePolicy, data );
+            pwmDomain.getCacheService().put( cacheKey, cachePolicy, data );
         }
     }
 
@@ -472,11 +472,11 @@ class PeopleSearchDataReader
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final CacheKey cacheKey = makeCacheKey( operationIdentifier.name(), dataIdentifier );
         final TimeDuration maxCacheTime = this.peopleSearchConfiguration.getMaxCacheTime();
         final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( maxCacheTime );
-        return pwmApplication.getCacheService().get( cacheKey, cachePolicy, classOfT, cacheLoader );
+        return pwmDomain.getCacheService().get( cacheKey, cachePolicy, classOfT, cacheLoader );
     }
 
 

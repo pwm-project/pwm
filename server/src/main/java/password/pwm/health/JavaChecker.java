@@ -21,7 +21,7 @@
 package password.pwm.health;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,17 +29,17 @@ import java.util.List;
 public class JavaChecker implements HealthChecker
 {
     @Override
-    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
+    public List<HealthRecord> doHealthCheck( final PwmDomain pwmDomain )
     {
         final List<HealthRecord> records = new ArrayList<>();
 
-        final int maxActiveThreads = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_JAVA_MAX_THREADS ) );
+        final int maxActiveThreads = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTH_JAVA_MAX_THREADS ) );
         if ( Thread.activeCount() > maxActiveThreads )
         {
             records.add( HealthRecord.forMessage( HealthMessage.Java_HighThreads ) );
         }
 
-        final long minMemory = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_JAVA_MIN_HEAP_BYTES ) );
+        final long minMemory = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTH_JAVA_MIN_HEAP_BYTES ) );
         if ( Runtime.getRuntime().maxMemory() <= minMemory )
         {
             records.add( HealthRecord.forMessage( HealthMessage.Java_SmallHeap ) );

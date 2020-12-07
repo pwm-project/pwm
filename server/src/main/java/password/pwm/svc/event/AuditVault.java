@@ -21,7 +21,7 @@
 package password.pwm.svc.event;
 
 import lombok.Value;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.TimeDuration;
@@ -34,7 +34,7 @@ import java.util.Iterator;
 public interface AuditVault
 {
 
-    void init( PwmApplication pwmApplication, LocalDB localDB, Settings settings ) throws LocalDBException, PwmException;
+    void init( PwmDomain pwmDomain, LocalDB localDB, Settings settings ) throws LocalDBException, PwmException;
 
     void close( );
 

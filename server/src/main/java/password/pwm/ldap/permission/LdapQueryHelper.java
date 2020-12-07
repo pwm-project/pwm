@@ -23,7 +23,7 @@ package password.pwm.ldap.permission;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.provider.SearchScope;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.UserPermission;
@@ -43,7 +43,7 @@ class LdapQueryHelper implements PermissionTypeHelper
 
     @Override
     public boolean testMatch(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final UserPermission userPermission
@@ -52,10 +52,10 @@ class LdapQueryHelper implements PermissionTypeHelper
     {
         if ( userPermission.getLdapBase() != null && !userPermission.getLdapBase().trim().isEmpty() )
         {
-            final String canonicalBaseDN = pwmApplication.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() )
-                    .readCanonicalDN( pwmApplication, userPermission.getLdapBase() );
+            final String canonicalBaseDN = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() )
+                    .readCanonicalDN( pwmDomain, userPermission.getLdapBase() );
 
-            if ( !UserPermissionUtility.testBaseDnMatch( pwmApplication, canonicalBaseDN, userIdentity ) )
+            if ( !UserPermissionUtility.testBaseDnMatch( pwmDomain, canonicalBaseDN, userIdentity ) )
             {
                 return false;
             }
@@ -82,11 +82,11 @@ class LdapQueryHelper implements PermissionTypeHelper
         }
 
         LOGGER.trace( sessionLabel, () -> "checking ldap to see if " + userIdentity + " matches '" + filterString + "'" );
-        return selfUserSearch( pwmApplication, sessionLabel, userIdentity, filterString );
+        return selfUserSearch( pwmDomain, sessionLabel, userIdentity, filterString );
     }
 
     static boolean selfUserSearch(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final String searchFilter
@@ -95,7 +95,7 @@ class LdapQueryHelper implements PermissionTypeHelper
     {
         try
         {
-            final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
+            final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
             final Map<String, Map<String, String>> results = theUser.getChaiProvider().search(
                     theUser.getEntryDN(),
                     searchFilter,

@@ -22,7 +22,7 @@ package password.pwm.http.servlet.accountinfo;
 
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ViewStatusFields;
@@ -112,7 +112,7 @@ public class AccountInformationBean implements Serializable
     }
 
     public static List<ActivityRecord> makeAuditInfo(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final AccountInformationProfile accountInformationProfile,
             final SessionLabel sessionLabel,
             final UserInfo userInfo,
@@ -128,7 +128,7 @@ public class AccountInformationBean implements Serializable
         final List<UserAuditRecord> auditRecords = new ArrayList<>();
         try
         {
-            auditRecords.addAll( pwmApplication.getAuditManager().readUserHistory( sessionLabel, userInfo ) );
+            auditRecords.addAll( pwmDomain.getAuditManager().readUserHistory( sessionLabel, userInfo ) );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -140,7 +140,7 @@ public class AccountInformationBean implements Serializable
         {
             returnData.add( new ActivityRecord(
                     userAuditRecord.getTimestamp(),
-                    userAuditRecord.getEventCode().getLocalizedString( pwmApplication.getConfig(), locale )
+                    userAuditRecord.getEventCode().getLocalizedString( pwmDomain.getConfig(), locale )
             ) );
         }
 

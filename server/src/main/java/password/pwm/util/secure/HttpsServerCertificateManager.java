@@ -20,9 +20,9 @@
 
 package password.pwm.util.secure;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.PrivateKeyCertificate;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -49,31 +49,31 @@ public class HttpsServerCertificateManager
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpsServerCertificateManager.class );
 
     public static KeyStore keyStoreForApplication(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final PasswordData passwordData,
             final String alias
     )
             throws PwmUnrecoverableException
     {
-        KeyStore keyStore = exportKey( pwmApplication.getConfig(), KeyStoreFormat.JKS, passwordData, alias );
+        KeyStore keyStore = exportKey( pwmDomain.getConfig(), KeyStoreFormat.JKS, passwordData, alias );
 
         if ( keyStore == null )
         {
-            keyStore = makeSelfSignedCert( pwmApplication, passwordData, alias );
+            keyStore = makeSelfSignedCert( pwmDomain, passwordData, alias );
         }
 
         return keyStore;
     }
 
     private static KeyStore exportKey(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final KeyStoreFormat format,
             final PasswordData passwordData,
             final String alias
     )
             throws PwmUnrecoverableException
     {
-        final PrivateKeyCertificate privateKeyCertificate = configuration.readSettingAsPrivateKey( PwmSetting.HTTPS_CERT );
+        final PrivateKeyCertificate privateKeyCertificate = domainConfig.readSettingAsPrivateKey( PwmSetting.HTTPS_CERT );
         if ( privateKeyCertificate == null )
         {
             return null;
@@ -103,12 +103,12 @@ public class HttpsServerCertificateManager
         }
     }
 
-    private static KeyStore makeSelfSignedCert( final PwmApplication pwmApplication, final PasswordData password, final String alias )
+    private static KeyStore makeSelfSignedCert( final PwmDomain pwmDomain, final PasswordData password, final String alias )
             throws PwmUnrecoverableException
     {
         try
         {
-            return SelfCertFactory.getExistingCertOrGenerateNewCert( pwmApplication, password, alias );
+            return SelfCertFactory.getExistingCertOrGenerateNewCert( pwmDomain, password, alias );
         }
         catch ( final Exception e )
         {

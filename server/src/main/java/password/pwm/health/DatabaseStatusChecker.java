@@ -20,9 +20,9 @@
 
 package password.pwm.health;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmException;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseTable;
@@ -36,17 +36,17 @@ public class DatabaseStatusChecker implements HealthChecker
     private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseStatusChecker.class );
 
     @Override
-    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
+    public List<HealthRecord> doHealthCheck( final PwmDomain pwmDomain )
     {
         return Collections.emptyList();
     }
 
-    public static List<HealthRecord> checkNewDatabaseStatus( final PwmApplication pwmApplication, final Configuration config )
+    public static List<HealthRecord> checkNewDatabaseStatus( final PwmDomain pwmDomain, final DomainConfig config )
     {
-        return checkDatabaseStatus( pwmApplication, config );
+        return checkDatabaseStatus( pwmDomain, config );
     }
 
-    private static List<HealthRecord> checkDatabaseStatus( final PwmApplication pwmApplication, final Configuration config )
+    private static List<HealthRecord> checkDatabaseStatus( final PwmDomain pwmDomain, final DomainConfig config )
     {
         if ( !config.hasDbConfigured() )
         {
@@ -54,11 +54,11 @@ public class DatabaseStatusChecker implements HealthChecker
                             "Database not configured" ) );
         }
 
-        PwmApplication runtimeInstance = null;
+        PwmDomain runtimeInstance = null;
         try
         {
-            final PwmEnvironment runtimeEnvironment = pwmApplication.getPwmEnvironment().makeRuntimeInstance( config );
-            runtimeInstance = PwmApplication.createPwmApplication( runtimeEnvironment );
+            final PwmEnvironment runtimeEnvironment = pwmDomain.getPwmEnvironment().makeRuntimeInstance( config );
+            runtimeInstance = PwmDomain.createPwmApplication( runtimeEnvironment );
             final DatabaseAccessor accessor = runtimeInstance.getDatabaseService().getAccessor();
             accessor.get( DatabaseTable.PWM_META, "test" );
             return runtimeInstance.getDatabaseService().healthCheck();

@@ -22,7 +22,7 @@ package password.pwm.util;
 
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
@@ -50,20 +50,20 @@ public class BasicAuthInfo implements Serializable
     /**
      * Extracts the basic auth info from the header.
      *
-     * @param pwmApplication a reference to the application
+     * @param pwmDomain a reference to the application
      * @param pwmRequest http servlet request
      * @return a BasicAuthInfo object containing username/password, or null if the "Authorization" header doesn't exist or is malformed
      */
     public static BasicAuthInfo parseAuthHeader(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final PwmRequest pwmRequest
     )
     {
-        return parseAuthHeader( pwmApplication, pwmRequest.getHttpServletRequest() );
+        return parseAuthHeader( pwmDomain, pwmRequest.getHttpServletRequest() );
     }
 
     public static BasicAuthInfo parseAuthHeader(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final HttpServletRequest httpServletRequest
     )
     {
@@ -81,7 +81,7 @@ public class BasicAuthInfo implements Serializable
                 try
                 {
                     // ***** Decode the username/chpass string
-                    final String charSet = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_BASIC_AUTH_CHARSET );
+                    final String charSet = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_BASIC_AUTH_CHARSET );
                     final String decoded = new String( StringUtil.base64Decode( encodedValue ), charSet );
 
                     // The decoded string should now look something like:

@@ -21,7 +21,7 @@
 package password.pwm.svc.stats;
 
 import org.apache.commons.csv.CSVPrinter;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
@@ -81,7 +81,7 @@ public class StatisticsManager implements PwmService
     private StatisticsBundle statsCummulative = new StatisticsBundle();
     private Map<EpsKey, EventRateMeter> epsMeterMap = new HashMap<>();
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
 
     private STATUS status = STATUS.CLOSED;
 
@@ -230,10 +230,10 @@ public class StatisticsManager implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        this.localDB = pwmApplication.getLocalDB();
-        this.pwmApplication = pwmApplication;
+        this.localDB = pwmDomain.getLocalDB();
+        this.pwmDomain = pwmDomain;
 
         if ( localDB == null )
         {
@@ -290,9 +290,9 @@ public class StatisticsManager implements PwmService
 
         {
             // setup a timer to roll over at 0 Zulu and one to write current stats regularly
-            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
-            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new FlushTask(), executorService, DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
-            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new NightlyTask(), executorService, TimeDuration.ZERO );
+            executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
+            pwmDomain.getPwmScheduler().scheduleFixedRateJob( new FlushTask(), executorService, DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
+            pwmDomain.getPwmScheduler().scheduleDailyZuluZeroStartJob( new NightlyTask(), executorService, TimeDuration.ZERO );
         }
 
         status = STATUS.OPEN;
@@ -408,7 +408,7 @@ public class StatisticsManager implements PwmService
         LOGGER.trace( () -> "beginning output stats to csv process" );
         final Instant startTime = Instant.now();
 
-        final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
+        final StatisticsManager statsManger = pwmDomain.getStatisticsManager();
         final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
 
         if ( includeHeader )
@@ -467,17 +467,17 @@ public class StatisticsManager implements PwmService
     }
 
     public static void incrementStat(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final Statistic statistic
     )
     {
-        if ( pwmApplication == null )
+        if ( pwmDomain == null )
         {
             LOGGER.error( () -> "skipping requested statistic increment of " + statistic + " due to null pwmApplication" );
             return;
         }
 
-        final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
+        final StatisticsManager statisticsManager = pwmDomain.getStatisticsManager();
         if ( statisticsManager == null )
         {
             LOGGER.error( () -> "skipping requested statistic increment of " + statistic + " due to null statisticsManager" );

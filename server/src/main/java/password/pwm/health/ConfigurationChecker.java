@@ -21,10 +21,10 @@
 package password.pwm.health;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.option.DataStorageMethod;
@@ -68,18 +68,18 @@ public class ConfigurationChecker implements HealthChecker
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigurationChecker.class );
 
     @Override
-    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
+    public List<HealthRecord> doHealthCheck( final PwmDomain pwmDomain )
     {
-        if ( pwmApplication.getConfig() == null )
+        if ( pwmDomain.getConfig() == null )
         {
             return Collections.emptyList();
         }
 
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
 
         final List<HealthRecord> records = new ArrayList<>();
 
-        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
+        if ( pwmDomain.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
         {
             records.add( HealthRecord.forMessage( HealthMessage.Config_ConfigMode ) );
         }
@@ -90,7 +90,7 @@ public class ConfigurationChecker implements HealthChecker
             {
                 try
                 {
-                    newUserProfile.getNewUserPasswordPolicy( pwmApplication, PwmConstants.DEFAULT_LOCALE );
+                    newUserProfile.getNewUserPasswordPolicy( pwmDomain, PwmConstants.DEFAULT_LOCALE );
                 }
                 catch ( final PwmUnrecoverableException e )
                 {
@@ -107,7 +107,7 @@ public class ConfigurationChecker implements HealthChecker
         return Collections.unmodifiableList( records );
     }
 
-    public List<HealthRecord> doHealthCheck( final Configuration config, final Locale locale )
+    public List<HealthRecord> doHealthCheck( final DomainConfig config, final Locale locale )
     {
         if ( config.readSettingAsBoolean( PwmSetting.HIDE_CONFIGURATION_HEALTH_WARNINGS ) )
         {
@@ -119,7 +119,7 @@ public class ConfigurationChecker implements HealthChecker
 
 
     private List<HealthRecord> allChecks(
-            final Configuration config,
+            final DomainConfig config,
             final Locale locale
     )
     {
@@ -156,7 +156,7 @@ public class ConfigurationChecker implements HealthChecker
     static class VerifyBasicConfigs implements ConfigHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
         {
             final List<HealthRecord> records = new ArrayList<>();
             final String siteUrl = config.readSettingAsString( PwmSetting.PWM_SITE_URL );
@@ -241,7 +241,7 @@ public class ConfigurationChecker implements HealthChecker
     static class VerifyPasswordStrengthLevels implements ConfigHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
         {
             final List<HealthRecord> records = new ArrayList<>();
 
@@ -287,7 +287,7 @@ public class ConfigurationChecker implements HealthChecker
     {
         @Override
         public List<HealthRecord> healthCheck(
-                final Configuration config,
+                final DomainConfig config,
                 final Locale locale
         )
         {
@@ -322,7 +322,7 @@ public class ConfigurationChecker implements HealthChecker
     static class VerifyDbConfiguredIfNeeded implements ConfigHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
         {
             final List<HealthRecord> records = new ArrayList<>();
             if ( !config.hasDbConfigured() )
@@ -377,7 +377,7 @@ public class ConfigurationChecker implements HealthChecker
     static class VerifyPasswordPolicyConfigs implements ConfigHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
         {
             final List<HealthRecord> records = new ArrayList<>();
             for ( final String profileID : config.getPasswordProfileIDs() )
@@ -399,7 +399,7 @@ public class ConfigurationChecker implements HealthChecker
     static class VerifyNewUserLdapProfile implements ConfigHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
         {
             final List<HealthRecord> records = new ArrayList<>();
             for ( final NewUserProfile newUserProfile : config.getNewUserProfiles().values() )
@@ -424,7 +424,7 @@ public class ConfigurationChecker implements HealthChecker
     static class VerifyIfDeprecatedJsFormOptionUsed implements ConfigHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
         {
             final List<HealthRecord> records = new ArrayList<>();
 
@@ -478,7 +478,7 @@ public class ConfigurationChecker implements HealthChecker
     static class VerifyIfDeprecatedSendMethodValuesUsed implements ConfigHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
         {
             final Set<MessageSendMethod> deprecatedMethods = Arrays
                     .stream( MessageSendMethod.values() )
@@ -556,7 +556,7 @@ public class ConfigurationChecker implements HealthChecker
     static class VerifyPasswordWaitTimes implements ConfigHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
         {
             final List<HealthRecord> records = new ArrayList<>();
 
@@ -587,7 +587,7 @@ public class ConfigurationChecker implements HealthChecker
     static class VerifyUserPermissionSettings implements ConfigHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final Configuration config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
         {
             final List<HealthRecord> records = new ArrayList<>();
 
@@ -621,13 +621,13 @@ public class ConfigurationChecker implements HealthChecker
         }
 
         private static List<HealthRecord> checkLdapProfile(
-                final Configuration configuration,
+                final DomainConfig domainConfig,
                 final StoredConfigItemKey storedConfigItemKey,
                 final Locale locale,
                 final UserPermission permission
         )
         {
-            final List<LdapProfile> ldapProfiles = ldapProfilesForLdapProfileSetting( configuration, permission.getLdapProfileID() );
+            final List<LdapProfile> ldapProfiles = ldapProfilesForLdapProfileSetting( domainConfig, permission.getLdapProfileID() );
             if ( ldapProfiles.isEmpty()  )
             {
                 final PwmSetting pwmSetting = storedConfigItemKey.toPwmSetting();
@@ -640,16 +640,16 @@ public class ConfigurationChecker implements HealthChecker
             return Collections.emptyList();
         }
 
-        public static List<LdapProfile> ldapProfilesForLdapProfileSetting( final Configuration configuration, final String profileID )
+        public static List<LdapProfile> ldapProfilesForLdapProfileSetting( final DomainConfig domainConfig, final String profileID )
         {
             if ( UserPermissionUtility.isAllProfiles( profileID ) )
             {
-                return Collections.unmodifiableList( new ArrayList<>( configuration.getLdapProfiles().values() ) );
+                return Collections.unmodifiableList( new ArrayList<>( domainConfig.getLdapProfiles().values() ) );
             }
 
-            if ( configuration.getLdapProfiles().containsKey( profileID ) )
+            if ( domainConfig.getLdapProfiles().containsKey( profileID ) )
             {
-                return Collections.singletonList( configuration.getLdapProfiles().get( profileID ) );
+                return Collections.singletonList( domainConfig.getLdapProfiles().get( profileID ) );
             }
 
             return Collections.emptyList();
@@ -659,7 +659,7 @@ public class ConfigurationChecker implements HealthChecker
     interface ConfigHealthCheck
     {
         List<HealthRecord> healthCheck(
-                Configuration configuration,
+                DomainConfig domainConfig,
                 Locale locale );
     }
 }

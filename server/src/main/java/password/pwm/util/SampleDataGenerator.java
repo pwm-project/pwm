@@ -21,7 +21,7 @@
 package password.pwm.util;
 
 import com.novell.ldapchai.cr.Answer;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.ResponseInfoBean;
@@ -142,7 +142,7 @@ public class SampleDataGenerator
 
     }
 
-    public static MacroRequest sampleMacroRequest( final PwmApplication pwmApplication )
+    public static MacroRequest sampleMacroRequest( final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
         final UserInfo targetUserInfoBean = sampleTargetUserInfo();
@@ -156,7 +156,7 @@ public class SampleDataGenerator
         loginInfoBean.setUserCurrentPassword( PasswordData.forStringValue( "PaSSw0rd" ) );
 
         return MacroRequest.builder()
-                .pwmApplication( pwmApplication )
+                .pwmDomain( pwmDomain )
                 .userInfo( userInfoBean )
                 .targetUserInfo( targetUserInfoBean )
                 .loginInfoBean( loginInfoBean )

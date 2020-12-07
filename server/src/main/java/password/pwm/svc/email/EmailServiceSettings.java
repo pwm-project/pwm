@@ -23,7 +23,7 @@ package password.pwm.svc.email;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -48,27 +48,27 @@ public class EmailServiceSettings implements Serializable
     private final Set<Integer> retryableStatusResponses;
 
 
-    static EmailServiceSettings fromConfiguration( final Configuration configuration )
+    static EmailServiceSettings fromConfiguration( final DomainConfig domainConfig )
     {
         return builder()
-                .maxThreads( Integer.parseInt( configuration.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_THREADS ) ) )
+                .maxThreads( Integer.parseInt( domainConfig.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_THREADS ) ) )
                 .connectionSendItemDuration( TimeDuration.of(
-                        Integer.parseInt( configuration.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_SECONDS_PER_CONNECTION ) ),
+                        Integer.parseInt( domainConfig.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_SECONDS_PER_CONNECTION ) ),
                         TimeDuration.Unit.SECONDS ) )
-                .connectionSendItemLimit( Integer.parseInt( configuration.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_ITEMS_PER_CONNECTION ) ) )
+                .connectionSendItemLimit( Integer.parseInt( domainConfig.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_ITEMS_PER_CONNECTION ) ) )
                 .queueRetryTimeout( TimeDuration.of(
-                        Long.parseLong( configuration.readAppProperty( AppProperty.QUEUE_EMAIL_RETRY_TIMEOUT_MS ) ),
+                        Long.parseLong( domainConfig.readAppProperty( AppProperty.QUEUE_EMAIL_RETRY_TIMEOUT_MS ) ),
                         TimeDuration.Unit.MILLISECONDS )
                 )
-                .queueDiscardAge( TimeDuration.of( configuration.readSettingAsLong( PwmSetting.EMAIL_MAX_QUEUE_AGE ), TimeDuration.Unit.SECONDS ) )
-                .queueMaxItems( Integer.parseInt( configuration.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_COUNT ) ) )
-                .retryableStatusResponses( readRetryableStatusCodes( configuration ) )
+                .queueDiscardAge( TimeDuration.of( domainConfig.readSettingAsLong( PwmSetting.EMAIL_MAX_QUEUE_AGE ), TimeDuration.Unit.SECONDS ) )
+                .queueMaxItems( Integer.parseInt( domainConfig.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_COUNT ) ) )
+                .retryableStatusResponses( readRetryableStatusCodes( domainConfig ) )
                 .build();
     }
 
-    private static Set<Integer> readRetryableStatusCodes( final Configuration configuration )
+    private static Set<Integer> readRetryableStatusCodes( final DomainConfig domainConfig )
     {
-        final String rawAppProp = configuration.readAppProperty( AppProperty.SMTP_RETRYABLE_SEND_RESPONSE_STATUSES );
+        final String rawAppProp = domainConfig.readAppProperty( AppProperty.SMTP_RETRYABLE_SEND_RESPONSE_STATUSES );
         if ( StringUtil.isEmpty( rawAppProp ) )
         {
             return Collections.emptySet();

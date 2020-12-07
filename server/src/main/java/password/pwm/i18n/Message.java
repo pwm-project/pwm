@@ -20,7 +20,7 @@
 
 package password.pwm.i18n;
 
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.util.i18n.LocaleHelper;
 
 import java.util.Locale;
@@ -164,7 +164,7 @@ public enum Message implements PwmDisplayBundle
 
     private final Message pluralMessage;
 
-    public static String getLocalizedMessage( final Locale locale, final Message message, final Configuration config, final String... fieldValue )
+    public static String getLocalizedMessage( final Locale locale, final Message message, final DomainConfig config, final String... fieldValue )
     {
         return LocaleHelper.getLocalizedMessage( locale, message.getKey(), config, Message.class, fieldValue );
     }
@@ -179,7 +179,7 @@ public enum Message implements PwmDisplayBundle
         return pluralMessage;
     }
 
-    public String getLocalizedMessage( final Locale locale, final Configuration config, final String... fieldValue )
+    public String getLocalizedMessage( final Locale locale, final DomainConfig config, final String... fieldValue )
     {
         return Message.getLocalizedMessage( locale, this, config, fieldValue );
     }

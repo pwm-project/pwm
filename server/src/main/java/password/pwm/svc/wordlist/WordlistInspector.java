@@ -20,7 +20,7 @@
 
 package password.pwm.svc.wordlist;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -34,16 +34,16 @@ import java.util.function.BooleanSupplier;
 class WordlistInspector implements Runnable
 {
     private final AbstractWordlist rootWordlist;
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final BooleanSupplier cancelFlag;
 
     WordlistInspector(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final AbstractWordlist rootWordlist,
             final BooleanSupplier cancelFlag
     )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.rootWordlist = rootWordlist;
         this.cancelFlag = cancelFlag;
     }
@@ -127,7 +127,7 @@ class WordlistInspector implements Runnable
         }
         else if ( !autoImportUrlConfigured )
         {
-            final WordlistSource source = WordlistSource.forBuiltIn( pwmApplication, rootWordlist.getConfiguration() );
+            final WordlistSource source = WordlistSource.forBuiltIn( pwmDomain, rootWordlist.getConfiguration() );
 
             if ( existingStatus.getSourceType() != WordlistSourceType.Temporary_BuiltIn )
             {
@@ -141,7 +141,7 @@ class WordlistInspector implements Runnable
             }
             else
             {
-                final WordlistSourceInfo builtInInfo = source.readRemoteWordlistInfo( pwmApplication, cancelFlag, getLogger() );
+                final WordlistSourceInfo builtInInfo = source.readRemoteWordlistInfo( pwmDomain, cancelFlag, getLogger() );
                 if ( !builtInInfo.equals( existingStatus.getRemoteInfo() ) )
                 {
                     getLogger().debug( () -> "existing built-in store does not match imported wordlist, will re-import" );
@@ -274,10 +274,10 @@ class WordlistInspector implements Runnable
 
             case Temporary_BuiltIn:
             {
-                final WordlistSource testWordlistSource = WordlistSource.forAutoImport( pwmApplication, rootWordlist.getConfiguration() );
+                final WordlistSource testWordlistSource = WordlistSource.forAutoImport( pwmDomain, rootWordlist.getConfiguration() );
                 try
                 {
-                    testWordlistSource.readRemoteWordlistInfo( pwmApplication, cancelFlag, getLogger() );
+                    testWordlistSource.readRemoteWordlistInfo( pwmDomain, cancelFlag, getLogger() );
                 }
                 catch ( final PwmUnrecoverableException e )
                 {
@@ -320,8 +320,8 @@ class WordlistInspector implements Runnable
     )
             throws IOException, PwmUnrecoverableException
     {
-        final WordlistSource source = WordlistSource.forAutoImport( pwmApplication, rootWordlist.getConfiguration() );
-        final WordlistSourceInfo remoteInfo = source.readRemoteWordlistInfo( pwmApplication, cancelFlag, getLogger() );
+        final WordlistSource source = WordlistSource.forAutoImport( pwmDomain, rootWordlist.getConfiguration() );
+        final WordlistSourceInfo remoteInfo = source.readRemoteWordlistInfo( pwmDomain, cancelFlag, getLogger() );
 
         boolean needsAutoImport = false;
         if ( remoteInfo == null )
@@ -355,8 +355,8 @@ class WordlistInspector implements Runnable
     private void populateBuiltIn( final WordlistSourceType wordlistSourceType )
             throws IOException, PwmUnrecoverableException
     {
-        final WordlistSource wordlistSource = WordlistSource.forBuiltIn( pwmApplication, rootWordlist.getConfiguration() );
-        final WordlistSourceInfo wordlistSourceInfo = wordlistSource.readRemoteWordlistInfo( pwmApplication, cancelFlag, getLogger() );
+        final WordlistSource wordlistSource = WordlistSource.forBuiltIn( pwmDomain, rootWordlist.getConfiguration() );
+        final WordlistSourceInfo wordlistSourceInfo = wordlistSource.readRemoteWordlistInfo( pwmDomain, cancelFlag, getLogger() );
         final WordlistImporter wordlistImporter = new WordlistImporter(
                 wordlistSourceInfo,
                 wordlistSource.getZipWordlistReader(),
@@ -371,7 +371,7 @@ class WordlistInspector implements Runnable
             throws IOException, PwmUnrecoverableException
     {
         rootWordlist.setAutoImportError( null );
-        final WordlistSource wordlistSource = WordlistSource.forAutoImport( pwmApplication, rootWordlist.getConfiguration() );
+        final WordlistSource wordlistSource = WordlistSource.forAutoImport( pwmDomain, rootWordlist.getConfiguration() );
         final WordlistImporter wordlistImporter = new WordlistImporter(
                 wordlistSourceInfo,
                 wordlistSource.getZipWordlistReader(),

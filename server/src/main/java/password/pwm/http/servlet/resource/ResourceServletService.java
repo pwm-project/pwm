@@ -24,7 +24,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.commons.io.output.NullOutputStream;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -64,7 +64,7 @@ public class ResourceServletService implements PwmService
     private String resourceNonce;
     private STATUS status = STATUS.CLOSED;
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
 
     public String getResourceNonce( )
     {
@@ -115,12 +115,12 @@ public class ResourceServletService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         try
         {
-            this.resourceServletConfiguration = ResourceServletConfiguration.createResourceServletConfiguration( pwmApplication );
+            this.resourceServletConfiguration = ResourceServletConfiguration.createResourceServletConfiguration( pwmDomain );
 
             cache = Caffeine.newBuilder()
                     .maximumSize( resourceServletConfiguration.getMaxCacheItems() )
@@ -172,17 +172,17 @@ public class ResourceServletService implements PwmService
     private String makeResourcePathNonce( )
             throws IOException
     {
-        final boolean enablePathNonce = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE ) );
+        final boolean enablePathNonce = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE ) );
         if ( !enablePathNonce )
         {
             return "";
         }
 
         final Instant startTime = Instant.now();
-        final String nonce = checksumAllResources( pwmApplication );
+        final String nonce = checksumAllResources( pwmDomain );
         LOGGER.debug( () -> "completed generation of nonce '" + nonce + "'", () ->  TimeDuration.fromCurrent( startTime ) );
 
-        final String noncePrefix = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
+        final String noncePrefix = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
         return "/" + noncePrefix + nonce;
     }
 
@@ -232,12 +232,12 @@ public class ResourceServletService implements PwmService
         return false;
     }
 
-    private String checksumAllResources( final PwmApplication pwmApplication )
+    private String checksumAllResources( final PwmDomain pwmDomain )
             throws IOException
     {
         try ( ChecksumOutputStream checksumStream = new ChecksumOutputStream( new NullOutputStream() ) )
         {
-            checksumResourceFilePath( pwmApplication, checksumStream );
+            checksumResourceFilePath( pwmDomain, checksumStream );
 
             for ( final FileResource fileResource : getResourceServletConfiguration().getCustomFileBundle().values() )
             {
@@ -261,13 +261,13 @@ public class ResourceServletService implements PwmService
         }
     }
 
-    private static void checksumResourceFilePath( final PwmApplication pwmApplication, final ChecksumOutputStream checksumStream )
+    private static void checksumResourceFilePath( final PwmDomain pwmDomain, final ChecksumOutputStream checksumStream )
     {
-        if ( pwmApplication.getPwmEnvironment().getContextManager() != null )
+        if ( pwmDomain.getPwmEnvironment().getContextManager() != null )
         {
             try
             {
-                final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                final File webInfPath = pwmDomain.getPwmEnvironment().getContextManager().locateWebInfFilePath();
                 if ( webInfPath != null && webInfPath.exists() )
                 {
                     final File basePath = webInfPath.getParentFile();

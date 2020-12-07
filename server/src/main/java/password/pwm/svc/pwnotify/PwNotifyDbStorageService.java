@@ -20,7 +20,7 @@
 
 package password.pwm.svc.pwnotify;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
@@ -39,13 +39,13 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
     private static final String DB_STATE_STRING = "PwNotifyJobState";
 
     private static final DatabaseTable TABLE = DatabaseTable.PW_NOTIFY;
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
 
-    PwNotifyDbStorageService( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    PwNotifyDbStorageService( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
 
-        if ( !pwmApplication.getConfig().hasDbConfigured() )
+        if ( !pwmDomain.getConfig().hasDbConfigured() )
         {
             final String msg = "DB storage type selected, but remote DB is not configured.";
             throw PwmUnrecoverableException.newException( PwmError.ERROR_NODE_SERVICE_ERROR, msg );
@@ -59,7 +59,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
     )
             throws PwmUnrecoverableException
     {
-        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, sessionLabel, userIdentity, true );
+        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity, true );
 
         if ( StringUtil.isEmpty( guid ) )
         {
@@ -69,7 +69,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
         final String rawDbValue;
         try
         {
-            rawDbValue = pwmApplication.getDatabaseAccessor().get( TABLE, guid );
+            rawDbValue = pwmDomain.getDatabaseAccessor().get( TABLE, guid );
         }
         catch ( final DatabaseException e )
         {
@@ -92,7 +92,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
     )
             throws PwmUnrecoverableException
     {
-        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, sessionLabel, userIdentity, true );
+        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity, true );
 
         if ( StringUtil.isEmpty( guid ) )
         {
@@ -102,7 +102,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
         final String rawDbValue = JsonUtil.serialize( pwNotifyUserStatus );
         try
         {
-            pwmApplication.getDatabaseAccessor().put( TABLE, guid, rawDbValue );
+            pwmDomain.getDatabaseAccessor().put( TABLE, guid, rawDbValue );
         }
         catch ( final DatabaseException e )
         {
@@ -116,7 +116,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
     {
         try
         {
-            final String strValue = pwmApplication.getDatabaseService().getAccessor().get( DatabaseTable.PW_NOTIFY, DB_STATE_STRING );
+            final String strValue = pwmDomain.getDatabaseService().getAccessor().get( DatabaseTable.PW_NOTIFY, DB_STATE_STRING );
             if ( StringUtil.isEmpty( strValue ) )
             {
                 return new PwNotifyStoredJobState( null, null, null, null, false );
@@ -136,7 +136,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
         try
         {
             final String strValue = JsonUtil.serialize( pwNotifyStoredJobState );
-            pwmApplication.getDatabaseService().getAccessor().put( DatabaseTable.PW_NOTIFY, DB_STATE_STRING, strValue );
+            pwmDomain.getDatabaseService().getAccessor().put( DatabaseTable.PW_NOTIFY, DB_STATE_STRING, strValue );
         }
         catch ( final DatabaseException e )
         {

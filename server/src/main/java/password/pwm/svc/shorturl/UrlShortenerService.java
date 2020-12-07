@@ -21,8 +21,8 @@
 package password.pwm.svc.shorturl;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.PwmDomain;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
@@ -45,7 +45,7 @@ public class UrlShortenerService implements PwmService
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( UrlShortenerService.class );
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
     private BasicUrlShortener theShortener = null;
     private STATUS status = STATUS.CLOSED;
 
@@ -54,10 +54,10 @@ public class UrlShortenerService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public void init( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmApplication;
-        final Configuration config = this.pwmApplication.getConfig();
+        this.pwmDomain = pwmDomain;
+        final DomainConfig config = this.pwmDomain.getConfig();
         final String classNameString = config.readSettingAsString( PwmSetting.URL_SHORTENER_CLASS );
         if ( classNameString != null && classNameString.length() > 0 )
         {
@@ -119,14 +119,14 @@ public class UrlShortenerService implements PwmService
     {
         if ( theShortener != null )
         {
-            return theShortener.shorten( text, pwmApplication );
+            return theShortener.shorten( text, pwmDomain );
         }
         return text;
     }
 
     public String shortenUrlInText( final String text ) throws PwmUnrecoverableException
     {
-        final String urlRegex = pwmApplication.getConfig().readAppProperty( AppProperty.URL_SHORTNER_URL_REGEX );
+        final String urlRegex = pwmDomain.getConfig().readAppProperty( AppProperty.URL_SHORTNER_URL_REGEX );
         try
         {
             final Pattern p = Pattern.compile( urlRegex );

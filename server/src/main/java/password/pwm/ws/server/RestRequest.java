@@ -21,7 +21,7 @@
 package password.pwm.ws.server;
 
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -42,31 +42,31 @@ public class RestRequest extends PwmHttpRequestWrapper
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestRequest.class );
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final RestAuthentication restAuthentication;
     private final SessionLabel sessionLabel;
     private final PwmRequestID requestID;
 
     public static RestRequest forRequest(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final RestAuthentication restAuthentication,
             final SessionLabel sessionLabel,
             final HttpServletRequest httpServletRequest
     )
             throws PwmUnrecoverableException
     {
-        return new RestRequest( pwmApplication, restAuthentication, sessionLabel, httpServletRequest );
+        return new RestRequest( pwmDomain, restAuthentication, sessionLabel, httpServletRequest );
     }
 
     private RestRequest(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final RestAuthentication restAuthentication,
             final SessionLabel sessionLabel,
             final HttpServletRequest httpServletRequest
     )
     {
-        super( httpServletRequest, pwmApplication.getConfig() );
-        this.pwmApplication = pwmApplication;
+        super( httpServletRequest, pwmDomain.getConfig() );
+        this.pwmDomain = pwmDomain;
         this.restAuthentication = restAuthentication;
         this.sessionLabel = sessionLabel;
         this.requestID = PwmRequestID.next();
@@ -77,9 +77,9 @@ public class RestRequest extends PwmHttpRequestWrapper
         return restAuthentication;
     }
 
-    public PwmApplication getPwmApplication( )
+    public PwmDomain getPwmApplication( )
     {
-        return pwmApplication;
+        return pwmDomain;
     }
 
     public Optional<HttpContentType> readContentType( )
@@ -126,7 +126,7 @@ public class RestRequest extends PwmHttpRequestWrapper
 
     public PwmRequestContext commonValues()
     {
-        return new PwmRequestContext( pwmApplication, this.getSessionLabel(), this.getLocale(), requestID );
+        return new PwmRequestContext( pwmDomain, this.getSessionLabel(), this.getLocale(), requestID );
     }
 }
 

@@ -23,12 +23,12 @@ package password.pwm.svc.sessiontrack;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.commons.csv.CSVPrinter;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.pub.SessionStateInfoBean;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
@@ -66,7 +66,7 @@ public class SessionTrackService implements PwmService
             .maximumSize( 10 )
             .build();
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
 
     @Override
     public STATUS status( )
@@ -75,9 +75,9 @@ public class SessionTrackService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
     }
 
     @Override
@@ -198,7 +198,7 @@ public class SessionTrackService implements PwmService
 
     public void outputToCsv(
             final Locale locale,
-            final Configuration config,
+            final DomainConfig config,
             final OutputStream outputStream
             )
             throws IOException
@@ -304,7 +304,7 @@ public class SessionTrackService implements PwmService
 
     public String generateNewSessionID()
     {
-        final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
+        final PwmRandom pwmRandom = pwmDomain.getSecureService().pwmRandom();
 
         for ( int safetyCounter = 0; safetyCounter < 1000; safetyCounter++ )
         {

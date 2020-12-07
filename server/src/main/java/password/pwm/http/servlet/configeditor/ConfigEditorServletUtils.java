@@ -22,7 +22,7 @@ package password.pwm.http.servlet.configeditor;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.stored.StoredConfigItemKey;
@@ -162,7 +162,7 @@ public class ConfigEditorServletUtils
         {
             final Locale locale = pwmRequest.getLocale();
             final ConfigurationChecker configurationChecker = new ConfigurationChecker();
-            final Configuration config = new Configuration( configManagerBean.getStoredConfiguration() );
+            final DomainConfig config = new DomainConfig( configManagerBean.getStoredConfiguration() );
             final List<HealthRecord> healthRecords = configurationChecker.doHealthCheck(
                     config,
                     pwmRequest.getLocale()

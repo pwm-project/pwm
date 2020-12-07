@@ -23,8 +23,8 @@ package password.pwm.http.servlet.resource;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.PwmDomain;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
 import password.pwm.http.bean.ImmutableByteArray;
@@ -64,21 +64,21 @@ class ResourceServletConfiguration
     {
     }
 
-    private ResourceServletConfiguration( final PwmApplication pwmApplication )
+    private ResourceServletConfiguration( final PwmDomain pwmDomain )
     {
         LOGGER.trace( () -> "initializing" );
-        final Configuration configuration = pwmApplication.getConfig();
-        maxCacheItems = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_RESOURCES_MAX_CACHE_ITEMS ) );
-        cacheExpireSeconds = Long.parseLong( configuration.readAppProperty( AppProperty.HTTP_RESOURCES_EXPIRATION_SECONDS ) );
-        enableGzip = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.HTTP_RESOURCES_ENABLE_GZIP ) );
-        enablePathNonce = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE ) );
-        maxCacheBytes = Long.parseLong( configuration.readAppProperty( AppProperty.HTTP_RESOURCES_MAX_CACHE_BYTES ) );
+        final DomainConfig domainConfig = pwmDomain.getConfig();
+        maxCacheItems = Integer.parseInt( domainConfig.readAppProperty( AppProperty.HTTP_RESOURCES_MAX_CACHE_ITEMS ) );
+        cacheExpireSeconds = Long.parseLong( domainConfig.readAppProperty( AppProperty.HTTP_RESOURCES_EXPIRATION_SECONDS ) );
+        enableGzip = Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.HTTP_RESOURCES_ENABLE_GZIP ) );
+        enablePathNonce = Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE ) );
+        maxCacheBytes = Long.parseLong( domainConfig.readAppProperty( AppProperty.HTTP_RESOURCES_MAX_CACHE_BYTES ) );
 
-        final String noncePrefix = configuration.readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
+        final String noncePrefix = domainConfig.readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
         noncePattern = Pattern.compile( noncePrefix + "[^/]*?/" );
-        nonceValue = pwmApplication.getRuntimeNonce();
+        nonceValue = pwmDomain.getRuntimeNonce();
 
-        final String zipFileResourceParam = configuration.readAppProperty( AppProperty.HTTP_RESOURCES_ZIP_FILES );
+        final String zipFileResourceParam = domainConfig.readAppProperty( AppProperty.HTTP_RESOURCES_ZIP_FILES );
         if ( zipFileResourceParam != null && !zipFileResourceParam.isEmpty() )
         {
             final List<ConfiguredZipFileResource> configuredZipFileResources = JsonUtil.deserialize( zipFileResourceParam, new TypeToken<ArrayList<ConfiguredZipFileResource>>()
@@ -86,7 +86,7 @@ class ResourceServletConfiguration
             } );
             for ( final ConfiguredZipFileResource configuredZipFileResource : configuredZipFileResources )
             {
-                final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                final File webInfPath = pwmDomain.getPwmEnvironment().getContextManager().locateWebInfFilePath();
                 if ( webInfPath != null )
                 {
                     try
@@ -112,7 +112,7 @@ class ResourceServletConfiguration
             }
         }
 
-        final Map<FileValue.FileInformation, FileValue.FileContent> files = configuration.readSettingAsFile( PwmSetting.DISPLAY_CUSTOM_RESOURCE_BUNDLE );
+        final Map<FileValue.FileInformation, FileValue.FileContent> files = domainConfig.readSettingAsFile( PwmSetting.DISPLAY_CUSTOM_RESOURCE_BUNDLE );
         if ( files != null && !files.isEmpty() )
         {
             final Map.Entry<FileValue.FileInformation, FileValue.FileContent> entry = files.entrySet().iterator().next();
@@ -135,9 +135,9 @@ class ResourceServletConfiguration
 
     }
 
-    static ResourceServletConfiguration createResourceServletConfiguration( final PwmApplication pwmApplication )
+    static ResourceServletConfiguration createResourceServletConfiguration( final PwmDomain pwmDomain )
     {
-        return new ResourceServletConfiguration( pwmApplication );
+        return new ResourceServletConfiguration( pwmDomain );
     }
 
     static ResourceServletConfiguration defaultConfiguration( )

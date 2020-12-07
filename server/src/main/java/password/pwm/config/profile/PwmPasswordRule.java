@@ -22,7 +22,7 @@ package password.pwm.config.profile;
 
 import com.novell.ldapchai.ChaiPasswordRule;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Message;
 import password.pwm.util.i18n.LocaleHelper;
@@ -508,7 +508,7 @@ public enum PwmPasswordRule
         return null;
     }
 
-    public String getLabel( final Locale locale, final Configuration config )
+    public String getLabel( final Locale locale, final DomainConfig config )
     {
         final String key = "Rule_" + this.toString();
         try
@@ -521,7 +521,7 @@ public enum PwmPasswordRule
         }
     }
 
-    public static List<PwmPasswordRule> sortedByLabel ( final Locale locale, final Configuration config )
+    public static List<PwmPasswordRule> sortedByLabel ( final Locale locale, final DomainConfig config )
     {
         final TreeMap<String, PwmPasswordRule> sortedMap = new TreeMap<>();
         for ( final PwmPasswordRule rule : PwmPasswordRule.values() )

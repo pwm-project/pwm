@@ -25,11 +25,11 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Base32;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.OTPStorageFormat;
@@ -81,7 +81,7 @@ public class OtpService implements PwmService
     private static final PwmLogger LOGGER = PwmLogger.forClass( OtpService.class );
 
     private final Map<DataStorageMethod, OtpOperator> operatorMap = new EnumMap<>( DataStorageMethod.class );
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
     private OtpSettings settings;
 
     public OtpService( )
@@ -89,13 +89,13 @@ public class OtpService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        this.pwmApplication = pwmApplication;
-        operatorMap.put( DataStorageMethod.LDAP, new LdapOtpOperator( pwmApplication ) );
-        operatorMap.put( DataStorageMethod.LOCALDB, new LocalDbOtpOperator( pwmApplication ) );
-        operatorMap.put( DataStorageMethod.DB, new DbOtpOperator( pwmApplication ) );
-        settings = OtpSettings.fromConfig( pwmApplication.getConfig() );
+        this.pwmDomain = pwmDomain;
+        operatorMap.put( DataStorageMethod.LDAP, new LdapOtpOperator( pwmDomain ) );
+        operatorMap.put( DataStorageMethod.LOCALDB, new LocalDbOtpOperator( pwmDomain ) );
+        operatorMap.put( DataStorageMethod.DB, new DbOtpOperator( pwmDomain ) );
+        settings = OtpSettings.fromConfig( pwmDomain.getConfig() );
     }
 
     public boolean validateToken(
@@ -149,7 +149,7 @@ public class OtpService implements PwmService
                     code.setUsed( true );
                     try
                     {
-                        pwmApplication.getOtpService().writeOTPUserConfiguration( null, userIdentity, otpUserRecord );
+                        pwmDomain.getOtpService().writeOTPUserConfiguration( null, userIdentity, otpUserRecord );
                     }
                     catch ( final ChaiUnavailableException e )
                     {
@@ -166,7 +166,7 @@ public class OtpService implements PwmService
     private List<String> createRawRecoveryCodes( final int numRecoveryCodes, final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {
-        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, sessionLabel );
+        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmDomain, sessionLabel );
         final String configuredTokenMacro = settings.getRecoveryTokenMacro();
         final List<String> recoveryCodes = new ArrayList<>();
         while ( recoveryCodes.size() < numRecoveryCodes )
@@ -185,7 +185,7 @@ public class OtpService implements PwmService
     )
             throws IOException, PwmUnrecoverableException
     {
-        final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
+        final PwmRandom pwmRandom = pwmDomain.getSecureService().pwmRandom();
 
         otpUserRecord.setIdentifier( identifier );
 
@@ -217,7 +217,7 @@ public class OtpService implements PwmService
             if ( settings.getOtpStorageFormat().supportsHashedRecoveryCodes() )
             {
                 LOGGER.trace( sessionLabel, () -> "hashing the recovery codes" );
-                final int saltCharLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.OTP_SALT_CHARLENGTH ) );
+                final int saltCharLength = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.OTP_SALT_CHARLENGTH ) );
                 recoveryInfo.setSalt( pwmRandom.alphaNumericString( saltCharLength ) );
                 recoveryInfo.setHashCount( settings.getRecoveryHashIterations() );
                 recoveryInfo.setHashMethod( settings.getRecoveryHashMethod() );
@@ -257,7 +257,7 @@ public class OtpService implements PwmService
 
     private byte[] generateSecret( )
     {
-        final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
+        final PwmRandom pwmRandom = pwmDomain.getSecureService().pwmRandom();
         final byte[] secArray = new byte[ 10 ];
         pwmRandom.nextBytes( secArray );
         return secArray;
@@ -322,7 +322,7 @@ public class OtpService implements PwmService
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         OTPUserRecord otpConfig = null;
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
         final Instant methodStartTime = Instant.now();
 
         final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(
@@ -330,7 +330,7 @@ public class OtpService implements PwmService
 
         if ( otpSecretStorageLocations != null )
         {
-            final String userGUID = readGuidIfNeeded( pwmApplication, sessionLabel, otpSecretStorageLocations, userIdentity );
+            final String userGUID = readGuidIfNeeded( pwmDomain, sessionLabel, otpSecretStorageLocations, userIdentity );
             final Iterator<DataStorageMethod> locationIterator = otpSecretStorageLocations.iterator();
             while ( otpConfig == null && locationIterator.hasNext() )
             {
@@ -377,10 +377,10 @@ public class OtpService implements PwmService
         int attempts = 0;
         int successes = 0;
 
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
         final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(
                 PwmSetting.OTP_SECRET_READ_PREFERENCE );
-        final String userGUID = readGuidIfNeeded( pwmApplication, pwmRequest == null ? null : pwmRequest.getLabel(), otpSecretStorageLocations, userIdentity );
+        final String userGUID = readGuidIfNeeded( pwmDomain, pwmRequest == null ? null : pwmRequest.getLabel(), otpSecretStorageLocations, userIdentity );
 
         final StringBuilder errorMsgs = new StringBuilder();
         if ( otpSecretStorageLocations != null )
@@ -437,10 +437,10 @@ public class OtpService implements PwmService
         int attempts = 0;
         int successes = 0;
 
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
         final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations( PwmSetting.OTP_SECRET_READ_PREFERENCE );
 
-        final String userGUID = readGuidIfNeeded( pwmApplication, pwmRequest.getLabel(), otpSecretStorageLocations, userIdentity );
+        final String userGUID = readGuidIfNeeded( pwmDomain, pwmRequest.getLabel(), otpSecretStorageLocations, userIdentity );
 
         final StringBuilder errorMsgs = new StringBuilder();
         if ( otpSecretStorageLocations != null )
@@ -499,7 +499,7 @@ public class OtpService implements PwmService
     }
 
     private static String readGuidIfNeeded(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final Collection<DataStorageMethod> otpSecretStorageLocations,
             final UserIdentity userIdentity
@@ -511,7 +511,7 @@ public class OtpService implements PwmService
         if ( otpSecretStorageLocations.contains( DataStorageMethod.DB ) || otpSecretStorageLocations.contains(
                 DataStorageMethod.LOCALDB ) )
         {
-            userGUID = LdapOperationsHelper.readLdapGuidValue( pwmApplication, sessionLabel, userIdentity, false );
+            userGUID = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity, false );
         }
         else
         {
@@ -534,7 +534,7 @@ public class OtpService implements PwmService
         private String recoveryHashMethod;
 
 
-        static OtpSettings fromConfig( final Configuration config )
+        static OtpSettings fromConfig( final DomainConfig config )
         {
             final OtpSettings otpSettings = new OtpSettings();
 

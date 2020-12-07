@@ -22,7 +22,7 @@ package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.StringHelper;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -95,15 +95,15 @@ public class ShortcutServlet extends AbstractPwmServlet
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
 
-        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.SHORTCUT_ENABLE ) )
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.SHORTCUT_ENABLE ) )
         {
             pwmRequest.respondWithError( PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo() );
             return;
         }
 
-        final ShortcutsBean shortcutsBean = pwmApplication.getSessionStateService().getBean( pwmRequest, ShortcutsBean.class );
+        final ShortcutsBean shortcutsBean = pwmDomain.getSessionStateService().getBean( pwmRequest, ShortcutsBean.class );
         if ( shortcutsBean.getVisibleItems() == null )
         {
             LOGGER.debug( pwmRequest, () -> "building visible shortcut list for user" );
@@ -219,7 +219,7 @@ public class ShortcutServlet extends AbstractPwmServlet
             throws PwmUnrecoverableException,  IOException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
 
         final String link = pwmRequest.readParameterAsString( "link" );
         final Map<String, ShortcutItem> visibleItems = shortcutsBean.getVisibleItems();
@@ -228,7 +228,7 @@ public class ShortcutServlet extends AbstractPwmServlet
         {
             final ShortcutItem item = visibleItems.get( link );
 
-            pwmApplication.getStatisticsManager().incrementValue( Statistic.SHORTCUTS_SELECTED );
+            pwmDomain.getStatisticsManager().incrementValue( Statistic.SHORTCUTS_SELECTED );
             LOGGER.trace( pwmRequest, () -> "shortcut link selected: " + link + ", setting link for 'forwardURL' to " + item.getShortcutURI() );
             pwmSession.getSessionStateBean().setForwardURL( item.getShortcutURI().toString() );
 

@@ -30,7 +30,7 @@ import com.novell.ldapchai.provider.SearchScope;
 import com.novell.ldapchai.util.ChaiUtility;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -118,10 +118,10 @@ public class LdapBrowser
         }
         result.setDn( dn );
         result.setProfileID( profileID );
-        final Configuration configuration = new Configuration( storedConfiguration );
-        if ( configuration.getLdapProfiles().size() > 1 )
+        final DomainConfig domainConfig = new DomainConfig( storedConfiguration );
+        if ( domainConfig.getLdapProfiles().size() > 1 )
         {
-            result.getProfileList().addAll( configuration.getLdapProfiles().keySet() );
+            result.getProfileList().addAll( domainConfig.getLdapProfiles().keySet() );
         }
 
         if ( adRootDNList( profileID ).contains( dn ) )
@@ -149,9 +149,9 @@ public class LdapBrowser
     {
         if ( !providerCache.containsKey( profile ) )
         {
-            final Configuration configuration = new Configuration( storedConfiguration );
-            final LdapProfile ldapProfile = configuration.getLdapProfiles().get( profile );
-            final ChaiProvider chaiProvider = LdapOperationsHelper.openProxyChaiProvider( chaiProviderFactory, null, ldapProfile, configuration, null );
+            final DomainConfig domainConfig = new DomainConfig( storedConfiguration );
+            final LdapProfile ldapProfile = domainConfig.getLdapProfiles().get( profile );
+            final ChaiProvider chaiProvider = LdapOperationsHelper.openProxyChaiProvider( chaiProviderFactory, null, ldapProfile, domainConfig, null );
             providerCache.put( profile, chaiProvider );
         }
         return providerCache.get( profile );
@@ -159,18 +159,18 @@ public class LdapBrowser
 
     private String figureLdapProfileID( final String profile )
     {
-        final Configuration configuration = new Configuration( storedConfiguration );
-        if ( configuration.getLdapProfiles().containsKey( profile ) )
+        final DomainConfig domainConfig = new DomainConfig( storedConfiguration );
+        if ( domainConfig.getLdapProfiles().containsKey( profile ) )
         {
             return profile;
         }
-        return configuration.getLdapProfiles().keySet().iterator().next();
+        return domainConfig.getLdapProfiles().keySet().iterator().next();
     }
 
     private int getMaxSizeLimit( )
     {
-        final Configuration configuration = new Configuration( storedConfiguration );
-        return Integer.parseInt( configuration.readAppProperty( AppProperty.LDAP_BROWSER_MAX_ENTRIES ) );
+        final DomainConfig domainConfig = new DomainConfig( storedConfiguration );
+        return Integer.parseInt( domainConfig.readAppProperty( AppProperty.LDAP_BROWSER_MAX_ENTRIES ) );
     }
 
     private Map<String, Boolean> getChildEntries(

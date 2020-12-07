@@ -21,13 +21,13 @@
 package password.pwm.http.filter;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SessionVerificationMode;
 import password.pwm.error.ErrorInformation;
@@ -147,8 +147,8 @@ public class SessionFilter extends AbstractPwmFilter
     )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final Configuration config = pwmRequest.getConfig();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final DomainConfig config = pwmRequest.getConfig();
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -164,7 +164,7 @@ public class SessionFilter extends AbstractPwmFilter
 
         try
         {
-            pwmApplication.getSessionStateService().readLoginSessionState( pwmRequest );
+            pwmDomain.getSessionStateService().readLoginSessionState( pwmRequest );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -224,7 +224,7 @@ public class SessionFilter extends AbstractPwmFilter
             {
                 try
                 {
-                    checkUrlAgainstWhitelist( pwmApplication, pwmRequest.getLabel(), forwardURL );
+                    checkUrlAgainstWhitelist( pwmDomain, pwmRequest.getLabel(), forwardURL );
                 }
                 catch ( final PwmOperationalException e )
                 {
@@ -244,7 +244,7 @@ public class SessionFilter extends AbstractPwmFilter
             {
                 try
                 {
-                    checkUrlAgainstWhitelist( pwmApplication, pwmRequest.getLabel(), logoutURL );
+                    checkUrlAgainstWhitelist( pwmDomain, pwmRequest.getLabel(), logoutURL );
                 }
                 catch ( final PwmOperationalException e )
                 {
@@ -269,9 +269,9 @@ public class SessionFilter extends AbstractPwmFilter
         // update last request time.
         ssBean.setSessionLastAccessedTime( Instant.now() );
 
-        if ( pwmApplication.getStatisticsManager() != null )
+        if ( pwmDomain.getStatisticsManager() != null )
         {
-            pwmApplication.getStatisticsManager().incrementValue( Statistic.HTTP_REQUESTS );
+            pwmDomain.getStatisticsManager().incrementValue( Statistic.HTTP_REQUESTS );
         }
 
         return ProcessStatus.Continue;
@@ -416,7 +416,7 @@ public class SessionFilter extends AbstractPwmFilter
     }
 
 
-    private static boolean checkPageLeaveNotice( final PwmSession pwmSession, final Configuration config )
+    private static boolean checkPageLeaveNotice( final PwmSession pwmSession, final DomainConfig config )
     {
         final long configuredSeconds = config.readSettingAsLong( PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT );
         if ( configuredSeconds <= 0 )
@@ -444,7 +444,7 @@ public class SessionFilter extends AbstractPwmFilter
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getConfig();
         final String localeParamName = config.readAppProperty( AppProperty.HTTP_PARAM_NAME_LOCALE );
         final String localeCookieName = config.readAppProperty( AppProperty.HTTP_COOKIE_LOCALE_NAME );
         final String requestedLocale = pwmRequest.readParameterAsString( localeParamName );
@@ -472,7 +472,7 @@ public class SessionFilter extends AbstractPwmFilter
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getConfig();
         final String themeParameterName = config.readAppProperty( AppProperty.HTTP_PARAM_NAME_THEME );
         final String themeReqParameter = pwmRequest.readParameterAsString( themeParameterName );
 
@@ -526,7 +526,7 @@ public class SessionFilter extends AbstractPwmFilter
     }
 
     private static void checkUrlAgainstWhitelist(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final String inputURL
     )
@@ -602,7 +602,7 @@ public class SessionFilter extends AbstractPwmFilter
         final String testURI = sb.toString();
         LOGGER.trace( sessionLabel, () -> "preparing to whitelist test parsed and decoded URL: " + testURI );
 
-        final List<String> whiteList = pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.SECURITY_REDIRECT_WHITELIST );
+        final List<String> whiteList = pwmDomain.getConfig().readSettingAsStringArray( PwmSetting.SECURITY_REDIRECT_WHITELIST );
 
         if ( PwmURL.testIfUrlMatchesAllowedPattern( testURI, whiteList, sessionLabel ) )
         {

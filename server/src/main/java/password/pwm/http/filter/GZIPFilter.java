@@ -22,7 +22,7 @@ package password.pwm.http.filter;
 
 import com.github.ziplet.filter.compression.CompressingFilter;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmURL;
@@ -52,11 +52,11 @@ public class GZIPFilter implements Filter
     public void init( final FilterConfig filterConfig )
             throws ServletException
     {
-        final PwmApplication pwmApplication;
+        final PwmDomain pwmDomain;
         try
         {
-            pwmApplication = ContextManager.getPwmApplication( filterConfig.getServletContext() );
-            enabled = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_ENABLE_GZIP ) );
+            pwmDomain = ContextManager.getPwmApplication( filterConfig.getServletContext() );
+            enabled = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_ENABLE_GZIP ) );
         }
         catch ( final PwmUnrecoverableException e )
         {

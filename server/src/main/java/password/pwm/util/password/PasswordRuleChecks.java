@@ -25,7 +25,7 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
@@ -64,7 +64,7 @@ public class PasswordRuleChecks
     @Builder
     private static class RuleCheckData
     {
-        private PwmApplication pwmApplication;
+        private PwmDomain pwmDomain;
         private PwmPasswordPolicy policy;
         private UserInfo userInfo;
         private PasswordRuleReaderHelper ruleHelper;
@@ -104,7 +104,7 @@ public class PasswordRuleChecks
 
 
     public static List<ErrorInformation> extendedPolicyRuleChecker(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final PwmPasswordPolicy policy,
             final String password,
             final String oldPassword,
@@ -126,16 +126,16 @@ public class PasswordRuleChecks
 
         final List<ErrorInformation> errorList = new ArrayList<>();
         final MacroRequest macroRequest = userInfo == null || userInfo.getUserIdentity() == null
-                ? MacroRequest.forNonUserSpecific( pwmApplication, SessionLabel.SYSTEM_LABEL )
+                ? MacroRequest.forNonUserSpecific( pwmDomain, SessionLabel.SYSTEM_LABEL )
                 : MacroRequest.forUser(
-                pwmApplication,
+                pwmDomain,
                 PwmConstants.DEFAULT_LOCALE,
                 SessionLabel.SYSTEM_LABEL,
                 userInfo.getUserIdentity()
         );
 
         final RuleCheckData ruleCheckData = RuleCheckData.builder()
-                .pwmApplication( pwmApplication )
+                .pwmDomain( pwmDomain )
                 .policy( policy )
                 .userInfo( userInfo )
                 .ruleHelper( policy.getRuleHelper() )
@@ -606,16 +606,16 @@ public class PasswordRuleChecks
                 throws PwmUnrecoverableException
         {
             final List<ErrorInformation> errorList = new ArrayList<>();
-            final PwmApplication pwmApplication = ruleCheckData.getPwmApplication();
+            final PwmDomain pwmDomain = ruleCheckData.getPwmDomain();
 
             // check password strength
             final int requiredPasswordStrength = ruleCheckData.getRuleHelper().readIntValue( PwmPasswordRule.MinimumStrength );
             if ( requiredPasswordStrength > 0 )
             {
-                if ( pwmApplication != null )
+                if ( pwmDomain != null )
                 {
                     final int passwordStrength = PasswordUtility.judgePasswordStrength(
-                            pwmApplication.getConfig(),
+                            pwmDomain.getConfig(),
                             password
                     );
                     if ( passwordStrength < requiredPasswordStrength )
@@ -717,17 +717,17 @@ public class PasswordRuleChecks
                 throws PwmUnrecoverableException
         {
             final List<ErrorInformation> errorList = new ArrayList<>();
-            final PwmApplication pwmApplication = ruleCheckData.getPwmApplication();
+            final PwmDomain pwmDomain = ruleCheckData.getPwmDomain();
             final PasswordRuleReaderHelper ruleHelper = ruleCheckData.getRuleHelper();
 
             // check if the password is in the dictionary.
             if ( ruleHelper.readBooleanValue( PwmPasswordRule.EnableWordlist ) )
             {
-                if ( pwmApplication != null )
+                if ( pwmDomain != null )
                 {
-                    if ( pwmApplication.getWordlistService() != null && pwmApplication.getWordlistService().status() == PwmService.STATUS.OPEN )
+                    if ( pwmDomain.getWordlistService() != null && pwmDomain.getWordlistService().status() == PwmService.STATUS.OPEN )
                     {
-                        final boolean found = pwmApplication.getWordlistService().containsWord( password );
+                        final boolean found = pwmDomain.getWordlistService().containsWord( password );
 
                         if ( found )
                         {
@@ -737,7 +737,7 @@ public class PasswordRuleChecks
                     }
                     else
                     {
-                        final boolean failWhenClosed = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.PASSWORD_RULE_WORDLIST_FAIL_WHEN_CLOSED ) );
+                        final boolean failWhenClosed = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RULE_WORDLIST_FAIL_WHEN_CLOSED ) );
                         if ( failWhenClosed )
                         {
                             throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "wordlist service is not available" );
@@ -757,15 +757,15 @@ public class PasswordRuleChecks
                 throws PwmUnrecoverableException
         {
             final List<ErrorInformation> errorList = new ArrayList<>();
-            final PwmApplication pwmApplication = ruleCheckData.getPwmApplication();
+            final PwmDomain pwmDomain = ruleCheckData.getPwmDomain();
 
             // check for shared (global) password history
-            if ( pwmApplication != null )
+            if ( pwmDomain != null )
             {
-                if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE )
-                        && pwmApplication.getSharedHistoryManager().status() == PwmService.STATUS.OPEN )
+                if ( pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE )
+                        && pwmDomain.getSharedHistoryManager().status() == PwmService.STATUS.OPEN )
                 {
-                    final boolean found = pwmApplication.getSharedHistoryManager().containsWord( password );
+                    final boolean found = pwmDomain.getSharedHistoryManager().containsWord( password );
 
                     if ( found )
                     {

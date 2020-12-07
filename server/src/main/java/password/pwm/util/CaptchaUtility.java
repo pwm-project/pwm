@@ -24,9 +24,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ApplicationPage;
 import password.pwm.error.ErrorInformation;
@@ -114,8 +114,8 @@ public class CaptchaUtility
             throw new PwmUnrecoverableException( errorInfo );
         }
 
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PasswordData privateKey = pwmApplication.getConfig().readSettingAsPassword( PwmSetting.RECAPTCHA_KEY_PRIVATE );
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PasswordData privateKey = pwmDomain.getConfig().readSettingAsPassword( PwmSetting.RECAPTCHA_KEY_PRIVATE );
 
         final String bodyText = "secret=" + StringUtil.urlEncode( privateKey.getStringValue() )
                 + "&"
@@ -127,7 +127,7 @@ public class CaptchaUtility
         {
             final PwmHttpClientRequest clientRequest = PwmHttpClientRequest.builder()
                     .method( HttpMethod.POST )
-                    .url( pwmApplication.getConfig().readAppProperty( AppProperty.RECAPTCHA_VALIDATE_URL ) )
+                    .url( pwmDomain.getConfig().readAppProperty( AppProperty.RECAPTCHA_VALIDATE_URL ) )
                     .body( bodyText )
                     .headers( Collections.singletonMap( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValueWithEncoding() ) )
                     .build();
@@ -302,7 +302,7 @@ public class CaptchaUtility
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getPwmApplication().getConfig();
+        final DomainConfig config = pwmRequest.getPwmApplication().getConfig();
         final PasswordData privateKey = config.readSettingAsPassword( PwmSetting.RECAPTCHA_KEY_PRIVATE );
         final String publicKey = config.readSettingAsString( PwmSetting.RECAPTCHA_KEY_PUBLIC );
 

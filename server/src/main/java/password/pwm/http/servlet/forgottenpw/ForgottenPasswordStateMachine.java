@@ -28,12 +28,12 @@ import com.novell.ldapchai.cr.bean.ChallengeSetBean;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.RecoveryAction;
@@ -260,9 +260,9 @@ public class ForgottenPasswordStateMachine
                 if ( verifyOnly )
                 {
                     final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
-                            pwmRequestContext.getPwmApplication(),
+                            pwmRequestContext.getPwmDomain(),
                             pwmRequestContext.getLocale(),
-                            pwmRequestContext.getPwmApplication().getProxiedChaiUser( userInfo.getUserIdentity() ),
+                            pwmRequestContext.getPwmDomain().getProxiedChaiUser( userInfo.getUserIdentity() ),
                             userInfo,
                             null,
                             password1,
@@ -278,9 +278,9 @@ public class ForgottenPasswordStateMachine
                 else
                 {
                     PasswordUtility.setPassword(
-                            forgottenPasswordStateMachine.getCommonValues().getPwmApplication(),
+                            forgottenPasswordStateMachine.getCommonValues().getPwmDomain(),
                             forgottenPasswordStateMachine.getCommonValues().getSessionLabel(),
-                            forgottenPasswordStateMachine.getCommonValues().getPwmApplication().getProxyChaiProvider( userInfo.getUserIdentity().getLdapProfileID() ),
+                            forgottenPasswordStateMachine.getCommonValues().getPwmDomain().getProxyChaiProvider( userInfo.getUserIdentity().getLdapProfileID() ),
                             userInfo,
                             null,
                             password1 );
@@ -303,7 +303,7 @@ public class ForgottenPasswordStateMachine
                 throws PwmUnrecoverableException
         {
             final PwmRequestContext pwmRequestContext = forgottenPasswordStateMachine.getCommonValues();
-            final Configuration config = forgottenPasswordStateMachine.getCommonValues().getConfig();
+            final DomainConfig config = forgottenPasswordStateMachine.getCommonValues().getConfig();
             final Locale locale = forgottenPasswordStateMachine.getCommonValues().getLocale();
             final UserIdentity userIdentity = forgottenPasswordStateMachine.getForgottenPasswordBean().getUserIdentity();
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmRequestContext, userIdentity );
@@ -491,7 +491,7 @@ public class ForgottenPasswordStateMachine
                     try
                     {
                         // forces service to use proxy account to update (write) updated otp record if necessary.
-                        otpPassed = pwmRequestContext.getPwmApplication().getOtpService().validateToken(
+                        otpPassed = pwmRequestContext.getPwmDomain().getOtpService().validateToken(
                                 null,
                                 userInfo.getUserIdentity(),
                                 otpUserRecord,
@@ -511,7 +511,7 @@ public class ForgottenPasswordStateMachine
 
                 if ( otpPassed )
                 {
-                    pwmRequestContext.getPwmApplication().getStatisticsManager().incrementValue( Statistic.RECOVERY_OTP_PASSED );
+                    pwmRequestContext.getPwmDomain().getStatisticsManager().incrementValue( Statistic.RECOVERY_OTP_PASSED );
                     forgottenPasswordStateMachine.getForgottenPasswordBean().getProgress().getSatisfiedMethods().add( IdentityVerificationMethod.OTP );
                 }
                 else
@@ -519,7 +519,7 @@ public class ForgottenPasswordStateMachine
                     errorInformation = errorInformation == null
                             ? new ErrorInformation( PwmError.ERROR_INCORRECT_OTP_TOKEN )
                             : errorInformation;
-                    pwmRequestContext.getPwmApplication().getStatisticsManager().incrementValue( Statistic.RECOVERY_OTP_FAILED );
+                    pwmRequestContext.getPwmDomain().getStatisticsManager().incrementValue( Statistic.RECOVERY_OTP_FAILED );
                     handleUserVerificationBadAttempt( pwmRequestContext, forgottenPasswordStateMachine.getForgottenPasswordBean(), errorInformation );
                     throw new PwmUnrecoverableException( errorInformation );
                 }
@@ -596,7 +596,7 @@ public class ForgottenPasswordStateMachine
                     }
 
                     forgottenPasswordStateMachine.getForgottenPasswordBean().getProgress().getSatisfiedMethods().add( IdentityVerificationMethod.TOKEN );
-                    StatisticsManager.incrementStat( pwmRequestContext.getPwmApplication(), Statistic.RECOVERY_TOKENS_PASSED );
+                    StatisticsManager.incrementStat( pwmRequestContext.getPwmDomain(), Statistic.RECOVERY_TOKENS_PASSED );
 
                     if ( pwmRequestContext.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
                     {
@@ -740,7 +740,7 @@ public class ForgottenPasswordStateMachine
             public void applyForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine, final Map<String, String> formData )
                     throws PwmUnrecoverableException
             {
-                final PwmApplication pwmApplication = forgottenPasswordStateMachine.getCommonValues().getPwmApplication();
+                final PwmDomain pwmDomain = forgottenPasswordStateMachine.getCommonValues().getPwmDomain();
                 final Locale locale = forgottenPasswordStateMachine.getCommonValues().getLocale();
                 final SessionLabel sessionLabel = forgottenPasswordStateMachine.getCommonValues().getSessionLabel();
                 final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordStateMachine.getForgottenPasswordBean();
@@ -751,9 +751,9 @@ public class ForgottenPasswordStateMachine
 
                     if ( forgottenPasswordBean.getUserSearchValues() != null )
                     {
-                        final List<FormConfiguration> formConfigurations = pwmApplication.getConfig().readSettingAsForm( PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM );
+                        final List<FormConfiguration> formConfigurations = pwmDomain.getConfig().readSettingAsForm( PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM );
                         final Map<FormConfiguration, String> formMap = FormUtility.asFormConfigurationMap( formConfigurations, forgottenPasswordBean.getUserSearchValues() );
-                        pwmApplication.getIntruderManager().convenience().markAttributes( formMap, forgottenPasswordStateMachine.getCommonValues().getSessionLabel() );
+                        pwmDomain.getIntruderManager().convenience().markAttributes( formMap, forgottenPasswordStateMachine.getCommonValues().getSessionLabel() );
                     }
 
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INCORRECT_RESPONSE,
@@ -775,7 +775,7 @@ public class ForgottenPasswordStateMachine
                 try
                 {
                     // check attributes
-                    final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
+                    final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
 
                     final List<FormConfiguration> requiredAttributesForm = forgottenPasswordBean.getAttributeForm();
 
@@ -978,7 +978,7 @@ public class ForgottenPasswordStateMachine
                 formValues = FormUtility.readFormValuesFromMap( values, forgottenPasswordForm, pwmRequestContext.getLocale() );
 
                 // check for intruder search values
-                pwmRequestContext.getPwmApplication().getIntruderManager().convenience().checkAttributes( formValues );
+                pwmRequestContext.getPwmDomain().getIntruderManager().convenience().checkAttributes( formValues );
 
                 // see if the values meet the configured form requirements.
                 FormUtility.validateFormValues( pwmRequestContext.getConfig(), formValues, pwmRequestContext.getLocale() );
@@ -988,7 +988,7 @@ public class ForgottenPasswordStateMachine
                     final String configuredSearchFilter = pwmRequestContext.getConfig().readSettingAsString( PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FILTER );
                     if ( configuredSearchFilter == null || configuredSearchFilter.isEmpty() )
                     {
-                        searchFilter = FormUtility.ldapSearchFilterForForm( pwmRequestContext.getPwmApplication(), forgottenPasswordForm );
+                        searchFilter = FormUtility.ldapSearchFilterForForm( pwmRequestContext.getPwmDomain(), forgottenPasswordForm );
                         LOGGER.trace( pwmRequestContext.getSessionLabel(), () -> "auto generated ldap search filter: " + searchFilter );
                     }
                     else
@@ -1000,7 +1000,7 @@ public class ForgottenPasswordStateMachine
 
                 // convert the username field to an identity
                 {
-                    final UserSearchEngine userSearchEngine = pwmRequestContext.getPwmApplication().getUserSearchEngine();
+                    final UserSearchEngine userSearchEngine = pwmRequestContext.getPwmDomain().getUserSearchEngine();
                     final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                             .filter( searchFilter )
                             .formValues( formValues )
@@ -1016,12 +1016,12 @@ public class ForgottenPasswordStateMachine
                     throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_CANT_MATCH_USER ) );
                 }
 
-                AuthenticationUtility.checkIfUserEligibleToAuthentication( pwmRequestContext.getPwmApplication(), userIdentity );
+                AuthenticationUtility.checkIfUserEligibleToAuthentication( pwmRequestContext.getPwmDomain(), userIdentity );
 
                 ForgottenPasswordUtil.initForgottenPasswordBean( pwmRequestContext, userIdentity, forgottenPasswordStateMachine.getForgottenPasswordBean() );
 
                 // clear intruder search values
-                pwmRequestContext.getPwmApplication().getIntruderManager().convenience().clearAttributes( formValues );
+                pwmRequestContext.getPwmDomain().getIntruderManager().convenience().clearAttributes( formValues );
 
                 return;
             }
@@ -1033,9 +1033,9 @@ public class ForgottenPasswordStateMachine
                             PwmError.ERROR_RESPONSES_NORESPONSES,
                             e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues()
                     );
-                    pwmRequestContext.getPwmApplication().getStatisticsManager().incrementValue( Statistic.RECOVERY_FAILURES );
+                    pwmRequestContext.getPwmDomain().getStatisticsManager().incrementValue( Statistic.RECOVERY_FAILURES );
 
-                    pwmRequestContext.getPwmApplication().getIntruderManager().convenience().markAttributes( formValues, pwmRequestContext.getSessionLabel() );
+                    pwmRequestContext.getPwmDomain().getIntruderManager().convenience().markAttributes( formValues, pwmRequestContext.getSessionLabel() );
 
                     LOGGER.debug( pwmRequestContext.getSessionLabel(), errorInfo );
                     forgottenPasswordStateMachine.clear();
@@ -1082,7 +1082,7 @@ public class ForgottenPasswordStateMachine
             }
 
             final LdapProfile selectedProfile = pwmRequestContext.getConfig().getLdapProfiles().getOrDefault( profile, pwmRequestContext.getConfig().getDefaultLdapProfile() );
-            final Map<String, String> selectableContexts = selectedProfile.getSelectableContexts( pwmRequestContext.getPwmApplication() );
+            final Map<String, String> selectableContexts = selectedProfile.getSelectableContexts( pwmRequestContext.getPwmDomain() );
             if ( selectableContexts != null && selectableContexts.size() > 1 )
             {
                 final Map<String, String> labelLocaleMap = LocaleHelper.localeMapToStringMap(
@@ -1116,7 +1116,7 @@ public class ForgottenPasswordStateMachine
 
 
         // add a bit of jitter to pretend like we're checking a data source
-        final long jitterMs = 300L + pwmRequestContext.getPwmApplication().getSecureService().pwmRandom().nextInt( 700 );
+        final long jitterMs = 300L + pwmRequestContext.getPwmDomain().getSecureService().pwmRandom().nextInt( 700 );
         TimeDuration.of( jitterMs, TimeDuration.Unit.MILLISECONDS ).pause();
 
         if ( userIdentity != null )
@@ -1124,10 +1124,10 @@ public class ForgottenPasswordStateMachine
             SessionAuthenticator.simulateBadPassword( pwmRequestContext, userIdentity );
 
 
-            pwmRequestContext.getPwmApplication().getIntruderManager().convenience().markUserIdentity( userIdentity,
+            pwmRequestContext.getPwmDomain().getIntruderManager().convenience().markUserIdentity( userIdentity,
                     pwmRequestContext.getSessionLabel() );
         }
 
-        StatisticsManager.incrementStat( pwmRequestContext.getPwmApplication(), Statistic.RECOVERY_FAILURES );
+        StatisticsManager.incrementStat( pwmRequestContext.getPwmDomain(), Statistic.RECOVERY_FAILURES );
     }
 }

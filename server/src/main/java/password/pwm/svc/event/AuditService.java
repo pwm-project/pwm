@@ -22,12 +22,12 @@ package password.pwm.svc.event;
 
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.UserEventStorageMethod;
@@ -76,7 +76,7 @@ public class AuditService implements PwmService
     private UserHistoryStore userHistoryStore;
     private AuditVault auditVault;
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
 
     public AuditService( )
     {
@@ -89,34 +89,34 @@ public class AuditService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
 
         final Instant startTime = Instant.now();
 
-        settings = AuditSettings.fromConfig( pwmApplication.getConfig() );
+        settings = AuditSettings.fromConfig( pwmDomain.getConfig() );
 
-        if ( pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
+        if ( pwmDomain.getApplicationMode() == null || pwmDomain.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
             this.status = STATUS.CLOSED;
             LOGGER.warn( () -> "unable to start - Application is in read-only mode" );
             return;
         }
 
-        if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
+        if ( pwmDomain.getLocalDB() == null || pwmDomain.getLocalDB().status() != LocalDB.Status.OPEN )
         {
             this.status = STATUS.CLOSED;
             LOGGER.warn( () -> "unable to start - LocalDB is not available" );
             return;
         }
 
-        final List<String> syslogConfigString = pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.AUDIT_SYSLOG_SERVERS );
+        final List<String> syslogConfigString = pwmDomain.getConfig().readSettingAsStringArray( PwmSetting.AUDIT_SYSLOG_SERVERS );
         if ( syslogConfigString != null && !syslogConfigString.isEmpty() )
         {
             try
             {
-                syslogManager = new SyslogAuditService( pwmApplication );
+                syslogManager = new SyslogAuditService( pwmDomain );
             }
             catch ( final Exception e )
             {
@@ -125,7 +125,7 @@ public class AuditService implements PwmService
             }
         }
         {
-            final UserEventStorageMethod userEventStorageMethod = pwmApplication.getConfig().readSettingAsEnum(
+            final UserEventStorageMethod userEventStorageMethod = pwmDomain.getConfig().readSettingAsEnum(
                     PwmSetting.EVENTS_USER_STORAGE_METHOD,
                     UserEventStorageMethod.class
             );
@@ -134,28 +134,28 @@ public class AuditService implements PwmService
             switch ( userEventStorageMethod )
             {
                 case AUTO:
-                    if ( pwmApplication.getConfig().hasDbConfigured() )
+                    if ( pwmDomain.getConfig().hasDbConfigured() )
                     {
                         debugMsg = "starting using auto-configured data store, Remote Database selected";
-                        this.userHistoryStore = new DatabaseUserHistory( pwmApplication );
+                        this.userHistoryStore = new DatabaseUserHistory( pwmDomain );
                         storageMethodUsed = DataStorageMethod.DB;
                     }
                     else
                     {
                         debugMsg = "starting using auto-configured data store, LDAP selected";
-                        this.userHistoryStore = new LdapXmlUserHistory( pwmApplication );
+                        this.userHistoryStore = new LdapXmlUserHistory( pwmDomain );
                         storageMethodUsed = DataStorageMethod.LDAP;
                     }
                     break;
 
                 case DATABASE:
-                    this.userHistoryStore = new DatabaseUserHistory( pwmApplication );
+                    this.userHistoryStore = new DatabaseUserHistory( pwmDomain );
                     debugMsg = "starting using Remote Database data store";
                     storageMethodUsed = DataStorageMethod.DB;
                     break;
 
                 case LDAP:
-                    this.userHistoryStore = new LdapXmlUserHistory( pwmApplication );
+                    this.userHistoryStore = new LdapXmlUserHistory( pwmDomain );
                     debugMsg = "starting using LocalDB data store";
                     storageMethodUsed = DataStorageMethod.LDAP;
                     break;
@@ -169,24 +169,24 @@ public class AuditService implements PwmService
             serviceInfo = ServiceInfoBean.builder().storageMethod( storageMethodUsed ).build();
         }
         {
-            final TimeDuration maxRecordAge = TimeDuration.of( pwmApplication.getConfig().readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_AGE ), TimeDuration.Unit.SECONDS );
-            final long maxRecords = pwmApplication.getConfig().readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_EVENTS );
+            final TimeDuration maxRecordAge = TimeDuration.of( pwmDomain.getConfig().readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_AGE ), TimeDuration.Unit.SECONDS );
+            final long maxRecords = pwmDomain.getConfig().readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_EVENTS );
             final AuditVault.Settings settings = new AuditVault.Settings(
                     maxRecords,
                     maxRecordAge
             );
 
-            if ( pwmApplication.getLocalDB() != null && pwmApplication.getApplicationMode() != PwmApplicationMode.READ_ONLY )
+            if ( pwmDomain.getLocalDB() != null && pwmDomain.getApplicationMode() != PwmApplicationMode.READ_ONLY )
             {
                 if ( maxRecords < 1 )
                 {
                     LOGGER.debug( () -> "localDB audit vault will remain closed due to max records setting" );
-                    pwmApplication.getLocalDB().truncate( LocalDB.DB.AUDIT_EVENTS );
+                    pwmDomain.getLocalDB().truncate( LocalDB.DB.AUDIT_EVENTS );
                 }
                 else
                 {
                     auditVault = new LocalDbAuditVault();
-                    auditVault.init( pwmApplication, pwmApplication.getLocalDB(), settings );
+                    auditVault.init( pwmDomain, pwmDomain.getLocalDB(), settings );
                 }
             }
             else
@@ -276,7 +276,7 @@ public class AuditService implements PwmService
             case SYSTEM:
                 for ( final String toAddress : settings.getSystemEmailAddresses() )
                 {
-                    sendAsEmail( pwmApplication, record, toAddress, settings.getAlertFromAddress() );
+                    sendAsEmail( pwmDomain, record, toAddress, settings.getAlertFromAddress() );
                 }
                 break;
 
@@ -284,7 +284,7 @@ public class AuditService implements PwmService
             case HELPDESK:
                 for ( final String toAddress : settings.getUserEmailAddresses() )
                 {
-                    sendAsEmail( pwmApplication, record, toAddress, settings.getAlertFromAddress() );
+                    sendAsEmail( pwmDomain, record, toAddress, settings.getAlertFromAddress() );
                 }
                 break;
 
@@ -295,7 +295,7 @@ public class AuditService implements PwmService
     }
 
     private static void sendAsEmail(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final AuditRecord record,
             final String toAddress,
             final String fromAddress
@@ -303,10 +303,10 @@ public class AuditService implements PwmService
     )
             throws PwmUnrecoverableException
     {
-        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, SessionLabel.AUDITING_SESSION_LABEL );
+        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmDomain, SessionLabel.AUDITING_SESSION_LABEL );
 
-        String subject = macroRequest.expandMacros( pwmApplication.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_EMAILSUBJECT ) );
-        subject = subject.replace( "%EVENT%", record.getEventCode().getLocalizedString( pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE ) );
+        String subject = macroRequest.expandMacros( pwmDomain.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_EMAILSUBJECT ) );
+        subject = subject.replace( "%EVENT%", record.getEventCode().getLocalizedString( pwmDomain.getConfig(), PwmConstants.DEFAULT_LOCALE ) );
 
         final String body;
         {
@@ -321,7 +321,7 @@ public class AuditService implements PwmService
                 .subject( subject )
                 .bodyPlain( body )
                 .build();
-        pwmApplication.getEmailQueue().submitEmail( emailItem, null, macroRequest );
+        pwmDomain.getEmailQueue().submitEmail( emailItem, null, macroRequest );
     }
 
     public Instant eldestVaultRecord( )
@@ -344,7 +344,7 @@ public class AuditService implements PwmService
     public void submit( final AuditEvent auditEvent, final UserInfo userInfo, final PwmSession pwmSession )
             throws PwmUnrecoverableException
     {
-        final AuditRecordFactory auditRecordFactory = new AuditRecordFactory( pwmApplication, pwmSession.getSessionManager().getMacroMachine( ) );
+        final AuditRecordFactory auditRecordFactory = new AuditRecordFactory( pwmDomain, pwmSession.getSessionManager().getMacroMachine( ) );
         final UserAuditRecord auditRecord = auditRecordFactory.createUserAuditRecord( auditEvent, userInfo, pwmSession );
         submit( pwmSession.getLabel(), auditRecord );
     }
@@ -423,14 +423,14 @@ public class AuditService implements PwmService
         }
 
         // update statistics
-        StatisticsManager.incrementStat( pwmApplication, Statistic.AUDIT_EVENTS );
+        StatisticsManager.incrementStat( pwmDomain, Statistic.AUDIT_EVENTS );
     }
 
 
     public int outputVaultToCsv( final OutputStream outputStream, final Locale locale, final boolean includeHeader )
             throws IOException
     {
-        final Configuration config = null;
+        final DomainConfig config = null;
 
         final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
 

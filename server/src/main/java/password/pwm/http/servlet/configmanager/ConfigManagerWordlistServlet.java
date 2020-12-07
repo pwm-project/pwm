@@ -23,7 +23,7 @@ package password.pwm.http.servlet.configmanager;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -138,7 +138,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
             throws IOException, ServletException, PwmUnrecoverableException
 
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final String wordlistTypeParam = pwmRequest.readParameterAsString( "wordlist" );
         final WordlistType wordlistType = WordlistType.valueOf( wordlistTypeParam );
@@ -163,7 +163,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
 
         try
         {
-            wordlistType.forType( pwmApplication ).populate( inputStream );
+            wordlistType.forType( pwmDomain ).populate( inputStream );
         }
         catch ( final PwmUnrecoverableException e )
         {

@@ -20,13 +20,13 @@
 
 package password.pwm.svc.event;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmUnrecoverableException;
 
 public interface AuditFormatter
 {
     String convertAuditRecordToMessage(
-            PwmApplication pwmApplication,
+            PwmDomain pwmDomain,
             AuditRecord auditRecord
     )
             throws PwmUnrecoverableException;

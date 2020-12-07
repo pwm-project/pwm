@@ -21,10 +21,10 @@
 package password.pwm.http.servlet.oauth;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -75,8 +75,8 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final Configuration config = pwmRequest.getConfig();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final DomainConfig config = pwmRequest.getConfig();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final boolean userIsAuthenticated = pwmSession.isAuthenticated();
@@ -248,14 +248,14 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         {
             try
             {
-                final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+                final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
                 final UserIdentity resolvedIdentity = userSearchEngine.resolveUsername(
                         oauthSuppliedUsername,
                         null,
                         null,
                         pwmRequest.getLabel()
                 );
-                if ( resolvedIdentity != null && resolvedIdentity.canonicalEquals( pwmSession.getUserInfo().getUserIdentity(), pwmApplication ) )
+                if ( resolvedIdentity != null && resolvedIdentity.canonicalEquals( pwmSession.getUserInfo().getUserIdentity(), pwmDomain ) )
                 {
                     LOGGER.debug( pwmRequest, () -> "verified incoming oauth code for already authenticated session does resolve to same as logged in user" );
                 }
@@ -283,7 +283,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         {
             if ( !userIsAuthenticated )
             {
-                final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmApplication, pwmRequest, PwmAuthenticationSource.OAUTH );
+                final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmDomain, pwmRequest, PwmAuthenticationSource.OAUTH );
                 sessionAuthenticator.authUserWithUnknownPassword( oauthSuppliedUsername, AuthenticationType.AUTH_WITHOUT_PASSWORD );
             }
 

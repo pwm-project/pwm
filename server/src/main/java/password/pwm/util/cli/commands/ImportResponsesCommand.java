@@ -22,7 +22,7 @@ package password.pwm.util.cli.commands;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChallengeSet;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
@@ -46,7 +46,7 @@ public class ImportResponsesCommand extends AbstractCliCommand
     void doCommand( )
             throws Exception
     {
-        final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
+        final PwmDomain pwmDomain = cliEnvironment.getPwmDomain();
 
         final File inputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
         try ( BufferedReader reader = new BufferedReader( new InputStreamReader( new FileInputStream( inputFile ), PwmConstants.DEFAULT_CHARSET.toString() ) ) )
@@ -63,18 +63,18 @@ public class ImportResponsesCommand extends AbstractCliCommand
                 inputData = JsonUtil.deserialize( line, RestChallengesServer.JsonChallengesData.class );
 
                 final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( inputData.username );
-                final ChaiUser user = pwmApplication.getProxiedChaiUser( userIdentity );
+                final ChaiUser user = pwmDomain.getProxiedChaiUser( userIdentity );
                 if ( user.exists() )
                 {
                     out( "writing responses to user '" + user.getEntryDN() + "'" );
                     try
                     {
-                        final ChallengeProfile challengeProfile = pwmApplication.getCrService().readUserChallengeProfile(
+                        final ChallengeProfile challengeProfile = pwmDomain.getCrService().readUserChallengeProfile(
                                 null, userIdentity, user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE );
                         final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
-                        final String userGuid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, null, userIdentity, false );
+                        final String userGuid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, null, userIdentity, false );
                         final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean( PwmConstants.DEFAULT_LOCALE, challengeSet.getIdentifier() );
-                        pwmApplication.getCrService().writeResponses( null, userIdentity, user, userGuid, responseInfoBean );
+                        pwmDomain.getCrService().writeResponses( null, userIdentity, user, userGuid, responseInfoBean );
                     }
                     catch ( final Exception e )
                     {

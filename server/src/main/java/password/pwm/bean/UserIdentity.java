@@ -24,9 +24,9 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jetbrains.annotations.NotNull;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -98,10 +98,10 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         return ldapProfile;
     }
 
-    public LdapProfile getLdapProfile( final Configuration configuration )
+    public LdapProfile getLdapProfile( final DomainConfig domainConfig )
     {
-        Objects.requireNonNull( configuration );
-        final LdapProfile ldapProfile = configuration.getLdapProfiles().get( this.getLdapProfileID() );
+        Objects.requireNonNull( domainConfig );
+        final LdapProfile ldapProfile = domainConfig.getLdapProfiles().get( this.getLdapProfileID() );
         if ( ldapProfile == null )
         {
             throw new IllegalStateException( "bogus ldapProfileID on userIdentity: "  + this.getLdapProfileID() );
@@ -114,7 +114,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         return toDisplayString();
     }
 
-    public String toObfuscatedKey( final PwmApplication pwmApplication )
+    public String toObfuscatedKey( final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
         // use local cache first.
@@ -124,7 +124,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         }
 
         // check app cache.  This is used primarily so that keys are static over some meaningful lifetime, allowing browser caching based on keys.
-        final CacheService cacheService = pwmApplication.getCacheService();
+        final CacheService cacheService = pwmDomain.getCacheService();
         final CacheKey cacheKey = CacheKey.newKey( this.getClass(), this, "obfuscatedKey" );
         final String cachedValue = cacheService.get( cacheKey, String.class );
 
@@ -138,7 +138,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         try
         {
             final String jsonValue = JsonUtil.serialize( this );
-            final String localValue = CRYPO_HEADER + pwmApplication.getSecureService().encryptToString( jsonValue );
+            final String localValue = CRYPO_HEADER + pwmDomain.getSecureService().encryptToString( jsonValue );
             this.obfuscatedValue = localValue;
             cacheService.put( cacheKey, CachePolicy.makePolicyWithExpiration( TimeDuration.DAY ), localValue );
             return localValue;
@@ -159,10 +159,10 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         return this.getUserDN() + ( ( this.getLdapProfileID() != null && !this.getLdapProfileID().isEmpty() ) ? " (" + this.getLdapProfileID() + ")" : "" );
     }
 
-    public static UserIdentity fromObfuscatedKey( final String key, final PwmApplication pwmApplication )
+    public static UserIdentity fromObfuscatedKey( final String key, final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
-        Objects.requireNonNull( pwmApplication );
+        Objects.requireNonNull( pwmDomain );
         JavaHelper.requireNonEmpty( key, "key can not be null or empty" );
 
         if ( !key.startsWith( CRYPO_HEADER ) )
@@ -173,7 +173,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         try
         {
             final String input = key.substring( CRYPO_HEADER.length() );
-            final String jsonValue = pwmApplication.getSecureService().decryptStringValue( input );
+            final String jsonValue = pwmDomain.getSecureService().decryptStringValue( input );
             return JsonUtil.deserialize( jsonValue, UserIdentity.class );
         }
         catch ( final Exception e )
@@ -201,20 +201,20 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         return createUserIdentity( userDN, profileID );
     }
 
-    public static UserIdentity fromKey( final String key, final PwmApplication pwmApplication )
+    public static UserIdentity fromKey( final String key, final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
         JavaHelper.requireNonEmpty( key );
 
         if ( key.startsWith( CRYPO_HEADER ) )
         {
-            return fromObfuscatedKey( key, pwmApplication );
+            return fromObfuscatedKey( key, pwmDomain );
         }
 
         return fromDelimitedKey( key );
     }
 
-    public boolean canonicalEquals( final UserIdentity otherIdentity, final PwmApplication pwmApplication )
+    public boolean canonicalEquals( final UserIdentity otherIdentity, final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
         if ( otherIdentity == null )
@@ -222,8 +222,8 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             return false;
         }
 
-        final UserIdentity thisCanonicalIdentity = this.canonicalized( pwmApplication );
-        final UserIdentity otherCanonicalIdentity = otherIdentity.canonicalized( pwmApplication );
+        final UserIdentity thisCanonicalIdentity = this.canonicalized( pwmDomain );
+        final UserIdentity otherCanonicalIdentity = otherIdentity.canonicalized( pwmDomain );
         return thisCanonicalIdentity.equals( otherCanonicalIdentity );
     }
 
@@ -276,7 +276,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
     }
 
 
-    public UserIdentity canonicalized( final PwmApplication pwmApplication )
+    public UserIdentity canonicalized( final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
         if ( this.canonical )
@@ -284,7 +284,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             return this;
         }
 
-        final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( this );
+        final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( this );
         final String userDN;
         try
         {

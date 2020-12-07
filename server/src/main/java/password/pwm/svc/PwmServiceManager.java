@@ -20,7 +20,7 @@
 
 package password.pwm.svc;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -42,7 +42,7 @@ public class PwmServiceManager
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmServiceManager.class );
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
     private final Map<PwmServiceEnum, PwmService> runningServices = new HashMap<>();
     private boolean initialized;
 
@@ -62,14 +62,14 @@ public class PwmServiceManager
         return runningServices.get( serviceClass );
     }
 
-    public void initAllServices( final PwmApplication pwmApplication )
+    public void initAllServices( final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         final Instant startTime = Instant.now();
 
-        final boolean internalRuntimeInstance = pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
-                || pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance );
+        final boolean internalRuntimeInstance = pwmDomain.getPwmEnvironment().isInternalRuntimeInstance()
+                || pwmDomain.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance );
 
         final String logVerb = initialized ? "restart" : "start";
         final StatisticCounterBundle<InitializationStats> statCounter = new StatisticCounterBundle<>( InitializationStats.class );
@@ -135,7 +135,7 @@ public class PwmServiceManager
         try
         {
             LOGGER.debug( () -> "initializing service " + serviceName );
-            newServiceInstance.init( pwmApplication );
+            newServiceInstance.init( pwmDomain );
             final TimeDuration startupDuration = TimeDuration.fromCurrent( startTime );
             LOGGER.debug( () -> "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString() + ", status=" + newServiceInstance.status() );
         }

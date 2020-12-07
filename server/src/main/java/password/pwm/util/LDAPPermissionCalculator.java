@@ -22,7 +22,7 @@ package password.pwm.util;
 
 import com.novell.ldapchai.ChaiConstant;
 import lombok.Value;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.LDAPPermissionInfo;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
@@ -63,13 +63,13 @@ public class LDAPPermissionCalculator implements Serializable
     private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPPermissionCalculator.class );
 
     private final transient StoredConfiguration storedConfiguration;
-    private final transient Configuration configuration;
+    private final transient DomainConfig domainConfig;
     private final Collection<PermissionRecord> permissionRecords;
 
     public LDAPPermissionCalculator( final StoredConfiguration storedConfiguration ) throws PwmUnrecoverableException
     {
         this.storedConfiguration = storedConfiguration;
-        this.configuration = new Configuration( storedConfiguration );
+        this.domainConfig = new DomainConfig( storedConfiguration );
         permissionRecords = figureRecords( storedConfiguration );
     }
 
@@ -199,9 +199,9 @@ public class LDAPPermissionCalculator implements Serializable
                 case USER_PERMISSION:
                 {
                     final List<UserPermission> userPermissions = ValueTypeConverter.valueToUserPermissions ( storedConfiguration.readSetting( pwmSetting, profile ) );
-                    if ( configuration.getLdapProfiles() != null && !configuration.getLdapProfiles().isEmpty() )
+                    if ( domainConfig.getLdapProfiles() != null && !domainConfig.getLdapProfiles().isEmpty() )
                     {
-                        for ( final LdapProfile ldapProfile : configuration.getLdapProfiles().values() )
+                        for ( final LdapProfile ldapProfile : domainConfig.getLdapProfiles().values() )
                         {
                             final String groupAttribute = ldapProfile.readSettingAsString( PwmSetting.LDAP_USER_GROUP_ATTRIBUTE );
                             if ( groupAttribute != null && !groupAttribute.trim().isEmpty() )
@@ -348,8 +348,8 @@ public class LDAPPermissionCalculator implements Serializable
             case CHALLENGE_USER_ATTRIBUTE:
             {
                 final Set<DataStorageMethod> storageMethods = EnumSet.noneOf( DataStorageMethod.class );
-                storageMethods.addAll( configuration.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE ) );
-                storageMethods.addAll( configuration.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE ) );
+                storageMethods.addAll( domainConfig.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE ) );
+                storageMethods.addAll( domainConfig.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE ) );
                 if ( !storageMethods.contains( DataStorageMethod.LDAP ) )
                 {
                     return Collections.emptyList();
@@ -360,7 +360,7 @@ public class LDAPPermissionCalculator implements Serializable
 
             case SMS_USER_PHONE_ATTRIBUTE:
             {
-                if ( !SmsQueueManager.smsIsConfigured( configuration ) )
+                if ( !SmsQueueManager.smsIsConfigured( domainConfig ) )
                 {
                     return Collections.emptyList();
                 }
@@ -384,9 +384,9 @@ public class LDAPPermissionCalculator implements Serializable
         records.add( new PermissionRecord( userPasswordAttributeName, null, null, LDAPPermissionInfo.Access.write, LDAPPermissionInfo.Actor.self ) );
 
         // proxy user set password
-        if ( configuration.readSettingAsBoolean( PwmSetting.FORGOTTEN_PASSWORD_ENABLE ) )
+        if ( domainConfig.readSettingAsBoolean( PwmSetting.FORGOTTEN_PASSWORD_ENABLE ) )
         {
-            final Collection<PwmSettingTemplate> templates = configuration.getTemplate().getTemplates();
+            final Collection<PwmSettingTemplate> templates = domainConfig.getTemplate().getTemplates();
             if ( templates.contains( PwmSettingTemplate.NOVL ) || templates.contains( PwmSettingTemplate.NOVL_IDM ) )
             {
                 records.add( new PermissionRecord(
@@ -407,7 +407,7 @@ public class LDAPPermissionCalculator implements Serializable
             }
         }
 
-        if ( configuration.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE ) )
+        if ( domainConfig.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE ) )
         {
             records.add( new PermissionRecord(
                     userPasswordAttributeName,
@@ -417,7 +417,7 @@ public class LDAPPermissionCalculator implements Serializable
                     LDAPPermissionInfo.Actor.helpdesk ) );
         }
 
-        if ( configuration.readSettingAsBoolean( PwmSetting.GUEST_ENABLE ) )
+        if ( domainConfig.readSettingAsBoolean( PwmSetting.GUEST_ENABLE ) )
         {
             records.add( new PermissionRecord(
                     userPasswordAttributeName,
@@ -427,7 +427,7 @@ public class LDAPPermissionCalculator implements Serializable
                     LDAPPermissionInfo.Actor.guestManager ) );
         }
 
-        if ( configuration.readSettingAsBoolean( PwmSetting.NEWUSER_ENABLE ) )
+        if ( domainConfig.readSettingAsBoolean( PwmSetting.NEWUSER_ENABLE ) )
         {
             records.add( new PermissionRecord(
                     userPasswordAttributeName,
@@ -481,9 +481,9 @@ public class LDAPPermissionCalculator implements Serializable
             }
         }
 
-        if ( configuration.getLdapProfiles() != null && !configuration.getLdapProfiles().isEmpty() )
+        if ( domainConfig.getLdapProfiles() != null && !domainConfig.getLdapProfiles().isEmpty() )
         {
-            for ( final LdapProfile ldapProfile : configuration.getLdapProfiles().values() )
+            for ( final LdapProfile ldapProfile : domainConfig.getLdapProfiles().values() )
             {
                 final List<String> autoAddObjectClasses = ldapProfile.readSettingAsStringArray( PwmSetting.AUTO_ADD_OBJECT_CLASSES );
                 if ( autoAddObjectClasses != null && !autoAddObjectClasses.isEmpty() )

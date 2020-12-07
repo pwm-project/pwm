@@ -21,7 +21,7 @@
 package password.pwm.http.tag.url;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.PwmSetting;
@@ -133,11 +133,11 @@ public class PwmUrlTag extends PwmAbstractTag
 
     }
 
-    public static String insertResourceNonce( final PwmApplication pwmApplication, final String urlString )
+    public static String insertResourceNonce( final PwmDomain pwmDomain, final String urlString )
     {
-        if ( pwmApplication != null && urlString.contains( RESOURCE_URL ) )
+        if ( pwmDomain != null && urlString.contains( RESOURCE_URL ) )
         {
-            final String nonce = pwmApplication.getResourceServletService().getResourceNonce();
+            final String nonce = pwmDomain.getResourceServletService().getResourceNonce();
             if ( nonce != null && nonce.length() > 0 )
             {
                 return urlString.replaceFirst( RESOURCE_URL, RESOURCE_URL + nonce );
@@ -182,7 +182,7 @@ public class PwmUrlTag extends PwmAbstractTag
 
         if ( pwmRequest != null )
         {
-            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+            final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
 
             themeName = figureThemeName( pwmRequest );
 
@@ -190,11 +190,11 @@ public class PwmUrlTag extends PwmAbstractTag
             {
                 if ( themeUrl == PwmThemeURL.MOBILE_THEME_URL )
                 {
-                    themeURL = pwmApplication.getConfig().readSettingAsString( PwmSetting.DISPLAY_CSS_CUSTOM_MOBILE_STYLE );
+                    themeURL = pwmDomain.getConfig().readSettingAsString( PwmSetting.DISPLAY_CSS_CUSTOM_MOBILE_STYLE );
                 }
                 else
                 {
-                    themeURL = pwmApplication.getConfig().readSettingAsString( PwmSetting.DISPLAY_CSS_CUSTOM_STYLE );
+                    themeURL = pwmDomain.getConfig().readSettingAsString( PwmSetting.DISPLAY_CSS_CUSTOM_STYLE );
                 }
             }
         }

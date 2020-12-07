@@ -22,7 +22,7 @@ package password.pwm.http;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
@@ -64,7 +64,7 @@ public class PwmSession implements Serializable
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSession.class );
 
-    private final transient PwmApplication pwmApplication;
+    private final transient PwmDomain pwmDomain;
 
     @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
     private final transient LocalSessionStateBean sessionStateBean = new LocalSessionStateBean();
@@ -80,13 +80,13 @@ public class PwmSession implements Serializable
     private final Lock securityKeyLock = new ReentrantLock();
     private final transient SessionManager sessionManager;
 
-    public static PwmSession createPwmSession( final PwmApplication pwmApplication )
+    public static PwmSession createPwmSession( final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
         CREATION_LOCK.lock();
         try
         {
-            return new PwmSession( pwmApplication );
+            return new PwmSession( pwmDomain );
         }
         finally
         {
@@ -94,26 +94,26 @@ public class PwmSession implements Serializable
         }
     }
 
-    private PwmSession( final PwmApplication pwmApplication )
+    private PwmSession( final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
-        if ( pwmApplication == null )
+        if ( pwmDomain == null )
         {
             throw new IllegalStateException( "PwmApplication must be available during session creation" );
         }
 
-        this.pwmApplication = pwmApplication;
-        this.sessionStateBean.setSessionID( pwmApplication.getSessionTrackService().generateNewSessionID() );
+        this.pwmDomain = pwmDomain;
+        this.sessionStateBean.setSessionID( pwmDomain.getSessionTrackService().generateNewSessionID() );
 
         this.sessionStateBean.setSessionLastAccessedTime( Instant.now() );
 
-        if ( pwmApplication.getStatisticsManager() != null )
+        if ( pwmDomain.getStatisticsManager() != null )
         {
-            pwmApplication.getStatisticsManager().incrementValue( Statistic.HTTP_SESSIONS );
+            pwmDomain.getStatisticsManager().incrementValue( Statistic.HTTP_SESSIONS );
         }
 
-        pwmApplication.getSessionTrackService().addSessionData( this );
-        this.sessionManager = new SessionManager( pwmApplication, this );
+        pwmDomain.getSessionTrackService().addSessionData( this );
+        this.sessionManager = new SessionManager( pwmDomain, this );
 
         LOGGER.trace( () -> "created new session" );
     }
@@ -152,23 +152,23 @@ public class PwmSession implements Serializable
     {
         LOGGER.trace( () -> "performing reloadUserInfoBean" );
         final UserInfo oldUserInfoBean = getUserInfo();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
 
         final UserInfo userInfo;
         if ( getLoginInfoBean().getAuthFlags().contains( AuthenticationType.AUTH_BIND_INHIBIT ) )
         {
             userInfo = UserInfoFactory.newUserInfo(
-                    pwmApplication,
+                    pwmDomain,
                     pwmRequest.getLabel(),
                     getSessionStateBean().getLocale(),
                     oldUserInfoBean.getUserIdentity(),
-                    pwmApplication.getProxyChaiProvider( oldUserInfoBean.getUserIdentity().getLdapProfileID() )
+                    pwmDomain.getProxyChaiProvider( oldUserInfoBean.getUserIdentity().getLdapProfileID() )
             );
         }
         else
         {
             userInfo = UserInfoFactory.newUserInfoUsingProxy(
-                    pwmApplication,
+                    pwmDomain,
                     pwmRequest.getLabel(),
                     oldUserInfoBean.getUserIdentity(),
                     getSessionStateBean().getLocale(),
@@ -327,14 +327,14 @@ public class PwmSession implements Serializable
     public boolean setLocale( final PwmRequest pwmRequest, final String localeString )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        if ( pwmApplication == null )
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        if ( pwmDomain == null )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE, "unable to read context manager" ) );
         }
 
         final LocalSessionStateBean ssBean = this.getSessionStateBean();
-        final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
+        final List<Locale> knownLocales = pwmDomain.getConfig().getKnownLocales();
         final Locale requestedLocale = LocaleHelper.parseLocaleString( localeString );
         if ( knownLocales.contains( requestedLocale ) || "default".equalsIgnoreCase( localeString ) )
         {

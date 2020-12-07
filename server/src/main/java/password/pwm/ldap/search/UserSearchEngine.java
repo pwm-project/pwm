@@ -25,11 +25,11 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DuplicateMode;
 import password.pwm.config.profile.LdapProfile;
@@ -91,7 +91,7 @@ public class UserSearchEngine implements PwmService
         backgroundJobTimeoutCounter,
     }
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
 
     private ThreadPoolExecutor executor;
 
@@ -111,10 +111,10 @@ public class UserSearchEngine implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        this.pwmApplication = pwmApplication;
-        this.executor = createExecutor( pwmApplication );
+        this.pwmDomain = pwmDomain;
+        this.executor = createExecutor( pwmDomain );
         this.periodicDebugOutput();
     }
 
@@ -153,7 +153,7 @@ public class UserSearchEngine implements PwmService
             UserIdentity inputIdentity = null;
             try
             {
-                inputIdentity = UserIdentity.fromKey( username, pwmApplication );
+                inputIdentity = UserIdentity.fromKey( username, pwmDomain );
             }
             catch ( final PwmException e )
             {
@@ -164,7 +164,7 @@ public class UserSearchEngine implements PwmService
             {
                 try
                 {
-                    final ChaiUser theUser = pwmApplication.getProxiedChaiUser( inputIdentity );
+                    final ChaiUser theUser = pwmDomain.getProxiedChaiUser( inputIdentity );
                     if ( theUser.exists() )
                     {
                         final String canonicalDN;
@@ -223,7 +223,7 @@ public class UserSearchEngine implements PwmService
             throws PwmUnrecoverableException, PwmOperationalException
     {
         final Instant startTime = Instant.now();
-        final DuplicateMode dupeMode = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.LDAP_DUPLICATE_MODE, DuplicateMode.class );
+        final DuplicateMode dupeMode = pwmDomain.getConfig().readSettingAsEnum( PwmSetting.LDAP_DUPLICATE_MODE, DuplicateMode.class );
         final int searchCount = ( dupeMode == DuplicateMode.FIRST_ALL ) ? 1 : 2;
         final Map<UserIdentity, Map<String, String>> searchResults = performMultiUserSearch( searchConfiguration, searchCount, Collections.emptyList(), sessionLabel );
         final List<UserIdentity> results = searchResults == null ? Collections.emptyList() : new ArrayList<>( searchResults.keySet() );
@@ -309,9 +309,9 @@ public class UserSearchEngine implements PwmService
         final Collection<LdapProfile> ldapProfiles;
         if ( searchConfiguration.getLdapProfile() != null && !searchConfiguration.getLdapProfile().isEmpty() )
         {
-            if ( pwmApplication.getConfig().getLdapProfiles().containsKey( searchConfiguration.getLdapProfile() ) )
+            if ( pwmDomain.getConfig().getLdapProfiles().containsKey( searchConfiguration.getLdapProfile() ) )
             {
-                ldapProfiles = Collections.singletonList( pwmApplication.getConfig().getLdapProfiles().get( searchConfiguration.getLdapProfile() ) );
+                ldapProfiles = Collections.singletonList( pwmDomain.getConfig().getLdapProfiles().get( searchConfiguration.getLdapProfile() ) );
             }
             else
             {
@@ -322,16 +322,16 @@ public class UserSearchEngine implements PwmService
         }
         else
         {
-            ldapProfiles = pwmApplication.getConfig().getLdapProfiles().values();
+            ldapProfiles = pwmDomain.getConfig().getLdapProfiles().values();
         }
 
-        final boolean ignoreUnreachableProfiles = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.LDAP_IGNORE_UNREACHABLE_PROFILES );
+        final boolean ignoreUnreachableProfiles = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.LDAP_IGNORE_UNREACHABLE_PROFILES );
 
         final List<String> errors = new ArrayList<>();
 
         counters.increment( SearchStatistic.searchCounter );
         final int searchID = searchIdCounter.next();
-        final long profileRetryDelayMS = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PROFILE_RETRY_DELAY ) );
+        final long profileRetryDelayMS = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROFILE_RETRY_DELAY ) );
         final AtomicLoopIntIncrementer jobIncrementer = AtomicLoopIntIncrementer.builder().build();
 
         final List<UserSearchJob> searchJobs = new ArrayList<>();
@@ -339,7 +339,7 @@ public class UserSearchEngine implements PwmService
         for ( final LdapProfile ldapProfile : ldapProfiles )
         {
             boolean skipProfile = false;
-            final Instant lastLdapFailure = pwmApplication.getLdapConnectionService().getLastLdapFailureTime( ldapProfile );
+            final Instant lastLdapFailure = pwmDomain.getLdapConnectionService().getLastLdapFailureTime( ldapProfile );
 
             if ( ldapProfiles.size() > 1 && lastLdapFailure != null && TimeDuration.fromCurrent( lastLdapFailure ).isShorterThan( profileRetryDelayMS ) )
             {
@@ -365,7 +365,7 @@ public class UserSearchEngine implements PwmService
                 {
                     if ( e.getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
                     {
-                        pwmApplication.getLdapConnectionService().setLastLdapFailure( ldapProfile, e.getErrorInformation() );
+                        pwmDomain.getLdapConnectionService().setLastLdapFailure( ldapProfile, e.getErrorInformation() );
                         if ( ignoreUnreachableProfiles )
                         {
                             errors.add( e.getErrorInformation().getDetailedErrorMsg() );
@@ -429,7 +429,7 @@ public class UserSearchEngine implements PwmService
         }
         else
         {
-            searchContexts = ldapProfile.getRootContexts( pwmApplication );
+            searchContexts = ldapProfile.getRootContexts( pwmDomain );
         }
 
         final long timeLimitMS = searchConfiguration.getSearchTimeout() != null
@@ -437,7 +437,7 @@ public class UserSearchEngine implements PwmService
                 : ( ldapProfile.readSettingAsLong( PwmSetting.LDAP_SEARCH_TIMEOUT ) * 1000 );
 
         final ChaiProvider chaiProvider = searchConfiguration.getChaiProvider() == null
-                ? pwmApplication.getProxyChaiProvider( ldapProfile.getIdentifier() )
+                ? pwmDomain.getProxyChaiProvider( ldapProfile.getIdentifier() )
                 : searchConfiguration.getChaiProvider();
 
         final List<UserSearchJob> returnMap = new ArrayList<>();
@@ -457,7 +457,7 @@ public class UserSearchEngine implements PwmService
                     .searchScope( searchConfiguration.getSearchScope() )
                     .ignoreOperationalErrors( searchConfiguration.isIgnoreOperationalErrors() )
                     .build();
-            final UserSearchJob userSearchJob = new UserSearchJob( pwmApplication, this, userSearchJobParameters );
+            final UserSearchJob userSearchJob = new UserSearchJob( pwmDomain, this, userSearchJobParameters );
             returnMap.add( userSearchJob );
         }
 
@@ -516,10 +516,10 @@ public class UserSearchEngine implements PwmService
         Objects.requireNonNull( profile, "ldapProfile can not be null for ldap search context validation" );
         Objects.requireNonNull( context, "context can not be null for ldap search context validation" );
 
-        final String canonicalContext = profile.readCanonicalDN( pwmApplication, context );
+        final String canonicalContext = profile.readCanonicalDN( pwmDomain, context );
 
         {
-            final Map<String, String> selectableContexts = profile.getSelectableContexts( pwmApplication );
+            final Map<String, String> selectableContexts = profile.getSelectableContexts( pwmDomain );
             if ( !JavaHelper.isEmpty( selectableContexts ) && selectableContexts.containsKey( canonicalContext ) )
             {
                 // config pre-validates selectable contexts so this should be permitted
@@ -528,7 +528,7 @@ public class UserSearchEngine implements PwmService
         }
 
         {
-            final List<String> rootContexts = profile.getRootContexts( pwmApplication );
+            final List<String> rootContexts = profile.getRootContexts( pwmDomain );
             if ( !JavaHelper.isEmpty( rootContexts ) )
             {
                 for ( final String rootContext : rootContexts )
@@ -560,7 +560,7 @@ public class UserSearchEngine implements PwmService
 
         //if supplied user name starts with username attr assume its the full dn and skip the search
         final Set<String> namingAttributes = new HashSet<>();
-        for ( final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values() )
+        for ( final LdapProfile ldapProfile : pwmDomain.getConfig().getLdapProfiles().values() )
         {
             final String usernameAttribute = ldapProfile.readSettingAsString( PwmSetting.LDAP_NAMING_ATTRIBUTE );
             if ( input.toLowerCase().startsWith( usernameAttribute.toLowerCase() + "=" ) )
@@ -610,7 +610,7 @@ public class UserSearchEngine implements PwmService
         }
 
         final UserIdentity userIdentity = results.keySet().iterator().next();
-        validateSpecifiedContext( userIdentity.getLdapProfile( pwmApplication.getConfig() ), userIdentity.getUserDN() );
+        validateSpecifiedContext( userIdentity.getLdapProfile( pwmDomain.getConfig() ), userIdentity.getUserDN() );
         return userIdentity;
     }
 
@@ -780,11 +780,11 @@ public class UserSearchEngine implements PwmService
         return idMsg;
     }
 
-    private static ThreadPoolExecutor createExecutor( final PwmApplication pwmApplication )
+    private static ThreadPoolExecutor createExecutor( final PwmDomain pwmDomain )
     {
-        final Configuration configuration = pwmApplication.getConfig();
+        final DomainConfig domainConfig = pwmDomain.getConfig();
 
-        final boolean enabled = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_ENABLE ) );
+        final boolean enabled = Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_ENABLE ) );
         if ( !enabled )
         {
             return null;
@@ -793,7 +793,7 @@ public class UserSearchEngine implements PwmService
         final int endPoints;
         {
             int counter = 0;
-            for ( final LdapProfile ldapProfile : configuration.getLdapProfiles().values() )
+            for ( final LdapProfile ldapProfile : domainConfig.getLdapProfiles().values() )
             {
                 final List<String> rootContexts = ldapProfile.readSettingAsStringArray( PwmSetting.LDAP_CONTEXTLESS_ROOT );
                 counter += rootContexts.size();
@@ -803,10 +803,10 @@ public class UserSearchEngine implements PwmService
 
         if ( endPoints > 1 )
         {
-            final int factor = Integer.parseInt( configuration.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_FACTOR ) );
-            final int maxThreads = Integer.parseInt( configuration.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_THREAD_MAX ) );
+            final int factor = Integer.parseInt( domainConfig.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_FACTOR ) );
+            final int maxThreads = Integer.parseInt( domainConfig.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_THREAD_MAX ) );
             final int threads = Math.min( maxThreads, ( endPoints ) * factor );
-            final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, UserSearchEngine.class ), true );
+            final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmDomain, UserSearchEngine.class ), true );
             final int minThreads = JavaHelper.rangeCheck( 1, 10, endPoints );
 
             LOGGER.trace( () -> "initialized with threads min=" + minThreads + " max=" + threads );

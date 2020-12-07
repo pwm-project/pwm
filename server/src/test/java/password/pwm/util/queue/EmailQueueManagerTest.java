@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import password.pwm.AppProperty;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.svc.email.EmailServer;
 import password.pwm.svc.email.EmailServerUtil;
 import password.pwm.svc.email.EmailService;
@@ -45,7 +45,7 @@ public class EmailQueueManagerTest
     {
         final EmailService emailService = new EmailService();
 
-        final Configuration config = Mockito.mock( Configuration.class );
+        final DomainConfig config = Mockito.mock( DomainConfig.class );
         Mockito.when( config.readAppProperty( AppProperty.SMTP_SUBJECT_ENCODING_CHARSET ) ).thenReturn( "UTF8" );
 
         final EmailItemBean emailItemBean = new EmailItemBean(

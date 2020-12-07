@@ -25,7 +25,7 @@ import jetbrains.exodus.core.dataStructures.hash.LinkedHashMap;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
 import password.pwm.http.bean.ImmutableByteArray;
@@ -599,11 +599,11 @@ public class JavaHelper
         return returnMap;
     }
 
-    public static Optional<String> deriveLocalServerHostname( final Configuration configuration )
+    public static Optional<String> deriveLocalServerHostname( final DomainConfig domainConfig )
     {
-        if ( configuration != null )
+        if ( domainConfig != null )
         {
-            final String siteUrl = configuration.readSettingAsString( PwmSetting.PWM_SITE_URL );
+            final String siteUrl = domainConfig.readSettingAsString( PwmSetting.PWM_SITE_URL );
             if ( !StringUtil.isEmpty( siteUrl ) )
             {
                 try

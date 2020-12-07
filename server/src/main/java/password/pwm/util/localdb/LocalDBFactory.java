@@ -22,7 +22,7 @@ package password.pwm.util.localdb;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmEnvironment;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.java.FileSystemUtility;
@@ -50,16 +50,16 @@ public class LocalDBFactory
             final File dbDirectory,
             final boolean readonly,
             final PwmEnvironment pwmEnvironment,
-            final Configuration configuration
+            final DomainConfig domainConfig
     )
             throws Exception
     {
         CREATION_LOCK.lock();
         try
         {
-            final Configuration config = ( configuration == null && pwmEnvironment != null )
+            final DomainConfig config = ( domainConfig == null && pwmEnvironment != null )
                     ? pwmEnvironment.getConfig()
-                    : configuration;
+                    : domainConfig;
 
             final long startTime = System.currentTimeMillis();
 
@@ -183,14 +183,14 @@ public class LocalDBFactory
         LOGGER.trace( () -> "db init completed for " + theClass );
     }
 
-    private static Map<LocalDBProvider.Parameter, String> makeParameterMap( final Configuration configuration, final boolean readOnly )
+    private static Map<LocalDBProvider.Parameter, String> makeParameterMap( final DomainConfig domainConfig, final boolean readOnly )
     {
         final Map<LocalDBProvider.Parameter, String> parameters = new HashMap<>();
         if ( readOnly )
         {
             parameters.put( LocalDBProvider.Parameter.readOnly, Boolean.TRUE.toString() );
         }
-        if ( Boolean.parseBoolean( configuration.readAppProperty( AppProperty.LOCALDB_AGGRESSIVE_COMPACT_ENABLED ) ) )
+        if ( Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.LOCALDB_AGGRESSIVE_COMPACT_ENABLED ) ) )
         {
             parameters.put( LocalDBProvider.Parameter.aggressiveCompact, Boolean.TRUE.toString() );
         }

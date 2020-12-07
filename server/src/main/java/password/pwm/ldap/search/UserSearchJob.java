@@ -23,7 +23,7 @@ package password.pwm.ldap.search;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.SearchHelper;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -44,15 +44,15 @@ import java.util.concurrent.FutureTask;
 
 class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
 {
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final UserSearchJobParameters userSearchJobParameters;
     private final UserSearchEngine userSearchEngine;
     private final FutureTask<Map<UserIdentity, Map<String, String>>> futureTask;
     private final Instant createTime = Instant.now();
 
-    UserSearchJob( final PwmApplication pwmApplication, final UserSearchEngine userSearchEngine, final UserSearchJobParameters userSearchJobParameters )
+    UserSearchJob( final PwmDomain pwmDomain, final UserSearchEngine userSearchEngine, final UserSearchJobParameters userSearchJobParameters )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.userSearchJobParameters = userSearchJobParameters;
         this.userSearchEngine = userSearchEngine;
         this.futureTask = new FutureTask<>( this );
@@ -108,9 +108,9 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
 
         final TimeDuration searchDuration = TimeDuration.fromCurrent( startTime );
 
-        if ( pwmApplication.getStatisticsManager() != null && pwmApplication.getStatisticsManager().status() == PwmService.STATUS.OPEN )
+        if ( pwmDomain.getStatisticsManager() != null && pwmDomain.getStatisticsManager().status() == PwmService.STATUS.OPEN )
         {
-            pwmApplication.getStatisticsManager().updateAverageValue( AvgStatistic.AVG_LDAP_SEARCH_TIME, searchDuration.asMillis() );
+            pwmDomain.getStatisticsManager().updateAverageValue( AvgStatistic.AVG_LDAP_SEARCH_TIME, searchDuration.asMillis() );
         }
 
         if ( results.isEmpty() )

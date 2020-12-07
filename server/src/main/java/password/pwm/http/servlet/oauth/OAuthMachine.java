@@ -25,7 +25,7 @@ import password.pwm.AppProperty;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -111,7 +111,7 @@ public class OAuthMachine
         LOGGER.trace( sessionLabel, () -> "preparing to redirect user to oauth authentication service, setting nextUrl to " + nextUrl );
         pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress( true );
 
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getConfig();
         final String state = makeStateStringForRequest( pwmRequest, nextUrl, forgottenPasswordProfile );
         final String redirectUri = figureOauthSelfEndPointUrl( pwmRequest );
         final String code = config.readAppProperty( AppProperty.OAUTH_ID_REQUEST_TYPE );
@@ -158,7 +158,7 @@ public class OAuthMachine
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getConfig();
         final String requestUrl = settings.getCodeResolveUrl();
         final String grantType = config.readAppProperty( AppProperty.OAUTH_ID_ACCESS_GRANT_TYPE );
         final String redirectUri = figureOauthSelfEndPointUrl( pwmRequest );
@@ -185,7 +185,7 @@ public class OAuthMachine
             final String resolveResponseBodyStr
     )
     {
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getConfig();
         final String oauthExpiresParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_EXPIRES );
         final String oauthAccessTokenParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN );
         final String refreshTokenParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN );
@@ -207,7 +207,7 @@ public class OAuthMachine
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getConfig();
         final String requestUrl = settings.getCodeResolveUrl();
         final String grantType = config.readAppProperty( AppProperty.OAUTH_ID_REFRESH_GRANT_TYPE );
 
@@ -228,7 +228,7 @@ public class OAuthMachine
     {
         final PwmHttpClientResponse restResults;
         {
-            final Configuration config = pwmRequest.getConfig();
+            final DomainConfig config = pwmRequest.getConfig();
             final String requestUrl = settings.getAttributesUrl();
             final Map<String, String> requestParams = new HashMap<>();
             requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );

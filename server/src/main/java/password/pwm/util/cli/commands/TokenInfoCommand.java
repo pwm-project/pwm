@@ -20,7 +20,7 @@
 
 package password.pwm.util.cli.commands;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
@@ -38,9 +38,9 @@ public class TokenInfoCommand extends AbstractCliCommand
             throws Exception
     {
         final String tokenKey = ( String ) cliEnvironment.getOptions().get( TOKEN_KEY_OPTIONNAME );
-        final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
+        final PwmDomain pwmDomain = cliEnvironment.getPwmDomain();
 
-        final TokenService tokenService = pwmApplication.getTokenService();
+        final TokenService tokenService = pwmDomain.getTokenService();
         TokenPayload tokenPayload = null;
         Exception lookupError = null;
         try

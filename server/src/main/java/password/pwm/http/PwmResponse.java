@@ -22,8 +22,8 @@ package password.pwm.http;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.PwmDomain;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
@@ -81,10 +81,10 @@ public class PwmResponse extends PwmHttpResponseWrapper
     public PwmResponse(
             final HttpServletResponse response,
             final PwmRequest pwmRequest,
-            final Configuration configuration
+            final DomainConfig domainConfig
     )
     {
-        super( pwmRequest.getHttpServletRequest(), response, configuration );
+        super( pwmRequest.getHttpServletRequest(), response, domainConfig );
         this.pwmRequest = pwmRequest;
     }
 
@@ -128,10 +128,10 @@ public class PwmResponse extends PwmHttpResponseWrapper
             throws ServletException, PwmUnrecoverableException, IOException
 
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         this.pwmRequest.setAttribute( PwmRequestAttribute.SuccessMessage, message );
 
-        final boolean showMessage = !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_SUCCESS_PAGES )
+        final boolean showMessage = !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_SUCCESS_PAGES )
                 && !Arrays.asList( flags ).contains( Flag.AlwaysShowMessage );
 
         if ( showMessage )

@@ -28,12 +28,12 @@ import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.HelpdeskUIMode;
@@ -186,7 +186,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
     @Override
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
 
         if ( !pwmRequest.isAuthenticated() )
         {
@@ -194,7 +194,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE ) )
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE ) )
         {
             pwmRequest.respondWithError( new ErrorInformation(
                     PwmError.ERROR_SERVICE_NOT_AVAILABLE,
@@ -319,7 +319,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
         final HelpdeskProfile helpdeskProfile = getHelpdeskProfile( pwmRequest );
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final String userKey = pwmRequest.readParameterAsString( PwmConstants.PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation );
@@ -331,7 +331,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmApplication );
+        final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmDomain );
         LOGGER.info( pwmRequest, () -> "received deleteUser request by " + pwmSession.getUserInfo().getUserIdentity().toString() + " for user " + userIdentity.toString() );
 
         // check if user should be seen by actor
@@ -342,7 +342,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         try
         {
             final UserInfo deletedUserInfo = UserInfoFactory.newUserInfoUsingProxy(
-                    pwmApplication,
+                    pwmDomain,
                     pwmRequest.getLabel(),
                     userIdentity,
                     pwmRequest.getLocale() );
@@ -355,7 +355,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
         // execute user delete operation
         final ChaiProvider provider = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY )
-                ? pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() )
+                ? pwmDomain.getProxyChaiProvider( userIdentity.getLdapProfileID() )
                 : pwmSession.getSessionManager().getChaiProvider();
 
 
@@ -389,7 +389,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                     pwmSession.getSessionStateBean().getSrcAddress(),
                     pwmSession.getSessionStateBean().getSrcHostname()
             );
-            pwmApplication.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+            pwmDomain.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         LOGGER.info( pwmRequest, () -> "user " + userIdentity + " has been deleted" );
@@ -737,7 +737,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final HelpdeskProfile helpdeskProfile = getHelpdeskProfile( pwmRequest );
 
         final Instant startTime = Instant.now();
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getConfig();
         final Map<String, String> bodyParams = pwmRequest.readBodyAsJsonStringMap();
 
         final UserIdentity targetUserIdentity = UserIdentity.fromKey( bodyParams.get( PwmConstants.PARAM_USERKEY ), pwmRequest.getPwmApplication() );
@@ -787,7 +787,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         {
             TokenService.TokenSender.sendToken(
                     TokenService.TokenSendInfo.builder()
-                            .pwmApplication( pwmRequest.getPwmApplication() )
+                            .pwmDomain( pwmRequest.getPwmApplication() )
                             .userInfo( targetUserInfo )
                             .macroRequest( macroRequest )
                             .configuredEmailSetting( emailItemBean )

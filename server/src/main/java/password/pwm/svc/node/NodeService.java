@@ -20,7 +20,7 @@
 
 package password.pwm.svc.node;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -44,7 +44,7 @@ public class NodeService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( NodeService.class );
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
     private STATUS status = STATUS.CLOSED;
     private NodeMachine nodeMachine;
     private DataStorageMethod dataStore;
@@ -58,11 +58,11 @@ public class NodeService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
 
-        final boolean serviceEnabled = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.CLUSTER_ENABLED );
+        final boolean serviceEnabled = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.CLUSTER_ENABLED );
         if ( !serviceEnabled )
         {
             status = STATUS.CLOSED;
@@ -73,7 +73,7 @@ public class NodeService implements PwmService
         {
             final NodeServiceSettings nodeServiceSettings;
             final NodeDataServiceProvider clusterDataServiceProvider;
-            dataStore = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.CLUSTER_STORAGE_MODE, DataStorageMethod.class );
+            dataStore = pwmDomain.getConfig().readSettingAsEnum( PwmSetting.CLUSTER_STORAGE_MODE, DataStorageMethod.class );
 
             if ( dataStore != null )
             {
@@ -82,16 +82,16 @@ public class NodeService implements PwmService
                     case DB:
                     {
                         LOGGER.trace( () -> "starting database-backed node service provider" );
-                        nodeServiceSettings = NodeServiceSettings.fromConfigForDB( pwmApplication.getConfig() );
-                        clusterDataServiceProvider = new DatabaseNodeDataService( pwmApplication );
+                        nodeServiceSettings = NodeServiceSettings.fromConfigForDB( pwmDomain.getConfig() );
+                        clusterDataServiceProvider = new DatabaseNodeDataService( pwmDomain );
                     }
                     break;
 
                     case LDAP:
                     {
                         LOGGER.trace( () -> "starting ldap-backed node service provider" );
-                        nodeServiceSettings = NodeServiceSettings.fromConfigForLDAP( pwmApplication.getConfig() );
-                        clusterDataServiceProvider = new LDAPNodeDataService( pwmApplication );
+                        nodeServiceSettings = NodeServiceSettings.fromConfigForLDAP( pwmDomain.getConfig() );
+                        clusterDataServiceProvider = new LDAPNodeDataService( pwmDomain );
                     }
                     break;
 
@@ -102,7 +102,7 @@ public class NodeService implements PwmService
 
                 }
 
-                nodeMachine = new NodeMachine( pwmApplication, clusterDataServiceProvider, nodeServiceSettings );
+                nodeMachine = new NodeMachine( pwmDomain, clusterDataServiceProvider, nodeServiceSettings );
                 status = STATUS.OPEN;
                 return;
             }
@@ -188,11 +188,11 @@ public class NodeService implements PwmService
         return Collections.emptyList();
     }
 
-    private void figureDataStorageMethod( final PwmApplication pwmApplication )
+    private void figureDataStorageMethod( final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
         {
-            final UserIdentity userIdentity = pwmApplication.getConfig().getDefaultLdapProfile().getTestUser( pwmApplication );
+            final UserIdentity userIdentity = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( pwmDomain );
             if ( userIdentity == null )
             {
                 final String msg = "LDAP storage type selected, but LDAP test user not defined.";
@@ -202,7 +202,7 @@ public class NodeService implements PwmService
         }
 
         {
-            if ( !pwmApplication.getConfig().hasDbConfigured() )
+            if ( !pwmDomain.getConfig().hasDbConfigured() )
             {
                 final String msg = "DB storage type selected, but remote DB is not configured.";
                 LOGGER.debug( () -> msg );

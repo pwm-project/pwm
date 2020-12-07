@@ -27,9 +27,9 @@
 package password.pwm.util.operations.otp;
 
 import com.novell.ldapchai.ChaiUser;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -49,10 +49,10 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
     private static final PwmLogger LOGGER = PwmLogger.forClass( LocalDbOtpOperator.class );
     private final LocalDB localDB;
 
-    public LocalDbOtpOperator( final PwmApplication pwmApplication )
+    public LocalDbOtpOperator( final PwmDomain pwmDomain )
     {
-        this.localDB = pwmApplication.getLocalDB();
-        setPwmApplication( pwmApplication );
+        this.localDB = pwmDomain.getLocalDB();
+        setPwmApplication( pwmDomain );
     }
 
     @Override
@@ -78,7 +78,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
         OTPUserRecord otpConfig = null;
         try
         {
-            final Configuration config = this.getPwmApplication().getConfig();
+            final DomainConfig config = this.getPwmApplication().getConfig();
             String value = localDB.get( LocalDB.DB.OTP_SECRET, userGUID );
             if ( value != null && value.length() > 0 )
             {
@@ -136,7 +136,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
 
         try
         {
-            final Configuration config = this.getPwmApplication().getConfig();
+            final DomainConfig config = this.getPwmApplication().getConfig();
             String value = composeOtpAttribute( otpConfig );
             if ( config.readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
             {

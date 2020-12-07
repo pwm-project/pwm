@@ -27,7 +27,7 @@
 package password.pwm.util.operations.otp;
 
 import com.novell.ldapchai.ChaiUser;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -49,9 +49,9 @@ public class DbOtpOperator extends AbstractOtpOperator
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( DbOtpOperator.class );
 
-    public DbOtpOperator( final PwmApplication pwmApplication )
+    public DbOtpOperator( final PwmDomain pwmDomain )
     {
-        super.setPwmApplication( pwmApplication );
+        super.setPwmApplication( pwmDomain );
     }
 
     @Override
@@ -67,7 +67,7 @@ public class DbOtpOperator extends AbstractOtpOperator
         OTPUserRecord otpConfig = null;
         try
         {
-            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+            final DatabaseAccessor databaseAccessor = pwmDomain.getDatabaseAccessor();
             String value = databaseAccessor.get( DatabaseTable.OTP, userGUID );
             if ( value != null && value.length() > 0 )
             {
@@ -119,7 +119,7 @@ public class DbOtpOperator extends AbstractOtpOperator
                 LOGGER.debug( pwmRequest, () -> "encrypting OTP secret for storage" );
                 value = encryptAttributeValue( value );
             }
-            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+            final DatabaseAccessor databaseAccessor = pwmDomain.getDatabaseAccessor();
             databaseAccessor.put( DatabaseTable.OTP, userGUID, value );
             LOGGER.debug( pwmRequest, () -> "saved OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
         }
@@ -154,7 +154,7 @@ public class DbOtpOperator extends AbstractOtpOperator
 
         try
         {
-            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+            final DatabaseAccessor databaseAccessor = pwmDomain.getDatabaseAccessor();
             databaseAccessor.remove( DatabaseTable.OTP, userGUID );
             LOGGER.info( () -> "cleared OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
         }

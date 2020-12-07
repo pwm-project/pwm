@@ -20,7 +20,7 @@
 
 package password.pwm.svc.event;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
@@ -45,13 +45,13 @@ class DatabaseUserHistory implements UserHistoryStore
 
     private static final DatabaseTable TABLE = DatabaseTable.USER_AUDIT;
 
-    final PwmApplication pwmApplication;
+    final PwmDomain pwmDomain;
     final DatabaseService databaseService;
 
-    DatabaseUserHistory( final PwmApplication pwmApplication )
+    DatabaseUserHistory( final PwmDomain pwmDomain )
     {
-        this.pwmApplication = pwmApplication;
-        this.databaseService = pwmApplication.getDatabaseService();
+        this.pwmDomain = pwmDomain;
+        this.databaseService = pwmDomain.getDatabaseService();
     }
 
     @Override
@@ -69,7 +69,7 @@ class DatabaseUserHistory implements UserHistoryStore
             userIdentity = UserIdentity.createUserIdentity( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile() );
         }
 
-        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, null, userIdentity, false );
+        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, null, userIdentity, false );
 
         try
         {

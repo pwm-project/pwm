@@ -24,8 +24,8 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.PwmDomain;
+import password.pwm.config.DomainConfig;
 import password.pwm.util.localdb.TestHelper;
 
 import java.io.InputStream;
@@ -35,7 +35,7 @@ public class StoredConfigurationTest
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    private static Configuration configuration;
+    private static DomainConfig domainConfig;
 
     @BeforeClass
     public static void setUp() throws Exception
@@ -43,7 +43,7 @@ public class StoredConfigurationTest
         try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ) )
         {
             final StoredConfiguration storedConfiguration = StoredConfigurationFactory.input( xmlFile );
-            configuration = new Configuration( storedConfiguration );
+            domainConfig = new DomainConfig( storedConfiguration );
         }
     }
 
@@ -51,7 +51,7 @@ public class StoredConfigurationTest
     public void configurationHashTest()
             throws Exception
     {
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), configuration );
-        final String configHash = configuration.configurationHash( pwmApplication.getSecureService() );
+        final PwmDomain pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), domainConfig );
+        final String configHash = domainConfig.configurationHash( pwmDomain.getSecureService() );
     }
 }

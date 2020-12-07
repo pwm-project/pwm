@@ -20,7 +20,7 @@
 
 package password.pwm.config.profile;
 
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.util.java.TimeDuration;
@@ -41,23 +41,23 @@ public class UpdateProfileProfile extends AbstractProfile implements Profile
         return PROFILE_TYPE;
     }
 
-    public TimeDuration getTokenDurationEmail( final Configuration configuration )
+    public TimeDuration getTokenDurationEmail( final DomainConfig domainConfig )
     {
         final long duration = readSettingAsLong( PwmSetting.UPDATE_PROFILE_TOKEN_LIFETIME_EMAIL );
         if ( duration < 1 )
         {
-            final long defaultDuration = configuration.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
+            final long defaultDuration = domainConfig.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
             return TimeDuration.of( defaultDuration, TimeDuration.Unit.SECONDS );
         }
         return TimeDuration.of( duration, TimeDuration.Unit.SECONDS );
     }
 
-    public TimeDuration getTokenDurationSMS( final Configuration configuration )
+    public TimeDuration getTokenDurationSMS( final DomainConfig domainConfig )
     {
         final long duration = readSettingAsLong( PwmSetting.UPDATE_PROFILE_TOKEN_LIFETIME_SMS );
         if ( duration < 1 )
         {
-            final long defaultDuration = configuration.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
+            final long defaultDuration = domainConfig.readSettingAsLong( PwmSetting.TOKEN_LIFETIME );
             return TimeDuration.of( defaultDuration, TimeDuration.Unit.SECONDS );
         }
         return TimeDuration.of( duration, TimeDuration.Unit.SECONDS );

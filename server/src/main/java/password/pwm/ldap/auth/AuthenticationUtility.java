@@ -23,7 +23,7 @@ package password.pwm.ldap.auth;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -31,14 +31,14 @@ import password.pwm.error.PwmUnrecoverableException;
 public abstract class AuthenticationUtility
 {
     public static void checkIfUserEligibleToAuthentication(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
         try
         {
-            checkIfUserEligibleToAuthenticationImpl( pwmApplication, userIdentity );
+            checkIfUserEligibleToAuthenticationImpl( pwmDomain, userIdentity );
         }
         catch ( final ChaiOperationException | ChaiUnavailableException e )
         {
@@ -47,12 +47,12 @@ public abstract class AuthenticationUtility
     }
 
     private static void checkIfUserEligibleToAuthenticationImpl(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, ChaiOperationException
     {
-        final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
+        final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( userIdentity );
 
         if ( !chaiUser.isAccountEnabled() )
         {

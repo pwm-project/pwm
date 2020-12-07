@@ -21,7 +21,7 @@
 package password.pwm.http;
 
 import com.novell.ldapchai.util.StringHelper;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.error.PwmUnrecoverableException;
@@ -64,12 +64,12 @@ public class HttpEventManager implements
         try
         {
             final ContextManager contextManager = ContextManager.getContextManager( httpSession );
-            final PwmApplication pwmApplication = contextManager.getPwmApplication();
-            httpSession.setAttribute( PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmApplication.getRuntimeNonce() );
+            final PwmDomain pwmDomain = contextManager.getPwmApplication();
+            httpSession.setAttribute( PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmDomain.getRuntimeNonce() );
 
-            if ( pwmApplication.getStatisticsManager() != null )
+            if ( pwmDomain.getStatisticsManager() != null )
             {
-                pwmApplication.getStatisticsManager().updateEps( EpsStatistic.SESSIONS, 1 );
+                pwmDomain.getStatisticsManager().updateEps( EpsStatistic.SESSIONS, 1 );
             }
 
             LOGGER.trace( () -> "new http session created" );
@@ -96,10 +96,10 @@ public class HttpEventManager implements
                     pwmSession.unauthenticateUser( null );
                 }
 
-                final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
-                if ( pwmApplication != null )
+                final PwmDomain pwmDomain = ContextManager.getPwmApplication( httpSession.getServletContext() );
+                if ( pwmDomain != null )
                 {
-                    pwmApplication.getSessionTrackService().removeSessionData( pwmSession );
+                    pwmDomain.getSessionTrackService().removeSessionData( pwmSession );
                 }
                 final String outputMsg = debugMsg;
                 LOGGER.trace( pwmSession.getLabel(), () -> outputMsg );
@@ -183,10 +183,10 @@ public class HttpEventManager implements
             final HttpSession httpSession = event.getSession();
             final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( httpSession );
             LOGGER.trace( pwmSession.getLabel(), () -> "activating (de-passivating) session" );
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
-            if ( pwmApplication != null )
+            final PwmDomain pwmDomain = ContextManager.getPwmApplication( httpSession.getServletContext() );
+            if ( pwmDomain != null )
             {
-                pwmApplication.getSessionTrackService().addSessionData( pwmSession );
+                pwmDomain.getSessionTrackService().addSessionData( pwmSession );
             }
         }
         catch ( final PwmUnrecoverableException e )

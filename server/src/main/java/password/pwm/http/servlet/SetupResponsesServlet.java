@@ -32,7 +32,7 @@ import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Value;
 import password.pwm.Permission;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.ResponseInfoBean;
@@ -135,7 +135,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
 
         if ( !pwmSession.isAuthenticated() )
         {
@@ -148,22 +148,22 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             throw new PwmUnrecoverableException( PwmError.ERROR_PASSWORD_REQUIRED );
         }
 
-        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.CHALLENGE_ENABLE ) )
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.CHALLENGE_ENABLE ) )
         {
             throw new PwmUnrecoverableException( PwmError.ERROR_SERVICE_NOT_AVAILABLE );
         }
 
         // check to see if the user is permitted to setup responses
-        if ( !pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.SETUP_RESPONSE ) )
+        if ( !pwmSession.getSessionManager().checkPermission( pwmDomain, Permission.SETUP_RESPONSE ) )
         {
             throw new PwmUnrecoverableException( PwmError.ERROR_UNAUTHORIZED );
         }
 
         // check if the locale has changed since first seen.
-        if ( pwmSession.getSessionStateBean().getLocale() != pwmApplication.getSessionStateService().getBean( pwmRequest, SetupResponsesBean.class ).getUserLocale() )
+        if ( pwmSession.getSessionStateBean().getLocale() != pwmDomain.getSessionStateService().getBean( pwmRequest, SetupResponsesBean.class ).getUserLocale() )
         {
             pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
-            pwmApplication.getSessionStateService().getBean( pwmRequest, SetupResponsesBean.class ).setUserLocale( pwmSession.getSessionStateBean().getLocale() );
+            pwmDomain.getSessionStateService().getBean( pwmRequest, SetupResponsesBean.class ).setUserLocale( pwmSession.getSessionStateBean().getLocale() );
         }
 
         // check to see if the user has any challenges assigned
@@ -193,8 +193,8 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     private ProcessStatus processChangeResponses( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         final SetupResponsesBean setupResponsesBean = getSetupResponseBean( pwmRequest );
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        pwmApplication.getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        pwmDomain.getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
         this.initializeBean( pwmRequest, setupResponsesBean );
         setupResponsesBean.setUserLocale( pwmRequest.getLocale() );
         return ProcessStatus.Continue;
@@ -207,13 +207,13 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException
     {
         LOGGER.trace( pwmRequest, () -> "request for response clear received" );
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         try
         {
             final String userGUID = pwmSession.getUserInfo().getUserGuid();
             final ChaiUser theUser = pwmSession.getSessionManager().getActor( );
-            pwmApplication.getCrService().clearResponses( pwmRequest.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID );
+            pwmDomain.getCrService().clearResponses( pwmRequest.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID );
             pwmSession.reloadUserInfoBean( pwmRequest );
             pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
 
@@ -223,7 +223,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
                     pwmSession.getUserInfo(),
                     pwmSession
             );
-            pwmApplication.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+            pwmDomain.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
 
             pwmRequest.sendRedirect( PwmServletDefinition.SetupResponses );
         }
@@ -264,27 +264,27 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         final SetupResponsesBean setupResponsesBean = getSetupResponseBean( pwmRequest );
         final Instant startTime = Instant.now();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final String responseModeParam = pwmRequest.readParameterAsString( "responseMode" );
         final SetupResponsesBean.SetupData setupData = "helpdesk".equalsIgnoreCase( responseModeParam )
                 ? setupResponsesBean.getHelpdeskResponseData()
                 : setupResponsesBean.getResponseData();
 
         boolean success = true;
-        String userMessage = Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_ResponsesMeetRules, pwmApplication.getConfig() );
+        String userMessage = Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_ResponsesMeetRules, pwmDomain.getConfig() );
 
         try
         {
             // read in the responses from the request
             final Map<Challenge, String> responseMap = readResponsesFromJsonRequest( pwmRequest, setupData );
             final int minRandomRequiredSetup = setupData.getMinRandomSetup();
-            pwmApplication.getCrService().validateResponses( setupData.getChallengeSet(), responseMap, minRandomRequiredSetup );
+            pwmDomain.getCrService().validateResponses( setupData.getChallengeSet(), responseMap, minRandomRequiredSetup );
             generateResponseInfoBean( pwmRequest, setupData.getChallengeSet(), responseMap, Collections.emptyMap() );
         }
         catch ( final PwmDataValidationException e )
         {
             success = false;
-            userMessage = e.getErrorInformation().toUserStr( pwmSession, pwmApplication );
+            userMessage = e.getErrorInformation().toUserStr( pwmSession, pwmDomain );
         }
 
         final ValidationResponseBean validationResponseBean = new ValidationResponseBean( userMessage, success );
@@ -431,14 +431,14 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     private void saveResponses( final PwmRequest pwmRequest, final ResponseInfoBean responseInfoBean )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException, ChaiValidationException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ChaiUser theUser = pwmSession.getSessionManager().getActor( );
         final String userGUID = pwmSession.getUserInfo().getUserGuid();
-        pwmApplication.getCrService().writeResponses( pwmRequest.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID, responseInfoBean );
+        pwmDomain.getCrService().writeResponses( pwmRequest.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID, responseInfoBean );
         pwmSession.reloadUserInfoBean( pwmRequest );
-        pwmApplication.getStatisticsManager().incrementValue( Statistic.SETUP_RESPONSES );
-        pwmApplication.getAuditManager().submit( AuditEvent.SET_RESPONSES, pwmSession.getUserInfo(), pwmSession );
+        pwmDomain.getStatisticsManager().incrementValue( Statistic.SETUP_RESPONSES );
+        pwmDomain.getAuditManager().submit( AuditEvent.SET_RESPONSES, pwmSession.getUserInfo(), pwmSession );
     }
 
     private static Map<Challenge, String> readResponsesFromHttpRequest(

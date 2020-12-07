@@ -20,7 +20,7 @@
 
 package password.pwm.svc.event;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -42,30 +42,30 @@ public class AuditRecordFactory
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( AuditRecordFactory.class );
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final MacroRequest macroRequest;
 
-    public AuditRecordFactory( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    public AuditRecordFactory( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmApplication;
-        this.macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, null );
+        this.pwmDomain = pwmDomain;
+        this.macroRequest = MacroRequest.forNonUserSpecific( pwmDomain, null );
     }
 
-    public AuditRecordFactory( final PwmApplication pwmApplication, final MacroRequest macroRequest )
+    public AuditRecordFactory( final PwmDomain pwmDomain, final MacroRequest macroRequest )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.macroRequest = macroRequest;
     }
 
-    public AuditRecordFactory( final PwmApplication pwmApplication, final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    public AuditRecordFactory( final PwmDomain pwmDomain, final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
     }
 
     public AuditRecordFactory( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmRequest.getPwmApplication();
+        this.pwmDomain = pwmRequest.getPwmApplication();
         this.macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
     }
 
@@ -147,7 +147,7 @@ public class AuditRecordFactory
             final String message
     )
     {
-        final SystemAuditRecord record = new SystemAuditRecord( eventCode, message, pwmApplication.getInstanceID() );
+        final SystemAuditRecord record = new SystemAuditRecord( eventCode, message, pwmDomain.getInstanceID() );
         record.narrative = this.makeNarrativeString( record );
         return record;
     }
@@ -202,7 +202,7 @@ public class AuditRecordFactory
     {
         final PwmDisplayBundle pwmDisplayBundle = auditRecord.getEventCode().getNarrative();
 
-        String outputString = LocaleHelper.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, pwmDisplayBundle, pwmApplication.getConfig() );
+        String outputString = LocaleHelper.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, pwmDisplayBundle, pwmDomain.getConfig() );
 
         if ( macroRequest != null )
         {
@@ -234,7 +234,7 @@ public class AuditRecordFactory
             try
             {
                 final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
-                        pwmApplication,
+                        pwmDomain,
                         SessionLabel.SYSTEM_LABEL,
                         userIdentity, PwmConstants.DEFAULT_LOCALE
                 );

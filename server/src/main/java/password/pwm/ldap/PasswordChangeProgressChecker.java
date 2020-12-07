@@ -24,7 +24,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -61,7 +61,7 @@ public class PasswordChangeProgressChecker
     public static final String PROGRESS_KEY_REPLICATION = "replication";
 
     private final ProgressRecord completedReplicationRecord;
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final ChangePasswordProfile changePasswordProfile;
     private final UserIdentity userIdentity;
     private final SessionLabel pwmSession;
@@ -70,24 +70,24 @@ public class PasswordChangeProgressChecker
     private final PasswordSyncCheckMode passwordSyncCheckMode;
 
     public PasswordChangeProgressChecker(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final ChangePasswordProfile changePasswordProfile,
             final UserIdentity userIdentity,
             final SessionLabel sessionLabel,
             final Locale locale
     )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.changePasswordProfile = changePasswordProfile;
         this.pwmSession = sessionLabel;
         this.userIdentity = userIdentity;
         this.locale = locale == null ? PwmConstants.DEFAULT_LOCALE : locale;
 
-        if ( pwmApplication == null )
+        if ( pwmDomain == null )
         {
             throw new IllegalArgumentException( "pwmApplication cannot be null" );
         }
-        passwordSyncCheckMode = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.PASSWORD_SYNC_ENABLE_REPLICA_CHECK, PasswordSyncCheckMode.class );
+        passwordSyncCheckMode = pwmDomain.getConfig().readSettingAsEnum( PwmSetting.PASSWORD_SYNC_ENABLE_REPLICA_CHECK, PasswordSyncCheckMode.class );
 
         completedReplicationRecord = makeReplicaProgressRecord( Percent.ONE_HUNDRED );
     }
@@ -280,8 +280,8 @@ public class PasswordChangeProgressChecker
 
     private ProgressRecord figureReplicationStatusCompletion( final ProgressTracker tracker )
     {
-        final long initDelayMs = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PASSWORD_REPLICA_CHECK_INIT_DELAY_MS ) );
-        final long cycleDelayMs = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PASSWORD_REPLICA_CHECK_CYCLE_DELAY_MS ) );
+        final long initDelayMs = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PASSWORD_REPLICA_CHECK_INIT_DELAY_MS ) );
+        final long cycleDelayMs = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PASSWORD_REPLICA_CHECK_CYCLE_DELAY_MS ) );
         final TimeDuration initialReplicaDelay = TimeDuration.of( initDelayMs, TimeDuration.Unit.MILLISECONDS );
         final TimeDuration cycleReplicaDelay = TimeDuration.of( cycleDelayMs, TimeDuration.Unit.MILLISECONDS );
 
@@ -319,7 +319,7 @@ public class PasswordChangeProgressChecker
 
         try
         {
-            final Map<String, Instant> checkResults = PasswordUtility.readIndividualReplicaLastPasswordTimes( pwmApplication,
+            final Map<String, Instant> checkResults = PasswordUtility.readIndividualReplicaLastPasswordTimes( pwmDomain,
                     pwmSession, userIdentity );
             if ( checkResults.size() <= 1 )
             {
@@ -359,7 +359,7 @@ public class PasswordChangeProgressChecker
         final String label = LocaleHelper.getLocalizedMessage(
                 locale,
                 "Display_PasswordReplicationStatus",
-                pwmApplication.getConfig(),
+                pwmDomain.getConfig(),
                 Display.class,
                 new String[]
                         {

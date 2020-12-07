@@ -21,7 +21,7 @@
 package password.pwm.svc.report;
 
 import password.pwm.AppAttribute;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -73,7 +73,7 @@ public class ReportService implements PwmService
 
     private final AverageTracker avgTracker = new AverageTracker( 100 );
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
     private STATUS status = STATUS.CLOSED;
     private volatile boolean cancelFlag = false;
     private ReportSummaryData summaryData = ReportSummaryData.newSummaryData( null );
@@ -107,19 +107,19 @@ public class ReportService implements PwmService
 
 
     @Override
-    public void init( final PwmApplication pwmApplication )
+    public void init( final PwmDomain pwmDomain )
             throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
 
-        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
+        if ( pwmDomain.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
             LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, () -> "application mode is read-only, will remain closed" );
             status = STATUS.CLOSED;
             return;
         }
 
-        if ( pwmApplication.getLocalDB() == null || LocalDB.Status.OPEN != pwmApplication.getLocalDB().status() )
+        if ( pwmDomain.getLocalDB() == null || LocalDB.Status.OPEN != pwmDomain.getLocalDB().status() )
         {
             LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, () -> "LocalDB is not open, will remain closed" );
             status = STATUS.CLOSED;
@@ -129,7 +129,7 @@ public class ReportService implements PwmService
         try
         {
             userCacheService = new UserCacheService();
-            userCacheService.init( pwmApplication );
+            userCacheService.init( pwmDomain );
         }
         catch ( final Exception e )
         {
@@ -138,12 +138,12 @@ public class ReportService implements PwmService
             return;
         }
 
-        settings = ReportSettings.readSettingsFromConfig( pwmApplication.getConfig() );
+        settings = ReportSettings.readSettingsFromConfig( pwmDomain.getConfig() );
         summaryData = ReportSummaryData.newSummaryData( settings.getTrackDays() );
 
-        dnQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.REPORT_QUEUE );
+        dnQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmDomain, pwmDomain.getLocalDB(), LocalDB.DB.REPORT_QUEUE );
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
 
         executorService.submit( new InitializationTask() );
 
@@ -171,7 +171,7 @@ public class ReportService implements PwmService
     {
         try
         {
-            pwmApplication.writeAppAttribute( AppAttribute.REPORT_STATUS, reportStatus.get() );
+            pwmDomain.writeAppAttribute( AppAttribute.REPORT_STATUS, reportStatus.get() );
         }
         catch ( final Exception e )
         {
@@ -354,7 +354,7 @@ public class ReportService implements PwmService
                         {
                             LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL,
                                     () -> "directory unavailable error during background SearchLDAP, will retry; error: " + e.getMessage() );
-                            pwmApplication.getPwmScheduler().scheduleJob( new ReadLDAPTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
+                            pwmDomain.getPwmScheduler().scheduleJob( new ReadLDAPTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                             errorProcessed = true;
                         }
                     }
@@ -381,7 +381,7 @@ public class ReportService implements PwmService
             clearWorkQueue();
 
             final List<UserIdentity> searchResults = new ArrayList<>( UserPermissionUtility.discoverMatchingUsers(
-                    pwmApplication,
+                    pwmDomain,
                     settings.getSearchFilter(), SessionLabel.REPORTING_SESSION_LABEL, settings.getMaxSearchSize(),
                     settings.getSearchTimeout()
             ) );
@@ -465,7 +465,7 @@ public class ReportService implements PwmService
                     if ( executorService != null )
                     {
                         LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, () -> "directory unavailable error during background ReadData, will retry; error: " + e.getMessage() );
-                        pwmApplication.getPwmScheduler().scheduleJob( new ProcessWorkQueueTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
+                        pwmDomain.getPwmScheduler().scheduleJob( new ProcessWorkQueueTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                     }
                 }
                 else
@@ -506,19 +506,19 @@ public class ReportService implements PwmService
             try
             {
                 LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "about to begin ldap processing with thread count of " + threadCount );
-                final String threadName = PwmScheduler.makeThreadName( pwmApplication, this.getClass() );
+                final String threadName = PwmScheduler.makeThreadName( pwmDomain, this.getClass() );
                 final BlockingThreadPool threadService = new BlockingThreadPool( threadCount, threadName );
                 while ( status == STATUS.OPEN && !dnQueue.isEmpty() && !cancelFlag )
                 {
                     final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( dnQueue.poll() );
-                    if ( pwmApplication.getConfig().isDevDebugMode() )
+                    if ( pwmDomain.getConfig().isDevDebugMode() )
                     {
                         LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "submit " + Instant.now().toString()
                                 + " size=" + threadService.getQueue().size() );
                     }
                     threadService.blockingSubmit( ( ) ->
                     {
-                        if ( pwmApplication.getConfig().isDevDebugMode() )
+                        if ( pwmDomain.getConfig().isDevDebugMode() )
                         {
                             LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "start " + Instant.now().toString()
                                     + " size=" + threadService.getQueue().size() );
@@ -575,14 +575,14 @@ public class ReportService implements PwmService
                                     .errors( reportStatusInfo.getErrors() + 1 )
                                     .build() );
                         }
-                        if ( pwmApplication.getConfig().isDevDebugMode() )
+                        if ( pwmDomain.getConfig().isDevDebugMode() )
                         {
                             LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "finish " + Instant.now().toString()
                                     + " size=" + threadService.getQueue().size() );
                         }
                     } );
                 }
-                if ( pwmApplication.getConfig().isDevDebugMode() )
+                if ( pwmDomain.getConfig().isDevDebugMode() )
                 {
                     LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "exit " + Instant.now().toString()
                             + " size=" + threadService.getQueue().size() );
@@ -622,7 +622,7 @@ public class ReportService implements PwmService
             final Instant startTime = Instant.now();
 
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxyForOfflineUser(
-                    pwmApplication,
+                    pwmDomain,
                     SessionLabel.REPORTING_SESSION_LABEL,
                     userIdentity
             );
@@ -668,11 +668,11 @@ public class ReportService implements PwmService
                 return;
             }
 
-            final boolean reportingEnabled = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB );
+            final boolean reportingEnabled = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB );
             if ( reportingEnabled )
             {
                 final TimeDuration jobOffset = TimeDuration.of( settings.getJobOffsetSeconds(), TimeDuration.Unit.SECONDS );
-                pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailyJobExecuteTask(), executorService, jobOffset );
+                pwmDomain.getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailyJobExecuteTask(), executorService, jobOffset );
             }
         }
 
@@ -681,7 +681,7 @@ public class ReportService implements PwmService
         {
             try
             {
-                pwmApplication.readAppAttribute( AppAttribute.REPORT_STATUS, ReportStatusInfo.class )
+                pwmDomain.readAppAttribute( AppAttribute.REPORT_STATUS, ReportStatusInfo.class )
                         .ifPresent( reportStatus::set );
             }
             catch ( final Exception e )

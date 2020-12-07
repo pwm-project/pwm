@@ -114,8 +114,8 @@ public class UserMacros
                 }
 
                 final int maxLengthPermitted = Integer.parseInt(
-                        macroRequest.getPwmApplication() != null
-                                ?  macroRequest.getPwmApplication().getConfig().readAppProperty( AppProperty.MACRO_LDAP_ATTR_CHAR_MAX_LENGTH )
+                        macroRequest.getPwmDomain() != null
+                                ?  macroRequest.getPwmDomain().getConfig().readAppProperty( AppProperty.MACRO_LDAP_ATTR_CHAR_MAX_LENGTH )
                                 :  AppProperty.MACRO_LDAP_ATTR_CHAR_MAX_LENGTH.getDefaultValue()
                 );
 

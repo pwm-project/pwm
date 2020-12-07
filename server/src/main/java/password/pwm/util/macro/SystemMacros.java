@@ -21,7 +21,7 @@
 package password.pwm.util.macro;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
@@ -84,15 +84,15 @@ public class SystemMacros
                 final MacroRequest request
         )
         {
-            final PwmApplication pwmApplication = request.getPwmApplication();
+            final PwmDomain pwmDomain = request.getPwmDomain();
 
-            if ( pwmApplication == null )
+            if ( pwmDomain == null )
             {
                 LOGGER.error( request.getSessionLabel(),  () -> "could not replace value for '" + matchValue + "', pwmApplication is null" );
                 return "";
             }
 
-            return pwmApplication.getInstanceID();
+            return pwmDomain.getInstanceID();
         }
     }
 
@@ -194,7 +194,7 @@ public class SystemMacros
                 final MacroRequest request
         )
         {
-            return request.getPwmApplication().getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
+            return request.getPwmDomain().getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
         }
     }
 
@@ -214,7 +214,7 @@ public class SystemMacros
                 final MacroRequest request
         )
         {
-            return request.getPwmApplication().getConfig().readSettingAsString( PwmSetting.EMAIL_DEFAULT_FROM_ADDRESS );
+            return request.getPwmDomain().getConfig().readSettingAsString( PwmSetting.EMAIL_DEFAULT_FROM_ADDRESS );
         }
     }
 
@@ -236,7 +236,7 @@ public class SystemMacros
         {
             try
             {
-                final String siteUrl = request.getPwmApplication().getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
+                final String siteUrl = request.getPwmDomain().getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
                 final URL url = new URL( siteUrl );
                 return url.getHost();
             }
@@ -274,7 +274,7 @@ public class SystemMacros
             int length = 1;
             if ( parameters.size() > 0 && !parameters.get( 0 ).isEmpty() )
             {
-                final int maxLengthPermitted = Integer.parseInt( request.getPwmApplication().getConfig().readAppProperty( AppProperty.MACRO_RANDOM_CHAR_MAX_LENGTH ) );
+                final int maxLengthPermitted = Integer.parseInt( request.getPwmDomain().getConfig().readAppProperty( AppProperty.MACRO_RANDOM_CHAR_MAX_LENGTH ) );
                 try
                 {
                     length = Integer.parseInt( parameters.get( 0 ) );
@@ -399,10 +399,10 @@ public class SystemMacros
                 throws MacroParseException
         {
             String contextName = "[context]";
-            final PwmApplication pwmApplication = request.getPwmApplication();
-            if ( pwmApplication != null )
+            final PwmDomain pwmDomain = request.getPwmDomain();
+            if ( pwmDomain != null )
             {
-                final PwmEnvironment pwmEnvironment = pwmApplication.getPwmEnvironment();
+                final PwmEnvironment pwmEnvironment = pwmDomain.getPwmEnvironment();
                 if ( pwmEnvironment != null )
                 {
                     final ContextManager contextManager = pwmEnvironment.getContextManager();

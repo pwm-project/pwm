@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -47,8 +47,8 @@ public class LocalDBStoredQueueTest
     public void setUp() throws Exception
     {
         final File localDbTestFolder = testFolder.newFolder( "test-stored-queue-test" );
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( localDbTestFolder );
-        final LocalDB localDB = LocalDBFactory.getInstance( localDbTestFolder, false, pwmApplication.getPwmEnvironment(), pwmApplication.getConfig() );
+        final PwmDomain pwmDomain = TestHelper.makeTestPwmApplication( localDbTestFolder );
+        final LocalDB localDB = LocalDBFactory.getInstance( localDbTestFolder, false, pwmDomain.getPwmEnvironment(), pwmDomain.getConfig() );
         localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( localDB, LocalDB.DB.TEMP, true );
     }
 

@@ -27,7 +27,7 @@ import org.jasig.cas.client.util.AbstractCasFilter;
 import org.jasig.cas.client.util.CommonUtils;
 import org.jasig.cas.client.util.XmlUtils;
 import org.jasig.cas.client.validation.Assertion;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
@@ -130,7 +130,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
             throws UnsupportedEncodingException, PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final HttpSession session = pwmRequest.getHttpServletRequest().getSession();
 
         //make sure user session isn't already authenticated
@@ -204,7 +204,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
 
         //user isn't already authenticated and has CAS assertion and password, so try to auth them.
         LOGGER.debug( pwmRequest, () -> "attempting to authenticate user '" + username + "' using CAS assertion and password" );
-        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmApplication, pwmRequest, PwmAuthenticationSource.CAS );
+        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmDomain, pwmRequest, PwmAuthenticationSource.CAS );
         sessionAuthenticator.searchAndAuthenticateUser( username, password, null, null );
         return true;
     }

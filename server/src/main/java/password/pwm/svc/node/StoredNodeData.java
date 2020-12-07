@@ -23,7 +23,7 @@ package password.pwm.svc.node;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.Serializable;
@@ -39,15 +39,15 @@ class StoredNodeData implements Serializable
     private String guid;
     private String configHash;
 
-    static StoredNodeData makeNew( final PwmApplication pwmApplication )
+    static StoredNodeData makeNew( final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
         return new StoredNodeData(
                 Instant.now(),
-                pwmApplication.getStartupTime(),
-                pwmApplication.getInstanceID(),
-                pwmApplication.getRuntimeNonce(),
-                pwmApplication.getConfig().configurationHash( pwmApplication.getSecureService() )
+                pwmDomain.getStartupTime(),
+                pwmDomain.getInstanceID(),
+                pwmDomain.getRuntimeNonce(),
+                pwmDomain.getConfig().configurationHash( pwmDomain.getSecureService() )
         );
     }
 }

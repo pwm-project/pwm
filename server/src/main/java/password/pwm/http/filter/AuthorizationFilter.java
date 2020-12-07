@@ -21,7 +21,7 @@
 package password.pwm.http.filter;
 
 import password.pwm.Permission;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.error.PwmError;
 import password.pwm.http.PwmRequest;
@@ -66,13 +66,13 @@ public class AuthorizationFilter extends AbstractPwmFilter
     {
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
 
         // if the user is not authenticated as a PWM Admin, redirect to error page.
         boolean hasPermission = false;
         try
         {
-            hasPermission = pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.PWMADMIN );
+            hasPermission = pwmSession.getSessionManager().checkPermission( pwmDomain, Permission.PWMADMIN );
         }
         catch ( final Exception e )
         {

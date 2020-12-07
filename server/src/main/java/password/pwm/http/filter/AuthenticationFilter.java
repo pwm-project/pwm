@@ -20,7 +20,7 @@
 
 package password.pwm.http.filter;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
@@ -81,10 +81,10 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         try
         {
-            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+            final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
             final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-            if ( pwmApplication.getApplicationMode() == PwmApplicationMode.NEW )
+            if ( pwmDomain.getApplicationMode() == PwmApplicationMode.NEW )
             {
                 if ( pwmRequest.getURL().isConfigGuideURL() )
                 {
@@ -93,7 +93,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                 }
             }
 
-            if ( pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
+            if ( pwmDomain.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
             {
                 if ( pwmRequest.getURL().isConfigManagerURL() )
                 {
@@ -131,13 +131,13 @@ public class AuthenticationFilter extends AbstractPwmFilter
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         // read the basic auth info out of the header (if it exists);
         if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_ENABLED ) )
         {
-            final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmApplication, pwmRequest );
+            final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmDomain, pwmRequest );
 
             final BasicAuthInfo originalBasicAuthInfo = pwmSession.getLoginInfoBean().getBasicAuth();
 
@@ -218,7 +218,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
@@ -251,7 +251,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
             return;
         }
 
-        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_FORCE ) )
+        if ( pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_FORCE ) )
         {
             final String displayMessage = LocaleHelper.getLocalizedMessage( Display.Title_Application, pwmRequest );
             pwmRequest.getPwmResponse().setHeader( HttpHeader.WWW_Authenticate, "Basic realm=\"" + displayMessage + "\"" );

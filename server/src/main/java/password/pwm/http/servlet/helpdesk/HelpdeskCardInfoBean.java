@@ -24,7 +24,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -114,7 +114,7 @@ public class HelpdeskCardInfoBean implements Serializable
     }
 
     private static List<String> figureDisplayNames(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final HelpdeskProfile helpdeskProfile,
             final SessionLabel sessionLabel,
             final UserInfo userInfo
@@ -125,7 +125,7 @@ public class HelpdeskCardInfoBean implements Serializable
         final List<String> displayStringSettings = helpdeskProfile.readSettingAsStringArray( PwmSetting.HELPDESK_DISPLAY_NAMES_CARD_LABELS );
         if ( displayStringSettings != null )
         {
-            final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, sessionLabel, userInfo, null );
+            final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, sessionLabel, userInfo, null );
             for ( final String displayStringSetting : displayStringSettings )
             {
                 final String displayLabel = macroRequest.expandMacros( displayStringSetting );

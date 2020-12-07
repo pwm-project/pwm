@@ -22,7 +22,7 @@ package password.pwm.util.cli.commands;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ResponseSet;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -47,12 +47,12 @@ public class ExportResponsesCommand extends AbstractCliCommand
     void doCommand( )
             throws Exception
     {
-        final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
+        final PwmDomain pwmDomain = cliEnvironment.getPwmDomain();
 
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
 
         final long startTime = System.currentTimeMillis();
-        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+        final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
         final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                 .enableValueEscaping( false )
                 .username( "*" )
@@ -70,8 +70,8 @@ public class ExportResponsesCommand extends AbstractCliCommand
         int counter = 0;
         for ( final UserIdentity identity : results.keySet() )
         {
-            final ChaiUser user = pwmApplication.getProxiedChaiUser( identity );
-            final ResponseSet responseSet = pwmApplication.getCrService().readUserResponseSet( null, identity, user );
+            final ChaiUser user = pwmDomain.getProxiedChaiUser( identity );
+            final ResponseSet responseSet = pwmDomain.getCrService().readUserResponseSet( null, identity, user );
             if ( responseSet != null )
             {
                 counter++;

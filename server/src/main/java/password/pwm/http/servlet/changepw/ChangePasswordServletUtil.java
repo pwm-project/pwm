@@ -23,11 +23,11 @@ package password.pwm.http.servlet.changepw;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.PasswordStatus;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.RequireCurrentPasswordMode;
 import password.pwm.config.profile.ChangePasswordProfile;
@@ -148,7 +148,7 @@ public class ChangePasswordServletUtil
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getConfig();
         final Locale locale = pwmRequest.getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_CHANGEPASSWORD, locale );
 
@@ -158,8 +158,8 @@ public class ChangePasswordServletUtil
             return;
         }
 
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        pwmApplication.getEmailQueue().submitEmail(
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        pwmDomain.getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmRequest.getPwmSession().getUserInfo(),
 
@@ -211,19 +211,19 @@ public class ChangePasswordServletUtil
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         // password accepted, setup change password
-        final ChangePasswordBean cpb = pwmApplication.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+        final ChangePasswordBean cpb = pwmDomain.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
 
         // change password
-        PasswordUtility.setActorPassword( pwmRequest, pwmApplication, newPassword );
+        PasswordUtility.setActorPassword( pwmRequest, pwmDomain, newPassword );
 
         //init values for progress screen
         {
             final PasswordChangeProgressChecker.ProgressTracker tracker = new PasswordChangeProgressChecker.ProgressTracker();
             final PasswordChangeProgressChecker checker = new PasswordChangeProgressChecker(
-                    pwmApplication,
+                    pwmDomain,
                     ChangePasswordServlet.getProfile( pwmRequest ),
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getLabel(),
@@ -237,7 +237,7 @@ public class ChangePasswordServletUtil
         ChangePasswordServletUtil.sendChangePasswordEmailNotice( pwmRequest );
 
         // send audit event
-        pwmApplication.getAuditManager().submit( AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfo(), pwmSession );
+        pwmDomain.getAuditManager().submit( AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfo(), pwmSession );
     }
 
     static boolean warnPageShouldBeShown(

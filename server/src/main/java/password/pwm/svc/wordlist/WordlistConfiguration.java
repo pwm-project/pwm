@@ -26,7 +26,7 @@ import lombok.Getter;
 import lombok.Value;
 import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
@@ -76,7 +76,7 @@ public class WordlistConfiguration implements Serializable
     private final TimeDuration inspectorFrequency;
 
     static WordlistConfiguration fromConfiguration(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final WordlistType type
     )
     {
@@ -84,8 +84,8 @@ public class WordlistConfiguration implements Serializable
         {
             case SEEDLIST:
             {
-                return commonBuilder( configuration ).toBuilder()
-                        .autoImportUrl( readAutoImportUrl( configuration, PwmSetting.SEEDLIST_FILENAME ) )
+                return commonBuilder( domainConfig ).toBuilder()
+                        .autoImportUrl( readAutoImportUrl( domainConfig, PwmSetting.SEEDLIST_FILENAME ) )
                         .metaDataAppAttribute( AppAttribute.SEEDLIST_METADATA )
                         .builtInWordlistLocationProperty( AppProperty.SEEDLIST_BUILTIN_PATH )
                         .db( LocalDB.DB.SEEDLIST_WORDS )
@@ -95,10 +95,10 @@ public class WordlistConfiguration implements Serializable
 
             case WORDLIST:
             {
-                return commonBuilder( configuration ).toBuilder()
-                        .caseSensitive( configuration.readSettingAsBoolean( PwmSetting.WORDLIST_CASE_SENSITIVE )  )
-                        .checkSize( (int) configuration.readSettingAsLong( PwmSetting.PASSWORD_WORDLIST_WORDSIZE ) )
-                        .autoImportUrl( readAutoImportUrl( configuration, PwmSetting.WORDLIST_FILENAME ) )
+                return commonBuilder( domainConfig ).toBuilder()
+                        .caseSensitive( domainConfig.readSettingAsBoolean( PwmSetting.WORDLIST_CASE_SENSITIVE )  )
+                        .checkSize( (int) domainConfig.readSettingAsLong( PwmSetting.PASSWORD_WORDLIST_WORDSIZE ) )
+                        .autoImportUrl( readAutoImportUrl( domainConfig, PwmSetting.WORDLIST_FILENAME ) )
                         .metaDataAppAttribute( AppAttribute.WORDLIST_METADATA )
                         .builtInWordlistLocationProperty( AppProperty.WORDLIST_BUILTIN_PATH )
                         .db( LocalDB.DB.WORDLIST_WORDS )
@@ -114,36 +114,36 @@ public class WordlistConfiguration implements Serializable
     }
 
     private static WordlistConfiguration commonBuilder(
-            final Configuration configuration
+            final DomainConfig domainConfig
     )
     {
         return WordlistConfiguration.builder()
-                .commentPrefixes( StringUtil.splitAndTrim( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_LINE_COMMENTS ), ";;;" ) )
-                .testMode( Boolean.parseBoolean( configuration.readAppProperty( AppProperty.WORDLIST_TEST_MODE ) ) )
-                .minWordSize( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MIN ) ) )
-                .maxWordSize( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MAX ) ) )
+                .commentPrefixes( StringUtil.splitAndTrim( domainConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_LINE_COMMENTS ), ";;;" ) )
+                .testMode( Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.WORDLIST_TEST_MODE ) ) )
+                .minWordSize( Integer.parseInt( domainConfig.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MIN ) ) )
+                .maxWordSize( Integer.parseInt( domainConfig.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MAX ) ) )
                 .autoImportRecheckDuration( TimeDuration.of(
-                        Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_AUTO_IMPORT_RECHECK_SECONDS ) ),
+                        Long.parseLong( domainConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_AUTO_IMPORT_RECHECK_SECONDS ) ),
                         TimeDuration.Unit.SECONDS ) )
                 .importDurationGoal( TimeDuration.of(
-                        Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_DURATION_GOAL_MS ) ),
+                        Long.parseLong( domainConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_DURATION_GOAL_MS ) ),
                         TimeDuration.Unit.MILLISECONDS ) )
-                .importMinTransactions( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_TRANSACTIONS ) ) )
-                .importMaxTransactions( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_TRANSACTIONS ) ) )
-                .importMaxChars( JavaHelper.silentParseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_CHARS_TRANSACTIONS ), 10_1024_1024 ) )
+                .importMinTransactions( Integer.parseInt( domainConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_TRANSACTIONS ) ) )
+                .importMaxTransactions( Integer.parseInt( domainConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_TRANSACTIONS ) ) )
+                .importMaxChars( JavaHelper.silentParseLong( domainConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_CHARS_TRANSACTIONS ), 10_1024_1024 ) )
                 .inspectorFrequency( TimeDuration.of(
-                        Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_INSPECTOR_FREQUENCY_SECONDS ) ),
+                        Long.parseLong( domainConfig.readAppProperty( AppProperty.WORDLIST_INSPECTOR_FREQUENCY_SECONDS ) ),
                         TimeDuration.Unit.SECONDS ) )
-                .importMinFreeSpace( JavaHelper.silentParseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_FREE_SPACE ), 100_000_000 ) )
+                .importMinFreeSpace( JavaHelper.silentParseLong( domainConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_FREE_SPACE ), 100_000_000 ) )
                 .build();
     }
 
     private static String readAutoImportUrl(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final PwmSetting wordlistFileSetting
     )
     {
-        final String inputUrl = configuration.readSettingAsString( wordlistFileSetting );
+        final String inputUrl = domainConfig.readSettingAsString( wordlistFileSetting );
 
         if ( StringUtil.isEmpty( inputUrl ) )
         {

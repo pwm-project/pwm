@@ -32,11 +32,11 @@ import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.impl.edir.NmasCrFactory;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.ConfigurationUtil;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -84,7 +84,7 @@ public class CrService implements PwmService
     private static final PwmLogger LOGGER = PwmLogger.forClass( CrService.class );
 
     private final Map<DataStorageMethod, CrOperator> operatorMap = new HashMap<>();
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
 
     public CrService( )
     {
@@ -97,13 +97,13 @@ public class CrService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        this.pwmApplication = pwmApplication;
-        operatorMap.put( DataStorageMethod.DB, new DbCrOperator( pwmApplication ) );
-        operatorMap.put( DataStorageMethod.LDAP, new LdapCrOperator( pwmApplication.getConfig() ) );
-        operatorMap.put( DataStorageMethod.LOCALDB, new LocalDbCrOperator( pwmApplication.getLocalDB() ) );
-        operatorMap.put( DataStorageMethod.NMAS, new NMASCrOperator( pwmApplication ) );
+        this.pwmDomain = pwmDomain;
+        operatorMap.put( DataStorageMethod.DB, new DbCrOperator( pwmDomain ) );
+        operatorMap.put( DataStorageMethod.LDAP, new LdapCrOperator( pwmDomain.getConfig() ) );
+        operatorMap.put( DataStorageMethod.LOCALDB, new LocalDbCrOperator( pwmDomain.getLocalDB() ) );
+        operatorMap.put( DataStorageMethod.NMAS, new NMASCrOperator( pwmDomain ) );
     }
 
     @Override
@@ -131,7 +131,7 @@ public class CrService implements PwmService
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
         final long methodStartTime = System.currentTimeMillis();
 
         ChallengeSet returnSet = null;
@@ -189,7 +189,7 @@ public class CrService implements PwmService
         }
 
         // use PWM policies if PWM is configured and either its all that is configured OR the NMAS policy read was not successful
-        final String challengeProfileID = determineChallengeProfileForUser( pwmApplication, sessionLabel, userIdentity, locale );
+        final String challengeProfileID = determineChallengeProfileForUser( pwmDomain, sessionLabel, userIdentity, locale );
         final ChallengeProfile challengeProfile = config.getChallengeProfile( challengeProfileID, locale );
 
         LOGGER.trace( sessionLabel, () -> "readUserChallengeProfile completed in " + TimeDuration.fromCurrent( methodStartTime ).asCompactString() + " returned profile: "
@@ -197,11 +197,11 @@ public class CrService implements PwmService
         return challengeProfile;
     }
 
-    private static ChallengeSet applyPwmPolicyToNmasChallenges( final ChallengeSet challengeSet, final Configuration configuration ) throws PwmUnrecoverableException
+    private static ChallengeSet applyPwmPolicyToNmasChallenges( final ChallengeSet challengeSet, final DomainConfig domainConfig ) throws PwmUnrecoverableException
     {
         final List<Challenge> newChallenges = new ArrayList<>();
-        final boolean applyWordlist = configuration.readSettingAsBoolean( PwmSetting.EDIRECTORY_CR_APPLY_WORDLIST );
-        final int questionsInAnswer = ( int ) configuration.readSettingAsLong( PwmSetting.EDIRECTORY_CR_MAX_QUESTION_CHARS_IN__ANSWER );
+        final boolean applyWordlist = domainConfig.readSettingAsBoolean( PwmSetting.EDIRECTORY_CR_APPLY_WORDLIST );
+        final int questionsInAnswer = ( int ) domainConfig.readSettingAsLong( PwmSetting.EDIRECTORY_CR_MAX_QUESTION_CHARS_IN__ANSWER );
         for ( final Challenge challenge : challengeSet.getChallenges() )
         {
             newChallenges.add( new ChaiChallenge(
@@ -234,14 +234,14 @@ public class CrService implements PwmService
 
 
     protected static String determineChallengeProfileForUser(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final Locale locale
     )
             throws PwmUnrecoverableException
     {
-        final List<String> profiles = pwmApplication.getConfig().getChallengeProfileIDs();
+        final List<String> profiles = pwmDomain.getConfig().getChallengeProfileIDs();
         if ( profiles.isEmpty() )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_NO_PROFILE_ASSIGNED, "no challenge profile is configured" ) );
@@ -249,14 +249,14 @@ public class CrService implements PwmService
 
         for ( final String profile : profiles )
         {
-            final ChallengeProfile loopPolicy = pwmApplication.getConfig().getChallengeProfile( profile, locale );
+            final ChallengeProfile loopPolicy = pwmDomain.getConfig().getChallengeProfile( profile, locale );
             final List<UserPermission> queryMatch = loopPolicy.getUserPermissions();
             if ( queryMatch != null && !queryMatch.isEmpty() )
             {
                 LOGGER.debug( sessionLabel, () -> "testing challenge profiles '" + profile + "'" );
                 try
                 {
-                    final boolean match = UserPermissionUtility.testUserPermission( pwmApplication, sessionLabel, userIdentity, queryMatch );
+                    final boolean match = UserPermissionUtility.testUserPermission( pwmDomain, sessionLabel, userIdentity, queryMatch );
                     if ( match )
                     {
                         return profile;
@@ -301,7 +301,7 @@ public class CrService implements PwmService
 
         {
             // check responses against wordlist
-            final WordlistService wordlistManager = pwmApplication.getWordlistService();
+            final WordlistService wordlistManager = pwmDomain.getWordlistService();
             if ( wordlistManager.status() == PwmService.STATUS.OPEN )
             {
                 for ( final Map.Entry<Challenge, String> entry : responseMap.entrySet() )
@@ -398,7 +398,7 @@ public class CrService implements PwmService
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
 
         LOGGER.trace( sessionLabel, () -> "beginning read of user response sequence" );
 
@@ -411,7 +411,7 @@ public class CrService implements PwmService
         final String userGUID;
         if ( readPreferences.contains( DataStorageMethod.DB ) || readPreferences.contains( DataStorageMethod.LOCALDB ) )
         {
-            userGUID = LdapOperationsHelper.readLdapGuidValue( pwmApplication, sessionLabel, userIdentity, false );
+            userGUID = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity, false );
         }
         else
         {
@@ -447,7 +447,7 @@ public class CrService implements PwmService
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
 
         LOGGER.trace( sessionLabel, () -> "beginning read of user response sequence" );
 
@@ -459,7 +459,7 @@ public class CrService implements PwmService
         final String userGUID;
         if ( readPreferences.contains( DataStorageMethod.DB ) || readPreferences.contains( DataStorageMethod.LOCALDB ) )
         {
-            userGUID = LdapOperationsHelper.readLdapGuidValue( pwmApplication, sessionLabel, userIdentity, false );
+            userGUID = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity, false );
         }
         else
         {
@@ -501,7 +501,7 @@ public class CrService implements PwmService
         int attempts = 0;
         int successes = 0;
         final Map<DataStorageMethod, String> errorMessages = new LinkedHashMap<>();
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
 
         final List<DataStorageMethod> writeMethods = ConfigurationUtil.getCrWritePreference( config );
 
@@ -553,7 +553,7 @@ public class CrService implements PwmService
     )
             throws PwmOperationalException, ChaiUnavailableException
     {
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
         int attempts = 0;
         int successes = 0;
 
@@ -595,7 +595,7 @@ public class CrService implements PwmService
     }
 
     public boolean checkIfResponseConfigNeeded(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel pwmSession,
             final UserIdentity userIdentity,
             final ChallengeSet challengeSet,
@@ -605,7 +605,7 @@ public class CrService implements PwmService
     {
         LOGGER.trace( pwmSession, () -> "beginning check to determine if responses need to be configured for user" );
 
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
 
         if ( !config.readSettingAsBoolean( PwmSetting.CHALLENGE_ENABLE ) )
         {
@@ -619,13 +619,13 @@ public class CrService implements PwmService
             return false;
         }
 
-        if ( !UserPermissionUtility.testUserPermission( pwmApplication, pwmSession, userIdentity, config.readSettingAsUserPermission( PwmSetting.QUERY_MATCH_SETUP_RESPONSE ) ) )
+        if ( !UserPermissionUtility.testUserPermission( pwmDomain, pwmSession, userIdentity, config.readSettingAsUserPermission( PwmSetting.QUERY_MATCH_SETUP_RESPONSE ) ) )
         {
             LOGGER.debug( pwmSession, () -> "checkIfResponseConfigNeeded: " + userIdentity + " does not have permission to setup responses" );
             return false;
         }
 
-        if ( !UserPermissionUtility.testUserPermission( pwmApplication, pwmSession, userIdentity, config.readSettingAsUserPermission( PwmSetting.QUERY_MATCH_CHECK_RESPONSES ) ) )
+        if ( !UserPermissionUtility.testUserPermission( pwmDomain, pwmSession, userIdentity, config.readSettingAsUserPermission( PwmSetting.QUERY_MATCH_CHECK_RESPONSES ) ) )
         {
             LOGGER.debug( pwmSession, () -> "checkIfResponseConfigNeeded: " + userIdentity + " is not eligible for checkIfResponseConfigNeeded due to query match" );
             return false;
@@ -641,7 +641,7 @@ public class CrService implements PwmService
         // ignore NMAS based CR set if so configured
         if ( responseInfoBean != null && ( responseInfoBean.getDataStorageMethod() == DataStorageMethod.NMAS ) )
         {
-            final boolean ignoreNmasCr = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK ) );
+            final boolean ignoreNmasCr = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK ) );
             if ( ignoreNmasCr )
             {
                 LOGGER.debug( pwmSession, () -> "checkIfResponseConfigNeeded: app property " + AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK.getKey()
@@ -675,8 +675,8 @@ public class CrService implements PwmService
     public ServiceInfoBean serviceInfo( )
     {
         final LinkedHashSet<DataStorageMethod> usedStorageMethods = new LinkedHashSet<>();
-        usedStorageMethods.addAll( ConfigurationUtil.getCrReadPreference( pwmApplication.getConfig() ) );
-        usedStorageMethods.addAll( ConfigurationUtil.getCrWritePreference( pwmApplication.getConfig() ) );
+        usedStorageMethods.addAll( ConfigurationUtil.getCrReadPreference( pwmDomain.getConfig() ) );
+        usedStorageMethods.addAll( ConfigurationUtil.getCrWritePreference( pwmDomain.getConfig() ) );
         return ServiceInfoBean.builder().storageMethods( usedStorageMethods ).build();
     }
 }

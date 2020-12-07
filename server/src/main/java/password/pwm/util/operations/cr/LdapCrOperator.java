@@ -31,7 +31,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
@@ -48,9 +48,9 @@ public class LdapCrOperator implements CrOperator
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapCrOperator.class );
 
-    private final Configuration config;
+    private final DomainConfig config;
 
-    public LdapCrOperator( final Configuration config )
+    public LdapCrOperator( final DomainConfig config )
     {
         this.config = config;
     }

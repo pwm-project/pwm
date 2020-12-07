@@ -20,7 +20,7 @@
 
 package password.pwm.svc.shorturl;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.util.Properties;
@@ -49,7 +49,7 @@ public class BasicUrlShortener implements AbstractUrlShortener
     }
 
     @Override
-    public String shorten( final String input, final PwmApplication context ) throws PwmUnrecoverableException
+    public String shorten( final String input, final PwmDomain context ) throws PwmUnrecoverableException
     {
         /*
          * This function does nothing.

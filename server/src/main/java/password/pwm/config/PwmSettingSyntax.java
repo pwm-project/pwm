@@ -77,7 +77,7 @@ public enum PwmSettingSyntax
     CUSTOMLINKS( CustomLinkValue.factory() ),
     REMOTE_WEB_SERVICE( RemoteWebServiceValue.factory() ),;
 
-    private StoredValue.StoredValueFactory storedValueImpl;
+    private final StoredValue.StoredValueFactory storedValueImpl;
 
     PwmSettingSyntax( final StoredValue.StoredValueFactory storedValueImpl )
     {

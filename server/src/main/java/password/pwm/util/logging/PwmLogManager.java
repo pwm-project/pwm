@@ -29,10 +29,10 @@ import org.apache.log4j.PatternLayout;
 import org.apache.log4j.RollingFileAppender;
 import org.apache.log4j.xml.DOMConfigurator;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.LocalDB;
@@ -49,7 +49,7 @@ public class PwmLogManager
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmLogManager.class );
 
     public static final List<Package> LOGGING_PACKAGES = Collections.unmodifiableList( Arrays.asList(
-            PwmApplication.class.getPackage(),
+            PwmDomain.class.getPackage(),
             ChaiUser.class.getPackage(),
             Package.getPackage( "org.jasig.cas.client" )
     ) );
@@ -74,15 +74,15 @@ public class PwmLogManager
     }
 
     public static void initializeLogger(
-            final PwmApplication pwmApplication,
-            final Configuration config,
+            final PwmDomain pwmDomain,
+            final DomainConfig config,
             final File log4jConfigFile,
             final String consoleLogLevel,
             final File pwmApplicationPath,
             final String fileLogLevel
     )
     {
-        PwmLogger.setPwmApplication( pwmApplication );
+        PwmLogger.setPwmApplication( pwmDomain );
 
         // try to configure using the log4j config file (if it exists)
         if ( log4jConfigFile != null )
@@ -117,7 +117,7 @@ public class PwmLogManager
     {
         try
         {
-            initConsoleLogger( new Configuration( StoredConfigurationFactory.newConfig() ), pwmLogLevel );
+            initConsoleLogger( new DomainConfig( StoredConfigurationFactory.newConfig() ), pwmLogLevel );
         }
         catch ( final Exception e )
         {
@@ -127,7 +127,7 @@ public class PwmLogManager
     }
 
     private static void initConsoleLogger(
-            final Configuration config,
+            final DomainConfig config,
             final String consoleLogLevel
     )
     {
@@ -156,7 +156,7 @@ public class PwmLogManager
     }
 
     private static void initFileLogger(
-            final Configuration config,
+            final DomainConfig config,
             final String fileLogLevel,
             final File pwmApplicationPath
     )
@@ -213,11 +213,11 @@ public class PwmLogManager
         }
     }
 
-    public static LocalDBLogger initializeLocalDBLogger( final PwmApplication pwmApplication )
+    public static LocalDBLogger initializeLocalDBLogger( final PwmDomain pwmDomain )
     {
-        final LocalDB localDB = pwmApplication.getLocalDB();
+        final LocalDB localDB = pwmDomain.getLocalDB();
 
-        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
+        if ( pwmDomain.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
             LOGGER.trace( () -> "skipping initialization of LocalDBLogger due to read-only mode" );
             return null;
@@ -225,10 +225,10 @@ public class PwmLogManager
 
         // initialize the localDBLogger
         final LocalDBLogger localDBLogger;
-        final PwmLogLevel localDBLogLevel = pwmApplication.getConfig().getEventLogLocalDBLevel();
+        final PwmLogLevel localDBLogLevel = pwmDomain.getConfig().getEventLogLocalDBLevel();
         try
         {
-            localDBLogger = initLocalDBLogger( localDB, pwmApplication );
+            localDBLogger = initLocalDBLogger( localDB, pwmDomain );
             if ( localDBLogger != null )
             {
                 PwmLogger.setLocalDBLogger( localDBLogLevel, localDBLogger );
@@ -247,7 +247,7 @@ public class PwmLogManager
             localDBLog4jAppender.setThreshold( localDBLogLevel.getLog4jLevel() );
             for ( final Package logPackage : LOGGING_PACKAGES )
             {
-                if ( logPackage != null && !logPackage.equals( PwmApplication.class.getPackage() ) )
+                if ( logPackage != null && !logPackage.equals( PwmDomain.class.getPackage() ) )
                 {
                     final Logger logger = Logger.getLogger( logPackage.getName() );
                     logger.addAppender( localDBLog4jAppender );
@@ -265,13 +265,13 @@ public class PwmLogManager
 
     static LocalDBLogger initLocalDBLogger(
             final LocalDB pwmDB,
-            final PwmApplication pwmApplication
+            final PwmDomain pwmDomain
     )
     {
         try
         {
-            final LocalDBLoggerSettings settings = LocalDBLoggerSettings.fromConfiguration( pwmApplication.getConfig() );
-            return new LocalDBLogger( pwmApplication, pwmDB, settings );
+            final LocalDBLoggerSettings settings = LocalDBLoggerSettings.fromConfiguration( pwmDomain.getConfig() );
+            return new LocalDBLogger( pwmDomain, pwmDB, settings );
         }
         catch ( final LocalDBException e )
         {

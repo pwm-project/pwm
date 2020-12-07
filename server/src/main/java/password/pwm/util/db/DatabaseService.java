@@ -21,9 +21,9 @@
 package password.pwm.util.db;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
@@ -73,7 +73,7 @@ public class DatabaseService implements PwmService
     private JDBCDriverLoader.DriverLoader jdbcDriverLoader;
 
     private ErrorInformation lastError;
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
 
     private STATUS status = STATUS.CLOSED;
 
@@ -102,17 +102,17 @@ public class DatabaseService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmDomain pwmDomain ) throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         init();
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
 
         final TimeDuration watchdogFrequency = TimeDuration.of(
-                Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) ),
+                Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) ),
                 TimeDuration.Unit.SECONDS );
-        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ConnectionMonitor(), executorService, watchdogFrequency, watchdogFrequency );
+        pwmDomain.getPwmScheduler().scheduleFixedRateJob( new ConnectionMonitor(), executorService, watchdogFrequency, watchdogFrequency );
     }
 
     private synchronized void init( )
@@ -126,7 +126,7 @@ public class DatabaseService implements PwmService
 
         try
         {
-            final Configuration config = pwmApplication.getConfig();
+            final DomainConfig config = pwmDomain.getConfig();
             this.dbConfiguration = DBConfiguration.fromConfiguration( config );
 
             if ( !dbConfiguration.isEnabled() )
@@ -257,7 +257,7 @@ public class DatabaseService implements PwmService
         if ( lastError != null )
         {
             final TimeDuration errorAge = TimeDuration.fromCurrent( lastError.getDate() );
-            final long cautionDurationMS = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_DB_CAUTION_DURATION_MS ) );
+            final long cautionDurationMS = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTH_DB_CAUTION_DURATION_MS ) );
 
             if ( errorAge.isShorterThan( cautionDurationMS ) )
             {
@@ -346,7 +346,7 @@ public class DatabaseService implements PwmService
     {
         final String connectionURL = dbConfiguration.getConnectionString();
 
-        final JDBCDriverLoader.DriverWrapper wrapper = JDBCDriverLoader.loadDriver( pwmApplication, dbConfiguration );
+        final JDBCDriverLoader.DriverWrapper wrapper = JDBCDriverLoader.loadDriver( pwmDomain, dbConfiguration );
         driver = wrapper.getDriver();
         jdbcDriverLoader = wrapper.getDriverLoader();
 
@@ -387,9 +387,9 @@ public class DatabaseService implements PwmService
 
     void updateStats( final OperationType operationType )
     {
-        if ( pwmApplication != null && pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING )
+        if ( pwmDomain != null && pwmDomain.getApplicationMode() == PwmApplicationMode.RUNNING )
         {
-            final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
+            final StatisticsManager statisticsManager = pwmDomain.getStatisticsManager();
             if ( statisticsManager != null && statisticsManager.status() == PwmService.STATUS.OPEN )
             {
                 if ( operationType == OperationType.READ )

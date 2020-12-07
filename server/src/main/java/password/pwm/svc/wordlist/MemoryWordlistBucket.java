@@ -20,7 +20,7 @@
 
 package password.pwm.svc.wordlist;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.util.Map;
@@ -31,9 +31,9 @@ public class MemoryWordlistBucket extends AbstractWordlistBucket
     private final Map<String, String> map = new ConcurrentHashMap<>(  );
     private WordlistStatus wordlistStatus;
 
-    public MemoryWordlistBucket( final PwmApplication pwmApplication, final WordlistConfiguration wordlistConfiguration, final WordlistType type )
+    public MemoryWordlistBucket( final PwmDomain pwmDomain, final WordlistConfiguration wordlistConfiguration, final WordlistType type )
     {
-        super( pwmApplication, wordlistConfiguration, type );
+        super( pwmDomain, wordlistConfiguration, type );
     }
 
     @Override

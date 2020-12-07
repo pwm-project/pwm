@@ -28,7 +28,6 @@ import password.pwm.util.java.StringUtil;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -58,6 +57,9 @@ public enum PwmSetting
     NOTES(
             "notes.noteText", PwmSettingSyntax.TEXT_AREA, PwmSettingCategory.NOTES ),
 
+    // domains
+    DOMAIN_LIST(
+            "domain.list", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.DOMAINS ),
 
     // application settings
     PWM_SITE_URL(
@@ -1283,16 +1285,16 @@ public enum PwmSetting
             "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE ),;
 
 
-    private static final Map<String, PwmSetting> KEY_MAP = Collections.unmodifiableMap( Arrays.stream( values() )
-            .collect( Collectors.toMap( PwmSetting::getKey, pwmSetting -> pwmSetting ) ) );
+    private static final Map<String, PwmSetting> KEY_MAP = Arrays.stream( values() )
+            .collect( Collectors.toUnmodifiableMap( PwmSetting::getKey, pwmSetting -> pwmSetting ) );
 
     private static final Comparator<PwmSetting> MENU_LOCATION_COMPARATOR = Comparator.comparing(
             pwmSetting -> pwmSetting.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ),
             Comparator.nullsLast( Comparator.naturalOrder() ) );
 
-    private static final List<PwmSetting> SORTED_VALUES = Collections.unmodifiableList( Arrays.stream( values() )
+    private static final List<PwmSetting> SORTED_VALUES = Arrays.stream( values() )
             .sorted( MENU_LOCATION_COMPARATOR )
-            .collect( Collectors.toList() ) );
+            .collect( Collectors.toUnmodifiableList() );
 
     private final String key;
     private final PwmSettingSyntax syntax;
@@ -1357,7 +1359,7 @@ public enum PwmSetting
                     ( templateSetReference.getReference() ).toDebugString( locale )
             );
         }
-        return Collections.unmodifiableMap( returnObj );
+        return Map.copyOf( returnObj );
     }
 
     public Map<PwmSettingProperty, String> getProperties( )
