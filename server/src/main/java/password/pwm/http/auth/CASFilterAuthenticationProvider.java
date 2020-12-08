@@ -130,7 +130,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
             throws UnsupportedEncodingException, PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final HttpSession session = pwmRequest.getHttpServletRequest().getSession();
 
         //make sure user session isn't already authenticated

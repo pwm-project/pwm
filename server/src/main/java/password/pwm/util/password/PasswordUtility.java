@@ -708,7 +708,7 @@ public class PasswordUtility
     )
             throws PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final UserIdentity userIdentity = pwmRequest.getUserInfoIfLoggedIn();
         final AbstractProfile activateUserProfile = ProfileUtility.profileForUser(
                 pwmRequest.getPwmRequestContext(),

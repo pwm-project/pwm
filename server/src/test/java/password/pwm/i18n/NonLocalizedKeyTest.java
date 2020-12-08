@@ -23,6 +23,7 @@ package password.pwm.i18n;
 import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.PwmConstants;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.java.StringUtil;
@@ -57,7 +58,7 @@ public class NonLocalizedKeyTest
 
         // check non-default locales do NOT have value
         {
-            final DomainConfig domainConfig = new DomainConfig( StoredConfigurationFactory.newConfig() );
+            final DomainConfig domainConfig = new AppConfig( StoredConfigurationFactory.newConfig() ).getDefaultDomainConfig();
             final List<Locale> locales = domainConfig.getKnownLocales();
             for ( final Locale locale : locales )
             {

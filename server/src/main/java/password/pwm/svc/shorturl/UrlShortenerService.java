@@ -29,6 +29,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.util.logging.PwmLogger;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -78,7 +79,7 @@ public class UrlShortenerService implements PwmService
             try
             {
                 final Class<?> theClass = Class.forName( classNameString );
-                theShortener = ( BasicUrlShortener ) theClass.newInstance();
+                theShortener = ( BasicUrlShortener ) theClass.getDeclaredConstructor().newInstance();
                 theShortener.setConfiguration( sConfig );
             }
             catch ( final java.lang.IllegalAccessException e )
@@ -92,6 +93,10 @@ public class UrlShortenerService implements PwmService
             catch ( final java.lang.ClassNotFoundException e )
             {
                 LOGGER.error( () -> "class " + classNameString + " not found: " + e.getMessage() );
+            }
+            catch ( final NoSuchMethodException | InvocationTargetException e )
+            {
+                e.printStackTrace();
             }
         }
         status = PwmService.STATUS.OPEN;

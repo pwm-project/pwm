@@ -89,7 +89,7 @@ public class AccountInformationBean implements Serializable
         ) );
         builder.formData( makeFormInfo( pwmRequest, accountInformationProfile, locale ) );
         builder.auditData( makeAuditInfo(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 accountInformationProfile,
                 pwmRequest.getLabel(),
                 userInfo,

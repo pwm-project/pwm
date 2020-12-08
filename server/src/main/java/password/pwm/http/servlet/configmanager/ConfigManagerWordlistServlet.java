@@ -138,7 +138,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
             throws IOException, ServletException, PwmUnrecoverableException
 
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final String wordlistTypeParam = pwmRequest.readParameterAsString( "wordlist" );
         final WordlistType wordlistType = WordlistType.valueOf( wordlistTypeParam );
@@ -193,7 +193,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
 
         try
         {
-            wordlistType.forType( pwmRequest.getPwmApplication() ).clear();
+            wordlistType.forType( pwmRequest.getPwmDomain() ).clear();
         }
         catch ( final Exception e )
         {
@@ -210,10 +210,10 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
 
         for ( final WordlistType wordlistType : WordlistType.values() )
         {
-            final Wordlist wordlist = wordlistType.forType( pwmRequest.getPwmApplication() );
+            final Wordlist wordlist = wordlistType.forType( pwmRequest.getPwmDomain() );
             final WordlistStatus wordlistStatus = wordlist.readWordlistStatus();
             final Wordlist.Activity activity = wordlist.getActivity();
-            final WordlistConfiguration wordlistConfiguration = wordlistType.forType( pwmRequest.getPwmApplication() ).getConfiguration();
+            final WordlistConfiguration wordlistConfiguration = wordlistType.forType( pwmRequest.getPwmDomain() ).getConfiguration();
 
             final WordlistDataBean.WordlistDataBeanBuilder builder = WordlistDataBean.builder();
             {

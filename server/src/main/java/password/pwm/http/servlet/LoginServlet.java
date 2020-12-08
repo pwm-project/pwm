@@ -191,10 +191,10 @@ public class LoginServlet extends ControlledPwmServlet
         final String encryptedNextUrl = pwmRequest.readParameterAsString( PwmConstants.PARAM_POST_LOGIN_URL );
         if ( !StringUtil.isEmpty( encryptedNextUrl ) )
         {
-            final String nextUrl = pwmRequest.getPwmApplication().getSecureService().decryptStringValue( encryptedNextUrl );
+            final String nextUrl = pwmRequest.getPwmDomain().getSecureService().decryptStringValue( encryptedNextUrl );
             if ( !StringUtil.isEmpty( nextUrl ) )
             {
-                final LoginServletBean loginServletBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, LoginServletBean.class );
+                final LoginServletBean loginServletBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, LoginServletBean.class );
                 LOGGER.trace( pwmRequest, () -> "received nextUrl and storing in module bean, value: " + nextUrl );
                 loginServletBean.setNextUrl( nextUrl );
             }
@@ -240,7 +240,7 @@ public class LoginServlet extends ControlledPwmServlet
         }
 
         final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 pwmRequest,
                 PwmAuthenticationSource.LOGIN_FORM
         );
@@ -274,7 +274,7 @@ public class LoginServlet extends ControlledPwmServlet
     private static String determinePostLoginUrl( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final LoginServletBean loginServletBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, LoginServletBean.class );
+        final LoginServletBean loginServletBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, LoginServletBean.class );
         final String decryptedValue = loginServletBean.getNextUrl();
 
         if ( !StringUtil.isEmpty( decryptedValue ) )
@@ -295,7 +295,7 @@ public class LoginServlet extends ControlledPwmServlet
         //store the original requested url
         final String originalRequestedUrl = pwmRequest.getURLwithQueryString();
 
-        final String encryptedRedirUrl = pwmRequest.getPwmApplication().getSecureService().encryptToString( originalRequestedUrl );
+        final String encryptedRedirUrl = pwmRequest.getPwmDomain().getSecureService().encryptToString( originalRequestedUrl );
 
         final Map<String, String> paramMap = new HashMap<>();
         paramMap.put( PwmConstants.PARAM_POST_LOGIN_URL, encryptedRedirUrl );

@@ -118,7 +118,7 @@ public class RestResultBean implements Serializable
             final boolean forceDetail
     )
     {
-        return fromError( errorInformation, pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getConfig(), forceDetail );
+        return fromError( errorInformation, pwmRequest.getPwmDomain(), pwmRequest.getLocale(), pwmRequest.getConfig(), forceDetail );
     }
 
     public static RestResultBean fromError(
@@ -126,7 +126,7 @@ public class RestResultBean implements Serializable
             final PwmRequest pwmRequest
     )
     {
-        return fromError( errorInformation, pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getConfig(), false );
+        return fromError( errorInformation, pwmRequest.getPwmDomain(), pwmRequest.getLocale(), pwmRequest.getConfig(), false );
     }
 
 

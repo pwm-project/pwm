@@ -21,7 +21,7 @@
 package password.pwm.http.filter;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.HttpHeader;
@@ -52,11 +52,11 @@ public class CookieManagementFilter implements Filter
     public void init( final FilterConfig filterConfig )
             throws ServletException
     {
-        final PwmDomain pwmDomain;
+        final PwmApplication pwmApplication;
         try
         {
-            pwmDomain = ContextManager.getPwmApplication( filterConfig.getServletContext() );
-            value = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_SAMESITE_VALUE );
+            pwmApplication = ContextManager.getPwmApplication( filterConfig.getServletContext() );
+            value = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_SAMESITE_VALUE );
         }
         catch ( final PwmUnrecoverableException e )
         {

@@ -30,6 +30,7 @@ import com.novell.ldapchai.provider.SearchScope;
 import com.novell.ldapchai.util.ChaiUtility;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.StoredConfiguration;
@@ -118,7 +119,7 @@ public class LdapBrowser
         }
         result.setDn( dn );
         result.setProfileID( profileID );
-        final DomainConfig domainConfig = new DomainConfig( storedConfiguration );
+        final DomainConfig domainConfig = new AppConfig( storedConfiguration ).getDefaultDomainConfig();
         if ( domainConfig.getLdapProfiles().size() > 1 )
         {
             result.getProfileList().addAll( domainConfig.getLdapProfiles().keySet() );
@@ -149,7 +150,7 @@ public class LdapBrowser
     {
         if ( !providerCache.containsKey( profile ) )
         {
-            final DomainConfig domainConfig = new DomainConfig( storedConfiguration );
+            final DomainConfig domainConfig = new AppConfig( storedConfiguration ).getDefaultDomainConfig();
             final LdapProfile ldapProfile = domainConfig.getLdapProfiles().get( profile );
             final ChaiProvider chaiProvider = LdapOperationsHelper.openProxyChaiProvider( chaiProviderFactory, null, ldapProfile, domainConfig, null );
             providerCache.put( profile, chaiProvider );
@@ -159,7 +160,7 @@ public class LdapBrowser
 
     private String figureLdapProfileID( final String profile )
     {
-        final DomainConfig domainConfig = new DomainConfig( storedConfiguration );
+        final DomainConfig domainConfig = new AppConfig( storedConfiguration ).getDefaultDomainConfig();
         if ( domainConfig.getLdapProfiles().containsKey( profile ) )
         {
             return profile;
@@ -169,7 +170,7 @@ public class LdapBrowser
 
     private int getMaxSizeLimit( )
     {
-        final DomainConfig domainConfig = new DomainConfig( storedConfiguration );
+        final DomainConfig domainConfig = new AppConfig( storedConfiguration ).getDefaultDomainConfig();
         return Integer.parseInt( domainConfig.readAppProperty( AppProperty.LDAP_BROWSER_MAX_ENTRIES ) );
     }
 

@@ -570,7 +570,7 @@ public class PasswordRequirementsTag extends TagSupport
         {
             final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+            final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
             final DomainConfig config = pwmDomain.getConfig();
             final Locale locale = pwmSession.getSessionStateBean().getLocale();
 

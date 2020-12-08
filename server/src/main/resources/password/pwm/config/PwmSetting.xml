@@ -4165,6 +4165,8 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="MODULES">
     </category>
+    <category hidden="false" scope="SYSTEM" key="HTTP_CLIENT">
+    </category>
     <category hidden="false" scope="SYSTEM" key="HTTPS_SERVER">
     </category>
     <category hidden="false" scope="DOMAIN" key="LDAP">

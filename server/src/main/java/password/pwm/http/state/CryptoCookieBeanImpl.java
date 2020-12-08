@@ -61,7 +61,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
         {
             final String rawValue = pwmRequest.readCookie( cookieName );
             final PwmSecurityKey key = keyForSession( pwmRequest );
-            final E cookieBean = pwmRequest.getPwmApplication().getSecureService().decryptObject( rawValue, key, theClass );
+            final E cookieBean = pwmRequest.getPwmDomain().getSecureService().decryptObject( rawValue, key, theClass );
             if ( validateCookie( pwmRequest, cookieName, cookieBean ) )
             {
                 sessionBeans.put( theClass, cookieBean );
@@ -148,7 +148,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
                         else
                         {
                             final PwmSecurityKey key = keyForSession( pwmRequest );
-                            final String encrytedValue = pwmRequest.getPwmApplication().getSecureService().encryptObjectToString( entry.getValue(), key );
+                            final String encrytedValue = pwmRequest.getPwmDomain().getSecureService().encryptObjectToString( entry.getValue(), key );
                             pwmRequest.getPwmResponse().writeCookie( cookieName, encrytedValue, -1, COOKIE_PATH );
                         }
                     }
@@ -183,7 +183,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
     private static String nameForClass( final PwmRequest pwmRequest, final Class<? extends PwmSessionBean> theClass )
             throws PwmUnrecoverableException
     {
-        final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
+        final SecureService secureService = pwmRequest.getPwmDomain().getSecureService();
         return "b-" + StringUtil.truncate( secureService.hash( theClass.getName() ), 8 );
     }
 
@@ -197,7 +197,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
             throws PwmUnrecoverableException
     {
         final PwmSecurityKey pwmSecurityKey = pwmRequest.getConfig().getSecurityKey();
-        final String keyHash = pwmSecurityKey.keyHash( pwmRequest.getPwmApplication().getSecureService() );
+        final String keyHash = pwmSecurityKey.keyHash( pwmRequest.getPwmDomain().getSecureService() );
         final String userGuid = pwmRequest.getPwmSession().getLoginInfoBean().getGuid();
         return new PwmSecurityKey( keyHash + userGuid );
     }

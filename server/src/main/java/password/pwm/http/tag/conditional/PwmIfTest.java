@@ -151,7 +151,7 @@ public enum PwmIfTest
                 final PwmIfOptions options
         )
         {
-            if ( pwmRequest.getPwmApplication() != null && pwmRequest.getConfig() != null )
+            if ( pwmRequest.getPwmDomain() != null && pwmRequest.getConfig() != null )
             {
                 final String strValue = pwmRequest.getConfig().readAppProperty( appProperty );
                 return Boolean.parseBoolean( strValue );
@@ -194,9 +194,9 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final PwmApplicationMode applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
+            final PwmApplicationMode applicationMode = pwmRequest.getPwmDomain().getApplicationMode();
             final boolean configMode = applicationMode == PwmApplicationMode.CONFIGURATION;
-            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN );
+            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
             if ( Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.CLIENT_WARNING_HEADER_SHOW ) ) )
             {
                 if ( configMode || PwmConstants.TRIAL_MODE )
@@ -246,7 +246,7 @@ public enum PwmIfTest
 
             return pwmRequest != null
                     && pwmRequest.getPwmSession().getSessionManager().checkPermission(
-                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getPwmDomain(),
                     permission );
         }
     }
@@ -311,7 +311,7 @@ public enum PwmIfTest
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmApplication().determineIfDetailErrorMsgShown();
+            return pwmRequest.getPwmDomain().determineIfDetailErrorMsgShown();
         }
     }
 
@@ -346,7 +346,7 @@ public enum PwmIfTest
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION;
+            return pwmRequest.getPwmDomain().getApplicationMode() == PwmApplicationMode.CONFIGURATION;
         }
     }
 
@@ -361,17 +361,17 @@ public enum PwmIfTest
                 return false;
             }
 
-            final PwmApplicationMode mode = pwmRequest.getPwmApplication().getApplicationMode();
+            final PwmApplicationMode mode = pwmRequest.getPwmDomain().getApplicationMode();
 
             if ( mode == PwmApplicationMode.CONFIGURATION )
             {
                 return true;
             }
 
-            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN );
+            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
             if ( adminUser )
             {
-                final HealthMonitor healthMonitor = pwmRequest.getPwmApplication().getHealthMonitor();
+                final HealthMonitor healthMonitor = pwmRequest.getPwmDomain().getHealthMonitor();
                 if ( healthMonitor != null && healthMonitor.status() == PwmService.STATUS.OPEN )
                 {
                     if ( healthMonitor.getMostSevereHealthStatus() == HealthStatus.WARN )
@@ -400,7 +400,7 @@ public enum PwmIfTest
                 return false;
             }
 
-            if ( pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING )
+            if ( pwmRequest.getPwmDomain().getApplicationMode() != PwmApplicationMode.RUNNING )
             {
                 return true;
             }
@@ -412,7 +412,7 @@ public enum PwmIfTest
 
             if ( pwmRequest.isAuthenticated() )
             {
-                if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
+                if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
                 {
                     return true;
                 }
@@ -466,7 +466,7 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmApplication().getPwmEnvironment().getFlags().contains( flag );
+            return pwmRequest.getPwmDomain().getPwmEnvironment().getFlags().contains( flag );
         }
     }
 

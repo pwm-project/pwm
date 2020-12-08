@@ -41,12 +41,12 @@ public class PwmFormIDTag extends TagSupport
 
     private static String buildPwmFormID( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        if ( pwmRequest == null || pwmRequest.getPwmApplication() == null )
+        if ( pwmRequest == null || pwmRequest.getPwmDomain() == null )
         {
             return "";
         }
 
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         if ( pwmDomain == null )
         {
             return "";
@@ -59,7 +59,7 @@ public class PwmFormIDTag extends TagSupport
                 pwmRequest.getPwmSession().getLoginInfoBean().getReqCounter(),
                 value
         );
-        return pwmRequest.getPwmApplication().getSecureService().encryptObjectToString( formID );
+        return pwmRequest.getPwmDomain().getSecureService().encryptObjectToString( formID );
     }
 
     @Override

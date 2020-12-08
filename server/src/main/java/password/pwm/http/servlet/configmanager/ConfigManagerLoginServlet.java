@@ -122,7 +122,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         }
 
 
-        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
+        final ConfigManagerBean configManagerBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
         if ( configManagerBean.isPasswordVerified() )
         {
             forwardToNextUrl( pwmRequest );
@@ -135,7 +135,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     protected void processLoginRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final ConfigurationReader runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
         final StoredConfiguration storedConfig = runningConfigReader.getStoredConfiguration();
 
@@ -197,7 +197,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
     private static ConfigLoginHistory readConfigLoginHistory( final PwmRequest pwmRequest )
     {
-       return pwmRequest.getPwmApplication().readAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class )
+       return pwmRequest.getPwmDomain().readAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class )
                .orElseGet( ConfigLoginHistory::new );
     }
 
@@ -209,9 +209,9 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
                 Instant.now(),
                 pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress()
         );
-        final int maxEvents = Integer.parseInt( pwmRequest.getPwmApplication().getConfig().readAppProperty( AppProperty.CONFIG_HISTORY_MAX_ITEMS ) );
+        final int maxEvents = Integer.parseInt( pwmRequest.getPwmDomain().getConfig().readAppProperty( AppProperty.CONFIG_HISTORY_MAX_ITEMS ) );
         configLoginHistory.addEvent( event, maxEvents, successful );
-        pwmRequest.getPwmApplication().writeAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, configLoginHistory );
+        pwmRequest.getPwmDomain().writeAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, configLoginHistory );
     }
 
     @Value
@@ -255,8 +255,8 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     private static ProcessStatus processLoginSuccess( final PwmRequest pwmRequest, final boolean persistentLoginEnabled )
             throws PwmUnrecoverableException, IOException
     {
-        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final ConfigManagerBean configManagerBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         configManagerBean.setPasswordVerified( true );
@@ -283,7 +283,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     private static void forwardToNextUrl( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
+        final ConfigManagerBean configManagerBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
 
         if ( configManagerBean.getPrePasswordEntryUrl() != null )
         {
@@ -307,7 +307,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             final StoredConfiguration storedConfig = pwmRequest.getConfig().getStoredConfiguration();
             final String persistentLoginValue = makePersistentLoginPassword( pwmRequest, storedConfig );
             final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo( Instant.now(), persistentLoginValue );
-            final String cookieValue = pwmRequest.getPwmApplication().getSecureService().encryptObjectToString( persistentLoginInfo );
+            final String cookieValue = pwmRequest.getPwmDomain().getSecureService().encryptObjectToString( persistentLoginInfo );
             pwmRequest.getPwmResponse().writeCookie(
                     COOKIE_NAME,
                     cookieValue,
@@ -336,7 +336,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             final String cookieValue = pwmRequest.readCookie( COOKIE_NAME );
             if ( !StringUtil.isEmpty( cookieValue ) )
             {
-                final PersistentLoginInfo persistentLoginInfo = pwmRequest.getPwmApplication().getSecureService().decryptObject( cookieValue, PersistentLoginInfo.class );
+                final PersistentLoginInfo persistentLoginInfo = pwmRequest.getPwmDomain().getSecureService().decryptObject( cookieValue, PersistentLoginInfo.class );
                 if ( persistentLoginInfo != null && persistentLoginInfo.getIssueTimestamp() != null )
                 {
                     final int maxLoginSeconds = figureMaxLoginSeconds( pwmRequest );
@@ -353,7 +353,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
                                     + ")"
                             );
 
-                            final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
+                            final ConfigManagerBean configManagerBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
                             configManagerBean.setPasswordVerified( true );
                         }
                         else
@@ -429,7 +429,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     )
             throws PwmUnrecoverableException
     {
-        if ( PwmApplicationMode.RUNNING != pwmRequest.getPwmApplication().getApplicationMode() )
+        if ( PwmApplicationMode.RUNNING != pwmRequest.getPwmDomain().getApplicationMode() )
         {
             LOGGER.debug( pwmRequest, () -> "app not in running mode, persistent login not possible." );
             return false;

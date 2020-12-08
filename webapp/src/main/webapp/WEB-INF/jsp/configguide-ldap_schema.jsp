@@ -46,7 +46,7 @@
     boolean existingSchemaGood = false;
     String schemaActivityLog = "";
     try {
-        final PwmDomain pwmDomain = JspUtility.getPwmRequest(pageContext).getPwmApplication();
+        final PwmDomain pwmDomain = JspUtility.getPwmRequest(pageContext).getPwmDomain();
         final SchemaOperationResult schemaManager = ConfigGuideUtils.extendSchema( pwmDomain, configGuideBean, false);
         existingSchemaGood = schemaManager.isSuccess();
         schemaActivityLog = schemaManager.getOperationLog();

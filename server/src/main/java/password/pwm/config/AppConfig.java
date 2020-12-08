@@ -21,21 +21,29 @@
 package password.pwm.config;
 
 import password.pwm.AppProperty;
+import password.pwm.PwmConstants;
+import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.SecureService;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -56,7 +64,7 @@ public class AppConfig
         this.settingReader = new SettingReader( storedConfiguration, null, null );
         domainConfigMap = getDomainIDs().stream().collect( Collectors.toUnmodifiableMap(
                 ( domainID ) -> domainID,
-                ( domainID ) -> new DomainConfig( storedConfiguration ) ) );
+                ( domainID ) -> new DomainConfig( this, domainID ) ) );
     }
 
     public List<String> getDomainIDs()
@@ -64,9 +72,14 @@ public class AppConfig
         return settingReader.readSettingAsStringArray( PwmSetting.DOMAIN_LIST );
     }
 
-    public Map<String, DomainConfig> domainConfigMap()
+    public Map<String, DomainConfig> getDomainConfigs()
     {
         return domainConfigMap;
+    }
+
+    public DomainConfig getDefaultDomainConfig()
+    {
+        return domainConfigMap.get( PwmConstants.DOMAIN_ID_PLACEHOLDER );
     }
 
     public String readSettingAsString( final PwmSetting pwmSetting )
@@ -129,6 +142,27 @@ public class AppConfig
         return settingReader.readSettingAsLong( pwmSetting );
     }
 
+    public Map<Locale, String> getKnownLocaleFlagMap( )
+    {
+        return configurationSuppliers.localeFlagMap.get();
+    }
+
+    public List<Locale> getKnownLocales( )
+    {
+        return List.copyOf( configurationSuppliers.localeFlagMap.get().keySet() );
+    }
+
+    public PrivateKeyCertificate readSettingAsPrivateKey( final PwmSetting setting )
+    {
+        return settingReader.readSettingAsPrivateKey( setting );
+    }
+
+    public String configurationHash( final SecureService secureService )
+            throws PwmUnrecoverableException
+    {
+        return storedConfiguration.valueHash();
+    }
+
     private class ConfigurationSuppliers
     {
         private final Supplier<Map<String, String>> appPropertyOverrides = new LazySupplier<>( () ->
@@ -175,5 +209,47 @@ public class AppConfig
             }
         } );
 
+        private final Supplier<Map<Locale, String>> localeFlagMap = new LazySupplier<>( () ->
+        {
+            final String defaultLocaleAsString = PwmConstants.DEFAULT_LOCALE.toString();
+
+            final List<String> inputList = readSettingAsStringArray( PwmSetting.KNOWN_LOCALES );
+            final Map<String, String> inputMap = StringUtil.convertStringListToNameValuePair( inputList, "::" );
+
+            // Sort the map by display name
+            final Map<String, String> sortedMap = new TreeMap<>();
+            for ( final String localeString : inputMap.keySet() )
+            {
+                final Locale theLocale = LocaleHelper.parseLocaleString( localeString );
+                if ( theLocale != null )
+                {
+                    sortedMap.put( theLocale.getDisplayName(), localeString );
+                }
+            }
+
+            final List<String> returnList = new ArrayList<>();
+
+            //ensure default is first.
+            returnList.add( defaultLocaleAsString );
+            for ( final String localeString : sortedMap.values() )
+            {
+                if ( !defaultLocaleAsString.equals( localeString ) )
+                {
+                    returnList.add( localeString );
+                }
+            }
+
+            final Map<Locale, String> localeFlagMap = new LinkedHashMap<>();
+            for ( final String localeString : returnList )
+            {
+                final Locale loopLocale = LocaleHelper.parseLocaleString( localeString );
+                if ( loopLocale != null )
+                {
+                    final String flagCode = inputMap.containsKey( localeString ) ? inputMap.get( localeString ) : loopLocale.getCountry();
+                    localeFlagMap.put( loopLocale, flagCode );
+                }
+            }
+            return Collections.unmodifiableMap( localeFlagMap );
+        } );
     }
 }

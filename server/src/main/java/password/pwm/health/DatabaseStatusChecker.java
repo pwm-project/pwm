@@ -20,6 +20,7 @@
 
 package password.pwm.health;
 
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.DomainConfig;
@@ -54,20 +55,20 @@ public class DatabaseStatusChecker implements HealthChecker
                             "Database not configured" ) );
         }
 
-        PwmDomain runtimeInstance = null;
+        PwmApplication runtimeInstance = null;
         try
         {
-            final PwmEnvironment runtimeEnvironment = pwmDomain.getPwmEnvironment().makeRuntimeInstance( config );
-            runtimeInstance = PwmDomain.createPwmApplication( runtimeEnvironment );
-            final DatabaseAccessor accessor = runtimeInstance.getDatabaseService().getAccessor();
+            final PwmEnvironment runtimeEnvironment = pwmDomain.getPwmEnvironment().makeRuntimeInstance( config.getAppConfig() );
+            runtimeInstance = PwmApplication.createPwmApplication( runtimeEnvironment );
+            final DatabaseAccessor accessor = runtimeInstance.getDefaultDomain().getDatabaseService().getAccessor();
             accessor.get( DatabaseTable.PWM_META, "test" );
-            return runtimeInstance.getDatabaseService().healthCheck();
+            return runtimeInstance.getDefaultDomain().getDatabaseService().healthCheck();
         }
         catch ( final PwmException e )
         {
             LOGGER.error( () -> "error during healthcheck: " + e.getMessage() );
             e.printStackTrace();
-            return runtimeInstance.getDatabaseService().healthCheck();
+            return runtimeInstance.getDefaultDomain().getDatabaseService().healthCheck();
         }
         finally
         {

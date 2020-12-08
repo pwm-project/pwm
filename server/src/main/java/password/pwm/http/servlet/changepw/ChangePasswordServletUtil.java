@@ -158,7 +158,7 @@ public class ChangePasswordServletUtil
             return;
         }
 
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         pwmDomain.getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmRequest.getPwmSession().getUserInfo(),
@@ -184,7 +184,7 @@ public class ChangePasswordServletUtil
             if ( pwmRequest.getPwmSession().getLoginInfoBean().getAuthFlags().contains( AuthenticationType.AUTH_FROM_PUBLIC_MODULE ) )
             {
                 allowChange = ForgottenPasswordUtil.permitPwChangeDuringMinLifetime(
-                        pwmRequest.getPwmApplication(),
+                        pwmRequest.getPwmDomain(),
                         pwmRequest.getLabel(),
                         userInfo.getUserIdentity()
                 );
@@ -211,7 +211,7 @@ public class ChangePasswordServletUtil
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         // password accepted, setup change password
         final ChangePasswordBean cpb = pwmDomain.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );

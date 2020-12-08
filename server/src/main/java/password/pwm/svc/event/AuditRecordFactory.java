@@ -65,7 +65,7 @@ public class AuditRecordFactory
 
     public AuditRecordFactory( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        this.pwmDomain = pwmRequest.getPwmApplication();
+        this.pwmDomain = pwmRequest.getPwmDomain();
         this.macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
     }
 

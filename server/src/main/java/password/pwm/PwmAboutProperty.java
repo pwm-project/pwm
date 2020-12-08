@@ -74,7 +74,7 @@ public enum PwmAboutProperty
     app_ldapProfileCount( null, pwmApplication -> Integer.toString( pwmApplication.getConfig().getLdapProfiles().size() ) ),
     app_ldapConnectionCount( null, pwmApplication -> Integer.toString( pwmApplication.getLdapConnectionService().connectionCount() ) ),
     app_activeSessionCount( "Active Session Count", pwmApplication -> Integer.toString( pwmApplication.getSessionTrackService().sessionCount() ) ),
-    app_activeRequestCount( "Active Request Count", pwmApplication -> Integer.toString( pwmApplication.getActiveServletRequests().get() ) ),
+    app_activeRequestCount( "Active Request Count", pwmApplication -> Integer.toString( pwmApplication.getPwmApplication().getActiveServletRequests().get() ) ),
 
     build_Time( "Build Time", pwmApplication -> PwmConstants.BUILD_TIME ),
     build_Number( "Build Number", pwmApplication -> PwmConstants.BUILD_NUMBER ),

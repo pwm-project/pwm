@@ -102,7 +102,7 @@ class NewUserFormUtils
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
+        final SecureService secureService = pwmRequest.getPwmDomain().getSecureService();
 
         final Map<String, String> payloadMap = tokenPayload.getData();
 
@@ -129,7 +129,7 @@ class NewUserFormUtils
         newUserTokenData.setCurrentTokenField( newUserBean.getCurrentTokenField() );
         newUserTokenData.setCompletedTokenFields( newUserBean.getCompletedTokenFields() );
 
-        final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
+        final SecureService secureService = pwmRequest.getPwmDomain().getSecureService();
         final String encodedTokenData = secureService.encryptObjectToString( newUserTokenData );
         final Map<String, String> payloadMap = new HashMap<>();
         payloadMap.put( NewUserServlet.TOKEN_PAYLOAD_ATTR, encodedTokenData );

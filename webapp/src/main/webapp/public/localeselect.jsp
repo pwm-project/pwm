@@ -39,7 +39,7 @@
     List<Locale> localeList = Collections.emptyList();
     PwmDomain localeselect_pwmDomain = null;
     try {
-        localeselect_pwmDomain = PwmRequest.forRequest(request, response).getPwmApplication();
+        localeselect_pwmDomain = PwmRequest.forRequest(request, response).getPwmDomain();
         localeList = localeselect_pwmDomain.getConfig().getKnownLocales();
     } catch (PwmException e) {
         /* noop */

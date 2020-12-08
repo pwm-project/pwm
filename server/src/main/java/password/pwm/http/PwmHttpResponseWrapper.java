@@ -218,7 +218,7 @@ public class PwmHttpResponseWrapper
         final PwmDomain pwmDomain;
         try
         {
-            pwmDomain = ContextManager.getPwmApplication( this.httpServletRequest );
+            pwmDomain = ContextManager.getPwmApplication( this.httpServletRequest ).getDefaultDomain();
             final String value = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_SAMESITE_VALUE );
             CookieManagementFilter.addSameSiteCookieAttribute( httpServletResponse, value );
         }

@@ -26,8 +26,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
-import password.pwm.config.DomainConfig;
+import password.pwm.PwmApplication;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.localdb.TestHelper;
@@ -113,9 +113,9 @@ public class WordlistServiceTest
     public void testCaseSensitiveWordlist()
             throws Exception
     {
-        final DomainConfig domainConfig = Mockito.spy( new DomainConfig( StoredConfigurationFactory.newConfig() ) );
-        Mockito.when( domainConfig.readSettingAsBoolean( PwmSetting.WORDLIST_CASE_SENSITIVE ) ).thenReturn( true );
-        final WordlistService wordlistService = makeWordlistService( domainConfig );
+        final AppConfig appConfig = Mockito.spy( new AppConfig( StoredConfigurationFactory.newConfig() ) );
+        Mockito.when( appConfig.readSettingAsBoolean( PwmSetting.WORDLIST_CASE_SENSITIVE ) ).thenReturn( true );
+        final WordlistService wordlistService = makeWordlistService( appConfig );
 
         Assert.assertTrue( wordlistService.containsWord( "password-test" ) );
         Assert.assertFalse( wordlistService.containsWord( "PASSWORD-TEST" ) );
@@ -129,9 +129,9 @@ public class WordlistServiceTest
     public void testChunkedWords()
             throws Exception
     {
-        final DomainConfig domainConfig = Mockito.spy( new DomainConfig( StoredConfigurationFactory.newConfig() ) );
-        Mockito.when( domainConfig.readSettingAsLong( PwmSetting.PASSWORD_WORDLIST_WORDSIZE ) ).thenReturn( 4L );
-        final WordlistService wordlistService = makeWordlistService( domainConfig );
+        final AppConfig appConfig = Mockito.spy( new AppConfig( StoredConfigurationFactory.newConfig() ) );
+        Mockito.when( appConfig.readSettingAsLong( PwmSetting.PASSWORD_WORDLIST_WORDSIZE ) ).thenReturn( 4L );
+        final WordlistService wordlistService = makeWordlistService( appConfig );
 
         Assert.assertTrue( wordlistService.containsWord( "abcdefghijklmnopqrstuvwxyz" ) );
         Assert.assertTrue( wordlistService.containsWord( "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ) );
@@ -144,20 +144,20 @@ public class WordlistServiceTest
         Assert.assertTrue( wordlistService.containsWord( "ABCde" ) );
     }
 
-    private WordlistService makeWordlistService( final DomainConfig inputDomainConfig )
+    private WordlistService makeWordlistService( final AppConfig inputDomainConfig )
             throws Exception
     {
 
-        final DomainConfig domainConfig = inputDomainConfig == null
-                ? Mockito.spy( new DomainConfig( StoredConfigurationFactory.newConfig() ) )
+        final AppConfig appConfig = inputDomainConfig == null
+                ? Mockito.spy( new AppConfig( StoredConfigurationFactory.newConfig() ) )
                 : inputDomainConfig;
-        Mockito.when( domainConfig.readAppProperty( AppProperty.WORDLIST_TEST_MODE ) ).thenReturn( "true" );
-        Mockito.when( domainConfig.readSettingAsString( PwmSetting.WORDLIST_FILENAME ) ).thenReturn( "" );
+        Mockito.when( appConfig.readAppProperty( AppProperty.WORDLIST_TEST_MODE ) ).thenReturn( "true" );
+        Mockito.when( appConfig.readSettingAsString( PwmSetting.WORDLIST_FILENAME ) ).thenReturn( "" );
 
         final URL url = this.getClass().getResource( "test-wordlist.zip" );
-        Mockito.when( domainConfig.readAppProperty( AppProperty.WORDLIST_BUILTIN_PATH ) ).thenReturn( url.toString() );
+        Mockito.when( appConfig.readAppProperty( AppProperty.WORDLIST_BUILTIN_PATH ) ).thenReturn( url.toString() );
 
-        final PwmDomain pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), domainConfig );
-        return pwmDomain.getWordlistService();
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), appConfig );
+        return pwmApplication.getDefaultDomain().getWordlistService();
     }
 }

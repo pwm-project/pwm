@@ -164,7 +164,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     {
         final ActivateUserBean activateUserBean = activateUserBean( pwmRequest );
         return UserInfoFactory.newUserInfoUsingProxy(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 pwmRequest.getLabel(),
                 activateUserBean.getUserIdentity(),
                 pwmRequest.getLocale() );
@@ -173,7 +173,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
 
     static ActivateUserBean activateUserBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ActivateUserBean.class );
+        return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ActivateUserBean.class );
     }
 
     static ActivateUserProfile activateUserProfile( final PwmRequest pwmRequest )
@@ -198,7 +198,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
         switch ( resetType )
         {
             case exitActivation:
-                pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, ActivateUserBean.class );
+                pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, ActivateUserBean.class );
                 ActivateUserUtils.forwardToSearchUserForm( pwmRequest );
                 return ProcessStatus.Halt;
 
@@ -218,7 +218,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     public ProcessStatus handleSearchRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final DomainConfig config = pwmDomain.getConfig();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -296,7 +296,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
         final MessageSendMethod tokenSendMethod = activateUserProfile.readSettingAsEnum( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class );
 
         final List<TokenDestinationItem> tokenDestinationItems = TokenUtil.figureAvailableTokenDestinations(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 pwmRequest.getLabel(),
                 pwmRequest.getLocale(),
                 userInfo,
@@ -322,7 +322,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final ActivateUserBean activateUserBean = pwmDomain.getSessionStateService().getBean( pwmRequest, ActivateUserBean.class );
         final String userEnteredCode = pwmRequest.readParameterAsString( PwmConstants.PARAM_TOKEN );
 
@@ -390,7 +390,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
                     pwmRequest.getLabel(),
                     "ActivateUser"
             );
-            pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+            pwmRequest.getPwmDomain().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         return ProcessStatus.Continue;
@@ -399,7 +399,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     @Override
     protected void nextStep( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ActivateUserBean activateUserBean = activateUserBean( pwmRequest );
 

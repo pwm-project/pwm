@@ -50,7 +50,7 @@
     PwmRequest analysis_pwmRequest = null;
     try {
         analysis_pwmRequest = PwmRequest.forRequest(request, response);
-        statsManager = analysis_pwmRequest.getPwmApplication().getStatisticsManager();
+        statsManager = analysis_pwmRequest.getPwmDomain().getStatisticsManager();
         statsPeriodSelect = analysis_pwmRequest.readParameterAsString("statsPeriodSelect");
         statsChartSelect = analysis_pwmRequest.readParameterAsString("statsChartSelect",Statistic.PASSWORD_CHANGES.toString());
         stats = statsManager.getStatBundleForKey(statsPeriodSelect);
@@ -188,10 +188,10 @@
                                             <select name="statsPeriodSelect"
                                                     style="width: 350px;">
                                                 <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                    since installation - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %></span>
+                                                    since installation - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmDomain().getInstallTime()) %></span>
                                                 </option>
                                                 <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                    since startup - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %></span>
+                                                    since startup - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmDomain().getStartupTime()) %></span>
                                                 </option>
                                                 <% final Map<DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
                                                 <% for (final Map.Entry<DailyKey, String> entry : availableKeys.entrySet()) { %>

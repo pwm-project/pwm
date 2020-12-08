@@ -81,7 +81,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         try
         {
-            final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+            final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
             final PwmSession pwmSession = pwmRequest.getPwmSession();
 
             if ( pwmDomain.getApplicationMode() == PwmApplicationMode.NEW )
@@ -131,7 +131,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         // read the basic auth info out of the header (if it exists);
@@ -218,12 +218,12 @@ public class AuthenticationFilter extends AbstractPwmFilter
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
         final boolean bypassSso = pwmRequest.getPwmSession().getLoginInfoBean().isLoginFlag( LoginInfoBean.LoginFlag.noSso );
-        if ( !bypassSso && pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.RUNNING )
+        if ( !bypassSso && pwmRequest.getPwmDomain().getApplicationMode() == PwmApplicationMode.RUNNING )
         {
             final ProcessStatus authenticationProcessStatus = HttpAuthenticationUtilities.attemptAuthenticationMethods( pwmRequest );
             if ( authenticationProcessStatus == ProcessStatus.Halt )
@@ -294,7 +294,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
             return ProcessStatus.Continue;
         }
 
-        if ( pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING )
+        if ( pwmRequest.getPwmDomain().getApplicationMode() != PwmApplicationMode.RUNNING )
         {
             return ProcessStatus.Continue;
         }
@@ -321,7 +321,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         // if change password in progress and req is for ChangePassword servlet, then allow request as is
         if ( pwmURL.isChangePasswordURL() )
         {
-            final ChangePasswordBean cpb = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+            final ChangePasswordBean cpb = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
             final PasswordChangeProgressChecker.ProgressTracker progressTracker = cpb.getChangeProgressTracker();
             if ( progressTracker != null && progressTracker.getBeginTime() != null )
             {

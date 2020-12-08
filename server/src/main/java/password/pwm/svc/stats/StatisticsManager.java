@@ -463,7 +463,7 @@ public class StatisticsManager implements PwmService
             final Statistic statistic
     )
     {
-        incrementStat( pwmRequest.getPwmApplication(), statistic );
+        incrementStat( pwmRequest.getPwmDomain(), statistic );
     }
 
     public static void incrementStat(

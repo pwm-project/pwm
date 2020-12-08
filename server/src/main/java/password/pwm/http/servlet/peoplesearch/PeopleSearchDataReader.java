@@ -118,7 +118,7 @@ class PeopleSearchDataReader
 
         {
             // try to serve from cache first
-            final SearchResultBean cachedResult = pwmRequest.getPwmApplication().getCacheService().get( cacheKey, SearchResultBean.class );
+            final SearchResultBean cachedResult = pwmRequest.getPwmDomain().getCacheService().get( cacheKey, SearchResultBean.class );
             if ( cachedResult != null )
             {
                 final SearchResultBean copyWithCacheSet = cachedResult.toBuilder().fromCache( true ).build();
@@ -159,7 +159,7 @@ class PeopleSearchDataReader
 
         {
             // if value is cached then return;
-            final OrgChartDataBean cachedOutput = pwmRequest.getPwmApplication().getCacheService().get( cacheKey, OrgChartDataBean.class );
+            final OrgChartDataBean cachedOutput = pwmRequest.getPwmDomain().getCacheService().get( cacheKey, OrgChartDataBean.class );
             if ( cachedOutput != null )
             {
                 StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
@@ -246,7 +246,7 @@ class PeopleSearchDataReader
 
         final CacheKey cacheKey = makeCacheKey( UserDetailBean.class.getSimpleName(), userIdentity.toDelimitedKey() );
         {
-            final UserDetailBean cachedOutput = pwmRequest.getPwmApplication().getCacheService().get( cacheKey, UserDetailBean.class );
+            final UserDetailBean cachedOutput = pwmRequest.getPwmDomain().getCacheService().get( cacheKey, UserDetailBean.class );
             if ( cachedOutput != null )
             {
                 StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
@@ -264,7 +264,7 @@ class PeopleSearchDataReader
         final Map<String, String> searchResults = detailResults.getResults().get( userIdentity );
 
         final UserDetailBean userDetailBean = new UserDetailBean();
-        userDetailBean.setUserKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
+        userDetailBean.setUserKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmDomain() ) );
         final List<FormConfiguration> detailFormConfig = this.peopleSearchConfiguration.getSearchDetailForm();
         final Map<String, AttributeDetailBean> attributeBeans = convertResultMapToBeans( userIdentity, detailFormConfig, searchResults );
 
@@ -376,7 +376,7 @@ class PeopleSearchDataReader
         {
             userIdentity = null;
         }
-        final String keyString = operationIdentifier + "|" + pwmRequest.getPwmApplication().getSecureService().hash( dataIdentifier );
+        final String keyString = operationIdentifier + "|" + pwmRequest.getPwmDomain().getSecureService().hash( dataIdentifier );
         return CacheKey.newKey(
                 this.getClass(),
                 userIdentity,
@@ -389,7 +389,7 @@ class PeopleSearchDataReader
             throws PwmUnrecoverableException
     {
         final OrgChartReferenceBean orgChartReferenceBean = new OrgChartReferenceBean();
-        orgChartReferenceBean.setUserKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
+        orgChartReferenceBean.setUserKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmDomain() ) );
         final PhotoDataReader photoDataReader = photoDataReader( userIdentity );
         orgChartReferenceBean.setPhotoURL( photoDataReader.figurePhotoURL( ) );
 
@@ -455,7 +455,7 @@ class PeopleSearchDataReader
     )
             throws PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final TimeDuration maxCacheTime = this.peopleSearchConfiguration.getMaxCacheTime();
         if ( !maxCacheTime.isZero() )
         {
@@ -472,7 +472,7 @@ class PeopleSearchDataReader
     )
             throws PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final CacheKey cacheKey = makeCacheKey( operationIdentifier.name(), dataIdentifier );
         final TimeDuration maxCacheTime = this.peopleSearchConfiguration.getMaxCacheTime();
         final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( maxCacheTime );
@@ -552,7 +552,7 @@ class PeopleSearchDataReader
                         {
                             final String displayValue = figureDisplaynameValue( pwmRequest, loopIdentity );
                             final UserReferenceBean userReference = new UserReferenceBean();
-                            userReference.setUserKey( loopIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
+                            userReference.setUserKey( loopIdentity.toObfuscatedKey( pwmRequest.getPwmDomain() ) );
                             userReference.setDisplayName( displayValue );
                             userReferences.put( displayValue, userReference );
                         }
@@ -591,15 +591,15 @@ class PeopleSearchDataReader
             throws PwmUnrecoverableException
     {
         final Locale locale = pwmRequest.getLocale();
-        final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity ).getChaiProvider();
+        final ChaiProvider chaiProvider = pwmRequest.getPwmDomain().getProxiedChaiUser( userIdentity ).getChaiProvider();
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 pwmRequest.getLabel(),
                 locale,
                 userIdentity,
                 chaiProvider
         );
-        return MacroRequest.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
+        return MacroRequest.forUser( pwmRequest.getPwmDomain(), pwmRequest.getLabel(), userInfo, null );
     }
 
     void checkIfUserIdentityViewable(
@@ -700,7 +700,7 @@ class PeopleSearchDataReader
     {
         final boolean useProxy = useProxy();
         return useProxy
-                ? pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity )
+                ? pwmRequest.getPwmDomain().getProxiedChaiUser( userIdentity )
                 : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
     }
 
@@ -816,7 +816,7 @@ class PeopleSearchDataReader
             searchConfiguration = builder.build();
         }
 
-        final UserSearchEngine userSearchEngine = pwmRequest.getPwmApplication().getUserSearchEngine();
+        final UserSearchEngine userSearchEngine = pwmRequest.getPwmDomain().getUserSearchEngine();
 
         final UserSearchResults results;
         final boolean sizeExceeded;
@@ -835,7 +835,7 @@ class PeopleSearchDataReader
             throw new PwmUnrecoverableException( errorInformation );
         }
 
-        final List<Map<String, Object>> resultOutput = new ArrayList<>( results.resultsAsJsonOutput( pwmRequest.getPwmApplication(), null ) );
+        final List<Map<String, Object>> resultOutput = new ArrayList<>( results.resultsAsJsonOutput( pwmRequest.getPwmDomain(), null ) );
         if ( searchRequest.isIncludeDisplayName() )
         {
             for ( final Map<String, Object> map : resultOutput )
@@ -843,7 +843,7 @@ class PeopleSearchDataReader
                 final String userKey = ( String ) map.get( "userKey" );
                 if ( userKey != null )
                 {
-                    final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
+                    final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmDomain() );
                     final String displayValue = figureDisplaynameValue( pwmRequest, userIdentity );
                     map.put( "_displayName", displayValue );
                 }
@@ -936,7 +936,7 @@ class PeopleSearchDataReader
         final Instant startTime = Instant.now();
         LOGGER.trace( pwmRequest, () -> "beginning csv export starting with user " + userIdentity.toDisplayString() + " and depth of " + depth );
 
-        final ThreadPoolExecutor executor = pwmRequest.getPwmApplication().getPeopleSearchService().getJobExecutor();
+        final ThreadPoolExecutor executor = pwmRequest.getPwmDomain().getPeopleSearchService().getJobExecutor();
 
         final AtomicInteger rowCounter = new AtomicInteger( 0 );
         final OrgChartExportState orgChartExportState = new OrgChartExportState(

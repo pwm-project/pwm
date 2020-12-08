@@ -50,7 +50,7 @@ public class LdapCertImportFunction implements SettingUIFunction
     )
             throws PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final StringArrayValue ldapUrlsValue = ( StringArrayValue ) modifier.newStoredConfiguration().readSetting( PwmSetting.LDAP_SERVER_URLS, profile );

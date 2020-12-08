@@ -210,9 +210,9 @@ public class HelpdeskServletUtil
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final UserIdentity actorUserIdentity = pwmRequest.getUserInfoIfLoggedIn().canonicalized( pwmRequest.getPwmApplication() );
+        final UserIdentity actorUserIdentity = pwmRequest.getUserInfoIfLoggedIn().canonicalized( pwmRequest.getPwmDomain() );
 
-        if ( actorUserIdentity.canonicalEquals( userIdentity, pwmRequest.getPwmApplication() ) )
+        if ( actorUserIdentity.canonicalEquals( userIdentity, pwmRequest.getPwmDomain() ) )
         {
             final String errorMsg = "cannot select self";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
@@ -241,7 +241,7 @@ public class HelpdeskServletUtil
                 pwmRequest.getLabel().getSourceAddress(),
                 pwmRequest.getLabel().getSourceHostname()
         );
-        pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+        pwmRequest.getPwmDomain().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
 
         StatisticsManager.incrementStat( pwmRequest, Statistic.HELPDESK_USER_LOOKUP );
         return helpdeskDetailInfoBean;
@@ -256,7 +256,7 @@ public class HelpdeskServletUtil
             throw new PwmUnrecoverableException( errorInformation );
         }
 
-        return UserIdentity.fromObfuscatedKey( userKey, pwmRequest.getPwmApplication() );
+        return UserIdentity.fromObfuscatedKey( userKey, pwmRequest.getPwmDomain() );
     }
 
 
@@ -292,7 +292,7 @@ public class HelpdeskServletUtil
     )
             throws PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final DomainConfig config = pwmRequest.getConfig();
         final Locale locale = pwmRequest.getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_HELPDESK_UNLOCK, locale );
@@ -304,7 +304,7 @@ public class HelpdeskServletUtil
         }
 
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 pwmRequest.getLabel(),
                 pwmRequest.getLocale(),
                 userIdentity,
@@ -329,7 +329,7 @@ public class HelpdeskServletUtil
     {
         final boolean useProxy = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY );
         return useProxy
-                ? pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity )
+                ? pwmRequest.getPwmDomain().getProxiedChaiUser( userIdentity )
                 : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
     }
 
@@ -341,7 +341,7 @@ public class HelpdeskServletUtil
             throws PwmUnrecoverableException
     {
         return UserInfoFactory.newUserInfo(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 pwmRequest.getLabel(),
                 pwmRequest.getLocale(),
                 targetUserIdentity,
@@ -357,7 +357,7 @@ public class HelpdeskServletUtil
             throws PwmUnrecoverableException
     {
         final MacroRequest macroRequest = MacroRequest.forUser(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 pwmRequest.getLabel(),
                 getTargetUserInfo( pwmRequest, helpdeskProfile, targetUserIdentity ),
                 pwmRequest.getPwmSession().getLoginInfoBean()

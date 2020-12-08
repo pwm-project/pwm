@@ -181,7 +181,7 @@ public class PwmHttpClient implements AutoCloseable
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error creating promiscuous https client: " + e.getMessage() ) );
         }
 
-        final String proxyUrl = domainConfig.readSettingAsString( PwmSetting.HTTP_PROXY_URL );
+        final String proxyUrl = domainConfig.getAppConfig().readSettingAsString( PwmSetting.HTTP_PROXY_URL );
         if ( proxyUrl != null && proxyUrl.length() > 0 )
         {
             final URI proxyURI = URI.create( proxyUrl );
@@ -208,9 +208,9 @@ public class PwmHttpClient implements AutoCloseable
         }
 
         clientBuilder.setDefaultRequestConfig( RequestConfig.copy( RequestConfig.DEFAULT )
-                .setSocketTimeout( Integer.parseInt( domainConfig.readAppProperty( AppProperty.HTTP_CLIENT_SOCKET_TIMEOUT_MS ) ) )
-                .setConnectTimeout( Integer.parseInt( domainConfig.readAppProperty( AppProperty.HTTP_CLIENT_CONNECT_TIMEOUT_MS ) ) )
-                .setConnectionRequestTimeout( Integer.parseInt( domainConfig.readAppProperty( AppProperty.HTTP_CLIENT_REQUEST_TIMEOUT_MS ) ) )
+                .setSocketTimeout( Integer.parseInt( domainConfig.getAppConfig().readAppProperty( AppProperty.HTTP_CLIENT_SOCKET_TIMEOUT_MS ) ) )
+                .setConnectTimeout( Integer.parseInt( domainConfig.getAppConfig().readAppProperty( AppProperty.HTTP_CLIENT_CONNECT_TIMEOUT_MS ) ) )
+                .setConnectionRequestTimeout( Integer.parseInt( domainConfig.getAppConfig().readAppProperty( AppProperty.HTTP_CLIENT_REQUEST_TIMEOUT_MS ) ) )
                 .build() );
 
         return clientBuilder.build();
@@ -507,7 +507,7 @@ public class PwmHttpClient implements AutoCloseable
         {
             final String targetUri = target.toURI();
 
-            final List<String> proxyExceptionUrls = domainConfig.readSettingAsStringArray( PwmSetting.HTTP_PROXY_EXCEPTIONS );
+            final List<String> proxyExceptionUrls = domainConfig.getAppConfig().readSettingAsStringArray( PwmSetting.HTTP_PROXY_EXCEPTIONS );
 
             if ( PwmURL.testIfUrlMatchesAllowedPattern( targetUri, proxyExceptionUrls, null ) )
             {

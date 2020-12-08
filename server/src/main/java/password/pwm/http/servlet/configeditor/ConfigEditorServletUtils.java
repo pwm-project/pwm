@@ -22,6 +22,7 @@ package password.pwm.http.servlet.configeditor;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
@@ -123,7 +124,7 @@ public class ConfigEditorServletUtils
             final Locale locale = pwmRequest.getLocale();
 
             final Set<StoredConfigItemKey> changeLog = StoredConfigurationUtil.changedValues(
-                    pwmRequest.getPwmApplication().getConfig().getStoredConfiguration(),
+                    pwmRequest.getPwmDomain().getConfig().getStoredConfiguration(),
                     configManagerBean.getStoredConfiguration() );
 
             final Map<String, String> changeLogMap = StoredConfigurationUtil.makeDebugMap(
@@ -162,7 +163,7 @@ public class ConfigEditorServletUtils
         {
             final Locale locale = pwmRequest.getLocale();
             final ConfigurationChecker configurationChecker = new ConfigurationChecker();
-            final DomainConfig config = new DomainConfig( configManagerBean.getStoredConfiguration() );
+            final DomainConfig config = new AppConfig( configManagerBean.getStoredConfiguration() ).getDefaultDomainConfig();
             final List<HealthRecord> healthRecords = configurationChecker.doHealthCheck(
                     config,
                     pwmRequest.getLocale()

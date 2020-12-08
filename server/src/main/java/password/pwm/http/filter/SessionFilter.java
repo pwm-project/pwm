@@ -137,7 +137,7 @@ public class SessionFilter extends AbstractPwmFilter
 
         final TimeDuration requestExecuteTime = TimeDuration.fromCurrent( startTime );
         pwmRequest.debugHttpRequestToLog( "completed requestID=" + requestID, () -> requestExecuteTime );
-        pwmRequest.getPwmApplication().getStatisticsManager().updateAverageValue( AvgStatistic.AVG_REQUEST_PROCESS_TIME, requestExecuteTime.asMillis() );
+        pwmRequest.getPwmDomain().getStatisticsManager().updateAverageValue( AvgStatistic.AVG_REQUEST_PROCESS_TIME, requestExecuteTime.asMillis() );
         pwmRequest.getPwmSession().getSessionStateBean().getRequestCount().incrementAndGet();
         pwmRequest.getPwmSession().getSessionStateBean().getAvgRequestDuration().update( requestExecuteTime.asMillis() );
     }
@@ -147,7 +147,7 @@ public class SessionFilter extends AbstractPwmFilter
     )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final DomainConfig config = pwmRequest.getConfig();
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -330,7 +330,7 @@ public class SessionFilter extends AbstractPwmFilter
         {
             if ( StringUtil.isEmpty( ssBean.getSessionVerificationKey() ) )
             {
-                ssBean.setSessionVerificationKey( pwmRequest.getPwmApplication().getSecureService().pwmRandom().randomUUID().toString() );
+                ssBean.setSessionVerificationKey( pwmRequest.getPwmDomain().getSecureService().pwmRandom().randomUUID().toString() );
             }
 
             final String returnURL = figureValidationURL( pwmRequest, ssBean.getSessionVerificationKey() );
@@ -478,7 +478,7 @@ public class SessionFilter extends AbstractPwmFilter
 
         if ( themeReqParameter != null && !themeReqParameter.isEmpty() )
         {
-            if ( pwmRequest.getPwmApplication().getResourceServletService().checkIfThemeExists( pwmRequest, themeReqParameter ) )
+            if ( pwmRequest.getPwmDomain().getResourceServletService().checkIfThemeExists( pwmRequest, themeReqParameter ) )
             {
                 pwmRequest.getPwmSession().getSessionStateBean().setTheme( themeReqParameter );
                 final String themeCookieName = config.readAppProperty( AppProperty.HTTP_COOKIE_THEME_NAME );

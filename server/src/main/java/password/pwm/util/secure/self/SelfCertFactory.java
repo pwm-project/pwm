@@ -21,7 +21,7 @@
 package password.pwm.util.secure.self;
 
 import password.pwm.AppAttribute;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
@@ -44,12 +44,12 @@ public class SelfCertFactory
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SelfCertFactory.class );
 
-    public static KeyStore getExistingCertOrGenerateNewCert( final PwmDomain pwmDomain, final PasswordData password, final String alias )
+    public static KeyStore getExistingCertOrGenerateNewCert( final PwmApplication pwmApplication, final PasswordData password, final String alias )
         throws Exception
     {
-        final Settings settings = Settings.fromConfiguration( pwmDomain.getConfig() );
+        final Settings settings = Settings.fromConfiguration( pwmApplication.getConfig() );
 
-        final Optional<StoredCertData> existingCert = loadExistingStoredCert( pwmDomain );
+        final Optional<StoredCertData> existingCert = loadExistingStoredCert( pwmApplication );
         if ( existingCert.isPresent() )
         {
             if ( evaluateExistingStoredCert( existingCert.get(), settings ) )
@@ -60,7 +60,7 @@ public class SelfCertFactory
 
         return generateNewCert(
             settings,
-            pwmDomain.getSecureService(),
+            pwmApplication.getDefaultDomain().getSecureService(),
             password,
             alias );
     }
@@ -80,9 +80,9 @@ public class SelfCertFactory
         return storedCertToKeyStore( storedCertData, alias, password );
     }
 
-    private static Optional<StoredCertData> loadExistingStoredCert( final PwmDomain pwmDomain )
+    private static Optional<StoredCertData> loadExistingStoredCert( final PwmApplication pwmApplication )
     {
-        return pwmDomain.readAppAttribute( AppAttribute.HTTPS_SELF_CERT, StoredCertData.class );
+        return pwmApplication.readAppAttribute( AppAttribute.HTTPS_SELF_CERT, StoredCertData.class );
     }
 
     private static boolean evaluateExistingStoredCert( final StoredCertData storedCertData, final Settings settings )

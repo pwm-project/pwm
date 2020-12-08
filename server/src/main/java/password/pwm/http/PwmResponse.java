@@ -128,7 +128,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
             throws ServletException, PwmUnrecoverableException, IOException
 
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         this.pwmRequest.setAttribute( PwmRequestAttribute.SuccessMessage, message );
 
         final boolean showMessage = !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_SUCCESS_PAGES )
@@ -200,10 +200,10 @@ public class PwmResponse extends PwmHttpResponseWrapper
         }
         else
         {
-            final boolean showDetail = pwmRequest.getPwmApplication().determineIfDetailErrorMsgShown();
+            final boolean showDetail = pwmRequest.getPwmDomain().determineIfDetailErrorMsgShown();
             final String errorStatusText = showDetail
                     ? errorInformation.toDebugStr()
-                    : errorInformation.toUserStr( pwmRequest.getPwmSession(), pwmRequest.getPwmApplication() );
+                    : errorInformation.toUserStr( pwmRequest.getPwmSession(), pwmRequest.getPwmDomain() );
             getHttpServletResponse().sendError( HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorStatusText );
         }
 
@@ -236,7 +236,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
     {
         final String jsonValue = JsonUtil.serialize( cookieValue );
         final PwmSecurityKey pwmSecurityKey = pwmRequest.getPwmSession().getSecurityKey( pwmRequest );
-        final String encryptedValue = pwmRequest.getPwmApplication().getSecureService().encryptToString( jsonValue, pwmSecurityKey );
+        final String encryptedValue = pwmRequest.getPwmDomain().getSecureService().encryptToString( jsonValue, pwmSecurityKey );
         writeCookie( cookieName, encryptedValue, seconds, path, PwmHttpResponseWrapper.Flag.BypassSanitation );
     }
 
@@ -273,8 +273,8 @@ public class PwmResponse extends PwmHttpResponseWrapper
             return;
         }
 
-        pwmRequest.getPwmApplication().getSessionStateService().saveLoginSessionState( pwmRequest );
-        pwmRequest.getPwmApplication().getSessionStateService().saveSessionBeans( pwmRequest );
+        pwmRequest.getPwmDomain().getSessionStateService().saveLoginSessionState( pwmRequest );
+        pwmRequest.getPwmDomain().getSessionStateService().saveSessionBeans( pwmRequest );
     }
 
     private final Set<PwmResponseFlag> pwmResponseFlags = EnumSet.noneOf( PwmResponseFlag.class );

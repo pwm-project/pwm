@@ -141,7 +141,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
         resp.setHeader( HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak" );
         resp.setContentType( HttpContentType.octetstream );
         resp.setHeader( HttpHeader.ContentTransferEncoding, "binary" );
-        final LocalDBUtility localDBUtility = new LocalDBUtility( pwmRequest.getPwmApplication().getLocalDB() );
+        final LocalDBUtility localDBUtility = new LocalDBUtility( pwmRequest.getPwmDomain().getLocalDB() );
         try
         {
             final int bufferSize = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_DOWNLOAD_BUFFER_SIZE ) );
@@ -159,7 +159,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
             throws IOException, ServletException, PwmUnrecoverableException
 
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
         if ( pwmDomain.getApplicationMode() == PwmApplicationMode.RUNNING )
@@ -194,7 +194,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
             contextManager.shutdown();
 
             localDB.close();
-            localDB = LocalDBFactory.getInstance( localDBLocation, false, null, domainConfig );
+            localDB = LocalDBFactory.getInstance( localDBLocation, false, null, domainConfig.getAppConfig() );
 
             final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
             LOGGER.info( pwmRequest, () -> "beginning LocalDB import" );

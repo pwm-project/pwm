@@ -25,7 +25,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Data;
 import lombok.Value;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
@@ -79,10 +79,10 @@ public abstract class RestServlet extends HttpServlet
 
         RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE ), true );
 
-        final PwmDomain pwmDomain;
+        final PwmApplication pwmApplication;
         try
         {
-            pwmDomain = ContextManager.getContextManager( req.getServletContext() ).getPwmApplication();
+            pwmApplication = ContextManager.getContextManager( req.getServletContext() ).getPwmApplication();
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -92,7 +92,7 @@ public abstract class RestServlet extends HttpServlet
 
         final Locale locale;
         {
-            final List<Locale> knownLocales = pwmDomain.getConfig().getKnownLocales();
+            final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
             locale = LocaleHelper.localeResolver( req.getLocale(), knownLocales );
             resp.setHeader( HttpHeader.ContentLanguage.getHttpName(), LocaleHelper.getBrowserLocaleString( locale ) );
         }
@@ -102,18 +102,18 @@ public abstract class RestServlet extends HttpServlet
         {
             sessionLabel =  SessionLabel.builder()
                     .sessionID( "rest-" + REQUEST_COUNTER.next() )
-                    .sourceAddress( RequestInitializationFilter.readUserNetworkAddress( req, pwmDomain.getConfig() ) )
-                    .sourceHostname( RequestInitializationFilter.readUserHostname( req, pwmDomain.getConfig() ) )
+                    .sourceAddress( RequestInitializationFilter.readUserNetworkAddress( req, pwmApplication.getDefaultDomain().getConfig() ) )
+                    .sourceHostname( RequestInitializationFilter.readUserHostname( req, pwmApplication.getDefaultDomain().getConfig() ) )
                     .build();
         }
         catch ( final PwmUnrecoverableException e )
         {
             restResultBean = RestResultBean.fromError(
                     e.getErrorInformation(),
-                    pwmDomain,
+                    pwmApplication.getDefaultDomain(),
                     locale,
-                    pwmDomain.getConfig(),
-                    pwmDomain.determineIfDetailErrorMsgShown()
+                    pwmApplication.getDefaultDomain().getConfig(),
+                    pwmApplication.getDefaultDomain().determineIfDetailErrorMsgShown()
             );
             outputRestResultBean( restResultBean, req, resp );
             return;
@@ -123,7 +123,7 @@ public abstract class RestServlet extends HttpServlet
         {
             if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
             {
-                final PwmHttpRequestWrapper httpRequestWrapper = new PwmHttpRequestWrapper( req, pwmDomain.getConfig() );
+                final PwmHttpRequestWrapper httpRequestWrapper = new PwmHttpRequestWrapper( req, pwmApplication.getDefaultDomain().getConfig() );
                 final String debutTxt = httpRequestWrapper.debugHttpRequestToString( null, true );
                 LOGGER.trace( sessionLabel, () -> "incoming HTTP REST request: " + debutTxt );
             }
@@ -133,28 +133,33 @@ public abstract class RestServlet extends HttpServlet
             LOGGER.error( () -> "error while trying to log HTTP request data " + e.getMessage(), e );
         }
 
-        if ( pwmDomain.getApplicationMode() != PwmApplicationMode.RUNNING )
+        if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING )
         {
             outputRestResultBean( restResultBean, req, resp );
             return;
         }
 
-        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.ENABLE_EXTERNAL_WEBSERVICES ) )
+        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.ENABLE_EXTERNAL_WEBSERVICES ) )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "webservices are not enabled" );
-            restResultBean = RestResultBean.fromError( errorInformation, pwmDomain, locale, pwmDomain.getConfig(), pwmDomain.determineIfDetailErrorMsgShown() );
+            restResultBean = RestResultBean.fromError(
+                    errorInformation,
+                    pwmApplication.getDefaultDomain(),
+                    locale,
+                    pwmApplication.getDefaultDomain().getConfig(),
+                    pwmApplication.getDefaultDomain().determineIfDetailErrorMsgShown() );
             outputRestResultBean( restResultBean, req, resp );
             return;
         }
 
         try
         {
-            final RestAuthentication restAuthentication = new RestAuthenticationProcessor( pwmDomain, sessionLabel, req ).readRestAuthentication();
+            final RestAuthentication restAuthentication = new RestAuthenticationProcessor( pwmApplication.getDefaultDomain(), sessionLabel, req ).readRestAuthentication();
             LOGGER.debug( sessionLabel, () -> "rest request authentication status: " + JsonUtil.serialize( restAuthentication ) );
 
-            final RestRequest restRequest = RestRequest.forRequest( pwmDomain, restAuthentication, sessionLabel, req );
+            final RestRequest restRequest = RestRequest.forRequest( pwmApplication.getDefaultDomain(), restAuthentication, sessionLabel, req );
 
-            RequestInitializationFilter.addStaticResponseHeaders( pwmDomain, resp );
+            RequestInitializationFilter.addStaticResponseHeaders( pwmApplication.getDefaultDomain(), resp );
 
             preCheck( restRequest );
 
@@ -166,17 +171,22 @@ public abstract class RestServlet extends HttpServlet
         {
             restResultBean = RestResultBean.fromError(
                     e.getErrorInformation(),
-                    pwmDomain,
+                    pwmApplication.getDefaultDomain(),
                     locale,
-                    pwmDomain.getConfig(),
-                    pwmDomain.determineIfDetailErrorMsgShown()
+                    pwmApplication.getDefaultDomain().getConfig(),
+                    pwmApplication.getDefaultDomain().determineIfDetailErrorMsgShown()
             );
         }
         catch ( final Throwable e )
         {
             final String errorMsg = "internal error during rest service invocation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-            restResultBean = RestResultBean.fromError( errorInformation, pwmDomain, locale, pwmDomain.getConfig(), pwmDomain.determineIfDetailErrorMsgShown() );
+            restResultBean = RestResultBean.fromError(
+                    errorInformation,
+                    pwmApplication.getDefaultDomain(),
+                    locale,
+                    pwmApplication.getDefaultDomain().getConfig(),
+                    pwmApplication.getDefaultDomain().determineIfDetailErrorMsgShown() );
             LOGGER.error( sessionLabel, errorInformation, e );
         }
 

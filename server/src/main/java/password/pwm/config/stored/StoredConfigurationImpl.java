@@ -69,11 +69,11 @@ public class StoredConfigurationImpl implements StoredConfiguration
     {
         this.createTime = storedConfigData.getCreateTime();
         this.modifyTime = storedConfigData.getModifyTime();
-        this.metaValues = Collections.unmodifiableMap( storedConfigData.getMetaDatas() );
+        this.metaValues = Map.copyOf( storedConfigData.getMetaDatas() );
         this.templateSet = readTemplateSet( storedConfigData.getStoredValues() );
 
         final Map<StoredConfigItemKey, StoredValue> tempMap = removeDefaultSettingValues( storedConfigData.getStoredValues(), templateSet );
-        this.storedValues = Collections.unmodifiableMap( tempMap );
+        this.storedValues = Map.copyOf( tempMap );
     }
 
     StoredConfigurationImpl()

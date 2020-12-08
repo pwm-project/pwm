@@ -73,7 +73,7 @@ public class HelpdeskVerificationOptionsBean implements Serializable
     {
         final ChaiUser theUser = HelpdeskServletUtil.getChaiUser( pwmRequest, helpdeskProfile, targetUser );
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 pwmRequest.getLabel(),
                 pwmRequest.getLocale(),
                 targetUser,
@@ -109,7 +109,7 @@ public class HelpdeskVerificationOptionsBean implements Serializable
                 try
                 {
                     returnList.addAll( TokenUtil.figureAvailableTokenDestinations(
-                            pwmRequest.getPwmApplication(),
+                            pwmRequest.getPwmDomain(),
                             pwmRequest.getLabel(),
                             pwmRequest.getLocale(),
                             userInfo,

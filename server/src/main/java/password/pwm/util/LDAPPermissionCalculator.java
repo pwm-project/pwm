@@ -22,6 +22,7 @@ package password.pwm.util;
 
 import com.novell.ldapchai.ChaiConstant;
 import lombok.Value;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.LDAPPermissionInfo;
 import password.pwm.config.PwmSetting;
@@ -69,7 +70,7 @@ public class LDAPPermissionCalculator implements Serializable
     public LDAPPermissionCalculator( final StoredConfiguration storedConfiguration ) throws PwmUnrecoverableException
     {
         this.storedConfiguration = storedConfiguration;
-        this.domainConfig = new DomainConfig( storedConfiguration );
+        this.domainConfig = new AppConfig( storedConfiguration ).getDefaultDomainConfig();
         permissionRecords = figureRecords( storedConfiguration );
     }
 

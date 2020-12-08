@@ -26,6 +26,7 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
@@ -81,7 +82,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     private final PwmURL pwmURL;
     private final PwmRequestID pwmRequestID;
 
-    private final transient PwmDomain pwmDomain;
+    private final transient PwmApplication pwmApplication;
     private final transient PwmSession pwmSession;
     private final transient Supplier<SessionLabel> sessionLabelLazySupplier = new LazySupplier<>( this::makeSessionLabel );
 
@@ -99,8 +100,8 @@ public class PwmRequest extends PwmHttpRequestWrapper
         if ( pwmRequest == null )
         {
             final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( request );
-            final PwmDomain pwmDomain = ContextManager.getPwmApplication( request );
-            pwmRequest = new PwmRequest( request, response, pwmDomain, pwmSession );
+            final PwmApplication pwmDomain = ContextManager.getPwmApplication( request );
+            pwmRequest = new PwmRequest( request, response, pwmDomain.getDomains().get( PwmConstants.DOMAIN_ID_PLACEHOLDER ), pwmSession );
             request.setAttribute( PwmRequestAttribute.PwmRequest.toString(), pwmRequest );
         }
         return pwmRequest;
@@ -118,13 +119,13 @@ public class PwmRequest extends PwmHttpRequestWrapper
         this.pwmRequestID = PwmRequestID.next();
         this.pwmResponse = new PwmResponse( httpServletResponse, this, pwmDomain.getConfig() );
         this.pwmSession = pwmSession;
-        this.pwmDomain = pwmDomain;
+        this.pwmApplication = pwmDomain.getPwmApplication();
         this.pwmURL = new PwmURL( this.getHttpServletRequest() );
     }
 
-    public PwmDomain getPwmApplication( )
+    public PwmDomain getPwmDomain( )
     {
-        return pwmDomain;
+        return pwmApplication.getDomains().get( getDomainID() );
     }
 
     public PwmSession getPwmSession( )
@@ -495,7 +496,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     )
     {
         final LocalSessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
-        return ssBean.getLogoutURL() == null ? pwmDomain.getConfig().readSettingAsString( PwmSetting.URL_LOGOUT ) : ssBean.getLogoutURL();
+        return ssBean.getLogoutURL() == null ? pwmApplication.getConfig().readSettingAsString( PwmSetting.URL_LOGOUT ) : ssBean.getLogoutURL();
     }
 
     public String getCspNonce( )
@@ -506,7 +507,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
             if ( getAttribute( PwmRequestAttribute.CspNonce ) == null )
             {
                 final int nonceLength = Integer.parseInt( getConfig().readAppProperty( AppProperty.HTTP_HEADER_CSP_NONCE_BYTES ) );
-                final byte[] cspNonce = pwmDomain.getSecureService().pwmRandom().newBytes( nonceLength );
+                final byte[] cspNonce = getPwmDomain().getSecureService().pwmRandom().newBytes( nonceLength );
                 final String cspString = StringUtil.base64Encode( cspNonce );
                 setAttribute( PwmRequestAttribute.CspNonce, cspString );
             }
@@ -526,7 +527,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         if ( strValue != null && !strValue.isEmpty() )
         {
             final PwmSecurityKey pwmSecurityKey = pwmSession.getSecurityKey( this );
-            return pwmDomain.getSecureService().decryptObject( strValue, pwmSecurityKey, returnClass );
+            return getPwmDomain().getSecureService().decryptObject( strValue, pwmSecurityKey, returnClass );
         }
 
         return null;
@@ -582,7 +583,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public boolean endUserFunctionalityAvailable( )
     {
-        final PwmApplicationMode mode = pwmDomain.getApplicationMode();
+        final PwmApplicationMode mode = pwmApplication.getApplicationMode();
         if ( mode == PwmApplicationMode.NEW )
         {
             return false;
@@ -600,7 +601,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public PwmRequestContext getPwmRequestContext()
     {
-        return new PwmRequestContext( pwmDomain, this.getLabel(), this.getLocale(), pwmRequestID );
+        return new PwmRequestContext( getPwmDomain(), this.getLabel(), this.getLocale(), pwmRequestID );
     }
 
     public String getPwmRequestID()
@@ -616,5 +617,10 @@ public class PwmRequest extends PwmHttpRequestWrapper
     public String getDomainID()
     {
         return PwmConstants.DOMAIN_ID_DEFAULT;
+    }
+
+    public PwmApplication getPwmApplication()
+    {
+        return pwmApplication;
     }
 }

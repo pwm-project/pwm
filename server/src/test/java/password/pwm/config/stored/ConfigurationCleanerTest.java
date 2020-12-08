@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import password.pwm.PwmConstants;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ADPolicyComplexity;
@@ -52,7 +53,7 @@ public class ConfigurationCleanerTest
         try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ) )
         {
             final StoredConfiguration storedConfiguration = StoredConfigurationFactory.input( xmlFile );
-            domainConfig = new DomainConfig( storedConfiguration );
+            domainConfig = new AppConfig( storedConfiguration ).getDefaultDomainConfig();
         }
     }
 

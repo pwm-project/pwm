@@ -65,7 +65,7 @@ public class MacroRequest
     )
             throws PwmUnrecoverableException
     {
-        return forUser( pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getLabel(), userIdentity );
+        return forUser( pwmRequest.getPwmDomain(), pwmRequest.getLocale(), pwmRequest.getLabel(), userIdentity );
     }
 
     public static MacroRequest forUser(
@@ -75,7 +75,7 @@ public class MacroRequest
     )
             throws PwmUnrecoverableException
     {
-        return forUser( pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getLabel(), userIdentity, macroReplacer );
+        return forUser( pwmRequest.getPwmDomain(), pwmRequest.getLocale(), pwmRequest.getLabel(), userIdentity, macroReplacer );
     }
 
     public static MacroRequest forUser(

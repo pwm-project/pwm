@@ -22,12 +22,12 @@ package password.pwm.config.stored;
 
 import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.value.StoredValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -65,7 +65,7 @@ public class ConfigurationReader
 
     private final File configFile;
     private final String configFileChecksum;
-    private DomainConfig domainConfig;
+    private AppConfig domainConfig;
     private StoredConfiguration storedConfiguration;
     private ErrorInformation configFileError;
 
@@ -107,14 +107,14 @@ public class ConfigurationReader
         return storedConfiguration;
     }
 
-    public DomainConfig getConfiguration( ) throws PwmUnrecoverableException
+    public AppConfig getConfiguration( ) throws PwmUnrecoverableException
     {
         if ( domainConfig == null )
         {
             final StoredConfiguration newStoredConfig = this.storedConfiguration == null
                     ? StoredConfigurationFactory.newConfig()
                     : this.storedConfiguration;
-            domainConfig = new DomainConfig( newStoredConfig );
+            domainConfig = new AppConfig( newStoredConfig );
         }
         return domainConfig;
     }
@@ -204,7 +204,7 @@ public class ConfigurationReader
         int backupRotations = 0;
         if ( pwmDomain != null )
         {
-            final DomainConfig domainConfig = new DomainConfig( storedConfiguration );
+            final AppConfig domainConfig = new AppConfig( storedConfiguration );
             final String backupDirSetting = domainConfig.readAppProperty( AppProperty.BACKUP_LOCATION );
             if ( backupDirSetting != null && backupDirSetting.length() > 0 )
             {

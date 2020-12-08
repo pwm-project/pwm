@@ -50,7 +50,7 @@ public class SmtpCertImportFunction implements SettingUIFunction
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        final DomainConfig domainConfig = new DomainConfig( modifier.newStoredConfiguration() );
+        final DomainConfig domainConfig = pwmRequest.getConfig();
         final List<X509Certificate> certs = EmailServerUtil.readCertificates( domainConfig, profile );
         if ( !JavaHelper.isEmpty( certs ) )
         {

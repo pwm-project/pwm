@@ -128,7 +128,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     public static void verifyConfigAccess( final PwmRequest pwmRequest )
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
+        final ConfigManagerBean configManagerBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
         final ProcessStatus processStatus = ConfigAccessFilter.checkAuthentication( pwmRequest, configManagerBean );
         if ( processStatus != ProcessStatus.Continue )
         {
@@ -195,7 +195,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     {
         final ConfigurationReader configurationReader = pwmRequest.getContextManager().getConfigReader();
         pwmRequest.setAttribute( PwmRequestAttribute.PageTitle, LocaleHelper.getLocalizedMessage( Config.Title_ConfigManager, pwmRequest ) );
-        pwmRequest.setAttribute( PwmRequestAttribute.ApplicationPath, pwmRequest.getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath() );
+        pwmRequest.setAttribute( PwmRequestAttribute.ApplicationPath, pwmRequest.getPwmDomain().getPwmEnvironment().getApplicationPath().getAbsolutePath() );
         pwmRequest.setAttribute( PwmRequestAttribute.ConfigFilename, configurationReader.getConfigFile().getAbsolutePath() );
         {
             final Instant lastModifyTime = configurationReader.getStoredConfiguration().modifyTime();
@@ -226,7 +226,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     private void restLockConfiguration( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         if ( PwmConstants.TRIAL_MODE )
@@ -271,7 +271,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             final StoredConfigurationModifier modifiedConfig = StoredConfigurationModifier.newModifier( storedConfiguration );
             modifiedConfig.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, "false" );
             saveConfiguration( pwmRequest, modifiedConfig.newStoredConfiguration() );
-            final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
+            final ConfigManagerBean configManagerBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
             configManagerBean.setStoredConfiguration( null );
         }
         catch ( final PwmException e )
@@ -319,7 +319,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             final ContextManager contextManager = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession().getServletContext() );
             contextManager.getConfigReader().saveConfiguration(
                     storedConfiguration,
-                    contextManager.getPwmApplication(),
+                    pwmRequest.getPwmDomain(),
                     pwmRequest.getLabel()
             );
 
@@ -367,7 +367,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     private void doGenerateSupportZip( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmRequest.getPwmApplication(), pwmRequest.getLabel() );
+        final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmRequest.getPwmDomain(), pwmRequest.getLabel() );
         final PwmResponse resp = pwmRequest.getPwmResponse();
         resp.setHeader( HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip" );
         resp.setContentType( HttpContentType.zip );

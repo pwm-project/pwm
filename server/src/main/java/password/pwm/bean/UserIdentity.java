@@ -57,23 +57,23 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
 
     private final String userDN;
     private final String ldapProfile;
-    private final String domain;
+    private final String domainID;
 
     public enum Flag
     {
         PreCanonicalized,
     }
 
-    private UserIdentity( final String userDN, final String ldapProfile, final String domain )
+    private UserIdentity( final String userDN, final String ldapProfile, final String domainID )
     {
         this.userDN = JavaHelper.requireNonEmpty( userDN, "UserIdentity: userDN value cannot be empty" );
         this.ldapProfile = JavaHelper.requireNonEmpty( ldapProfile, "UserIdentity: ldapProfile value cannot be empty" );
-        this.domain = JavaHelper.requireNonEmpty( domain, "UserIdentity: domain value cannot be empty" );
+        this.domainID = JavaHelper.requireNonEmpty( domainID, "UserIdentity: domain value cannot be empty" );
     }
 
-    public UserIdentity( final String userDN, final String ldapProfile, final String domain, final boolean canonical )
+    public UserIdentity( final String userDN, final String ldapProfile, final String domainID, final boolean canonical )
     {
-        this( userDN, ldapProfile, domain );
+        this( userDN, ldapProfile, domainID );
         this.canonical = canonical;
     }
 
@@ -88,9 +88,9 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         return userDN;
     }
 
-    public String getDomain()
+    public String getDomainID()
     {
-        return domain;
+        return domainID;
     }
 
     public String getLdapProfileID( )
@@ -239,7 +239,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             return false;
         }
         final UserIdentity that = ( UserIdentity ) o;
-        return Objects.equals( domain, that.domain )
+        return Objects.equals( domainID, that.domainID )
                 && Objects.equals( ldapProfile, that.ldapProfile )
                 && Objects.equals( userDN, that.userDN );
     }
@@ -247,7 +247,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
     @Override
     public int hashCode()
     {
-        return Objects.hash( domain, ldapProfile, userDN );
+        return Objects.hash( domainID, ldapProfile, userDN );
     }
 
     @Override
@@ -259,7 +259,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
     private static Comparator<UserIdentity> comparator( )
     {
         final Comparator<UserIdentity> domainComparator = Comparator.comparing(
-                UserIdentity::getDomain,
+                UserIdentity::getDomainID,
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
 
         final Comparator<UserIdentity> profileComparator = Comparator.comparing(
@@ -267,7 +267,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
 
         final Comparator<UserIdentity> userComparator = Comparator.comparing(
-                UserIdentity::getDomain,
+                UserIdentity::getDomainID,
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
 
         return domainComparator

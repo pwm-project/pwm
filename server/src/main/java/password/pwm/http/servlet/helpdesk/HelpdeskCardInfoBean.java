@@ -74,19 +74,19 @@ public class HelpdeskCardInfoBean implements Serializable
         }
 
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 pwmRequest.getLabel(),
                 actorLocale,
                 userIdentity,
                 theUser.getChaiProvider()
         );
 
-        builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
+        builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmDomain() ) );
 
         final PhotoDataReader photoDataReader = HelpdeskServlet.photoDataReader( pwmRequest, helpdeskProfile, userIdentity );
         builder.photoURL( photoDataReader.figurePhotoURL( ) );
 
-        builder.displayNames( figureDisplayNames( pwmRequest.getPwmApplication(), helpdeskProfile, pwmRequest.getLabel(), userInfo ) );
+        builder.displayNames( figureDisplayNames( pwmRequest.getPwmDomain(), helpdeskProfile, pwmRequest.getLabel(), userInfo ) );
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
         final HelpdeskCardInfoBean helpdeskCardInfoBean = builder.build();

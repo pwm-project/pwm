@@ -81,7 +81,7 @@ class ActivateUserUtils
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
 
@@ -155,7 +155,7 @@ class ActivateUserUtils
             throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException
     {
         final String searchFilter = figureLdapSearchFilter( pwmRequest );
-        final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        final ChaiProvider chaiProvider = pwmRequest.getPwmDomain().getProxyChaiProvider( userIdentity.getLdapProfileID() );
         final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
 
         for ( final Map.Entry<FormConfiguration, String> entry : formValues.entrySet() )
@@ -234,7 +234,7 @@ class ActivateUserUtils
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final UserInfo userInfo = pwmSession.getUserInfo();
         final DomainConfig config = pwmDomain.getConfig();
@@ -258,7 +258,7 @@ class ActivateUserUtils
     static boolean sendPostActivationSms( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final DomainConfig config = pwmDomain.getConfig();
         final UserInfo userInfo = pwmSession.getUserInfo();
@@ -296,7 +296,7 @@ class ActivateUserUtils
     static String figureLdapSearchFilter( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final DomainConfig config = pwmDomain.getConfig();
         final List<FormConfiguration> configuredActivationForm = config.readSettingAsForm( PwmSetting.ACTIVATE_USER_FORM );
 
@@ -339,7 +339,7 @@ class ActivateUserUtils
     static void initUserActivationBean( final PwmRequest pwmRequest, final UserIdentity userIdentity )
             throws PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final ActivateUserBean activateUserBean = pwmDomain.getSessionStateService().getBean( pwmRequest, ActivateUserBean.class );
 
         final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser( pwmRequest.getPwmRequestContext(), userIdentity, ProfileDefinition.ActivateUser );

@@ -26,10 +26,11 @@ import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
+import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -57,27 +58,27 @@ public class TestHelper
         chaiPackageLogger.setLevel( level );
     }
 
-    public static PwmDomain makeTestPwmApplication( final File tempFolder )
+    public static PwmApplication makeTestPwmApplication( final File tempFolder )
             throws PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newConfig();
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
         modifier.writeSetting( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL, null, new StringValue( PwmLogLevel.FATAL.toString() ), null );
-        final DomainConfig domainConfig = new DomainConfig( modifier.newStoredConfiguration() );
-        return makeTestPwmApplication( tempFolder, domainConfig );
+        final AppConfig appConfig = new AppConfig( modifier.newStoredConfiguration() );
+        return makeTestPwmApplication( tempFolder, appConfig );
     }
 
-    public static PwmDomain makeTestPwmApplication( final File tempFolder, final DomainConfig domainConfig )
+    public static PwmApplication makeTestPwmApplication( final File tempFolder, final AppConfig appConfig )
             throws PwmUnrecoverableException
     {
         Logger.getRootLogger().setLevel( Level.OFF );
         final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
-                .config( domainConfig )
+                .config( appConfig )
                 .applicationPath( tempFolder )
                 .applicationMode( PwmApplicationMode.READ_ONLY )
                 .internalRuntimeInstance( true )
                 .build();
 
-        return PwmDomain.createPwmApplication( pwmEnvironment );
+        return PwmApplication.createPwmApplication( pwmEnvironment );
     }
 }

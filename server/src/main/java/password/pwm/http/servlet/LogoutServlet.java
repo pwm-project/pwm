@@ -132,7 +132,7 @@ public class LogoutServlet extends ControlledPwmServlet
                 + ( logoutDueToIdle ? " due to client idle timeout" : "" ) );
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
         pwmSession.unauthenticateUser( pwmRequest );
 

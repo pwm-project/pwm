@@ -41,7 +41,7 @@ public class SSOHeaderFilterAuthenticationProvider implements PwmHttpFilterAuthe
             throws PwmUnrecoverableException
     {
         {
-            final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+            final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
             final String headerName = pwmDomain.getConfig().readSettingAsString( PwmSetting.SSO_AUTH_HEADER_NAME );
             if ( headerName == null || headerName.length() < 1 )

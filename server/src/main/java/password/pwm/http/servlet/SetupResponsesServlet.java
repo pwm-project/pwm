@@ -122,7 +122,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
 
     private SetupResponsesBean getSetupResponseBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        final SetupResponsesBean setupResponsesBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, SetupResponsesBean.class );
+        final SetupResponsesBean setupResponsesBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, SetupResponsesBean.class );
         if ( !setupResponsesBean.isInitialized() )
         {
             initializeBean( pwmRequest, setupResponsesBean );
@@ -135,7 +135,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
         if ( !pwmSession.isAuthenticated() )
         {
@@ -162,7 +162,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         // check if the locale has changed since first seen.
         if ( pwmSession.getSessionStateBean().getLocale() != pwmDomain.getSessionStateService().getBean( pwmRequest, SetupResponsesBean.class ).getUserLocale() )
         {
-            pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
+            pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
             pwmDomain.getSessionStateService().getBean( pwmRequest, SetupResponsesBean.class ).setUserLocale( pwmSession.getSessionStateBean().getLocale() );
         }
 
@@ -193,7 +193,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     private ProcessStatus processChangeResponses( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         final SetupResponsesBean setupResponsesBean = getSetupResponseBean( pwmRequest );
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         pwmDomain.getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
         this.initializeBean( pwmRequest, setupResponsesBean );
         setupResponsesBean.setUserLocale( pwmRequest.getLocale() );
@@ -207,7 +207,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException
     {
         LOGGER.trace( pwmRequest, () -> "request for response clear received" );
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         try
         {
@@ -215,7 +215,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             final ChaiUser theUser = pwmSession.getSessionManager().getActor( );
             pwmDomain.getCrService().clearResponses( pwmRequest.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID );
             pwmSession.reloadUserInfoBean( pwmRequest );
-            pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
+            pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
 
             // mark the event log
             final UserAuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createUserAuditRecord(
@@ -264,7 +264,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         final SetupResponsesBean setupResponsesBean = getSetupResponseBean( pwmRequest );
         final Instant startTime = Instant.now();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final String responseModeParam = pwmRequest.readParameterAsString( "responseMode" );
         final SetupResponsesBean.SetupData setupData = "helpdesk".equalsIgnoreCase( responseModeParam )
                 ? setupResponsesBean.getHelpdeskResponseData()
@@ -321,7 +321,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         initializeBean( pwmRequest, setupResponsesBean );
 
         pwmRequest.setAttribute( PwmRequestAttribute.ModuleBean, setupResponsesBean );
-        pwmRequest.setAttribute( PwmRequestAttribute.ModuleBean_String, pwmRequest.getPwmApplication().getSecureService().encryptObjectToString( setupResponsesBean ) );
+        pwmRequest.setAttribute( PwmRequestAttribute.ModuleBean_String, pwmRequest.getPwmDomain().getSecureService().encryptObjectToString( setupResponsesBean ) );
         pwmRequest.setAttribute( PwmRequestAttribute.SetupResponses_ResponseInfo, pwmRequest.getPwmSession().getUserInfo().getResponseInfoBean() );
 
         if ( setupResponsesBean.isHasExistingResponses() && !pwmRequest.getPwmSession().getUserInfo().isRequiresResponseConfig() )
@@ -371,7 +371,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
                     setupResponsesBean.getHelpdeskResponseData().getResponseMap()
             );
             saveResponses( pwmRequest, responses );
-            pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
+            pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_SetupResponse );
         }
         catch ( final PwmOperationalException e )
@@ -406,7 +406,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
 
             // test the responses.
             final int minRandomRequiredSetup = setupData.getMinRandomSetup();
-            pwmRequest.getPwmApplication().getCrService().validateResponses( challengeSet, responseMap, minRandomRequiredSetup );
+            pwmRequest.getPwmDomain().getCrService().validateResponses( challengeSet, responseMap, minRandomRequiredSetup );
         }
         catch ( final PwmDataValidationException e )
         {
@@ -431,7 +431,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     private void saveResponses( final PwmRequest pwmRequest, final ResponseInfoBean responseInfoBean )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException, ChaiValidationException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ChaiUser theUser = pwmSession.getSessionManager().getActor( );
         final String userGUID = pwmSession.getUserInfo().getUserGuid();
@@ -567,7 +567,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
 
             responseSet.meetsChallengeSetRequirements( challengeSet );
 
-            final SetupResponsesBean setupResponsesBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, SetupResponsesBean.class );
+            final SetupResponsesBean setupResponsesBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, SetupResponsesBean.class );
             final int minRandomRequiredSetup = setupResponsesBean.getResponseData().getMinRandomSetup();
             if ( minRandomRequiredSetup == 0 )
             {
@@ -732,7 +732,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     {
         if ( pwmRequest.isForcedPageView() )
         {
-            final boolean admin = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN );
+            final boolean admin = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
             if ( admin )
             {
                 if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )

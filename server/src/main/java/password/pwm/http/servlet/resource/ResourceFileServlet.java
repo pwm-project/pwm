@@ -140,7 +140,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                     "unable to process resource request for request method " + pwmRequest.getMethod() ) );
         }
 
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final ResourceServletService resourceService = pwmDomain.getResourceServletService();
         final ResourceServletConfiguration resourceConfiguration = resourceService.getResourceServletConfiguration();
 

@@ -33,7 +33,7 @@
 <%@ include file="WEB-INF/jsp/fragment/header.jsp" %>
 <body>
 <%
-    final String redirectURL = request.getContextPath() + JspUtility.getPwmRequest(pageContext).getPwmApplication().getConfig().readSettingAsString(PwmSetting.URL_INTRO);
+    final String redirectURL = request.getContextPath() + JspUtility.getPwmRequest(pageContext).getPwmDomain().getConfig().readSettingAsString(PwmSetting.URL_INTRO);
     response.sendRedirect(redirectURL);
 %>
 <div id="wrapper">

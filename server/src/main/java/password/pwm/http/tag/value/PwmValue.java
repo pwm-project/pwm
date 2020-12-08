@@ -189,7 +189,7 @@ public enum PwmValue
         @Override
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmApplication().getInstanceID();
+            return pwmRequest.getPwmDomain().getInstanceID();
 
         }
     }
@@ -208,7 +208,7 @@ public enum PwmValue
             {
                 return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_TrialMode", pwmRequest.getConfig(), Admin.class, fieldNames );
             }
-            else if ( pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION )
+            else if ( pwmRequest.getPwmDomain().getApplicationMode() == PwmApplicationMode.CONFIGURATION )
             {
                 String output = "";
                 if ( Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.CLIENT_JSP_SHOW_ICONS ) ) )
@@ -218,7 +218,7 @@ public enum PwmValue
                 output += LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_ConfigModeActive", pwmRequest.getConfig(), Admin.class, fieldNames );
                 return output;
             }
-            else if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
+            else if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
             {
                 return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_AdminUser", pwmRequest.getConfig(), Admin.class, fieldNames );
 
@@ -253,7 +253,7 @@ public enum PwmValue
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
         {
             final Locale locale = pwmRequest.getLocale();
-            final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+            final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
             final LocaleHelper.TextDirection textDirection = LocaleHelper.textDirectionForLocale( pwmDomain, locale );
             return textDirection.name();
         }

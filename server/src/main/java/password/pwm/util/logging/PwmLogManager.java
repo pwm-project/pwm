@@ -32,6 +32,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.java.FileSystemUtility;
@@ -117,7 +118,7 @@ public class PwmLogManager
     {
         try
         {
-            initConsoleLogger( new DomainConfig( StoredConfigurationFactory.newConfig() ), pwmLogLevel );
+            initConsoleLogger( new AppConfig( StoredConfigurationFactory.newConfig() ).getDefaultDomainConfig(), pwmLogLevel );
         }
         catch ( final Exception e )
         {

@@ -84,7 +84,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             throws PwmException
     {
         this.pwmDomain = pwmDomain;
-        this.wordlistConfiguration = WordlistConfiguration.fromConfiguration( pwmDomain.getConfig(), type );
+        this.wordlistConfiguration = WordlistConfiguration.fromConfiguration( pwmDomain.getPwmApplication().getConfig(), type );
 
         if ( this.wordlistConfiguration.isTestMode() )
         {

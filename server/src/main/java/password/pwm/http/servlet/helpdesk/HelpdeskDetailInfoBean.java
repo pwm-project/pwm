@@ -122,13 +122,13 @@ public class HelpdeskDetailInfoBean implements Serializable
         }
 
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 pwmRequest.getLabel(),
                 actorLocale,
                 userIdentity,
                 theUser.getChaiProvider()
         );
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmDomain(), pwmRequest.getLabel(), userInfo, null );
 
         try
         {
@@ -136,7 +136,7 @@ public class HelpdeskDetailInfoBean implements Serializable
             final AccountInformationProfile accountInformationProfile = pwmRequest.getPwmSession().getSessionManager().getAccountInfoProfile();
 
             final List<AccountInformationBean.ActivityRecord> userHistory = AccountInformationBean.makeAuditInfo(
-                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getPwmDomain(),
                     accountInformationProfile,
                     pwmRequest.getLabel(),
                     userInfo,
@@ -148,7 +148,7 @@ public class HelpdeskDetailInfoBean implements Serializable
             LOGGER.error( pwmRequest, () -> "unexpected error reading userHistory for user '" + userIdentity + "', " + e.getMessage() );
         }
 
-        builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
+        builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmDomain() ) );
 
         builder.profileData( getProfileData( helpdeskProfile, userInfo, pwmRequest.getLabel(), pwmRequest.getLocale() ) );
 

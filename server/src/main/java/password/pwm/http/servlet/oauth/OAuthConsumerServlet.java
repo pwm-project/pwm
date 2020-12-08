@@ -75,7 +75,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final DomainConfig config = pwmRequest.getConfig();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
@@ -333,7 +333,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
     private void redirectToForgottenPasswordServlet( final PwmRequest pwmRequest, final String oauthSuppliedUsername ) throws IOException, PwmUnrecoverableException
     {
         final OAuthForgottenPasswordResults results = new OAuthForgottenPasswordResults( true, oauthSuppliedUsername );
-        final String encryptedResults = pwmRequest.getPwmApplication().getSecureService().encryptObjectToString( results );
+        final String encryptedResults = pwmRequest.getPwmDomain().getSecureService().encryptObjectToString( results );
 
         final Map<String, String> httpParams = new HashMap<>();
         httpParams.put( PwmConstants.PARAM_RECOVERY_OAUTH_RESULT, encryptedResults );

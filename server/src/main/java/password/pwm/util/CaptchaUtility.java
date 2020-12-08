@@ -114,7 +114,7 @@ public class CaptchaUtility
             throw new PwmUnrecoverableException( errorInfo );
         }
 
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PasswordData privateKey = pwmDomain.getConfig().readSettingAsPassword( PwmSetting.RECAPTCHA_KEY_PRIVATE );
 
         final String bodyText = "secret=" + StringUtil.urlEncode( privateKey.getStringValue() )
@@ -133,7 +133,7 @@ public class CaptchaUtility
                     .build();
 
             LOGGER.debug( pwmRequest, () -> "sending reCaptcha verification request" );
-            final PwmHttpClient client = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient();
+            final PwmHttpClient client = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient();
             final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, pwmRequest.getLabel()  );
 
             if ( clientResponse.getStatusCode() != HttpServletResponse.SC_OK )
@@ -213,7 +213,7 @@ public class CaptchaUtility
 
         if ( cookieValue.equals( COOKIE_SKIP_INSTANCE_VALUE ) )
         {
-            cookieValue = pwmRequest.getPwmApplication().getInstanceID();
+            cookieValue = pwmRequest.getPwmDomain().getInstanceID();
         }
 
         return cookieValue != null && cookieValue.trim().length() > 0 ? cookieValue : null;
@@ -302,7 +302,7 @@ public class CaptchaUtility
     )
             throws PwmUnrecoverableException
     {
-        final DomainConfig config = pwmRequest.getPwmApplication().getConfig();
+        final DomainConfig config = pwmRequest.getPwmDomain().getConfig();
         final PasswordData privateKey = config.readSettingAsPassword( PwmSetting.RECAPTCHA_KEY_PRIVATE );
         final String publicKey = config.readSettingAsString( PwmSetting.RECAPTCHA_KEY_PUBLIC );
 
@@ -373,7 +373,7 @@ public class CaptchaUtility
             return true;
         }
 
-        final IntruderManager intruderManager = pwmRequest.getPwmApplication().getIntruderManager();
+        final IntruderManager intruderManager = pwmRequest.getPwmDomain().getIntruderManager();
         if ( intruderManager == null || intruderManager.status() != PwmService.STATUS.OPEN )
         {
             return false;

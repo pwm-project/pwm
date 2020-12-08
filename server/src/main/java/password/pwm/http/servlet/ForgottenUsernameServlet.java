@@ -133,7 +133,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
     )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
@@ -366,7 +366,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
     {
         final Locale locale = pwmRequest.getLocale();
         final String completeMessage = pwmRequest.getConfig().readSettingAsLocalizedString( PwmSetting.FORGOTTEN_USERNAME_MESSAGE, locale );
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getLabel(), userIdentity );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmDomain(), pwmRequest.getLocale(), pwmRequest.getLabel(), userIdentity );
         final String expandedText = macroRequest.expandMacros( completeMessage );
         pwmRequest.setAttribute( PwmRequestAttribute.CompleteText, expandedText );
         pwmRequest.forwardToJsp( JspUrl.FORGOTTEN_USERNAME_COMPLETE );

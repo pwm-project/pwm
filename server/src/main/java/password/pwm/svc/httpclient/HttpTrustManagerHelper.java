@@ -68,7 +68,7 @@ class HttpTrustManagerHelper
             return NoopHostnameVerifier.INSTANCE;
         }
 
-        if ( !Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.HTTP_CLIENT_ENABLE_HOSTNAME_VERIFICATION ) ) )
+        if ( !Boolean.parseBoolean( domainConfig.getAppConfig().readAppProperty( AppProperty.HTTP_CLIENT_ENABLE_HOSTNAME_VERIFICATION ) ) )
         {
             return NoopHostnameVerifier.INSTANCE;
         }

@@ -152,7 +152,7 @@ public class PwmSession implements Serializable
     {
         LOGGER.trace( () -> "performing reloadUserInfoBean" );
         final UserInfo oldUserInfoBean = getUserInfo();
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
         final UserInfo userInfo;
         if ( getLoginInfoBean().getAuthFlags().contains( AuthenticationType.AUTH_BIND_INHIBIT ) )
@@ -273,7 +273,7 @@ public class PwmSession implements Serializable
 
             try
             {
-                pwmRequest.getPwmApplication().getSessionStateService().clearLoginSession( pwmRequest );
+                pwmRequest.getPwmDomain().getSessionStateService().clearLoginSession( pwmRequest );
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -327,7 +327,7 @@ public class PwmSession implements Serializable
     public boolean setLocale( final PwmRequest pwmRequest, final String localeString )
             throws PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         if ( pwmDomain == null )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE, "unable to read context manager" ) );
@@ -385,7 +385,7 @@ public class PwmSession implements Serializable
             if ( nonce == null || nonce.length() < length )
             {
                 // random value
-                final String random = pwmRequest.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
+                final String random = pwmRequest.getPwmDomain().getSecureService().pwmRandom().alphaNumericString( length );
 
                 // timestamp component for uniqueness
                 final String prefix = Long.toString( System.currentTimeMillis(), Character.MAX_RADIX );
@@ -395,8 +395,8 @@ public class PwmSession implements Serializable
             }
 
             final PwmSecurityKey securityKey = pwmRequest.getConfig().getSecurityKey();
-            final String concatValue = securityKey.keyHash( pwmRequest.getPwmApplication().getSecureService() ) + nonce;
-            final String hashValue = pwmRequest.getPwmApplication().getSecureService().hash( concatValue );
+            final String concatValue = securityKey.keyHash( pwmRequest.getPwmDomain().getSecureService() ) + nonce;
+            final String hashValue = pwmRequest.getPwmDomain().getSecureService().hash( concatValue );
             final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( hashValue );
 
             if ( newNonce )

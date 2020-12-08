@@ -89,7 +89,7 @@ public class PwmUrlTag extends PwmAbstractTag
         }
         if ( pwmRequest != null )
         {
-            workingUrl = insertResourceNonce( pwmRequest.getPwmApplication(), workingUrl );
+            workingUrl = insertResourceNonce( pwmRequest.getPwmDomain(), workingUrl );
         }
 
         outputURL = workingUrl;
@@ -182,7 +182,7 @@ public class PwmUrlTag extends PwmAbstractTag
 
         if ( pwmRequest != null )
         {
-            final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+            final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
             themeName = figureThemeName( pwmRequest );
 

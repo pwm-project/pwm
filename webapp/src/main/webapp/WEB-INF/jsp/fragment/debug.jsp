@@ -39,6 +39,6 @@
         <td>Theme</td><td><%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).getPwmSession().getSessionStateBean().getTheme())%></td>
     </tr>
     <tr>
-        <td>Instance ID</td><td><%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).getPwmApplication().getInstanceID())%></td>
+        <td>Instance ID</td><td><%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).getPwmDomain().getInstanceID())%></td>
     </tr>
 </table>

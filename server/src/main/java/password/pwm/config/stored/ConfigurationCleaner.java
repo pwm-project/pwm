@@ -22,7 +22,7 @@ package password.pwm.config.stored;
 
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.RecoveryMinLifetimeOption;
@@ -69,8 +69,8 @@ class ConfigurationCleaner
                 throws PwmUnrecoverableException
         {
             final StoredConfiguration oldConfig = modifier.newStoredConfiguration();
-            final DomainConfig domainConfig = new DomainConfig( oldConfig );
-            for ( final String profileID : domainConfig.getPasswordProfileIDs() )
+            final AppConfig appConfig = new AppConfig( oldConfig );
+            for ( final String profileID : appConfig.getDefaultDomainConfig().getPasswordProfileIDs() )
             {
                 if ( !oldConfig.isDefaultValue( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) )
                 {

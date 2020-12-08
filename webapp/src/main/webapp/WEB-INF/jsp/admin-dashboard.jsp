@@ -45,7 +45,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final AppDashboardData appDashboardData = (AppDashboardData)JspUtility.getAttribute(pageContext, PwmRequestAttribute.AppDashboardData); %>
 <% final PwmRequest dashboard_pwmRequest = JspUtility.getPwmRequest(pageContext); %>
-<% final PwmDomain dashboard_pwmDomain = dashboard_pwmRequest.getPwmApplication(); %>
+<% final PwmDomain dashboard_pwmDomain = dashboard_pwmRequest.getPwmDomain(); %>
 <% final Locale locale = JspUtility.locale(request); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <% final String PageName = JspUtility.localizedString(pageContext,"Title_Dashboard",Admin.class);%>

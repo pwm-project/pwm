@@ -59,7 +59,7 @@ public enum PwmSetting
 
     // domains
     DOMAIN_LIST(
-            "domain.list", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.DOMAINS ),
+            "domain.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.DOMAINS ),
 
     // application settings
     PWM_SITE_URL(
@@ -84,10 +84,6 @@ public enum PwmSetting
             "knownLocales", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LOCALIZATION ),
     LOCALE_COOKIE_MAX_AGE(
             "locale.cookie.age", PwmSettingSyntax.DURATION, PwmSettingCategory.LOCALIZATION ),
-    HTTP_PROXY_URL(
-            "http.proxy.url", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL ),
-    HTTP_PROXY_EXCEPTIONS(
-            "http.proxy.exceptions", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL ),
     APP_PROPERTY_OVERRIDES(
             "pwm.appProperty.overrides", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL ),
 
@@ -1238,7 +1234,13 @@ public enum PwmSetting
             "external.remoteData.url", PwmSettingSyntax.REMOTE_WEB_SERVICE, PwmSettingCategory.REST_CLIENT ),
 
 
-    //appliance
+    // http client
+    HTTP_PROXY_URL(
+            "http.proxy.url", PwmSettingSyntax.STRING, PwmSettingCategory.HTTP_CLIENT ),
+    HTTP_PROXY_EXCEPTIONS(
+            "http.proxy.exceptions", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.HTTP_CLIENT ),
+
+    // https server
     HTTPS_CERT(
             "https.server.cert", PwmSettingSyntax.PRIVATE_KEY, PwmSettingCategory.HTTPS_SERVER ),
     HTTPS_PROTOCOLS(

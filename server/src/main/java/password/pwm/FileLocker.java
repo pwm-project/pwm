@@ -20,7 +20,7 @@
 
 package password.pwm;
 
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -128,7 +128,7 @@ class FileLocker
     public void waitForFileLock( )
             throws PwmUnrecoverableException
     {
-        final DomainConfig domainConfig = pwmEnvironment.getConfig();
+        final AppConfig domainConfig = pwmEnvironment.getConfig();
         final int maxWaitSeconds = pwmEnvironment.getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance )
                 ? 1
                 : Integer.parseInt( domainConfig.readAppProperty( AppProperty.APPLICATION_FILELOCK_WAIT_SECONDS ) );

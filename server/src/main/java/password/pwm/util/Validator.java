@@ -53,13 +53,13 @@ public class Validator
             throws PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
         final String submittedPwmFormID = pwmRequest.readParameterAsString( PwmConstants.PARAM_FORM_ID );
 
         if ( pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.SECURITY_ENABLE_FORM_NONCE ) )
         {
-            final FormNonce formNonce = pwmRequest.getPwmApplication().getSecureService().decryptObject(
+            final FormNonce formNonce = pwmRequest.getPwmDomain().getSecureService().decryptObject(
                     submittedPwmFormID,
                     FormNonce.class
             );
@@ -93,7 +93,7 @@ public class Validator
 
             try
             {
-                final FormNonce formNonce = pwmRequest.getPwmApplication().getSecureService().decryptObject(
+                final FormNonce formNonce = pwmRequest.getPwmDomain().getSecureService().decryptObject(
                         submittedPwmFormID,
                         FormNonce.class
                 );

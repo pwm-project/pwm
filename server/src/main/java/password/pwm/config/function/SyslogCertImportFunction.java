@@ -22,7 +22,7 @@ package password.pwm.config.function;
 
 import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -52,12 +52,13 @@ public class SyslogCertImportFunction implements SettingUIFunction
             final StoredConfigurationModifier modifier,
             final PwmSetting setting,
             final String profile,
-            final String extraData )
+            final String extraData
+    )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         boolean error = false;
         Exception exeception = null;
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
@@ -77,7 +78,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
                             final List<X509Certificate> certs = X509Utils.readRemoteCertificates(
                                     syslogConfig.getHost(),
                                     syslogConfig.getPort(),
-                                    new DomainConfig( modifier.newStoredConfiguration() )
+                                    new AppConfig( modifier.newStoredConfiguration() ).getDefaultDomainConfig()
                             );
                             if ( certs != null )
                             {

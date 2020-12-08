@@ -146,7 +146,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
 
     private static UpdateProfileBean getBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, UpdateProfileBean.class );
+        return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, UpdateProfileBean.class );
     }
 
     @ActionHandler( action = "enterCode" )
@@ -226,14 +226,14 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             final Map<FormConfiguration, String> formValues = UpdateProfileUtil.readFromJsonRequest( pwmRequest, updateProfileProfile, updateProfileBean );
 
             // verify form meets the form requirements
-            UpdateProfileUtil.verifyFormAttributes( pwmRequest.getPwmApplication(), pwmRequest.getUserInfoIfLoggedIn(), pwmRequest.getLocale(), formValues, true );
+            UpdateProfileUtil.verifyFormAttributes( pwmRequest.getPwmDomain(), pwmRequest.getUserInfoIfLoggedIn(), pwmRequest.getLocale(), formValues, true );
 
             updateProfileBean.getFormData().putAll( FormUtility.asStringMap( formValues ) );
         }
         catch ( final PwmOperationalException e )
         {
             success = false;
-            userMessage = e.getErrorInformation().toUserStr( pwmRequest.getPwmSession(), pwmRequest.getPwmApplication() );
+            userMessage = e.getErrorInformation().toUserStr( pwmRequest.getPwmSession(), pwmRequest.getPwmDomain() );
         }
 
         final ValidateResponse response = new ValidateResponse();
@@ -261,7 +261,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
                 break;
 
             case exitProfileUpdate:
-                pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, UpdateProfileBean.class );
+                pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, UpdateProfileBean.class );
                 pwmRequest.sendRedirectToContinue();
                 return ProcessStatus.Halt;
 
@@ -290,7 +290,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
                     pwmRequest.getLabel(),
                     "UpdateProfile"
             );
-            pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+            pwmRequest.getPwmDomain().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         return ProcessStatus.Continue;
@@ -334,7 +334,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     protected void nextStep( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
         final UpdateProfileProfile updateProfileProfile = getProfile( pwmRequest );
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -381,7 +381,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             // verify form meets the form requirements
             final List<FormConfiguration> formFields = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
             final Map<FormConfiguration, String> formValues = FormUtility.readFormValuesFromMap( updateProfileBean.getFormData(), formFields, pwmRequest.getLocale() );
-            UpdateProfileUtil.verifyFormAttributes( pwmRequest.getPwmApplication(), pwmRequest.getUserInfoIfLoggedIn(), pwmRequest.getLocale(), formValues, true );
+            UpdateProfileUtil.verifyFormAttributes( pwmRequest.getPwmDomain(), pwmRequest.getUserInfoIfLoggedIn(), pwmRequest.getLocale(), formValues, true );
         }
         catch ( final PwmException e )
         {
@@ -410,7 +410,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             // write the form values
             final ChaiUser theUser = pwmSession.getSessionManager().getActor( );
             UpdateProfileUtil.doProfileUpdate(
-                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getPwmDomain(),
                     pwmRequest.getLabel(),
                     pwmRequest.getLocale(),
                     pwmSession.getUserInfo(),
@@ -450,7 +450,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     @Override
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
-        if ( !pwmRequest.getPwmApplication().getConfig().readSettingAsBoolean( PwmSetting.UPDATE_PROFILE_ENABLE ) )
+        if ( !pwmRequest.getPwmDomain().getConfig().readSettingAsBoolean( PwmSetting.UPDATE_PROFILE_ENABLE ) )
         {
             pwmRequest.respondWithError( new ErrorInformation(
                     PwmError.ERROR_SERVICE_NOT_AVAILABLE,

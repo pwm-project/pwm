@@ -56,7 +56,7 @@ public class BasicFilterAuthenticationProvider implements PwmHttpFilterAuthentic
             return;
         }
 
-        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmRequest.getPwmApplication(), pwmRequest );
+        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmRequest.getPwmDomain(), pwmRequest );
         if ( basicAuthInfo == null )
         {
             return;
@@ -65,7 +65,7 @@ public class BasicFilterAuthenticationProvider implements PwmHttpFilterAuthentic
         try
         {
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+            final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
             //user isn't already authenticated and has an auth header, so try to auth them.
             LOGGER.debug( pwmRequest, () -> "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.getUsername() + ")" );

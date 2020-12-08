@@ -27,6 +27,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
@@ -191,7 +192,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
 
     private ConfigManagerBean getBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
+        return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
     }
 
     @ActionHandler( action = "executeSettingFunction" )
@@ -567,8 +568,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         LOGGER.debug( pwmRequest, () -> "beginning restLdapHealthCheck" );
         final String profileID = pwmRequest.readParameterAsString( "profile" );
-        final DomainConfig config = new DomainConfig( configManagerBean.getStoredConfiguration() );
-        final HealthData healthData = LDAPHealthChecker.healthForNewConfiguration( pwmRequest.getPwmApplication(), config, pwmRequest.getLocale(), profileID, true, true );
+        final DomainConfig config = new AppConfig( configManagerBean.getStoredConfiguration() ).getDefaultDomainConfig();
+        final HealthData healthData = LDAPHealthChecker.healthForNewConfiguration( pwmRequest.getPwmDomain(), config, pwmRequest.getLocale(), profileID, true, true );
         final RestResultBean restResultBean = RestResultBean.withData( healthData );
 
         pwmRequest.outputJsonResult( restResultBean );
@@ -585,8 +586,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         LOGGER.debug( pwmRequest, () -> "beginning restDatabaseHealthCheck" );
-        final DomainConfig config = new DomainConfig( configManagerBean.getStoredConfiguration() );
-        final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmApplication(), config );
+        final DomainConfig config = new AppConfig( configManagerBean.getStoredConfiguration() ).getDefaultDomainConfig();
+        final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmDomain(), config );
         final HealthData healthData = HealthRecord.asHealthDataBean( config, pwmRequest.getLocale(), healthRecords );
         final RestResultBean restResultBean = RestResultBean.withData( healthData );
         pwmRequest.outputJsonResult( restResultBean );
@@ -604,7 +605,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         LOGGER.debug( pwmRequest, () -> "beginning restSmsHealthCheck" );
 
-        final DomainConfig config = new DomainConfig( configManagerBean.getStoredConfiguration() );
+        final DomainConfig config = new AppConfig( configManagerBean.getStoredConfiguration() ).getDefaultDomainConfig();
         final StringBuilder output = new StringBuilder();
         output.append( "beginning SMS send process:\n" );
 
@@ -619,7 +620,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             try
             {
                 final String responseBody = SmsQueueManager.sendDirectMessage(
-                        pwmRequest.getPwmApplication(),
+                        pwmRequest.getPwmDomain(),
                         config,
                         pwmRequest.getLabel(),
                         testSmsItem
@@ -657,7 +658,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final StringBuilder output = new StringBuilder();
         output.append( "beginning EMail send process:\n" );
 
-        final DomainConfig testDomainConfig = new DomainConfig( configManagerBean.getStoredConfiguration() );
+        final DomainConfig testDomainConfig = new AppConfig( configManagerBean.getStoredConfiguration() ).getDefaultDomainConfig();
 
         final EmailServerProfile emailServerProfile = testDomainConfig.getEmailServerProfiles().get( profileID );
         if ( emailServerProfile != null )
@@ -665,7 +666,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final Optional<EmailServer> emailServer = EmailServerUtil.makeEmailServer( testDomainConfig, emailServerProfile, null );
             if ( emailServer.isPresent() )
             {
-                final MacroRequest macroRequest = SampleDataGenerator.sampleMacroRequest( pwmRequest.getPwmApplication() );
+                final MacroRequest macroRequest = SampleDataGenerator.sampleMacroRequest( pwmRequest.getPwmDomain() );
 
                 try
                 {
@@ -748,7 +749,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final StoredConfiguration storedConfiguration = configManagerBean.getStoredConfiguration();
 
         final List<NavTreeItem> navigationData = NavTreeDataMaker.makeNavTreeItems(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 storedConfiguration,
                 navTreeSettings );
 
@@ -785,7 +786,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 return ProcessStatus.Halt;
             }
 
-            final MacroRequest macroRequest = SampleDataGenerator.sampleMacroRequest( pwmRequest.getPwmApplication() );
+            final MacroRequest macroRequest = SampleDataGenerator.sampleMacroRequest( pwmRequest.getPwmDomain() );
             final String input = inputMap.get( "input" );
             final String output = macroRequest.expandMacros( input );
             pwmRequest.outputJsonResult( RestResultBean.withData( output ) );
@@ -809,7 +810,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final String dn = inputMap.getOrDefault( "dn", "" );
 
         final LdapBrowser ldapBrowser = new LdapBrowser(
-                pwmRequest.getPwmApplication().getLdapConnectionService().getChaiProviderFactory(),
+                pwmRequest.getPwmDomain().getLdapConnectionService().getChaiProviderFactory(),
                 configManagerBean.getStoredConfiguration()
         );
 
@@ -875,7 +876,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final RestRandomPasswordServer.JsonInput jsonInput = JsonUtil.deserialize( pwmRequest.readRequestBodyAsString(), RestRandomPasswordServer.JsonInput.class );
         final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = RestRandomPasswordServer.jsonInputToRandomConfig( jsonInput, PwmPasswordPolicy.defaultPolicy() );
-        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), randomConfig, pwmRequest.getPwmApplication() );
+        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), randomConfig, pwmRequest.getPwmDomain() );
         final RestRandomPasswordServer.JsonOutput outputMap = new RestRandomPasswordServer.JsonOutput();
         outputMap.setPassword( randomPassword.getStringValue() );
 

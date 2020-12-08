@@ -128,7 +128,7 @@ class NewUserUtils
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final long startTime = System.currentTimeMillis();
@@ -155,8 +155,8 @@ class NewUserUtils
         }
         else
         {
-            final PwmPasswordPolicy pwmPasswordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmApplication(), pwmRequest.getLocale() );
-            userPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), pwmPasswordPolicy, pwmRequest.getPwmApplication() );
+            final PwmPasswordPolicy pwmPasswordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmDomain(), pwmRequest.getLocale() );
+            userPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), pwmPasswordPolicy, pwmRequest.getPwmDomain() );
         }
 
         // set up the user creation attributes
@@ -353,7 +353,7 @@ class NewUserUtils
         {
             final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
             NewUserUtils.LOGGER.warn( pwmRequest, () -> "deleting ldap user account " + userDN );
-            newUserProfile.getLdapProfile().getProxyChaiProvider( pwmRequest.getPwmApplication() ).deleteEntry( userDN );
+            newUserProfile.getLdapProfile().getProxyChaiProvider( pwmRequest.getPwmDomain() ).deleteEntry( userDN );
             NewUserUtils.LOGGER.warn( pwmRequest, () -> "ldap user account " + userDN + " has been deleted" );
         }
         catch ( final ChaiUnavailableException | ChaiOperationException e )
@@ -371,7 +371,7 @@ class NewUserUtils
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
-        final MacroRequest macroRequest = createMacroMachineForNewUser( pwmRequest.getPwmApplication(), newUserProfile, pwmRequest.getLabel(), formValues, null );
+        final MacroRequest macroRequest = createMacroMachineForNewUser( pwmRequest.getPwmDomain(), newUserProfile, pwmRequest.getLabel(), formValues, null );
         final List<String> configuredNames = newUserProfile.readSettingAsStringArray( PwmSetting.NEWUSER_USERNAME_DEFINITION );
         final List<String> failedValues = new ArrayList<>();
 
@@ -445,7 +445,7 @@ class NewUserUtils
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final UserSearchEngine userSearchEngine = pwmRequest.getPwmApplication().getUserSearchEngine();
+        final UserSearchEngine userSearchEngine = pwmRequest.getPwmDomain().getUserSearchEngine();
         final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                 .username( rdnValue )
                 .build();
@@ -482,7 +482,7 @@ class NewUserUtils
             return;
         }
 
-        pwmRequest.getPwmApplication().getEmailQueue().submitEmail(
+        pwmRequest.getPwmDomain().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmSession.getUserInfo(),
                 pwmSession.getSessionManager().getMacroMachine( )
@@ -582,7 +582,7 @@ class NewUserUtils
     )
             throws PwmUnrecoverableException, PwmDataValidationException
     {
-        final RestFormDataClient restFormDataClient = new RestFormDataClient( pwmRequest.getPwmApplication(), pwmRequest.getLabel() );
+        final RestFormDataClient restFormDataClient = new RestFormDataClient( pwmRequest.getPwmDomain(), pwmRequest.getLabel() );
         if ( !restFormDataClient.isEnabled() )
         {
             return;
@@ -701,14 +701,14 @@ class NewUserUtils
             throws PwmUnrecoverableException
     {
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
-        final UserInfo userInfo = createUserInfoBeanForNewUser( pwmRequest.getPwmApplication(), newUserProfile, newUserBean.getNewUserForm() );
+        final UserInfo userInfo = createUserInfoBeanForNewUser( pwmRequest.getPwmDomain(), newUserProfile, newUserBean.getNewUserForm() );
 
         final VerificationMethodSystem remoteMethod;
         if ( newUserBean.getRemoteRecoveryMethod() == null )
         {
             remoteMethod = new RemoteVerificationMethod();
             remoteMethod.init(
-                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getPwmDomain(),
                     userInfo,
                     pwmRequest.getLabel(),
                     pwmRequest.getLocale()
@@ -761,7 +761,7 @@ class NewUserUtils
 
                     final Map<String, String> tokenPayloadMap = NewUserFormUtils.toTokenPayload( pwmRequest, newUserBean );
                     final MacroRequest macroRequest = createMacroMachineForNewUser(
-                            pwmRequest.getPwmApplication(),
+                            pwmRequest.getPwmDomain(),
                             newUserProfile,
                             pwmRequest.getLabel(),
                             newUserBean.getNewUserForm(),

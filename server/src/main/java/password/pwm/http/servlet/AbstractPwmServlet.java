@@ -148,7 +148,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
 
             final PwmUnrecoverableException pue = convertToPwmUnrecoverableException( e, pwmRequest );
 
-            if ( processUnrecoverableException( req, resp, pwmRequest.getPwmApplication(), pwmRequest, pue ) )
+            if ( processUnrecoverableException( req, resp, pwmRequest.getPwmDomain(), pwmRequest, pue ) )
             {
                 return;
             }
@@ -165,7 +165,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         {
             try
             {
-                pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, theClass );
+                pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, theClass );
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -343,7 +343,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         final Class<? extends PwmSessionBean> beanClass = this.getServletDefinition().getPwmSessionBeanClass();
         if ( beanClass != null )
         {
-            final PwmSessionBean pwmSessionBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, beanClass );
+            final PwmSessionBean pwmSessionBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, beanClass );
             pwmSessionBean.setLastError( errorInformation );
         }
 
@@ -353,7 +353,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
     protected void examineLastError( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         final Class<? extends PwmSessionBean> beanClass = this.getServletDefinition().getPwmSessionBeanClass();
-        final PwmSessionBean pwmSessionBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, beanClass );
+        final PwmSessionBean pwmSessionBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, beanClass );
         if ( pwmSessionBean != null && pwmSessionBean.getLastError() != null )
         {
             pwmRequest.setAttribute( PwmRequestAttribute.PwmErrorInfo, pwmSessionBean.getLastError() );

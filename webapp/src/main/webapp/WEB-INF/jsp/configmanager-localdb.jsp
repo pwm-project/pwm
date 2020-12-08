@@ -42,7 +42,7 @@
     PwmDomain localdb_pwmDomain = null;
     try {
         localdb_pwmRequest = PwmRequest.forRequest(request, response);
-        localdb_pwmDomain = localdb_pwmRequest.getPwmApplication();
+        localdb_pwmDomain = localdb_pwmRequest.getPwmDomain();
     } catch (PwmException e) {
         JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
     }

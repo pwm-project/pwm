@@ -23,9 +23,11 @@ package password.pwm.http.servlet.configguide;
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
@@ -137,7 +139,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
     static ConfigGuideBean getBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigGuideBean.class );
+        return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ConfigGuideBean.class );
     }
 
     @Override
@@ -149,7 +151,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     @Override
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
         if ( pwmDomain.getSessionStateService().getBean( pwmRequest, ConfigGuideBean.class ).getStep() == GuideStep.START )
         {
@@ -181,7 +183,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 final URI ldapServerUri = new URI( ldapServerString );
                 if ( "ldaps".equalsIgnoreCase( ldapServerUri.getScheme() ) )
                 {
-                    final DomainConfig tempConfig = new DomainConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
+                    final DomainConfig tempConfig = new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) ).getDefaultDomainConfig();
                     configGuideBean.setLdapCertificates( X509Utils.readRemoteCertificates( ldapServerUri, tempConfig ) );
                     configGuideBean.setCertsTrustedbyKeystore( X509Utils.testIfLdapServerCertsInDefaultKeystore( ldapServerUri ) );
                 }
@@ -231,10 +233,12 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
 
         final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
-        final DomainConfig tempDomainConfig = new DomainConfig( storedConfiguration );
-        final PwmDomain tempApplication = PwmDomain.createPwmApplication( pwmRequest.getPwmApplication()
+        final AppConfig tempAppConfig = new AppConfig( storedConfiguration );
+        final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmRequest.getPwmApplication()
                 .getPwmEnvironment()
-                .makeRuntimeInstance( tempDomainConfig ) );
+                .makeRuntimeInstance( tempAppConfig ) );
+        final PwmDomain tempDomain = tempApplication.getDefaultDomain();
+        final DomainConfig tempDomainConfig = tempDomain.getConfig();
 
         final LDAPHealthChecker ldapHealthChecker = new LDAPHealthChecker();
         final List<HealthRecord> records = new ArrayList<>();
@@ -264,7 +268,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             case LDAP_PROXY:
             {
-                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempApplication, tempDomainConfig, ldapProfile, false ) );
+                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempDomain, tempDomainConfig, ldapProfile, false ) );
                 if ( records.isEmpty() )
                 {
                     records.add( password.pwm.health.HealthRecord.forMessage( HealthMessage.LDAP_OK ) );
@@ -274,7 +278,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             case LDAP_CONTEXT:
             {
-                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempApplication, tempDomainConfig, ldapProfile, true ) );
+                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempDomain, tempDomainConfig, ldapProfile, true ) );
                 if ( records.isEmpty() )
                 {
                     records.add( HealthRecord.forMessage( HealthMessage.Config_SettingOk,
@@ -294,8 +298,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 final String testUserValue = configGuideBean.getFormData().get( ConfigGuideFormField.PARAM_LDAP_TEST_USER );
                 if ( testUserValue != null && !testUserValue.isEmpty() )
                 {
-                    records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempApplication, tempDomainConfig, ldapProfile, false ) );
-                    records.addAll( ldapHealthChecker.doLdapTestUserCheck( tempDomainConfig, ldapProfile, tempApplication ) );
+                    records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempDomain, tempDomainConfig, ldapProfile, false ) );
+                    records.addAll( ldapHealthChecker.doLdapTestUserCheck( tempDomainConfig, ldapProfile, tempDomain ) );
                 }
                 else
                 {
@@ -309,7 +313,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             case DATABASE:
             {
-                records.addAll( DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmApplication(), tempDomainConfig ) );
+                records.addAll( DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmDomain(), tempDomainConfig ) );
             }
             break;
 
@@ -350,7 +354,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final String dn = inputMap.getOrDefault( "dn", "" );
 
         final LdapBrowser ldapBrowser = new LdapBrowser(
-                pwmRequest.getPwmApplication().getLdapConnectionService().getChaiProviderFactory(),
+                pwmRequest.getPwmDomain().getLdapConnectionService().getChaiProviderFactory(),
                 storedConfiguration
         );
         final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse( profile, dn );
@@ -482,7 +486,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
         try
         {
-            final SchemaOperationResult schemaOperationResult = ConfigGuideUtils.extendSchema( pwmRequest.getPwmApplication(), configGuideBean, true );
+            final SchemaOperationResult schemaOperationResult = ConfigGuideUtils.extendSchema( pwmRequest.getPwmDomain(), configGuideBean, true );
             pwmRequest.outputJsonResult( RestResultBean.withData( schemaOperationResult.getOperationLog() ) );
         }
         catch ( final Exception e )

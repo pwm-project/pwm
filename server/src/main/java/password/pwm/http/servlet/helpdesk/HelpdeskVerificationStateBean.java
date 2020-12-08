@@ -174,7 +174,7 @@ class HelpdeskVerificationStateBean implements Serializable
         HelpdeskVerificationStateBean state = null;
         if ( rawValue != null && !rawValue.isEmpty() )
         {
-            state = pwmRequest.getPwmApplication().getSecureService().decryptObject( rawValue, HelpdeskVerificationStateBean.class );
+            state = pwmRequest.getPwmDomain().getSecureService().decryptObject( rawValue, HelpdeskVerificationStateBean.class );
             if ( !state.getActor().equals( actor ) )
             {
                 state = null;

@@ -27,6 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfiguration;
@@ -178,7 +179,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
     public LdapProfile getLdapProfile()
             throws PwmUnrecoverableException
     {
-        final DomainConfig domainConfig = new DomainConfig( getStoredConfiguration() );
+        final DomainConfig domainConfig = new AppConfig( getStoredConfiguration() ).getDefaultDomainConfig();
         final String configuredProfile = readSettingAsString( PwmSetting.NEWUSER_LDAP_PROFILE );
         if ( !StringUtil.isEmpty( configuredProfile ) )
         {

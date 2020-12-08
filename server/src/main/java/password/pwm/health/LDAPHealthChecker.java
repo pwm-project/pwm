@@ -32,6 +32,7 @@ import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.PasswordStatus;
@@ -1169,12 +1170,12 @@ public class LDAPHealthChecker implements HealthChecker
     )
             throws PwmUnrecoverableException
     {
-        final PwmDomain tempApplication = PwmDomain.createPwmApplication( pwmDomain.getPwmEnvironment().makeRuntimeInstance( config ) );
+        final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmDomain.getPwmEnvironment().makeRuntimeInstance( config.getAppConfig() ) );
         final LDAPHealthChecker ldapHealthChecker = new LDAPHealthChecker();
         final List<HealthRecord> profileRecords = new ArrayList<>();
 
         final LdapProfile ldapProfile = config.getLdapProfiles().get( profileID );
-        profileRecords.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempApplication, config, ldapProfile,
+        profileRecords.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempApplication.getDefaultDomain(), config, ldapProfile,
                 testContextless ) );
         if ( fullTest )
         {
@@ -1188,7 +1189,7 @@ public class LDAPHealthChecker implements HealthChecker
 
         if ( fullTest )
         {
-            profileRecords.addAll( ldapHealthChecker.doLdapTestUserCheck( config, ldapProfile, tempApplication ) );
+            profileRecords.addAll( ldapHealthChecker.doLdapTestUserCheck( config, ldapProfile, tempApplication.getDefaultDomain() ) );
         }
 
         return HealthRecord.asHealthDataBean( config, locale, profileRecords );

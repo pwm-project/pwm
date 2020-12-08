@@ -85,7 +85,7 @@ public class OAuthMachine
         final String requestStateStr = pwmRequest.readParameterAsString( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ) );
         if ( requestStateStr != null )
         {
-            final String stateJson = pwmRequest.getPwmApplication().getSecureService().decryptStringValue( requestStateStr );
+            final String stateJson = pwmRequest.getPwmDomain().getSecureService().decryptStringValue( requestStateStr );
             final OAuthState oAuthState = JsonUtil.deserialize( stateJson, OAuthState.class );
             if ( oAuthState != null )
             {
@@ -299,7 +299,7 @@ public class OAuthMachine
                     .certificates( JavaHelper.isEmpty( certs ) ? null : certs )
                     .maskBodyDebugOutput( true )
                     .build();
-            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient( config );
+            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient( config );
             pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, pwmRequest.getLabel() );
         }
         catch ( final PwmException e )
@@ -441,7 +441,7 @@ public class OAuthMachine
 
 
         final String jsonValue = JsonUtil.serialize( oAuthState );
-        return pwmRequest.getPwmApplication().getSecureService().encryptToString( jsonValue );
+        return pwmRequest.getPwmDomain().getSecureService().encryptToString( jsonValue );
     }
 
     private String figureUsernameGrantParam(

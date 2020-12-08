@@ -22,7 +22,7 @@ package password.pwm.util.cli.commands;
 
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TLSVersion;
 import password.pwm.util.cli.CliParameters;
@@ -52,7 +52,7 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
         )
         {
             TomcatConfigWriter.writeOutputFile(
-                    cliEnvironment.getConfig(),
+                    cliEnvironment.getPwmDomain().getPwmApplication().getConfig(),
                     fileInputStream,
                     fileOutputStream
             );
@@ -113,20 +113,20 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
         private static final String TOKEN_TLS_CIPHERS = "%TLS_CIPHERS%";
 
         public static void writeOutputFile(
-                final DomainConfig domainConfig,
+                final AppConfig appConfig,
                 final InputStream sourceFile,
                 final OutputStream outputFile
         )
                 throws IOException
         {
             String fileContents = IOUtils.toString( sourceFile, PwmConstants.DEFAULT_CHARSET.toString() );
-            fileContents = fileContents.replace( TOKEN_TLS_PROTOCOLS, getTlsProtocolsValue( domainConfig ) );
-            final String tlsCiphers = domainConfig.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
+            fileContents = fileContents.replace( TOKEN_TLS_PROTOCOLS, getTlsProtocolsValue( appConfig ) );
+            final String tlsCiphers = appConfig.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
             fileContents = fileContents.replace( TOKEN_TLS_CIPHERS, tlsCiphers );
             outputFile.write( fileContents.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
 
-        public static String getTlsProtocolsValue( final DomainConfig domainConfig )
+        public static String getTlsProtocolsValue( final AppConfig domainConfig )
         {
             final Set<TLSVersion> tlsVersions = domainConfig.readSettingAsOptionList( PwmSetting.HTTPS_PROTOCOLS, TLSVersion.class );
             final StringBuilder output = new StringBuilder();

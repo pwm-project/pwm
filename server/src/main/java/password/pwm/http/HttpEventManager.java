@@ -64,7 +64,7 @@ public class HttpEventManager implements
         try
         {
             final ContextManager contextManager = ContextManager.getContextManager( httpSession );
-            final PwmDomain pwmDomain = contextManager.getPwmApplication();
+            final PwmDomain pwmDomain = contextManager.getPwmApplication().getDomains().get( PwmConstants.DOMAIN_ID_PLACEHOLDER );
             httpSession.setAttribute( PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmDomain.getRuntimeNonce() );
 
             if ( pwmDomain.getStatisticsManager() != null )
@@ -96,7 +96,8 @@ public class HttpEventManager implements
                     pwmSession.unauthenticateUser( null );
                 }
 
-                final PwmDomain pwmDomain = ContextManager.getPwmApplication( httpSession.getServletContext() );
+                final PwmDomain pwmDomain = ContextManager.getPwmApplication( httpSession.getServletContext() )
+                        .getDomains().get( PwmConstants.DOMAIN_ID_PLACEHOLDER );
                 if ( pwmDomain != null )
                 {
                     pwmDomain.getSessionTrackService().removeSessionData( pwmSession );
@@ -183,7 +184,8 @@ public class HttpEventManager implements
             final HttpSession httpSession = event.getSession();
             final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( httpSession );
             LOGGER.trace( pwmSession.getLabel(), () -> "activating (de-passivating) session" );
-            final PwmDomain pwmDomain = ContextManager.getPwmApplication( httpSession.getServletContext() );
+            final PwmDomain pwmDomain = ContextManager.getPwmApplication( httpSession.getServletContext() )
+                    .getDomains().get( PwmConstants.DOMAIN_ID_PLACEHOLDER );
             if ( pwmDomain != null )
             {
                 pwmDomain.getSessionTrackService().addSessionData( pwmSession );

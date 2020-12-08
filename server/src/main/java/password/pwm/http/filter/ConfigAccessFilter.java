@@ -50,14 +50,14 @@ public class ConfigAccessFilter extends AbstractPwmFilter
     void processFilter( final PwmApplicationMode mode, final PwmRequest pwmRequest, final PwmFilterChain filterChain )
             throws PwmException, IOException, ServletException
     {
-        final PwmApplicationMode appMode = pwmRequest.getPwmApplication().getApplicationMode();
+        final PwmApplicationMode appMode = pwmRequest.getPwmDomain().getApplicationMode();
         if ( appMode == PwmApplicationMode.NEW )
         {
             filterChain.doFilter();
             return;
         }
 
-        final boolean blockOldIE = Boolean.parseBoolean( pwmRequest.getPwmApplication().getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_BLOCK_OLD_IE ) );
+        final boolean blockOldIE = Boolean.parseBoolean( pwmRequest.getPwmDomain().getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_BLOCK_OLD_IE ) );
         if ( blockOldIE )
         {
             try
@@ -73,7 +73,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
 
         try
         {
-            final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
+            final ConfigManagerBean configManagerBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ConfigManagerBean.class );
             if ( checkAuthentication( pwmRequest, configManagerBean ) == ProcessStatus.Continue )
             {
                 filterChain.doFilter();
@@ -134,14 +134,14 @@ public class ConfigAccessFilter extends AbstractPwmFilter
             throw new PwmUnrecoverableException( errorInformation );
         }
 
-        if ( PwmApplicationMode.RUNNING == pwmRequest.getPwmApplication().getApplicationMode() )
+        if ( PwmApplicationMode.RUNNING == pwmRequest.getPwmDomain().getApplicationMode() )
         {
             if ( !pwmRequest.isAuthenticated() )
             {
                 throw new PwmUnrecoverableException( PwmError.ERROR_AUTHENTICATION_REQUIRED );
             }
 
-            if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
+            if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
             {
                 throw new PwmUnrecoverableException( PwmError.ERROR_UNAUTHORIZED );
             }

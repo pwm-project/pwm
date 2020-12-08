@@ -23,7 +23,7 @@ package password.pwm;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -52,7 +52,7 @@ public class PwmEnvironment
     @lombok.Builder.Default
     private PwmApplicationMode applicationMode = PwmApplicationMode.ERROR;
 
-    private DomainConfig config;
+    private AppConfig config;
     private File applicationPath;
     private boolean internalRuntimeInstance;
     private File configurationFile;
@@ -168,7 +168,7 @@ public class PwmEnvironment
     }
 
     public PwmEnvironment makeRuntimeInstance(
-            final DomainConfig domainConfig
+            final AppConfig domainConfig
     )
             throws PwmUnrecoverableException
     {

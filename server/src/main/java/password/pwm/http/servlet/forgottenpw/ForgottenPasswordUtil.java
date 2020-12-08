@@ -420,9 +420,9 @@ public class ForgottenPasswordUtil
     static void doActionSendNewPassword( final PwmRequest pwmRequest )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final ForgottenPasswordBean forgottenPasswordBean = ForgottenPasswordServlet.forgottenPasswordBean( pwmRequest );
-        final ForgottenPasswordProfile forgottenPasswordProfile = forgottenPasswordProfile( pwmRequest.getPwmApplication(), forgottenPasswordBean );
+        final ForgottenPasswordProfile forgottenPasswordProfile = forgottenPasswordProfile( pwmRequest.getPwmDomain(), forgottenPasswordBean );
         final RecoveryAction recoveryAction = ForgottenPasswordUtil.getRecoveryAction( pwmDomain.getConfig(), forgottenPasswordBean );
 
         LOGGER.trace( pwmRequest, () -> "beginning process to send new password to user" );
@@ -433,7 +433,7 @@ public class ForgottenPasswordUtil
         }
 
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
-        final ChaiUser theUser = pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity );
+        final ChaiUser theUser = pwmRequest.getPwmDomain().getProxiedChaiUser( userIdentity );
 
         try
         {

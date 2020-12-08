@@ -20,13 +20,13 @@
 
 package password.pwm.util.secure;
 
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.bean.PrivateKeyCertificate;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.PrivateKeyValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -49,31 +49,31 @@ public class HttpsServerCertificateManager
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpsServerCertificateManager.class );
 
     public static KeyStore keyStoreForApplication(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final PasswordData passwordData,
             final String alias
     )
             throws PwmUnrecoverableException
     {
-        KeyStore keyStore = exportKey( pwmDomain.getConfig(), KeyStoreFormat.JKS, passwordData, alias );
+        KeyStore keyStore = exportKey( pwmApplication.getConfig(), KeyStoreFormat.JKS, passwordData, alias );
 
         if ( keyStore == null )
         {
-            keyStore = makeSelfSignedCert( pwmDomain, passwordData, alias );
+            keyStore = makeSelfSignedCert( pwmApplication, passwordData, alias );
         }
 
         return keyStore;
     }
 
     private static KeyStore exportKey(
-            final DomainConfig domainConfig,
+            final AppConfig appConfig,
             final KeyStoreFormat format,
             final PasswordData passwordData,
             final String alias
     )
             throws PwmUnrecoverableException
     {
-        final PrivateKeyCertificate privateKeyCertificate = domainConfig.readSettingAsPrivateKey( PwmSetting.HTTPS_CERT );
+        final PrivateKeyCertificate privateKeyCertificate = appConfig.readSettingAsPrivateKey( PwmSetting.HTTPS_CERT );
         if ( privateKeyCertificate == null )
         {
             return null;
@@ -103,12 +103,12 @@ public class HttpsServerCertificateManager
         }
     }
 
-    private static KeyStore makeSelfSignedCert( final PwmDomain pwmDomain, final PasswordData password, final String alias )
+    private static KeyStore makeSelfSignedCert( final PwmApplication pwmApplication, final PasswordData password, final String alias )
             throws PwmUnrecoverableException
     {
         try
         {
-            return SelfCertFactory.getExistingCertOrGenerateNewCert( pwmDomain, password, alias );
+            return SelfCertFactory.getExistingCertOrGenerateNewCert( pwmApplication, password, alias );
         }
         catch ( final Exception e )
         {

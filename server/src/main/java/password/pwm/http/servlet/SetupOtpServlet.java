@@ -114,7 +114,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
 
     private SetupOtpBean getSetupOtpBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, SetupOtpBean.class );
+        return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, SetupOtpBean.class );
     }
 
     public static SetupOtpProfile getSetupOtpProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
@@ -127,7 +127,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             throws PwmUnrecoverableException, IOException, ServletException
     {
         // fetch the required beans / managers
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final DomainConfig config = pwmDomain.getConfig();
 
@@ -171,7 +171,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             return;
         }
 
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         if ( otpBean.isConfirmed() )
@@ -269,7 +269,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         pwmSession.getLoginInfoBean().setFlag( LoginInfoBean.LoginFlag.skipOtp );
-        pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, SetupOtpBean.class );
+        pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, SetupOtpBean.class );
 
         pwmRequest.sendRedirectToContinue();
         return ProcessStatus.Halt;
@@ -281,7 +281,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final OTPUserRecord otpUserRecord = pwmSession.getUserInfo().getOtpUserRecord();
@@ -324,7 +324,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
     {
         final SetupOtpBean otpBean = getSetupOtpBean( pwmRequest );
 
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final OtpService service = pwmDomain.getOtpService();
         final UserIdentity theUser = pwmSession.getUserInfo().getUserIdentity();
@@ -352,7 +352,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
     {
         final SetupOtpBean otpBean = getSetupOtpBean( pwmRequest );
 
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final String otpToken = pwmRequest.readParameterAsString( PwmConstants.PARAM_OTP_TOKEN );
@@ -400,7 +400,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
     )
             throws PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         // has pre-existing, nothing to do.
@@ -532,7 +532,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                 return true;
             }
 
-            final boolean admin = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN );
+            final boolean admin = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
             if ( admin )
             {
                 if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )

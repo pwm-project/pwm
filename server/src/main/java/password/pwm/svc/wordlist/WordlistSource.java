@@ -112,7 +112,7 @@ class WordlistSource
         return new WordlistSource( WordlistSourceType.BuiltIn, null, () ->
         {
             final ContextManager contextManager = pwmDomain.getPwmEnvironment().getContextManager();
-            final String wordlistFilename = pwmDomain.getConfig().readAppProperty( wordlistConfiguration.getBuiltInWordlistLocationProperty() );
+            final String wordlistFilename = pwmDomain.getPwmApplication().getConfig().readAppProperty( wordlistConfiguration.getBuiltInWordlistLocationProperty() );
             final InputStream inputStream;
             if ( contextManager != null )
             {

@@ -141,13 +141,13 @@ public class NewUserServlet extends ControlledPwmServlet
 
     static NewUserBean getNewUserBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, NewUserBean.class );
+        return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, NewUserBean.class );
     }
 
     @Override
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
         final DomainConfig config = pwmDomain.getConfig();
 
@@ -199,7 +199,7 @@ public class NewUserServlet extends ControlledPwmServlet
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         if ( newUserBean.getProfileID() == null )
@@ -370,7 +370,7 @@ public class NewUserServlet extends ControlledPwmServlet
     )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final Locale locale = pwmRequest.getLocale();
 
         try
@@ -414,7 +414,7 @@ public class NewUserServlet extends ControlledPwmServlet
     {
         final Instant startTime = Instant.now();
         final Locale locale = pwmRequest.getLocale();
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final NewUserProfile newUserProfile = getNewUserProfile( pwmRequest );
         final List<FormConfiguration> formDefinition = newUserProfile.readSettingAsForm( PwmSetting.NEWUSER_FORM );
         final Map<FormConfiguration, String> formValueData = FormUtility.readFormValuesFromMap( newUserForm.getFormData(), formDefinition, locale );
@@ -725,7 +725,7 @@ public class NewUserServlet extends ControlledPwmServlet
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, NewUserBean.class );
+        pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, NewUserBean.class );
         pwmRequest.sendRedirectToContinue();
 
         return ProcessStatus.Halt;
@@ -757,7 +757,7 @@ public class NewUserServlet extends ControlledPwmServlet
         }
 
         // -- process complete -- \\
-        pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, NewUserBean.class );
+        pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, NewUserBean.class );
 
         if ( pwmRequest.isAuthenticated() )
         {
@@ -800,7 +800,7 @@ public class NewUserServlet extends ControlledPwmServlet
 
     public static NewUserProfile getNewUserProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        final String profileID = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, NewUserBean.class ).getProfileID();
+        final String profileID = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, NewUserBean.class ).getProfileID();
         if ( profileID == null )
         {
             throw new IllegalStateException( "can not read new user profile until profile is selected" );

@@ -155,7 +155,7 @@ public class ClientApiServlet extends ControlledPwmServlet
 
         final int maxCacheAgeSeconds = 60 * 5;
 
-        final String eTagValue = makeClientEtag( pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), pwmRequest.getHttpServletRequest() );
+        final String eTagValue = makeClientEtag( pwmRequest.getPwmDomain(), pwmRequest.getPwmSession(), pwmRequest.getHttpServletRequest() );
 
         // check the incoming header;
         final String ifNoneMatchValue = pwmRequest.readHeaderValueAsString( "If-None-Match" );
@@ -171,7 +171,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         pwmRequest.getPwmResponse().setHeader( HttpHeader.CacheControl, "public, max-age=" + maxCacheAgeSeconds );
 
         final AppData appData = makeAppData(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 pwmRequest,
                 pwmRequest.getHttpServletRequest(),
                 pwmRequest.getPwmResponse().getHttpServletResponse(),
@@ -190,7 +190,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         final String bundleName = pwmRequest.readParameterAsString( "bundle" );
         final int maxCacheAgeSeconds = 60 * 5;
 
-        final String eTagValue = makeClientEtag( pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), pwmRequest.getHttpServletRequest() );
+        final String eTagValue = makeClientEtag( pwmRequest.getPwmDomain(), pwmRequest.getPwmSession(), pwmRequest.getHttpServletRequest() );
 
         pwmRequest.getPwmResponse().setHeader( HttpHeader.ETag, eTagValue );
         pwmRequest.getPwmResponse().setHeader( HttpHeader.Expires, String.valueOf( System.currentTimeMillis() + ( maxCacheAgeSeconds * 1000 ) ) );
@@ -198,7 +198,7 @@ public class ClientApiServlet extends ControlledPwmServlet
 
         try
         {
-            final LinkedHashMap<String, String> displayData = new LinkedHashMap<>( makeDisplayData( pwmRequest.getPwmApplication(),
+            final LinkedHashMap<String, String> displayData = new LinkedHashMap<>( makeDisplayData( pwmRequest.getPwmDomain(),
                     pwmRequest, bundleName ) );
             final RestResultBean restResultBean = RestResultBean.withData( displayData );
             pwmRequest.outputJsonResult( restResultBean );
@@ -222,7 +222,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         try
         {
             final HealthData jsonOutput = RestHealthServer.processGetHealthCheckData(
-                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getPwmDomain(),
                     pwmRequest.getLocale() );
             final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
             pwmRequest.outputJsonResult( restResultBean );
@@ -243,7 +243,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     {
         final PingResponse pingResponse = new PingResponse();
         pingResponse.setTime( Instant.now() );
-        pingResponse.setRuntimeNonce( pwmRequest.getPwmApplication().getRuntimeNonce() );
+        pingResponse.setRuntimeNonce( pwmRequest.getPwmDomain().getRuntimeNonce() );
         pwmRequest.outputJsonResult( RestResultBean.withData( pingResponse ) );
         return ProcessStatus.Halt;
     }
@@ -251,7 +251,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     public static String makeClientEtag( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        return makeClientEtag( pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), pwmRequest.getHttpServletRequest() );
+        return makeClientEtag( pwmRequest.getPwmDomain(), pwmRequest.getPwmSession(), pwmRequest.getHttpServletRequest() );
     }
 
     public static String makeClientEtag(
@@ -476,7 +476,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         final String statName = pwmRequest.readParameterAsString( "statName" );
         final String days = pwmRequest.readParameterAsString( "days" );
 
-        final StatisticsManager statisticsManager = pwmRequest.getPwmApplication().getStatisticsManager();
+        final StatisticsManager statisticsManager = pwmRequest.getPwmDomain().getStatisticsManager();
         final RestStatisticsServer.OutputVersion1.JsonOutput jsonOutput = new RestStatisticsServer.OutputVersion1.JsonOutput();
         jsonOutput.EPS = RestStatisticsServer.OutputVersion1.addEpsStats( statisticsManager );
 
@@ -511,12 +511,12 @@ public class ClientApiServlet extends ControlledPwmServlet
     private void precheckPublicHealthAndStats( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        if ( pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION )
+        if ( pwmRequest.getPwmDomain().getApplicationMode() == PwmApplicationMode.CONFIGURATION )
         {
             return;
         }
 
-        if ( pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING )
+        if ( pwmRequest.getPwmDomain().getApplicationMode() != PwmApplicationMode.RUNNING )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE );
             throw new PwmUnrecoverableException( errorInformation );
@@ -530,7 +530,7 @@ public class ClientApiServlet extends ControlledPwmServlet
                 throw new PwmUnrecoverableException( errorInformation );
             }
 
-            if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
+            if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
             {
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, "admin privileges required" );
                 throw new PwmUnrecoverableException( errorInformation );

@@ -93,7 +93,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmApplicationMode mode = pwmDomain.getApplicationMode();
 
         final PwmURL pwmURL = pwmRequest.getURL();

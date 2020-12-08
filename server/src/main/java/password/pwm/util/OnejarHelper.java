@@ -20,11 +20,11 @@
 
 package password.pwm.util;
 
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.error.PwmUnrecoverableException;
@@ -55,32 +55,32 @@ public class OnejarHelper
     )
             throws Exception
     {
-        final PwmDomain pwmDomain = makePwmApplication( new File( applicationPath ) );
+        final PwmApplication pwmApplication = makePwmApplication( new File( applicationPath ) );
         try
         {
-            exportKeystore( pwmDomain, password, alias, new File( keystorePath ) );
-            return createProperties( pwmDomain.getConfig() );
+            exportKeystore( pwmApplication, password, alias, new File( keystorePath ) );
+            return createProperties( pwmApplication.getConfig() );
         }
         finally
         {
-            pwmDomain.shutdown();
+            pwmApplication.shutdown();
         }
     }
 
     /**
      * Return properties used by the OneJar launcher to configure the web container.  This reads settings from the
      * application configuration.
-     * @param domainConfig a valid configuration instance
+     * @param appConfig a valid configuration instance
      * @return A List of properties used by the Onejar util
      * @throws Exception If anything goes wrong
      */
-    private static Properties createProperties( final DomainConfig domainConfig )
+    private static Properties createProperties( final AppConfig appConfig )
             throws Exception
     {
-        final String sslProtocolSettingValue = ExportHttpsTomcatConfigCommand.TomcatConfigWriter.getTlsProtocolsValue( domainConfig );
+        final String sslProtocolSettingValue = ExportHttpsTomcatConfigCommand.TomcatConfigWriter.getTlsProtocolsValue( appConfig );
         final Properties newProps = new Properties();
         newProps.setProperty( "sslEnabledProtocols",  sslProtocolSettingValue );
-        final String ciphers = domainConfig.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
+        final String ciphers = appConfig.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
         if ( !StringUtil.isEmpty( ciphers ) )
         {
             newProps.setProperty( "ciphers", ciphers );
@@ -89,7 +89,7 @@ public class OnejarHelper
     }
 
     private static void exportKeystore(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final String password,
             final String alias,
             final File exportFile
@@ -97,7 +97,7 @@ public class OnejarHelper
             throws Exception
     {
         final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication(
-                pwmDomain,
+                pwmApplication,
                 new PasswordData( password ),
                 alias );
         try ( OutputStream outputStream = new FileOutputStream( exportFile ) )
@@ -106,12 +106,12 @@ public class OnejarHelper
         }
     }
 
-    private static PwmDomain makePwmApplication( final File applicationPath )
+    private static PwmApplication makePwmApplication( final File applicationPath )
             throws Exception
     {
         final File configFile = new File( applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
         final ConfigurationReader configReader = new ConfigurationReader( configFile );
-        final DomainConfig config = configReader.getConfiguration();
+        final AppConfig config = configReader.getConfiguration();
         final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
                 .config( config )
                 .applicationPath( applicationPath )
@@ -120,6 +120,6 @@ public class OnejarHelper
                 .flags( Collections.singleton( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
                 .build();
 
-        return PwmDomain.createPwmApplication( pwmEnvironment );
+        return PwmApplication.createPwmApplication( pwmEnvironment );
     }
 }

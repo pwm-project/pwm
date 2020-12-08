@@ -24,7 +24,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.ldap.UserInfoBean;
 import password.pwm.util.localdb.TestHelper;
 import password.pwm.util.macro.MacroRequest;
@@ -54,7 +54,7 @@ public class PasswordRuleReaderHelperTest
             userAttributes = Collections.unmodifiableMap( map );
         }
 
-        final PwmDomain pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
 
         final UserInfoBean userInfo = UserInfoBean.builder()
                 .attributes( userAttributes )
@@ -62,7 +62,7 @@ public class PasswordRuleReaderHelperTest
                 .username( "fflintstone" )
                 .build();
 
-        return  MacroRequest.forUser( pwmDomain, null, userInfo, null );
+        return  MacroRequest.forUser( pwmApplication.getDefaultDomain(), null, userInfo, null );
     }
 
     private PasswordRuleReaderHelper makeRuleHelper( final boolean enableMacros )

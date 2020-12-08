@@ -25,10 +25,12 @@ import org.apache.log4j.EnhancedPatternLayout;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Logger;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.error.ErrorInformation;
@@ -197,14 +199,14 @@ public class MainClass
         final File configurationFile = locateConfigurationFile( applicationPath );
 
         final ConfigurationReader configReader = loadConfiguration( configurationFile );
-        final DomainConfig config = configReader.getConfiguration();
+        final DomainConfig config = configReader.getConfiguration().getDomainConfigs().get( PwmConstants.DOMAIN_ID_PLACEHOLDER );
 
         final PwmDomain pwmDomain;
         final LocalDB localDB;
 
         if ( parameters.needsPwmApplication )
         {
-            pwmDomain = loadPwmApplication( applicationPath, mainOptions.getApplicationFlags(), config, configurationFile, parameters.readOnly );
+            pwmDomain = loadPwmApplication( applicationPath, mainOptions.getApplicationFlags(), config.getAppConfig(), configurationFile, parameters.readOnly );
             localDB = pwmDomain.getLocalDB();
         }
         else if ( parameters.needsLocalDB )
@@ -450,7 +452,7 @@ public class MainClass
         final File databaseDirectory;
         final String pwmDBLocationSetting = config.readAppProperty( AppProperty.LOCALDB_LOCATION );
         databaseDirectory = FileSystemUtility.figureFilepath( pwmDBLocationSetting, applicationPath );
-        return LocalDBFactory.getInstance( databaseDirectory, readonly, null, config );
+        return LocalDBFactory.getInstance( databaseDirectory, readonly, null, config.getAppConfig() );
     }
 
     private static ConfigurationReader loadConfiguration( final File configurationFile ) throws Exception
@@ -470,7 +472,7 @@ public class MainClass
     private static PwmDomain loadPwmApplication(
             final File applicationPath,
             final Collection<PwmEnvironment.ApplicationFlag> flags,
-            final DomainConfig config,
+            final AppConfig config,
             final File configurationFile,
             final boolean readonly
     )
@@ -495,15 +497,15 @@ public class MainClass
                 .flags( applicationFlags )
                 .build();
 
-        final PwmDomain pwmDomain = PwmDomain.createPwmApplication( pwmEnvironment );
-        final PwmApplicationMode runningMode = pwmDomain.getApplicationMode();
+        final PwmApplication pwmApplication = PwmApplication.createPwmApplication( pwmEnvironment );
+        final PwmApplicationMode runningMode = pwmApplication.getApplicationMode();
 
         if ( runningMode != mode )
         {
             out( "application is in non running state: " + runningMode );
         }
 
-        return pwmDomain;
+        return pwmApplication.getDefaultDomain();
     }
 
     private static File locateConfigurationFile( final File applicationPath )

@@ -30,6 +30,7 @@ import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.StoredConfigItemKey;
@@ -139,7 +140,7 @@ public class DebugItemGenerator
         this.sessionLabel = sessionLabel;
 
         final StoredConfiguration obfuscatedStoredConfig = StoredConfigurationUtil.copyConfigAndBlankAllPasswords( pwmDomain.getConfig().getStoredConfiguration() );
-        this.obfuscatedDomainConfig = new DomainConfig( obfuscatedStoredConfig );
+        this.obfuscatedDomainConfig = new AppConfig( obfuscatedStoredConfig ).getDefaultDomainConfig();
     }
 
     private String getFilenameBase()

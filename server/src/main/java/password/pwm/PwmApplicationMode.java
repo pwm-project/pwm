@@ -44,7 +44,7 @@ public enum PwmApplicationMode
             return ERROR;
         }
 
-        final PwmDomain pwmDomain;
+        final PwmApplication pwmDomain;
         try
         {
             pwmDomain = contextManager.getPwmApplication();

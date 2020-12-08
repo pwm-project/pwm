@@ -176,7 +176,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
             }
             else
             {
-                userIdentity = UserIdentity.fromObfuscatedKey( userKey, pwmRequest.getPwmApplication() );
+                userIdentity = UserIdentity.fromObfuscatedKey( userKey, pwmRequest.getPwmDomain() );
             }
         }
 
@@ -220,7 +220,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
         addExpiresHeadersToResponse( pwmRequest );
         pwmRequest.outputJsonResult( RestResultBean.withData( detailData ) );
-        pwmRequest.getPwmApplication().getStatisticsManager().incrementValue( Statistic.PEOPLESEARCH_DETAILS );
+        pwmRequest.getPwmDomain().getStatisticsManager().incrementValue( Statistic.PEOPLESEARCH_DETAILS );
 
         return ProcessStatus.Halt;
     }
@@ -351,7 +351,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
         final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest, peopleSearchProfile );
-        final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
+        final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmDomain() );
         peopleSearchDataReader.checkIfUserIdentityViewable( userIdentity );
         return userIdentity;
     }

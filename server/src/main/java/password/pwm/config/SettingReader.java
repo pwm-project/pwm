@@ -20,6 +20,7 @@
 
 package password.pwm.config;
 
+import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueTypeConverter;
@@ -124,6 +125,19 @@ public class SettingReader
     public Map<String, NamedSecretData> readSettingAsNamedPasswords( final PwmSetting setting )
     {
         return ValueTypeConverter.valueToNamedPassword( readSetting( setting ) );
+    }
+
+    public PrivateKeyCertificate readSettingAsPrivateKey( final PwmSetting setting )
+    {
+        if ( PwmSettingSyntax.PRIVATE_KEY != setting.getSyntax() )
+        {
+            throw new IllegalArgumentException( "may not read PRIVATE_KEY value for setting: " + setting.toString() );
+        }
+        if ( readSetting( setting ) == null )
+        {
+            return null;
+        }
+        return ( PrivateKeyCertificate ) readSetting( setting ).toNativeObject();
     }
 
     private StoredValue readSetting( final PwmSetting setting )

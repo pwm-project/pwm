@@ -84,7 +84,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -96,16 +95,25 @@ public class DomainConfig
     private static final PwmLogger LOGGER = PwmLogger.forClass( DomainConfig.class );
 
     private final StoredConfiguration storedConfiguration;
+    private final AppConfig appConfig;
+    private final String domainID;
 
     private final ConfigurationSuppliers configurationSuppliers = new ConfigurationSuppliers();
 
     private final DataCache dataCache = new DataCache();
     private final SettingReader settingReader;
 
-    public DomainConfig( final StoredConfiguration storedConfiguration )
+    public DomainConfig( final AppConfig appConfig, final String domainID )
     {
-        this.storedConfiguration = storedConfiguration;
+        this.appConfig = Objects.requireNonNull( appConfig );
+        this.storedConfiguration = appConfig.getStoredConfiguration();
+        this.domainID = Objects.requireNonNull( domainID );
         this.settingReader = new SettingReader( storedConfiguration, null, PwmConstants.DOMAIN_ID_PLACEHOLDER );
+    }
+
+    public AppConfig getAppConfig()
+    {
+        return appConfig;
     }
 
     public static void deprecatedSettingException( final PwmSetting pwmSetting, final String profile, final MessageSendMethod value )
@@ -352,15 +360,7 @@ public class DomainConfig
 
     public PrivateKeyCertificate readSettingAsPrivateKey( final PwmSetting setting )
     {
-        if ( PwmSettingSyntax.PRIVATE_KEY != setting.getSyntax() )
-        {
-            throw new IllegalArgumentException( "may not read PRIVATE_KEY value for setting: " + setting.toString() );
-        }
-        if ( readStoredValue( setting ) == null )
-        {
-            return null;
-        }
-        return ( PrivateKeyCertificate ) readStoredValue( setting ).toNativeObject();
+        return settingReader.readSettingAsPrivateKey( setting );
     }
 
     private PwmSecurityKey tempInstanceKey = null;
@@ -406,12 +406,12 @@ public class DomainConfig
 
     public List<Locale> getKnownLocales( )
     {
-        return Collections.unmodifiableList( new ArrayList<>( configurationSuppliers.localeFlagMap.get().keySet() ) );
+        return getAppConfig().getKnownLocales();
     }
 
     public Map<Locale, String> getKnownLocaleFlagMap( )
     {
-        return Collections.unmodifiableMap( configurationSuppliers.localeFlagMap.get() );
+        return getAppConfig().getKnownLocaleFlagMap();
     }
 
 
@@ -445,7 +445,7 @@ public class DomainConfig
 
     public String readAppProperty( final AppProperty property )
     {
-        return configurationSuppliers.appPropertyOverrides.get().getOrDefault( property.getKey(), property.getDefaultValue() );
+        return appConfig.readAppProperty( property );
     }
 
     private StoredValue readStoredValue( final PwmSetting setting )
@@ -467,57 +467,10 @@ public class DomainConfig
 
             return Collections.unmodifiableMap(
                     sourceMap.entrySet()
-                    .stream()
-                    .filter( entry -> entry.getValue().isEnabled() )
-                    .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) )
+                            .stream()
+                            .filter( entry -> entry.getValue().isEnabled() )
+                            .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) )
             );
-        } );
-
-        private final Supplier<Map<String, String>> appPropertyOverrides = new LazySupplier<>( () ->
-                StringUtil.convertStringListToNameValuePair(
-                        readSettingAsStringArray( PwmSetting.APP_PROPERTY_OVERRIDES ), "=" ) );
-
-        private final Supplier<Map<Locale, String>> localeFlagMap = new LazySupplier<>( () ->
-        {
-            final String defaultLocaleAsString = PwmConstants.DEFAULT_LOCALE.toString();
-
-            final List<String> inputList = readSettingAsStringArray( PwmSetting.KNOWN_LOCALES );
-            final Map<String, String> inputMap = StringUtil.convertStringListToNameValuePair( inputList, "::" );
-
-            // Sort the map by display name
-            final Map<String, String> sortedMap = new TreeMap<>();
-            for ( final String localeString : inputMap.keySet() )
-            {
-                final Locale theLocale = LocaleHelper.parseLocaleString( localeString );
-                if ( theLocale != null )
-                {
-                    sortedMap.put( theLocale.getDisplayName(), localeString );
-                }
-            }
-
-            final List<String> returnList = new ArrayList<>();
-
-            //ensure default is first.
-            returnList.add( defaultLocaleAsString );
-            for ( final String localeString : sortedMap.values() )
-            {
-                if ( !defaultLocaleAsString.equals( localeString ) )
-                {
-                    returnList.add( localeString );
-                }
-            }
-
-            final Map<Locale, String> localeFlagMap = new LinkedHashMap<>();
-            for ( final String localeString : returnList )
-            {
-                final Locale loopLocale = LocaleHelper.parseLocaleString( localeString );
-                if ( loopLocale != null )
-                {
-                    final String flagCode = inputMap.containsKey( localeString ) ? inputMap.get( localeString ) : loopLocale.getCountry();
-                    localeFlagMap.put( loopLocale, flagCode );
-                }
-            }
-            return Collections.unmodifiableMap( localeFlagMap );
         } );
 
         private final LazySupplier.CheckedSupplier<PwmSecurityKey, PwmUnrecoverableException> pwmSecurityKey
@@ -689,13 +642,13 @@ public class DomainConfig
 
     public boolean isDevDebugMode( )
     {
-        return Boolean.parseBoolean( readAppProperty( AppProperty.LOGGING_DEV_OUTPUT ) );
+        return appConfig.isDevDebugMode();
     }
 
     public String configurationHash( final SecureService secureService )
             throws PwmUnrecoverableException
     {
-        return storedConfiguration.valueHash();
+        return appConfig.configurationHash( secureService );
     }
 
     public Set<PwmSetting> nonDefaultSettings( )

@@ -102,13 +102,13 @@ public class DeleteAccountServlet extends ControlledPwmServlet
 
     private DeleteAccountBean getBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, DeleteAccountBean.class );
+        return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, DeleteAccountBean.class );
     }
 
     @Override
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final DeleteAccountProfile deleteAccountProfile = getProfile( pwmRequest );
 
         if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.DELETE_ACCOUNT_ENABLE ) )
@@ -161,7 +161,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, DeleteAccountBean.class );
+        pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, DeleteAccountBean.class );
         pwmRequest.sendRedirectToContinue();
         return ProcessStatus.Halt;
     }
@@ -184,7 +184,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
                     pwmRequest.getLabel(),
                     ProfileDefinition.DeleteAccount.toString()
             );
-            pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+            pwmRequest.getPwmDomain().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         return ProcessStatus.Continue;
@@ -196,7 +196,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final DeleteAccountProfile deleteAccountProfile = getProfile( pwmRequest );
         final UserIdentity userIdentity = pwmRequest.getUserInfoIfLoggedIn();
 
@@ -281,7 +281,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
             return;
         }
 
-        pwmRequest.getPwmApplication().getEmailQueue().submitEmail(
+        pwmRequest.getPwmDomain().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmRequest.getPwmSession().getUserInfo(),
                 pwmRequest.getPwmSession().getSessionManager().getMacroMachine( )

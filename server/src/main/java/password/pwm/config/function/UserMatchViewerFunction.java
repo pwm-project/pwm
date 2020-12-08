@@ -26,10 +26,11 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfiguration;
@@ -69,7 +70,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
             final String extraData )
             throws Exception
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
         final Instant startSearchTime = Instant.now();
         final int maxResultSize = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_USER_PERMISSION_MATCH_LIMIT ) );
@@ -99,16 +100,16 @@ public class UserMatchViewerFunction implements SettingUIFunction
     )
             throws Exception
     {
-        final DomainConfig config = new DomainConfig( storedConfiguration );
-        final PwmDomain tempApplication = PwmDomain.createPwmApplication( pwmDomain.getPwmEnvironment().makeRuntimeInstance( config ) );
+        final AppConfig config = new AppConfig( storedConfiguration );
+        final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmDomain.getPwmEnvironment().makeRuntimeInstance( config ) );
         final StoredValue storedValue = storedConfiguration.readSetting( setting, profile );
         final List<UserPermission> permissions = ValueTypeConverter.valueToUserPermissions( storedValue );
 
-        validateUserPermissionLdapValues( tempApplication, permissions );
+        validateUserPermissionLdapValues( tempApplication.getDefaultDomain(), permissions );
 
         final int maxSearchSeconds = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_USER_PERMISSION_TIMEOUT_SECONDS ) );
         final TimeDuration maxSearchTime = TimeDuration.of( maxSearchSeconds, TimeDuration.Unit.SECONDS );
-        return UserPermissionUtility.discoverMatchingUsers( tempApplication, permissions, SessionLabel.SYSTEM_LABEL, maxResultSize, maxSearchTime );
+        return UserPermissionUtility.discoverMatchingUsers( tempApplication.getDefaultDomain(), permissions, SessionLabel.SYSTEM_LABEL, maxResultSize, maxSearchTime );
     }
 
     private static void validateUserPermissionLdapValues(

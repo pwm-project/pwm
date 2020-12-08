@@ -66,7 +66,7 @@ public class AuthorizationFilter extends AbstractPwmFilter
     {
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmDomain pwmDomain = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
         // if the user is not authenticated as a PWM Admin, redirect to error page.
         boolean hasPermission = false;

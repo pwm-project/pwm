@@ -60,7 +60,7 @@ public abstract class JspUtility
         final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
         try
         {
-            return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, theClass );
+            return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, theClass );
         }
         catch ( final PwmUnrecoverableException e )
         {

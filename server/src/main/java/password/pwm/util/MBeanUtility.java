@@ -23,7 +23,7 @@ package password.pwm.util;
 
 import lombok.Getter;
 import password.pwm.PwmAboutProperty;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.util.logging.PwmLogger;
 
@@ -44,13 +44,13 @@ public class MBeanUtility
     {
     }
 
-    public static void registerMBean( final PwmDomain pwmDomain )
+    public static void registerMBean( final PwmApplication pwmDomain )
     {
         try
         {
             final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
             final ObjectName name = figureMBeanName( pwmDomain );
-            final Map<PwmAboutProperty, String> aboutMap = PwmAboutProperty.makeInfoBean( pwmDomain );
+            final Map<PwmAboutProperty, String> aboutMap = PwmAboutProperty.makeInfoBean( pwmDomain.getDefaultDomain() );
             final Map<String, String> outputMap = new HashMap<>(  );
             final AttributeList attributeList = new AttributeList(  );
             for ( final Map.Entry<PwmAboutProperty, String> entry : aboutMap.entrySet() )
@@ -68,7 +68,7 @@ public class MBeanUtility
         }
     }
 
-    public static void unregisterMBean( final PwmDomain pwmDomain )
+    public static void unregisterMBean( final PwmApplication pwmDomain )
     {
         try
         {
@@ -81,7 +81,7 @@ public class MBeanUtility
         }
     }
 
-    private static ObjectName figureMBeanName( final PwmDomain pwmDomain )
+    private static ObjectName figureMBeanName( final PwmApplication pwmDomain )
             throws MalformedObjectNameException
     {
         final String context;

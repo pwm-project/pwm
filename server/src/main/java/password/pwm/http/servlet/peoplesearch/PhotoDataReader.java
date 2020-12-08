@@ -123,7 +123,7 @@ public class PhotoDataReader
             return true;
         }
 
-        final boolean hasPermission = UserPermissionUtility.testUserPermission( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userIdentity, permissions );
+        final boolean hasPermission = UserPermissionUtility.testUserPermission( pwmRequest.getPwmDomain(), pwmRequest.getLabel(), userIdentity, permissions );
         if ( !hasPermission )
         {
             LOGGER.debug( pwmRequest, () -> "user " + userIdentity + " failed photo query filter, denying photo view ("
@@ -152,7 +152,7 @@ public class PhotoDataReader
             case ServerHttp:
                 String returnUrl = pwmRequest.getURLwithoutQueryString();
                 returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_ACTION_REQUEST, PeopleSearchServlet.PeopleSearchActions.photo.name() );
-                returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_USERKEY,  userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
+                returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_USERKEY,  userIdentity.toObfuscatedKey( pwmRequest.getPwmDomain() ) );
                 return returnUrl;
 
             default:
@@ -216,7 +216,7 @@ public class PhotoDataReader
     {
         return LdapOperationsHelper.readPhotoDataFromLdap(
                 pwmRequest.getConfig(),
-                pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity ).getChaiProvider(),
+                pwmRequest.getPwmDomain().getProxiedChaiUser( userIdentity ).getChaiProvider(),
                 userIdentity
         );
     }
@@ -235,7 +235,7 @@ public class PhotoDataReader
             final PwmHttpClientConfiguration configuration = PwmHttpClientConfiguration.builder()
                     .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
                     .build();
-            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient( configuration );
+            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient( configuration );
             final PwmHttpClientRequest clientRequest = PwmHttpClientRequest.builder()
                     .method( HttpMethod.GET )
                     .url( overrideURL.get() )

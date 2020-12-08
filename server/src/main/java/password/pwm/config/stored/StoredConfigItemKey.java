@@ -20,6 +20,7 @@
 
 package password.pwm.config.stored;
 
+import org.jetbrains.annotations.NotNull;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
@@ -37,7 +38,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class StoredConfigItemKey implements Serializable
+public class StoredConfigItemKey implements Serializable, Comparable<StoredConfigItemKey>
 {
     private static final Comparator<StoredConfigItemKey> COMPARATOR = makeComparator();
 
@@ -226,6 +227,12 @@ public class StoredConfigItemKey implements Serializable
         }
 
         return ConfigurationProperty.valueOf( recordID );
+    }
+
+    @Override
+    public int compareTo( @NotNull final StoredConfigItemKey o )
+    {
+        return COMPARATOR.compare( this, o );
     }
 
     @Override

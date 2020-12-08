@@ -483,7 +483,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             };
 
             StoredConfigurationUtil.allPossibleSettingKeysForConfiguration( storedConfiguration )
-                    .parallelStream()
+                    .stream()
                     .filter( ( key ) -> StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() ) )
                     .filter( ( key ) -> !key.toPwmSetting().getFlags().contains( PwmSettingFlag.Deprecated ) )
                     .sorted()
