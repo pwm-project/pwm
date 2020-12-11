@@ -99,9 +99,14 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
         return profileID;
     }
 
-    static StoredConfigItemKey fromSetting( final PwmSetting pwmSetting, final String profileID )
+    public static StoredConfigItemKey fromSetting( final PwmSetting pwmSetting, final String profileID )
     {
         return new StoredConfigItemKey( RecordType.SETTING, null, pwmSetting.getKey(), profileID );
+    }
+
+    public static StoredConfigItemKey fromSetting( final PwmSetting pwmSetting, final String profileID, final String domainID )
+    {
+        return new StoredConfigItemKey( RecordType.SETTING, domainID, pwmSetting.getKey(), profileID );
     }
 
     static StoredConfigItemKey fromLocaleBundle( final PwmLocaleBundle localeBundle, final String key )

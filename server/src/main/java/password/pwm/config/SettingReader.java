@@ -21,7 +21,9 @@
 package password.pwm.config;
 
 import password.pwm.bean.PrivateKeyCertificate;
+import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.ActionConfiguration;
@@ -31,6 +33,7 @@ import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.logging.PwmLogger;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -41,6 +44,8 @@ import java.util.Set;
 
 public class SettingReader
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( SettingReader.class );
+
     private final StoredConfiguration storedConfiguration;
     private final String profileID;
     private final String domainID;
@@ -142,6 +147,27 @@ public class SettingReader
 
     private StoredValue readSetting( final PwmSetting setting )
     {
+
+        /*
+        if ( StringUtil.isEmpty( domainID ) )
+        {
+            if ( setting.getCategory().getScope() == PwmSettingScope.DOMAIN )
+            {
+                final String msg = "attempt to read DOMAIN scope setting '" + setting.getKey() + "' via system scope";
+                LOGGER.warn( () -> msg );
+            }
+        }
+        else
+        {
+            if ( setting.getCategory().getScope() == PwmSettingScope.SYSTEM )
+            {
+                final String msg = "attempt to read SYSTEM scope setting '" + setting.getKey() + "' via domain scope";
+                LOGGER.warn( () -> msg );
+            }
+        }
+        */
+
+
         if ( StringUtil.isEmpty( profileID ) )
         {
             if ( setting.getCategory().hasProfiles() )
@@ -157,6 +183,7 @@ public class SettingReader
             }
         }
 
-        return storedConfiguration.readSetting( setting, profileID );
+        final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID );
+        return StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
     }
 }

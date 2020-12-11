@@ -28,8 +28,6 @@ import password.pwm.i18n.Message;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -490,24 +488,6 @@ public enum PwmPasswordRule
         return positiveBooleanMerge;
     }
 
-    public static PwmPasswordRule forKey( final String key )
-    {
-        if ( key == null )
-        {
-            return null;
-        }
-
-        for ( final PwmPasswordRule rule : values() )
-        {
-            if ( key.equals( rule.getKey() ) )
-            {
-                return rule;
-            }
-        }
-
-        return null;
-    }
-
     public String getLabel( final Locale locale, final DomainConfig config )
     {
         final String key = "Rule_" + this.toString();
@@ -528,6 +508,6 @@ public enum PwmPasswordRule
         {
             sortedMap.put( rule.getLabel( locale, config ), rule );
         }
-        return Collections.unmodifiableList( new ArrayList<>( sortedMap.values() ) );
+        return List.copyOf( sortedMap.values() );
     }
 }

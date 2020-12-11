@@ -181,6 +181,22 @@ public class JavaHelper
         return readEnumFromString( enumClass, input ).orElse( defaultValue );
     }
 
+
+    public static <E extends Enum<E>> Optional<E> readEnumFromPredicate( final Class<E> enumClass, final Predicate<E> match )
+    {
+        if ( match == null )
+        {
+            return Optional.empty();
+        }
+
+        if ( enumClass == null || !enumClass.isEnum() )
+        {
+            return Optional.empty();
+        }
+
+        return EnumSet.allOf( enumClass ).stream().filter( match ).findFirst();
+    }
+
     public static <E extends Enum<E>> Optional<E> readEnumFromString( final Class<E> enumClass, final String input )
     {
         if ( StringUtil.isEmpty( input ) )

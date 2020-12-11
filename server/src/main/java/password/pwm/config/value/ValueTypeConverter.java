@@ -80,7 +80,7 @@ public final class ValueTypeConverter
         }
         if ( ( !( value instanceof StringValue ) ) && ( !( value instanceof BooleanValue ) ) )
         {
-            throw new IllegalArgumentException( "setting value is not readable as string" );
+            throw new IllegalArgumentException( "setting value is type '" + value.getClass().getSimpleName() + "' not readable as string" );
         }
         final Object nativeObject = value.toNativeObject();
         if ( nativeObject == null )

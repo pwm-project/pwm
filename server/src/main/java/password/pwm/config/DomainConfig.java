@@ -20,12 +20,10 @@
 
 package password.pwm.config;
 
-import com.novell.ldapchai.util.StringHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
-import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.CertificateMatchingMode;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
@@ -43,7 +41,6 @@ import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.stored.StoredConfigItemKey;
@@ -76,6 +73,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -243,19 +241,9 @@ public class DomainConfig
 
     public PwmPasswordPolicy getPasswordPolicy( final String profile, final Locale locale )
     {
-        if ( dataCache.cachedPasswordPolicy.containsKey( profile ) && dataCache.cachedPasswordPolicy.get( profile ).containsKey(
-                locale ) )
-        {
-            return dataCache.cachedPasswordPolicy.get( profile ).get( locale );
-        }
-
-        final PwmPasswordPolicy policy = initPasswordPolicy( profile, locale );
-        if ( !dataCache.cachedPasswordPolicy.containsKey( profile ) )
-        {
-            dataCache.cachedPasswordPolicy.put( profile, new LinkedHashMap<>() );
-        }
-        dataCache.cachedPasswordPolicy.get( profile ).put( locale, policy );
-        return policy;
+        return dataCache.cachedPasswordPolicy
+                .computeIfAbsent( profile, s -> new HashMap<>() )
+                .computeIfAbsent( locale, s -> PwmPasswordPolicy.createPwmPasswordPolicy( this, profile, locale ) );
     }
 
     public List<String> getPasswordProfileIDs( )
@@ -263,70 +251,6 @@ public class DomainConfig
         return StoredConfigurationUtil.profilesForSetting( PwmSetting.PASSWORD_PROFILE_LIST, storedConfiguration );
     }
 
-    protected PwmPasswordPolicy initPasswordPolicy( final String profile, final Locale locale )
-    {
-        final Map<String, String> passwordPolicySettings = new LinkedHashMap<>();
-        for ( final PwmPasswordRule rule : PwmPasswordRule.values() )
-        {
-            if ( rule.getPwmSetting() != null || rule.getAppProperty() != null )
-            {
-                final String value;
-                final PwmSetting pwmSetting = rule.getPwmSetting();
-                switch ( rule )
-                {
-                    case DisallowedAttributes:
-                    case DisallowedValues:
-                    case CharGroupsValues:
-                        value = StringHelper.stringCollectionToString(
-                                ValueTypeConverter.valueToStringArray( storedConfiguration.readSetting( pwmSetting, profile ) ), "\n" );
-                        break;
-                    case RegExMatch:
-                    case RegExNoMatch:
-                        value = StringHelper.stringCollectionToString(
-                                ValueTypeConverter.valueToStringArray( storedConfiguration.readSetting( pwmSetting,
-                                        profile ) ), ";;;" );
-                        break;
-                    case ChangeMessage:
-                        value = ValueTypeConverter.valueToLocalizedString(
-                                storedConfiguration.readSetting( pwmSetting, profile ), locale );
-                        break;
-                    case ADComplexityLevel:
-                        value = ValueTypeConverter.valueToEnum(
-                                pwmSetting, storedConfiguration.readSetting( pwmSetting, profile ),
-                                ADPolicyComplexity.class
-                        ).toString();
-                        break;
-                    case AllowMacroInRegExSetting:
-                        value = readAppProperty( AppProperty.ALLOW_MACRO_IN_REGEX_SETTING );
-                        break;
-                    default:
-                        value = String.valueOf(
-                                storedConfiguration.readSetting( pwmSetting, profile ).toNativeObject() );
-                }
-                passwordPolicySettings.put( rule.getKey(), value );
-            }
-        }
-
-        // set case sensitivity
-        final String caseSensitivitySetting = ValueTypeConverter.valueToString( storedConfiguration.readSetting(
-                PwmSetting.PASSWORD_POLICY_CASE_SENSITIVITY, null ) );
-        if ( !"read".equals( caseSensitivitySetting ) )
-        {
-            passwordPolicySettings.put( PwmPasswordRule.CaseSensitive.getKey(), caseSensitivitySetting );
-        }
-
-        // set pwm-specific values
-        final List<UserPermission> queryMatch = ( List<UserPermission> ) storedConfiguration.readSetting( PwmSetting.PASSWORD_POLICY_QUERY_MATCH, profile ).toNativeObject();
-        final String ruleText = ValueTypeConverter.valueToLocalizedString( storedConfiguration.readSetting( PwmSetting.PASSWORD_POLICY_RULE_TEXT, profile ), locale );
-
-        final PwmPasswordPolicy.PolicyMetaData policyMetaData = PwmPasswordPolicy.PolicyMetaData.builder()
-                .profileID( profile )
-                .userPermissions( queryMatch )
-                .ruleText( ruleText )
-                .build();
-
-        return  PwmPasswordPolicy.createPwmPasswordPolicy( passwordPolicySettings, null, policyMetaData );
-    }
 
     public List<String> readSettingAsStringArray( final PwmSetting setting )
     {
@@ -457,6 +381,11 @@ public class DomainConfig
         }
 
         return storedConfiguration.readSetting( setting, null );
+    }
+
+    public String getDomainID()
+    {
+        return domainID;
     }
 
     private class ConfigurationSuppliers

@@ -62,7 +62,8 @@ public class AppConfig
     {
         this.storedConfiguration = storedConfiguration;
         this.settingReader = new SettingReader( storedConfiguration, null, null );
-        domainConfigMap = getDomainIDs().stream().collect( Collectors.toUnmodifiableMap(
+        domainConfigMap = getDomainIDs().stream()
+                .collect( Collectors.toUnmodifiableMap(
                 ( domainID ) -> domainID,
                 ( domainID ) -> new DomainConfig( this, domainID ) ) );
     }
@@ -104,7 +105,7 @@ public class AppConfig
                 nonDefaultProperties.put( loopProperty, configuredValue );
             }
         }
-        return nonDefaultProperties;
+        return Collections.unmodifiableMap( nonDefaultProperties );
     }
 
     public StoredConfiguration getStoredConfiguration()
