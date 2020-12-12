@@ -27,8 +27,8 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.PasswordStatus;
@@ -95,7 +95,6 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -144,7 +143,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
         ForgottenPasswordAction( final HttpMethod... method )
         {
-            this.method = Collections.unmodifiableList( Arrays.asList( method ) );
+            this.method = List.of( method );
         }
 
         @Override

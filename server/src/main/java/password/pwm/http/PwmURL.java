@@ -31,7 +31,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -299,15 +298,8 @@ public class PwmURL
             return Collections.emptyList();
         }
         final List<String> urlSegments = new ArrayList<>( Arrays.asList( input.split( "/" ) ) );
-        for ( final Iterator<String> iterator = urlSegments.iterator(); iterator.hasNext(); )
-        {
-            final String segment = iterator.next();
-            if ( segment == null || segment.isEmpty() )
-            {
-                iterator.remove();
-            }
-        }
-        return urlSegments;
+        urlSegments.removeIf( StringUtil::isEmpty );
+        return Collections.unmodifiableList( urlSegments );
     }
 
     public static String appendAndEncodeUrlParameters(

@@ -25,10 +25,8 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -90,23 +88,22 @@ public enum PwmLocaleBundle
 
     public Set<String> getLegacyKeys()
     {
-        return Collections.unmodifiableSet( new HashSet<>( Arrays.asList(
+        return Set.of(
                 this.getTheClass().getSimpleName(),
                 this.getTheClass().getName(),
                 "password.pwm." + this.getTheClass().getSimpleName(),
-                this.name()
-        ) ) );
+                this.name() );
     }
 
     public Set<String> getDisplayKeys( )
     {
         final ResourceBundle defaultBundle = ResourceBundle.getBundle( this.getTheClass().getName(), PwmConstants.DEFAULT_LOCALE );
-        return Collections.unmodifiableSet( new HashSet<>( defaultBundle.keySet() ) );
+        return Set.copyOf( defaultBundle.keySet() );
     }
 
     public static Collection<PwmLocaleBundle> allValues( )
     {
-        return Collections.unmodifiableList( Arrays.asList( PwmLocaleBundle.values() ) );
+        return List.of( PwmLocaleBundle.values() );
     }
 
     public static Collection<PwmLocaleBundle> userFacingValues( )

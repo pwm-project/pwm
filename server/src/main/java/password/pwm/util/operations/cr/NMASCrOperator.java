@@ -125,16 +125,10 @@ public class NMASCrOperator implements CrOperator
 
     private Provider saslProvider;
 
-    private static final Map<String, Object> CR_OPTIONS_MAP;
-
-    static
-    {
-        final HashMap<String, Object> crOptionsMap = new HashMap<>();
-        crOptionsMap.put( "com.novell.security.sasl.client.pkgs", "com.novell.sasl.client" );
-        crOptionsMap.put( "javax.security.sasl.client.pkgs", "com.novell.sasl.client" );
-        crOptionsMap.put( "LoginSequence", "Challenge Response" );
-        CR_OPTIONS_MAP = Collections.unmodifiableMap( crOptionsMap );
-    }
+    private static final Map<String, Object> CR_OPTIONS_MAP = Map.of(
+                "com.novell.security.sasl.client.pkgs", "com.novell.sasl.client",
+                "javax.security.sasl.client.pkgs", "com.novell.sasl.client",
+                "LoginSequence", "Challenge Response" );
 
     public NMASCrOperator( final PwmDomain pwmDomain )
     {

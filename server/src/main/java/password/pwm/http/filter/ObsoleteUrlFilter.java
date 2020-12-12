@@ -36,8 +36,6 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 public class ObsoleteUrlFilter extends AbstractPwmFilter
@@ -45,15 +43,7 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( ObsoleteUrlFilter.class );
 
-    private static final Map<String, String> STATIC_REDIRECTS;
-
-    static
-    {
-        final Map<String, String> staticRedirects = new HashMap<>();
-        staticRedirects.put( PwmConstants.URL_PREFIX_PRIVATE, PwmConstants.URL_PREFIX_PRIVATE + "/" );
-        STATIC_REDIRECTS = Collections.unmodifiableMap( staticRedirects );
-    }
-
+    private static final Map<String, String> STATIC_REDIRECTS = Map.of( PwmConstants.URL_PREFIX_PRIVATE, PwmConstants.URL_PREFIX_PRIVATE + "/" );
 
     @Override
     void processFilter( final PwmApplicationMode mode, final PwmRequest pwmRequest, final PwmFilterChain filterChain )

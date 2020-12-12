@@ -32,8 +32,8 @@ import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmRequestAttribute;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.bean.ForgottenPasswordStage;
 import password.pwm.ldap.UserInfo;
@@ -43,8 +43,6 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordUtility;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -54,7 +52,15 @@ import java.util.Set;
 class ForgottenPasswordStageProcessor
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ForgottenPasswordStateMachine.class );
-    private static final List<NextStageProcessor> NEXT_STAGE_PROCESSORS;
+
+    private static final List<NextStageProcessor> NEXT_STAGE_PROCESSORS = List.of(
+            new StageProcessor1(),
+            new StageProcessor2(),
+            new StageProcessor3(),
+            new StageProcessor4(),
+            new StageProcessor5(),
+            new StageProcessor6(),
+            new StageProcessor7() );
 
     static ForgottenPasswordStage nextStage( final ForgottenPasswordStateMachine stateMachine )
             throws PwmUnrecoverableException
@@ -70,18 +76,6 @@ class ForgottenPasswordStageProcessor
         return ForgottenPasswordStage.IDENTIFICATION;
     }
 
-    static
-    {
-        final List<NextStageProcessor> list = new ArrayList<>();
-        list.add( new StageProcessor1() );
-        list.add( new StageProcessor2() );
-        list.add( new StageProcessor3() );
-        list.add( new StageProcessor4() );
-        list.add( new StageProcessor5() );
-        list.add( new StageProcessor6() );
-        list.add( new StageProcessor7() );
-        NEXT_STAGE_PROCESSORS = Collections.unmodifiableList( list );
-    }
 
     private interface NextStageProcessor
     {

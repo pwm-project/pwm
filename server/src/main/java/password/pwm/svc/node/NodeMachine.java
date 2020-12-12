@@ -32,7 +32,6 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -105,7 +104,7 @@ class NodeMachine
             returnObj.put( nodeInfo.getInstanceID(), nodeInfo );
         }
 
-        return Collections.unmodifiableList( new ArrayList<>( returnObj.values() ) );
+        return List.copyOf( returnObj.values() );
     }
 
 

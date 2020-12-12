@@ -29,9 +29,9 @@ import org.apache.log4j.PatternLayout;
 import org.apache.log4j.RollingFileAppender;
 import org.apache.log4j.xml.DOMConfigurator;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -41,28 +41,25 @@ import password.pwm.util.localdb.LocalDBException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class PwmLogManager
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmLogManager.class );
 
-    public static final List<Package> LOGGING_PACKAGES = Collections.unmodifiableList( Arrays.asList(
-            PwmDomain.class.getPackage(),
-            ChaiUser.class.getPackage(),
-            Package.getPackage( "org.jasig.cas.client" )
-    ) );
+    public static final List<String> LOGGING_PACKAGES = List.of(
+            PwmDomain.class.getPackage().getName(),
+            ChaiUser.class.getPackage().getName(),
+            "org.jasig.cas.client" );
 
     public static void deinitializeLogger( )
     {
         // clear all existing package loggers
-        for ( final Package logPackage : LOGGING_PACKAGES )
+        for ( final String logPackage : LOGGING_PACKAGES )
         {
             if ( logPackage != null )
             {
-                final Logger logger = Logger.getLogger( logPackage.getName() );
+                final Logger logger = Logger.getLogger( logPackage );
                 logger.setAdditivity( false );
                 logger.removeAllAppenders();
                 logger.setLevel( Level.TRACE );
@@ -139,11 +136,11 @@ public class PwmLogManager
             final ConsoleAppender consoleAppender = new ConsoleAppender( patternLayout );
             final Level level = Level.toLevel( consoleLogLevel );
             consoleAppender.setThreshold( level );
-            for ( final Package logPackage : LOGGING_PACKAGES )
+            for ( final String logPackage : LOGGING_PACKAGES )
             {
                 if ( logPackage != null )
                 {
-                    final Logger logger = Logger.getLogger( logPackage.getName() );
+                    final Logger logger = Logger.getLogger( logPackage );
                     logger.setLevel( Level.TRACE );
                     logger.addAppender( consoleAppender );
                 }
@@ -194,12 +191,12 @@ public class PwmLogManager
 
                 PwmLogger.setFileAppender( fileAppender );
 
-                for ( final Package logPackage : LOGGING_PACKAGES )
+                for ( final String logPackage : LOGGING_PACKAGES )
                 {
                     if ( logPackage != null )
                     {
                         //if (!logPackage.equals(PwmApplication.class.getPackage())) {
-                        final Logger logger = Logger.getLogger( logPackage.getName() );
+                        final Logger logger = Logger.getLogger( logPackage );
                         logger.setLevel( Level.TRACE );
                         logger.addAppender( fileAppender );
                         //}
@@ -246,11 +243,11 @@ public class PwmLogManager
         {
             final LocalDBLog4jAppender localDBLog4jAppender = new LocalDBLog4jAppender( localDBLogger );
             localDBLog4jAppender.setThreshold( localDBLogLevel.getLog4jLevel() );
-            for ( final Package logPackage : LOGGING_PACKAGES )
+            for ( final String logPackage : LOGGING_PACKAGES )
             {
                 if ( logPackage != null && !logPackage.equals( PwmDomain.class.getPackage() ) )
                 {
-                    final Logger logger = Logger.getLogger( logPackage.getName() );
+                    final Logger logger = Logger.getLogger( logPackage );
                     logger.addAppender( localDBLog4jAppender );
                     logger.setLevel( Level.TRACE );
                 }

@@ -26,17 +26,17 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.output.CountingOutputStream;
 import password.pwm.AppProperty;
 import password.pwm.PwmAboutProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationUtil;
+import password.pwm.config.value.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.ContextManager;
@@ -82,7 +82,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -99,7 +98,7 @@ public class DebugItemGenerator
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( DebugItemGenerator.class );
 
-    private static final List<Class<? extends Generator>> DEBUG_ZIP_ITEM_GENERATORS = Collections.unmodifiableList( Arrays.asList(
+    private static final List<Class<? extends Generator>> DEBUG_ZIP_ITEM_GENERATORS = List.of(
             ConfigurationFileItemGenerator.class,
             ConfigurationDebugJsonItemGenerator.class,
             ConfigurationDebugTextItemGenerator.class,
@@ -124,8 +123,7 @@ public class DebugItemGenerator
             LdapConnectionsDebugItemGenerator.class,
             StatisticsDataDebugItemGenerator.class,
             StatisticsEpsDataDebugItemGenerator.class,
-            BuildInformationDebugItemGenerator.class
-    ) );
+            BuildInformationDebugItemGenerator.class );
 
     private final PwmDomain pwmDomain;
     private final DomainConfig obfuscatedDomainConfig;

@@ -24,8 +24,8 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.IdentityVerificationMethod;
@@ -40,7 +40,6 @@ import password.pwm.util.logging.PwmLogger;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -136,7 +135,7 @@ class HelpdeskVerificationStateBean implements Serializable
             final String method = record.getMethod().getLabel( pwmDomain.getConfig(), locale );
             returnRecords.put( record.getTimestamp(), new ViewableValidationRecord( record.getTimestamp(), profile, username, method ) );
         }
-        return Collections.unmodifiableList( new ArrayList<>( returnRecords.values() ) );
+        return List.copyOf( returnRecords.values() );
     }
 
     @Value

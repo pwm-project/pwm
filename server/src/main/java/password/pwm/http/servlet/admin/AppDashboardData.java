@@ -186,69 +186,57 @@ public class AppDashboardData implements Serializable
         final String notApplicableValue = Display.getLocalizedMessage( locale, Display.Value_NotApplicable, pwmDomain.getConfig() );
         final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
 
-        final List<DisplayElement> aboutData = new ArrayList<>();
-        aboutData.add( new DisplayElement(
+        return List.of( new DisplayElement(
                 "appVersion",
                 DisplayElement.Type.string,
                 l.forKey( "Field_AppVersion", PwmConstants.PWM_APP_NAME ),
                 PwmConstants.SERVLET_VERSION
-        ) );
-        aboutData.add( new DisplayElement(
+        ), new DisplayElement(
                 "appBuildTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_AppBuildTime" ),
                 PwmConstants.BUILD_TIME
-        ) );
-        aboutData.add( new DisplayElement(
+        ), new DisplayElement(
                 "currentTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_CurrentTime" ),
                 JavaHelper.toIsoDate( Instant.now() )
-        ) );
-        aboutData.add( new DisplayElement(
+        ), new DisplayElement(
                 "startupTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_StartTime" ),
                 JavaHelper.toIsoDate( pwmDomain.getStartupTime() )
-        ) );
-        aboutData.add( new DisplayElement(
+        ), new DisplayElement(
                 "runningDuration",
                 DisplayElement.Type.string,
                 l.forKey( "Field_UpTime" ),
                 TimeDuration.fromCurrent( pwmDomain.getStartupTime() ).asLongString( locale )
-        ) );
-        aboutData.add( new DisplayElement(
+        ), new DisplayElement(
                 "installTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_InstallTime" ),
                 JavaHelper.toIsoDate( pwmDomain.getInstallTime() )
-        ) );
-        aboutData.add( new DisplayElement(
+        ), new DisplayElement(
                 "siteURL",
                 DisplayElement.Type.string,
                 l.forKey( "Field_SiteURL" ),
                 pwmDomain.getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL )
-        ) );
-        aboutData.add( new DisplayElement(
+        ), new DisplayElement(
                 "instanceID",
                 DisplayElement.Type.string,
                 l.forKey( "Field_InstanceID" ),
                 pwmDomain.getInstanceID()
-        ) );
-        aboutData.add( new DisplayElement(
+        ), new DisplayElement(
                 "configRestartCounter",
                 DisplayElement.Type.number,
                 "Configuration Restart Counter",
                 contextManager == null ? notApplicableValue : numberFormat.format( contextManager.getRestartCount() )
-        ) );
-        aboutData.add( new DisplayElement(
+        ), new DisplayElement(
                 "chaiApiVersion",
                 DisplayElement.Type.string,
                 l.forKey( "Field_ChaiAPIVersion" ),
                 com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION
         ) );
-
-        return Collections.unmodifiableList( aboutData );
     }
 
     private static List<ServiceData> getServiceData( final PwmDomain pwmDomain )
@@ -278,7 +266,7 @@ public class AppDashboardData implements Serializable
             ) );
         }
 
-        return Collections.unmodifiableList( new ArrayList<>( returnData.values() ) );
+        return List.copyOf( returnData.values() );
     }
 
     private static List<DisplayElement> makeLocalDbInfo( final PwmDomain pwmDomain, final Locale locale )
@@ -519,7 +507,7 @@ public class AppDashboardData implements Serializable
                     JavaHelper.threadInfoToString( threadInfo )
             ) );
         }
-        return Collections.unmodifiableList( new ArrayList<>( returnData.values() ) );
+        return List.copyOf( returnData.values() );
     }
 
     private static List<NodeData> makeNodeData(

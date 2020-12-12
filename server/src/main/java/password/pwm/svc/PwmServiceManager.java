@@ -31,7 +31,6 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -203,6 +202,6 @@ public class PwmServiceManager
 
     public List<PwmService> getRunningServices( )
     {
-        return Collections.unmodifiableList( new ArrayList<>( this.runningServices.values() ) );
+        return List.copyOf( this.runningServices.values() );
     }
 }

@@ -30,7 +30,6 @@ import password.pwm.util.localdb.TestHelper;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordRuleReaderHelper;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,12 +45,11 @@ public class PasswordRuleReaderHelperTest
     {
         final Map<String, String> userAttributes;
         {
-            final Map<String, String> map = new HashMap<>();
-            map.put( "cn", "fflintstone" );
-            map.put( "email", "fred@flintstones.tv" );
-            map.put( "givenName", "Fred" );
-            map.put( "sn", "Flintstone" );
-            userAttributes = Collections.unmodifiableMap( map );
+            userAttributes = Map.of(
+                    "cn", "fflintstone",
+                    "email", "fred@flintstones.tv",
+                    "givenName", "Fred",
+                    "sn", "Flintstone" );
         }
 
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );

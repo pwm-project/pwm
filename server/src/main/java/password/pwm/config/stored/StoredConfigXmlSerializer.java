@@ -54,7 +54,6 @@ import java.io.OutputStream;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -676,13 +675,12 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
     static class XmlCleaner
     {
-        private static final List<PwmExceptionLoggingConsumer<XmlDocument>> XML_PRE_PROCESSORS = Collections.unmodifiableList( Arrays.asList(
+        private static final List<PwmExceptionLoggingConsumer<XmlDocument>> XML_PRE_PROCESSORS = List.of(
                 new MigratePreValueXmlElements(),
                 new MigrateOldPropertyFormat(),
                 new AppPropertyOverrideMigration(),
                 new MigrateDeprecatedProperties(),
-                new UpdatePropertiesWithoutType()
-        ) );
+                new UpdatePropertiesWithoutType() );
 
         static void preProcessXml(
                 final XmlDocument document

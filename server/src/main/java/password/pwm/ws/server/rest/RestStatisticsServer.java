@@ -179,7 +179,7 @@ public class RestStatisticsServer extends RestServlet
                 output.put( statistic.name(), statValue );
             }
 
-            return Collections.unmodifiableList( new ArrayList<>( output.values() ) );
+            return List.copyOf( output.values() );
         }
 
         private static List<HistoryData> makeHistoryStatInfos(
@@ -201,7 +201,7 @@ public class RestStatisticsServer extends RestServlet
                     final StatValue statValue = new StatValue( statistic.name(), value );
                     output.put( statistic.name(), statValue );
                 }
-                final List<StatValue> statValues = Collections.unmodifiableList( new ArrayList<>( output.values() ) );
+                final List<StatValue> statValues = List.copyOf( output.values() );
                 final HistoryData historyData = HistoryData.builder()
                         .name( dailyKey.toString() )
                         .date( DateTimeFormatter.ofPattern( "yyyy-MM-dd" ).withZone( ZoneOffset.UTC )
@@ -234,7 +234,7 @@ public class RestStatisticsServer extends RestServlet
                 }
             }
 
-            return Collections.unmodifiableList( new ArrayList<>( output.values() ) );
+            return List.copyOf( output.values() );
         }
 
         private static List<StatLabelData> makeLabels( final Locale locale )
@@ -272,7 +272,7 @@ public class RestStatisticsServer extends RestServlet
                 }
             }
 
-            return Collections.unmodifiableList( new ArrayList<>( output.values() ) );
+            return List.copyOf( output.values() );
         }
     }
 

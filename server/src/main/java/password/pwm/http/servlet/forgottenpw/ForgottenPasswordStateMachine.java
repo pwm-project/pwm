@@ -28,8 +28,8 @@ import com.novell.ldapchai.cr.bean.ChallengeSetBean;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
@@ -47,8 +47,8 @@ import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmRequestAttribute;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.bean.ForgottenPasswordStage;
 import password.pwm.http.tag.PasswordRequirementsTag;
@@ -75,14 +75,13 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
-import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.PresentableForm;
 import password.pwm.ws.server.PresentableFormRow;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -96,23 +95,17 @@ public class ForgottenPasswordStateMachine
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ForgottenPasswordStateMachine.class );
 
-    private static final Map<ForgottenPasswordStage, StageHandler> STAGE_HANDLERS;
+    private static final Map<ForgottenPasswordStage, StageHandler> STAGE_HANDLERS = Map.of(
+            ForgottenPasswordStage.IDENTIFICATION, new IdentificationStageHandler(),
+            ForgottenPasswordStage.METHOD_CHOICE, new MethodChoiceStageHandler(),
+            ForgottenPasswordStage.TOKEN_CHOICE, new TokenChoiceStageHandler(),
+            ForgottenPasswordStage.VERIFICATION, new VerificationStageHandler(),
+            ForgottenPasswordStage.ACTION_CHOICE, new ActionChoiceStageHandler(),
+            ForgottenPasswordStage.NEW_PASSWORD, new PasswordChangeStageHandler(),
+            ForgottenPasswordStage.COMPLETE, new CompletedStageHandler() );
 
     private static final String PARAM_PASSWORD = "password1";
     private static final String PARAM_PASSWORD_CONFIRM = "password2";
-
-    static
-    {
-        final Map<ForgottenPasswordStage, StageHandler> stageStateHandlerMap = new HashMap<>();
-        stageStateHandlerMap.put( ForgottenPasswordStage.IDENTIFICATION, new IdentificationStageHandler() );
-        stageStateHandlerMap.put( ForgottenPasswordStage.METHOD_CHOICE, new MethodChoiceStageHandler() );
-        stageStateHandlerMap.put( ForgottenPasswordStage.TOKEN_CHOICE, new TokenChoiceStageHandler() );
-        stageStateHandlerMap.put( ForgottenPasswordStage.VERIFICATION, new VerificationStageHandler() );
-        stageStateHandlerMap.put( ForgottenPasswordStage.ACTION_CHOICE, new ActionChoiceStageHandler() );
-        stageStateHandlerMap.put( ForgottenPasswordStage.NEW_PASSWORD, new PasswordChangeStageHandler() );
-        stageStateHandlerMap.put( ForgottenPasswordStage.COMPLETE, new CompletedStageHandler() );
-        STAGE_HANDLERS = Collections.unmodifiableMap( stageStateHandlerMap );
-    }
 
     interface StageHandler
     {
@@ -422,17 +415,11 @@ public class ForgottenPasswordStateMachine
 
     static class VerificationStageHandler implements StageHandler
     {
-        private static final Map<IdentityVerificationMethod, StageHandler> VERIFICATION_HANDLERS;
-
-        static
-        {
-            final Map<IdentityVerificationMethod, StageHandler> stageStateHandlerMap = new HashMap<>();
-            stageStateHandlerMap.put( IdentityVerificationMethod.CHALLENGE_RESPONSES, new ChallengeResponseHandler() );
-            stageStateHandlerMap.put( IdentityVerificationMethod.ATTRIBUTES, new AttributeVerificationHandler() );
-            stageStateHandlerMap.put( IdentityVerificationMethod.TOKEN, new TokenVerificationHandler() );
-            stageStateHandlerMap.put( IdentityVerificationMethod.OTP, new OTPVerificationHandler() );
-            VERIFICATION_HANDLERS = Collections.unmodifiableMap( stageStateHandlerMap );
-        }
+        private static final Map<IdentityVerificationMethod, StageHandler> VERIFICATION_HANDLERS = Map.of(
+                IdentityVerificationMethod.CHALLENGE_RESPONSES, new ChallengeResponseHandler(),
+                IdentityVerificationMethod.ATTRIBUTES, new AttributeVerificationHandler(),
+                IdentityVerificationMethod.TOKEN, new TokenVerificationHandler(),
+                IdentityVerificationMethod.OTP, new OTPVerificationHandler() );
 
         @Override
         public void applyForm( final ForgottenPasswordStateMachine forgottenPasswordStateMachine, final Map<String, String> formValues )
@@ -550,7 +537,7 @@ public class ForgottenPasswordStateMachine
                     message = LocaleHelper.getLocalizedMessage( pwmRequestContext.getLocale(), Display.Display_RecoverOTPIdentified, pwmRequestContext.getConfig(), new String[]
                             {
                                     identifier,
-                            }
+                                    }
                     );
                 }
 
@@ -639,9 +626,9 @@ public class ForgottenPasswordStateMachine
                         Display.Display_RecoverEnterCode,
                         pwmRequestContext.getConfig(),
                         new String[]
-                        {
-                                tokenDisplay,
-                        }
+                                {
+                                        tokenDisplay,
+                                        }
                 );
 
                 final PresentableFormRow formRow = PresentableFormRow.builder()
@@ -760,7 +747,7 @@ public class ForgottenPasswordStateMachine
                             "incorrect value for attribute '" + formConfiguration.getName() + "'", new String[]
                             {
                                     formConfiguration.getLabel( locale ),
-                            }
+                                    }
                     );
 
                     throw new PwmUnrecoverableException( errorInformation );
@@ -804,7 +791,7 @@ public class ForgottenPasswordStateMachine
                                         "incorrect value for '" + attrName + "'", new String[]
                                         {
                                                 formConfiguration.getLabel( locale ),
-                                        }
+                                                }
                                 ) );
                             }
                         }
@@ -815,7 +802,7 @@ public class ForgottenPasswordStateMachine
                                     PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", new String[]
                                     {
                                             formConfiguration.getLabel( locale ),
-                                    }
+                                            }
                             ) );
                         }
                         catch ( final ChaiUnavailableException e )

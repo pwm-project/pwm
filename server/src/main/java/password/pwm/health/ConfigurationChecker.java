@@ -67,6 +67,18 @@ public class ConfigurationChecker implements HealthChecker
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigurationChecker.class );
 
+    private static final List<Class<? extends ConfigHealthCheck>> ALL_CHECKS = List.of(
+            VerifyBasicConfigs.class,
+            VerifyPasswordStrengthLevels.class,
+            VerifyPasswordPolicyConfigs.class,
+            VerifyResponseLdapAttribute.class,
+            VerifyDbConfiguredIfNeeded.class,
+            VerifyIfDeprecatedSendMethodValuesUsed.class,
+            VerifyIfDeprecatedJsFormOptionUsed.class,
+            VerifyNewUserLdapProfile.class,
+            VerifyPasswordWaitTimes.class,
+            VerifyUserPermissionSettings.class );
+
     @Override
     public List<HealthRecord> doHealthCheck( final PwmDomain pwmDomain )
     {
@@ -96,8 +108,8 @@ public class ConfigurationChecker implements HealthChecker
                 {
                     records.add( HealthRecord.forMessage(
                             HealthMessage.NewUser_PwTemplateBad,
-                             PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( newUserProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
-                             e.getMessage() ) );
+                            PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( newUserProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
+                            e.getMessage() ) );
                 }
             }
         }
@@ -140,18 +152,7 @@ public class ConfigurationChecker implements HealthChecker
         return records;
     }
 
-    private static final List<Class<? extends ConfigHealthCheck>> ALL_CHECKS = Collections.unmodifiableList( Arrays.asList(
-            VerifyBasicConfigs.class,
-            VerifyPasswordStrengthLevels.class,
-            VerifyPasswordPolicyConfigs.class,
-            VerifyResponseLdapAttribute.class,
-            VerifyDbConfiguredIfNeeded.class,
-            VerifyIfDeprecatedSendMethodValuesUsed.class,
-            VerifyIfDeprecatedJsFormOptionUsed.class,
-            VerifyNewUserLdapProfile.class,
-            VerifyPasswordWaitTimes.class,
-            VerifyUserPermissionSettings.class
-    ) );
+
 
     static class VerifyBasicConfigs implements ConfigHealthCheck
     {
@@ -644,7 +645,7 @@ public class ConfigurationChecker implements HealthChecker
         {
             if ( UserPermissionUtility.isAllProfiles( profileID ) )
             {
-                return Collections.unmodifiableList( new ArrayList<>( domainConfig.getLdapProfiles().values() ) );
+                return List.copyOf( domainConfig.getLdapProfiles().values() );
             }
 
             if ( domainConfig.getLdapProfiles().containsKey( profileID ) )

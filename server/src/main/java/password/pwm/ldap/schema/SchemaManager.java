@@ -28,8 +28,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,14 +35,9 @@ public class SchemaManager
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SchemaManager.class );
 
-    private static final Map<DirectoryVendor, Class<? extends SchemaExtender>> IMPLEMENTATIONS;
+    private static final Map<DirectoryVendor, Class<? extends SchemaExtender>> IMPLEMENTATIONS = Map.of(
+            DirectoryVendor.EDIRECTORY, EdirSchemaExtender.class );
 
-    static
-    {
-        final Map<DirectoryVendor, Class<? extends SchemaExtender>> implMap = new HashMap<>();
-        implMap.put( DirectoryVendor.EDIRECTORY, EdirSchemaExtender.class );
-        IMPLEMENTATIONS = Collections.unmodifiableMap( implMap );
-    }
 
     protected static SchemaExtender implForChaiProvider( final ChaiProvider chaiProvider ) throws PwmUnrecoverableException
     {

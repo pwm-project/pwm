@@ -100,7 +100,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                     {
                         final ErrorInformation errorInformation = e.getErrorInformation();
                         final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( req );
-                        LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
+                        LOGGER.error( pwmRequest, errorInformation::toDebugStr );
                         pwmRequest.respondWithError( errorInformation, false );
                         return;
                     }
@@ -116,7 +116,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 {
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE,
                             "incorrect request method " + method.toString() + " on request to " + pwmRequest.getURLwithQueryString() );
-                    LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
+                    LOGGER.error( pwmRequest, errorInformation::toDebugStr );
                     pwmRequest.respondWithError( errorInformation, false );
                     return;
                 }

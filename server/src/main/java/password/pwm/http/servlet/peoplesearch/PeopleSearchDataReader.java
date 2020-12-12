@@ -210,7 +210,7 @@ class PeopleSearchDataReader
                     childCount++;
                 }
             }
-            orgChartData.setChildren( Collections.unmodifiableList( new ArrayList<>( sortedChildren.values() ) ) );
+            orgChartData.setChildren( List.copyOf( sortedChildren.values() ) );
         }
 
         if ( !StringUtil.isEmpty( peopleSearchConfiguration.getOrgChartAssistantAttr( userIdentity ) ) )

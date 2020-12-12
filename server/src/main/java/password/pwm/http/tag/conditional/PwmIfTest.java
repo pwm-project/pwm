@@ -41,9 +41,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.StringUtil;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -106,7 +104,7 @@ public enum PwmIfTest
 
     PwmIfTest( final Test... test )
     {
-        tests = test == null ? Collections.emptySet() : Collections.unmodifiableSet( new HashSet<>( Arrays.asList( test ) ) );
+        tests = test == null ? Collections.emptySet() : Set.of( test );
     }
 
     private Set<Test> getTests()

@@ -40,7 +40,6 @@ import password.pwm.util.secure.SecureService;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -52,19 +51,13 @@ import java.util.Optional;
 @Builder
 public class TokenDestinationItem implements Serializable
 {
-    private static final Map<PwmSetting, TokenDestinationItem.Type> SETTING_TO_DEST_TYPE_MAP;
-
-    static
-    {
-        final Map<PwmSetting, TokenDestinationItem.Type> tempMap = new HashMap<>(  );
-        tempMap.put( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE, TokenDestinationItem.Type.email );
-        tempMap.put( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_2, TokenDestinationItem.Type.email );
-        tempMap.put( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_3, TokenDestinationItem.Type.email );
-        tempMap.put( PwmSetting.SMS_USER_PHONE_ATTRIBUTE, TokenDestinationItem.Type.sms );
-        tempMap.put( PwmSetting.SMS_USER_PHONE_ATTRIBUTE_2, TokenDestinationItem.Type.sms );
-        tempMap.put( PwmSetting.SMS_USER_PHONE_ATTRIBUTE_3, TokenDestinationItem.Type.sms );
-        SETTING_TO_DEST_TYPE_MAP = Collections.unmodifiableMap( tempMap );
-    }
+    private static final Map<PwmSetting, TokenDestinationItem.Type> SETTING_TO_DEST_TYPE_MAP = Map.of(
+        PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE, TokenDestinationItem.Type.email,
+        PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_2, TokenDestinationItem.Type.email,
+        PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_3, TokenDestinationItem.Type.email,
+        PwmSetting.SMS_USER_PHONE_ATTRIBUTE, TokenDestinationItem.Type.sms,
+        PwmSetting.SMS_USER_PHONE_ATTRIBUTE_2, TokenDestinationItem.Type.sms,
+        PwmSetting.SMS_USER_PHONE_ATTRIBUTE_3, TokenDestinationItem.Type.sms );
 
     public static Map<PwmSetting, Type> getSettingToDestTypeMap( )
     {
@@ -149,7 +142,7 @@ public class TokenDestinationItem implements Serializable
             }
         }
 
-        return Collections.unmodifiableList( new ArrayList<>( results.values() ) );
+        return List.copyOf( results.values() );
     }
 
     public static Optional<TokenDestinationItem> tokenDestinationItemForID(

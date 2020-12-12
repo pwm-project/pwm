@@ -25,8 +25,8 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ADPolicyComplexity;
@@ -43,7 +43,6 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -82,7 +81,7 @@ public class PasswordRuleChecks
                 throws PwmUnrecoverableException;
     }
 
-    private static final List<RuleChecker> RULE_CHECKS = Collections.unmodifiableList( Arrays.asList(
+    private static final List<RuleChecker> RULE_CHECKS = List.of(
             new OldPasswordRuleChecker(),
             new MinimumLengthRuleChecker(),
             new MaximumLengthRuleChecker(),
@@ -99,8 +98,7 @@ public class PasswordRuleChecks
             new RegexPatternsRuleChecker(),
             new CharGroupRuleChecker(),
             new DictionaryRuleChecker(),
-            new SharedHistoryRuleChecker()
-    ) );
+            new SharedHistoryRuleChecker() );
 
 
     public static List<ErrorInformation> extendedPolicyRuleChecker(

@@ -45,7 +45,6 @@ import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -78,7 +77,7 @@ public class PasswordRequirementsTag extends TagSupport
         return Collections.unmodifiableList( ruleTexts );
     }
 
-    private static final List<RuleTextGenerator> RULE_TEXT_GENERATORS = Collections.unmodifiableList( Arrays.asList(
+    private static final List<RuleTextGenerator> RULE_TEXT_GENERATORS = List.of(
             new CaseSensitiveRuleTextGenerator(),
             new MinLengthRuleTextGenerator(),
             new MaxLengthRuleTextGenerator(),
@@ -99,8 +98,7 @@ public class PasswordRequirementsTag extends TagSupport
             new MaximumOldCharsRuleTextGenerator(),
             new MinimumLifetimeRuleTextGenerator(),
             new ADRuleTextGenerator(),
-            new UniqueRequiredRuleTextGenerator()
-    ) );
+            new UniqueRequiredRuleTextGenerator() );
 
     private interface RuleTextGenerator
     {

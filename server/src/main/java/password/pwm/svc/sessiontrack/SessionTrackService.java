@@ -299,7 +299,7 @@ public class SessionTrackService implements PwmService
 
     public List<UserIdentity> getRecentLogins( )
     {
-        return Collections.unmodifiableList( new ArrayList<>( recentLoginCache.asMap().keySet() ) );
+        return List.copyOf( recentLoginCache.asMap().keySet() );
     }
 
     public String generateNewSessionID()

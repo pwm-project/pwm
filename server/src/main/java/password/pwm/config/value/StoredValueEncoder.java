@@ -34,8 +34,6 @@ import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,7 +56,7 @@ public abstract class StoredValueEncoder
         Mode( final SecureOutputEngine secureOutputEngine, final String... prefixes )
         {
             this.secureOutputEngine = secureOutputEngine;
-            this.prefixes = Collections.unmodifiableList( Arrays.asList( prefixes ) );
+            this.prefixes = List.of( prefixes );
         }
 
         public List<String> getPrefixes()

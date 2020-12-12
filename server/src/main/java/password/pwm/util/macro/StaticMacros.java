@@ -34,22 +34,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public abstract class StaticMacros
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( StaticMacros.class );
 
-    static final List<Macro> STATIC_MACROS = Collections.unmodifiableList( Stream.of(
+    static final List<Macro> STATIC_MACROS = List.of(
             new PwmSettingReference(),
             new PwmSettingCategoryReference(),
             new PwmAppName(),
             new PwmVendorName(),
             new EncodingMacro(),
             new CasingMacro(),
-            new HashingMacro()
-    ).collect( Collectors.toList() ) );
+            new HashingMacro() );
 
     private static final Set<Macro.MacroDefinitionFlag> ONLY_DEBUG_LOG_FLAG = Collections.singleton( Macro.MacroDefinitionFlag.OnlyDebugLogging );
 

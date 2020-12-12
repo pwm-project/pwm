@@ -36,8 +36,6 @@ import password.pwm.util.java.PwmExceptionLoggingConsumer;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -47,13 +45,13 @@ class ConfigurationCleaner
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigurationCleaner.class );
 
-    private static final List<PwmExceptionLoggingConsumer<StoredConfigurationModifier>> STORED_CONFIG_POST_PROCESSORS = Collections.unmodifiableList( Arrays.asList(
-            new UpdateDeprecatedAdComplexitySettings(),
-            new UpdateDeprecatedMinPwdLifetimeSetting(),
-            new UpdateDeprecatedPublicHealthSetting(),
-            new ProfileNonProfiledSettings(),
-            new CheckForSuperfluousProfileSettings()
-    ) );
+    private static final List<PwmExceptionLoggingConsumer<StoredConfigurationModifier>> STORED_CONFIG_POST_PROCESSORS =
+            List.of(
+                    new UpdateDeprecatedAdComplexitySettings(),
+                    new UpdateDeprecatedMinPwdLifetimeSetting(),
+                    new UpdateDeprecatedPublicHealthSetting(),
+                    new ProfileNonProfiledSettings(),
+                    new CheckForSuperfluousProfileSettings() );
 
     static void postProcessStoredConfig(
             final StoredConfigurationModifier storedConfiguration

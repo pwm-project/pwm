@@ -43,7 +43,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,17 +53,13 @@ public class PwmHttpRequestWrapper
     private final HttpServletRequest httpServletRequest;
     private final DomainConfig domainConfig;
 
-    private static final Set<String> HTTP_PARAM_DEBUG_STRIP_VALUES =
-            Collections.unmodifiableSet( new HashSet<>( Arrays.asList(
-                    "password",
-                    PwmConstants.PARAM_TOKEN,
-                    PwmConstants.PARAM_RESPONSE_PREFIX ) )
-            );
+    private static final Set<String> HTTP_PARAM_DEBUG_STRIP_VALUES = Set.of(
+            "password",
+            PwmConstants.PARAM_TOKEN,
+            PwmConstants.PARAM_RESPONSE_PREFIX );
 
-    private static final Set<String> HTTP_HEADER_DEBUG_STRIP_VALUES =
-            Collections.unmodifiableSet( new HashSet<>( Collections.singletonList(
-                    HttpHeader.Authorization.getHttpName() ) )
-            );
+    private static final Set<String> HTTP_HEADER_DEBUG_STRIP_VALUES = Set.of(
+                    HttpHeader.Authorization.getHttpName() );
 
     public enum Flag
     {

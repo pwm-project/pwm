@@ -215,7 +215,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                 {
                     errorInformation = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp secret: " + e.getMessage() );
                 }
-                LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
+                LOGGER.error( pwmRequest, errorInformation::toDebugStr );
                 setLastError( pwmRequest, errorInformation );
             }
         }

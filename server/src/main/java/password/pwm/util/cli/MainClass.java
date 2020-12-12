@@ -430,11 +430,11 @@ public class MainClass
 
         final Layout patternLayout = new EnhancedPatternLayout( LOGGING_PATTERN );
         final ConsoleAppender consoleAppender = new ConsoleAppender( patternLayout );
-        for ( final Package logPackage : PwmLogManager.LOGGING_PACKAGES )
+        for ( final String logPackage : PwmLogManager.LOGGING_PACKAGES )
         {
             if ( logPackage != null )
             {
-                final Logger logger = Logger.getLogger( logPackage.getName() );
+                final Logger logger = Logger.getLogger( logPackage );
                 logger.addAppender( consoleAppender );
                 logger.setLevel( logLevel.getLog4jLevel() );
             }

@@ -72,20 +72,16 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
             public LocalizedStringArrayValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+
                 final Map<String, List<String>> values = new TreeMap<>();
                 for ( final XmlElement loopValueElement  : valueElements )
                 {
                     final String localeString = loopValueElement.getAttributeValue(
                             "locale" ) == null ? "" : loopValueElement.getAttributeValue( "locale" );
                     final String value = loopValueElement.getText();
-                    List<String> valueList = values.get( localeString );
-                    if ( valueList == null )
-                    {
-                        valueList = new ArrayList<>();
-                        values.put( localeString, valueList );
-                    }
-                    valueList.add( value );
+                    values.computeIfAbsent( localeString, s -> new ArrayList<>() ).add( value );
                 }
+
                 return new LocalizedStringArrayValue( values );
             }
         };

@@ -261,7 +261,7 @@ public class PwmSession implements Serializable
             // close out any outstanding connections
             getSessionManager().closeConnections();
 
-            LOGGER.debug( pwmRequest, () -> sb.toString() );
+            LOGGER.debug( pwmRequest, sb::toString );
         }
 
         if ( pwmRequest != null )

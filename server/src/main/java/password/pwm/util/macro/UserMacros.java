@@ -36,14 +36,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class UserMacros
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserMacros.class );
 
-    static final List<Macro> USER_MACROS = Collections.unmodifiableList( Stream.of(
+    static final List<Macro> USER_MACROS = List.of(
             new UserIDMacro(),
             new UserLdapMacro(),
             new UserPwExpirationTimeMacro(),
@@ -58,8 +56,7 @@ public class UserMacros
             new TargetUserLdapMacro(),
             new TargetUserPwExpirationTimeMacro(),
             new TargetUserDaysUntilPwExpireMacro(),
-            new TargetUserEmailMacro()
-            ).collect( Collectors.toList() ) );
+            new TargetUserEmailMacro() );
 
     abstract static class AbstractUserMacro extends AbstractMacro
     {

@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.zip.ZipEntry;
@@ -50,7 +49,7 @@ class ResourceFileRequest
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ResourceFileRequest.class );
 
-    private static final Map<String, String> WEB_JAR_VERSION_MAP = Collections.unmodifiableMap( new HashMap<>( new WebJarAssetLocator().getWebJars() ) );
+    private static final Map<String, String> WEB_JAR_VERSION_MAP = Map.copyOf( new WebJarAssetLocator().getWebJars() );
 
     /** Contains a list of all resources (files) found inside the resources folder of all JARs in the WAR's classpath. **/
     private static final Collection<String> WEB_JAR_ASSET_LIST = Collections.unmodifiableCollection( new ArrayList<>( new WebJarAssetLocator().listAssets() ) );

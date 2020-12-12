@@ -38,14 +38,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class SystemMacros
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SystemMacros.class );
 
-    static final List<Macro> SYSTEM_MACROS = Collections.unmodifiableList( Stream.of(
+    static final List<Macro> SYSTEM_MACROS = List.of(
             new CurrentTimeMacro(),
             new Iso8601DateTimeMacro(),
             new InstanceIDMacro(),
@@ -55,8 +53,7 @@ public class SystemMacros
             new RandomCharMacro(),
             new RandomNumberMacro(),
             new UUIDMacro(),
-            new PwmContextPath()
-    ).collect( Collectors.toList() ) );
+            new PwmContextPath() );
 
     public abstract static class AbstractSystemMacros extends AbstractMacro
     {

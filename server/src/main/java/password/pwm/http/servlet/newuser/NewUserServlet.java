@@ -21,8 +21,8 @@
 package password.pwm.http.servlet.newuser;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.config.DomainConfig;
@@ -74,7 +74,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -122,7 +121,7 @@ public class NewUserServlet extends ControlledPwmServlet
 
         NewUserAction( final HttpMethod... method )
         {
-            this.method = Collections.unmodifiableList( Arrays.asList( method ) );
+            this.method = List.of( method );
         }
 
         @Override
@@ -319,17 +318,25 @@ public class NewUserServlet extends ControlledPwmServlet
 
     private boolean showFormPage( final NewUserProfile profile )
     {
-        final boolean promptForPassword = profile.readSettingAsBoolean( PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD );
-        boolean formNeedsShowing = false;
+        {
+            final boolean promptForPassword = profile.readSettingAsBoolean( PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD );
+            if ( promptForPassword )
+            {
+                return true;
+            }
+        }
+
         final List<FormConfiguration> formConfigurations = profile.readSettingAsForm( PwmSetting.NEWUSER_FORM );
+
         for ( final FormConfiguration formConfiguration : formConfigurations )
         {
             if ( formConfiguration.getType() != FormConfiguration.Type.hidden )
             {
-                formNeedsShowing = true;
+                return true;
             }
         }
-        return formNeedsShowing || promptForPassword;
+
+        return false;
     }
 
     private boolean readProfileFromUrl( final PwmRequest pwmRequest, final NewUserBean newUserBean )

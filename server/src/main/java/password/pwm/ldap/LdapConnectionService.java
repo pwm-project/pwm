@@ -51,7 +51,6 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -426,7 +425,7 @@ public class LdapConnectionService implements PwmService
 
             returnData.put( bindDN, connectionInfo );
         }
-        return Collections.unmodifiableList( new ArrayList<>( returnData.values() ) );
+        return List.copyOf( returnData.values() );
     }
 
     @Value

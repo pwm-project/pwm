@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -172,7 +171,7 @@ public abstract class PwmConstants
     public static final String RESOURCE_FILE_WELCOME_TXT = "welcome.txt";
 
     // don't worry.  look over there.
-    public static final List<String> X_AMB_HEADER = Collections.unmodifiableList( Arrays.asList(
+    public static final List<String> X_AMB_HEADER = List.of(
             "bonjour!",
             "something witty!",
             "just like X-Fry, only ambier",
@@ -227,8 +226,7 @@ public abstract class PwmConstants
             // thx krowten
             "it's a wholesome can of software goodness",
 
-            "this password is an memorial of the richard d. kiel memorial abend"
-    ) );
+            "this password is an memorial of the richard d. kiel memorial abend" );
 
 
     private static String readPwmConstantsBundle( final String key )
