@@ -24,7 +24,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
@@ -107,21 +107,19 @@ public class FileValue extends AbstractValue implements StoredValue
             @Override
             public FileValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final Map<FileInformation, FileContent> values = new LinkedHashMap<>();
                 for ( final XmlElement loopValueElement : valueElements )
                 {
                     final Optional<XmlElement> loopFileInformation = loopValueElement.getChild( XML_ELEMENT_FILE_INFORMATION );
-                    if ( loopFileInformation.isPresent() )
+                    loopFileInformation.flatMap( XmlElement::getText ).ifPresent( loopFileInformationJson ->
                     {
-                        final String loopFileInformationJson = loopFileInformation.get().getText();
                         final FileInformation fileInformation = JsonUtil.deserialize( loopFileInformationJson,
                                 FileInformation.class );
 
                         final Optional<XmlElement> loopFileContentElement = loopValueElement.getChild( XML_ELEMENT_FILE_CONTENT );
-                        if ( loopFileContentElement.isPresent() )
+                        loopFileContentElement.flatMap( XmlElement::getText ).ifPresent( fileContentString ->
                         {
-                            final String fileContentString = loopFileContentElement.get().getText();
                             final FileContent fileContent;
                             try
                             {
@@ -132,8 +130,8 @@ public class FileValue extends AbstractValue implements StoredValue
                             {
                                 LOGGER.error( () -> "error reading file contents item: " + e.getMessage(), e );
                             }
-                        }
-                    }
+                        } );
+                    } );
                 }
                 return new FileValue( values );
             }

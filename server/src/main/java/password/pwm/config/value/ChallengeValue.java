@@ -84,29 +84,28 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             {
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final Map<String, List<ChallengeItemConfiguration>> values = new TreeMap<>();
-                final boolean oldStyle = "LOCALIZED_STRING_ARRAY".equals( settingElement.getAttributeValue( "syntax" ) );
+                final boolean oldStyle = "LOCALIZED_STRING_ARRAY".equals( settingElement.getAttributeValue( "syntax" ).orElse( "" ) );
                 for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final String localeString = loopValueElement.getAttributeValue(
-                            "locale" ) == null ? "" : loopValueElement.getAttributeValue( "locale" );
-                    final String value = loopValueElement.getText();
-                    if ( !values.containsKey( localeString ) )
+                    final String localeString = loopValueElement.getAttributeValue( "locale" ).orElse( "" );
+                    loopValueElement.getText().ifPresent( value ->
                     {
-                        values.put( localeString, new ArrayList<ChallengeItemConfiguration>() );
-                    }
-                    final ChallengeItemConfiguration challengeItemBean;
-                    if ( oldStyle )
-                    {
-                        challengeItemBean = parseOldVersionString( value );
-                    }
-                    else
-                    {
-                        challengeItemBean = JsonUtil.deserialize( value, ChallengeItemConfiguration.class );
-                    }
-                    if ( challengeItemBean != null )
-                    {
-                        values.get( localeString ).add( challengeItemBean );
-                    }
+                        final ChallengeItemConfiguration challengeItemBean;
+                        if ( oldStyle )
+                        {
+                            challengeItemBean = parseOldVersionString( value );
+                        }
+                        else
+                        {
+                            challengeItemBean = JsonUtil.deserialize( value, ChallengeItemConfiguration.class );
+                        }
+                        if ( challengeItemBean != null )
+                        {
+                            values.computeIfAbsent( localeString, ( s ) -> new ArrayList<>() )
+                                    .add( challengeItemBean );
+                        }
+                    } );
+
                 }
                 return new ChallengeValue( values );
             }

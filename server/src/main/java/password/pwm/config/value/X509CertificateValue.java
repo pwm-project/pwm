@@ -22,7 +22,7 @@ package password.pwm.config.value;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
@@ -69,12 +69,10 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
             public X509CertificateValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
                 final List<String> b64certificates = new ArrayList<>();
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final String b64encodedStr = loopValueElement.getText();
-
-                    b64certificates.add( b64encodedStr );
+                    loopValueElement.getText().ifPresent( b64certificates::add );
                 }
                 return new X509CertificateValue( Collections.unmodifiableList( b64certificates ) );
             }

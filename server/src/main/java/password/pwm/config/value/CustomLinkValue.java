@@ -79,11 +79,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
                 final List<CustomLinkConfiguration> values = new ArrayList<>();
                 for ( final XmlElement loopValueElement  : valueElements )
                 {
-                    final String value = loopValueElement.getText();
-                    if ( value != null && value.length() > 0 && loopValueElement.getAttributeValue( "locale" ) == null )
-                    {
-                        values.add( JsonUtil.deserialize( value, CustomLinkConfiguration.class ) );
-                    }
+                    loopValueElement.getText().ifPresent( value -> values.add( JsonUtil.deserialize( value, CustomLinkConfiguration.class ) ) );
                 }
                 return new CustomLinkValue( values );
             }

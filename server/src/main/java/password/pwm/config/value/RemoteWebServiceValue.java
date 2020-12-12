@@ -23,7 +23,7 @@ package password.pwm.config.value;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.error.PwmOperationalException;
@@ -91,23 +91,20 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
             )
                     throws PwmOperationalException
             {
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final List<RemoteWebServiceConfiguration> values = new ArrayList<>();
                 for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final String value = loopValueElement.getText();
-                    if ( value != null && value.length() > 0 )
+                    final Optional<String> value = loopValueElement.getText();
+                    if ( value.isPresent() )
                     {
-                        final RemoteWebServiceConfiguration parsedValue = JsonUtil.deserialize( value, RemoteWebServiceConfiguration.class );
+                        final RemoteWebServiceConfiguration parsedValue = JsonUtil.deserialize( value.get(), RemoteWebServiceConfiguration.class );
                         final Optional<String> decodedValue = StoredValueEncoder.decode(
                                 parsedValue.getPassword(),
                                 StoredValueEncoder.Mode.ENCODED,
                                 pwmSecurityKey
                         );
-                        decodedValue.ifPresent( ( s ) ->
-                        {
-                            values.add( parsedValue.toBuilder().password( s ).build() );
-                        } );
+                        decodedValue.ifPresent( ( s ) -> values.add( parsedValue.toBuilder().password( s ).build() ) );
                     }
                 }
                 return new RemoteWebServiceValue( values );

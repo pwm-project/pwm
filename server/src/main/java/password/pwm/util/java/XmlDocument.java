@@ -20,18 +20,11 @@
 
 package password.pwm.util.java;
 
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.filter.Filters;
-import org.jdom2.xpath.XPathExpression;
-import org.jdom2.xpath.XPathFactory;
 import org.w3c.dom.NodeList;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
@@ -46,58 +39,7 @@ public interface XmlDocument
     List<XmlElement> evaluateXpathToElements( String xpathExpression );
 
     XmlDocument copy();
-
-    class XmlDocumentJDOM implements XmlDocument
-    {
-        final Document document;
-
-        XmlDocumentJDOM( final Document document )
-        {
-            this.document = document;
-        }
-
-        @Override
-        public XmlElement getRootElement()
-        {
-            return new XmlElement.XmlElementJDOM( document.getRootElement() );
-        }
-
-        @Override
-        public Optional<XmlElement> evaluateXpathToElement(
-                final String xpathExpression
-        )
-        {
-            final XPathFactory xpfac = XPathFactory.instance();
-            final XPathExpression<Element> xp = xpfac.compile( xpathExpression, Filters.element() );
-            final Element element = xp.evaluateFirst( document );
-            return element == null
-                    ? Optional.empty()
-                    : Optional.of( new XmlElement.XmlElementJDOM( element ) );
-        }
-
-        @Override
-        public List<XmlElement> evaluateXpathToElements(
-                final String xpathExpression
-        )
-        {
-            final List<XmlElement> returnList = new ArrayList<>(  );
-
-            final XPathFactory xpfac = XPathFactory.instance();
-            final XPathExpression<Element> xp = xpfac.compile( xpathExpression, Filters.element() );
-            for ( final Element element : xp.evaluate( document ) )
-            {
-                returnList.add( new XmlElement.XmlElementJDOM( element ) );
-            }
-            return Collections.unmodifiableList( returnList );
-        }
-
-        @Override
-        public XmlDocument copy()
-        {
-            return new XmlDocumentJDOM( document.clone() );
-        }
-    }
-
+    
     class XmlDocumentW3c implements XmlDocument
     {
         final org.w3c.dom.Document document;

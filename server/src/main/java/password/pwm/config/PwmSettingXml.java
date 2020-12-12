@@ -133,10 +133,8 @@ public class PwmSettingXml
         {
             return Collections.emptySet();
         }
-        final String templateStrValues = element.getAttributeValue( XML_ATTRIBUTE_TEMPLATE );
-        final String[] templateSplitValues = templateStrValues == null
-                ? new String[ 0 ]
-                : templateStrValues.split( "," );
+        final String templateStrValues = element.getAttributeValue( XML_ATTRIBUTE_TEMPLATE ).orElse( "" );
+        final String[] templateSplitValues = templateStrValues.split( "," );
         final Set<PwmSettingTemplate> definedTemplates = new LinkedHashSet<>();
         for ( final String templateStrValue : templateSplitValues )
         {

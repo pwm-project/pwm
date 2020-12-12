@@ -64,9 +64,11 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 for ( final XmlElement element : valueElements )
                 {
-                    final String strValue = element.getText();
-                    final Long longValue = Long.parseLong( strValue );
-                    returnList.add( longValue );
+                    element.getText().ifPresent( strValue ->
+                    {
+                        final Long longValue = Long.parseLong( strValue );
+                        returnList.add( longValue );
+                    } );
                 }
                 return new NumericArrayValue( returnList );
             }

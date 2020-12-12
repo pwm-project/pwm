@@ -87,8 +87,8 @@ public class LdapXmlUserHistoryTest
         Assert.assertTrue( optionalRecordElement.isPresent() );
         optionalRecordElement.ifPresent( xmlElement ->
         {
-            Assert.assertEquals( "EventLog_ChangePassword", xmlElement.getAttributeValue( "eventCode" ) );
-            Assert.assertEquals( "1582824390000", xmlElement.getAttributeValue( "timestamp" ) );
+            Assert.assertEquals( "EventLog_ChangePassword", xmlElement.getAttributeValue( "eventCode" ).orElseThrow() );
+            Assert.assertEquals( "1582824390000", xmlElement.getAttributeValue( "timestamp" ).orElseThrow() );
         } );
     }
 }

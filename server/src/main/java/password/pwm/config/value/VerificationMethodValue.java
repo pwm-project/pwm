@@ -23,7 +23,7 @@ package password.pwm.config.value;
 import lombok.Value;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IdentityVerificationMethod;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
@@ -142,12 +142,15 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
             public VerificationMethodValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
-                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 if ( valueElement.isPresent() )
                 {
-                    final String inputStr = valueElement.get().getText();
-                    final VerificationMethodSettings settings = JsonUtil.deserialize( inputStr, VerificationMethodSettings.class );
-                    return new VerificationMethodValue( settings );
+                    final Optional<String> inputStr = valueElement.get().getText();
+                    if ( inputStr.isPresent() )
+                    {
+                        final VerificationMethodSettings settings = JsonUtil.deserialize( inputStr.get(), VerificationMethodSettings.class );
+                        return new VerificationMethodValue( settings );
+                    }
                 }
                 return  new VerificationMethodValue(  );
             }

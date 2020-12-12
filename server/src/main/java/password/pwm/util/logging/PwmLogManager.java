@@ -29,6 +29,7 @@ import org.apache.log4j.PatternLayout;
 import org.apache.log4j.RollingFileAppender;
 import org.apache.log4j.xml.DOMConfigurator;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
@@ -48,7 +49,7 @@ public class PwmLogManager
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmLogManager.class );
 
     public static final List<String> LOGGING_PACKAGES = List.of(
-            PwmDomain.class.getPackage().getName(),
+            PwmApplication.class.getPackage().getName(),
             ChaiUser.class.getPackage().getName(),
             "org.jasig.cas.client" );
 
@@ -245,7 +246,7 @@ public class PwmLogManager
             localDBLog4jAppender.setThreshold( localDBLogLevel.getLog4jLevel() );
             for ( final String logPackage : LOGGING_PACKAGES )
             {
-                if ( logPackage != null && !logPackage.equals( PwmDomain.class.getPackage() ) )
+                if ( logPackage != null && !logPackage.equals( PwmApplication.class.getPackage().getName() ) )
                 {
                     final Logger logger = Logger.getLogger( logPackage );
                     logger.addAppender( localDBLog4jAppender );

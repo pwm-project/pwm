@@ -25,7 +25,6 @@ import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.macro.MacroRequest;
 
@@ -414,10 +413,10 @@ public enum PwmSettingCategory
                 final Optional<XmlElement> profileElement = categoryElement.getChild( "profile" );
                 if ( profileElement.isPresent() )
                 {
-                    final String settingKey = profileElement.get().getAttributeValue( "setting" );
-                    if ( settingKey != null )
+                    final Optional<String> settingKey = profileElement.get().getAttributeValue( "setting" );
+                    if ( settingKey.isPresent() )
                     {
-                        return PwmSetting.forKey( settingKey );
+                        return PwmSetting.forKey( settingKey.get() );
                     }
                 }
                 if ( nested )
@@ -436,8 +435,9 @@ public enum PwmSettingCategory
         private static int readLevel( final PwmSettingCategory category )
         {
             final XmlElement settingElement = PwmSettingXml.readCategoryXml( category );
-            final String levelAttribute = settingElement.getAttributeValue( PwmSettingXml.XML_ELEMENT_LEVEL );
-            return levelAttribute != null ? Integer.parseInt( levelAttribute ) : 0;
+            return settingElement.getAttributeValue( PwmSettingXml.XML_ELEMENT_LEVEL )
+                    .map( ( value ) -> JavaHelper.silentParseInt( value, 0 ) )
+                    .orElse( 0 );
         }
 
         private static PwmSettingScope readScope( final PwmSettingCategory category )
@@ -462,10 +462,10 @@ public enum PwmSettingCategory
             while ( nextCategory != null )
             {
                 final XmlElement settingElement = PwmSettingXml.readCategoryXml( category );
-                final String attributeValue = settingElement.getAttributeValue( attribute );
-                if ( !StringUtil.isEmpty( attributeValue ) )
+                final Optional<String> attributeValue = settingElement.getAttributeValue( attribute );
+                if ( attributeValue.isPresent() )
                 {
-                    return attributeValue;
+                    return attributeValue.get();
                 }
                 nextCategory = nextCategory.getParent();
             }

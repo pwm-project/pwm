@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 public class FormValue extends AbstractValue implements StoredValue
@@ -79,26 +80,25 @@ public class FormValue extends AbstractValue implements StoredValue
                     throws PwmOperationalException
             {
                 final boolean oldType = PwmSettingSyntax.LOCALIZED_STRING_ARRAY.toString().equals(
-                        settingElement.getAttributeValue( "syntax" ) );
+                        settingElement.getAttributeValue( "syntax" ).orElse( "" ) );
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final List<FormConfiguration> values = new ArrayList<>();
                 for ( final XmlElement loopValueElement  : valueElements )
                 {
-                    final String value = loopValueElement.getText();
-                    if ( value != null && value.length() > 0 && loopValueElement.getAttributeValue( "locale" ) == null )
+                    final Optional<String> value = loopValueElement.getText();
+                    if ( value.isPresent() && loopValueElement.getAttributeValue( "locale" ).isEmpty() )
                     {
                         if ( oldType )
                         {
-                            values.add( FormConfiguration.parseOldConfigString( value ) );
+                            values.add( FormConfiguration.parseOldConfigString( value.get() ) );
                         }
                         else
                         {
-                            values.add( JsonUtil.deserialize( value, FormConfiguration.class ) );
+                            values.add( JsonUtil.deserialize( value.get(), FormConfiguration.class ) );
                         }
                     }
                 }
-                final FormValue formValue = new FormValue( values );
-                return formValue;
+                return new FormValue( values );
             }
         };
     }

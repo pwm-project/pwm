@@ -25,8 +25,8 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.ConfigObjectRecord;
 import lombok.Value;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -309,17 +309,20 @@ class LdapXmlUserHistory implements UserHistoryStore
 
                 for ( final XmlElement hrElement : rootElement.getChildren( XML_NODE_RECORD ) )
                 {
-                    final String timeStampStr = hrElement.getAttributeValue( XML_ATTR_TIMESTAMP );
-                    final long timeStamp = Long.parseLong( timeStampStr );
-                    final String transactionCode = hrElement.getAttributeValue( XML_ATTR_TRANSACTION );
-                    AuditEvent.forKey( transactionCode ).ifPresent( ( eventCode ) ->
+                    hrElement.getAttributeValue( XML_ATTR_TIMESTAMP ).ifPresent( ( timeStampStr ->
                     {
-                        final String srcAddr = hrElement.getAttributeValue( XML_ATTR_SRC_IP ) != null ? hrElement.getAttributeValue( XML_ATTR_SRC_IP ) : "";
-                        final String srcHost = hrElement.getAttributeValue( XML_ATTR_SRC_HOST ) != null ? hrElement.getAttributeValue( XML_ATTR_SRC_HOST ) : "";
-                        final String message = hrElement.getText();
-                        final StoredEvent storedEvent = new StoredEvent( eventCode, timeStamp, message, srcAddr, srcHost );
-                        returnHistory.addEvent( storedEvent );
-                    } );
+                        final long timeStamp = Long.parseLong( timeStampStr );
+                        hrElement.getAttributeValue( XML_ATTR_TRANSACTION )
+                                .flatMap( AuditEvent::forKey )
+                                .ifPresent( ( eventCode ) ->
+                        {
+                            final String srcAddr = hrElement.getAttributeValue( XML_ATTR_SRC_IP ).orElse( "" );
+                            final String srcHost = hrElement.getAttributeValue( XML_ATTR_SRC_HOST ).orElse( "" );
+                            final String message = hrElement.getText().orElse( "" );
+                            final StoredEvent storedEvent = new StoredEvent( eventCode, timeStamp, message, srcAddr, srcHost );
+                            returnHistory.addEvent( storedEvent );
+                        } );
+                    } ) );
                 }
             }
             catch ( final PwmUnrecoverableException | IOException e )

@@ -20,10 +20,6 @@
 
 package password.pwm.util.java;
 
-import org.jdom2.Comment;
-import org.jdom2.Content;
-import org.jdom2.Element;
-import org.jdom2.Text;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -39,15 +35,13 @@ public interface XmlElement
 {
     Optional<XmlElement> getChild( String elementName );
 
-    String getAttributeValue( String attribute );
+    Optional<String> getAttributeValue( String attribute );
 
     List<XmlElement> getChildren( String elementName );
 
-    String getText();
-
-    String getTextTrim();
-
-    String getChildText( String elementName );
+    Optional<String> getText();
+    
+    Optional<String> getChildText( String elementName );
 
     String getName();
 
@@ -72,161 +66,6 @@ public interface XmlElement
     XmlElement copy();
 
     XmlElement parent();
-
-    class XmlElementJDOM implements XmlElement
-    {
-        private final Element element;
-
-        XmlElementJDOM( final Element element )
-        {
-            this.element = element;
-        }
-
-        @Override
-        public String getName()
-        {
-            return element.getName();
-        }
-
-        @Override
-        public Optional<XmlElement> getChild( final String elementName )
-        {
-            final List<XmlElement> children = getChildren( elementName );
-            if ( JavaHelper.isEmpty( children ) )
-            {
-                return Optional.empty();
-            }
-            return Optional.of( children.iterator().next() );
-        }
-
-        @Override
-        public String getAttributeValue( final String attribute )
-        {
-            return element.getAttributeValue( attribute );
-        }
-
-        @Override
-        public List<XmlElement> getChildren()
-        {
-            return getChildren( null );
-        }
-
-        @Override
-        public List<XmlElement> getChildren( final String elementName )
-        {
-
-            final List<Element> children = elementName == null
-                    ? element.getChildren()
-                    : element.getChildren( elementName );
-            if ( children == null )
-            {
-                return Collections.emptyList();
-            }
-            final List<XmlElement> xmlElements = new ArrayList<>();
-            for ( final Element element : children )
-            {
-                xmlElements.add( new XmlElementJDOM( element ) );
-            }
-            return xmlElements;
-        }
-
-        @Override
-        public String getText()
-        {
-            return element.getText();
-        }
-
-        @Override
-        public String getTextTrim()
-        {
-            return element.getTextTrim();
-        }
-
-        @Override
-        public String getChildText( final String elementName )
-        {
-            final Optional<XmlElement> child = getChild( elementName );
-            return child.map( XmlElement::getText ).orElse( null );
-        }
-
-        @Override
-        public void setAttribute( final String name, final String value )
-        {
-            element.setAttribute( name, value );
-        }
-
-        @Override
-        public void detach()
-        {
-            element.detach();
-        }
-
-        @Override
-        public void removeContent()
-        {
-            element.removeContent();
-        }
-
-        @Override
-        public void removeAttribute( final String attributeName )
-        {
-            element.removeAttribute( attributeName );
-        }
-
-        @Override
-        public void addContent( final XmlElement element )
-        {
-            this.element.addContent( ( ( XmlElementJDOM) element ).element );
-        }
-
-        @Override
-        public void addContent( final List<XmlElement> elements )
-        {
-            for ( final XmlElement loopElement : elements )
-            {
-                final Element jdomElement = ( ( XmlElementJDOM ) loopElement ).element;
-                this.element.addContent( jdomElement );
-            }
-        }
-
-        @Override
-        public void addText( final String text )
-        {
-            element.addContent( new Text( text ) );
-        }
-
-        @Override
-        public void setComment( final List<String> textLines )
-        {
-            final List<Content> contentList = new ArrayList<>( element.getContent() );
-            for ( final Content content : contentList )
-            {
-                if ( content instanceof Comment )
-                {
-                    content.detach();
-                }
-            }
-
-            final List<String> reversedList = new ArrayList<>( textLines );
-            Collections.reverse( reversedList );
-            for ( final String text : textLines )
-            {
-                element.addContent( 0, new Comment( text ) );
-            }
-        }
-
-        @Override
-        public XmlElement copy()
-        {
-            return new XmlElementJDOM( this.element.clone() );
-        }
-
-        @Override
-        public XmlElement parent()
-        {
-            return new XmlElementJDOM( this.element.getParentElement() );
-        }
-    }
 
     class XmlElementW3c implements XmlElement
     {
@@ -265,13 +104,13 @@ public interface XmlElement
         }
 
         @Override
-        public String getAttributeValue( final String attribute )
+        public Optional<String> getAttributeValue( final String attribute )
         {
             lock.lock();
             try
             {
                 final String attrValue = element.getAttribute( attribute );
-                return StringUtil.isEmpty( attrValue ) ? null : attrValue;
+                return StringUtil.isEmpty( attrValue ) ? Optional.empty() : Optional.of( attrValue );
             }
             finally
             {
@@ -310,13 +149,13 @@ public interface XmlElement
         }
 
         @Override
-        public String getText()
+        public Optional<String> getText()
         {
             lock.lock();
             try
             {
                 final String value = element.getTextContent();
-                return value == null ? "" : value;
+                return StringUtil.isEmpty( value ) ? Optional.empty() : Optional.of( value );
             }
             finally
             {
@@ -325,25 +164,10 @@ public interface XmlElement
         }
 
         @Override
-        public String getTextTrim()
-        {
-            lock.lock();
-            try
-            {
-                final String result = element.getTextContent();
-                return result == null ? null : result.trim();
-            }
-            finally
-            {
-                lock.unlock();
-            }
-        }
-
-        @Override
-        public String getChildText( final String elementName )
+        public Optional<String> getChildText( final String elementName )
         {
             final Optional<XmlElement> child = getChild( elementName );
-            return child.map( XmlElement::getText ).orElse( null );
+            return child.flatMap( XmlElement::getText );
         }
 
         @Override
