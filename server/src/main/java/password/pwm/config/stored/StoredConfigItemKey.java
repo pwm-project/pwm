@@ -261,7 +261,7 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     @Override
     public int hashCode()
     {
-        return Objects.hash( recordType, recordID, profileID );
+        return Objects.hash( recordType, domainID, recordID, profileID );
     }
 
     @Override

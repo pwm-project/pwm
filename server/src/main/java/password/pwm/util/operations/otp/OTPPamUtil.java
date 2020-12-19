@@ -151,7 +151,7 @@ public class OTPPamUtil
             {
                 if ( !code.isUsed() )
                 {
-                    pamData.append( code.getHashCode() + "\n" );
+                    pamData.append( code.getHashCode() ).append( "\n" );
                 }
             }
         }

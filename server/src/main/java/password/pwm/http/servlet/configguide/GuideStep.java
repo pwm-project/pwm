@@ -104,7 +104,7 @@ public enum GuideStep
             final VisibilityCheck visibilityCheckImpl;
             try
             {
-                visibilityCheckImpl = visibilityCheckClass.newInstance();
+                visibilityCheckImpl = visibilityCheckClass.getDeclaredConstructor().newInstance();
                 return visibilityCheckImpl.visible( configGuideBean );
             }
             catch ( final ReflectiveOperationException e )

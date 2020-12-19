@@ -58,6 +58,7 @@
 
     <!-- testing -->
     <allow pkg="org.junit"/>
+    <allow pkg="org.hamcrest"/>
     <allow pkg="org.mockito"/>
     <allow pkg="com.github.tomakehurst.wiremock"/>
     <allow pkg="org.reflections"/>

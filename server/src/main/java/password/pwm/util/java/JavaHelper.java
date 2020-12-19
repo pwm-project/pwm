@@ -125,13 +125,13 @@ public class JavaHelper
             ch = ( byte ) ( ch & 0x0F );
 
             // convert the nibble to a String Character
-            out.append( pseudo[ ( int ) ch ] );
+            out.append( pseudo[( int ) ch] );
 
             // strip off low nibble
             ch = ( byte ) ( b & 0x0F );
 
             // convert the nibble to a String Character
-            out.append( pseudo[ ( int ) ch ] );
+            out.append( pseudo[( int ) ch] );
         }
 
         return out.toString();
@@ -140,11 +140,11 @@ public class JavaHelper
     public static String binaryArrayToHex( final byte[] buf )
     {
         final char[] hexChars = "0123456789ABCDEF".toCharArray();
-        final char[] chars = new char[ 2 * buf.length ];
+        final char[] chars = new char[2 * buf.length];
         for ( int i = 0; i < buf.length; ++i )
         {
-            chars[ 2 * i ] = hexChars[ ( buf[ i ] & 0xF0 ) >>> 4 ];
-            chars[ 2 * i + 1 ] = hexChars[ buf[ i ] & 0x0F ];
+            chars[2 * i] = hexChars[( buf[i] & 0xF0 ) >>> 4];
+            chars[2 * i + 1] = hexChars[buf[i] & 0x0F];
         }
         return new String( chars );
     }
@@ -292,7 +292,7 @@ public class JavaHelper
             throws IOException
     {
         final int bufferSize = 4 * 1024;
-        final byte[] buffer = new byte[ bufferSize ];
+        final byte[] buffer = new byte[bufferSize];
         return IOUtils.copyLarge( input, output, 0, -1, buffer );
     }
 
@@ -301,7 +301,7 @@ public class JavaHelper
     {
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         JavaHelper.copy( input, byteArrayOutputStream );
-        return new String( byteArrayOutputStream.toByteArray(), PwmConstants.DEFAULT_CHARSET );
+        return byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET );
     }
 
     public static ImmutableByteArray copyToBytes( final InputStream inputStream )
@@ -337,7 +337,7 @@ public class JavaHelper
     )
             throws IOException
     {
-        final byte[] buffer = new byte[ bufferSize ];
+        final byte[] buffer = new byte[bufferSize];
         int bytesCopied;
         long totalCopied = 0;
         do
@@ -437,12 +437,11 @@ public class JavaHelper
                 + threadInfo.getThreadState() );
         if ( threadInfo.getLockName() != null )
         {
-            sb.append( " on " + threadInfo.getLockName() );
+            sb.append( " on " ).append( threadInfo.getLockName() );
         }
         if ( threadInfo.getLockOwnerName() != null )
         {
-            sb.append( " owned by \"" + threadInfo.getLockOwnerName()
-                    + "\" Id=" + threadInfo.getLockOwnerId() );
+            sb.append( " owned by \"" ).append( threadInfo.getLockOwnerName() ).append( "\" Id=" ).append( threadInfo.getLockOwnerId() );
         }
         if ( threadInfo.isSuspended() )
         {
@@ -467,15 +466,15 @@ public class JavaHelper
                 switch ( ts )
                 {
                     case BLOCKED:
-                        sb.append( "\t-  blocked on " + threadInfo.getLockInfo() );
+                        sb.append( "\t-  blocked on " ).append( threadInfo.getLockInfo() );
                         sb.append( '\n' );
                         break;
                     case WAITING:
-                        sb.append( "\t-  waiting on " + threadInfo.getLockInfo() );
+                        sb.append( "\t-  waiting on " ).append( threadInfo.getLockInfo() );
                         sb.append( '\n' );
                         break;
                     case TIMED_WAITING:
-                        sb.append( "\t-  waiting on " + threadInfo.getLockInfo() );
+                        sb.append( "\t-  waiting on " ).append( threadInfo.getLockInfo() );
                         sb.append( '\n' );
                         break;
                     default:
@@ -486,7 +485,7 @@ public class JavaHelper
             {
                 if ( mi.getLockedStackDepth() == counter )
                 {
-                    sb.append( "\t-  locked " + mi );
+                    sb.append( "\t-  locked " ).append( mi );
                     sb.append( '\n' );
                 }
             }
@@ -500,11 +499,11 @@ public class JavaHelper
         final LockInfo[] locks = threadInfo.getLockedSynchronizers();
         if ( locks.length > 0 )
         {
-            sb.append( "\n\tNumber of locked synchronizers = " + locks.length );
+            sb.append( "\n\tNumber of locked synchronizers = " ).append( locks.length );
             sb.append( '\n' );
             for ( final LockInfo li : locks )
             {
-                sb.append( "\t- " + li );
+                sb.append( "\t- " ).append( li );
                 sb.append( '\n' );
             }
         }
@@ -534,7 +533,7 @@ public class JavaHelper
 
     public static int rangeCheck( final int min, final int max, final int value )
     {
-        return (int) rangeCheck( (long) min, (long) max, (long) value );
+        return ( int ) rangeCheck( ( long ) min, ( long ) max, ( long ) value );
     }
 
     public static long rangeCheck( final long min, final long max, final long value )
@@ -588,6 +587,7 @@ public class JavaHelper
     /**
      * Very naive implementation to get a rough order estimate of object memory size, used for debug
      * purposes only.
+     *
      * @param object object to be analyzed
      * @return size of object (very rough estimate)
      */
@@ -611,7 +611,7 @@ public class JavaHelper
     {
         Objects.requireNonNull( properties );
         final Map<String, String> returnMap = new LinkedHashMap<>( properties.size() );
-        properties.forEach( ( key, value ) -> returnMap.put( ( String ) key, (String) value ) );
+        properties.forEach( ( key, value ) -> returnMap.put( ( String ) key, ( String ) value ) );
         return returnMap;
     }
 
@@ -707,7 +707,7 @@ public class JavaHelper
     {
         if ( StringUtil.isEmpty( input ) )
         {
-            throw new NullPointerException( );
+            throw new NullPointerException();
         }
         return input;
     }

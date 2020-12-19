@@ -218,6 +218,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         return ProcessStatus.Continue;
     }
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "clientData" )
     private ProcessStatus restClientData( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
@@ -231,6 +232,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "executeAction" )
     private ProcessStatus processExecuteActionRequest(
             final PwmRequest pwmRequest
@@ -312,6 +314,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
     }
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "deleteUser" )
     private ProcessStatus restDeleteUserRequest(
             final PwmRequest pwmRequest
@@ -399,6 +402,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "detail" )
     private ProcessStatus processDetailRequest(
             final PwmRequest pwmRequest
@@ -414,6 +418,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "card" )
     private ProcessStatus processCardRequest(
             final PwmRequest pwmRequest
@@ -432,6 +437,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "search" )
     private ProcessStatus restSearchRequest(
             final PwmRequest pwmRequest
@@ -569,6 +575,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                 .build();
     }
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "unlockIntruder" )
     private ProcessStatus restUnlockIntruder(
             final PwmRequest pwmRequest
@@ -643,6 +650,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "validateOtpCode" )
     private ProcessStatus restValidateOtpCodeRequest(
             final PwmRequest pwmRequest
@@ -728,6 +736,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "sendVerificationToken" )
     private ProcessStatus restSendVerificationTokenRequest(
             final PwmRequest pwmRequest
@@ -829,6 +838,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "verifyVerificationToken" )
     private ProcessStatus restVerifyVerificationTokenRequest(
             final PwmRequest pwmRequest
@@ -904,6 +914,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         return outputVerificationResponseBean( pwmRequest, passed, verificationStateBean );
     }
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "clearOtpSecret" )
     private ProcessStatus restClearOtpSecret(
             final PwmRequest pwmRequest
@@ -961,6 +972,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
     }
 
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "checkVerification" )
     private ProcessStatus restCheckVerification( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException, ServletException
@@ -985,6 +997,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
     }
 
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "showVerifications" )
     private ProcessStatus restShowVerifications( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException, ServletException, ChaiUnavailableException
@@ -1006,6 +1019,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
+    @SuppressWarnings( "UnusedMethod" )
     @ActionHandler( action = "validateAttributes" )
     private ProcessStatus restValidateAttributes( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException, ServletException

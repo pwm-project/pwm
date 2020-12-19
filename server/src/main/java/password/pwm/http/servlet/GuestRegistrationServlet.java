@@ -316,7 +316,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         final DomainConfig config = pwmDomain.getConfig();
 
         final String adminDnAttribute = config.readSettingAsString( PwmSetting.GUEST_ADMIN_ATTRIBUTE );
-        final Boolean origAdminOnly = config.readSettingAsBoolean( PwmSetting.GUEST_EDIT_ORIG_ADMIN_ONLY );
+        final boolean origAdminOnly = config.readSettingAsBoolean( PwmSetting.GUEST_EDIT_ORIG_ADMIN_ONLY );
 
         final String usernameParam = pwmRequest.readParameterAsString( "username" );
         final GuestRegistrationBean guBean = pwmDomain.getSessionStateService().getBean( pwmRequest, GuestRegistrationBean.class );
@@ -665,14 +665,8 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         final List<FormConfiguration> formItems = domainConfig.readSettingAsForm( PwmSetting.GUEST_FORM );
 
         {
-            boolean namingIsInForm = false;
-            for ( final FormConfiguration formItem : formItems )
-            {
-                if ( namingAttribute.equalsIgnoreCase( formItem.getName() ) )
-                {
-                    namingIsInForm = true;
-                }
-            }
+            final boolean namingIsInForm = formItems.stream()
+                    .anyMatch( ( formItem ) ->  namingAttribute.equalsIgnoreCase( formItem.getName() ) );
 
             if ( !namingIsInForm )
             {
@@ -686,6 +680,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             }
         }
     }
+
 
     private void calculateFutureDateFlags( final PwmRequest pwmRequest, final GuestRegistrationBean guestRegistrationBean )
     {

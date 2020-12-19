@@ -129,7 +129,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
             final Locale locale
     )
     {
-        final SettingReader settingReader = new SettingReader( domainConfig.getStoredConfiguration(), domainConfig.getDomainID(), profileID );
+        final SettingReader settingReader = new SettingReader( domainConfig.getStoredConfiguration(), profileID,  domainConfig.getDomainID() );
         final Map<String, String> passwordPolicySettings = new LinkedHashMap<>();
         for ( final PwmPasswordRule rule : PwmPasswordRule.values() )
         {

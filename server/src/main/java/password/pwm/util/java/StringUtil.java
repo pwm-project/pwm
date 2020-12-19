@@ -212,18 +212,12 @@ public abstract class StringUtil
 
         if ( diskSize > count * count * count )
         {
-            final StringBuilder sb = new StringBuilder();
-            sb.append( nf.format( diskSize / count / count / count ) );
-            sb.append( " GB" );
-            return sb.toString();
+            return nf.format( diskSize / count / count / count ) + " GB";
         }
 
         if ( diskSize > count * count )
         {
-            final StringBuilder sb = new StringBuilder();
-            sb.append( nf.format( diskSize / count / count ) );
-            sb.append( " MB" );
-            return sb.toString();
+            return nf.format( diskSize / count / count ) + " MB";
         }
 
         return PwmNumberFormat.forDefaultLocale().format( diskSize ) + " bytes";

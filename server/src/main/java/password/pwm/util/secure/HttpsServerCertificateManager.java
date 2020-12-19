@@ -41,7 +41,7 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 
 public class HttpsServerCertificateManager
@@ -142,9 +142,9 @@ public class HttpsServerCertificateManager
             final String effectiveAlias;
             {
                 final List<String> allAliases = new ArrayList<>();
-                for ( final Enumeration<String> aliasEnum = keyStore.aliases(); aliasEnum.hasMoreElements(); )
+                for ( final Iterator<String> aliasEnum = keyStore.aliases().asIterator(); aliasEnum.hasNext(); )
                 {
-                    final String value = aliasEnum.nextElement();
+                    final String value = aliasEnum.next();
                     allAliases.add( value );
                 }
                 effectiveAlias = allAliases.size() == 1 ? allAliases.iterator().next() : alias;

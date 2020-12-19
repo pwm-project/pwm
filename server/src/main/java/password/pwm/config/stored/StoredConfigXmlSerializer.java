@@ -23,10 +23,8 @@ package password.pwm.config.stored;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.PwmSettingTemplate;
-import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StoredValueEncoder;
@@ -37,7 +35,6 @@ import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -55,15 +52,12 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -126,8 +120,6 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
     static class XmlInputDocumentReader
     {
-        private final EnumMap<PwmSettingCategory, List<String>> cachedProfiles = new EnumMap<>( PwmSettingCategory.class );
-
         private final XmlDocument document;
         private final PwmSecurityKey pwmSecurityKey;
 
@@ -188,7 +180,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             final Function<XmlElement, Stream<StoredConfigData.ValueAndMetaCarrier>> readSettingForXmlElement = xmlElement ->
             {
                 final Optional<StoredConfigData.ValueAndMetaCarrier> valueAndMetaCarrier = readSetting( xmlElement );
-                return valueAndMetaCarrier.map( Stream::of ).orElseGet( Stream::empty );
+                return valueAndMetaCarrier.stream();
             };
 
             final List<XmlElement> settingElements = xpathForAllSetting();
@@ -265,15 +257,6 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
             return null;
         }
-
-        private final LazySupplier<PwmSettingTemplateSet> templateSetSupplier = new LazySupplier<>( () ->
-        {
-            final Set<PwmSettingTemplate> templates = EnumSet.noneOf( PwmSettingTemplate.class );
-            templates.add( readTemplateValue( PwmSetting.TEMPLATE_LDAP ) );
-            templates.add( readTemplateValue( PwmSetting.TEMPLATE_STORAGE ) );
-            templates.add( readTemplateValue( PwmSetting.DB_VENDOR_TEMPLATE ) );
-            return new PwmSettingTemplateSet( templates );
-        } );
 
         private PwmSettingTemplate readTemplateValue( final PwmSetting pwmSetting )
         {
@@ -384,12 +367,6 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
         {
             final String xpathString = "//localeBundle";
             return document.evaluateXpathToElements( xpathString );
-        }
-
-        XmlElement xpathForSettings()
-        {
-            return document.getRootElement().getChild( StoredConfigXmlConstants.XML_ELEMENT_SETTINGS )
-                    .orElseThrow( () -> new IllegalStateException( "configuration xml document missing 'settings' element" ) );
         }
 
         List<XmlElement> xpathForAllSetting()

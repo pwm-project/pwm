@@ -129,7 +129,9 @@ public class CertificateChecker implements HealthChecker
             final List<X509Certificate> certificates
     )
     {
-        final long warnDurationMs = 1000 * Long.parseLong( domainConfig.readAppProperty( AppProperty.HEALTH_CERTIFICATE_WARN_SECONDS ) );
+        final TimeDuration warnDuration = TimeDuration.of(
+                Long.parseLong( domainConfig.readAppProperty( AppProperty.HEALTH_CERTIFICATE_WARN_SECONDS ) ),
+                TimeDuration.Unit.SECONDS );
 
         if ( certificates != null )
         {
@@ -138,7 +140,7 @@ public class CertificateChecker implements HealthChecker
             {
                 try
                 {
-                    checkCertificate( certificate, warnDurationMs );
+                    checkCertificate( certificate, warnDuration );
                     return Collections.emptyList();
                 }
                 catch ( final PwmOperationalException e )
@@ -148,7 +150,7 @@ public class CertificateChecker implements HealthChecker
                             setting.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ),
                             errorDetail
                     );
-                    return Collections.singletonList( record );
+                    returnList.add( record );
                 }
             }
             return Collections.unmodifiableList( returnList );
@@ -156,7 +158,7 @@ public class CertificateChecker implements HealthChecker
         return Collections.emptyList();
     }
 
-    public static void checkCertificate( final X509Certificate certificate, final long warnDurationMs )
+    public static void checkCertificate( final X509Certificate certificate, final TimeDuration warnDuration )
             throws PwmOperationalException
     {
         if ( certificate == null )
@@ -185,7 +187,7 @@ public class CertificateChecker implements HealthChecker
 
         final Instant expireDate = certificate.getNotAfter().toInstant();
         final TimeDuration durationUntilExpire = TimeDuration.fromCurrent( expireDate );
-        if ( durationUntilExpire.isShorterThan( warnDurationMs ) )
+        if ( durationUntilExpire.isShorterThan( warnDuration ) )
         {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append( "certificate for subject " );

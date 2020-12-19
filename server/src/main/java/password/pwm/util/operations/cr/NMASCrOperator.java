@@ -60,8 +60,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -1145,12 +1145,13 @@ public class NMASCrOperator implements CrOperator
             return null;
         }
 
-        private SaslClientFactory getRealSaslClientFactory( ) throws IllegalAccessException, InstantiationException, ClassNotFoundException
+        private SaslClientFactory getRealSaslClientFactory( )
+                throws ReflectiveOperationException
         {
             final String className = "com.novell.sasl.client.ClientFactory";
             final ClassLoader threadLocalClassLoader = Thread.currentThread().getContextClassLoader();
             final Class threadLocalClass = threadLocalClassLoader.loadClass( className );
-            return ( SaslClientFactory ) threadLocalClass.newInstance();
+            return ( SaslClientFactory ) threadLocalClass.getDeclaredConstructor().newInstance();
         }
 
         @Override

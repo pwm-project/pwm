@@ -43,6 +43,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -74,10 +75,7 @@ public final class ValueTypeConverter
 
     public static String valueToString( final StoredValue value )
     {
-        if ( value == null )
-        {
-            return null;
-        }
+        Objects.requireNonNull( value );
         if ( ( !( value instanceof StringValue ) ) && ( !( value instanceof BooleanValue ) ) )
         {
             throw new IllegalArgumentException( "setting value is type '" + value.getClass().getSimpleName() + "' not readable as string" );

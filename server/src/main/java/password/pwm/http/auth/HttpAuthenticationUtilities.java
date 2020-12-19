@@ -60,13 +60,13 @@ public abstract class HttpAuthenticationUtilities
                 try
                 {
                     final String className = authenticationMethod.getClassName();
-                    final Class clazz = Class.forName( className );
-                    final Object newInstance = clazz.newInstance();
+                    final Class<?> clazz = Class.forName( className );
+                    final Object newInstance = clazz.getDeclaredConstructor().newInstance();
                     filterAuthenticationProvider = ( PwmHttpFilterAuthenticationProvider ) newInstance;
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.trace( () -> "could not load authentication class '" + authenticationMethod + "', will ignore" );
+                    LOGGER.trace( () -> "could not load authentication class '" + authenticationMethod + "', will ignore (error: " + e.getMessage() + ")" );
                     IGNORED_AUTH_METHODS.add( authenticationMethod );
                 }
 

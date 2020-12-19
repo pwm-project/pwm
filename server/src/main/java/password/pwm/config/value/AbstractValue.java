@@ -86,7 +86,7 @@ public abstract class AbstractValue implements StoredValue
             document.getRootElement().addContent( xmlValues );
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             XmlFactory.getFactory().outputDocument( document, byteArrayOutputStream );
-            final String stringToHash = new String( byteArrayOutputStream.toByteArray(), PwmConstants.DEFAULT_CHARSET );
+            final String stringToHash = byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET );
             return SecureEngine.hash( stringToHash, PwmHashAlgorithm.SHA512 );
 
         }

@@ -138,7 +138,7 @@ public class JDBCDriverLoader
             try
             {
                 LOGGER.debug( () -> "loading JDBC database driver from classpath: " + jdbcClassName );
-                final Driver driver = ( Driver ) Class.forName( jdbcClassName ).newInstance();
+                final Driver driver = ( Driver ) Class.forName( jdbcClassName ).getDeclaredConstructor().newInstance();
 
                 LOGGER.debug( () -> "successfully loaded JDBC database driver from classpath: " + jdbcClassName );
                 return driver;

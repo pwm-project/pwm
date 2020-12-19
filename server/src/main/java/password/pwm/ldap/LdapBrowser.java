@@ -213,7 +213,7 @@ public class LdapBrowser
                 if ( attributeResults.containsKey( "subordinateCount" ) )
                 {
                     // only eDir actually returns this operational attribute
-                    final Integer subordinateCount = Integer.parseInt( attributeResults.get( "subordinateCount" ).iterator().next() );
+                    final int subordinateCount = Integer.parseInt( attributeResults.get( "subordinateCount" ).iterator().next() );
                     hasSubs = subordinateCount > 0;
                 }
                 else

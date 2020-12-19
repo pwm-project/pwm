@@ -320,7 +320,7 @@ public class PwmEnvironment
             }
 
             final Properties propValues = new Properties();
-            try ( FileInputStream fileInputStream = new FileInputStream( new File( input ) ) )
+            try ( FileInputStream fileInputStream = new FileInputStream( input ) )
             {
                 propValues.load( fileInputStream );
             }

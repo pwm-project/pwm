@@ -137,7 +137,7 @@ public class UrlShortenerService implements PwmService
             final Pattern p = Pattern.compile( urlRegex );
             final Matcher m = p.matcher( text );
             final StringBuilder result = new StringBuilder();
-            Boolean found = m.find();
+            boolean found = m.find();
             if ( found )
             {
                 int start = 0;

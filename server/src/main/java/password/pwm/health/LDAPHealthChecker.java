@@ -1172,11 +1172,11 @@ public class LDAPHealthChecker implements HealthChecker
     {
         final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmDomain.getPwmEnvironment().makeRuntimeInstance( config.getAppConfig() ) );
         final LDAPHealthChecker ldapHealthChecker = new LDAPHealthChecker();
-        final List<HealthRecord> profileRecords = new ArrayList<>();
 
         final LdapProfile ldapProfile = config.getLdapProfiles().get( profileID );
-        profileRecords.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempApplication.getDefaultDomain(), config, ldapProfile,
-                testContextless ) );
+        final List<HealthRecord> profileRecords = new ArrayList<>(
+                ldapHealthChecker.checkBasicLdapConnectivity( tempApplication.getDefaultDomain(), config, ldapProfile, testContextless ) );
+
         if ( fullTest )
         {
             profileRecords.addAll( ldapHealthChecker.checkLdapServerUrls( pwmDomain, config, ldapProfile ) );

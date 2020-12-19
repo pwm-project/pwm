@@ -47,13 +47,17 @@ import java.util.Set;
 public class ControlledPwmServletTest
 {
     @Test
-    public void testProcess() throws IllegalAccessException, InstantiationException
+    public void testProcess() throws Exception
     {
         final Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> dataMap = getClassAndMethods();
 
         for ( final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet() )
         {
-            final Class<? extends AbstractPwmServlet.ProcessAction> processActionsClass = controlledPwmServlet.newInstance().getProcessActionsClass();
+            final Class<? extends AbstractPwmServlet.ProcessAction> processActionsClass = controlledPwmServlet
+                    .getDeclaredConstructor()
+                    .newInstance()
+                    .getProcessActionsClass();
+
             if ( !processActionsClass.isEnum() )
             {
                 Assert.fail( controlledPwmServlet.getName() + " process action class must be an enum" );
@@ -131,7 +135,8 @@ public class ControlledPwmServletTest
 
 
     @Test
-    public void testActionHandlersExistence() throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException
+    public void testActionHandlersExistence()
+            throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException
     {
         final Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> dataMap = getClassAndMethods();
 
@@ -139,7 +144,9 @@ public class ControlledPwmServletTest
         {
             final String servletName = controlledPwmServlet.getName();
 
-            final Class<? extends AbstractPwmServlet.ProcessAction> processActionsClass = controlledPwmServlet.newInstance().getProcessActionsClass();
+            final Class<? extends AbstractPwmServlet.ProcessAction> processActionsClass = controlledPwmServlet
+                    .getDeclaredConstructor(  )
+                    .newInstance().getProcessActionsClass();
             final List<String> names = new ArrayList<>();
             for ( final Object enumObject : processActionsClass.getEnumConstants() )
             {

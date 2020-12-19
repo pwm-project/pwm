@@ -36,6 +36,7 @@ public class StoredConfigXmlConstants
     public static final String XML_ATTRIBUTE_KEY = "key";
     public static final String XML_ATTRIBUTE_SYNTAX = "syntax";
     public static final String XML_ATTRIBUTE_PROFILE = "profile";
+    public static final String XML_ATTRIBUTE_DOMAIN = "domain";
     public static final String XML_ATTRIBUTE_VALUE_APP = "app";
     public static final String XML_ATTRIBUTE_VALUE_CONFIG = "config";
     public static final String XML_ATTRIBUTE_CREATE_TIME = "createTime";

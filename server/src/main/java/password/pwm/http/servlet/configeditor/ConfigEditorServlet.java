@@ -653,7 +653,12 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         LOGGER.debug( pwmRequest, () -> "beginning restEmailHealthCheck" );
 
         final Map<String, String> params = pwmRequest.readBodyAsJsonStringMap();
-        final EmailItemBean testEmailItem = new EmailItemBean( params.get( "to" ), params.get( "from" ), params.get( "subject" ), params.get( "body" ), null );
+        final EmailItemBean testEmailItem = new EmailItemBean(
+                params.get( "to" ),
+                params.get( "from" ),
+                params.get( "subject" ),
+                params.get( "body" ),
+                null );
 
         final StringBuilder output = new StringBuilder();
         output.append( "beginning EMail send process:\n" );
@@ -675,7 +680,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 }
                 catch ( final PwmException e )
                 {
-                    output.append( "error: " + StringUtil.escapeHtml( JavaHelper.readHostileExceptionMessage( e ) ) );
+                    output.append( "error: " ).append( StringUtil.escapeHtml( JavaHelper.readHostileExceptionMessage( e ) ) );
                 }
             }
         }

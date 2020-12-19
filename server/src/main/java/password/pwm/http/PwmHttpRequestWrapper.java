@@ -427,15 +427,10 @@ public class PwmHttpRequestWrapper
     public String debugHttpHeaders( )
     {
         final String lineSeparator = "\n";
-        final StringBuilder sb = new StringBuilder();
 
-
-        sb.append( "http" ).append( getHttpServletRequest().isSecure() ? "s " : " non-" ).append( "secure request headers: " );
-        sb.append( lineSeparator );
-
-        sb.append( debugOutputMapToString( readHeaderValuesMap(), HTTP_HEADER_DEBUG_STRIP_VALUES ) );
-
-        return sb.toString();
+        return "http" + ( getHttpServletRequest().isSecure() ? "s " : " non-" ) + "secure request headers: "
+                + lineSeparator
+                + debugOutputMapToString( readHeaderValuesMap(), HTTP_HEADER_DEBUG_STRIP_VALUES );
     }
 
     private static String debugOutputMapToString(
@@ -452,14 +447,10 @@ public class PwmHttpRequestWrapper
             for ( final String paramValue : entry.getValue() )
             {
                 sb.append( "  " ).append( paramName ).append( "=" );
-                boolean strip = false;
-                for ( final String stripValue : stripValues )
-                {
-                    if ( paramName.toLowerCase().contains( stripValue.toLowerCase() ) )
-                    {
-                        strip = true;
-                    }
-                }
+
+                final boolean strip = stripValues.stream()
+                        .anyMatch( ( stripValue ) -> paramName.toLowerCase().contains( stripValue.toLowerCase() ) );
+
                 if ( strip )
                 {
                     sb.append( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );

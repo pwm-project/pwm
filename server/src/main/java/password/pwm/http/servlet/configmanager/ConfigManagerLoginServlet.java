@@ -147,7 +147,6 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
                 LOGGER.trace( pwmRequest, () -> "valid configuration password accepted" );
                 updateLoginHistory( pwmRequest, pwmRequest.getUserInfoIfLoggedIn(), true );
                 processLoginSuccess( pwmRequest, true );
-                return;
             }
             else
             {
@@ -158,7 +157,6 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
                 updateLoginHistory( pwmRequest, pwmRequest.getUserInfoIfLoggedIn(), false );
                 setLastError( pwmRequest, errorInformation );
                 forwardToJsp( pwmRequest );
-                return;
             }
         }
     }

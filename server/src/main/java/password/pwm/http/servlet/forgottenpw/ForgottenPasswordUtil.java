@@ -545,11 +545,11 @@ public class ForgottenPasswordUtil
         forgottenPasswordBean.setUserIdentity( null );
         forgottenPasswordBean.setPresentableChallengeSet( null );
 
-        final List<Challenge> challengeList = new ArrayList<>( );
+        final List<Challenge> challengeList;
         {
             final String firstProfile = pwmRequestContext.getConfig().getChallengeProfileIDs().iterator().next();
             final ChallengeSet challengeSet = pwmRequestContext.getConfig().getChallengeProfile( firstProfile, PwmConstants.DEFAULT_LOCALE ).getChallengeSet();
-            challengeList.addAll( challengeSet.getRequiredChallenges() );
+            challengeList = new ArrayList<>( challengeSet.getRequiredChallenges() );
             for ( int i = 0; i < challengeSet.getMinRandomRequired(); i++ )
             {
                 challengeList.add( challengeSet.getRandomChallenges().get( i ) );

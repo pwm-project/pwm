@@ -44,8 +44,8 @@ class LocalSessionBeanImpl implements SessionBeanProvider
         {
             try
             {
-                final Object newBean = SessionStateService.newBean( null, theClass );
-                sessionBeans.put( theClass, ( PwmSessionBean ) newBean );
+                final PwmSessionBean newBean = SessionStateService.newBean( null, theClass );
+                sessionBeans.put( theClass, newBean );
             }
             catch ( final Exception e )
             {

@@ -26,9 +26,9 @@ import org.apache.log4j.Layout;
 import org.apache.log4j.Logger;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
@@ -68,7 +68,6 @@ import password.pwm.util.cli.commands.VersionCommand;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogManager;
@@ -82,7 +81,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -414,10 +413,6 @@ public class MainClass
                 out( "error closing LocalDB environment: " + e.getMessage() );
             }
         }
-
-        //System.exit(0);
-        return;
-
     }
 
     private static void initLog4j( final PwmLogLevel logLevel )
@@ -476,10 +471,10 @@ public class MainClass
             final File configurationFile,
             final boolean readonly
     )
-            throws LocalDBException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final PwmApplicationMode mode = readonly ? PwmApplicationMode.READ_ONLY : PwmApplicationMode.RUNNING;
-        final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = new HashSet<>();
+        final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = EnumSet.noneOf( PwmEnvironment.ApplicationFlag.class  );
         if ( flags == null )
         {
             applicationFlags.addAll( PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem( null ) );

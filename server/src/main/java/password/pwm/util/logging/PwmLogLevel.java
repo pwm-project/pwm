@@ -21,6 +21,7 @@
 package password.pwm.util.logging;
 
 import org.apache.log4j.Level;
+import password.pwm.util.java.JavaHelper;
 
 public enum PwmLogLevel
 {
@@ -31,16 +32,16 @@ public enum PwmLogLevel
     ERROR( Level.ERROR ),
     FATAL( Level.FATAL ),;
 
+    private final int log4jLevel;
+
     PwmLogLevel( final Level log4jLevel )
     {
-        this.log4jLevel = log4jLevel;
+        this.log4jLevel = log4jLevel.toInt();
     }
-
-    private final Level log4jLevel;
 
     public Level getLog4jLevel( )
     {
-        return log4jLevel;
+        return Level.toLevel( log4jLevel );
     }
 
     public static PwmLogLevel fromLog4jLevel( final Level level )
@@ -50,30 +51,12 @@ public enum PwmLogLevel
             return null;
         }
 
-        if ( Level.TRACE.equals( level ) )
-        {
-            return TRACE;
-        }
-        else if ( Level.DEBUG.equals( level ) )
-        {
-            return DEBUG;
-        }
-        else if ( Level.INFO.equals( level ) )
-        {
-            return INFO;
-        }
-        else if ( Level.WARN.equals( level ) )
-        {
-            return WARN;
-        }
-        else if ( Level.ERROR.equals( level ) )
-        {
-            return ERROR;
-        }
-        else if ( Level.FATAL.equals( level ) )
-        {
-            return FATAL;
-        }
-        return TRACE;
+        final int log4jIntLevel = level.toInt();
+
+        return JavaHelper.readEnumFromPredicate(
+                PwmLogLevel.class,
+                pwmLogLevel -> pwmLogLevel.log4jLevel == log4jIntLevel
+        )
+                .orElse( TRACE );
     }
 }

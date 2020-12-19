@@ -284,7 +284,7 @@ class LdapXmlUserHistory implements UserHistoryStore
             try ( ByteArrayOutputStream outputStream = new ByteArrayOutputStream() )
             {
                 xmlFactory.outputDocument( doc,  outputStream, XmlFactory.OutputFlag.Compact );
-                return new String( outputStream.toByteArray(), PwmConstants.DEFAULT_CHARSET );
+                return outputStream.toString( PwmConstants.DEFAULT_CHARSET );
             }
             catch ( final IOException e )
             {

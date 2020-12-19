@@ -136,8 +136,7 @@ public class ShortcutServlet extends AbstractPwmServlet
     private void forwardToJsp( final PwmRequest pwmRequest, final ShortcutsBean shortcutsBean )
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        final ArrayList<ShortcutItem> shortcutItems = new ArrayList<>();
-        shortcutItems.addAll( shortcutsBean.getVisibleItems().values() );
+        final ArrayList<ShortcutItem> shortcutItems = new ArrayList<>( shortcutsBean.getVisibleItems().values() );
         pwmRequest.setAttribute( PwmRequestAttribute.ShortcutItems, shortcutItems );
         pwmRequest.forwardToJsp( JspUrl.SHORTCUT );
     }
@@ -148,7 +147,7 @@ public class ShortcutServlet extends AbstractPwmServlet
     private static Map<String, ShortcutItem> figureVisibleShortcuts(
             final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         final Collection<String> configValues = pwmRequest.getConfig().readSettingAsLocalizedStringArray( PwmSetting.SHORTCUT_ITEMS, pwmRequest.getLocale() );
 

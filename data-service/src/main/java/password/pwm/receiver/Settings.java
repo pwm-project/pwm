@@ -23,7 +23,6 @@ package password.pwm.receiver;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -75,7 +74,7 @@ public class Settings
     static Settings readFromFile( final String filename ) throws IOException
     {
         final Properties properties = new Properties();
-        try ( Reader reader = new InputStreamReader( new FileInputStream( new File( filename ) ), StandardCharsets.UTF_8 ) )
+        try ( Reader reader = new InputStreamReader( new FileInputStream( filename ), StandardCharsets.UTF_8 ) )
         {
             properties.load( reader );
             final Map<Setting, String> returnMap = new HashMap<>();

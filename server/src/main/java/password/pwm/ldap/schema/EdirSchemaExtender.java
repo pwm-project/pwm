@@ -84,15 +84,14 @@ public class EdirSchemaExtender implements SchemaExtender
 
     private boolean allStatesCorrect( )
     {
-        boolean allStatesCorrect = true;
         for ( final SchemaDefinition.State value : stateMap.values() )
         {
             if ( SchemaDefinition.State.correct != value )
             {
-                allStatesCorrect = false;
+                return false;
             }
         }
-        return allStatesCorrect;
+        return true;
     }
 
     private void execute( final boolean readOnly ) throws PwmUnrecoverableException

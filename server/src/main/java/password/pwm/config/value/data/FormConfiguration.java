@@ -32,7 +32,6 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
@@ -267,38 +266,6 @@ public class FormConfiguration implements Serializable
     {
         return source == null ? Source.ldap : source;
     }
-
-    public boolean equals( final Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-        if ( !( o instanceof FormConfiguration ) )
-        {
-            return false;
-        }
-
-        final FormConfiguration parameterConfig = ( FormConfiguration ) o;
-
-        return !( name != null ? !name.equals( parameterConfig.name ) : parameterConfig.name != null );
-    }
-
-    public int hashCode( )
-    {
-        return ( name != null ? name.hashCode() : 0 );
-    }
-
-    public String toString( )
-    {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append( "FormItem: " );
-        sb.append( JsonUtil.serialize( this ) );
-
-        return sb.toString();
-    }
-
 
     public void checkValue( final DomainConfig config, final String value, final Locale locale )
             throws PwmDataValidationException, PwmUnrecoverableException

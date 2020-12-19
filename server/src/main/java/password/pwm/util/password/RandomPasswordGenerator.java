@@ -39,6 +39,7 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
@@ -161,10 +162,9 @@ public class RandomPasswordGenerator
         // determine the password policy to use for random generation
         final PwmPasswordPolicy randomGenPolicy;
         {
-            final Map<String, String> newPolicyMap = new HashMap<>();
-            newPolicyMap.putAll( effectiveConfig.getPasswordPolicy().getPolicyMap() );
+            final Map<String, String> newPolicyMap = new HashMap<>( effectiveConfig.getPasswordPolicy().getPolicyMap() );
 
-            final String max = newPolicyMap.put( PwmPasswordRule.MaximumLength.getKey(), String.valueOf( effectiveConfig.getMaximumLength() ) );
+            newPolicyMap.put( PwmPasswordRule.MaximumLength.getKey(), String.valueOf( effectiveConfig.getMaximumLength() ) );
 
             if ( effectiveConfig.getMinimumLength() > effectiveConfig.getPasswordPolicy().getRuleHelper().readIntValue( PwmPasswordRule.MinimumLength ) )
             {
@@ -220,22 +220,24 @@ public class RandomPasswordGenerator
 
         // report outcome
         {
-            final TimeDuration td = TimeDuration.fromCurrent( startTime );
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmDomain, randomGenPolicy );
             if ( validPassword )
             {
                 final int finalTryCount = tryCount;
-                LOGGER.trace( sessionLabel, () -> "finished random password generation in "
-                        + td.asCompactString() + " after " + finalTryCount + " tries." );
+                LOGGER.trace( sessionLabel, () -> "finished random password generation after " + finalTryCount
+                        + " tries.", () -> TimeDuration.fromCurrent( startTime ) );
             }
             else
             {
-                final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator( password.toString(), null, null );
-                final int judgeLevel = PasswordUtility.judgePasswordStrength( pwmDomain.getConfig(), password.toString() );
-                final StringBuilder sb = new StringBuilder();
-                sb.append( "failed random password generation after " ).append( td.asCompactString() ).append( " after " ).append( tryCount ).append( " tries. " );
-                sb.append( "(errors=" ).append( errors.size() ).append( ", judgeLevel=" ).append( judgeLevel );
-                LOGGER.error( sessionLabel, () -> sb.toString() );
+                if ( LOGGER.isEnabled( PwmLogLevel.ERROR ) )
+                {
+                    final int errors = pwmPasswordRuleValidator.internalPwmPolicyValidator( password.toString(), null, null ).size();
+                    final int judgeLevel = PasswordUtility.judgePasswordStrength( pwmDomain.getConfig(), password.toString() );
+                    final int finalTryCount = tryCount;
+                    LOGGER.error( sessionLabel, () -> "failed random password generation after "
+                            + finalTryCount + " tries. " + "(errors=" + errors + ", judgeLevel=" + judgeLevel,
+                            () -> TimeDuration.fromCurrent( startTime ) );
+                }
             }
         }
 

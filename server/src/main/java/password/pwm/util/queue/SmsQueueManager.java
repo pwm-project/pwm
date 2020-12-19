@@ -208,7 +208,7 @@ public class SmsQueueManager implements PwmService
     )
             throws PwmUnrecoverableException
     {
-        final Boolean shorten = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.SMS_USE_URL_SHORTENER );
+        final boolean shorten = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.SMS_USE_URL_SHORTENER );
         if ( shorten )
         {
             final String message = smsItem.getMessage();
