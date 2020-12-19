@@ -22,6 +22,7 @@ package password.pwm.config;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.option.CertificateMatchingMode;
@@ -94,14 +95,14 @@ public class DomainConfig
 
     private final StoredConfiguration storedConfiguration;
     private final AppConfig appConfig;
-    private final String domainID;
+    private final DomainID domainID;
 
     private final ConfigurationSuppliers configurationSuppliers = new ConfigurationSuppliers();
 
     private final DataCache dataCache = new DataCache();
     private final SettingReader settingReader;
 
-    public DomainConfig( final AppConfig appConfig, final String domainID )
+    public DomainConfig( final AppConfig appConfig, final DomainID domainID )
     {
         this.appConfig = Objects.requireNonNull( appConfig );
         this.storedConfiguration = appConfig.getStoredConfiguration();
@@ -383,7 +384,7 @@ public class DomainConfig
         return storedConfiguration.readSetting( setting, null );
     }
 
-    public String getDomainID()
+    public DomainID getDomainID()
     {
         return domainID;
     }

@@ -22,6 +22,7 @@ package password.pwm.config.stored;
 
 import org.jetbrains.annotations.NotNull;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.i18n.Config;
@@ -62,13 +63,13 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     }
 
     private final RecordType recordType;
-    private final String domainID;
+    private final DomainID domainID;
     private final String recordID;
     private final String profileID;
 
     private static final long serialVersionUID = 1L;
 
-    private StoredConfigItemKey( final RecordType recordType, final String domainID, final String recordID, final String profileID )
+    private StoredConfigItemKey( final RecordType recordType, final DomainID domainID, final String recordID, final String profileID )
     {
         Objects.requireNonNull( recordType, "recordType can not be null" );
         Objects.requireNonNull( recordID, "recordID can not be null" );
@@ -84,7 +85,7 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
         return recordType;
     }
 
-    public String getDomainID()
+    public DomainID getDomainID()
     {
         return domainID;
     }
@@ -104,7 +105,7 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
         return new StoredConfigItemKey( RecordType.SETTING, null, pwmSetting.getKey(), profileID );
     }
 
-    public static StoredConfigItemKey fromSetting( final PwmSetting pwmSetting, final String profileID, final String domainID )
+    public static StoredConfigItemKey fromSetting( final PwmSetting pwmSetting, final String profileID, final DomainID domainID )
     {
         return new StoredConfigItemKey( RecordType.SETTING, domainID, pwmSetting.getKey(), profileID );
     }

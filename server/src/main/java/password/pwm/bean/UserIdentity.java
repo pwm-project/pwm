@@ -52,35 +52,50 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
     private static final String CRYPO_HEADER = "ui_C-";
     private static final String DELIM_SEPARATOR = "|";
 
+    private static final Comparator<UserIdentity> COMPARATOR = Comparator.comparing(
+            UserIdentity::getDomainID,
+            Comparator.nullsLast( Comparator.naturalOrder() ) )
+            .thenComparing(
+                    UserIdentity::getLdapProfileID,
+                    Comparator.nullsLast( Comparator.naturalOrder() ) )
+            .thenComparing(
+                    UserIdentity::getDomainID,
+                    Comparator.nullsLast( Comparator.naturalOrder() ) );
+
+
     private transient String obfuscatedValue;
     private transient boolean canonical;
 
     private final String userDN;
     private final String ldapProfile;
-    private final String domainID;
+    private final DomainID domainID;
 
     public enum Flag
     {
         PreCanonicalized,
     }
 
-    private UserIdentity( final String userDN, final String ldapProfile, final String domainID )
+    private UserIdentity( final String userDN, final String ldapProfile, final DomainID domainID )
     {
         this.userDN = JavaHelper.requireNonEmpty( userDN, "UserIdentity: userDN value cannot be empty" );
         this.ldapProfile = JavaHelper.requireNonEmpty( ldapProfile, "UserIdentity: ldapProfile value cannot be empty" );
-        this.domainID = JavaHelper.requireNonEmpty( domainID, "UserIdentity: domain value cannot be empty" );
+        this.domainID = Objects.requireNonNull( domainID );
     }
 
-    public UserIdentity( final String userDN, final String ldapProfile, final String domainID, final boolean canonical )
+    public UserIdentity( final String userDN, final String ldapProfile, final DomainID domainID, final boolean canonical )
     {
         this( userDN, ldapProfile, domainID );
         this.canonical = canonical;
     }
 
-    public static UserIdentity createUserIdentity( final String userDN, final String ldapProfile, final Flag... flags )
+    public static UserIdentity createUserIdentity(
+            final String userDN,
+            final String ldapProfile,
+            final Flag... flags
+    )
     {
         final boolean canonical = JavaHelper.enumArrayContainsValue( flags, Flag.PreCanonicalized );
-        return new UserIdentity( userDN, ldapProfile, PwmConstants.DOMAIN_ID_DEFAULT, canonical );
+        return new UserIdentity( userDN, ldapProfile, PwmConstants.DOMAIN_ID_PLACEHOLDER, canonical );
     }
 
     public String getUserDN( )
@@ -88,7 +103,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         return userDN;
     }
 
-    public String getDomainID()
+    public DomainID getDomainID()
     {
         return domainID;
     }
@@ -253,28 +268,8 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
     @Override
     public int compareTo( @NotNull final UserIdentity otherIdentity )
     {
-        return comparator().compare( this, otherIdentity );
+        return COMPARATOR.compare( this, otherIdentity );
     }
-
-    private static Comparator<UserIdentity> comparator( )
-    {
-        final Comparator<UserIdentity> domainComparator = Comparator.comparing(
-                UserIdentity::getDomainID,
-                Comparator.nullsLast( Comparator.naturalOrder() ) );
-
-        final Comparator<UserIdentity> profileComparator = Comparator.comparing(
-                UserIdentity::getLdapProfileID,
-                Comparator.nullsLast( Comparator.naturalOrder() ) );
-
-        final Comparator<UserIdentity> userComparator = Comparator.comparing(
-                UserIdentity::getDomainID,
-                Comparator.nullsLast( Comparator.naturalOrder() ) );
-
-        return domainComparator
-                .thenComparing( profileComparator )
-                .thenComparing( userComparator );
-    }
-
 
     public UserIdentity canonicalized( final PwmDomain pwmDomain )
             throws PwmUnrecoverableException

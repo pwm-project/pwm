@@ -32,6 +32,7 @@ import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.cr.ChallengeSet;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.PwmLdapVendor;
 import password.pwm.util.PasswordData;
@@ -373,6 +374,26 @@ public class JsonUtil
         }
     }
 
+    private static class DomainIDTypeAdaptor implements JsonSerializer<DomainID>, JsonDeserializer<DomainID>
+    {
+        @Override
+        public DomainID deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
+        {
+            final String sValue = json.getAsString();
+            if ( DomainID.systemId().toString().equals( sValue ) )
+            {
+                return DomainID.systemId();
+            }
+            return DomainID.create( json.getAsString() );
+        }
+
+        @Override
+        public JsonElement serialize( final DomainID src, final Type typeOfSrc, final JsonSerializationContext context )
+        {
+            return new JsonPrimitive( src.toString() );
+        }
+    }
+
     private static GsonBuilder registerTypeAdapters( final GsonBuilder gsonBuilder )
     {
         gsonBuilder.registerTypeAdapter( Date.class, new DateTypeAdapter() );
@@ -381,6 +402,7 @@ public class JsonUtil
         gsonBuilder.registerTypeAdapter( byte[].class, new ByteArrayToBase64TypeAdapter() );
         gsonBuilder.registerTypeAdapter( PasswordData.class, new PasswordDataTypeAdapter() );
         gsonBuilder.registerTypeAdapter( PwmLdapVendorTypeAdaptor.class, new PwmLdapVendorTypeAdaptor() );
+        gsonBuilder.registerTypeAdapter( DomainID.class, new DomainIDTypeAdaptor() );
         return gsonBuilder;
     }
 

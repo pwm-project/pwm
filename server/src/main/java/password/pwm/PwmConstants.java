@@ -22,6 +22,7 @@ package password.pwm;
 
 import com.novell.ldapchai.ChaiConstant;
 import org.apache.commons.csv.CSVFormat;
+import password.pwm.bean.DomainID;
 import password.pwm.util.java.StringUtil;
 
 import java.io.InputStream;
@@ -94,7 +95,7 @@ public abstract class PwmConstants
     public static final String PROFILE_ID_DEFAULT = "default";
 
     public static final String DOMAIN_ID_DEFAULT = "default";
-    public static final String DOMAIN_ID_PLACEHOLDER = "default";
+    public static final DomainID DOMAIN_ID_PLACEHOLDER = DomainID.create( "default" );
 
     public static final String TOKEN_KEY_PWD_CHG_DATE = "_lastPwdChange";
 

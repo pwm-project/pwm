@@ -20,6 +20,7 @@
 
 package password.pwm.config;
 
+import password.pwm.bean.DomainID;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
@@ -48,9 +49,9 @@ public class SettingReader
 
     private final StoredConfiguration storedConfiguration;
     private final String profileID;
-    private final String domainID;
+    private final DomainID domainID;
 
-    public SettingReader( final StoredConfiguration storedConfiguration, final String profileID, final String domainID )
+    public SettingReader( final StoredConfiguration storedConfiguration, final String profileID, final DomainID domainID )
     {
         this.storedConfiguration = Objects.requireNonNull( storedConfiguration );
         this.profileID = profileID;

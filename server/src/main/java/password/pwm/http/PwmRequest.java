@@ -30,6 +30,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
@@ -614,9 +615,9 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return requestStartTime;
     }
 
-    public String getDomainID()
+    public DomainID getDomainID()
     {
-        return PwmConstants.DOMAIN_ID_DEFAULT;
+        return PwmConstants.DOMAIN_ID_PLACEHOLDER;
     }
 
     public PwmApplication getPwmApplication()

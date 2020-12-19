@@ -22,6 +22,7 @@ package password.pwm.config;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -54,7 +55,7 @@ public class AppConfig
 
     private final StoredConfiguration storedConfiguration;
     private final SettingReader settingReader;
-    private final Map<String, DomainConfig> domainConfigMap;
+    private final Map<DomainID, DomainConfig> domainConfigMap;
 
     private PwmSecurityKey tempInstanceKey = null;
 
@@ -64,16 +65,17 @@ public class AppConfig
         this.settingReader = new SettingReader( storedConfiguration, null, null );
         domainConfigMap = getDomainIDs().stream()
                 .collect( Collectors.toUnmodifiableMap(
-                ( domainID ) -> domainID,
-                ( domainID ) -> new DomainConfig( this, domainID ) ) );
+                        ( domainID ) -> domainID,
+                        ( domainID ) -> new DomainConfig( this, domainID ) ) );
     }
 
-    public List<String> getDomainIDs()
+    public List<DomainID> getDomainIDs()
     {
-        return settingReader.readSettingAsStringArray( PwmSetting.DOMAIN_LIST );
+        final List<String> strings = settingReader.readSettingAsStringArray( PwmSetting.DOMAIN_LIST );
+        return strings.stream().map( DomainID::create ).collect( Collectors.toUnmodifiableList() );
     }
 
-    public Map<String, DomainConfig> getDomainConfigs()
+    public Map<DomainID, DomainConfig> getDomainConfigs()
     {
         return domainConfigMap;
     }

@@ -22,6 +22,7 @@ package password.pwm;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -79,9 +80,9 @@ public class PwmDomain
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmDomain.class );
 
     private final PwmApplication pwmApplication;
-    private final String domainID;
+    private final DomainID domainID;
 
-    public PwmDomain( final PwmApplication pwmApplication, final String domainID )
+    public PwmDomain( final PwmApplication pwmApplication, final DomainID domainID )
     {
         this.pwmApplication = Objects.requireNonNull( pwmApplication );
         this.domainID = Objects.requireNonNull( domainID );

@@ -23,6 +23,7 @@ package password.pwm;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
@@ -119,7 +120,7 @@ public class PwmApplication
 
     private final AtomicInteger activeServletRequests = new AtomicInteger( 0 );
 
-    private Map<String, PwmDomain> domains;
+    private Map<DomainID, PwmDomain> domains;
     private String runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
 
     private final PwmServiceManager pwmServiceManager = new PwmServiceManager();
@@ -165,8 +166,7 @@ public class PwmApplication
         this.domains = this.pwmEnvironment.getConfig().getDomainIDs().stream()
                 .collect( Collectors.toUnmodifiableMap(
                         ( domainID ) -> domainID,
-                        ( domainID ) -> new PwmDomain( this, domainID )
-                ) );
+                        ( domainID ) -> new PwmDomain( this, domainID ) ) );
 
 
         // initialize log4j
@@ -379,7 +379,7 @@ public class PwmApplication
         return new PwmApplication( pwmEnvironment );
     }
 
-    public Map<String, PwmDomain> getDomains()
+    public Map<DomainID, PwmDomain> getDomains()
     {
         return domains;
     }
