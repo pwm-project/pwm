@@ -21,9 +21,11 @@
 package password.pwm.svc.wordlist;
 
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -447,9 +449,10 @@ public class SharedHistoryManager implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain )
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
+        final PwmDomain pwmDomain = pwmApplication.getDefaultDomain();
         // convert to MS;
         settings.maxAgeMs = 1000 * pwmDomain.getConfig().readSettingAsLong( PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE );
         settings.caseInsensitive = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_CASE_INSENSITIVE ) );

@@ -20,7 +20,8 @@
 
 package password.pwm.util.localdb;
 
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
+import password.pwm.bean.DomainID;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
@@ -33,7 +34,7 @@ import java.util.Map;
 
 public class LocalDBService implements PwmService
 {
-    private PwmDomain pwmDomain;
+    private PwmApplication pwmDomain;
 
     @Override
     public STATUS status( )
@@ -49,9 +50,9 @@ public class LocalDBService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication;
     }
 
     @Override

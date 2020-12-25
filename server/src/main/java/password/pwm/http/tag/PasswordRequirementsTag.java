@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.Optional;
 
 /**
  * @author Jason D. Rivard
@@ -585,10 +586,10 @@ public class PasswordRequirementsTag extends TagSupport
                 passwordPolicy = pwmSession.getUserInfo().getPasswordPolicy();
             }
 
-            final String configuredRuleText = passwordPolicy.getRuleText();
-            if ( configuredRuleText != null && configuredRuleText.length() > 0 )
+            final Optional<String> configuredRuleText = passwordPolicy.getRuleText( pwmRequest.getLocale() );
+            if ( configuredRuleText.isPresent() )
             {
-                pageContext.getOut().write( configuredRuleText );
+                pageContext.getOut().write( configuredRuleText.get() );
             }
             else
             {

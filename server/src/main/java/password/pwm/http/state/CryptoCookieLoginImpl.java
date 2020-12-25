@@ -212,7 +212,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
             }
         }
 
-        if ( pwmRequest.getConfig().isDevDebugMode() && LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        if ( pwmRequest.getAppConfig().isDevDebugMode() && LOGGER.isEnabled( PwmLogLevel.TRACE ) )
         {
             final String debugTxt = remoteLoginCookie.toDebugString();
             LOGGER.trace( pwmRequest, () -> "imported LoginInfoBean=" + debugTxt );
@@ -235,7 +235,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
 
         if ( loginInfoBean.getAuthTime() != null )
         {
-            final long sessionMaxSeconds = pwmRequest.getConfig().readSettingAsLong( PwmSetting.SESSION_MAX_SECONDS );
+            final long sessionMaxSeconds = pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.SESSION_MAX_SECONDS );
             final TimeDuration sessionTotalAge = TimeDuration.fromCurrent( loginInfoBean.getAuthTime() );
             final TimeDuration sessionMaxAge = TimeDuration.of( sessionMaxSeconds, TimeDuration.Unit.SECONDS );
             if ( sessionTotalAge.isLongerThan( sessionMaxAge ) )

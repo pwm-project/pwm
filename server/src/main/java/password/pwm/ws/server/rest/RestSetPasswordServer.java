@@ -168,15 +168,13 @@ public class RestSetPasswordServer extends RestServlet
             if ( random )
             {
                 final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
-                        restRequest.getPwmApplication(),
+                        restRequest.getDomain(),
                         restRequest.getSessionLabel(),
                         targetUserIdentity.getUserIdentity(),
-                        targetUserIdentity.getChaiUser(),
-                        restRequest.getLocale()
-                );
+                        targetUserIdentity.getChaiUser() );
                 newPassword = RandomPasswordGenerator.createRandomPassword(
                         restRequest.getSessionLabel(),
-                        passwordPolicy, restRequest.getPwmApplication()
+                        passwordPolicy, restRequest.getDomain()
                 );
             }
             else
@@ -187,7 +185,7 @@ public class RestSetPasswordServer extends RestServlet
             final PasswordData oldPassword;
             if ( targetUserIdentity.isSelf() )
             {
-                final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( restRequest.getPwmApplication(), restRequest.getHttpServletRequest() );
+                final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( restRequest.getDomain(), restRequest.getHttpServletRequest() );
                 oldPassword = basicAuthInfo == null ? null : basicAuthInfo.getPassword();
             }
             else
@@ -196,14 +194,14 @@ public class RestSetPasswordServer extends RestServlet
             }
 
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
-                    restRequest.getPwmApplication(),
+                    restRequest.getDomain(),
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity(),
                     restRequest.getLocale()
             );
 
             PasswordUtility.setPassword(
-                    restRequest.getPwmApplication(),
+                    restRequest.getDomain(),
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getChaiProvider(),
                     userInfo,
@@ -211,7 +209,7 @@ public class RestSetPasswordServer extends RestServlet
                     newPassword
             );
 
-            StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_SETPASSWORD );
+            StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_SETPASSWORD );
             final JsonInputData jsonResultData = new JsonInputData( targetUserIdentity.getUserIdentity().toDelimitedKey(), null, random );
             return RestResultBean.forSuccessMessage( jsonResultData, restRequest, Message.Success_PasswordChange );
         }

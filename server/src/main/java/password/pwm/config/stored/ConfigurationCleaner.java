@@ -23,6 +23,7 @@ package password.pwm.config.stored;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.RecoveryMinLifetimeOption;
@@ -66,32 +67,61 @@ class ConfigurationCleaner
         public void accept( final StoredConfigurationModifier modifier )
                 throws PwmUnrecoverableException
         {
-            final StoredConfiguration oldConfig = modifier.newStoredConfiguration();
-            final AppConfig appConfig = new AppConfig( oldConfig );
-            for ( final String profileID : appConfig.getDefaultDomainConfig().getPasswordProfileIDs() )
+            final StoredConfiguration existingConfig = modifier.newStoredConfiguration();
+            final AppConfig appConfig = new AppConfig( existingConfig );
+
+            for ( final DomainConfig domainConfig : appConfig.getDomainConfigs().values() )
             {
-                if ( !oldConfig.isDefaultValue( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) )
+                for ( final String profileID : domainConfig.getPasswordProfileIDs() )
                 {
-                    final boolean ad2003Enabled = ValueTypeConverter.valueToBoolean( oldConfig.readSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) );
-                    final StoredValue value;
-                    if ( ad2003Enabled )
+                    final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID, domainConfig.getDomainID() );
+
+                    existingConfig.readStoredValue( key ).ifPresent( ( storedValue ) ->
                     {
-                        value = new StringValue( ADPolicyComplexity.AD2003.toString() );
-                    }
-                    else
-                    {
-                        value = new StringValue( ADPolicyComplexity.NONE.toString() );
-                    }
-                    LOGGER.info( () -> "converting deprecated non-default setting "
-                            + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
-                            + " to replacement setting "
-                            + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value="
-                            + ValueTypeConverter.valueToString( value ) );
-                    final Optional<ValueMetaData> valueMetaData = oldConfig.readMetaData(
-                            StoredConfigItemKey.fromSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) );
-                    final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
-                    modifier.writeSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL, profileID, value, userIdentity );
+                        if ( !existingConfig.isDefaultValue( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) )
+                        {
+                            doConversion( existingConfig, key, storedValue, modifier );
+                        }
+                    } );
                 }
+            }
+        }
+
+        private static void doConversion(
+                final StoredConfiguration existingConfig,
+                final StoredConfigItemKey key,
+                final StoredValue storedValue,
+                final StoredConfigurationModifier modifier
+        )
+        {
+            final boolean ad2003Enabled = ValueTypeConverter.valueToBoolean( storedValue );
+            final StoredValue value;
+            if ( ad2003Enabled )
+            {
+                value = new StringValue( ADPolicyComplexity.AD2003.toString() );
+            }
+            else
+            {
+                value = new StringValue( ADPolicyComplexity.NONE.toString() );
+            }
+
+            final String profileID = key.getProfileID();
+
+            LOGGER.info( () -> "converting deprecated non-default setting "
+                    + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
+                    + " to replacement setting "
+                    + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value="
+                    + ValueTypeConverter.valueToString( value ) );
+            final Optional<ValueMetaData> valueMetaData = existingConfig.readMetaData(
+                    StoredConfigItemKey.fromSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) );
+            final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
+            try
+            {
+                modifier.writeSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL, profileID, value, userIdentity );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                LOGGER.error( () -> "error converting deprecated AD password policy setting: " + key + ", error: " + e.getMessage() );
             }
         }
     }

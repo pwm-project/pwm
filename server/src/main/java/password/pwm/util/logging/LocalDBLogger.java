@@ -21,7 +21,9 @@
 package password.pwm.util.logging;
 
 import password.pwm.AppAttribute;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthMessage;
@@ -519,7 +521,7 @@ public class LocalDBLogger implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
     {
     }
 

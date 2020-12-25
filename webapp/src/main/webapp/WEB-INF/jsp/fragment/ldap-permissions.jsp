@@ -46,10 +46,10 @@
 <% final Map<String,Map<LDAPPermissionInfo.Access,List<LDAPPermissionCalculator.PermissionRecord>>> baseMap = outputData.getPermissionsByActor(actor); %>
 <% if (!baseMap.isEmpty()) { %>
 <h2>
-    <%=actor.getLabel(JspUtility.locale(request),JspUtility.getPwmRequest(pageContext).getConfig())%>
+    <%=actor.getLabel(JspUtility.locale(request),JspUtility.getPwmRequest(pageContext).getDomainConfig())%>
 </h2>
 <p>
-    <%=actor.getDescription(JspUtility.locale(request),JspUtility.getPwmRequest(pageContext).getConfig())%>
+    <%=actor.getDescription(JspUtility.locale(request),JspUtility.getPwmRequest(pageContext).getDomainConfig())%>
 </p>
 <table style="">
     <tr>

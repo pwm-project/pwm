@@ -69,15 +69,15 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
 
     public static boolean isFilterEnabled( final PwmRequest pwmRequest )
     {
-        final String clearPassUrl = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAS_CLEAR_PASS_URL );
+        final String clearPassUrl = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAS_CLEAR_PASS_URL );
 
         if ( !( clearPassUrl == null || clearPassUrl.trim().isEmpty() ) )
         {
             return true;
         }
 
-        final String alg = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAS_CLEARPASS_ALGORITHM );
-        final Map<FileInformation, FileContent> privatekey = pwmRequest.getConfig().readSettingAsFile( PwmSetting.CAS_CLEARPASS_KEY );
+        final String alg = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAS_CLEARPASS_ALGORITHM );
+        final Map<FileInformation, FileContent> privatekey = pwmRequest.getDomainConfig().readSettingAsFile( PwmSetting.CAS_CLEARPASS_KEY );
 
         if ( !privatekey.isEmpty() && ( !( alg == null || alg.trim().isEmpty() ) ) )
         {
@@ -159,14 +159,14 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
         }
         else
         {
-            final Map<FileInformation, FileContent> privatekey = pwmRequest.getConfig().readSettingAsFile( PwmSetting.CAS_CLEARPASS_KEY );
-            final String alg = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAS_CLEARPASS_ALGORITHM );
+            final Map<FileInformation, FileContent> privatekey = pwmRequest.getDomainConfig().readSettingAsFile( PwmSetting.CAS_CLEARPASS_KEY );
+            final String alg = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAS_CLEARPASS_ALGORITHM );
 
             password = decryptPassword( alg, privatekey, encodedPsw );
         }
 
         // If using the old method
-        final String clearPassUrl = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAS_CLEAR_PASS_URL );
+        final String clearPassUrl = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAS_CLEAR_PASS_URL );
         if ( ( clearPassUrl != null && clearPassUrl.length() > 0 ) && ( password == null || password.getStringValue().length() < 1 ) )
         {
             LOGGER.trace( pwmRequest, () -> "using CAS clearpass via proxy" );

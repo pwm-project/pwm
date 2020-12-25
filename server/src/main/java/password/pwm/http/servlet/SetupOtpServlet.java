@@ -361,7 +361,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
         {
             try
             {
-                if ( pwmRequest.getConfig().isDevDebugMode() )
+                if ( pwmRequest.getAppConfig().isDevDebugMode() )
                 {
                     LOGGER.trace( pwmRequest, () -> "testing against otp record: " + JsonUtil.serialize( otpBean.getOtpUserRecord() ) );
                 }
@@ -453,7 +453,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                 otpBean.setOtpUserRecord( otpUserRecord );
                 otpBean.setRecoveryCodes( rawRecoveryCodes );
                 LOGGER.trace( pwmRequest, () -> "generated new otp record" );
-                if ( config.isDevDebugMode() )
+                if ( config.getAppConfig().isDevDebugMode() )
                 {
                     LOGGER.trace( pwmRequest, () -> "newly generated otp record: " + JsonUtil.serialize( otpUserRecord ) );
                 }
@@ -495,8 +495,8 @@ public class SetupOtpServlet extends ControlledPwmServlet
                 + "/" + identifier
                 + "?secret=" + secret;
 
-        final int height = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.OTP_QR_IMAGE_HEIGHT ) );
-        final int width = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.OTP_QR_IMAGE_WIDTH ) );
+        final int height = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.OTP_QR_IMAGE_HEIGHT ) );
+        final int width = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.OTP_QR_IMAGE_WIDTH ) );
 
         final byte[] imageBytes;
         try
@@ -535,7 +535,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             final boolean admin = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
             if ( admin )
             {
-                if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )
+                if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )
                 {
                     LOGGER.trace( pwmRequest, () -> "allowing OTP setup skipping due to user being admin and setting "
                             + PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES.toMenuLocationDebug( null, pwmRequest.getLocale() ) );

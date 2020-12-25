@@ -24,8 +24,10 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.commons.io.output.NullOutputStream;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
@@ -115,9 +117,10 @@ public class ResourceServletService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
         try
         {
             this.resourceServletConfiguration = ResourceServletConfiguration.createResourceServletConfiguration( pwmDomain );
@@ -199,7 +202,7 @@ public class ResourceServletService implements PwmService
             return true;
         }
 
-        if ( !themeName.matches( pwmRequest.getConfig().readAppProperty( AppProperty.SECURITY_INPUT_THEME_MATCH_REGEX ) ) )
+        if ( !themeName.matches( pwmRequest.getDomainConfig().readAppProperty( AppProperty.SECURITY_INPUT_THEME_MATCH_REGEX ) ) )
         {
             LOGGER.warn( pwmRequest, () -> "discarding suspicious theme name in request: " + themeName );
             return false;
@@ -217,7 +220,7 @@ public class ResourceServletService implements PwmService
         {
             final String themePathUrl = ResourceFileServlet.RESOURCE_PATH + testUrl.replace( ResourceFileServlet.TOKEN_THEME, themeName );
             final FileResource resolvedFile = ResourceFileRequest.resolveRequestedResource(
-                    pwmRequest.getConfig(),
+                    pwmRequest.getDomainConfig(),
                     servletContext,
                     themePathUrl,
                     getResourceServletConfiguration() );

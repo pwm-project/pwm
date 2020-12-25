@@ -77,7 +77,7 @@ public class LocalDBLoggerSettings implements Serializable
     public static LocalDBLoggerSettings fromConfiguration( final DomainConfig domainConfig )
     {
         final Set<Flag> flags = EnumSet.noneOf( Flag.class );
-        if ( domainConfig.isDevDebugMode() )
+        if ( domainConfig.getAppConfig().isDevDebugMode() )
         {
             flags.add( Flag.DevDebug );
         }

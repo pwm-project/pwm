@@ -121,7 +121,7 @@ public class AccountInformationServlet extends ControlledPwmServlet
     @Override
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
-        if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.ACCOUNT_INFORMATION_ENABLED ) )
+        if ( !pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.ACCOUNT_INFORMATION_ENABLED ) )
         {
             pwmRequest.respondWithError( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE ) );
             return ProcessStatus.Halt;

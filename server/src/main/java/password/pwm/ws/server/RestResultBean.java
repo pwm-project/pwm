@@ -78,8 +78,8 @@ public class RestResultBean implements Serializable
             final ErrorInformation errorInformation
     )
     {
-        final PwmDomain pwmDomain = restRequestBean.getPwmApplication();
-        final DomainConfig config = restRequestBean.getPwmApplication().getConfig();
+        final PwmDomain pwmDomain = restRequestBean.getDomain();
+        final DomainConfig config = restRequestBean.getDomain().getConfig();
         final Locale locale = restRequestBean.getLocale();
         return fromError( errorInformation, pwmDomain, locale, config, false );
     }
@@ -90,8 +90,8 @@ public class RestResultBean implements Serializable
             final Serializable serializable
     )
     {
-        final PwmDomain pwmDomain = restRequestBean.getPwmApplication();
-        final DomainConfig config = restRequestBean.getPwmApplication().getConfig();
+        final PwmDomain pwmDomain = restRequestBean.getDomain();
+        final DomainConfig config = restRequestBean.getDomain().getConfig();
         final Locale locale = restRequestBean.getLocale();
         return fromError( errorInformation, pwmDomain, locale, config, false ).toBuilder().data( serializable ).build();
     }
@@ -118,7 +118,7 @@ public class RestResultBean implements Serializable
             final boolean forceDetail
     )
     {
-        return fromError( errorInformation, pwmRequest.getPwmDomain(), pwmRequest.getLocale(), pwmRequest.getConfig(), forceDetail );
+        return fromError( errorInformation, pwmRequest.getPwmDomain(), pwmRequest.getLocale(), pwmRequest.getDomainConfig(), forceDetail );
     }
 
     public static RestResultBean fromError(
@@ -126,7 +126,7 @@ public class RestResultBean implements Serializable
             final PwmRequest pwmRequest
     )
     {
-        return fromError( errorInformation, pwmRequest.getPwmDomain(), pwmRequest.getLocale(), pwmRequest.getConfig(), false );
+        return fromError( errorInformation, pwmRequest.getPwmDomain(), pwmRequest.getLocale(), pwmRequest.getDomainConfig(), false );
     }
 
 
@@ -167,7 +167,7 @@ public class RestResultBean implements Serializable
             final String... fieldValues
     )
     {
-        return forSuccessMessage( data, pwmRequest.getLocale(), pwmRequest.getConfig(), message, fieldValues );
+        return forSuccessMessage( data, pwmRequest.getLocale(), pwmRequest.getDomainConfig(), message, fieldValues );
     }
 
     public static RestResultBean forSuccessMessage(
@@ -177,7 +177,7 @@ public class RestResultBean implements Serializable
             final String... fieldValues
     )
     {
-        return forSuccessMessage( data, restRequest.getLocale(), restRequest.getConfig(), message, fieldValues );
+        return forSuccessMessage( data, restRequest.getLocale(), restRequest.getDomainConfig(), message, fieldValues );
     }
 
     public static RestResultBean forSuccessMessage(
@@ -186,7 +186,7 @@ public class RestResultBean implements Serializable
             final String... fieldValues
     )
     {
-        return forSuccessMessage( restRequest.getLocale(), restRequest.getConfig(), message, fieldValues );
+        return forSuccessMessage( restRequest.getLocale(), restRequest.getDomainConfig(), message, fieldValues );
     }
 
     public static RestResultBean forSuccessMessage(
@@ -195,7 +195,7 @@ public class RestResultBean implements Serializable
             final String... fieldValues
     )
     {
-        return forSuccessMessage( pwmRequest.getLocale(), pwmRequest.getConfig(), message, fieldValues );
+        return forSuccessMessage( pwmRequest.getLocale(), pwmRequest.getDomainConfig(), message, fieldValues );
     }
 
     public static RestResultBean forConfirmMessage(
@@ -215,7 +215,7 @@ public class RestResultBean implements Serializable
             final Config message
     )
     {
-        return forConfirmMessage( pwmRequest.getLocale(), pwmRequest.getConfig(), message );
+        return forConfirmMessage( pwmRequest.getLocale(), pwmRequest.getDomainConfig(), message );
     }
 
 

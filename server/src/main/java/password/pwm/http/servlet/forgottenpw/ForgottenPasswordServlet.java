@@ -396,7 +396,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         final String contextParam = pwmRequest.readParameterAsString( PwmConstants.PARAM_CONTEXT );
         final String ldapProfile = pwmRequest.readParameterAsString( PwmConstants.PARAM_LDAP_PROFILE );
 
-        final boolean bogusUserModeEnabled = pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.RECOVERY_BOGUS_USER_ENABLE );
+        final boolean bogusUserModeEnabled = pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.RECOVERY_BOGUS_USER_ENABLE );
 
         // clear the bean
         clearForgottenPasswordBean( pwmRequest );
@@ -426,7 +426,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             pwmDomain.getIntruderManager().convenience().checkAttributes( formValues );
 
             // see if the values meet the configured form requirements.
-            FormUtility.validateFormValues( pwmRequest.getConfig(), formValues, userLocale );
+            FormUtility.validateFormValues( pwmRequest.getDomainConfig(), formValues, userLocale );
 
             final String searchFilter;
             {
@@ -531,7 +531,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             forgottenPasswordBean.getProgress().getSatisfiedMethods().add( IdentityVerificationMethod.TOKEN );
             StatisticsManager.incrementStat( pwmRequest.getPwmDomain(), Statistic.RECOVERY_TOKENS_PASSED );
 
-            if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
+            if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
             {
                 pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenPayload.getDestination() );
                 pwmRequest.forwardToJsp( JspUrl.RECOVER_PASSWORD_TOKEN_SUCCESS );
@@ -814,7 +814,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
         {
             LOGGER.trace( pwmRequest, () -> "preparing to send a new token to user" );
-            final long delayTimeMs = Long.parseLong( pwmRequest.getConfig().readAppProperty( AppProperty.TOKEN_RESEND_DELAY_MS ) );
+            final long delayTimeMs = Long.parseLong( pwmRequest.getDomainConfig().readAppProperty( AppProperty.TOKEN_RESEND_DELAY_MS ) );
             TimeDuration.of( delayTimeMs, TimeDuration.Unit.MILLISECONDS ).pause();
         }
 
@@ -843,7 +843,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
             if ( forgottenPasswordBean.getUserSearchValues() != null )
             {
-                final List<FormConfiguration> formConfigurations = pwmRequest.getConfig().readSettingAsForm( PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM );
+                final List<FormConfiguration> formConfigurations = pwmRequest.getDomainConfig().readSettingAsForm( PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM );
                 final Map<FormConfiguration, String> formMap = FormUtility.asFormConfigurationMap( formConfigurations, forgottenPasswordBean.getUserSearchValues() );
                 pwmRequest.getPwmDomain().getIntruderManager().convenience().markAttributes( formMap, pwmRequest.getLabel() );
             }
@@ -951,7 +951,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean( pwmRequest );
 
         final ForgottenPasswordBean.RecoveryFlags recoveryFlags = forgottenPasswordBean.getRecoveryFlags();
@@ -967,7 +967,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
         final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile( pwmRequest.getPwmDomain(), forgottenPasswordBean );
         {
-            final Map<String, ForgottenPasswordProfile> profileIDList = pwmRequest.getConfig().getForgottenPasswordProfiles();
+            final Map<String, ForgottenPasswordProfile> profileIDList = pwmRequest.getDomainConfig().getForgottenPasswordProfiles();
             final String profileDebugMsg = forgottenPasswordProfile != null && profileIDList != null && profileIDList.size() > 1
                     ? " profile=" + forgottenPasswordProfile.getIdentifier() + ", "
                     : "";
@@ -1375,7 +1375,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
                 if ( progress.getTokenDestination() == null )
                 {
-                    final boolean autoSelect = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.FORGOTTEN_PASSWORD_TOKEN_AUTO_SELECT_DEST ) );
+                    final boolean autoSelect = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.FORGOTTEN_PASSWORD_TOKEN_AUTO_SELECT_DEST ) );
                     if ( autoSelect && tokenDestinations.size() == 1 )
                     {
                         final TokenDestinationItem singleItem = tokenDestinations.iterator().next();
@@ -1478,7 +1478,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
         ResetAction goBackAction = null;
 
-        final boolean autoSelect = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.FORGOTTEN_PASSWORD_TOKEN_AUTO_SELECT_DEST ) );
+        final boolean autoSelect = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.FORGOTTEN_PASSWORD_TOKEN_AUTO_SELECT_DEST ) );
         if ( destItems.size() > 1 || !autoSelect )
         {
             goBackAction = ResetAction.clearTokenDestination;

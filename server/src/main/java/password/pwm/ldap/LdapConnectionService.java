@@ -30,7 +30,9 @@ import lombok.Data;
 import lombok.Value;
 import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -121,10 +123,10 @@ public class LdapConnectionService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain )
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
         this.chaiProviderFactory = ChaiProviderFactory.newProviderFactory();
 
         useThreadLocal = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_USE_THREAD_LOCAL ) );

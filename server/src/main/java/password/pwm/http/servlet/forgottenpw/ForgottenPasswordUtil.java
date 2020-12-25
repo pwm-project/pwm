@@ -192,7 +192,7 @@ public class ForgottenPasswordUtil
             throws PwmUnrecoverableException
     {
         final PwmDomain pwmDomain = pwmRequestContext.getPwmDomain();
-        final DomainConfig config = pwmRequestContext.getConfig();
+        final DomainConfig config = pwmRequestContext.getDomainConfig();
         final Locale locale = pwmRequestContext.getLocale();
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_UNLOCK, locale );
@@ -211,7 +211,7 @@ public class ForgottenPasswordUtil
                 null
         );
 
-        pwmDomain.getEmailQueue().submitEmail(
+        pwmDomain.getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 userInfo,
                 macroRequest
@@ -227,7 +227,7 @@ public class ForgottenPasswordUtil
 
         try
         {
-            final String cookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_NAME );
+            final String cookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_NAME );
             if ( cookieName == null || cookieName.isEmpty() )
             {
                 LOGGER.trace( pwmRequest, () -> "skipping auth record cookie read, cookie name parameter is blank" );
@@ -258,7 +258,7 @@ public class ForgottenPasswordUtil
             throws PwmUnrecoverableException
     {
         final String profileID = forgottenPasswordBean.getForgottenPasswordProfileID();
-        final ForgottenPasswordProfile forgottenPasswordProfile = pwmRequestContext.getConfig().getForgottenPasswordProfiles().get( profileID );
+        final ForgottenPasswordProfile forgottenPasswordProfile = pwmRequestContext.getDomainConfig().getForgottenPasswordProfiles().get( profileID );
         final MessageSendMethod tokenSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_TOKEN_SEND_METHOD, MessageSendMethod.class );
         final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean );
 
@@ -547,8 +547,8 @@ public class ForgottenPasswordUtil
 
         final List<Challenge> challengeList;
         {
-            final String firstProfile = pwmRequestContext.getConfig().getChallengeProfileIDs().iterator().next();
-            final ChallengeSet challengeSet = pwmRequestContext.getConfig().getChallengeProfile( firstProfile, PwmConstants.DEFAULT_LOCALE ).getChallengeSet();
+            final String firstProfile = pwmRequestContext.getDomainConfig().getChallengeProfileIDs().iterator().next();
+            final ChallengeSet challengeSet = pwmRequestContext.getDomainConfig().getChallengeProfile( firstProfile, PwmConstants.DEFAULT_LOCALE ).getChallengeSet();
             challengeList = new ArrayList<>( challengeSet.getRequiredChallenges() );
             for ( int i = 0; i < challengeSet.getMinRandomRequired(); i++ )
             {
@@ -575,7 +575,7 @@ public class ForgottenPasswordUtil
         forgottenPasswordBean.setAttributeForm( formData );
         forgottenPasswordBean.setBogusUser( true );
         {
-            final String profileID = pwmRequestContext.getConfig().getForgottenPasswordProfiles().keySet().iterator().next();
+            final String profileID = pwmRequestContext.getDomainConfig().getForgottenPasswordProfiles().keySet().iterator().next();
             forgottenPasswordBean.setForgottenPasswordProfileID( profileID  );
         }
 

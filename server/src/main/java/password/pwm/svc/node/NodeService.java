@@ -20,7 +20,9 @@
 
 package password.pwm.svc.node;
 
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -58,9 +60,10 @@ public class NodeService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
 
         final boolean serviceEnabled = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.CLUSTER_ENABLED );
         if ( !serviceEnabled )
@@ -202,7 +205,7 @@ public class NodeService implements PwmService
         }
 
         {
-            if ( !pwmDomain.getConfig().hasDbConfigured() )
+            if ( !pwmDomain.getConfig().getAppConfig().hasDbConfigured() )
             {
                 final String msg = "DB storage type selected, but remote DB is not configured.";
                 LOGGER.debug( () -> msg );

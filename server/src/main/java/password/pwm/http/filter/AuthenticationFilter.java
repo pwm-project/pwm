@@ -135,7 +135,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         // read the basic auth info out of the header (if it exists);
-        if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_ENABLED ) )
+        if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_ENABLED ) )
         {
             final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmDomain, pwmRequest );
 
@@ -171,7 +171,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         // check status of oauth expiration
         if ( pwmSession.getLoginInfoBean().getOauthExp() != null )
         {
-            final OAuthSettings oauthSettings = OAuthSettings.forSSOAuthentication( pwmRequest.getConfig() );
+            final OAuthSettings oauthSettings = OAuthSettings.forSSOAuthentication( pwmRequest.getDomainConfig() );
             final OAuthMachine oAuthMachine = new OAuthMachine( pwmRequest.getLabel(), oauthSettings );
             if ( oAuthMachine.checkOAuthExpiration( pwmRequest ) )
             {

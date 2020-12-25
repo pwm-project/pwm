@@ -21,18 +21,15 @@
 package password.pwm.config;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.option.CertificateMatchingMode;
 import password.pwm.config.option.DataStorageMethod;
-import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.ActivateUserProfile;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.ChangePasswordProfile;
-import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
@@ -40,7 +37,6 @@ import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
-import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
@@ -61,20 +57,16 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
-import password.pwm.util.java.StringUtil;
-import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureService;
 
-import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -107,7 +99,7 @@ public class DomainConfig
         this.appConfig = Objects.requireNonNull( appConfig );
         this.storedConfiguration = appConfig.getStoredConfiguration();
         this.domainID = Objects.requireNonNull( domainID );
-        this.settingReader = new SettingReader( storedConfiguration, null, PwmConstants.DOMAIN_ID_PLACEHOLDER );
+        this.settingReader = new SettingReader( storedConfiguration, null, domainID );
     }
 
     public AppConfig getAppConfig()
@@ -115,15 +107,6 @@ public class DomainConfig
         return appConfig;
     }
 
-    public static void deprecatedSettingException( final PwmSetting pwmSetting, final String profile, final MessageSendMethod value )
-    {
-        if ( value != null && value.isDeprecated() )
-        {
-            final String msg = pwmSetting.toMenuLocationDebug( profile, PwmConstants.DEFAULT_LOCALE )
-                    + " setting is using a no longer functional setting value: " + value;
-            throw new IllegalStateException( msg );
-        }
-    }
 
     public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )
     {
@@ -195,7 +178,6 @@ public class DomainConfig
             return dataCache.customText.get( key );
         }
 
-
         final Map<String, String> storedValue = storedConfiguration.readLocaleBundleMap( className, keyName );
         if ( storedValue == null || storedValue.isEmpty() )
         {
@@ -214,10 +196,7 @@ public class DomainConfig
         return localizedMap;
     }
 
-    public PwmLogLevel getEventLogLocalDBLevel( )
-    {
-        return readSettingAsEnum( PwmSetting.EVENTS_LOCALDB_LOG_LEVEL, PwmLogLevel.class );
-    }
+
 
     public List<String> getChallengeProfileIDs( )
     {
@@ -231,7 +210,6 @@ public class DomainConfig
             throw new IllegalArgumentException( "unknown challenge profileID specified: " + profile );
         }
 
-        // challengeProfile challengeSet's are mutable (question text) and can not be cached.
         return ChallengeProfile.readChallengeProfileFromConfig( profile, locale, storedConfiguration );
     }
 
@@ -240,11 +218,10 @@ public class DomainConfig
         return settingReader.readSettingAsLong( setting );
     }
 
-    public PwmPasswordPolicy getPasswordPolicy( final String profile, final Locale locale )
+    public PwmPasswordPolicy getPasswordPolicy( final String profile )
     {
         return dataCache.cachedPasswordPolicy
-                .computeIfAbsent( profile, s -> new HashMap<>() )
-                .computeIfAbsent( locale, s -> PwmPasswordPolicy.createPwmPasswordPolicy( this, profile, locale ) );
+                .computeIfAbsent( profile, s -> PwmPasswordPolicy.createPwmPasswordPolicy( this, profile ) );
     }
 
     public List<String> getPasswordProfileIDs( )
@@ -308,19 +285,11 @@ public class DomainConfig
     private List<DataStorageMethod> getGenericStorageLocations( final PwmSetting setting )
     {
         final String input = readSettingAsString( setting );
-        final List<DataStorageMethod> storageMethods = new ArrayList<>();
-        for ( final String rawValue : input.split( "-" ) )
-        {
-            try
-            {
-                storageMethods.add( DataStorageMethod.valueOf( rawValue ) );
-            }
-            catch ( final IllegalArgumentException e )
-            {
-                LOGGER.error( () -> "unknown STORAGE_METHOD found: " + rawValue );
-            }
-        }
-        return storageMethods;
+
+        return Arrays.stream( input.split( "-" ) )
+                .map( s ->  JavaHelper.readEnumFromString( DataStorageMethod.class, s ) )
+                .flatMap( Optional::stream )
+                .collect( Collectors.toUnmodifiableList() );
     }
 
     public LdapProfile getDefaultLdapProfile( ) throws PwmUnrecoverableException
@@ -340,32 +309,14 @@ public class DomainConfig
     }
 
 
-    public TokenStorageMethod getTokenStorageMethod( )
+    public Optional<TokenStorageMethod> getTokenStorageMethod( )
     {
-        try
-        {
-            return TokenStorageMethod.valueOf( readSettingAsString( PwmSetting.TOKEN_STORAGEMETHOD ) );
-        }
-        catch ( final Exception e )
-        {
-            final String errorMsg = "unknown storage method specified: " + readSettingAsString( PwmSetting.TOKEN_STORAGEMETHOD );
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg );
-            LOGGER.warn( () -> errorInformation.toDebugStr() );
-            return null;
-        }
+        return JavaHelper.readEnumFromString( TokenStorageMethod.class, readSettingAsString( PwmSetting.TOKEN_STORAGEMETHOD ) );
     }
 
     public PwmSettingTemplateSet getTemplate( )
     {
         return storedConfiguration.getTemplateSet();
-    }
-
-    public boolean hasDbConfigured( )
-    {
-        return !StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_CLASS ) )
-                && !StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_URL ) )
-                && !StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_USERNAME ) )
-                && readSettingAsPassword( PwmSetting.DATABASE_PASSWORD ) != null;
     }
 
     public String readAppProperty( final AppProperty property )
@@ -393,7 +344,7 @@ public class DomainConfig
     {
         private final Supplier<Map<String, LdapProfile>> ldapProfilesSupplier = new LazySupplier<>( () ->
         {
-            final Map<String, LdapProfile> sourceMap = getProfileMap( ProfileDefinition.LdapProfile );
+            final Map<String, LdapProfile> sourceMap = settingReader.getProfileMap( ProfileDefinition.LdapProfile );
 
             return Collections.unmodifiableMap(
                     sourceMap.entrySet()
@@ -446,123 +397,54 @@ public class DomainConfig
 
     private static class DataCache
     {
-        private final Map<String, Map<Locale, PwmPasswordPolicy>> cachedPasswordPolicy = new LinkedHashMap<>();
+        private final Map<String, PwmPasswordPolicy> cachedPasswordPolicy = new LinkedHashMap<>();
         private final Map<String, Map<Locale, String>> customText = new LinkedHashMap<>();
-        private final Map<ProfileDefinition, Map> profileCache = new LinkedHashMap<>();
-    }
-
-    public Map<AppProperty, String> readAllNonDefaultAppProperties( )
-    {
-        final Map<AppProperty, String> nonDefaultProperties = new EnumMap<>( AppProperty.class );
-        for ( final AppProperty loopProperty : AppProperty.values() )
-        {
-            final String configuredValue = readAppProperty( loopProperty );
-            final String defaultValue = loopProperty.getDefaultValue();
-            if ( !Objects.equals(  configuredValue, defaultValue ) )
-            {
-                nonDefaultProperties.put( loopProperty, configuredValue );
-            }
-        }
-        return nonDefaultProperties;
     }
 
     /* generic profile stuff */
     public Map<String, NewUserProfile> getNewUserProfiles( )
     {
-        return getProfileMap( ProfileDefinition.NewUser );
+        return settingReader.getProfileMap( ProfileDefinition.NewUser );
     }
 
     public Map<String, ActivateUserProfile> getUserActivationProfiles( )
     {
-        return getProfileMap( ProfileDefinition.ActivateUser );
+        return settingReader.getProfileMap( ProfileDefinition.ActivateUser );
     }
 
     public Map<String, HelpdeskProfile> getHelpdeskProfiles( )
     {
-        return getProfileMap( ProfileDefinition.Helpdesk );
-    }
-
-    public Map<String, EmailServerProfile> getEmailServerProfiles( )
-    {
-        return getProfileMap( ProfileDefinition.EmailServers );
+        return settingReader.getProfileMap( ProfileDefinition.Helpdesk );
     }
 
     public Map<String, PeopleSearchProfile> getPeopleSearchProfiles( )
     {
-        return getProfileMap( ProfileDefinition.PeopleSearch );
+        return settingReader.getProfileMap( ProfileDefinition.PeopleSearch );
     }
 
     public Map<String, SetupOtpProfile> getSetupOTPProfiles( )
     {
-        return getProfileMap( ProfileDefinition.SetupOTPProfile );
+        return settingReader.getProfileMap( ProfileDefinition.SetupOTPProfile );
     }
 
     public Map<String, UpdateProfileProfile> getUpdateAttributesProfile( )
     {
-        return getProfileMap( ProfileDefinition.UpdateAttributes );
+        return settingReader.getProfileMap( ProfileDefinition.UpdateAttributes );
     }
 
     public Map<String, ChangePasswordProfile> getChangePasswordProfile( )
     {
-        return getProfileMap( ProfileDefinition.ChangePassword );
+        return settingReader.getProfileMap( ProfileDefinition.ChangePassword );
     }
 
     public Map<String, ForgottenPasswordProfile> getForgottenPasswordProfiles( )
     {
-        return getProfileMap( ProfileDefinition.ForgottenPassword );
+        return settingReader.getProfileMap( ProfileDefinition.ForgottenPassword );
     }
 
-    private <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition )
+    public <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition )
     {
-        if ( !dataCache.profileCache.containsKey( profileDefinition ) )
-        {
-            final Map<String, T> returnMap = new LinkedHashMap<>();
-            final Map<String, Profile> profileMap = profileMap( profileDefinition );
-            for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
-            {
-                returnMap.put( entry.getKey(), ( T ) entry.getValue() );
-            }
-            dataCache.profileCache.put( profileDefinition, Collections.unmodifiableMap( returnMap ) );
-        }
-        return dataCache.profileCache.get( profileDefinition );
-    }
-
-    public Map<String, Profile> profileMap( final ProfileDefinition profileDefinition )
-    {
-        final Map<String, Profile> returnMap = new LinkedHashMap<>();
-        for ( final String profileID : ProfileUtility.profileIDsForCategory( this, profileDefinition.getCategory() ) )
-        {
-            if ( profileDefinition.getProfileFactoryClass().isPresent() )
-            {
-                final Profile newProfile = newProfileForID( profileDefinition, profileID );
-                returnMap.put( profileID, newProfile );
-            }
-        }
-        return Collections.unmodifiableMap( returnMap );
-    }
-
-    private Profile newProfileForID( final ProfileDefinition profileDefinition, final String profileID )
-    {
-        Objects.requireNonNull( profileDefinition );
-        Objects.requireNonNull( profileID );
-
-        final Optional<Class<? extends Profile.ProfileFactory>> optionalProfileFactoryClass = profileDefinition.getProfileFactoryClass();
-
-        if ( optionalProfileFactoryClass.isPresent() )
-        {
-            final Profile.ProfileFactory profileFactory;
-            try
-            {
-                profileFactory = optionalProfileFactoryClass.get().getDeclaredConstructor().newInstance();
-                return profileFactory.makeFromStoredConfiguration( storedConfiguration, profileID );
-            }
-            catch ( final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
-            {
-                throw new IllegalStateException( "unable to create profile instance for " + profileDefinition );
-            }
-        }
-
-        throw new IllegalStateException( "unable to create profile instance for " + profileDefinition + " ( profile factory class not defined )" );
+        return settingReader.getProfileMap( profileDefinition );
     }
 
     public StoredConfiguration getStoredConfiguration( )
@@ -570,10 +452,6 @@ public class DomainConfig
         return this.storedConfiguration;
     }
 
-    public boolean isDevDebugMode( )
-    {
-        return appConfig.isDevDebugMode();
-    }
 
     public String configurationHash( final SecureService secureService )
             throws PwmUnrecoverableException
@@ -607,7 +485,7 @@ public class DomainConfig
         if ( readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC ) )
         {
             final String profileID = readSettingAsString( PwmSetting.PEOPLE_SEARCH_PUBLIC_PROFILE );
-            final Map<String, PeopleSearchProfile> profiles = this.getProfileMap( ProfileDefinition.PeopleSearchPublic );
+            final Map<String, PeopleSearchProfile> profiles = settingReader.getProfileMap( ProfileDefinition.PeopleSearchPublic );
             return Optional.ofNullable( profiles.get( profileID ) );
         }
         return Optional.empty();

@@ -50,7 +50,7 @@ public class PeopleSearchConfiguration
 
     String getEmailAttribute( final UserIdentity userIdentity )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig.getAppConfig() );
         return ldapProfile.readSettingAsString( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
     }
 
@@ -66,25 +66,25 @@ public class PeopleSearchConfiguration
 
     String getOrgChartParentAttr( final UserIdentity userIdentity )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig.getAppConfig() );
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_PARENT );
     }
 
     String getOrgChartChildAttr( final UserIdentity userIdentity  )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig.getAppConfig() );
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_CHILD );
     }
 
     String getOrgChartAssistantAttr( final UserIdentity userIdentity  )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig.getAppConfig() );
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_ASSISTANT );
     }
 
     String getOrgChartWorkforceIDAttr( final UserIdentity userIdentity  )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig.getAppConfig() );
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_WORKFORCEID );
     }
 

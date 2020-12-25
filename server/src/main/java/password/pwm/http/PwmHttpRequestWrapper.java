@@ -412,7 +412,7 @@ public class PwmHttpRequestWrapper
                 .orElseThrow( () -> new IllegalStateException( "http method not registered" ) );
     }
 
-    public DomainConfig getConfig( )
+    public DomainConfig getDomainConfig( )
     {
         return domainConfig;
     }

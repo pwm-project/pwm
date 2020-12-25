@@ -64,7 +64,7 @@ public class ProfileUtility
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "profile of type " + profileDefinition + " is required but not assigned" );
         }
-        final Profile profileImpl = pwmRequestContext.getConfig().profileMap( profileDefinition ).get( profileID.get() );
+        final Profile profileImpl = pwmRequestContext.getDomainConfig().getProfileMap( profileDefinition ).get( profileID.get() );
         return ( T ) profileImpl;
     }
 
@@ -77,7 +77,7 @@ public class ProfileUtility
     )
             throws PwmUnrecoverableException
     {
-        final Map<String, Profile> profileMap = pwmDomain.getConfig().profileMap( profileDefinition );
+        final Map<String, Profile> profileMap = pwmDomain.getConfig().getProfileMap( profileDefinition );
         for ( final Profile profile : profileMap.values() )
         {
             final List<UserPermission> queryMatches = profile.profilePermissions();

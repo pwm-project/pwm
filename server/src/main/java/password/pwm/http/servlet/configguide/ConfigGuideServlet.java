@@ -506,7 +506,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         try
         {
             final ConfigGuideBean configGuideBean = getBean( pwmRequest );
-            final int maxFileSize = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.CONFIG_MAX_JDBC_JAR_SIZE ) );
+            final int maxFileSize = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_MAX_JDBC_JAR_SIZE ) );
             final FileValue fileValue = ConfigEditorServletUtils.readFileUploadToSettingValue( pwmRequest, maxFileSize );
             configGuideBean.setDatabaseDriver( fileValue );
             final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );

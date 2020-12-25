@@ -175,7 +175,7 @@ public class HelpdeskServletUtil
     )
             throws PwmUnrecoverableException
     {
-        final String filterSetting = makeAdvancedSearchFilter( pwmRequest.getConfig(), helpdeskProfile );
+        final String filterSetting = makeAdvancedSearchFilter( pwmRequest.getDomainConfig(), helpdeskProfile );
         String filterString = filterSetting.replace( PwmConstants.VALUE_REPLACEMENT_USERNAME, "*" );
         while ( filterString.contains( "**" ) )
         {
@@ -210,9 +210,9 @@ public class HelpdeskServletUtil
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final UserIdentity actorUserIdentity = pwmRequest.getUserInfoIfLoggedIn().canonicalized( pwmRequest.getPwmDomain() );
+        final UserIdentity actorUserIdentity = pwmRequest.getUserInfoIfLoggedIn().canonicalized( pwmRequest.getPwmApplication() );
 
-        if ( actorUserIdentity.canonicalEquals( userIdentity, pwmRequest.getPwmDomain() ) )
+        if ( actorUserIdentity.canonicalEquals( userIdentity, pwmRequest.getPwmApplication() ) )
         {
             final String errorMsg = "cannot select self";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
@@ -256,7 +256,7 @@ public class HelpdeskServletUtil
             throw new PwmUnrecoverableException( errorInformation );
         }
 
-        return UserIdentity.fromObfuscatedKey( userKey, pwmRequest.getPwmDomain() );
+        return UserIdentity.fromObfuscatedKey( userKey, pwmRequest.getPwmApplication() );
     }
 
 
@@ -293,7 +293,7 @@ public class HelpdeskServletUtil
             throws PwmUnrecoverableException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final Locale locale = pwmRequest.getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_HELPDESK_UNLOCK, locale );
 
@@ -313,7 +313,7 @@ public class HelpdeskServletUtil
 
         final MacroRequest macroRequest = getTargetUserMacroRequest( pwmRequest, helpdeskProfile, userIdentity );
 
-        pwmDomain.getEmailQueue().submitEmail(
+        pwmDomain.getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 userInfo,
                 macroRequest

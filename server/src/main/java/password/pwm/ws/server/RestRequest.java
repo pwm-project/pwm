@@ -21,6 +21,7 @@
 package password.pwm.ws.server;
 
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmError;
@@ -77,7 +78,12 @@ public class RestRequest extends PwmHttpRequestWrapper
         return restAuthentication;
     }
 
-    public PwmDomain getPwmApplication( )
+    public PwmApplication getPwmApplication()
+    {
+        return pwmDomain.getPwmApplication();
+    }
+
+    public PwmDomain getDomain( )
     {
         return pwmDomain;
     }
@@ -100,7 +106,7 @@ public class RestRequest extends PwmHttpRequestWrapper
 
     public Locale getLocale( )
     {
-        final List<Locale> knownLocales = getConfig().getKnownLocales();
+        final List<Locale> knownLocales = getDomainConfig().getKnownLocales();
         return LocaleHelper.localeResolver( getHttpServletRequest().getLocale(), knownLocales );
     }
 
@@ -121,12 +127,12 @@ public class RestRequest extends PwmHttpRequestWrapper
             }
             return getRestAuthentication().getChaiProvider();
         }
-        return getPwmApplication().getProxyChaiProvider( ldapProfileID );
+        return getDomain().getProxyChaiProvider( ldapProfileID );
     }
 
     public PwmRequestContext commonValues()
     {
-        return new PwmRequestContext( pwmDomain, this.getSessionLabel(), this.getLocale(), requestID );
+        return new PwmRequestContext( getPwmApplication(), pwmDomain.getDomainID(), this.getSessionLabel(), this.getLocale(), requestID );
     }
 }
 

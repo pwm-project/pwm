@@ -75,8 +75,7 @@ public class UserDebugDataReader
         final PwmPasswordPolicy configPasswordPolicy = PasswordUtility.determineConfiguredPolicyProfileForUser(
                 pwmDomain,
                 sessionLabel,
-                userIdentity,
-                locale
+                userIdentity
         );
 
         boolean readablePassword = false;

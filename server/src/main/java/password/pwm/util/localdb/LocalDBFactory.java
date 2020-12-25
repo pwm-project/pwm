@@ -39,6 +39,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
+ * Factory for building {@link LocalDB} instances.
  * @author Jason D. Rivard
  */
 public class LocalDBFactory

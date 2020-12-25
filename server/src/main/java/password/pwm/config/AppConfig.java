@@ -24,6 +24,8 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.PrivateKeyCertificate;
+import password.pwm.config.profile.EmailServerProfile;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -32,6 +34,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -62,7 +65,7 @@ public class AppConfig
     public AppConfig( final StoredConfiguration storedConfiguration )
     {
         this.storedConfiguration = storedConfiguration;
-        this.settingReader = new SettingReader( storedConfiguration, null, null );
+        this.settingReader = new SettingReader( storedConfiguration, null, DomainID.systemId() );
         domainConfigMap = getDomainIDs().stream()
                 .collect( Collectors.toUnmodifiableMap(
                         ( domainID ) -> domainID,
@@ -135,6 +138,11 @@ public class AppConfig
         return settingReader.readSettingAsStringArray( pwmSetting );
     }
 
+    public PwmLogLevel getEventLogLocalDBLevel( )
+    {
+        return readSettingAsEnum( PwmSetting.EVENTS_LOCALDB_LOG_LEVEL, PwmLogLevel.class );
+    }
+
     public boolean isDevDebugMode( )
     {
         return Boolean.parseBoolean( readAppProperty( AppProperty.LOGGING_DEV_OUTPUT ) );
@@ -164,6 +172,11 @@ public class AppConfig
             throws PwmUnrecoverableException
     {
         return storedConfiguration.valueHash();
+    }
+
+    public <E extends Enum<E>> E readSettingAsEnum( final PwmSetting setting, final Class<E> enumClass )
+    {
+        return settingReader.readSettingAsEnum( setting, enumClass );
     }
 
     private class ConfigurationSuppliers
@@ -255,4 +268,24 @@ public class AppConfig
             return Collections.unmodifiableMap( localeFlagMap );
         } );
     }
+
+    public Map<String, EmailServerProfile> getEmailServerProfiles( )
+    {
+        return settingReader.getProfileMap( ProfileDefinition.EmailServers );
+    }
+
+    public boolean hasDbConfigured( )
+    {
+        return !StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_CLASS ) )
+                && !StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_URL ) )
+                && !StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_USERNAME ) )
+                && readSettingAsPassword( PwmSetting.DATABASE_PASSWORD ) != null;
+    }
+
+    private PasswordData readSettingAsPassword( final PwmSetting setting )
+    {
+        return settingReader.readSettingAsPassword( setting );
+    }
+
+
 }

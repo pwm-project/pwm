@@ -247,7 +247,7 @@ class ActivateUserUtils
             return false;
         }
 
-        pwmDomain.getEmailQueue().submitEmail(
+        pwmDomain.getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmSession.getUserInfo(),
                 pwmSession.getSessionManager().getMacroMachine( )
@@ -256,14 +256,14 @@ class ActivateUserUtils
     }
 
     static boolean sendPostActivationSms( final PwmRequest pwmRequest )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final DomainConfig config = pwmDomain.getConfig();
         final UserInfo userInfo = pwmSession.getUserInfo();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
-        final LdapProfile ldapProfile = userInfo.getUserIdentity().getLdapProfile( config );
+        final LdapProfile ldapProfile = userInfo.getUserIdentity().getLdapProfile( pwmRequest.getAppConfig() );
 
         final String message = config.readSettingAsLocalizedString( PwmSetting.SMS_ACTIVATION_TEXT, locale );
 

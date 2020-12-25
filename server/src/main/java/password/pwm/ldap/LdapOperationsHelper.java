@@ -922,7 +922,7 @@ public class LdapOperationsHelper
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig.getAppConfig() );
         final String attribute = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO );
         if ( attribute == null || attribute.isEmpty() )
         {
@@ -960,7 +960,7 @@ public class LdapOperationsHelper
     )
             throws PwmUnrecoverableException
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getConfig() );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() );
         final String languageAttr = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_LANGUAGE );
         if ( StringUtil.isEmpty( languageAttr ) )
         {
@@ -992,7 +992,7 @@ public class LdapOperationsHelper
     )
             throws PwmUnrecoverableException
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getConfig() );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() );
         final String languageAttr = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_LANGUAGE );
         if ( StringUtil.isEmpty( languageAttr ) )
         {

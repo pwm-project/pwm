@@ -20,8 +20,9 @@
 
 package password.pwm.svc;
 
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmEnvironment;
+import password.pwm.bean.DomainID;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -33,20 +34,24 @@ import password.pwm.util.logging.PwmLogger;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PwmServiceManager
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmServiceManager.class );
 
-    private PwmDomain pwmDomain;
-    private final Map<PwmServiceEnum, PwmService> runningServices = new HashMap<>();
+    private final DomainID domainID;
+    private final PwmApplication pwmApplication;
+    private final Map<PwmServiceEnum, PwmService> runningServices = new ConcurrentHashMap<>();
     private boolean initialized;
 
-    public PwmServiceManager(  )
+    public PwmServiceManager( final PwmApplication pwmApplication, final DomainID domainID )
     {
+        this.domainID = Objects.requireNonNull( domainID );
+        this.pwmApplication = Objects.requireNonNull( pwmApplication );
     }
 
     private enum InitializationStats
@@ -61,14 +66,13 @@ public class PwmServiceManager
         return runningServices.get( serviceClass );
     }
 
-    public void initAllServices( final PwmDomain pwmDomain )
+    public void initAllServices()
             throws PwmUnrecoverableException
     {
-        this.pwmDomain = pwmDomain;
         final Instant startTime = Instant.now();
 
-        final boolean internalRuntimeInstance = pwmDomain.getPwmEnvironment().isInternalRuntimeInstance()
-                || pwmDomain.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance );
+        final boolean internalRuntimeInstance = pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
+                || pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance );
 
         final String logVerb = initialized ? "restart" : "start";
         final StatisticCounterBundle<InitializationStats> statCounter = new StatisticCounterBundle<>( InitializationStats.class );
@@ -134,7 +138,7 @@ public class PwmServiceManager
         try
         {
             LOGGER.debug( () -> "initializing service " + serviceName );
-            newServiceInstance.init( pwmDomain );
+            newServiceInstance.init( pwmApplication, domainID );
             final TimeDuration startupDuration = TimeDuration.fromCurrent( startTime );
             LOGGER.debug( () -> "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString() + ", status=" + newServiceInstance.status() );
         }

@@ -25,8 +25,10 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -111,9 +113,10 @@ public class UserSearchEngine implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
         this.executor = createExecutor( pwmDomain );
         this.periodicDebugOutput();
     }
@@ -153,7 +156,7 @@ public class UserSearchEngine implements PwmService
             UserIdentity inputIdentity = null;
             try
             {
-                inputIdentity = UserIdentity.fromKey( username, pwmDomain );
+                inputIdentity = UserIdentity.fromKey( username, pwmDomain.getPwmApplication() );
             }
             catch ( final PwmException e )
             {
@@ -169,7 +172,7 @@ public class UserSearchEngine implements PwmService
                     {
                         final String canonicalDN;
                         canonicalDN = theUser.readCanonicalDN();
-                        return UserIdentity.createUserIdentity( canonicalDN, inputIdentity.getLdapProfileID() );
+                        return UserIdentity.createUserIdentity( canonicalDN, inputIdentity.getLdapProfileID(), pwmDomain.getDomainID() );
                     }
                 }
                 catch ( final ChaiOperationException e )
@@ -610,7 +613,7 @@ public class UserSearchEngine implements PwmService
         }
 
         final UserIdentity userIdentity = results.keySet().iterator().next();
-        validateSpecifiedContext( userIdentity.getLdapProfile( pwmDomain.getConfig() ), userIdentity.getUserDN() );
+        validateSpecifiedContext( userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() ), userIdentity.getUserDN() );
         return userIdentity;
     }
 

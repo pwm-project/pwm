@@ -20,20 +20,20 @@
 
 package password.pwm.util.queue;
 
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import password.pwm.AppProperty;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.svc.email.EmailServer;
 import password.pwm.svc.email.EmailServerUtil;
 import password.pwm.svc.email.EmailService;
 
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.InternetAddress;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
@@ -45,7 +45,7 @@ public class EmailQueueManagerTest
     {
         final EmailService emailService = new EmailService();
 
-        final DomainConfig config = Mockito.mock( DomainConfig.class );
+        final AppConfig config = Mockito.mock( AppConfig.class );
         Mockito.when( config.readAppProperty( AppProperty.SMTP_SUBJECT_ENCODING_CHARSET ) ).thenReturn( "UTF8" );
 
         final EmailItemBean emailItemBean = new EmailItemBean(

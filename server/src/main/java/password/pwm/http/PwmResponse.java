@@ -120,7 +120,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
             throws ServletException, PwmUnrecoverableException, IOException
 
     {
-        final String messageStr = Message.getLocalizedMessage( pwmRequest.getLocale(), message, pwmRequest.getConfig(), field );
+        final String messageStr = Message.getLocalizedMessage( pwmRequest.getLocale(), message, pwmRequest.getDomainConfig(), field );
         forwardToSuccessPage( messageStr );
     }
 

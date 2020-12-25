@@ -46,7 +46,7 @@ public class BasicFilterAuthenticationProvider implements PwmHttpFilterAuthentic
     )
             throws PwmUnrecoverableException
     {
-        if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_ENABLED ) )
+        if ( !pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_ENABLED ) )
         {
             return;
         }

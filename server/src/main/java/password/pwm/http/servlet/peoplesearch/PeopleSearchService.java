@@ -20,7 +20,9 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
@@ -45,9 +47,10 @@ public class PeopleSearchService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
 
         final int maxThreadCount = 5;
 

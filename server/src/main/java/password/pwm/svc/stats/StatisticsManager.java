@@ -21,8 +21,10 @@
 package password.pwm.svc.stats;
 
 import org.apache.commons.csv.CSVPrinter;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
@@ -230,10 +232,11 @@ public class StatisticsManager implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
+        this.pwmDomain = pwmApplication.getDefaultDomain();
         this.localDB = pwmDomain.getLocalDB();
-        this.pwmDomain = pwmDomain;
 
         if ( localDB == null )
         {

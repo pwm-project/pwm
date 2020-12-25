@@ -21,9 +21,12 @@
 package password.pwm.svc.shorturl;
 
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
@@ -55,9 +58,10 @@ public class UrlShortenerService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
         final DomainConfig config = this.pwmDomain.getConfig();
         final String classNameString = config.readSettingAsString( PwmSetting.URL_SHORTENER_CLASS );
         if ( classNameString != null && classNameString.length() > 0 )

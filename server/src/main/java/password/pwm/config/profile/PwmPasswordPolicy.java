@@ -34,6 +34,7 @@ import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.LazySupplier;
@@ -50,6 +51,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Supplier;
@@ -125,8 +128,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
 
     public static PwmPasswordPolicy createPwmPasswordPolicy(
             final DomainConfig domainConfig,
-            final String profileID,
-            final Locale locale
+            final String profileID
     )
     {
         final SettingReader settingReader = new SettingReader( domainConfig.getStoredConfiguration(), profileID,  domainConfig.getDomainID() );
@@ -142,16 +144,16 @@ public class PwmPasswordPolicy implements Profile, Serializable
                     case DisallowedAttributes:
                     case DisallowedValues:
                     case CharGroupsValues:
-                        value = StringHelper.stringCollectionToString(
+                        value = StringUtil.collectionToString(
                                 settingReader.readSettingAsStringArray( pwmSetting ), "\n" );
                         break;
                     case RegExMatch:
                     case RegExNoMatch:
-                        value = StringHelper.stringCollectionToString(
+                        value = StringUtil.collectionToString(
                                 settingReader.readSettingAsStringArray( pwmSetting ), ";;;" );
                         break;
                     case ChangeMessage:
-                        value = settingReader.readSettingAsLocalizedString( pwmSetting, locale );
+                        value = settingReader.readSettingAsLocalizedString( pwmSetting, PwmConstants.DEFAULT_LOCALE );
                         break;
                     case ADComplexityLevel:
                         value = settingReader.readSettingAsEnum( pwmSetting, ADPolicyComplexity.class ).toString();
@@ -190,17 +192,36 @@ public class PwmPasswordPolicy implements Profile, Serializable
         }
 
         // set pwm-specific values
-        final List<UserPermission> queryMatch = settingReader.readSettingAsUserPermission( PwmSetting.PASSWORD_POLICY_QUERY_MATCH );
-        final String ruleText = settingReader.readSettingAsLocalizedString( PwmSetting.PASSWORD_POLICY_RULE_TEXT, locale );
-
         final PwmPasswordPolicy.PolicyMetaData policyMetaData = PwmPasswordPolicy.PolicyMetaData.builder()
                 .profileID( profileID )
-                .userPermissions( queryMatch )
-                .ruleText( ruleText )
+                .userPermissions( settingReader.readSettingAsUserPermission( PwmSetting.PASSWORD_POLICY_QUERY_MATCH ) )
+                .ruleText( readLocalizedSetting( PwmSetting.PASSWORD_POLICY_RULE_TEXT, domainConfig, settingReader ) )
+                .changePasswordText( readLocalizedSetting( PwmSetting.PASSWORD_POLICY_CHANGE_MESSAGE, domainConfig, settingReader ) )
                 .build();
 
         return PwmPasswordPolicy.createPwmPasswordPolicy( passwordPolicySettings, null, policyMetaData );
 
+    }
+
+    private static Map<Locale, String> readLocalizedSetting(
+            final PwmSetting pwmSetting,
+            final DomainConfig domainConfig,
+            final SettingReader settingReader
+    )
+    {
+        final List<Locale> knownLocales = domainConfig.getKnownLocales();
+        final String defaultLocaleValue = settingReader.readSettingAsLocalizedString( pwmSetting, PwmConstants.DEFAULT_LOCALE );
+        final Map<Locale, String> returnMap = new HashMap<>();
+        returnMap.put( PwmConstants.DEFAULT_LOCALE, defaultLocaleValue );
+        for ( final Locale locale : knownLocales )
+        {
+            final String value = settingReader.readSettingAsLocalizedString( pwmSetting, locale );
+            if ( !Objects.equals( defaultLocaleValue, value ) )
+            {
+                returnMap.put( locale, value );
+            }
+        }
+        return Collections.unmodifiableMap( returnMap );
     }
 
     @Override
@@ -269,9 +290,26 @@ public class PwmPasswordPolicy implements Profile, Serializable
         return policyMetaData.getUserPermissions();
     }
 
-    public String getRuleText( )
+    public Optional<String> getChangeMessage( final Locale locale )
     {
-        return policyMetaData.getRuleText();
+        if ( JavaHelper.isEmpty( policyMetaData.getChangePasswordText() ) )
+        {
+            return Optional.ofNullable( getValue( PwmPasswordRule.ChangeMessage ) );
+        }
+
+        final Locale resolvedLocale = LocaleHelper.localeResolver( locale, policyMetaData.getChangePasswordText().keySet() );
+        return Optional.of( policyMetaData.getChangePasswordText().get( resolvedLocale ) );
+    }
+
+    public Optional<String> getRuleText( final Locale locale )
+    {
+        if ( JavaHelper.isEmpty( policyMetaData.getRuleText() ) )
+        {
+            return Optional.empty();
+        }
+
+        final Locale resolvedLocale = LocaleHelper.localeResolver( locale, policyMetaData.getRuleText().keySet() );
+        return Optional.of( policyMetaData.getRuleText().get( resolvedLocale ) );
     }
 
     public PwmPasswordPolicy merge( final PwmPasswordPolicy otherPolicy )
@@ -305,7 +343,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
 
                     case ChangeMessage:
                         final String thisChangeMessage = getValue( PwmPasswordRule.ChangeMessage );
-                        if ( thisChangeMessage == null || thisChangeMessage.length() < 1 )
+                        if ( StringUtil.isEmpty( thisChangeMessage ) )
                         {
                             newPasswordPolicies.put( ruleKey, otherPolicy.getValue( PwmPasswordRule.ChangeMessage ) );
                         }
@@ -500,12 +538,16 @@ public class PwmPasswordPolicy implements Profile, Serializable
         @Builder.Default
         private final List<UserPermission> userPermissions = Collections.emptyList();
 
-        private final String ruleText;
+        private final Map<Locale, String> ruleText;
+
+        private final Map<Locale, String> changePasswordText;
+
 
         private PolicyMetaData merge( final PolicyMetaData otherPolicy )
         {
             return PolicyMetaData.builder()
-                    .ruleText( StringUtil.isEmpty( ruleText ) ? otherPolicy.ruleText : ruleText )
+                    .ruleText( JavaHelper.isEmpty( ruleText ) ? otherPolicy.ruleText : ruleText )
+                    .changePasswordText( JavaHelper.isEmpty( changePasswordText ) ? otherPolicy.changePasswordText : changePasswordText )
                     .userPermissions( JavaHelper.isEmpty( userPermissions ) ? otherPolicy.userPermissions : userPermissions )
                     .profileID( StringUtil.isEmpty( profileID ) ? otherPolicy.profileID : profileID )
                     .build();

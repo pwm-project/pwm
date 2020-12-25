@@ -185,12 +185,6 @@ public class PasswordRuleReaderHelper
         return patterns;
     }
 
-    public String getChangeMessage( )
-    {
-        final String changeMessage = passwordPolicy.getValue( PwmPasswordRule.ChangeMessage );
-        return changeMessage == null ? "" : changeMessage;
-    }
-
     public ADPolicyComplexity getADComplexityLevel( )
     {
         final String strLevel = passwordPolicy.getValue( PwmPasswordRule.ADComplexityLevel );

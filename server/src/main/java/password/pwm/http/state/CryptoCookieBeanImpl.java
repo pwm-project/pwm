@@ -110,7 +110,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
             }
 
             final TimeDuration cookieLifeDuration = TimeDuration.fromCurrent( cookieBean.getTimestamp() );
-            final long maxIdleSeconds = pwmRequest.getConfig().readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
+            final long maxIdleSeconds = pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
             if ( cookieLifeDuration.isLongerThan( maxIdleSeconds, TimeDuration.Unit.SECONDS ) )
             {
                 LOGGER.trace( pwmRequest, () -> "disregarded existing " + cookieName + " cookie bean due to outdated timestamp (" + cookieLifeDuration.asCompactString() + ")" );
@@ -196,7 +196,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
     private PwmSecurityKey keyForSession( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final PwmSecurityKey pwmSecurityKey = pwmRequest.getConfig().getSecurityKey();
+        final PwmSecurityKey pwmSecurityKey = pwmRequest.getDomainConfig().getSecurityKey();
         final String keyHash = pwmSecurityKey.keyHash( pwmRequest.getPwmDomain().getSecureService() );
         final String userGuid = pwmRequest.getPwmSession().getLoginInfoBean().getGuid();
         return new PwmSecurityKey( keyHash + userGuid );

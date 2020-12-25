@@ -39,7 +39,7 @@ public class ConfigurationUtil
         if ( readPreferences.size() == 1 && readPreferences.iterator().next() == DataStorageMethod.AUTO )
         {
             readPreferences.clear();
-            if ( domainConfig.hasDbConfigured() )
+            if ( domainConfig.getAppConfig().hasDbConfigured() )
             {
                 readPreferences.add( DataStorageMethod.DB );
             }
@@ -64,7 +64,7 @@ public class ConfigurationUtil
         if ( writeMethods.size() == 1 && writeMethods.get( 0 ) == DataStorageMethod.AUTO )
         {
             writeMethods.clear();
-            if ( domainConfig.hasDbConfigured() )
+            if ( domainConfig.getAppConfig().hasDbConfigured() )
             {
                 writeMethods.add( DataStorageMethod.DB );
             }

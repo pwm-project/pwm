@@ -82,7 +82,7 @@ public class OAuthMachine
     )
             throws PwmUnrecoverableException
     {
-        final String requestStateStr = pwmRequest.readParameterAsString( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ) );
+        final String requestStateStr = pwmRequest.readParameterAsString( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ) );
         if ( requestStateStr != null )
         {
             final String stateJson = pwmRequest.getPwmDomain().getSecureService().decryptStringValue( requestStateStr );
@@ -111,7 +111,7 @@ public class OAuthMachine
         LOGGER.trace( sessionLabel, () -> "preparing to redirect user to oauth authentication service, setting nextUrl to " + nextUrl );
         pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress( true );
 
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final String state = makeStateStringForRequest( pwmRequest, nextUrl, forgottenPasswordProfile );
         final String redirectUri = figureOauthSelfEndPointUrl( pwmRequest );
         final String code = config.readAppProperty( AppProperty.OAUTH_ID_REQUEST_TYPE );
@@ -158,7 +158,7 @@ public class OAuthMachine
     )
             throws PwmUnrecoverableException
     {
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final String requestUrl = settings.getCodeResolveUrl();
         final String grantType = config.readAppProperty( AppProperty.OAUTH_ID_ACCESS_GRANT_TYPE );
         final String redirectUri = figureOauthSelfEndPointUrl( pwmRequest );
@@ -185,7 +185,7 @@ public class OAuthMachine
             final String resolveResponseBodyStr
     )
     {
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final String oauthExpiresParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_EXPIRES );
         final String oauthAccessTokenParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN );
         final String refreshTokenParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN );
@@ -207,7 +207,7 @@ public class OAuthMachine
     )
             throws PwmUnrecoverableException
     {
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final String requestUrl = settings.getCodeResolveUrl();
         final String grantType = config.readAppProperty( AppProperty.OAUTH_ID_REFRESH_GRANT_TYPE );
 
@@ -228,7 +228,7 @@ public class OAuthMachine
     {
         final PwmHttpClientResponse restResults;
         {
-            final DomainConfig config = pwmRequest.getConfig();
+            final DomainConfig config = pwmRequest.getDomainConfig();
             final String requestUrl = settings.getAttributesUrl();
             final Map<String, String> requestParams = new HashMap<>();
             requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
@@ -326,8 +326,8 @@ public class OAuthMachine
         final String redirectUri;
 
         {
-            final String returnUrlOverride = pwmRequest.getConfig().readAppProperty( AppProperty.OAUTH_RETURN_URL_OVERRIDE );
-            final String siteURL = pwmRequest.getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
+            final String returnUrlOverride = pwmRequest.getDomainConfig().readAppProperty( AppProperty.OAUTH_RETURN_URL_OVERRIDE );
+            final String siteURL = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
             if ( returnUrlOverride != null && !returnUrlOverride.trim().isEmpty() )
             {
                 debugSource = "AppProperty(\"" + AppProperty.OAUTH_RETURN_URL_OVERRIDE.getKey() + "\")";
@@ -368,7 +368,7 @@ public class OAuthMachine
             final PwmRequest pwmRequest
     )
     {
-        if ( !Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.OAUTH_ENABLE_TOKEN_REFRESH ) ) )
+        if ( !Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.OAUTH_ENABLE_TOKEN_REFRESH ) ) )
         {
             return false;
         }

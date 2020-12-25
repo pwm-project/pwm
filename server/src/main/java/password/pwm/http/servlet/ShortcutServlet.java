@@ -149,12 +149,12 @@ public class ShortcutServlet extends AbstractPwmServlet
     )
             throws PwmUnrecoverableException
     {
-        final Collection<String> configValues = pwmRequest.getConfig().readSettingAsLocalizedStringArray( PwmSetting.SHORTCUT_ITEMS, pwmRequest.getLocale() );
+        final Collection<String> configValues = pwmRequest.getDomainConfig().readSettingAsLocalizedStringArray( PwmSetting.SHORTCUT_ITEMS, pwmRequest.getLocale() );
 
         final Set<String> labelsFromHeader = new HashSet<>();
         {
             final Map<String, List<String>> headerValueMap = pwmRequest.readHeaderValuesMap();
-            final List<String> interestedHeaderNames = pwmRequest.getConfig().readSettingAsStringArray( PwmSetting.SHORTCUT_HEADER_NAMES );
+            final List<String> interestedHeaderNames = pwmRequest.getDomainConfig().readSettingAsStringArray( PwmSetting.SHORTCUT_HEADER_NAMES );
 
             for ( final Map.Entry<String, List<String>> entry : headerValueMap.entrySet() )
             {

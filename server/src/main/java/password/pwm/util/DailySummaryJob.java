@@ -102,7 +102,7 @@ public class DailySummaryJob implements Runnable
             makeEmailBody( pwmDomain, dailyStatistics, locale, textBody, htmlBody );
             final EmailItemBean emailItem = new EmailItemBean( toAddress, fromAddress, subject, textBody.toString(), htmlBody.toString() );
             LOGGER.debug( () -> "sending daily summary email to " + toAddress );
-            pwmDomain.getEmailQueue().submitEmail( emailItem, null, MacroRequest.forNonUserSpecific( pwmDomain, null ) );
+            pwmDomain.getPwmApplication().getEmailQueue().submitEmail( emailItem, null, MacroRequest.forNonUserSpecific( pwmDomain, null ) );
         }
     }
 
@@ -121,7 +121,7 @@ public class DailySummaryJob implements Runnable
             metadata.put( "Instance ID", pwmDomain.getInstanceID() );
             metadata.put( "Site URL", pwmDomain.getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL ) );
             metadata.put( "Timestamp", JavaHelper.toIsoDate( Instant.now() ) );
-            metadata.put( "Up Time", TimeDuration.fromCurrent( pwmDomain.getStartupTime() ).asLongString() );
+            metadata.put( "Up Time", TimeDuration.fromCurrent( pwmDomain.getPwmApplication().getStartupTime() ).asLongString() );
 
             for ( final Map.Entry<String, String> entry : metadata.entrySet() )
             {

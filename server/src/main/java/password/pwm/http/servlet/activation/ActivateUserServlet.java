@@ -130,7 +130,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     @Override
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
 
         if ( !config.readSettingAsBoolean( PwmSetting.ACTIVATE_USER_ENABLE ) )
         {
@@ -180,7 +180,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     {
         final ActivateUserBean activateUserBean = activateUserBean( pwmRequest );
         final String profileID = activateUserBean.getProfileID();
-        final ActivateUserProfile activateUserProfile = pwmRequest.getConfig().getUserActivationProfiles().get( profileID );
+        final ActivateUserProfile activateUserProfile = pwmRequest.getDomainConfig().getUserActivationProfiles().get( profileID );
         if ( activateUserProfile == null )
         {
             throw  PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "unable to load activate user profile" );
@@ -343,7 +343,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
             activateUserBean.setTokenDestination( tokenPayload.getDestination() );
             activateUserBean.setTokenSent( true );
 
-            if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
+            if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
             {
                 pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenPayload.getDestination() );
                 pwmRequest.forwardToJsp( JspUrl.ACTIVATE_USER_TOKEN_SUCCESS );
@@ -424,7 +424,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
 
             if ( activateUserBean.getTokenDestination() == null )
             {
-                final boolean autoSelect = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.ACTIVATE_USER_TOKEN_AUTO_SELECT_DEST ) );
+                final boolean autoSelect = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.ACTIVATE_USER_TOKEN_AUTO_SELECT_DEST ) );
                 if ( tokenDestinationItems.size() == 1 && autoSelect )
                 {
                     activateUserBean.setTokenDestination( tokenDestinationItems.iterator().next() );
@@ -485,7 +485,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     private static void forwardToEnterCodeJsp( final PwmRequest pwmRequest, final List<TokenDestinationItem> tokenDestinationItems )
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        final boolean autoSelect = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.ACTIVATE_USER_TOKEN_AUTO_SELECT_DEST ) );
+        final boolean autoSelect = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.ACTIVATE_USER_TOKEN_AUTO_SELECT_DEST ) );
         final ResetType goBackAction = tokenDestinationItems.size() > 1 || !autoSelect
                 ? ResetType.clearTokenDestination
                 : null;

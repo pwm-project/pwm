@@ -663,7 +663,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final StringBuilder output = new StringBuilder();
         output.append( "beginning EMail send process:\n" );
 
-        final DomainConfig testDomainConfig = new AppConfig( configManagerBean.getStoredConfiguration() ).getDefaultDomainConfig();
+        final AppConfig testDomainConfig = new AppConfig( configManagerBean.getStoredConfiguration() );
 
         final EmailServerProfile emailServerProfile = testDomainConfig.getEmailServerProfiles().get( profileID );
         if ( emailServerProfile != null )
@@ -706,7 +706,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final String key = pwmRequest.readParameterAsString( "key" );
         final PwmSetting setting = PwmSetting.forKey( key )
                 .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
-        final int maxFileSize = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.CONFIG_MAX_JDBC_JAR_SIZE ) );
+        final int maxFileSize = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_MAX_JDBC_JAR_SIZE ) );
 
         if ( setting == PwmSetting.HTTPS_CERT )
         {

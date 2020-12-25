@@ -21,9 +21,11 @@
 package password.pwm.config.stored;
 
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
+import password.pwm.config.PwmSettingScope;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.StoredValue;
@@ -143,7 +145,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
             // execute the readers and put results in the queue
             final Queue<StoredConfigData.ValueAndMetaCarrier> values = new ConcurrentLinkedQueue<>();
-            suppliers.parallelStream().forEach( ( supplier ) -> values.addAll( supplier.get() ) );
+            suppliers.forEach( ( supplier ) -> values.addAll( supplier.get() ) );
 
             final Instant startStoredConfigDataBuild = Instant.now();
             final StoredConfigData storedConfigData = StoredConfigData.builder()
@@ -185,7 +187,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
             final List<XmlElement> settingElements = xpathForAllSetting();
             final List<StoredConfigData.ValueAndMetaCarrier> results = settingElements
-                    .parallelStream()
+                    .stream()
                     .flatMap( readSettingForXmlElement )
                     .collect( Collectors.toList() );
             perfLog( "startReadSettings", startReadSettings );
@@ -213,7 +215,8 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                 {
                     final PwmSetting pwmSetting = optionalPwmSetting.get();
                     final boolean defaultValueSaved = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_DEFAULT ).isPresent();
-                    final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( pwmSetting, profileID.orElse( null ) );
+                    final DomainID domainID = domainIdForSetting( settingElement, pwmSetting );
+                    final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( pwmSetting, profileID.orElse( null ), domainID );
                     final ValueMetaData metaData = readMetaDataFromXmlElement( key, settingElement ).orElse( null );
 
                     final StoredValue storedValue = defaultValueSaved
@@ -225,6 +228,17 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             }
 
             return Optional.empty();
+        }
+
+        private static DomainID domainIdForSetting( final XmlElement xmlElement, final PwmSetting pwmSetting )
+        {
+            if ( pwmSetting.getCategory().getScope() == PwmSettingScope.SYSTEM )
+            {
+                return DomainID.systemId();
+            }
+
+            final String domainID = xmlElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_DOMAIN ).orElse( PwmConstants.DOMAIN_ID_DEFAULT );
+            return DomainID.create( domainID );
         }
 
         public PwmSecurityKey getKey()
@@ -314,7 +328,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             };
 
             final List<StoredConfigData.ValueAndMetaCarrier> results = xpathForLocaleBundles()
-                    .parallelStream()
+                    .stream()
                     .flatMap( xmlToLocaleBundleReader )
                     .collect( Collectors.toList() );
             perfLog( "startReadLocaleBundles", startReadLocaleBundles );

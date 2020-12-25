@@ -206,6 +206,6 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
 
     private String getLdapUserAttribute( final UserIdentity userIdentity )
     {
-        return  userIdentity.getLdapProfile( pwmDomain.getConfig() ).readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY );
+        return  userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() ).readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY );
     }
 }

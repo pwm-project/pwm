@@ -22,6 +22,8 @@ package password.pwm.config;
 
 import password.pwm.bean.DomainID;
 import password.pwm.bean.PrivateKeyCertificate;
+import password.pwm.config.profile.Profile;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
@@ -36,16 +38,23 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
+import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SettingReader
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SettingReader.class );
+
+    private final ProfileReader profileReader = new ProfileReader();
 
     private final StoredConfiguration storedConfiguration;
     private final String profileID;
@@ -55,7 +64,7 @@ public class SettingReader
     {
         this.storedConfiguration = Objects.requireNonNull( storedConfiguration );
         this.profileID = profileID;
-        this.domainID = domainID;
+        this.domainID = Objects.requireNonNull( domainID );
     }
 
     public List<UserPermission> readSettingAsUserPermission( final PwmSetting setting )
@@ -146,15 +155,82 @@ public class SettingReader
         return ( PrivateKeyCertificate ) readSetting( setting ).toNativeObject();
     }
 
+    public <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition )
+    {
+        return profileReader.getProfileMap( profileDefinition );
+    }
+
+
+    private class ProfileReader
+    {
+        private final Map<ProfileDefinition, Map> profileCache = new LinkedHashMap<>();
+
+        public <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition )
+        {
+            return profileCache.computeIfAbsent( profileDefinition, ( p ) ->
+            {
+                final Map<String, T> returnMap = new LinkedHashMap<>();
+                final Map<String, Profile> profileMap = profileMap( profileDefinition );
+                for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
+                {
+                    returnMap.put( entry.getKey(), ( T ) entry.getValue() );
+                }
+                return Collections.unmodifiableMap( returnMap );
+            } );
+        }
+
+        private Map<String, Profile> profileMap( final ProfileDefinition profileDefinition )
+        {
+            if ( profileDefinition.getProfileFactoryClass().isEmpty() )
+            {
+                return Collections.emptyMap();
+            }
+
+            return profileIDsForCategory( profileDefinition.getCategory() ).stream()
+                    .collect( Collectors.toUnmodifiableMap(
+                        profileID -> profileID,
+                        profileID -> newProfileForID( profileDefinition, profileID )
+                    ) );
+        }
+
+        private Profile newProfileForID( final ProfileDefinition profileDefinition, final String profileID )
+        {
+            Objects.requireNonNull( profileDefinition );
+            Objects.requireNonNull( profileID );
+
+            final Optional<Class<? extends Profile.ProfileFactory>> optionalProfileFactoryClass = profileDefinition.getProfileFactoryClass();
+
+            if ( optionalProfileFactoryClass.isPresent() )
+            {
+                final Profile.ProfileFactory profileFactory;
+                try
+                {
+                    profileFactory = optionalProfileFactoryClass.get().getDeclaredConstructor().newInstance();
+                    return profileFactory.makeFromStoredConfiguration( storedConfiguration, profileID );
+                }
+                catch ( final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
+                {
+                    throw new IllegalStateException( "unable to create profile instance for " + profileDefinition );
+                }
+            }
+
+            throw new IllegalStateException( "unable to create profile instance for " + profileDefinition + " ( profile factory class not defined )" );
+        }
+
+        public List<String> profileIDsForCategory( final PwmSettingCategory pwmSettingCategory )
+        {
+            final PwmSetting profileSetting = pwmSettingCategory.getProfileSetting().orElseThrow( IllegalStateException::new );
+            return SettingReader.this.readSettingAsStringArray( profileSetting );
+        }
+    }
+
     private StoredValue readSetting( final PwmSetting setting )
     {
-
-        /*
-        if ( StringUtil.isEmpty( domainID ) )
+        if ( DomainID.systemId().equals( domainID ) )
         {
             if ( setting.getCategory().getScope() == PwmSettingScope.DOMAIN )
             {
-                final String msg = "attempt to read DOMAIN scope setting '" + setting.getKey() + "' via system scope";
+                final String msg = "attempt to read DOMAIN scope setting '" + setting.toMenuLocationDebug( profileID, null ) + "' via system scope";
                 LOGGER.warn( () -> msg );
             }
         }
@@ -162,29 +238,32 @@ public class SettingReader
         {
             if ( setting.getCategory().getScope() == PwmSettingScope.SYSTEM )
             {
-                final String msg = "attempt to read SYSTEM scope setting '" + setting.getKey() + "' via domain scope";
+                final String msg = "attempt to read SYSTEM scope setting '" + setting.toMenuLocationDebug( profileID, null ) + "' via domain scope";
                 LOGGER.warn( () -> msg );
             }
         }
-        */
 
+        if ( setting.getFlags().contains( PwmSettingFlag.Deprecated ) )
+        {
+            LOGGER.warn( () -> "attempt to read deprecated config setting: " + setting.toMenuLocationDebug( profileID, null ) );
+        }
 
         if ( StringUtil.isEmpty( profileID ) )
         {
             if ( setting.getCategory().hasProfiles() )
             {
-                throw new IllegalStateException( "attempt to read profiled setting '" + setting.getKey() + "' via non-profile" );
+                throw new IllegalStateException( "attempt to read profiled setting '" + setting.toMenuLocationDebug( profileID, null ) + "' via non-profile" );
             }
         }
         else
         {
             if ( !setting.getCategory().hasProfiles() )
             {
-                throw new IllegalStateException( "attempt to read non-profiled setting '" + setting.getKey() + "' via profile" );
+                throw new IllegalStateException( "attempt to read non-profiled setting '" + setting.toMenuLocationDebug( profileID, null ) + "' via profile" );
             }
         }
 
-        final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID );
+        final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID, domainID );
         return StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
     }
 }

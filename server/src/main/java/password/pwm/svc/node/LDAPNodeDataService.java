@@ -183,7 +183,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
 
             chaiUser = pwmDomain.getProxiedChaiUser( userIdentity );
 
-            attr = userIdentity.getLdapProfile( pwmDomain.getConfig() ).readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY );
+            attr = userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() ).readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY );
         }
 
         static LDAPHelper createLDAPHelper( final PwmDomain pwmDomain ) throws PwmUnrecoverableException

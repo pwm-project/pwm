@@ -238,7 +238,7 @@ public class MacroMachine
         {
             final boolean sensitive = macroImplementation.flags().contains( Macro.MacroDefinitionFlag.SensitiveValue );
             final boolean debugOnlyLogging = macroImplementation.flags().contains( Macro.MacroDefinitionFlag.OnlyDebugLogging );
-            if ( !debugOnlyLogging || ( pwmDomain != null && pwmDomain.getConfig().isDevDebugMode() ) )
+            if ( !debugOnlyLogging || ( pwmDomain != null && pwmDomain.getConfig().getAppConfig().isDevDebugMode() ) )
             {
                 final String finalReplaceStr = replaceStr;
                 LOGGER.trace( sessionLabel, () -> "replaced macro " + matchedStr + " with value: "

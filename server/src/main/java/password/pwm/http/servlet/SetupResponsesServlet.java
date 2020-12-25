@@ -352,7 +352,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             }
         }
 
-        if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.CHALLENGE_SHOW_CONFIRMATION ) )
+        if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.CHALLENGE_SHOW_CONFIRMATION ) )
         {
             if ( !setupResponsesBean.isConfirmed() )
             {
@@ -735,7 +735,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             final boolean admin = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
             if ( admin )
             {
-                if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )
+                if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )
                 {
                     LOGGER.trace( pwmRequest, () -> "allowing c/r answer setup skipping due to user being admin and setting "
                             + PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES.toMenuLocationDebug( null, pwmRequest.getLocale() ) );

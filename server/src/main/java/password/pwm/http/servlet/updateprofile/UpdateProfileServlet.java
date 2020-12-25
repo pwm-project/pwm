@@ -198,7 +198,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         updateProfileBean.setTokenSent( false );
         updateProfileBean.setCurrentTokenField( null );
 
-        if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
+        if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
         {
             pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenDestinationItem );
             pwmRequest.forwardToJsp( JspUrl.UPDATE_ATTRIBUTES_TOKEN_SUCCESS );
@@ -218,7 +218,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         final UpdateProfileProfile updateProfileProfile = getProfile( pwmRequest );
 
         boolean success = true;
-        String userMessage = Message.getLocalizedMessage( pwmRequest.getLocale(), Message.Success_UpdateForm, pwmRequest.getConfig() );
+        String userMessage = Message.getLocalizedMessage( pwmRequest.getLocale(), Message.Success_UpdateForm, pwmRequest.getDomainConfig() );
 
         try
         {

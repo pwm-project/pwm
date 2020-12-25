@@ -288,10 +288,10 @@ public class LDAPHealthChecker implements HealthChecker
                 else
                 {
                     final Locale locale = PwmConstants.DEFAULT_LOCALE;
-                    final UserIdentity userIdentity = UserIdentity.createUserIdentity( testUserDN, ldapProfile.getIdentifier() );
+                    final UserIdentity userIdentity = UserIdentity.createUserIdentity( testUserDN, ldapProfile.getIdentifier(), pwmDomain.getDomainID() );
 
                     final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
-                            pwmDomain, null, userIdentity, theUser, locale );
+                            pwmDomain, null, userIdentity, theUser );
 
                     boolean doPasswordChange = true;
                     final int minLifetimeSeconds = passwordPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MinimumLifetime );
@@ -364,7 +364,7 @@ public class LDAPHealthChecker implements HealthChecker
 
             try
             {
-                final UserIdentity userIdentity = UserIdentity.createUserIdentity( theUser.getEntryDN(), ldapProfile.getIdentifier() );
+                final UserIdentity userIdentity = UserIdentity.createUserIdentity( theUser.getEntryDN(), ldapProfile.getIdentifier(), pwmDomain.getDomainID() );
                 final UserInfo userInfo = UserInfoFactory.newUserInfo(
                         pwmDomain,
                         SessionLabel.HEALTH_SESSION_LABEL,
@@ -931,7 +931,7 @@ public class LDAPHealthChecker implements HealthChecker
                     }
                 }
 
-                final UserIdentity newUserTemplateIdentity = UserIdentity.createUserIdentity( policyUserStr, ldapProfile.getIdentifier() );
+                final UserIdentity newUserTemplateIdentity = UserIdentity.createUserIdentity( policyUserStr, ldapProfile.getIdentifier(), pwmDomain.getDomainID() );
 
                 final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( newUserTemplateIdentity );
 

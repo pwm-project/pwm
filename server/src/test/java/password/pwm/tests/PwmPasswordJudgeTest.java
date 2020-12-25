@@ -22,10 +22,15 @@ package password.pwm.tests;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.StrengthMeterType;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.config.value.StringValue;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.password.PasswordUtility;
 
 import java.util.ArrayList;
@@ -33,11 +38,20 @@ import java.util.List;
 
 public class PwmPasswordJudgeTest
 {
+    private static DomainConfig makeConfig() throws PwmUnrecoverableException
+    {
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( StoredConfigurationFactory.newConfig() );
+        modifier.writeSetting( PwmSetting.PASSWORD_STRENGTH_METER_TYPE, null, new StringValue( StrengthMeterType.PWM.name() ), null );
+        final StoredConfiguration storedConfiguration = modifier.newStoredConfiguration();
+        final AppConfig appConfig = new AppConfig( storedConfiguration );
+        return appConfig.getDefaultDomainConfig();
+    }
+
+
     @Test
     public void testJudgePassword() throws Exception
     {
-        final DomainConfig domainConfig = Mockito.mock( DomainConfig.class );
-        Mockito.when( domainConfig.readSettingAsEnum( PwmSetting.PASSWORD_STRENGTH_METER_TYPE, StrengthMeterType.class ) ).thenReturn( StrengthMeterType.PWM );
+        final DomainConfig domainConfig = makeConfig();
 
         Assert.assertEquals( 0, PasswordUtility.judgePasswordStrength( domainConfig, "" ) );
         Assert.assertEquals( 100, PasswordUtility.judgePasswordStrength( domainConfig,

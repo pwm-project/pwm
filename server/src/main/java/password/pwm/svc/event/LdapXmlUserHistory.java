@@ -102,17 +102,17 @@ class LdapXmlUserHistory implements UserHistoryStore
         if ( auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEvent.Type.HELPDESK )
         {
             final HelpdeskAuditRecord helpdeskAuditRecord = ( HelpdeskAuditRecord ) auditRecord;
-            userIdentity = UserIdentity.createUserIdentity( helpdeskAuditRecord.getTargetDN(), helpdeskAuditRecord.getTargetLdapProfile() );
+            userIdentity = UserIdentity.createUserIdentity( helpdeskAuditRecord.getTargetDN(), helpdeskAuditRecord.getTargetLdapProfile(), PwmConstants.DOMAIN_ID_PLACEHOLDER );
         }
         else
         {
-            userIdentity = UserIdentity.createUserIdentity( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile() );
+            userIdentity = UserIdentity.createUserIdentity( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile(), PwmConstants.DOMAIN_ID_PLACEHOLDER );
         }
         final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
 
         // settings
         final String corRecordIdentifer = COR_RECORD_ID;
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getConfig() );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() );
         final String corAttribute = ldapProfile.readSettingAsString( PwmSetting.EVENTS_LDAP_ATTRIBUTE );
 
         // quit if settings no good;
@@ -200,7 +200,7 @@ class LdapXmlUserHistory implements UserHistoryStore
     )
             throws ChaiUnavailableException
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getConfig() );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() );
         final String corAttribute = ldapProfile.readSettingAsString( PwmSetting.EVENTS_LDAP_ATTRIBUTE );
 
         if ( corAttribute == null || corAttribute.length() < 1 )

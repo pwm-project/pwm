@@ -58,7 +58,7 @@ public class LdapCertImportFunction implements SettingUIFunction
         if ( ldapUrlsValue != null && ldapUrlsValue.toNativeObject() != null )
         {
             final List<String> ldapUrlStrings = ldapUrlsValue.toNativeObject();
-            resultCertificates.addAll( X509Utils.readCertsForListOfLdapUrls( ldapUrlStrings, pwmRequest.getConfig() ) );
+            resultCertificates.addAll( X509Utils.readCertsForListOfLdapUrls( ldapUrlStrings, pwmRequest.getDomainConfig() ) );
         }
 
         final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;

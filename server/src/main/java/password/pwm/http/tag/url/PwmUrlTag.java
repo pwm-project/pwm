@@ -153,7 +153,7 @@ public class PwmUrlTag extends PwmAbstractTag
     {
         if ( pwmRequest.isFlag( PwmRequestFlag.INCLUDE_CONFIG_CSS ) )
         {
-            return pwmRequest.getConfig().readAppProperty( AppProperty.CONFIG_THEME );
+            return pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_THEME );
         }
 
         final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
@@ -162,9 +162,9 @@ public class PwmUrlTag extends PwmAbstractTag
             return ssBean.getTheme();
         }
 
-        if ( pwmRequest.getConfig() != null )
+        if ( pwmRequest.getDomainConfig() != null )
         {
-            return pwmRequest.getConfig().readSettingAsString( PwmSetting.INTERFACE_THEME );
+            return pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.INTERFACE_THEME );
         }
         else
         {

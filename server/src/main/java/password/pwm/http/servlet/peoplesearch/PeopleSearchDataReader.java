@@ -106,7 +106,7 @@ class PeopleSearchDataReader
             throws PwmUnrecoverableException
     {
         this.pwmRequest = pwmRequest;
-        this.peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getConfig(), peopleSearchProfile );
+        this.peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getDomainConfig(), peopleSearchProfile );
     }
 
     SearchResultBean makeSearchResultBean(
@@ -264,7 +264,7 @@ class PeopleSearchDataReader
         final Map<String, String> searchResults = detailResults.getResults().get( userIdentity );
 
         final UserDetailBean userDetailBean = new UserDetailBean();
-        userDetailBean.setUserKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmDomain() ) );
+        userDetailBean.setUserKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
         final List<FormConfiguration> detailFormConfig = this.peopleSearchConfiguration.getSearchDetailForm();
         final Map<String, AttributeDetailBean> attributeBeans = convertResultMapToBeans( userIdentity, detailFormConfig, searchResults );
 
@@ -292,7 +292,7 @@ class PeopleSearchDataReader
 
     private List<LinkReferenceBean> makeUserDetailLinks( final UserIdentity actorIdentity ) throws PwmUnrecoverableException
     {
-        final String userLinksStr = pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_VIEW_DETAIL_LINKS );
+        final String userLinksStr = pwmRequest.getDomainConfig().readAppProperty( AppProperty.PEOPLESEARCH_VIEW_DETAIL_LINKS );
         if ( StringUtil.isEmpty( userLinksStr ) )
         {
             return Collections.emptyList();
@@ -332,7 +332,7 @@ class PeopleSearchDataReader
 
         final List<String> returnObj = new ArrayList<>();
 
-        final int maxValues = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_VALUE_MAXCOUNT ) );
+        final int maxValues = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.PEOPLESEARCH_VALUE_MAXCOUNT ) );
         final ChaiUser chaiUser = getChaiUser( userIdentity );
         try
         {
@@ -389,7 +389,7 @@ class PeopleSearchDataReader
             throws PwmUnrecoverableException
     {
         final OrgChartReferenceBean orgChartReferenceBean = new OrgChartReferenceBean();
-        orgChartReferenceBean.setUserKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmDomain() ) );
+        orgChartReferenceBean.setUserKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
         final PhotoDataReader photoDataReader = photoDataReader( userIdentity );
         orgChartReferenceBean.setPhotoURL( photoDataReader.figurePhotoURL( ) );
 
@@ -408,7 +408,7 @@ class PeopleSearchDataReader
 
         final List<UserIdentity> returnObj = new ArrayList<>();
 
-        final int maxValues = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_VALUE_MAXCOUNT ) );
+        final int maxValues = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.PEOPLESEARCH_VALUE_MAXCOUNT ) );
         final ChaiUser chaiUser = getChaiUser( userIdentity );
         final Set<String> ldapValues;
         try
@@ -428,10 +428,10 @@ class PeopleSearchDataReader
         }
 
 
-        final boolean checkUserDNValues = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN ) );
+        final boolean checkUserDNValues = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN ) );
         for ( final String userDN : ldapValues )
         {
-            final UserIdentity loopIdentity = UserIdentity.createUserIdentity( userDN, userIdentity.getLdapProfileID() );
+            final UserIdentity loopIdentity = UserIdentity.createUserIdentity( userDN, userIdentity.getLdapProfileID(), pwmRequest.getDomainID() );
             if ( returnObj.size() < maxValues )
             {
                 if ( checkUserDNValues )
@@ -552,7 +552,7 @@ class PeopleSearchDataReader
                         {
                             final String displayValue = figureDisplaynameValue( pwmRequest, loopIdentity );
                             final UserReferenceBean userReference = new UserReferenceBean();
-                            userReference.setUserKey( loopIdentity.toObfuscatedKey( pwmRequest.getPwmDomain() ) );
+                            userReference.setUserKey( loopIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
                             userReference.setDisplayName( displayValue );
                             userReferences.put( displayValue, userReference );
                         }
@@ -650,7 +650,7 @@ class PeopleSearchDataReader
             return configuredFilter;
         }
 
-        final List<String> defaultObjectClasses = pwmRequest.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
+        final List<String> defaultObjectClasses = pwmRequest.getDomainConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
         final Set<String> searchAttributes = peopleSearchConfiguration.getSearchAttributes();
         final StringBuilder filter = new StringBuilder();
 
@@ -679,7 +679,7 @@ class PeopleSearchDataReader
 
     private String makeAdvancedFilter( final Map<String, String> attributesInSearchRequest )
     {
-        final List<String> defaultObjectClasses = pwmRequest.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
+        final List<String> defaultObjectClasses = pwmRequest.getDomainConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
         final List<FormConfiguration> searchAttributes = peopleSearchConfiguration.getSearchForm();
 
         return HelpdeskServletUtil.makeAdvancedSearchFilter( defaultObjectClasses, searchAttributes, attributesInSearchRequest );
@@ -843,7 +843,7 @@ class PeopleSearchDataReader
                 final String userKey = ( String ) map.get( "userKey" );
                 if ( userKey != null )
                 {
-                    final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmDomain() );
+                    final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
                     final String displayValue = figureDisplaynameValue( pwmRequest, userIdentity );
                     map.put( "_displayName", displayValue );
                 }
@@ -858,7 +858,7 @@ class PeopleSearchDataReader
         final String aboutMessage = LocaleHelper.getLocalizedMessage(
                 pwmRequest.getLocale(),
                 Display.Display_SearchResultsInfo.getKey(),
-                pwmRequest.getConfig(),
+                pwmRequest.getDomainConfig(),
                 Display.class,
                 new String[]
                         {

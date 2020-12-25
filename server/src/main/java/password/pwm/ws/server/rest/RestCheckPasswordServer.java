@@ -180,7 +180,7 @@ public class RestCheckPasswordServer extends RestServlet
 
             final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.getUsername() );
             final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                    restRequest.getPwmApplication(),
+                    restRequest.getDomain(),
                     restRequest.getSessionLabel(),
                     restRequest.getLocale(),
                     targetUserIdentity.getUserIdentity(),
@@ -194,10 +194,10 @@ public class RestCheckPasswordServer extends RestServlet
                     userInfo
             );
 
-            restRequest.getPwmApplication().getStatisticsManager().incrementValue( Statistic.REST_CHECKPASSWORD );
+            restRequest.getDomain().getStatisticsManager().incrementValue( Statistic.REST_CHECKPASSWORD );
 
             final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
-                    restRequest.getPwmApplication(),
+                    restRequest.getDomain(),
                     restRequest.getLocale(),
                     targetUserIdentity.getChaiUser(),
                     checkRequest.getUserInfo(),

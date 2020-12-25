@@ -351,7 +351,7 @@ public class NewUserServlet extends ControlledPwmServlet
             if ( urlSegments.size() == 2 && profileUrlSegment.equals( urlSegments.get( 0 ) ) )
             {
                 final String requestedProfile = urlSegments.get( 1 );
-                final Collection<String> profileIDs = pwmRequest.getConfig().getNewUserProfiles().keySet();
+                final Collection<String> profileIDs = pwmRequest.getDomainConfig().getNewUserProfiles().keySet();
                 if ( profileIDs.contains( requestedProfile ) )
                 {
                     LOGGER.debug( pwmRequest, () -> "detected profile on request uri: " + requestedProfile );
@@ -563,7 +563,7 @@ public class NewUserServlet extends ControlledPwmServlet
         newUserBean.setTokenSent( false );
         newUserBean.setCurrentTokenField( null );
 
-        if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
+        if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
         {
             pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenPayload.getDestination() );
             pwmRequest.forwardToJsp( JspUrl.NEW_USER_TOKEN_SUCCESS );
@@ -611,7 +611,7 @@ public class NewUserServlet extends ControlledPwmServlet
     private ProcessStatus handleProfileChoiceRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
-        final Set<String> profileIDs = pwmRequest.getConfig().getNewUserProfiles().keySet();
+        final Set<String> profileIDs = pwmRequest.getDomainConfig().getNewUserProfiles().keySet();
         final String requestedProfileID = pwmRequest.readParameterAsString( "profile" );
 
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
@@ -812,7 +812,7 @@ public class NewUserServlet extends ControlledPwmServlet
         {
             throw new IllegalStateException( "can not read new user profile until profile is selected" );
         }
-        return pwmRequest.getConfig().getNewUserProfiles().get( profileID );
+        return pwmRequest.getDomainConfig().getNewUserProfiles().get( profileID );
     }
 
     private void forwardToWait( final PwmRequest pwmRequest, final NewUserProfile newUserProfile )
@@ -869,7 +869,7 @@ public class NewUserServlet extends ControlledPwmServlet
 
         {
             final boolean showBack = !newUserBean.isUrlSpecifiedProfile()
-                    && pwmRequest.getConfig().getNewUserProfiles().keySet().size() > 1;
+                    && pwmRequest.getDomainConfig().getNewUserProfiles().keySet().size() > 1;
             pwmRequest.setAttribute( PwmRequestAttribute.NewUser_FormShowBackButton, showBack );
         }
 

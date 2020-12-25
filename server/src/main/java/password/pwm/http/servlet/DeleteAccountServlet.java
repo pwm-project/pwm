@@ -271,7 +271,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final Locale locale = pwmRequest.getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_DELETEACCOUNT, locale );
 
@@ -281,7 +281,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
             return;
         }
 
-        pwmRequest.getPwmDomain().getEmailQueue().submitEmail(
+        pwmRequest.getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmRequest.getPwmSession().getUserInfo(),
                 pwmRequest.getPwmSession().getSessionManager().getMacroMachine( )

@@ -176,7 +176,7 @@ public class TokenUtil
                         throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
                     }
 
-                    if ( !userIdentity.canonicalEquals( tokenPayload.getUserIdentity(), pwmDomain ) )
+                    if ( !userIdentity.canonicalEquals( tokenPayload.getUserIdentity(), pwmDomain.getPwmApplication() ) )
                     {
                         final String errorMsg = "received token is not for currently authenticated user, received token is for: "
                                 + tokenPayload.getUserIdentity().toDisplayString();
@@ -212,7 +212,7 @@ public class TokenUtil
     )
             throws PwmUnrecoverableException
     {
-        final DomainConfig config = pwmRequestContext.getConfig();
+        final DomainConfig config = pwmRequestContext.getDomainConfig();
         final UserInfo userInfo = tokenInitAndSendRequest.getUserInfo();
         final Map<String, String> tokenMapData = new LinkedHashMap<>();
         final MacroRequest macroRequest;

@@ -60,7 +60,7 @@ class LdapUserDNTypeHelper implements PermissionTypeHelper
             LOGGER.trace( sessionLabel, () -> "missing userDN value, skipping check" );
         }
 
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getConfig() );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() );
         final String userCanonicalDN = ldapProfile.readCanonicalDN( pwmDomain, userIdentity.getUserDN() );
         final String configuredCanonicalDN = ldapProfile.readCanonicalDN( pwmDomain, userPermission.getLdapBase() );
         return Objects.equals( userCanonicalDN, configuredCanonicalDN );

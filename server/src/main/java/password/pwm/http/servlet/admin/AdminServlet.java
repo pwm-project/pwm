@@ -324,7 +324,7 @@ public class AdminServlet extends ControlledPwmServlet
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try
         {
-            pwmDomain.getSessionTrackService().outputToCsv( pwmRequest.getLocale(), pwmRequest.getConfig(), outputStream );
+            pwmDomain.getSessionTrackService().outputToCsv( pwmRequest.getLocale(), pwmRequest.getDomainConfig(), outputStream );
         }
         catch ( final Exception e )
         {
@@ -683,7 +683,7 @@ public class AdminServlet extends ControlledPwmServlet
     public ProcessStatus restreadPwNotifyStatus( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException
     {
         int key = 0;
-        if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
+        if ( !pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
         {
             final DisplayElement displayElement = new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string, "Status",
                     "Password Notification Feature is not enabled.  See setting: "
@@ -693,7 +693,7 @@ public class AdminServlet extends ControlledPwmServlet
         }
 
         final List<DisplayElement> statusData = new ArrayList<>( );
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final Locale locale = pwmRequest.getLocale();
         final PwNotifyService pwNotifyService = pwmRequest.getPwmDomain().getPwNotifyService();
         final PwNotifyStoredJobState pwNotifyStoredJobState = pwNotifyService.getJobState();

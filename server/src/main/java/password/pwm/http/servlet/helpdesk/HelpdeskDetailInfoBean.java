@@ -148,16 +148,16 @@ public class HelpdeskDetailInfoBean implements Serializable
             LOGGER.error( pwmRequest, () -> "unexpected error reading userHistory for user '" + userIdentity + "', " + e.getMessage() );
         }
 
-        builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmDomain() ) );
+        builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
 
         builder.profileData( getProfileData( helpdeskProfile, userInfo, pwmRequest.getLabel(), pwmRequest.getLocale() ) );
 
-        builder.passwordPolicyRules( makePasswordPolicyRules( userInfo, pwmRequest.getLocale(), pwmRequest.getConfig() ) );
+        builder.passwordPolicyRules( makePasswordPolicyRules( userInfo, pwmRequest.getLocale(), pwmRequest.getDomainConfig() ) );
 
         {
             final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(
                     userInfo.getPasswordPolicy(),
-                    pwmRequest.getConfig(),
+                    pwmRequest.getDomainConfig(),
                     pwmRequest.getLocale(),
                     macroRequest
             );
@@ -215,7 +215,7 @@ public class HelpdeskDetailInfoBean implements Serializable
             final Set<ViewStatusFields> viewStatusFields = helpdeskProfile.readSettingAsOptionList( PwmSetting.HELPDESK_VIEW_STATUS_VALUES, ViewStatusFields.class );
             builder.statusData( ViewableUserInfoDisplayReader.makeDisplayData(
                     viewStatusFields,
-                    pwmRequest.getConfig(),
+                    pwmRequest.getDomainConfig(),
                     userInfo,
                     null,
                     pwmRequest.getLocale()
@@ -232,7 +232,7 @@ public class HelpdeskDetailInfoBean implements Serializable
 
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = builder.build();
 
-        if ( pwmRequest.getConfig().isDevDebugMode() )
+        if ( pwmRequest.getAppConfig().isDevDebugMode() )
         {
             LOGGER.trace( pwmRequest, () -> "completed assembly of detail data report for user " + userIdentity
                     + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize( helpdeskDetailInfoBean ) );

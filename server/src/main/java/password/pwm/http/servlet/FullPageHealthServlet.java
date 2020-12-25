@@ -92,7 +92,7 @@ public class FullPageHealthServlet extends ControlledPwmServlet
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES ) )
+        if ( !pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES ) )
         {
             final Locale locale = pwmRequest.getLocale();
             final String errorMsg = "configuration setting "

@@ -26,9 +26,11 @@ import lombok.Getter;
 import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
 import password.pwm.PwmAboutProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.config.DomainConfig;
@@ -90,9 +92,10 @@ public class TelemetryService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
 
         if ( pwmDomain.getApplicationMode() != PwmApplicationMode.RUNNING )
         {
@@ -135,7 +138,7 @@ public class TelemetryService implements PwmService
         }
 
         lastPublishTime = pwmDomain.readAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, Instant.class )
-                .orElse( pwmDomain.getInstallTime() );
+                .orElse( pwmDomain.getPwmApplication().getInstallTime() );
         LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "last publish time was " + JavaHelper.toIsoDate( lastPublishTime ) );
 
         executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, TelemetryService.class );
@@ -263,7 +266,7 @@ public class TelemetryService implements PwmService
     {
         final StatisticsBundle bundle = pwmDomain.getStatisticsManager().getStatBundleForKey( StatisticsManager.KEY_CUMULATIVE );
         final DomainConfig config = pwmDomain.getConfig();
-        final Map<PwmAboutProperty, String> aboutPropertyStringMap = PwmAboutProperty.makeInfoBean( pwmDomain );
+        final Map<PwmAboutProperty, String> aboutPropertyStringMap = PwmAboutProperty.makeInfoBean( pwmDomain.getPwmApplication() );
 
         final Map<String, String> statData = new TreeMap<>();
         for ( final Statistic loopStat : Statistic.values() )
@@ -316,7 +319,7 @@ public class TelemetryService implements PwmService
         builder.timestamp( Instant.now() );
         builder.id( makeId( pwmDomain ) );
         builder.instanceHash( pwmDomain.getSecureService().hash( pwmDomain.getInstanceID() ) );
-        builder.installTime( pwmDomain.getInstallTime() );
+        builder.installTime( pwmDomain.getPwmApplication().getInstallTime() );
         builder.siteDescription( config.readSettingAsString( PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION ) );
         builder.versionBuild( PwmConstants.BUILD_NUMBER );
         builder.versionVersion( PwmConstants.BUILD_VERSION );

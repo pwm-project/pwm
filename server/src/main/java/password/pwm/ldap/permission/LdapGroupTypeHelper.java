@@ -65,7 +65,7 @@ class LdapGroupTypeHelper implements PermissionTypeHelper
         }
         else
         {
-            final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getConfig() );
+            final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() );
             final String filterString = "(" + ldapProfile.readSettingAsString( PwmSetting.LDAP_USER_GROUP_ATTRIBUTE ) + "=" + groupDN + ")";
             LOGGER.trace( sessionLabel, () -> "checking ldap to see if " + userIdentity + " matches group '" + groupDN + "' using filter '" + filterString + "'" );
             result = LdapQueryHelper.selfUserSearch( pwmDomain, sessionLabel, userIdentity, filterString );

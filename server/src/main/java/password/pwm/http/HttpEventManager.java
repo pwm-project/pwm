@@ -65,7 +65,7 @@ public class HttpEventManager implements
         {
             final ContextManager contextManager = ContextManager.getContextManager( httpSession );
             final PwmDomain pwmDomain = contextManager.getPwmApplication().getDomains().get( PwmConstants.DOMAIN_ID_PLACEHOLDER );
-            httpSession.setAttribute( PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmDomain.getRuntimeNonce() );
+            httpSession.setAttribute( PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmDomain.getPwmApplication().getRuntimeNonce() );
 
             if ( pwmDomain.getStatisticsManager() != null )
             {

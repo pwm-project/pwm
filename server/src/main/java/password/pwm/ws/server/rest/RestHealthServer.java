@@ -66,8 +66,8 @@ public class RestHealthServer extends RestServlet
     {
         try
         {
-            final String resultString = restRequest.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus().toString() + "\n";
-            StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_HEALTH );
+            final String resultString = restRequest.getDomain().getHealthMonitor().getMostSevereHealthStatus().toString() + "\n";
+            StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_HEALTH );
             return RestResultBean.withData( resultString );
         }
         catch ( final Exception e )
@@ -82,8 +82,8 @@ public class RestHealthServer extends RestServlet
     private RestResultBean doPwmHealthJsonGet( final RestRequest restRequest )
             throws PwmUnrecoverableException, IOException
     {
-        final HealthData jsonOutput = processGetHealthCheckData( restRequest.getPwmApplication(), restRequest.getLocale() );
-        StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_HEALTH );
+        final HealthData jsonOutput = processGetHealthCheckData( restRequest.getDomain(), restRequest.getLocale() );
+        StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_HEALTH );
         return RestResultBean.withData( jsonOutput );
     }
 

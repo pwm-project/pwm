@@ -70,7 +70,7 @@ public class RestUtility
     )
             throws PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = restRequest.getPwmApplication();
+        final PwmDomain pwmDomain = restRequest.getDomain();
 
         if ( StringUtil.isEmpty( username ) )
         {
@@ -123,7 +123,7 @@ public class RestUtility
             {
                 {
                     final UserIdentity testUser = ldapProfile.getTestUser( pwmDomain );
-                    if ( testUser != null && testUser.canonicalEquals( userIdentity, pwmDomain ) )
+                    if ( testUser != null && testUser.canonicalEquals( userIdentity, restRequest.getPwmApplication() ) )
                     {
                         final String msg = "rest services can not be invoked against the configured LDAP profile test user";
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg );
@@ -133,7 +133,7 @@ public class RestUtility
 
                 {
                     final UserIdentity proxyUser = ldapProfile.getProxyUser( pwmDomain );
-                    if ( proxyUser != null && proxyUser.canonicalEquals( userIdentity, pwmDomain ) )
+                    if ( proxyUser != null && proxyUser.canonicalEquals( userIdentity, restRequest.getPwmApplication() ) )
                     {
                         final String msg = "rest services can not be invoked against the configured LDAP profile proxy user";
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg );

@@ -124,7 +124,7 @@ public class UserSearchResults implements Serializable
                 {
                     rowMap.put( attribute, this.getResults().get( userIdentity ).get( attribute ) );
                 }
-                rowMap.put( "userKey", userIdentity.toObfuscatedKey( pwmDomain ) );
+                rowMap.put( "userKey", userIdentity.toObfuscatedKey( pwmDomain.getPwmApplication() ) );
                 rowMap.put( "id", idCounter );
                 outputList.add( rowMap );
                 idCounter++;

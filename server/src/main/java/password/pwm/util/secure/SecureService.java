@@ -21,8 +21,9 @@
 package password.pwm.util.secure;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
-import password.pwm.config.DomainConfig;
+import password.pwm.PwmApplication;
+import password.pwm.bean.DomainID;
+import password.pwm.config.AppConfig;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -58,9 +59,9 @@ public class SecureService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
     {
-        final DomainConfig config = pwmDomain.getConfig();
+        final AppConfig config = pwmApplication.getConfig();
         pwmSecurityKey = config.getSecurityKey();
         {
             final String defaultBlockAlgString = config.readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG );

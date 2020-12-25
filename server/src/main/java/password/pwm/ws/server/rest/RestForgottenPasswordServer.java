@@ -158,7 +158,7 @@ public class RestForgottenPasswordServer extends RestServlet
 
     private TimeDuration figureMaxIdleTimeout( final PwmRequestContext pwmRequestContext )
     {
-        final long idleSeconds = pwmRequestContext.getConfig().readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
+        final long idleSeconds = pwmRequestContext.getDomainConfig().readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
         return TimeDuration.of( idleSeconds, TimeDuration.Unit.SECONDS );
     }
 

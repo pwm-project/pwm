@@ -267,7 +267,7 @@ public class PwmSession implements Serializable
         if ( pwmRequest != null )
         {
 
-            final String nonceCookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
+            final String nonceCookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
             pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, null );
             pwmRequest.getPwmResponse().removeCookie( nonceCookieName, PwmHttpResponseWrapper.CookiePath.Application );
 
@@ -372,8 +372,8 @@ public class PwmSession implements Serializable
         securityKeyLock.lock();
         try
         {
-            final int length = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
-            final String cookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
+            final int length = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
+            final String cookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
 
             String nonce = ( String ) pwmRequest.getAttribute( PwmRequestAttribute.CookieNonce );
             if ( nonce == null || nonce.length() < length )
@@ -394,7 +394,7 @@ public class PwmSession implements Serializable
                 newNonce = true;
             }
 
-            final PwmSecurityKey securityKey = pwmRequest.getConfig().getSecurityKey();
+            final PwmSecurityKey securityKey = pwmRequest.getDomainConfig().getSecurityKey();
             final String concatValue = securityKey.keyHash( pwmRequest.getPwmDomain().getSecureService() ) + nonce;
             final String hashValue = pwmRequest.getPwmDomain().getSecureService().hash( concatValue );
             final PwmSecurityKey pwmSecurityKey = new PwmSecurityKey( hashValue );

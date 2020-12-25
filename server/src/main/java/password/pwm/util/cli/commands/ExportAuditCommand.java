@@ -39,7 +39,7 @@ public class ExportAuditCommand extends AbstractCliCommand
     {
         final PwmDomain pwmDomain = cliEnvironment.getPwmDomain();
         final AuditService auditManager = new AuditService();
-        auditManager.init( pwmDomain );
+        auditManager.init( pwmDomain.getPwmApplication(), pwmDomain.getDomainID() );
 
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
 

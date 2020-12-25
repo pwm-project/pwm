@@ -86,7 +86,7 @@ public class RestProfileServer extends RestServlet
     @Override
     public void preCheckRequest( final RestRequest request ) throws PwmUnrecoverableException
     {
-        if ( !request.getPwmApplication().getConfig().readSettingAsBoolean( PwmSetting.UPDATE_PROFILE_ENABLE ) )
+        if ( !request.getDomain().getConfig().readSettingAsBoolean( PwmSetting.UPDATE_PROFILE_ENABLE ) )
         {
             throw new PwmUnrecoverableException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "update profile module is not enabled" );
         }
@@ -134,7 +134,7 @@ public class RestProfileServer extends RestServlet
             final List<FormConfiguration> formFields = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
 
             final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                    restRequest.getPwmApplication(),
+                    restRequest.getDomain(),
                     restRequest.getSessionLabel(),
                     restRequest.getLocale(),
                     targetUserIdentity.getUserIdentity(),
@@ -153,7 +153,7 @@ public class RestProfileServer extends RestServlet
         outputData.profile = profileData;
         outputData.formDefinition = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
         final RestResultBean restResultBean = RestResultBean.withData( outputData );
-        StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_PROFILE );
+        StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_PROFILE );
         return restResultBean;
     }
 
@@ -179,7 +179,7 @@ public class RestProfileServer extends RestServlet
         throws PwmUnrecoverableException
     {
         final Optional<String> updateProfileID = ProfileUtility.discoverProfileIDForUser(
-            restRequest.getPwmApplication(),
+            restRequest.getDomain(),
             restRequest.getSessionLabel(),
             targetUserIdentity.getUserIdentity(),
             ProfileDefinition.UpdateAttributes
@@ -190,7 +190,7 @@ public class RestProfileServer extends RestServlet
             throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
         }
 
-        return restRequest.getPwmApplication().getConfig().getUpdateAttributesProfile().get( updateProfileID.get() );
+        return restRequest.getDomain().getConfig().getUpdateAttributesProfile().get( updateProfileID.get() );
     }
 
     private static RestResultBean doPostProfileDataImpl(
@@ -212,7 +212,7 @@ public class RestProfileServer extends RestServlet
         {
             final List<UserPermission> userPermission = updateProfileProfile.readSettingAsUserPermission( PwmSetting.UPDATE_PROFILE_QUERY_MATCH );
             final boolean result = UserPermissionUtility.testUserPermission(
-                    restRequest.getPwmApplication(),
+                    restRequest.getDomain(),
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity(),
                     userPermission
@@ -244,7 +244,7 @@ public class RestProfileServer extends RestServlet
         }
 
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                restRequest.getPwmApplication(),
+                restRequest.getDomain(),
                 restRequest.getSessionLabel(),
                 restRequest.getLocale(),
                 targetUserIdentity.getUserIdentity(),
@@ -252,14 +252,14 @@ public class RestProfileServer extends RestServlet
         );
 
         final MacroRequest macroRequest = MacroRequest.forUser(
-                restRequest.getPwmApplication(),
+                restRequest.getDomain(),
                 restRequest.getLocale(),
                 restRequest.getSessionLabel(),
                 targetUserIdentity.getUserIdentity()
         );
 
         UpdateProfileUtil.doProfileUpdate(
-                restRequest.getPwmApplication(),
+                restRequest.getDomain(),
                 restRequest.getSessionLabel(),
                 restRequest.getLocale(),
                 userInfo,
@@ -269,7 +269,7 @@ public class RestProfileServer extends RestServlet
                 targetUserIdentity.getChaiUser()
         );
 
-        StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_PROFILE );
+        StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_PROFILE );
         return RestResultBean.forSuccessMessage( restRequest, Message.Success_UpdateProfile );
     }
 }

@@ -165,7 +165,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             {
                 if ( !pwmRequest.getPwmResponse().isCommitted() )
                 {
-                    if ( pwmRequest.getConfig().isDevDebugMode() )
+                    if ( pwmRequest.getAppConfig().isDevDebugMode() )
                     {
                         final String msg = "processing complete, handler returned halt but response is not committed";
                         LOGGER.error( pwmRequest, () -> msg, new IllegalStateException( msg ) );
@@ -174,7 +174,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
                 return;
             }
 
-            final boolean enablePostRedirectGet = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_SERVLET_ENABLE_POST_REDIRECT_GET ) );
+            final boolean enablePostRedirectGet = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_SERVLET_ENABLE_POST_REDIRECT_GET ) );
             if ( enablePostRedirectGet )
             {
                 final String servletUrl = pwmRequest.getURL().determinePwmServletPath();

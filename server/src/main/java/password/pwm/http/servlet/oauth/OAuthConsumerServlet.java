@@ -76,7 +76,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             throws ServletException, IOException, PwmUnrecoverableException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final boolean userIsAuthenticated = pwmSession.isAuthenticated();
@@ -255,7 +255,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                         null,
                         pwmRequest.getLabel()
                 );
-                if ( resolvedIdentity != null && resolvedIdentity.canonicalEquals( pwmSession.getUserInfo().getUserIdentity(), pwmDomain ) )
+                if ( resolvedIdentity != null && resolvedIdentity.canonicalEquals( pwmSession.getUserInfo().getUserIdentity(), pwmDomain.getPwmApplication() ) )
                 {
                     LOGGER.debug( pwmRequest, () -> "verified incoming oauth code for already authenticated session does resolve to same as logged in user" );
                 }
@@ -312,11 +312,11 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         switch ( oAuthUseCase )
         {
             case Authentication:
-                return OAuthSettings.forSSOAuthentication( pwmRequest.getConfig() );
+                return OAuthSettings.forSSOAuthentication( pwmRequest.getDomainConfig() );
 
             case ForgottenPassword:
                 final String profileId = oAuthState.getForgottenProfileId();
-                final ForgottenPasswordProfile profile = pwmRequest.getConfig().getForgottenPasswordProfiles().get( profileId );
+                final ForgottenPasswordProfile profile = pwmRequest.getDomainConfig().getForgottenPasswordProfiles().get( profileId );
                 return OAuthSettings.forForgottenPassword( profile );
 
             default:

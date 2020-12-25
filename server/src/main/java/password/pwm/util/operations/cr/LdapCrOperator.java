@@ -95,7 +95,7 @@ public class LdapCrOperator implements CrOperator
     public void clearResponses( final SessionLabel sessionLabel, final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid )
             throws PwmUnrecoverableException
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( config );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( config.getAppConfig() );
         final String ldapStorageAttribute = ldapProfile.readSettingAsString( PwmSetting.CHALLENGE_USER_ATTRIBUTE );
         if ( ldapStorageAttribute == null || ldapStorageAttribute.length() < 1 )
         {
@@ -146,7 +146,7 @@ public class LdapCrOperator implements CrOperator
             throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( config );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( config.getAppConfig() );
         final String ldapStorageAttribute = ldapProfile.readSettingAsString( PwmSetting.CHALLENGE_USER_ATTRIBUTE );
         if ( ldapStorageAttribute == null || ldapStorageAttribute.length() < 1 )
         {

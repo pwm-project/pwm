@@ -66,18 +66,16 @@ public class ApplianceStatusChecker implements HealthChecker
             return Collections.emptyList();
         }
 
-        final List<HealthRecord> healthRecords = new ArrayList<>();
-
         try
         {
-            healthRecords.addAll( readApplianceHealthStatus( pwmDomain ) );
+            return List.copyOf( readApplianceHealthStatus( pwmDomain ) );
         }
         catch ( final Exception e )
         {
             LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, () -> "error communicating with client " + e.getMessage() );
         }
 
-        return healthRecords;
+        return Collections.emptyList();
     }
 
     private List<HealthRecord> readApplianceHealthStatus( final PwmDomain pwmDomain ) throws IOException, PwmUnrecoverableException, PwmOperationalException
@@ -123,7 +121,7 @@ public class ApplianceStatusChecker implements HealthChecker
             healthRecords.add( HealthRecord.forMessage( HealthMessage.Appliance_UpdateServiceNotConfigured ) );
         }
 
-        return healthRecords;
+        return Collections.unmodifiableList( healthRecords );
 
     }
 

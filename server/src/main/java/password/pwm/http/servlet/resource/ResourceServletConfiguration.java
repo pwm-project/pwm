@@ -76,7 +76,7 @@ class ResourceServletConfiguration
 
         final String noncePrefix = domainConfig.readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
         noncePattern = Pattern.compile( noncePrefix + "[^/]*?/" );
-        nonceValue = pwmDomain.getRuntimeNonce();
+        nonceValue = pwmDomain.getPwmApplication().getRuntimeNonce();
 
         final String zipFileResourceParam = domainConfig.readAppProperty( AppProperty.HTTP_RESOURCES_ZIP_FILES );
         if ( zipFileResourceParam != null && !zipFileResourceParam.isEmpty() )

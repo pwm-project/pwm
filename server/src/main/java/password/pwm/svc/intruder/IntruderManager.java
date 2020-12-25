@@ -21,7 +21,9 @@
 package password.pwm.svc.intruder;
 
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -103,10 +105,10 @@ public class IntruderManager implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain )
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
         final DomainConfig config = pwmDomain.getConfig();
         if ( pwmDomain.getLocalDB() == null || pwmDomain.getLocalDB().status() != LocalDB.Status.OPEN )
         {
@@ -383,7 +385,7 @@ public class IntruderManager implements PwmService
 
         if ( recordType == RecordType.USER_ID )
         {
-            final UserIdentity userIdentity = UserIdentity.fromKey( subject, pwmDomain );
+            final UserIdentity userIdentity = UserIdentity.fromKey( subject, pwmDomain.getPwmApplication() );
             final UserAuditRecord auditRecord = new AuditRecordFactory( pwmDomain ).createUserAuditRecord(
                     AuditEvent.INTRUDER_USER_ATTEMPT,
                     userIdentity,
@@ -412,7 +414,7 @@ public class IntruderManager implements PwmService
             {
                 if ( recordType == RecordType.USER_ID )
                 {
-                    final UserIdentity userIdentity = UserIdentity.fromKey( subject, pwmDomain );
+                    final UserIdentity userIdentity = UserIdentity.fromKey( subject, pwmDomain.getPwmApplication() );
                     final UserAuditRecord auditRecord = new AuditRecordFactory( pwmDomain ).createUserAuditRecord(
                             AuditEvent.INTRUDER_USER_LOCK,
                             userIdentity,
@@ -706,7 +708,7 @@ public class IntruderManager implements PwmService
                     null
             );
 
-            pwmDomain.getEmailQueue().submitEmail( configuredEmailSetting, userInfo, macroRequest );
+            pwmDomain.getPwmApplication().getEmailQueue().submitEmail( configuredEmailSetting, userInfo, macroRequest );
         }
         catch ( final PwmUnrecoverableException e )
         {

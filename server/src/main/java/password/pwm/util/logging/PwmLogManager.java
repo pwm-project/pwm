@@ -224,7 +224,7 @@ public class PwmLogManager
 
         // initialize the localDBLogger
         final LocalDBLogger localDBLogger;
-        final PwmLogLevel localDBLogLevel = pwmDomain.getConfig().getEventLogLocalDBLevel();
+        final PwmLogLevel localDBLogLevel = pwmDomain.getConfig().getAppConfig().getEventLogLocalDBLevel();
         try
         {
             localDBLogger = initLocalDBLogger( localDB, pwmDomain );

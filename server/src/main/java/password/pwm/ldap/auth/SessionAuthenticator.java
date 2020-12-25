@@ -251,7 +251,7 @@ public class SessionAuthenticator
     )
             throws PwmUnrecoverableException
     {
-        final PwmRequestContext pwmRequestContext = new PwmRequestContext( pwmDomain, sessionLabel, null, null );
+        final PwmRequestContext pwmRequestContext = new PwmRequestContext( pwmDomain.getPwmApplication(), pwmDomain.getDomainID(), sessionLabel, null, null );
         simulateBadPassword( pwmRequestContext, userIdentity );
     }
 
@@ -291,7 +291,7 @@ public class SessionAuthenticator
             provider = LdapOperationsHelper.createChaiProvider(
                     pwmDomain,
                     sessionLabel,
-                    userIdentity.getLdapProfile( pwmDomain.getConfig() ),
+                    userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() ),
                     pwmDomain.getConfig(),
                     userIdentity.getUserDN(),
                     bogusPassword

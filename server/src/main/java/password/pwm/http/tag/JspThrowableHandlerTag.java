@@ -84,7 +84,7 @@ public class JspThrowableHandlerTag extends TagSupport
         {
             final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
             userLocale = pwmRequest.getLocale();
-            domainConfig = pwmRequest.getConfig();
+            domainConfig = pwmRequest.getDomainConfig();
         }
         catch ( final Exception e )
         {

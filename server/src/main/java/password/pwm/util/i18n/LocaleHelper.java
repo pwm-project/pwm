@@ -96,7 +96,7 @@ public class LocaleHelper
         return getLocalizedMessage(
                 pwmRequest == null ? PwmConstants.DEFAULT_LOCALE : pwmRequest.getLocale(),
                 key.getKey(),
-                pwmRequest == null ? null : pwmRequest.getConfig(),
+                pwmRequest == null ? null : pwmRequest.getDomainConfig(),
                 key.getClass(),
                 values
         );
@@ -149,7 +149,7 @@ public class LocaleHelper
             catch ( final MissingResourceException e )
             {
                 final String errorMsg = "missing key '" + key + "' for " + bundleClass.getName();
-                if ( config != null && config.isDevDebugMode() )
+                if ( config != null && config.getAppConfig().isDevDebugMode() )
                 {
                     LOGGER.warn( () -> errorMsg );
                 }
@@ -364,7 +364,7 @@ public class LocaleHelper
 
         return pwmRequest == null
                 ? Display.getLocalizedMessage( null, key, null )
-                : Display.getLocalizedMessage( pwmRequest.getLocale(), key, pwmRequest.getConfig() );
+                : Display.getLocalizedMessage( pwmRequest.getLocale(), key, pwmRequest.getDomainConfig() );
     }
 
     public static String booleanString( final boolean input, final Locale locale, final DomainConfig domainConfig )

@@ -20,7 +20,9 @@
 
 package password.pwm.http.state;
 
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.error.PwmError;
@@ -57,8 +59,10 @@ public class SessionStateService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
+        final PwmDomain pwmDomain = pwmApplication.getDefaultDomain();
         {
             final SessionBeanMode sessionBeanMode = pwmDomain.getConfig().readSettingAsEnum( PwmSetting.SECURITY_MODULE_SESSION_MODE, SessionBeanMode.class );
             if ( sessionBeanMode != null )
@@ -189,9 +193,9 @@ public class SessionStateService implements PwmService
         }
         try
         {
-            return theClass.newInstance().supportedModes().contains( mode );
+            return theClass.getDeclaredConstructor().newInstance().supportedModes().contains( mode );
         }
-        catch ( final InstantiationException | IllegalAccessException e )
+        catch ( final ReflectiveOperationException e )
         {
             e.printStackTrace();
         }
@@ -202,7 +206,7 @@ public class SessionStateService implements PwmService
     {
         try
         {
-            final E newBean = theClass.newInstance();
+            final E newBean = theClass.getDeclaredConstructor().newInstance();
             newBean.setGuid( sessionGuid );
             newBean.setTimestamp( Instant.now() );
             return newBean;

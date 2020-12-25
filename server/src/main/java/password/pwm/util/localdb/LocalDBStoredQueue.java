@@ -80,7 +80,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
         boolean developerDebug = false;
         try
         {
-            developerDebug = pwmDomain.getConfig().isDevDebugMode();
+            developerDebug = pwmDomain.getPwmApplication().getConfig().isDevDebugMode();
         }
         catch ( final Exception e )
         {

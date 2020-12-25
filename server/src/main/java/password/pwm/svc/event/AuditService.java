@@ -22,9 +22,11 @@ package password.pwm.svc.event;
 
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.DomainConfig;
@@ -89,9 +91,10 @@ public class AuditService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
 
         final Instant startTime = Instant.now();
 
@@ -134,7 +137,7 @@ public class AuditService implements PwmService
             switch ( userEventStorageMethod )
             {
                 case AUTO:
-                    if ( pwmDomain.getConfig().hasDbConfigured() )
+                    if ( pwmDomain.getConfig().getAppConfig().hasDbConfigured() )
                     {
                         debugMsg = "starting using auto-configured data store, Remote Database selected";
                         this.userHistoryStore = new DatabaseUserHistory( pwmDomain );
@@ -321,7 +324,7 @@ public class AuditService implements PwmService
                 .subject( subject )
                 .bodyPlain( body )
                 .build();
-        pwmDomain.getEmailQueue().submitEmail( emailItem, null, macroRequest );
+        pwmDomain.getPwmApplication().getEmailQueue().submitEmail( emailItem, null, macroRequest );
     }
 
     public Instant eldestVaultRecord( )

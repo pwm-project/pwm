@@ -516,13 +516,13 @@ public class RequestInitializationFilter implements Filter
         // mark session ip address
         if ( ssBean.getSrcAddress() == null )
         {
-            ssBean.setSrcAddress( readUserNetworkAddress( pwmRequest.getHttpServletRequest(), pwmRequest.getConfig() ) );
+            ssBean.setSrcAddress( readUserNetworkAddress( pwmRequest.getHttpServletRequest(), pwmRequest.getDomainConfig() ) );
         }
 
         // mark the user's hostname in the session bean
         if ( ssBean.getSrcHostname() == null )
         {
-            ssBean.setSrcHostname( readUserHostname( pwmRequest.getHttpServletRequest(), pwmRequest.getConfig() ) );
+            ssBean.setSrcHostname( readUserHostname( pwmRequest.getHttpServletRequest(), pwmRequest.getDomainConfig() ) );
         }
 
         // update the privateUrlAccessed flag
@@ -546,7 +546,7 @@ public class RequestInitializationFilter implements Filter
     )
             throws PwmUnrecoverableException
     {
-        final String localeCookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_LOCALE_NAME );
+        final String localeCookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_LOCALE_NAME );
         final String localeCookie = pwmRequest.readCookie( localeCookieName );
         if ( localeCookieName.length() > 0 && localeCookie != null )
         {
@@ -555,13 +555,13 @@ public class RequestInitializationFilter implements Filter
         }
         else
         {
-            final List<Locale> knownLocales = pwmRequest.getConfig().getKnownLocales();
+            final List<Locale> knownLocales = pwmRequest.getDomainConfig().getKnownLocales();
             final Locale userLocale = LocaleHelper.localeResolver( pwmRequest.getHttpServletRequest().getLocale(), knownLocales );
             pwmRequest.getPwmSession().getSessionStateBean().setLocale( userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale );
             LOGGER.trace( pwmRequest, () -> "user locale set to '" + pwmRequest.getLocale() + "'" );
         }
 
-        final String themeCookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_THEME_NAME );
+        final String themeCookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_THEME_NAME );
         final String themeCookie = pwmRequest.readCookie( themeCookieName );
         if ( localeCookieName.length() > 0 && themeCookie != null && themeCookie.length() > 0 )
         {
@@ -601,9 +601,9 @@ public class RequestInitializationFilter implements Filter
     private static void checkIfSourceAddressChanged( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.MULTI_IP_SESSION_ALLOWED ) )
+        if ( !pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.MULTI_IP_SESSION_ALLOWED ) )
         {
-            final String remoteAddress = readUserNetworkAddress( pwmRequest.getHttpServletRequest(), pwmRequest.getConfig() );
+            final String remoteAddress = readUserNetworkAddress( pwmRequest.getHttpServletRequest(), pwmRequest.getDomainConfig() );
             final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
 
             if ( !ssBean.getSrcAddress().equals( remoteAddress ) )
@@ -622,7 +622,7 @@ public class RequestInitializationFilter implements Filter
 
         if ( ssBean.getSessionCreationTime() != null )
         {
-            final long maxSessionSeconds = pwmRequest.getConfig().readSettingAsLong( PwmSetting.SESSION_MAX_SECONDS );
+            final long maxSessionSeconds = pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.SESSION_MAX_SECONDS );
             final TimeDuration sessionAge = TimeDuration.fromCurrent( ssBean.getSessionCreationTime() );
             final int sessionSecondAge = (int) sessionAge.as( TimeDuration.Unit.SECONDS );
             if ( sessionSecondAge > maxSessionSeconds )
@@ -637,7 +637,7 @@ public class RequestInitializationFilter implements Filter
     private static void checkRequiredHeaders( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final List<String> requiredHeaders = pwmRequest.getConfig().readSettingAsStringArray( PwmSetting.REQUIRED_HEADERS );
+        final List<String> requiredHeaders = pwmRequest.getDomainConfig().readSettingAsStringArray( PwmSetting.REQUIRED_HEADERS );
         if ( requiredHeaders != null && !requiredHeaders.isEmpty() )
         {
             final Map<String, String> configuredValues = StringUtil.convertStringListToNameValuePair( requiredHeaders, "=" );
@@ -675,7 +675,7 @@ public class RequestInitializationFilter implements Filter
     private static void checkSourceNetworkAddress( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final List<String> requiredHeaders = pwmRequest.getConfig().readSettingAsStringArray( PwmSetting.IP_PERMITTED_RANGE );
+        final List<String> requiredHeaders = pwmRequest.getDomainConfig().readSettingAsStringArray( PwmSetting.IP_PERMITTED_RANGE );
         if ( requiredHeaders != null && !requiredHeaders.isEmpty() )
         {
             boolean match = false;
@@ -716,7 +716,7 @@ public class RequestInitializationFilter implements Filter
     private static void checkCsrfHeader( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final boolean performCsrfHeaderChecks = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.SECURITY_HTTP_PERFORM_CSRF_HEADER_CHECKS ) );
+        final boolean performCsrfHeaderChecks = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.SECURITY_HTTP_PERFORM_CSRF_HEADER_CHECKS ) );
         if (
                 performCsrfHeaderChecks
                         && !pwmRequest.getMethod().isIdempotent()

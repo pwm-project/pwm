@@ -205,17 +205,17 @@ public class AppDashboardData implements Serializable
                 "startupTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_StartTime" ),
-                JavaHelper.toIsoDate( pwmDomain.getStartupTime() )
+                JavaHelper.toIsoDate( pwmDomain.getPwmApplication().getStartupTime() )
         ), new DisplayElement(
                 "runningDuration",
                 DisplayElement.Type.string,
                 l.forKey( "Field_UpTime" ),
-                TimeDuration.fromCurrent( pwmDomain.getStartupTime() ).asLongString( locale )
+                TimeDuration.fromCurrent( pwmDomain.getPwmApplication().getStartupTime() ).asLongString( locale )
         ), new DisplayElement(
                 "installTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_InstallTime" ),
-                JavaHelper.toIsoDate( pwmDomain.getInstallTime() )
+                JavaHelper.toIsoDate( pwmDomain.getPwmApplication().getInstallTime() )
         ), new DisplayElement(
                 "siteURL",
                 DisplayElement.Type.string,
@@ -312,7 +312,7 @@ public class AppDashboardData implements Serializable
                 "emailQueueSize",
                 DisplayElement.Type.number,
                 "Email Queue Size",
-                numberFormat.format( pwmDomain.getEmailQueue().queueSize() )
+                numberFormat.format( pwmDomain.getPwmApplication().getEmailQueue().queueSize() )
         ) );
         localDbInfo.add( new DisplayElement(
                 "smsQueueSize",
@@ -420,7 +420,7 @@ public class AppDashboardData implements Serializable
             final Locale locale
     )
     {
-        final Map<PwmAboutProperty, String> aboutMap = PwmAboutProperty.makeInfoBean( pwmDomain );
+        final Map<PwmAboutProperty, String> aboutMap = PwmAboutProperty.makeInfoBean( pwmDomain.getPwmApplication() );
         final List<DisplayElement> javaInfo = new ArrayList<>();
         final String notApplicable = Display.getLocalizedMessage( locale, Display.Value_NotApplicable, pwmDomain.getConfig() );
 

@@ -119,7 +119,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     )
             throws PwmUnrecoverableException, IOException
     {
-        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getConfig(), peopleSearchProfile( pwmRequest ) );
+        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getDomainConfig(), peopleSearchProfile( pwmRequest ) );
 
         final PeopleSearchClientConfigBean peopleSearchClientConfigBean = PeopleSearchClientConfigBean.fromConfig(
                 pwmRequest,
@@ -161,7 +161,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
             throws IOException, PwmUnrecoverableException, ServletException
     {
         final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
-        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getConfig(), peopleSearchProfile );
+        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getDomainConfig(), peopleSearchProfile );
 
         final UserIdentity userIdentity;
         {
@@ -176,7 +176,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
             }
             else
             {
-                userIdentity = UserIdentity.fromObfuscatedKey( userKey, pwmRequest.getPwmDomain() );
+                userIdentity = UserIdentity.fromObfuscatedKey( userKey, pwmRequest.getPwmApplication() );
             }
         }
 
@@ -253,7 +253,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     private void addExpiresHeadersToResponse( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getConfig(), peopleSearchProfile( pwmRequest ) );
+        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getDomainConfig(), peopleSearchProfile( pwmRequest ) );
         final TimeDuration maxCacheTime = peopleSearchConfiguration.getMaxCacheTime();
         pwmRequest.getPwmResponse().getHttpServletResponse().setDateHeader( HttpHeader.Expires.getHttpName(), System.currentTimeMillis() + ( maxCacheTime.asMillis() ) );
         pwmRequest.getPwmResponse().setHeader( HttpHeader.CacheControl,  "private, max-age=" + maxCacheTime.as( TimeDuration.Unit.SECONDS ) );
@@ -269,7 +269,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest, peopleSearchProfile );
 
-        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getConfig(), peopleSearchProfile( pwmRequest ) );
+        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getDomainConfig(), peopleSearchProfile( pwmRequest ) );
         final PeopleSearchClientConfigBean peopleSearchClientConfigBean = PeopleSearchClientConfigBean.fromConfig( pwmRequest, peopleSearchConfiguration, userIdentity );
 
         if ( !peopleSearchClientConfigBean.isEnableExport() )
@@ -301,7 +301,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
         final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest, peopleSearchProfile );
-        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getConfig(), peopleSearchProfile );
+        final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getDomainConfig(), peopleSearchProfile );
 
         if ( !peopleSearchConfiguration.isEnableMailtoLinks() )
         {
@@ -322,7 +322,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     {
         if ( pwmRequest.getURL().isPublicUrl() )
         {
-            final Optional<PeopleSearchProfile> profile = pwmRequest.getConfig().getPublicPeopleSearchProfile();
+            final Optional<PeopleSearchProfile> profile = pwmRequest.getDomainConfig().getPublicPeopleSearchProfile();
             if ( !profile.isPresent() )
             {
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "public peoplesearch profile not assigned" );
@@ -351,7 +351,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
         final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest, peopleSearchProfile );
-        final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmDomain() );
+        final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
         peopleSearchDataReader.checkIfUserIdentityViewable( userIdentity );
         return userIdentity;
     }

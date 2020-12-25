@@ -166,7 +166,7 @@ class HelpdeskVerificationStateBean implements Serializable
     )
             throws PwmUnrecoverableException
     {
-        final int maxAgeSeconds = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HELPDESK_VERIFICATION_TIMEOUT_SECONDS ) );
+        final int maxAgeSeconds = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HELPDESK_VERIFICATION_TIMEOUT_SECONDS ) );
         final TimeDuration maxAge = TimeDuration.of( maxAgeSeconds, TimeDuration.Unit.SECONDS );
         final UserIdentity actor = pwmRequest.getUserInfoIfLoggedIn();
 

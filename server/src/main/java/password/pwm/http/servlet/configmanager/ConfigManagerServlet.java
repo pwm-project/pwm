@@ -210,7 +210,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                 LocaleHelper.booleanString(
                         StoredConfigurationUtil.hasPassword( configurationReader.getStoredConfiguration() ),
                         pwmRequest.getLocale(),
-                        pwmRequest.getConfig()
+                        pwmRequest.getDomainConfig()
                 )
         );
     }
@@ -385,7 +385,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     public static StoredConfiguration readCurrentConfiguration( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        return pwmRequest.getConfig().getStoredConfiguration();
+        return pwmRequest.getDomainConfig().getStoredConfiguration();
     }
 
     private void showSummary( final PwmRequest pwmRequest )
@@ -414,7 +414,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     {
         pwmRequest.getPwmResponse().markAsDownload(
                 HttpContentType.csv,
-                pwmRequest.getConfig().readAppProperty( AppProperty.DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV )
+                pwmRequest.getDomainConfig().readAppProperty( AppProperty.DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV )
         );
 
         final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() );
@@ -430,7 +430,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                         ? LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest )
                         : permissionRecord.getPwmSetting().toMenuLocationDebug( permissionRecord.getProfile(), pwmRequest.getLocale() );
                 csvPrinter.printRecord(
-                        permissionRecord.getActor().getLabel( pwmRequest.getLocale(), pwmRequest.getConfig() ),
+                        permissionRecord.getActor().getLabel( pwmRequest.getLocale(), pwmRequest.getDomainConfig() ),
                         permissionRecord.getAttribute(),
                         permissionRecord.getAccess().toString(),
                         settingTxt

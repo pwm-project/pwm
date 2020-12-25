@@ -21,8 +21,11 @@
 package password.pwm.http;
 
 import lombok.Value;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.http.servlet.PwmRequestID;
 
@@ -31,13 +34,25 @@ import java.util.Locale;
 @Value
 public class PwmRequestContext
 {
-    private final PwmDomain pwmDomain;
+    private final PwmApplication pwmApplication;
+
+    private final DomainID domainID;
     private final SessionLabel sessionLabel;
     private final Locale locale;
     private final PwmRequestID requestID;
 
-    public DomainConfig getConfig()
+    public PwmDomain getPwmDomain()
     {
-        return pwmDomain.getConfig();
+        return getPwmApplication().getDomains().get( domainID );
+    }
+
+    public DomainConfig getDomainConfig()
+    {
+        return getPwmDomain().getConfig();
+    }
+
+    public AppConfig getAppConfig()
+    {
+        return getPwmApplication().getConfig();
     }
 }

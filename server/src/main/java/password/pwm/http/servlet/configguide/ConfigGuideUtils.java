@@ -287,7 +287,7 @@ public class ConfigGuideUtils
                     pwmRequest.getPwmDomain().getPwmEnvironment().makeRuntimeInstance( new AppConfig( storedConfiguration ) ) );
 
             final String adminDN = form.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_USER );
-            final UserIdentity adminIdentity = UserIdentity.createUserIdentity( adminDN, PwmConstants.PROFILE_ID_DEFAULT );
+            final UserIdentity adminIdentity = UserIdentity.createUserIdentity( adminDN, PwmConstants.PROFILE_ID_DEFAULT, PwmConstants.DOMAIN_ID_PLACEHOLDER );
 
             final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
             final Collection<UserIdentity> results = userMatchViewerFunction.discoverMatchingUsers(
@@ -301,7 +301,7 @@ public class ConfigGuideUtils
             if ( !results.isEmpty() )
             {
                 final UserIdentity foundIdentity = results.iterator().next();
-                if ( foundIdentity.canonicalEquals( adminIdentity, tempApplication.getDefaultDomain() ) )
+                if ( foundIdentity.canonicalEquals( adminIdentity, tempApplication ) )
                 {
                     records.add( HealthRecord.forMessage( HealthMessage.LDAP_AdminUserOk ) );
                 }

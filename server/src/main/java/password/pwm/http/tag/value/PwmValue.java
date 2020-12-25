@@ -101,7 +101,7 @@ public enum PwmValue
         @Override
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            String outputURL = pwmRequest.getConfig().readSettingAsString( PwmSetting.URL_HOME );
+            String outputURL = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.URL_HOME );
             if ( outputURL == null || outputURL.isEmpty() )
             {
                 outputURL = pwmRequest.getHttpServletRequest().getContextPath();
@@ -127,7 +127,7 @@ public enum PwmValue
         @Override
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final boolean maskPasswordFields = pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_MASK_PASSWORD_FIELDS );
+            final boolean maskPasswordFields = pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.DISPLAY_MASK_PASSWORD_FIELDS );
             return maskPasswordFields ? "password" : "text";
         }
     }
@@ -137,7 +137,7 @@ public enum PwmValue
         @Override
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final boolean maskPasswordFields = pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_MASK_RESPONSE_FIELDS );
+            final boolean maskPasswordFields = pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.DISPLAY_MASK_RESPONSE_FIELDS );
             return maskPasswordFields ? "password" : "text";
         }
     }
@@ -147,7 +147,7 @@ public enum PwmValue
         @Override
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final String customScript = pwmRequest.getConfig().readSettingAsString(
+            final String customScript = pwmRequest.getDomainConfig().readSettingAsString(
                     PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT );
             if ( customScript != null && !customScript.isEmpty() )
             {
@@ -206,21 +206,21 @@ public enum PwmValue
 
             if ( PwmConstants.TRIAL_MODE )
             {
-                return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_TrialMode", pwmRequest.getConfig(), Admin.class, fieldNames );
+                return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_TrialMode", pwmRequest.getDomainConfig(), Admin.class, fieldNames );
             }
             else if ( pwmRequest.getPwmDomain().getApplicationMode() == PwmApplicationMode.CONFIGURATION )
             {
                 String output = "";
-                if ( Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.CLIENT_JSP_SHOW_ICONS ) ) )
+                if ( Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CLIENT_JSP_SHOW_ICONS ) ) )
                 {
                     output += "<span id=\"icon-configModeHelp\" class=\"btn-icon pwm-icon pwm-icon-question-circle\"></span>";
                 }
-                output += LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_ConfigModeActive", pwmRequest.getConfig(), Admin.class, fieldNames );
+                output += LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_ConfigModeActive", pwmRequest.getDomainConfig(), Admin.class, fieldNames );
                 return output;
             }
             else if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
             {
-                return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_AdminUser", pwmRequest.getConfig(), Admin.class, fieldNames );
+                return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_AdminUser", pwmRequest.getDomainConfig(), Admin.class, fieldNames );
 
             }
 
@@ -274,7 +274,7 @@ public enum PwmValue
         @Override
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
         {
-            final String flagFileName = pwmRequest.getConfig().getKnownLocaleFlagMap().get( pwmRequest.getLocale() );
+            final String flagFileName = pwmRequest.getDomainConfig().getKnownLocaleFlagMap().get( pwmRequest.getLocale() );
             return flagFileName == null ? "" : flagFileName;
         }
     }

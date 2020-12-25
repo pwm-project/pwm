@@ -124,7 +124,7 @@ public class RestStatisticsServer extends RestServlet
     public RestResultBean doPwmStatisticJsonGet( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
-        final int defaultVersion = Integer.parseInt( restRequest.getPwmApplication().getConfig().readAppProperty( AppProperty.WS_REST_SERVER_STATISTICS_DEFAULT_VERSION ) );
+        final int defaultVersion = Integer.parseInt( restRequest.getDomain().getConfig().readAppProperty( AppProperty.WS_REST_SERVER_STATISTICS_DEFAULT_VERSION ) );
         final int version = restRequest.readParameterAsInt( FIELD_VERSION, defaultVersion );
 
         switch ( version )
@@ -150,14 +150,14 @@ public class RestStatisticsServer extends RestServlet
                 throws PwmUnrecoverableException
         {
             final Locale locale = restRequest.getLocale();
-            final int defaultDays = Integer.parseInt( restRequest.getPwmApplication().getConfig().readAppProperty( AppProperty.WS_REST_SERVER_STATISTICS_DEFAULT_HISTORY ) );
+            final int defaultDays = Integer.parseInt( restRequest.getDomain().getConfig().readAppProperty( AppProperty.WS_REST_SERVER_STATISTICS_DEFAULT_HISTORY ) );
             final int days = JavaHelper.rangeCheck(
                     0,
                     restRequest.readParameterAsInt( FIELD_DAYS, defaultDays ),
                     MAX_DAYS
             );
 
-            final StatisticsManager statisticsManager = restRequest.getPwmApplication().getStatisticsManager();
+            final StatisticsManager statisticsManager = restRequest.getDomain().getStatisticsManager();
             final JsonOutput jsonOutput = RestStatisticsServer.JsonOutput.builder()
                     .cumulative( makeStatInfos( statisticsManager, StatisticsManager.KEY_CUMULATIVE ) )
                     .current( makeStatInfos( statisticsManager, StatisticsManager.KEY_CURRENT ) )
@@ -297,7 +297,7 @@ public class RestStatisticsServer extends RestServlet
 
             try
             {
-                final StatisticsManager statisticsManager = restRequest.getPwmApplication().getStatisticsManager();
+                final StatisticsManager statisticsManager = restRequest.getDomain().getStatisticsManager();
                 final JsonOutput jsonOutput = new JsonOutput();
                 jsonOutput.EPS = addEpsStats( statisticsManager );
 
@@ -310,7 +310,7 @@ public class RestStatisticsServer extends RestServlet
                     jsonOutput.keyData = doKeyStat( statisticsManager, statKey );
                 }
 
-                StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_STATISTICS );
+                StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_STATISTICS );
 
                 final RestResultBean resultBean = RestResultBean.withData( jsonOutput );
                 return resultBean;

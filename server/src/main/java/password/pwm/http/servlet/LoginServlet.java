@@ -117,7 +117,7 @@ public class LoginServlet extends ControlledPwmServlet
         if ( pwmRequest.isAuthenticated() && !passwordOnly( pwmRequest ) )
         {
             final String redirectURL = pwmRequest.getContextPath()
-                    + pwmRequest.getConfig().readSettingAsString( PwmSetting.URL_INTRO );
+                    + pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.URL_INTRO );
             LOGGER.debug( pwmRequest, () -> "user is already authenticated, so redirecting user to intro url: " + redirectURL );
             pwmRequest.sendRedirect( redirectURL );
             return ProcessStatus.Halt;

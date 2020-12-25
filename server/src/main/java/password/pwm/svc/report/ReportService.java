@@ -21,8 +21,10 @@
 package password.pwm.svc.report;
 
 import password.pwm.AppAttribute;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -107,10 +109,10 @@ public class ReportService implements PwmService
 
 
     @Override
-    public void init( final PwmDomain pwmDomain )
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
 
         if ( pwmDomain.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
@@ -129,7 +131,7 @@ public class ReportService implements PwmService
         try
         {
             userCacheService = new UserCacheService();
-            userCacheService.init( pwmDomain );
+            userCacheService.init( pwmDomain.getPwmApplication(), domainID );
         }
         catch ( final Exception e )
         {
@@ -511,14 +513,14 @@ public class ReportService implements PwmService
                 while ( status == STATUS.OPEN && !dnQueue.isEmpty() && !cancelFlag )
                 {
                     final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( dnQueue.poll() );
-                    if ( pwmDomain.getConfig().isDevDebugMode() )
+                    if ( pwmDomain.getConfig().getAppConfig().isDevDebugMode() )
                     {
                         LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "submit " + Instant.now().toString()
                                 + " size=" + threadService.getQueue().size() );
                     }
                     threadService.blockingSubmit( ( ) ->
                     {
-                        if ( pwmDomain.getConfig().isDevDebugMode() )
+                        if ( pwmDomain.getConfig().getAppConfig().isDevDebugMode() )
                         {
                             LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "start " + Instant.now().toString()
                                     + " size=" + threadService.getQueue().size() );
@@ -575,14 +577,14 @@ public class ReportService implements PwmService
                                     .errors( reportStatusInfo.getErrors() + 1 )
                                     .build() );
                         }
-                        if ( pwmDomain.getConfig().isDevDebugMode() )
+                        if ( pwmDomain.getConfig().getAppConfig().isDevDebugMode() )
                         {
                             LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "finish " + Instant.now().toString()
                                     + " size=" + threadService.getQueue().size() );
                         }
                     } );
                 }
-                if ( pwmDomain.getConfig().isDevDebugMode() )
+                if ( pwmDomain.getConfig().getAppConfig().isDevDebugMode() )
                 {
                     LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "exit " + Instant.now().toString()
                             + " size=" + threadService.getQueue().size() );

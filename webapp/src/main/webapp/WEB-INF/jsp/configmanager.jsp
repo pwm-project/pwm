@@ -248,7 +248,7 @@
             require(["dojo/parser","dijit/TitlePane","dojo/domReady!","dojox/form/Uploader"],function(dojoParser){
                 dojoParser.parse();
             });
-            PWM_VAR['config_localDBLogLevel'] = '<%=pwmRequest.getConfig().getEventLogLocalDBLevel()%>'
+            PWM_VAR['config_localDBLogLevel'] = '<%=pwmRequest.getAppConfig().getEventLogLocalDBLevel()%>'
 
             require(["dojo/domReady!"],function(){
                 PWM_ADMIN.showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});

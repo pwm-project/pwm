@@ -302,7 +302,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
         if ( persistentSeconds > 0 )
         {
-            final StoredConfiguration storedConfig = pwmRequest.getConfig().getStoredConfiguration();
+            final StoredConfiguration storedConfig = pwmRequest.getDomainConfig().getStoredConfiguration();
             final String persistentLoginValue = makePersistentLoginPassword( pwmRequest, storedConfig );
             final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo( Instant.now(), persistentLoginValue );
             final String cookieValue = pwmRequest.getPwmDomain().getSecureService().encryptObjectToString( persistentLoginInfo );
@@ -393,7 +393,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     public static int figureMaxLoginSeconds( final PwmRequest pwmRequest )
     {
         return JavaHelper.silentParseInt(
-                pwmRequest.getConfig().readAppProperty( AppProperty.CONFIG_MAX_PERSISTENT_LOGIN_SECONDS ),
+                pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_MAX_PERSISTENT_LOGIN_SECONDS ),
                 (int) TimeDuration.HOUR.as( TimeDuration.Unit.SECONDS )
         );
     }
@@ -433,13 +433,13 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             return false;
         }
 
-        if ( pwmRequest.getConfig().isDefaultValue( PwmSetting.PWM_SECURITY_KEY ) )
+        if ( pwmRequest.getDomainConfig().isDefaultValue( PwmSetting.PWM_SECURITY_KEY ) )
         {
             LOGGER.debug( pwmRequest, () -> "security key not available, persistent login not possible." );
             return false;
         }
 
-        final Optional<String> configPasswordHash = pwmRequest.getConfig().getStoredConfiguration().readConfigProperty( ConfigurationProperty.PASSWORD_HASH );
+        final Optional<String> configPasswordHash = pwmRequest.getDomainConfig().getStoredConfiguration().readConfigProperty( ConfigurationProperty.PASSWORD_HASH );
         if ( !configPasswordHash.isPresent() )
         {
             LOGGER.debug( pwmRequest, () -> "config password is not present, persistent login not possible." );

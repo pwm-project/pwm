@@ -32,7 +32,9 @@ import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.impl.edir.NmasCrFactory;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -97,9 +99,9 @@ public class CrService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
         operatorMap.put( DataStorageMethod.DB, new DbCrOperator( pwmDomain ) );
         operatorMap.put( DataStorageMethod.LDAP, new LdapCrOperator( pwmDomain.getConfig() ) );
         operatorMap.put( DataStorageMethod.LOCALDB, new LocalDbCrOperator( pwmDomain.getLocalDB() ) );

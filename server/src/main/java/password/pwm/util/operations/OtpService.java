@@ -25,8 +25,10 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Base32;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -89,9 +91,9 @@ public class OtpService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
         operatorMap.put( DataStorageMethod.LDAP, new LdapOtpOperator( pwmDomain ) );
         operatorMap.put( DataStorageMethod.LOCALDB, new LocalDbOtpOperator( pwmDomain ) );
         operatorMap.put( DataStorageMethod.DB, new DbOtpOperator( pwmDomain ) );

@@ -148,7 +148,7 @@ public class SessionFilter extends AbstractPwmFilter
             throws PwmUnrecoverableException, IOException, ServletException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -258,7 +258,7 @@ public class SessionFilter extends AbstractPwmFilter
         }
 
         {
-            final String expireParamName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_PARAM_NAME_PASSWORD_EXPIRED );
+            final String expireParamName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_PARAM_NAME_PASSWORD_EXPIRED );
             if ( "true".equalsIgnoreCase( pwmRequest.readParameterAsString( expireParamName ) ) )
             {
                 LOGGER.debug( pwmRequest, () -> "detected param '" + expireParamName + "'=true in request, will force pw change" );
@@ -322,7 +322,7 @@ public class SessionFilter extends AbstractPwmFilter
         }
 
         final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
-        final String verificationParamName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_PARAM_SESSION_VERIFICATION );
+        final String verificationParamName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_PARAM_SESSION_VERIFICATION );
         final String keyFromRequest = pwmRequest.readParameterAsString( verificationParamName, PwmHttpRequestWrapper.Flag.BypassValidation );
 
         // request doesn't have key, so make a new one, store it in the session, and redirect back here with the new key.
@@ -384,7 +384,7 @@ public class SessionFilter extends AbstractPwmFilter
 
         String redirectURL = req.getRequestURI();
 
-        final String verificationParamName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_PARAM_SESSION_VERIFICATION );
+        final String verificationParamName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_PARAM_SESSION_VERIFICATION );
 
         for ( final Enumeration paramEnum = req.getParameterNames(); paramEnum.hasMoreElements(); )
         {
@@ -444,11 +444,11 @@ public class SessionFilter extends AbstractPwmFilter
     )
             throws PwmUnrecoverableException
     {
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final String localeParamName = config.readAppProperty( AppProperty.HTTP_PARAM_NAME_LOCALE );
         final String localeCookieName = config.readAppProperty( AppProperty.HTTP_COOKIE_LOCALE_NAME );
         final String requestedLocale = pwmRequest.readParameterAsString( localeParamName );
-        final int cookieAgeSeconds = ( int ) pwmRequest.getConfig().readSettingAsLong( PwmSetting.LOCALE_COOKIE_MAX_AGE );
+        final int cookieAgeSeconds = ( int ) pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.LOCALE_COOKIE_MAX_AGE );
         if ( requestedLocale != null && requestedLocale.length() > 0 )
         {
             LOGGER.debug( pwmRequest, () -> "detected locale request parameter " + localeParamName + " with value " + requestedLocale );
@@ -472,7 +472,7 @@ public class SessionFilter extends AbstractPwmFilter
     )
             throws PwmUnrecoverableException
     {
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final String themeParameterName = config.readAppProperty( AppProperty.HTTP_PARAM_NAME_THEME );
         final String themeReqParameter = pwmRequest.readParameterAsString( themeParameterName );
 
@@ -506,7 +506,7 @@ public class SessionFilter extends AbstractPwmFilter
             throws PwmUnrecoverableException
     {
 
-        final String ssoOverrideParameterName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_PARAM_NAME_SSO_OVERRIDE );
+        final String ssoOverrideParameterName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_PARAM_NAME_SSO_OVERRIDE );
         if ( pwmRequest.hasParameter( ssoOverrideParameterName ) )
         {
             final String ssoParamValue = pwmRequest.readParameterAsString( ssoOverrideParameterName );

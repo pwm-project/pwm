@@ -44,13 +44,13 @@ public class MBeanUtility
     {
     }
 
-    public static void registerMBean( final PwmApplication pwmDomain )
+    public static void registerMBean( final PwmApplication pwmApplication )
     {
         try
         {
             final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            final ObjectName name = figureMBeanName( pwmDomain );
-            final Map<PwmAboutProperty, String> aboutMap = PwmAboutProperty.makeInfoBean( pwmDomain.getDefaultDomain() );
+            final ObjectName name = figureMBeanName( pwmApplication );
+            final Map<PwmAboutProperty, String> aboutMap = PwmAboutProperty.makeInfoBean( pwmApplication );
             final Map<String, String> outputMap = new HashMap<>(  );
             final AttributeList attributeList = new AttributeList(  );
             for ( final Map.Entry<PwmAboutProperty, String> entry : aboutMap.entrySet() )

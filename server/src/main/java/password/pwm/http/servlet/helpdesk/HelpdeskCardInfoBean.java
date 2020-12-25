@@ -81,7 +81,7 @@ public class HelpdeskCardInfoBean implements Serializable
                 theUser.getChaiProvider()
         );
 
-        builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmDomain() ) );
+        builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
 
         final PhotoDataReader photoDataReader = HelpdeskServlet.photoDataReader( pwmRequest, helpdeskProfile, userIdentity );
         builder.photoURL( photoDataReader.figurePhotoURL( ) );
@@ -91,7 +91,7 @@ public class HelpdeskCardInfoBean implements Serializable
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
         final HelpdeskCardInfoBean helpdeskCardInfoBean = builder.build();
 
-        if ( pwmRequest.getConfig().isDevDebugMode() )
+        if ( pwmRequest.getAppConfig().isDevDebugMode() )
         {
             LOGGER.trace( pwmRequest, () -> "completed assembly of card data report for user " + userIdentity
                     + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize( helpdeskCardInfoBean ) );

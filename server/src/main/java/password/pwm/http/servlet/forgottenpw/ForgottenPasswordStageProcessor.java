@@ -88,7 +88,7 @@ class ForgottenPasswordStageProcessor
         @Override
         public Optional<ForgottenPasswordStage> nextStage( final ForgottenPasswordStateMachine stateMachine )
         {
-            final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
+            final PwmRequestContext pwmRequestContext = stateMachine.getRequestContext();
 
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
             stateMachine.getRequestFlags().clear();
@@ -130,7 +130,7 @@ class ForgottenPasswordStageProcessor
                 throws PwmUnrecoverableException
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
-            final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
+            final PwmRequestContext pwmRequestContext = stateMachine.getRequestContext();
             final PwmDomain pwmDomain = pwmRequestContext.getPwmDomain();
             final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
             final DomainConfig config = pwmDomain.getConfig();
@@ -214,7 +214,7 @@ class ForgottenPasswordStageProcessor
                 throws PwmUnrecoverableException
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
-            final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
+            final PwmRequestContext pwmRequestContext = stateMachine.getRequestContext();
             final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
 
             final ForgottenPasswordBean.RecoveryFlags recoveryFlags = forgottenPasswordBean.getRecoveryFlags();
@@ -276,7 +276,7 @@ class ForgottenPasswordStageProcessor
                 throws PwmUnrecoverableException
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
-            final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
+            final PwmRequestContext pwmRequestContext = stateMachine.getRequestContext();
             final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
 
             final ForgottenPasswordBean.RecoveryFlags recoveryFlags = forgottenPasswordBean.getRecoveryFlags();
@@ -316,7 +316,7 @@ class ForgottenPasswordStageProcessor
                 throws PwmUnrecoverableException
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
-            final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
+            final PwmRequestContext pwmRequestContext = stateMachine.getRequestContext();
             final PwmDomain pwmDomain = pwmRequestContext.getPwmDomain();
             final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
 
@@ -361,7 +361,7 @@ class ForgottenPasswordStageProcessor
                 throws PwmUnrecoverableException
         {
             final ForgottenPasswordBean forgottenPasswordBean = stateMachine.getForgottenPasswordBean();
-            final PwmRequestContext pwmRequestContext = stateMachine.getCommonValues();
+            final PwmRequestContext pwmRequestContext = stateMachine.getRequestContext();
             final PwmDomain pwmDomain = pwmRequestContext.getPwmDomain();
             final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
             final DomainConfig config = pwmDomain.getConfig();

@@ -116,7 +116,7 @@ public class RestVerifyResponsesServer extends RestServlet
 
         try
         {
-            final ResponseSet responseSet = restRequest.getPwmApplication().getCrService().readUserResponseSet(
+            final ResponseSet responseSet = restRequest.getDomain().getCrService().readUserResponseSet(
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity(),
                     targetUserIdentity.getChaiUser()

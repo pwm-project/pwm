@@ -21,9 +21,9 @@
 package password.pwm.health;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
@@ -326,16 +326,15 @@ public class ConfigurationChecker implements HealthChecker
         public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
         {
             final List<HealthRecord> records = new ArrayList<>();
-            if ( !config.hasDbConfigured() )
+            if ( !config.getAppConfig().hasDbConfigured() )
             {
                 final Set<PwmSetting> causalSettings = new LinkedHashSet<>();
                 {
-                    final PwmSetting[] settingsToCheck = new PwmSetting[] {
+                    final List<PwmSetting> settingsToCheck = List.of(
                             PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE,
                             PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE,
                             PwmSetting.INTRUDER_STORAGE_METHOD,
-                            PwmSetting.EVENTS_USER_STORAGE_METHOD,
-                            };
+                            PwmSetting.EVENTS_USER_STORAGE_METHOD );
 
                     for ( final PwmSetting loopSetting : settingsToCheck )
                     {
@@ -385,7 +384,7 @@ public class ConfigurationChecker implements HealthChecker
             {
                 try
                 {
-                    final PwmPasswordPolicy pwmPasswordPolicy = config.getPasswordPolicy( profileID, locale );
+                    final PwmPasswordPolicy pwmPasswordPolicy = config.getPasswordPolicy( profileID );
                     records.addAll( pwmPasswordPolicy.health( locale ) );
                 }
                 catch ( final Exception e )
@@ -440,7 +439,7 @@ public class ConfigurationChecker implements HealthChecker
                         for ( final String profile : profiles )
                         {
                             final StoredValue storedValue = config.getStoredConfiguration().readSetting( loopSetting, profile );
-                            final List<FormConfiguration> forms = (List<FormConfiguration>) storedValue.toNativeObject();
+                            final List<FormConfiguration> forms = ValueTypeConverter.valueToForm( storedValue );
                             for ( final FormConfiguration form : forms )
                             {
                                 if ( !StringUtil.isEmpty( form.getJavascript() ) )

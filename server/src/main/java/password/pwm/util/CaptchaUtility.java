@@ -76,7 +76,7 @@ public class CaptchaUtility
 
     public static CaptchaMode readCaptchaMode( final PwmRequest pwmRequest )
     {
-        return pwmRequest.getConfig().readSettingAsEnum( PwmSetting.CAPTCHA_RECAPTCHA_MODE, CaptchaMode.class );
+        return pwmRequest.getDomainConfig().readSettingAsEnum( PwmSetting.CAPTCHA_RECAPTCHA_MODE, CaptchaMode.class );
     }
 
     /**
@@ -189,8 +189,8 @@ public class CaptchaUtility
             throws PwmUnrecoverableException
     {
         final String cookieValue = figureSkipCookieValue( pwmRequest );
-        final int captchaSkipCookieLifetimeSeconds = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_AGE ) );
-        final String captchaSkipCookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME );
+        final int captchaSkipCookieLifetimeSeconds = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_AGE ) );
+        final String captchaSkipCookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME );
         if ( cookieValue != null )
         {
             pwmRequest.getPwmResponse().writeCookie(
@@ -205,7 +205,7 @@ public class CaptchaUtility
     private static String figureSkipCookieValue( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        String cookieValue = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_COOKIE );
+        String cookieValue = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_COOKIE );
         if ( cookieValue == null || cookieValue.trim().length() < 1 )
         {
             return null;
@@ -223,7 +223,7 @@ public class CaptchaUtility
             throws PwmUnrecoverableException
     {
         final String allowedSkipValue = figureSkipCookieValue( pwmRequest );
-        final String captchaSkipCookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME );
+        final String captchaSkipCookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME );
         if ( allowedSkipValue != null )
         {
             final String cookieValue = pwmRequest.readCookie( captchaSkipCookieName );
@@ -261,7 +261,7 @@ public class CaptchaUtility
             return false;
         }
 
-        final Set<ApplicationPage> protectedModules = pwmRequest.getConfig().readSettingAsOptionList(
+        final Set<ApplicationPage> protectedModules = pwmRequest.getDomainConfig().readSettingAsOptionList(
                 PwmSetting.CAPTCHA_PROTECTED_PAGES,
                 ApplicationPage.class
         );
@@ -313,14 +313,14 @@ public class CaptchaUtility
     {
         StatisticsManager.incrementStat( pwmRequest, Statistic.CAPTCHA_PRESENTATIONS );
 
-        final String reCaptchaPublicKey = pwmRequest.getConfig().readSettingAsString( PwmSetting.RECAPTCHA_KEY_PUBLIC );
+        final String reCaptchaPublicKey = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.RECAPTCHA_KEY_PUBLIC );
         pwmRequest.setAttribute( PwmRequestAttribute.CaptchaPublicKey, reCaptchaPublicKey );
         {
-            final String urlValue = pwmRequest.getConfig().readAppProperty( AppProperty.RECAPTCHA_CLIENT_JS_URL );
+            final String urlValue = pwmRequest.getDomainConfig().readAppProperty( AppProperty.RECAPTCHA_CLIENT_JS_URL );
             pwmRequest.setAttribute( PwmRequestAttribute.CaptchaClientUrl, urlValue );
         }
         {
-            final String configuredUrl = pwmRequest.getConfig().readAppProperty( AppProperty.RECAPTCHA_CLIENT_IFRAME_URL );
+            final String configuredUrl = pwmRequest.getDomainConfig().readAppProperty( AppProperty.RECAPTCHA_CLIENT_IFRAME_URL );
             final String url = configuredUrl + "?k=" + reCaptchaPublicKey + "&hl=" + pwmRequest.getLocale().toString();
             pwmRequest.setAttribute( PwmRequestAttribute.CaptchaIframeUrl, url );
         }
@@ -335,7 +335,7 @@ public class CaptchaUtility
             return true;
         }
 
-        final String configValue = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_PARAM );
+        final String configValue = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_PARAM );
         if ( !StringUtil.isEmpty( configValue ) )
         {
             final String requestValue = pwmRequest.readParameterAsString( PwmConstants.PARAM_SKIP_CAPTCHA );
@@ -359,7 +359,7 @@ public class CaptchaUtility
 
     private static boolean checkIntruderCount( final PwmRequest pwmRequest )
     {
-        final long maxIntruderCount = pwmRequest.getConfig().readSettingAsLong( PwmSetting.CAPTCHA_INTRUDER_COUNT_TRIGGER );
+        final long maxIntruderCount = pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.CAPTCHA_INTRUDER_COUNT_TRIGGER );
 
         if ( maxIntruderCount == 0 )
         {

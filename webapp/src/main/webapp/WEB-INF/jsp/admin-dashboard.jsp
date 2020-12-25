@@ -107,7 +107,7 @@
                     </tr>
                     <% for (final EpsStatistic loopEpsType : EpsStatistic.values()) { %>
                     <% if ((loopEpsType != EpsStatistic.DB_READS && loopEpsType != EpsStatistic.DB_WRITES) || dashboard_pwmDomain
-                            .getConfig().hasDbConfigured()) { %>
+                            .getConfig().getAppConfig().hasDbConfigured()) { %>
                     <tr>
                         <td class="key">
                             <%= loopEpsType.getLabel(locale) %> / Minute

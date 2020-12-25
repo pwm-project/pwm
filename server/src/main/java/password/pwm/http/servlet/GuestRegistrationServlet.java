@@ -290,7 +290,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
     )
             throws PwmUnrecoverableException
     {
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final Locale locale = pwmRequest.getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_UPDATEGUEST, locale );
 
@@ -300,7 +300,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             return;
         }
 
-        pwmRequest.getPwmDomain().getEmailQueue().submitEmail( configuredEmailSetting, guestUserInfo, null );
+        pwmRequest.getPwmApplication().getEmailQueue().submitEmail( configuredEmailSetting, guestUserInfo, null );
     }
 
     protected void handleSearchRequest(
@@ -465,7 +465,10 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             LOGGER.info( pwmRequest, () -> "created user object: " + guestUserDN );
 
             final ChaiUser theUser = provider.getEntryFactory().newChaiUser( guestUserDN );
-            final UserIdentity userIdentity = UserIdentity.createUserIdentity( guestUserDN, pwmSession.getUserInfo().getUserIdentity().getLdapProfileID() );
+            final UserIdentity userIdentity = UserIdentity.createUserIdentity(
+                    guestUserDN,
+                    pwmSession.getUserInfo().getUserIdentity().getLdapProfileID(),
+                    pwmRequest.getDomainID() );
 
             // write the expiration date:
             if ( expirationDate != null )
@@ -478,9 +481,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
                     pwmDomain,
                     pwmRequest.getLabel(),
                     userIdentity,
-                    theUser,
-                    locale
-            );
+                    theUser );
 
             final PasswordData newPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), passwordPolicy, pwmDomain );
             theUser.setPassword( newPassword.getStringValue() );
@@ -617,7 +618,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
         final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, userIdentity );
 
-        pwmDomain.getEmailQueue().submitEmail( configuredEmailSetting, null, macroRequest );
+        pwmDomain.getPwmApplication().getEmailQueue().submitEmail( configuredEmailSetting, null, macroRequest );
     }
 
     private void forwardToJSP(
@@ -646,7 +647,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             throws IOException, ServletException, PwmUnrecoverableException
     {
         calculateFutureDateFlags( pwmRequest, guestRegistrationBean );
-        final List<FormConfiguration> guestUpdateForm = pwmRequest.getConfig().readSettingAsForm( PwmSetting.GUEST_UPDATE_FORM );
+        final List<FormConfiguration> guestUpdateForm = pwmRequest.getDomainConfig().readSettingAsForm( PwmSetting.GUEST_UPDATE_FORM );
         final Map<FormConfiguration, String> formValueMap = new LinkedHashMap<>();
         for ( final FormConfiguration formConfiguration : guestUpdateForm )
         {
@@ -686,7 +687,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
     {
         final PwmDateFormat dateFormat = PwmDateFormat.newPwmDateFormat( "yyyy-MM-dd" );
 
-        final long maxValidDays = pwmRequest.getConfig().readSettingAsLong( PwmSetting.GUEST_MAX_VALID_DAYS );
+        final long maxValidDays = pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.GUEST_MAX_VALID_DAYS );
         pwmRequest.setAttribute( PwmRequestAttribute.GuestMaximumValidDays, String.valueOf( maxValidDays ) );
 
 

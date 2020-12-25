@@ -276,7 +276,7 @@ public class UserPermissionUtility
             return false;
         }
 
-        final String userDN = userIdentity.canonicalized( pwmDomain ).getUserDN();
+        final String userDN = userIdentity.canonicalized( pwmDomain.getPwmApplication() ).getUserDN();
         return userDN.endsWith( canonicalBaseDN );
     }
 

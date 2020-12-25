@@ -53,7 +53,7 @@ public class BeanCryptoMachine<T extends Serializable>
 
     private String newKey()
     {
-        final int length = Integer.parseInt( pwmRequestContext.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
+        final int length = Integer.parseInt( pwmRequestContext.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
 
         final String random = pwmRequestContext.getPwmDomain().getSecureService().pwmRandom().alphaNumericString( length );
 

@@ -56,7 +56,7 @@
         </properties>
     </setting>
     <setting hidden="false" key="domain.list" level="0">
-        <regex>^(?!.*system.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <regex>^(?!.*system.*)([a-zA-Z][a-zA-Z0-9]{2,10})$</regex>
         <default>
             <value>default</value>
         </default>
@@ -3100,13 +3100,6 @@
             <option value="photo">photo</option>
         </options>
     </setting>
-    <setting hidden="true" key="updateAttributes.check.queryMatch" level="3">
-        <flag>Deprecated</flag>
-        <ldapPermission actor="proxy" access="read"/>
-        <default>
-            <value />
-        </default>
-    </setting>
     <setting hidden="false" key="updateAttributes.showConfirmation" level="1" required="true">
         <default>
             <value>true</value>
@@ -3209,16 +3202,6 @@
             <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
-    <setting hidden="true" key="peopleSearch.searchAttributes" level="1" required="false">
-        <flag>Deprecated</flag>
-        <ldapPermission actor="self_other" access="read"/>
-        <default>
-            <value>givenName</value>
-            <value>sn</value>
-            <value>title</value>
-            <value>mail</value>
-        </default>
-    </setting>
     <setting hidden="false" key="peopleSearch.search.form" level="1" required="true">
         <flag>Form_HideStandardOptions</flag>
         <ldapPermission actor="self_other" access="read"/>
@@ -3307,13 +3290,6 @@
         <properties>
             <property key="Maximum">7</property>
         </properties>
-    </setting>
-    <setting hidden="true" key="peopleSearch.displayName.user" level="1" required="true">
-        <flag>Deprecated</flag>
-        <flag>MacroSupport</flag>
-        <default>
-            <value>@LDAP:givenName@ @LDAP:sn@ - @LDAP:title@</value>
-        </default>
     </setting>
     <setting hidden="false" key="peopleSearch.photo.ldapAttribute" level="2">
         <ldapPermission actor="self_other" access="read"/>
@@ -3700,12 +3676,7 @@
             <value>false</value>
         </default>
     </setting>
-    <setting hidden="true" key="helpdesk.displayName" level="2">
-        <flag>Deprecated</flag>
-        <default>
-            <value>@LDAP:givenName@ @LDAP:sn@ - @User:ID@ - @User:Email@</value>
-        </default>
-    </setting>
+
     <setting hidden="false" key="helpdesk.displayName.cardLabels" level="1">
         <flag>MacroSupport</flag>
         <default>
@@ -3897,12 +3868,7 @@
             <value/>
         </default>
     </setting>
-    <setting hidden="true" key="reporting.ldap.searchFilter" level="1">
-        <flag>Deprecated</flag>
-        <default>
-            <value />
-        </default>
-    </setting>
+
     <setting hidden="false" key="reporting.ldap.userMatch" level="1">
         <default syntaxVersion="2">
             <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
@@ -4113,6 +4079,42 @@
         <default/>
     </setting>
     <!-- BEGIN DEPRECATED SETTINGS -->
+    <setting hidden="true" key="peopleSearch.displayName.user" level="1" required="true">
+        <flag>Deprecated</flag>
+        <flag>MacroSupport</flag>
+        <default>
+            <value>@LDAP:givenName@ @LDAP:sn@ - @LDAP:title@</value>
+        </default>
+    </setting>
+    <setting hidden="true" key="helpdesk.displayName" level="2">
+        <flag>Deprecated</flag>
+        <default>
+            <value>@LDAP:givenName@ @LDAP:sn@ - @User:ID@ - @User:Email@</value>
+        </default>
+    </setting>
+    <setting hidden="true" key="reporting.ldap.searchFilter" level="1">
+        <flag>Deprecated</flag>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting hidden="true" key="updateAttributes.check.queryMatch" level="3">
+        <flag>Deprecated</flag>
+        <ldapPermission actor="proxy" access="read"/>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting hidden="true" key="peopleSearch.searchAttributes" level="1" required="false">
+        <flag>Deprecated</flag>
+        <ldapPermission actor="self_other" access="read"/>
+        <default>
+            <value>givenName</value>
+            <value>sn</value>
+            <value>title</value>
+            <value>mail</value>
+        </default>
+    </setting>
     <setting hidden="true" key="password.policy.ADComplexity" level="99" required="false">
         <flag>Deprecated</flag>
         <default>
@@ -4184,7 +4186,9 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="LDAP_SETTINGS">
     </category>
-    <category hidden="false" scope="DOMAIN" key="APPLICATION">
+    <category hidden="false" scope="SYSTEM" key="APPLICATION">
+    </category>
+    <category hidden="false" scope="DOMAIN" key="DOMAIN">
     </category>
     <category hidden="false" scope="DOMAIN" key="GENERAL">
     </category>
@@ -4192,7 +4196,7 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="TELEMETRY">
     </category>
-    <category hidden="false" scope="DOMAIN" key="CLUSTERING">
+    <category hidden="false" scope="SYSTEM" key="NODES">
     </category>
     <category hidden="false" scope="DOMAIN" key="USER_INTERFACE">
     </category>
@@ -4215,7 +4219,7 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="EMAIL">
     </category>
-    <category hidden="false" scope="DOMAIN" key="EMAIL_SETTINGS">
+    <category hidden="false" scope="SYSTEM" key="EMAIL_SETTINGS">
     </category>
     <category hidden="false" scope="DOMAIN" key="EMAIL_TEMPLATES">
     </category>

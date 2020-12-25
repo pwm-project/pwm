@@ -82,7 +82,7 @@ public class AccountInformationBean implements Serializable
 
         builder.accountInfo( ViewableUserInfoDisplayReader.makeDisplayData(
                 accountInformationProfile.readSettingAsOptionList( PwmSetting.ACCOUNT_INFORMATION_VIEW_STATUS_VALUES, ViewStatusFields.class ),
-                pwmRequest.getConfig(),
+                pwmRequest.getDomainConfig(),
                 userInfo,
                 pwmRequest.getPwmSession().getSessionStateBean(),
                 locale
@@ -107,7 +107,7 @@ public class AccountInformationBean implements Serializable
     {
         final PwmPasswordPolicy pwmPasswordPolicy = pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy();
         final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
-        final List<String> rules = PasswordRequirementsTag.getPasswordRequirementsStrings( pwmPasswordPolicy, pwmRequest.getConfig(), pwmRequest.getLocale(), macroRequest );
+        final List<String> rules = PasswordRequirementsTag.getPasswordRequirementsStrings( pwmPasswordPolicy, pwmRequest.getDomainConfig(), pwmRequest.getLocale(), macroRequest );
         return Collections.unmodifiableList( rules );
     }
 

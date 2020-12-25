@@ -62,6 +62,10 @@ public enum PwmSetting
             "domain.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.DOMAINS ),
 
     // application settings
+    APP_PROPERTY_OVERRIDES(
+            "pwm.appProperty.overrides", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.APPLICATION ),
+
+    // domain settings
     PWM_SITE_URL(
             "pwm.selfURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL ),
     PUBLISH_STATS_ENABLE(
@@ -84,18 +88,16 @@ public enum PwmSetting
             "knownLocales", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LOCALIZATION ),
     LOCALE_COOKIE_MAX_AGE(
             "locale.cookie.age", PwmSettingSyntax.DURATION, PwmSettingCategory.LOCALIZATION ),
-    APP_PROPERTY_OVERRIDES(
-            "pwm.appProperty.overrides", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL ),
 
     // clustering
     CLUSTER_ENABLED(
-            "nodeService.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CLUSTERING ),
+            "nodeService.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NODES ),
     CLUSTER_STORAGE_MODE(
-            "nodeService.storageMode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING ),
+            "nodeService.storageMode", PwmSettingSyntax.SELECT, PwmSettingCategory.NODES ),
     SECURITY_LOGIN_SESSION_MODE(
-            "security.loginSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING ),
+            "security.loginSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.NODES ),
     SECURITY_MODULE_SESSION_MODE(
-            "security.moduleSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING ),
+            "security.moduleSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.NODES ),
 
     // user interface
     INTERFACE_THEME(

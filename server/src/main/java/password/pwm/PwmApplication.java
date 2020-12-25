@@ -123,7 +123,7 @@ public class PwmApplication
     private Map<DomainID, PwmDomain> domains;
     private String runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
 
-    private final PwmServiceManager pwmServiceManager = new PwmServiceManager();
+    private final PwmServiceManager pwmServiceManager = new PwmServiceManager( this, DomainID.systemId() );
 
     private final Instant startupTime = Instant.now();
     private Instant installTime = Instant.now();
@@ -272,7 +272,7 @@ public class PwmApplication
 
         pwmScheduler = new PwmScheduler( getInstanceID() );
 
-        pwmServiceManager.initAllServices( this.getDefaultDomain() );
+        pwmServiceManager.initAllServices();
 
         final boolean skipPostInit = pwmEnvironment.isInternalRuntimeInstance()
                 || pwmEnvironment.getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance );
@@ -326,7 +326,7 @@ public class PwmApplication
 
         try
         {
-            final Map<PwmAboutProperty, String> infoMap = PwmAboutProperty.makeInfoBean( this.getDefaultDomain() );
+            final Map<PwmAboutProperty, String> infoMap = PwmAboutProperty.makeInfoBean( this );
             LOGGER.trace( () ->  "application info: " + JsonUtil.serializeMap( infoMap ) );
         }
         catch ( final Exception e )

@@ -48,7 +48,7 @@ public enum PwmAboutProperty
     app_startTime( null, pwmApplication -> format( pwmApplication.getStartupTime() ) ),
     app_installTime( null, pwmApplication -> format( pwmApplication.getInstallTime() ) ),
     app_siteUrl( null, pwmApplication -> pwmApplication.getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL ) ),
-    app_instanceID( null, PwmDomain::getInstanceID ),
+    app_instanceID( null, PwmApplication::getInstanceID ),
     app_trialMode( null, pwmApplication -> Boolean.toString( PwmConstants.TRIAL_MODE ) ),
     app_mode_appliance( null, pwmApplication -> Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Appliance ) ) ),
     app_mode_docker( null, pwmApplication -> Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Docker ) ) ),
@@ -71,10 +71,10 @@ public enum PwmAboutProperty
     app_configurationRestartCounter( null, pwmApplication -> Integer.toString( pwmApplication.getPwmEnvironment().getContextManager().getRestartCount() ) ),
     app_secureBlockAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().getDefaultBlockAlgorithm().getLabel() ),
     app_secureHashAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().getDefaultHashAlgorithm().toString() ),
-    app_ldapProfileCount( null, pwmApplication -> Integer.toString( pwmApplication.getConfig().getLdapProfiles().size() ) ),
+    app_ldapProfileCount( null, pwmApplication -> Integer.toString( pwmApplication.getDefaultDomain().getConfig().getLdapProfiles().size() ) ),
     app_ldapConnectionCount( null, pwmApplication -> Integer.toString( pwmApplication.getLdapConnectionService().connectionCount() ) ),
     app_activeSessionCount( "Active Session Count", pwmApplication -> Integer.toString( pwmApplication.getSessionTrackService().sessionCount() ) ),
-    app_activeRequestCount( "Active Request Count", pwmApplication -> Integer.toString( pwmApplication.getPwmApplication().getActiveServletRequests().get() ) ),
+    app_activeRequestCount( "Active Request Count", pwmApplication -> Integer.toString( pwmApplication.getActiveServletRequests().get() ) ),
 
     build_Time( "Build Time", pwmApplication -> PwmConstants.BUILD_TIME ),
     build_Number( "Build Number", pwmApplication -> PwmConstants.BUILD_NUMBER ),
@@ -112,9 +112,9 @@ public enum PwmAboutProperty
             pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseAboutProperty.databaseProductVersion ) ),;
 
     private final String label;
-    private final transient Function<PwmDomain, String> value;
+    private final transient Function<PwmApplication, String> value;
 
-    PwmAboutProperty( final String label, final Function<PwmDomain, String> value )
+    PwmAboutProperty( final String label, final Function<PwmApplication, String> value )
     {
         this.label = label;
         this.value = value;
@@ -123,19 +123,19 @@ public enum PwmAboutProperty
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmAboutProperty.class );
 
     public static Map<PwmAboutProperty, String> makeInfoBean(
-            final PwmDomain pwmDomain
+            final PwmApplication pwmApplication
     )
     {
         final Map<String, String> aboutMap = new TreeMap<>();
 
         for ( final PwmAboutProperty pwmAboutProperty : PwmAboutProperty.values() )
         {
-            final Function<PwmDomain, String> valueProvider = pwmAboutProperty.value;
+            final Function<PwmApplication, String> valueProvider = pwmAboutProperty.value;
             if ( valueProvider != null )
             {
                 try
                 {
-                    final String value = valueProvider.apply( pwmDomain );
+                    final String value = valueProvider.apply( pwmApplication );
                     aboutMap.put( pwmAboutProperty.name(), value == null ? "" : value );
                 }
                 catch ( final Throwable t )

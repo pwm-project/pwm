@@ -129,7 +129,7 @@ public class DisplayTag extends PwmAbstractTag
             final Locale locale = pwmRequest == null ? PwmConstants.DEFAULT_LOCALE : pwmRequest.getLocale();
 
             final Class bundle = readBundle();
-            String displayMessage = figureDisplayMessage( locale, pwmRequest == null ? null : pwmRequest.getConfig(), bundle );
+            String displayMessage = figureDisplayMessage( locale, pwmRequest == null ? null : pwmRequest.getDomainConfig(), bundle );
 
             if ( pwmRequest != null )
             {

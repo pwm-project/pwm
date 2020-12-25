@@ -49,7 +49,7 @@ public class DatabaseStatusChecker implements HealthChecker
 
     private static List<HealthRecord> checkDatabaseStatus( final PwmDomain pwmDomain, final DomainConfig config )
     {
-        if ( !config.hasDbConfigured() )
+        if ( !config.getAppConfig().hasDbConfigured() )
         {
             return Collections.singletonList( HealthRecord.forMessage( HealthMessage.Database_Error,
                             "Database not configured" ) );

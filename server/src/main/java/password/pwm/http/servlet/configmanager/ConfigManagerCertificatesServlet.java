@@ -104,7 +104,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
         ConfigManagerServlet.verifyConfigAccess( pwmRequest );
 
         final ConfigManagerCertificateAction action = readProcessAction( pwmRequest );
-        final ArrayList<CertificateDebugDataItem> certificateDebugDataItems = new ArrayList<>( makeCertificateDebugData( pwmRequest.getConfig() ) );
+        final ArrayList<CertificateDebugDataItem> certificateDebugDataItems = new ArrayList<>( makeCertificateDebugData( pwmRequest.getDomainConfig() ) );
 
         if ( action == ConfigManagerCertificateAction.certificateData )
         {

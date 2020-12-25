@@ -35,6 +35,7 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -301,6 +302,11 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return Collections.unmodifiableMap( returnObj );
     }
 
+    public AppConfig getAppConfig()
+    {
+        return pwmApplication.getConfig();
+    }
+
     @Value
     public static class FileUploadItem
     {
@@ -468,7 +474,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     {
         final LocalSessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
         final String redirectURL = ssBean.getForwardURL();
-        return !( ( redirectURL == null || redirectURL.isEmpty() ) && this.getConfig().isDefaultValue( PwmSetting.URL_FORWARD ) );
+        return !( ( redirectURL == null || redirectURL.isEmpty() ) && this.getDomainConfig().isDefaultValue( PwmSetting.URL_FORWARD ) );
     }
 
     public String getForwardUrl( )
@@ -477,7 +483,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         String redirectURL = ssBean.getForwardURL();
         if ( StringUtil.isEmpty( redirectURL ) )
         {
-            redirectURL = this.getConfig().readSettingAsString( PwmSetting.URL_FORWARD );
+            redirectURL = this.getDomainConfig().readSettingAsString( PwmSetting.URL_FORWARD );
         }
 
         if ( StringUtil.isEmpty( redirectURL ) )
@@ -507,7 +513,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         {
             if ( getAttribute( PwmRequestAttribute.CspNonce ) == null )
             {
-                final int nonceLength = Integer.parseInt( getConfig().readAppProperty( AppProperty.HTTP_HEADER_CSP_NONCE_BYTES ) );
+                final int nonceLength = Integer.parseInt( getDomainConfig().readAppProperty( AppProperty.HTTP_HEADER_CSP_NONCE_BYTES ) );
                 final byte[] cspNonce = getPwmDomain().getSecureService().pwmRandom().newBytes( nonceLength );
                 final String cspString = StringUtil.base64Encode( cspNonce );
                 setAttribute( PwmRequestAttribute.CspNonce, cspString );
@@ -549,7 +555,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
             final boolean showPasswordFields
     )
     {
-        final ArrayList<FormConfiguration> formConfiguration = new ArrayList<>( this.getConfig().readSettingAsForm( formSetting ) );
+        final ArrayList<FormConfiguration> formConfiguration = new ArrayList<>( this.getDomainConfig().readSettingAsForm( formSetting ) );
         addFormInfoToRequestAttr( formConfiguration, null, readOnly, showPasswordFields );
 
     }
@@ -602,7 +608,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public PwmRequestContext getPwmRequestContext()
     {
-        return new PwmRequestContext( getPwmDomain(), this.getLabel(), this.getLocale(), pwmRequestID );
+        return new PwmRequestContext( pwmApplication, this.getDomainID(), this.getLabel(), this.getLocale(), pwmRequestID );
     }
 
     public String getPwmRequestID()

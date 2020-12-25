@@ -109,7 +109,7 @@ public class SessionManager
             this.chaiProvider = LdapOperationsHelper.createChaiProvider(
                     pwmDomain,
                     pwmSession.getLabel(),
-                    userIdentity.getLdapProfile( pwmDomain.getConfig() ),
+                    userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() ),
                     pwmDomain.getConfig(),
                     userIdentity.getUserDN(),
                     userPassword
@@ -200,7 +200,7 @@ public class SessionManager
     public boolean checkPermission( final PwmDomain pwmDomain, final Permission permission )
             throws PwmUnrecoverableException
     {
-        final boolean devDebugMode = pwmDomain.getConfig().isDevDebugMode();
+        final boolean devDebugMode = pwmDomain.getConfig().getAppConfig().isDevDebugMode();
         if ( devDebugMode )
         {
             LOGGER.trace( pwmSession.getLabel(), () -> String.format( "entering checkPermission(%s, %s, %s)", permission, pwmSession, pwmDomain ) );
@@ -263,7 +263,7 @@ public class SessionManager
         final String profileID = pwmSession.getUserInfo().getProfileIDs().get( profileDefinition );
         if ( profileID != null )
         {
-            return pwmDomain.getConfig().profileMap( profileDefinition ).get( profileID );
+            return pwmDomain.getConfig().getProfileMap( profileDefinition ).get( profileID );
         }
         throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
     }

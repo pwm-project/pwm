@@ -21,7 +21,9 @@
 package password.pwm.util.queue;
 
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.config.DomainConfig;
@@ -110,12 +112,10 @@ public class SmsQueueManager implements PwmService
     }
 
     @Override
-    public void init(
-            final PwmDomain pwmDomain
-    )
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
         if ( pwmDomain.getLocalDB() == null || pwmDomain.getLocalDB().status() != LocalDB.Status.OPEN )
         {
             LOGGER.warn( () -> "localdb is not open,  will remain closed" );

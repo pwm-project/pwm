@@ -23,7 +23,9 @@ package password.pwm.svc;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
@@ -48,7 +50,7 @@ public interface PwmService
 
     STATUS status( );
 
-    void init( PwmDomain pwmDomain ) throws PwmException;
+    void init( PwmApplication pwmApplication, DomainID domainID ) throws PwmException;
 
     void close( );
 

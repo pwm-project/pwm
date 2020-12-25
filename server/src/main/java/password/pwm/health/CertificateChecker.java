@@ -96,6 +96,7 @@ public class CertificateChecker implements HealthChecker
 
         final List<HealthRecord> returnList = new ArrayList<>();
         final Set<StoredConfigItemKey> modifiedReferences = storedConfiguration.modifiedItems();
+
         for ( final StoredConfigItemKey storedConfigItemKey : modifiedReferences )
         {
             if ( storedConfigItemKey.getRecordType() == StoredConfigItemKey.RecordType.SETTING )

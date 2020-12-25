@@ -369,7 +369,7 @@ public class JDBCDriverLoader
 
         File createOrGetTempJarFile( final PwmDomain pwmDomain, final ImmutableByteArray jarBytes ) throws PwmUnrecoverableException, IOException
         {
-            final File file = pwmDomain.getTempDirectory();
+            final File file = pwmDomain.getPwmApplication().getTempDirectory();
             final String jarHash = pwmDomain.getSecureService().hash( jarBytes.newByteArrayInputStream() );
             final String tempFileName = "jar-" + jarHash + ".jar";
             final File tempFile = new File( file.getAbsolutePath() + File.separator + tempFileName );

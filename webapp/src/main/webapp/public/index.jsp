@@ -49,7 +49,7 @@
                 </div>
             </div>
         </a>
-        <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
+        <% if (index_pwmRequest.getDomainConfig() != null && index_pwmRequest.getDomainConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
         <a id="Button_ForgottenPassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenPassword.servletUrl()%>'/>">
             <div class="tile">
                 <div class="tile-content">
@@ -60,7 +60,7 @@
             </div>
         </a>
         <% } %>
-        <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
+        <% if (index_pwmRequest.getDomainConfig() != null && index_pwmRequest.getDomainConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
         <a id="Button_ForgottenUsername" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenUsername.servletUrl()%>'/>">
             <div class="tile">
                 <div class="tile-content">
@@ -71,7 +71,7 @@
             </div>
         </a>
         <% } %>
-        <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
+        <% if (index_pwmRequest.getDomainConfig() != null && index_pwmRequest.getDomainConfig().readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
         <a id="Button_ActivateUser" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ActivateUser.servletUrl()%>'/>">
             <div class="tile">
                 <div class="tile-content">
@@ -82,7 +82,7 @@
             </div>
         </a>
         <% } %>
-        <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
+        <% if (index_pwmRequest.getDomainConfig() != null && index_pwmRequest.getDomainConfig().readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
         <a id="Button_NewUser" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.NewUser.servletUrl()%>'/>">
             <div class="tile">
                 <div class="tile-content">
@@ -93,7 +93,7 @@
             </div>
         </a>
         <% } %>
-        <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC)) { %>
+        <% if (index_pwmRequest.getDomainConfig() != null && index_pwmRequest.getDomainConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC)) { %>
         <a id="Button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PublicPeopleSearch.servletUrl()%>'/>">
             <div class="tile">
                 <div class="tile-content">

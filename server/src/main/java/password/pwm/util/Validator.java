@@ -79,7 +79,7 @@ public class Validator
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        final boolean enforceRequestSequencing = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.SECURITY_HTTP_FORCE_REQUEST_SEQUENCING ) );
+        final boolean enforceRequestSequencing = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.SECURITY_HTTP_FORCE_REQUEST_SEQUENCING ) );
 
         if ( enforceRequestSequencing )
         {

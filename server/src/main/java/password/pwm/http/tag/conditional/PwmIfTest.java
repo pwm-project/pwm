@@ -149,9 +149,9 @@ public enum PwmIfTest
                 final PwmIfOptions options
         )
         {
-            if ( pwmRequest.getPwmDomain() != null && pwmRequest.getConfig() != null )
+            if ( pwmRequest.getPwmDomain() != null && pwmRequest.getDomainConfig() != null )
             {
-                final String strValue = pwmRequest.getConfig().readAppProperty( appProperty );
+                final String strValue = pwmRequest.getDomainConfig().readAppProperty( appProperty );
                 return Boolean.parseBoolean( strValue );
             }
             return false;
@@ -182,8 +182,8 @@ public enum PwmIfTest
                 return false;
             }
 
-            return pwmRequest != null && pwmRequest.getConfig() != null
-                    && pwmRequest.getConfig().readSettingAsBoolean( setting );
+            return pwmRequest != null && pwmRequest.getDomainConfig() != null
+                    && pwmRequest.getDomainConfig().readSettingAsBoolean( setting );
         }
     }
 
@@ -195,7 +195,7 @@ public enum PwmIfTest
             final PwmApplicationMode applicationMode = pwmRequest.getPwmDomain().getApplicationMode();
             final boolean configMode = applicationMode == PwmApplicationMode.CONFIGURATION;
             final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
-            if ( Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.CLIENT_WARNING_HEADER_SHOW ) ) )
+            if ( Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CLIENT_WARNING_HEADER_SHOW ) ) )
             {
                 if ( configMode || PwmConstants.TRIAL_MODE )
                 {
@@ -483,11 +483,11 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
+            if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
             {
                 final Optional<PeopleSearchProfile> peopleSearchProfile = pwmRequest.isAuthenticated()
                         ? Optional.ofNullable( pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile() )
-                        : pwmRequest.getConfig().getPublicPeopleSearchProfile();
+                        : pwmRequest.getDomainConfig().getPublicPeopleSearchProfile();
 
                 if ( peopleSearchProfile.isPresent() )
                 {
@@ -535,7 +535,7 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options )
         {
-            final String customJs = pwmRequest.getConfig().readSettingAsString( PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT );
+            final String customJs = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT );
             return !StringUtil.isEmpty( customJs );
         }
     }

@@ -36,7 +36,6 @@ import password.pwm.ldap.LdapConnectionService;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.cache.CacheService;
-import password.pwm.svc.email.EmailService;
 import password.pwm.svc.event.AuditService;
 import password.pwm.svc.httpclient.HttpClientService;
 import password.pwm.svc.intruder.IntruderManager;
@@ -62,9 +61,7 @@ import password.pwm.util.operations.OtpService;
 import password.pwm.util.queue.SmsQueueManager;
 import password.pwm.util.secure.SecureService;
 
-import java.io.File;
 import java.io.Serializable;
-import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -140,19 +137,6 @@ public class PwmDomain
         return pwmApplication.getSecureService();
     }
 
-
-
-
-    public Instant getStartupTime( )
-    {
-        return pwmApplication.getStartupTime();
-    }
-
-    public Instant getInstallTime( )
-    {
-        return pwmApplication.getInstallTime();
-    }
-
     public LocalDB getLocalDB( )
     {
         return pwmApplication.getLocalDB();
@@ -163,15 +147,9 @@ public class PwmDomain
         return pwmApplication;
     }
 
-
     public PwmEnvironment getPwmEnvironment( )
     {
         return pwmApplication.getPwmEnvironment();
-    }
-
-    public String getRuntimeNonce( )
-    {
-        return pwmApplication.getRuntimeNonce();
     }
 
     public <T extends Serializable> Optional<T> readAppAttribute( final AppAttribute appAttribute, final Class<T> returnClass )
@@ -182,11 +160,6 @@ public class PwmDomain
     public void writeAppAttribute( final AppAttribute appAttribute, final Serializable value )
     {
         getPwmApplication().writeAppAttribute( appAttribute, value );
-    }
-
-    public File getTempDirectory( ) throws PwmUnrecoverableException
-    {
-       return pwmApplication.getTempDirectory();
     }
 
     public boolean determineIfDetailErrorMsgShown( )
@@ -212,11 +185,6 @@ public class PwmDomain
     public String getInstanceID()
     {
         return pwmApplication.getInstanceID();
-    }
-
-    public EmailService getEmailQueue()
-    {
-        return pwmApplication.getEmailQueue();
     }
 
     public SessionTrackService getSessionTrackService()
@@ -334,6 +302,11 @@ public class PwmDomain
     public void shutdown()
     {
 
+    }
+
+    public DomainID getDomainID()
+    {
+        return domainID;
     }
 }
 

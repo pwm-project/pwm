@@ -31,7 +31,7 @@ public abstract class DataStoreFactory
 {
     public static DataStore autoDbOrLocalDBstore( final PwmDomain pwmDomain, final DatabaseTable table, final LocalDB.DB db ) throws PwmUnrecoverableException
     {
-        if ( pwmDomain.getConfig().hasDbConfigured() )
+        if ( pwmDomain.getConfig().getAppConfig().hasDbConfigured() )
         {
             return new DatabaseDataStore( pwmDomain.getDatabaseService(), table );
         }

@@ -188,10 +188,10 @@
                                             <select name="statsPeriodSelect"
                                                     style="width: 350px;">
                                                 <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                    since installation - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmDomain().getInstallTime()) %></span>
+                                                    since installation - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %></span>
                                                 </option>
                                                 <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                    since startup - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmDomain().getStartupTime()) %></span>
+                                                    since startup - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %></span>
                                                 </option>
                                                 <% final Map<DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
                                                 <% for (final Map.Entry<DailyKey, String> entry : availableKeys.entrySet()) { %>

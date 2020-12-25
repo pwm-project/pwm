@@ -29,7 +29,8 @@ import java.util.regex.Pattern;
 
 public class DomainID implements Comparable<DomainID>, Serializable
 {
-    private static final DomainID SYSTEM_DOMAIN_ID = new DomainID( "system" );
+    private static final String SYSTEM_ID = "system";
+    private static final DomainID SYSTEM_DOMAIN_ID = new DomainID( SYSTEM_ID );
     private static final Pattern REGEX_PATTERN = PwmSetting.DOMAIN_LIST.getRegExPattern();
 
     private final String domainID;
@@ -84,5 +85,10 @@ public class DomainID implements Comparable<DomainID>, Serializable
     public static DomainID systemId()
     {
         return SYSTEM_DOMAIN_ID;
+    }
+
+    public boolean isSystem()
+    {
+        return SYSTEM_ID.equals( domainID );
     }
 }

@@ -96,7 +96,7 @@ public class RestVerifyOtpServer extends RestServlet
 
         try
         {
-            final OtpService otpService = restRequest.getPwmApplication().getOtpService();
+            final OtpService otpService = restRequest.getDomain().getOtpService();
             final OTPUserRecord otpUserRecord = otpService.readOTPUserConfiguration( restRequest.getSessionLabel(), targetUserIdentity.getUserIdentity() );
 
             final boolean verified = otpUserRecord != null && otpService.validateToken(
@@ -107,7 +107,7 @@ public class RestVerifyOtpServer extends RestServlet
                     false
             );
 
-            StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_VERIFYOTP );
+            StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_VERIFYOTP );
             return RestResultBean.forSuccessMessage( verified, restRequest, Message.Success_Unknown );
         }
         catch ( final ChaiUnavailableException e )

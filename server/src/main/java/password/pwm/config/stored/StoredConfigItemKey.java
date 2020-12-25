@@ -254,7 +254,7 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
         }
         final StoredConfigItemKey that = ( StoredConfigItemKey ) o;
         return Objects.equals( recordType, that.recordType )
-                && Objects.equals( domainID, that.domainID )
+                //&& Objects.equals( domainID, that.domainID )
                 && Objects.equals( recordID, that.recordID )
                 && Objects.equals( profileID, that.profileID );
     }
@@ -262,7 +262,8 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     @Override
     public int hashCode()
     {
-        return Objects.hash( recordType, domainID, recordID, profileID );
+        //return Objects.hash( recordType, domainID, recordID, profileID );
+        return Objects.hash( recordType, recordID, profileID );
     }
 
     @Override
@@ -321,8 +322,11 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
                 StoredConfigItemKey::getRecordType,
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
 
+        /*
         final Comparator<StoredConfigItemKey> domainComparator = Comparator.comparing( StoredConfigItemKey::getDomainID,
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
+
+         */
 
         final Comparator<StoredConfigItemKey> recordComparator = ( o1, o2 ) ->
         {
@@ -343,7 +347,7 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
 
         return typeComparator
-                .thenComparing( domainComparator )
+              //  .thenComparing( domainComparator )
                 .thenComparing( recordComparator )
                 .thenComparing( profileComparator );
     }

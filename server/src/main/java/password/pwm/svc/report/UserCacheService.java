@@ -22,7 +22,9 @@ package password.pwm.svc.report;
 
 import com.google.gson.JsonSyntaxException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
@@ -151,9 +153,10 @@ public class UserCacheService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.getDefaultDomain();
         this.cacheStore = new CacheStoreWrapper( pwmDomain.getLocalDB() );
         status = STATUS.OPEN;
     }

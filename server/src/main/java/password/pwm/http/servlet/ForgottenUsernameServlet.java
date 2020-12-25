@@ -101,7 +101,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
     protected void processAction( final PwmRequest pwmRequest )
             throws ServletException, IOException, PwmUnrecoverableException
     {
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
 
         if ( !config.readSettingAsBoolean( PwmSetting.FORGOTTEN_USERNAME_ENABLE ) )
         {
@@ -165,7 +165,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
             pwmDomain.getIntruderManager().convenience().checkAttributes( formValues );
 
             // see if the values meet the configured form requirements.
-            FormUtility.validateFormValues( pwmRequest.getConfig(), formValues, ssBean.getLocale() );
+            FormUtility.validateFormValues( pwmRequest.getDomainConfig(), formValues, ssBean.getLocale() );
 
             final String searchFilter;
             {
@@ -349,7 +349,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
 
         final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, sessionLabel, userInfo, null );
 
-        pwmDomain.getEmailQueue().submitEmail( emailItemBean, userInfo, macroRequest );
+        pwmDomain.getPwmApplication().getEmailQueue().submitEmail( emailItemBean, userInfo, macroRequest );
 
         return null;
     }
@@ -365,7 +365,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
             throws PwmUnrecoverableException, ServletException, IOException
     {
         final Locale locale = pwmRequest.getLocale();
-        final String completeMessage = pwmRequest.getConfig().readSettingAsLocalizedString( PwmSetting.FORGOTTEN_USERNAME_MESSAGE, locale );
+        final String completeMessage = pwmRequest.getDomainConfig().readSettingAsLocalizedString( PwmSetting.FORGOTTEN_USERNAME_MESSAGE, locale );
         final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmDomain(), pwmRequest.getLocale(), pwmRequest.getLabel(), userIdentity );
         final String expandedText = macroRequest.expandMacros( completeMessage );
         pwmRequest.setAttribute( PwmRequestAttribute.CompleteText, expandedText );

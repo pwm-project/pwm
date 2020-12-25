@@ -243,7 +243,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     {
         final PingResponse pingResponse = new PingResponse();
         pingResponse.setTime( Instant.now() );
-        pingResponse.setRuntimeNonce( pwmRequest.getPwmDomain().getRuntimeNonce() );
+        pingResponse.setRuntimeNonce( pwmRequest.getPwmApplication().getRuntimeNonce() );
         pwmRequest.outputJsonResult( RestResultBean.withData( pingResponse ) );
         return ProcessStatus.Halt;
     }
@@ -263,9 +263,9 @@ public class ClientApiServlet extends ControlledPwmServlet
     {
         final StringBuilder inputString = new StringBuilder();
         inputString.append( PwmConstants.BUILD_NUMBER );
-        inputString.append( pwmDomain.getStartupTime().toEpochMilli() );
+        inputString.append( pwmDomain.getPwmApplication().getStartupTime().toEpochMilli() );
         inputString.append( httpServletRequest.getSession().getMaxInactiveInterval() );
-        inputString.append( pwmDomain.getRuntimeNonce() );
+        inputString.append( pwmDomain.getPwmApplication().getRuntimeNonce() );
 
         if ( pwmSession.getSessionStateBean().getLocale() != null )
         {
@@ -350,7 +350,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             settingMap.put( "MaxInactiveInterval", idleSeconds );
         }
         settingMap.put( "paramName.locale", config.readAppProperty( AppProperty.HTTP_PARAM_NAME_LOCALE ) );
-        settingMap.put( "runtimeNonce", pwmDomain.getRuntimeNonce() );
+        settingMap.put( "runtimeNonce", pwmDomain.getPwmApplication().getRuntimeNonce() );
         settingMap.put( "applicationMode", pwmDomain.getApplicationMode() );
 
         final String contextPath = request.getContextPath();
@@ -365,7 +365,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             final String profileID = pwmSession.getUserInfo().getProfileIDs().get( ProfileDefinition.ChangePassword );
             if ( !StringUtil.isEmpty( profileID ) )
             {
-                final ChangePasswordProfile changePasswordProfile = pwmRequest.getConfig().getChangePasswordProfile().get( profileID );
+                final ChangePasswordProfile changePasswordProfile = pwmRequest.getDomainConfig().getChangePasswordProfile().get( profileID );
                 final String configuredGuideText = changePasswordProfile.readSettingAsLocalizedString(
                         PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,
                         pwmSession.getSessionStateBean().getLocale()
@@ -498,7 +498,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     private ProcessStatus restCspReportHandler( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException
     {
-        if ( !Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.LOGGING_LOG_CSP_REPORT ) ) )
+        if ( !Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.LOGGING_LOG_CSP_REPORT ) ) )
         {
             return ProcessStatus.Halt;
         }
@@ -522,7 +522,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             throw new PwmUnrecoverableException( errorInformation );
         }
 
-        if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES ) )
+        if ( !pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES ) )
         {
             if ( !pwmRequest.isAuthenticated() )
             {

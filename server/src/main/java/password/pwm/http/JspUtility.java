@@ -131,7 +131,7 @@ public abstract class JspUtility
         {
             try
             {
-                return pwmRequest.getConfig().readSettingAsLong( pwmSetting );
+                return pwmRequest.getDomainConfig().readSettingAsLong( pwmSetting );
             }
             catch ( final Exception e )
             {
@@ -206,7 +206,7 @@ public abstract class JspUtility
     public static String localizedString( final PageContext pageContext, final String key, final Class<? extends PwmDisplayBundle> bundleClass, final String... values )
     {
         final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
-        return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), key, pwmRequest.getConfig(), bundleClass, values );
+        return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), key, pwmRequest.getDomainConfig(), bundleClass, values );
     }
 }
 

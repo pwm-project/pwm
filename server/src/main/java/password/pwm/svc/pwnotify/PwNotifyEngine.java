@@ -340,7 +340,7 @@ public class PwNotifyEngine
 
         noticeCount.incrementAndGet();
         StatisticsManager.incrementStat( pwmDomain, Statistic.PWNOTIFY_EMAILS_SENT );
-        pwmDomain.getEmailQueue().submitEmail( emailItemBean, userInfoBean, macroRequest );
+        pwmDomain.getPwmApplication().getEmailQueue().submitEmail( emailItemBean, userInfoBean, macroRequest );
     }
 
     private void log( final String output )

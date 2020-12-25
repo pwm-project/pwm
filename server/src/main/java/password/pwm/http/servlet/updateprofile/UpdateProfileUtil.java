@@ -158,7 +158,7 @@ public class UpdateProfileUtil
         final DomainConfig config = pwmDomain.getConfig();
 
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_UPDATEPROFILE, locale );
-        pwmDomain.getEmailQueue().submitEmail(
+        pwmDomain.getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 userInfo,
                 macroRequest
@@ -238,7 +238,7 @@ public class UpdateProfileUtil
             throws PwmUnrecoverableException
     {
         final List<FormConfiguration> formFields = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
-        final LdapProfile ldapProfile = pwmRequest.getUserInfoIfLoggedIn().getLdapProfile( pwmRequest.getConfig() );
+        final LdapProfile ldapProfile = pwmRequest.getUserInfoIfLoggedIn().getLdapProfile( pwmRequest.getAppConfig() );
         final Map<String, TokenDestinationItem.Type> workingMap = new LinkedHashMap<>( FormUtility.identifyFormItemsNeedingPotentialTokenValidation(
                 ldapProfile,
                 formFields
@@ -315,8 +315,8 @@ public class UpdateProfileUtil
                 {
                     final TokenDestinationItem tokenDestinationItem = tokenDestinationItemForCurrentValidation( pwmRequest, updateProfileBean, updateProfileProfile );
                     final TimeDuration tokenLifetime = tokenDestinationItem.getType() == TokenDestinationItem.Type.email
-                            ? updateProfileProfile.getTokenDurationEmail( pwmRequest.getConfig() )
-                            : updateProfileProfile.getTokenDurationSMS( pwmRequest.getConfig() );
+                            ? updateProfileProfile.getTokenDurationEmail( pwmRequest.getDomainConfig() )
+                            : updateProfileProfile.getTokenDurationSMS( pwmRequest.getDomainConfig() );
 
                     TokenUtil.initializeAndSendToken(
                             pwmRequest.getPwmRequestContext(),
@@ -415,7 +415,7 @@ public class UpdateProfileUtil
     )
     {
         final List<FormConfiguration> formFields = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
-        final LdapProfile ldapProfile = pwmRequest.getUserInfoIfLoggedIn().getLdapProfile( pwmRequest.getConfig() );
+        final LdapProfile ldapProfile = pwmRequest.getUserInfoIfLoggedIn().getLdapProfile( pwmRequest.getAppConfig() );
         final Map<String, TokenDestinationItem.Type> tokenTypeMap = FormUtility.identifyFormItemsNeedingPotentialTokenValidation(
                 ldapProfile,
                 formFields

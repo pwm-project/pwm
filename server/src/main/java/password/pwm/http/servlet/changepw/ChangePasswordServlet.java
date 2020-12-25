@@ -75,6 +75,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * User interaction servlet for changing (self) passwords.
@@ -518,7 +519,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
         pwmRequest.setAttribute(
                 PwmRequestAttribute.ChangePassword_CheckIntervalSeconds,
-                Long.parseLong( pwmRequest.getConfig().readAppProperty( AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS ) )
+                Long.parseLong( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS ) )
         );
 
         pwmRequest.forwardToJsp( JspUrl.PASSWORD_CHANGE_WAIT );
@@ -568,12 +569,12 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
     private void forwardToChangePage( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
     {
-        final String passwordPolicyChangeMessage = pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy().getRuleHelper().getChangeMessage();
-        if ( passwordPolicyChangeMessage.length() > 1 )
+        final Optional<String> passwordPolicyChangeMessage = pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy().getChangeMessage( pwmRequest.getLocale() );
+        if ( passwordPolicyChangeMessage.isPresent() )
         {
             final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
-            macroRequest.expandMacros( passwordPolicyChangeMessage );
-            pwmRequest.setAttribute( PwmRequestAttribute.ChangePassword_PasswordPolicyChangeMessage, passwordPolicyChangeMessage );
+            final String expandedMessage = macroRequest.expandMacros( passwordPolicyChangeMessage.get() );
+            pwmRequest.setAttribute( PwmRequestAttribute.ChangePassword_PasswordPolicyChangeMessage, expandedMessage );
         }
 
         pwmRequest.forwardToJsp( JspUrl.PASSWORD_CHANGE );

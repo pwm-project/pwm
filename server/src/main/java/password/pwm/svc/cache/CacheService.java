@@ -21,7 +21,9 @@
 package password.pwm.svc.cache;
 
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
@@ -60,9 +62,10 @@ public class CacheService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain )
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
+        final PwmDomain pwmDomain = pwmApplication.getDefaultDomain();
         final boolean enabled = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.CACHE_ENABLE ) );
         if ( !enabled )
         {

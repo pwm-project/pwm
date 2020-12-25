@@ -69,7 +69,7 @@
                     <img class="formfield-photo" src="<pwm:current-url/>?processAction=readPhoto&field=<%=formConfiguration.getName()%>"/>
                     <% } %>
                     <% } else { %>
-                    <%=StringUtil.escapeHtml(formConfiguration.displayValue(value, JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getConfig()))%>
+                    <%=StringUtil.escapeHtml(formConfiguration.displayValue(value, JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getDomainConfig()))%>
                     <% } %>
                 </td>
             </tr>

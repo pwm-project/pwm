@@ -97,10 +97,10 @@ public class RestFormSigningServer extends RestServlet
         {
             if ( !JavaHelper.isEmpty( inputFormData ) )
             {
-                final SecureService securityService = restRequest.getPwmApplication().getSecureService();
+                final SecureService securityService = restRequest.getDomain().getSecureService();
                 final SignedFormData signedFormData = new SignedFormData( Instant.now(), inputFormData );
                 final String signedValue = securityService.encryptObjectToString( signedFormData );
-                StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_SIGNING_FORM );
+                StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_SIGNING_FORM );
                 LOGGER.trace( () -> "processed request signing form for form with keys '"
                         + JsonUtil.serializeCollection( inputFormData.keySet() )
                         + "' and timestamp " + signedFormData.getTimestamp().toString() );

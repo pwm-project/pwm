@@ -22,14 +22,14 @@ package password.pwm.svc.node;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.PwmDomain;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.Serializable;
 import java.time.Instant;
 
-@Getter
+@Value
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 class StoredNodeData implements Serializable
 {
@@ -44,9 +44,9 @@ class StoredNodeData implements Serializable
     {
         return new StoredNodeData(
                 Instant.now(),
-                pwmDomain.getStartupTime(),
-                pwmDomain.getInstanceID(),
-                pwmDomain.getRuntimeNonce(),
+                pwmDomain.getPwmApplication().getStartupTime(),
+                pwmDomain.getPwmApplication().getInstanceID(),
+                pwmDomain.getPwmApplication().getRuntimeNonce(),
                 pwmDomain.getConfig().configurationHash( pwmDomain.getSecureService() )
         );
     }

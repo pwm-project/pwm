@@ -72,8 +72,8 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.macro.MacroReplacer;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomPasswordGenerator;
@@ -93,6 +93,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 class NewUserUtils
@@ -308,7 +309,7 @@ class NewUserUtils
         remoteWriteFormData( pwmRequest, newUserForm );
 
         // authenticate the user to pwm
-        final UserIdentity userIdentity = UserIdentity.createUserIdentity( newUserDN, newUserProfile.getLdapProfile().getIdentifier() );
+        final UserIdentity userIdentity = UserIdentity.createUserIdentity( newUserDN, newUserProfile.getLdapProfile().getIdentifier(), pwmRequest.getDomainID() );
         final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmDomain, pwmRequest, PwmAuthenticationSource.NEW_USER_REGISTRATION );
         sessionAuthenticator.authenticateUser( userIdentity, userPassword );
 
@@ -471,7 +472,7 @@ class NewUserUtils
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final UserInfo userInfo = pwmSession.getUserInfo();
-        final DomainConfig config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_NEWUSER, locale );
 
@@ -482,7 +483,7 @@ class NewUserUtils
             return;
         }
 
-        pwmRequest.getPwmDomain().getEmailQueue().submitEmail(
+        pwmRequest.getPwmDomain().getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmSession.getUserInfo(),
                 pwmSession.getSessionManager().getMacroMachine( )
@@ -535,7 +536,7 @@ class NewUserUtils
     static Map<String, String> figureDisplayableProfiles( final PwmRequest pwmRequest )
     {
         final Map<String, String> returnMap = new LinkedHashMap<>();
-        for ( final NewUserProfile newUserProfile : pwmRequest.getConfig().getNewUserProfiles().values() )
+        for ( final NewUserProfile newUserProfile : pwmRequest.getDomainConfig().getNewUserProfiles().values() )
         {
             final boolean visible = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_PROFILE_DISPLAY_VISIBLE );
             if ( visible )
@@ -752,7 +753,8 @@ class NewUserUtils
                 {
                     final TokenDestinationItem tokenDestinationItem = tokenDestinationItemForCurrentValidation( pwmRequest, newUserBean, newUserProfile );
 
-                    if ( pwmRequest.getConfig().getTokenStorageMethod() == TokenStorageMethod.STORE_LDAP )
+                    final Optional<TokenStorageMethod> configuredMethod = pwmRequest.getDomainConfig().getTokenStorageMethod();
+                    if ( configuredMethod.isPresent() && configuredMethod.get() == TokenStorageMethod.STORE_LDAP )
                     {
                         throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
                                 "cannot generate new user tokens when storage type is configured as STORE_LDAP.",
@@ -767,7 +769,7 @@ class NewUserUtils
                             newUserBean.getNewUserForm(),
                             tokenDestinationItem );
 
-                    final TimeDuration tokenLifetime = figureTokenLifetime( pwmRequest.getConfig(), newUserProfile, tokenDestinationItem );
+                    final TimeDuration tokenLifetime = figureTokenLifetime( pwmRequest.getDomainConfig(), newUserProfile, tokenDestinationItem );
 
 
                     TokenUtil.initializeAndSendToken(

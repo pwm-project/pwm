@@ -98,7 +98,7 @@
                 <div class="tab-container" style="width: 100%; height: 100%;">
                     <% boolean checked = true; %>
                     <% for (final RecordType recordType : RecordType.values()) { %>
-                    <% final String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getConfig(), Admin.class); %>
+                    <% final String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getDomainConfig(), Admin.class); %>
                     <input name="intruder_tabs" type="radio" id="tab-2.<%=recordType%>" <%=checked?"checked=\"checked\"":""%> class="input"/>
                     <label for="tab-2.<%=recordType%>" class="label"><%=titleName%></label>
                     <div class="tab-content-pane" title="<%=titleName%>">

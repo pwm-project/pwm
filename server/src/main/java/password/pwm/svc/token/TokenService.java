@@ -24,9 +24,11 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenDestinationItem;
@@ -130,22 +132,22 @@ public class TokenService implements PwmService
     }
 
     @Override
-    public void init( final PwmDomain pwmDomain )
+    public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
+        this.pwmDomain = pwmApplication.getDefaultDomain();
+
         LOGGER.trace( () -> "opening" );
 
-        this.pwmDomain = pwmDomain;
         this.domainConfig = pwmDomain.getConfig();
 
-        storageMethod = domainConfig.getTokenStorageMethod();
-        if ( storageMethod == null )
+        storageMethod = domainConfig.getTokenStorageMethod().orElseThrow( () ->
         {
             final String errorMsg = "no storage method specified";
             errorInformation = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg );
             status = STATUS.CLOSED;
-            throw new PwmOperationalException( errorInformation );
-        }
+            return new PwmOperationalException( errorInformation );
+        } );
 
         if ( pwmDomain.getLocalDB() == null )
         {
@@ -642,7 +644,7 @@ public class TokenService implements PwmService
         // check current session identity
         if ( tokenPayload.getUserIdentity() != null && sessionUserIdentity != null )
         {
-            if ( !tokenPayload.getUserIdentity().canonicalEquals( sessionUserIdentity, pwmDomain ) )
+            if ( !tokenPayload.getUserIdentity().canonicalEquals( sessionUserIdentity, pwmDomain.getPwmApplication() ) )
             {
                 final String errorMsg = "user in session '" + sessionUserIdentity + "' entered code for user '" + tokenPayload.getUserIdentity() + "', counting as invalid attempt";
                 throw new PwmOperationalException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
@@ -763,7 +765,7 @@ public class TokenService implements PwmService
                     "%TOKEN%",
                     tokenSendInfo.getTokenKey() );
 
-            pwmDomain.getEmailQueue().submitEmailImmediate(
+            pwmDomain.getPwmApplication().getEmailQueue().submitEmailImmediate(
                     tokenizedEmail,
                     tokenSendInfo.getUserInfo(),
                     tokenSendInfo.getMacroRequest() );

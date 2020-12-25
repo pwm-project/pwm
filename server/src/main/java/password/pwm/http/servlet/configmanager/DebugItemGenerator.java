@@ -314,7 +314,7 @@ public class DebugItemGenerator
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final Properties outputProps = new JavaHelper.SortedProperties();
-            final Map<PwmAboutProperty, String> infoBean = PwmAboutProperty.makeInfoBean( debugItemInput.getPwmDomain() );
+            final Map<PwmAboutProperty, String> infoBean = PwmAboutProperty.makeInfoBean( debugItemInput.getPwmDomain().getPwmApplication() );
             outputProps.putAll( PwmAboutProperty.toStringMap( infoBean ) );
             outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
         }

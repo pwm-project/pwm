@@ -62,7 +62,7 @@ public class SchemaManager
 
             final DirectoryVendor vendor = chaiProvider.getDirectoryVendor();
             final Class<? extends SchemaExtender> implClass = IMPLEMENTATIONS.get( vendor );
-            final SchemaExtender schemaExtenderImpl = implClass.newInstance();
+            final SchemaExtender schemaExtenderImpl = implClass.getDeclaredConstructor().newInstance();
             schemaExtenderImpl.init( chaiProvider );
             return schemaExtenderImpl;
         }

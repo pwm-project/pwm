@@ -416,7 +416,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             userProvider = LdapOperationsHelper.createChaiProvider(
                     pwmDomain,
                     sessionLabel,
-                    userIdentity.getLdapProfile( pwmDomain.getConfig() ),
+                    userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() ),
                     pwmDomain.getConfig(),
                     userIdentity.getUserDN(),
                     password
@@ -492,9 +492,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                     pwmDomain,
                     sessionLabel,
                     userIdentity,
-                    chaiUser,
-                    PwmConstants.DEFAULT_LOCALE
-            );
+                    chaiUser );
 
             // create random password for user
             final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = RandomPasswordGenerator.RandomGeneratorConfig.builder()

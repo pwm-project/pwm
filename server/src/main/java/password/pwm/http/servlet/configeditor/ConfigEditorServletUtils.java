@@ -203,7 +203,7 @@ public class ConfigEditorServletUtils
         {
             final Map<String, String> defaultValueMap = new LinkedHashMap<>();
             final String defaultLocaleValue = ResourceBundle.getBundle( pwmLocaleBundle.getTheClass().getName(), PwmConstants.DEFAULT_LOCALE ).getString( keyName );
-            for ( final Locale locale : pwmRequest.getConfig().getKnownLocales() )
+            for ( final Locale locale : pwmRequest.getDomainConfig().getKnownLocales() )
             {
                 final ResourceBundle localeBundle = ResourceBundle.getBundle( pwmLocaleBundle.getTheClass().getName(), locale );
                 if ( locale.toString().equalsIgnoreCase( PwmConstants.DEFAULT_LOCALE.toString() ) )
@@ -326,7 +326,7 @@ public class ConfigEditorServletUtils
                 ) );
             }
 
-            final int maxFileSize = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.CONFIG_MAX_JDBC_JAR_SIZE ) );
+            final int maxFileSize = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_MAX_JDBC_JAR_SIZE ) );
             final Map<String, PwmRequest.FileUploadItem> fileUploads = pwmRequest.readFileUploads( maxFileSize, 1 );
             final InputStream fileIs = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD ).getContent().newByteArrayInputStream();
 

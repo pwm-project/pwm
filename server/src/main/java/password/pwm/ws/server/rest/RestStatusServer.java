@@ -77,14 +77,14 @@ public class RestStatusServer extends RestServlet
         {
             final ChaiProvider chaiProvider = targetUserIdentity.getChaiProvider();
             final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                    restRequest.getPwmApplication(),
+                    restRequest.getDomain(),
                     restRequest.getSessionLabel(),
                     restRequest.getLocale(),
                     targetUserIdentity.getUserIdentity(),
                     chaiProvider
             );
             final MacroRequest macroRequest = MacroRequest.forUser(
-                    restRequest.getPwmApplication(),
+                    restRequest.getDomain(),
                     restRequest.getLocale(),
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity()
@@ -92,12 +92,12 @@ public class RestStatusServer extends RestServlet
 
             final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(
                     userInfo,
-                    restRequest.getPwmApplication().getConfig(),
+                    restRequest.getDomain().getConfig(),
                     restRequest.getLocale(),
                     macroRequest
             );
 
-            StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_STATUS );
+            StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_STATUS );
 
             final RestResultBean restResultBean = RestResultBean.withData( publicUserInfoBean );
             LOGGER.debug( restRequest.getSessionLabel(), () -> "completed REST status request, result="
