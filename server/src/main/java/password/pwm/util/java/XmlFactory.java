@@ -64,15 +64,21 @@ public interface XmlFactory
 
     static XmlFactory getFactory()
     {
-        return new XmlFactoryW3c();
+        return XmlFactoryW3c.getW3cFactory();
     }
 
     class XmlFactoryW3c implements XmlFactory
     {
+        private static final XmlFactory W3C_FACTORY = new XmlFactoryW3c();
         private static final Charset STORAGE_CHARSET = StandardCharsets.UTF_8;
 
-        XmlFactoryW3c()
+        private XmlFactoryW3c()
         {
+        }
+
+        static XmlFactory getW3cFactory()
+        {
+            return W3C_FACTORY;
         }
 
         @Override

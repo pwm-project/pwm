@@ -21,6 +21,7 @@
 package password.pwm.config.stored;
 
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -466,5 +467,13 @@ public abstract class StoredConfigurationUtil
         }
 
         throw new IllegalStateException();
+    }
+
+    public static List<String> domainList( final StoredConfiguration storedConfiguration )
+    {
+        final StoredConfigItemKey domainListKey = StoredConfigItemKey.fromSetting( PwmSetting.DOMAIN_LIST, null, DomainID.systemId() );
+        final StoredValue storedStringArray = getValueOrDefault( storedConfiguration, domainListKey );
+        final List<String> domainList = ValueTypeConverter.valueToStringArray( storedStringArray );
+        return Collections.unmodifiableList( domainList );
     }
 }

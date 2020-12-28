@@ -32,5 +32,6 @@ import java.util.List;
 public class VarData implements Serializable
 {
     private final List<String> ldapProfileIds;
+    private final List<String> domainIds;
     private final PwmSettingTemplateSet currentTemplate;
 }

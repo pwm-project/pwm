@@ -257,7 +257,7 @@ public class LocalDBLoggerExtendedTest
     private static class RandomValueMaker
     {
         private int outputLength;
-        final StringBuffer randomValue = new StringBuffer();
+        final StringBuilder randomValue = new StringBuilder();
         final Random random = new Random();
 
         RandomValueMaker( final int outputLength )

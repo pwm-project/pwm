@@ -102,6 +102,7 @@ import java.security.KeyStore;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -111,7 +112,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class PwmApplication
 {
@@ -163,50 +163,10 @@ public class PwmApplication
 
         runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
 
-        this.domains = this.pwmEnvironment.getConfig().getDomainIDs().stream()
-                .collect( Collectors.toUnmodifiableMap(
-                        ( domainID ) -> domainID,
-                        ( domainID ) -> new PwmDomain( this, domainID ) ) );
-
+        this.domains = Initializer.initializeDomains( this );
 
         // initialize log4j
-        if ( !pwmEnvironment.isInternalRuntimeInstance() && !pwmEnvironment.getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
-        {
-            final String log4jFileName = pwmEnvironment.getConfig().readSettingAsString( PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE );
-            final File log4jFile = FileSystemUtility.figureFilepath( log4jFileName, pwmEnvironment.getApplicationPath() );
-            final String consoleLevel;
-            final String fileLevel;
-
-            switch ( getApplicationMode() )
-            {
-                case ERROR:
-                case NEW:
-                    consoleLevel = PwmLogLevel.TRACE.toString();
-                    fileLevel = PwmLogLevel.TRACE.toString();
-                    break;
-
-                default:
-                    consoleLevel = pwmEnvironment.getConfig().readSettingAsString( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL );
-                    fileLevel = pwmEnvironment.getConfig().readSettingAsString( PwmSetting.EVENTS_FILE_LEVEL );
-                    break;
-            }
-
-            PwmLogManager.initializeLogger( this.getDefaultDomain(), getDefaultDomain().getConfig(), log4jFile, consoleLevel, pwmEnvironment.getApplicationPath(), fileLevel );
-
-            switch ( getApplicationMode() )
-            {
-                case RUNNING:
-                    break;
-
-                case ERROR:
-                    LOGGER.fatal( () -> "starting up in ERROR mode! Check log or health check information for cause" );
-                    break;
-
-                default:
-                    LOGGER.trace( () -> "setting log level to TRACE because application mode is " + getApplicationMode() );
-                    break;
-            }
-        }
+        Initializer.initializeLogging( this );
 
         // get file lock
         if ( !pwmEnvironment.isInternalRuntimeInstance() )
@@ -1012,7 +972,66 @@ public class PwmApplication
             }
         }
 
+        public static Map<DomainID, PwmDomain> initializeDomains( final PwmApplication pwmApplication )
+        {
+            final Map<DomainID, PwmDomain> domainMap = new LinkedHashMap<>();
+            for ( final DomainID domainID : pwmApplication.getPwmEnvironment().getConfig().getDomainIDs() )
+            {
+                final PwmDomain newDomain = new PwmDomain( pwmApplication, domainID );
+                domainMap.put( domainID, newDomain );
+            }
 
+            return Collections.unmodifiableMap( domainMap );
+        }
+
+        public static void initializeLogging( final PwmApplication pwmApplication )
+        {
+            final PwmEnvironment pwmEnvironment = pwmApplication.getPwmEnvironment();
+
+            if ( !pwmEnvironment.isInternalRuntimeInstance() && !pwmEnvironment.getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
+            {
+                final String log4jFileName = pwmEnvironment.getConfig().readSettingAsString( PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE );
+                final File log4jFile = FileSystemUtility.figureFilepath( log4jFileName, pwmEnvironment.getApplicationPath() );
+                final String consoleLevel;
+                final String fileLevel;
+
+                switch ( pwmApplication.getApplicationMode() )
+                {
+                    case ERROR:
+                    case NEW:
+                        consoleLevel = PwmLogLevel.TRACE.toString();
+                        fileLevel = PwmLogLevel.TRACE.toString();
+                        break;
+
+                    default:
+                        consoleLevel = pwmEnvironment.getConfig().readSettingAsString( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL );
+                        fileLevel = pwmEnvironment.getConfig().readSettingAsString( PwmSetting.EVENTS_FILE_LEVEL );
+                        break;
+                }
+
+                PwmLogManager.initializeLogger(
+                        pwmApplication.getDefaultDomain(),
+                        pwmApplication.getDefaultDomain().getConfig(),
+                        log4jFile,
+                        consoleLevel,
+                        pwmEnvironment.getApplicationPath(),
+                        fileLevel );
+
+                switch ( pwmApplication.getApplicationMode() )
+                {
+                    case RUNNING:
+                        break;
+
+                    case ERROR:
+                        LOGGER.fatal( () -> "starting up in ERROR mode! Check log or health check information for cause" );
+                        break;
+
+                    default:
+                        LOGGER.trace( () -> "setting log level to TRACE because application mode is " + pwmApplication.getApplicationMode() );
+                        break;
+                }
+            }
+        }
     }
 
     public File getTempDirectory( ) throws PwmUnrecoverableException

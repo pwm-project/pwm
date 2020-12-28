@@ -27,6 +27,7 @@ import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
@@ -91,6 +92,7 @@ public class SettingDataMaker
 
         final VarData varMap = VarData.builder()
                 .ldapProfileIds( ValueTypeConverter.valueToStringArray( storedConfiguration.readSetting( PwmSetting.LDAP_PROFILE_LIST, null ) ) )
+                .domainIds( StoredConfigurationUtil.domainList( storedConfiguration ) )
                 .currentTemplate( templateSet )
                 .build();
 

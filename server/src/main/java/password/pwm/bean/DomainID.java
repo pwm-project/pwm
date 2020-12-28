@@ -82,6 +82,11 @@ public class DomainID implements Comparable<DomainID>, Serializable
         return domainID;
     }
 
+    public String stringValue()
+    {
+        return domainID;
+    }
+
     public static DomainID systemId()
     {
         return SYSTEM_DOMAIN_ID;

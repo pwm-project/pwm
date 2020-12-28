@@ -121,6 +121,7 @@ PWM_CFGEDIT.readSetting = function(keyName, valueWriter) {
     if (PWM_CFGEDIT.readCurrentProfile()) {
         url = PWM_MAIN.addParamToUrl(url, 'profile', PWM_CFGEDIT.readCurrentProfile());
     }
+    url = PWM_MAIN.addParamToUrl(url, 'domain', PWM_CFGEDIT.readCurrentDomain());
     var loadFunction = function(data) {
         PWM_VAR['outstandingOperations']--;
         PWM_CFGEDIT.handleWorkingIcon();
@@ -185,6 +186,7 @@ PWM_CFGEDIT.writeSetting = function(keyName, valueData, nextAction) {
     if (PWM_CFGEDIT.readCurrentProfile()) {
         url = PWM_MAIN.addParamToUrl(url,'profile',PWM_CFGEDIT.readCurrentProfile());
     }
+    url = PWM_MAIN.addParamToUrl(url, 'domain', PWM_CFGEDIT.readCurrentDomain());
     var loadFunction = function(data) {
         PWM_VAR['outstandingOperations']--;
         PWM_CFGEDIT.handleWorkingIcon();
@@ -1108,6 +1110,7 @@ PWM_CFGEDIT.drawNavigationMenu = function(nextFunction) {
     };
 
     var url = 'editor?processAction=menuTreeData';
+    url = PWM_MAIN.addParamToUrl(url,'domain',PWM_CFGEDIT.readCurrentDomain());
     var filterParams = PWM_CFGEDIT.readNavigationFilters();
 
     PWM_MAIN.ajaxRequest(url,function(data){
@@ -1274,6 +1277,10 @@ PWM_CFGEDIT.handleModifiedSettingsRadioClick = function (){
 
 PWM_CFGEDIT.readCurrentProfile = function() {
     return PWM_VAR['currentProfile'];
+};
+
+PWM_CFGEDIT.readCurrentDomain = function() {
+    return PWM_VAR['currentDomain'];
 };
 
 PWM_CFGEDIT.setCurrentProfile = function(profile) {

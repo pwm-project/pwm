@@ -94,7 +94,7 @@ public abstract class PwmConstants
     public static final String PROFILE_ID_ALL = "all";
     public static final String PROFILE_ID_DEFAULT = "default";
 
-    public static final String DOMAIN_ID_DEFAULT = "default";
+    public static final DomainID DOMAIN_ID_DEFAULT = DomainID.create( "default" );
     public static final DomainID DOMAIN_ID_PLACEHOLDER = DomainID.create( "default" );
 
     public static final String TOKEN_KEY_PWD_CHG_DATE = "_lastPwdChange";

@@ -59,6 +59,7 @@ public class AppConfig
     private final StoredConfiguration storedConfiguration;
     private final SettingReader settingReader;
     private final Map<DomainID, DomainConfig> domainConfigMap;
+    private final List<DomainID> domainIDList;
 
     private PwmSecurityKey tempInstanceKey = null;
 
@@ -66,7 +67,12 @@ public class AppConfig
     {
         this.storedConfiguration = storedConfiguration;
         this.settingReader = new SettingReader( storedConfiguration, null, DomainID.systemId() );
-        domainConfigMap = getDomainIDs().stream()
+
+        this.domainIDList = settingReader.readSettingAsStringArray( PwmSetting.DOMAIN_LIST ).stream()
+                .map( DomainID::create )
+                .collect( Collectors.toUnmodifiableList() );
+
+        this.domainConfigMap = domainIDList.stream()
                 .collect( Collectors.toUnmodifiableMap(
                         ( domainID ) -> domainID,
                         ( domainID ) -> new DomainConfig( this, domainID ) ) );
@@ -74,8 +80,7 @@ public class AppConfig
 
     public List<DomainID> getDomainIDs()
     {
-        final List<String> strings = settingReader.readSettingAsStringArray( PwmSetting.DOMAIN_LIST );
-        return strings.stream().map( DomainID::create ).collect( Collectors.toUnmodifiableList() );
+        return domainIDList;
     }
 
     public Map<DomainID, DomainConfig> getDomainConfigs()

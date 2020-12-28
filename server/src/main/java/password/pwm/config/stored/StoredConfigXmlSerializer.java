@@ -57,6 +57,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.ResourceBundle;
@@ -237,7 +238,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                 return DomainID.systemId();
             }
 
-            final String domainID = xmlElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_DOMAIN ).orElse( PwmConstants.DOMAIN_ID_DEFAULT );
+            final String domainID = xmlElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_DOMAIN ).orElse( PwmConstants.DOMAIN_ID_DEFAULT.stringValue() );
             return DomainID.create( domainID );
         }
 
@@ -468,10 +469,12 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             {
                 final PwmSetting pwmSetting = storedConfigItemKey.toPwmSetting();
                 final String profileID = storedConfigItemKey.getProfileID();
-                final StoredValue storedValue = storedConfiguration.readSetting( pwmSetting, profileID );
-                final XmlElement settingElement = makeSettingXmlElement( storedConfiguration, pwmSetting, profileID, storedValue, xmlOutputProcessData );
-                decorateElementWithMetaData( storedConfiguration, StoredConfigItemKey.fromSetting( pwmSetting, profileID ), settingElement );
-                settingsElement.addContent( settingElement );
+                storedConfiguration.readStoredValue( storedConfigItemKey ).ifPresent( ( storedValue ->
+                {
+                    final XmlElement settingElement = makeSettingXmlElement( storedConfiguration, storedConfigItemKey, storedValue, xmlOutputProcessData );
+                    decorateElementWithMetaData( storedConfiguration, StoredConfigItemKey.fromSetting( pwmSetting, profileID ), settingElement );
+                    settingsElement.addContent( settingElement );
+                } ) );
             };
 
             StoredConfigurationUtil.allPossibleSettingKeysForConfiguration( storedConfiguration )
@@ -511,15 +514,21 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
         static XmlElement makeSettingXmlElement(
                 final StoredConfiguration storedConfiguration,
-                final PwmSetting pwmSetting,
-                final String profileID,
+                final StoredConfigItemKey key,
                 final StoredValue storedValue,
                 final XmlOutputProcessData xmlOutputProcessData
         )
         {
+            Objects.requireNonNull( storedValue );
+
+            final PwmSetting pwmSetting = key.toPwmSetting();
+            final String profileID = key.getProfileID();
+
             final XmlFactory xmlFactory = XmlFactory.getFactory();
 
             final XmlElement settingElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_SETTING );
+
+
             settingElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY, pwmSetting.getKey() );
 
             if ( !StringUtil.isEmpty( profileID ) )
@@ -546,9 +555,23 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                 valueElements.addAll( storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, xmlOutputProcessData ) );
             }
 
+            decorateElementWithDomain( storedConfiguration, key, settingElement );
             settingElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION, String.valueOf( storedValue.currentSyntaxVersion() ) );
             settingElement.addContent( valueElements );
             return settingElement;
+        }
+
+        private static void decorateElementWithDomain(
+                final StoredConfiguration storedConfiguration,
+                final StoredConfigItemKey key,
+                final XmlElement xmlElement
+        )
+        {
+            final DomainID domainID = key.getDomainID();
+            if ( !domainID.isSystem() || StoredConfigurationUtil.domainList( storedConfiguration ).size() > 1 )
+            {
+                xmlElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_DOMAIN, domainID.stringValue() );
+            }
         }
 
         private static void decorateElementWithMetaData(
@@ -769,10 +792,11 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
                 final PwmSecurityKey pwmSecurityKey = inputDocumentReader.getKey();
 
+                final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( pwmSetting, null, PwmConstants.DOMAIN_ID_DEFAULT );
+
                 final XmlElement settingElement = StoredConfigXmlSerializer.XmlOutputHandler.makeSettingXmlElement(
                         null,
-                        pwmSetting,
-                        null,
+                        key,
                         new StringValue( stringValue ),
                         XmlOutputProcessData.builder().storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN ).pwmSecurityKey( pwmSecurityKey ).build() );
                 final Optional<XmlElement> settingsElement = xmlDocument.getRootElement().getChild( StoredConfigXmlConstants.XML_ELEMENT_SETTING );
@@ -839,17 +863,15 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             {
                 final StoredConfigXmlSerializer.XmlInputDocumentReader inputDocumentReader = new StoredConfigXmlSerializer.XmlInputDocumentReader( xmlDocument );
 
-                {
-                    final Optional<XmlElement> existingAppPropertySetting = inputDocumentReader.xpathForSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null );
-                    existingAppPropertySetting.ifPresent( XmlElement::detach );
-                }
+                inputDocumentReader.xpathForSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null ).ifPresent( XmlElement::detach );
 
                 final PwmSecurityKey pwmSecurityKey = inputDocumentReader.getKey();
 
+                final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null, PwmConstants.DOMAIN_ID_DEFAULT );
+
                 final XmlElement settingElement = StoredConfigXmlSerializer.XmlOutputHandler.makeSettingXmlElement(
                         null,
-                        PwmSetting.APP_PROPERTY_OVERRIDES,
-                        null,
+                        key,
                         new StringArrayValue( newValues ),
                         XmlOutputProcessData.builder().storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN ).pwmSecurityKey( pwmSecurityKey ).build() );
                 final Optional<XmlElement> settingsElement = xmlDocument.getRootElement().getChild( StoredConfigXmlConstants.XML_ELEMENT_SETTING );

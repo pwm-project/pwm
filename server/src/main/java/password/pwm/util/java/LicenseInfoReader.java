@@ -42,7 +42,7 @@ public class LicenseInfoReader
     {
         final List<String> attributionFiles = Collections.singletonList( "/attribution.xml" );
         final List<DependencyInfo> returnList = new ArrayList<>();
-        final XmlFactory factory = new XmlFactory.XmlFactoryW3c();
+        final XmlFactory factory = XmlFactory.getFactory();
 
         for ( final String attributionFile : attributionFiles )
         {

@@ -50,12 +50,12 @@ public enum PwmLocaleBundle
         AdminOnly,
     }
 
-    private final Flag[] flags;
+    private final Set<Flag> flags;
 
     PwmLocaleBundle( final Class<? extends PwmDisplayBundle> theClass, final Flag... flags )
     {
         this.theClass = theClass;
-        this.flags = flags;
+        this.flags = JavaHelper.enumSetFromArray( flags );
     }
 
     public Class<? extends PwmDisplayBundle> getTheClass( )
@@ -65,7 +65,7 @@ public enum PwmLocaleBundle
 
     public boolean isAdminOnly( )
     {
-        return JavaHelper.enumArrayContainsValue( flags, Flag.AdminOnly );
+        return flags.contains( Flag.AdminOnly );
     }
 
     public static Optional<PwmLocaleBundle> forKey( final String key )

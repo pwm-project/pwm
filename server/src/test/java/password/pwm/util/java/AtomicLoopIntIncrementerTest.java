@@ -36,13 +36,13 @@ public class AtomicLoopIntIncrementerTest
             Assert.assertEquals( i, next );
         }
 
-        Assert.assertEquals( atomicLoopIntIncrementer.next(), 0 );
+        Assert.assertEquals( 0,  atomicLoopIntIncrementer.next() );
 
         for ( int i = 0; i < 5; i++ )
         {
             atomicLoopIntIncrementer.next();
         }
 
-        Assert.assertEquals( atomicLoopIntIncrementer.next(), 1 );
+        Assert.assertEquals( 1,  atomicLoopIntIncrementer.next() );
     }
 }

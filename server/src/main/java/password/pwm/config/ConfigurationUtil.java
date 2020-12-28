@@ -22,6 +22,8 @@ package password.pwm.config;
 
 import password.pwm.config.option.DataStorageMethod;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,7 +37,9 @@ public class ConfigurationUtil
 
     public static List<DataStorageMethod> getCrReadPreference( final DomainConfig domainConfig )
     {
-        final List<DataStorageMethod> readPreferences = domainConfig.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE );
+        final List<DataStorageMethod> readPreferences = new ArrayList<>(
+                domainConfig.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE ) );
+
         if ( readPreferences.size() == 1 && readPreferences.iterator().next() == DataStorageMethod.AUTO )
         {
             readPreferences.clear();
@@ -55,7 +59,7 @@ public class ConfigurationUtil
             readPreferences.add( DataStorageMethod.NMAS );
         }
 
-        return readPreferences;
+        return Collections.unmodifiableList( readPreferences );
     }
 
     public static List<DataStorageMethod> getCrWritePreference( final DomainConfig domainConfig )

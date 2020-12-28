@@ -69,14 +69,17 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
 
     private static final long serialVersionUID = 1L;
 
-    private StoredConfigItemKey( final RecordType recordType, final DomainID domainID, final String recordID, final String profileID )
+    private StoredConfigItemKey(
+            final RecordType recordType,
+            final DomainID domainID,
+            final String recordID,
+            final String profileID
+    )
     {
-        Objects.requireNonNull( recordType, "recordType can not be null" );
-        Objects.requireNonNull( recordID, "recordID can not be null" );
+        this.recordType = Objects.requireNonNull( recordType, "recordType can not be null" );
+        this.recordID = Objects.requireNonNull( recordID, "recordID can not be null" );
+        this.domainID = Objects.requireNonNull( domainID, "domainID can not be null" );
 
-        this.recordType = recordType;
-        this.domainID = domainID;
-        this.recordID = recordID;
         this.profileID = profileID;
     }
 
@@ -102,7 +105,7 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
 
     public static StoredConfigItemKey fromSetting( final PwmSetting pwmSetting, final String profileID )
     {
-        return new StoredConfigItemKey( RecordType.SETTING, null, pwmSetting.getKey(), profileID );
+        return new StoredConfigItemKey( RecordType.SETTING, PwmConstants.DOMAIN_ID_PLACEHOLDER, pwmSetting.getKey(), profileID );
     }
 
     public static StoredConfigItemKey fromSetting( final PwmSetting pwmSetting, final String profileID, final DomainID domainID )
@@ -112,12 +115,12 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
 
     static StoredConfigItemKey fromLocaleBundle( final PwmLocaleBundle localeBundle, final String key )
     {
-        return new StoredConfigItemKey( RecordType.LOCALE_BUNDLE, null, localeBundle.getKey(), key );
+        return new StoredConfigItemKey( RecordType.LOCALE_BUNDLE, PwmConstants.DOMAIN_ID_PLACEHOLDER, localeBundle.getKey(), key );
     }
 
     static StoredConfigItemKey fromConfigurationProperty( final ConfigurationProperty configurationProperty )
     {
-        return new StoredConfigItemKey( RecordType.PROPERTY, null, configurationProperty.getKey(), null );
+        return new StoredConfigItemKey( RecordType.PROPERTY, DomainID.systemId(), configurationProperty.getKey(), null );
     }
 
     public boolean isRecordType( final RecordType recordType )

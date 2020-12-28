@@ -45,6 +45,10 @@
     <div class="configeditor-header" id="header" >
         <div id="header-center-wide" style="min-width: 850px">
             <div id="header-title">
+                <select>
+                    <option value="system">System</option>
+                    <option value="default">Domain: Default</option>
+                </select>
                 <span id="currentPageDisplay"></span>
                 <span style="visibility: hidden" id="working_icon" class="headerIcon pwm-icon pwm-icon-cog pwm-icon-spin"></span>
 
