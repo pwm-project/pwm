@@ -22,7 +22,6 @@ package password.pwm.config.stored;
 
 import org.junit.Assert;
 import org.junit.Test;
-import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
@@ -103,7 +102,7 @@ public class StoredConfigItemKeyTest
         }
 
         Collections.shuffle( list );
-        list.sort( StoredConfigItemKey.comparator( PwmConstants.DEFAULT_LOCALE ) );
+        list.sort( StoredConfigItemKey.comparator() );
         //System.out.println( list.size() );
         //list.forEach( System.out::println );
     }
