@@ -73,7 +73,7 @@ class LdapUserDNTypeHelper implements PermissionTypeHelper
                 .username( "*" )
                 .enableContextValidation( false )
                 .enableValueEscaping( false )
-                .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ) )
+                .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ).orElse( null ) )
                 .contexts( Collections.singletonList( userPermission.getLdapBase() ) )
                 .searchScope( SearchConfiguration.SearchScope.base )
                 .build();

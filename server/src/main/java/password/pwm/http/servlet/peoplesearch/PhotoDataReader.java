@@ -133,12 +133,12 @@ public class PhotoDataReader
         return hasPermission;
     }
 
-    public String figurePhotoURL()
+    public Optional<String> figurePhotoURL()
             throws PwmUnrecoverableException
     {
         if ( !verifyViewPhotoPermission() )
         {
-            return null;
+            return Optional.empty();
         }
 
         final PhotoReaderMethod method = figurePhotoDataReaderMethod( );
@@ -146,21 +146,21 @@ public class PhotoDataReader
         switch ( method )
         {
             case ClientHttp:
-                return getPhotoUrlOverride( userIdentity ).orElse( null );
+                return getPhotoUrlOverride( userIdentity );
 
             case Ldap:
             case ServerHttp:
                 String returnUrl = pwmRequest.getURLwithoutQueryString();
                 returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_ACTION_REQUEST, PeopleSearchServlet.PeopleSearchActions.photo.name() );
                 returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_USERKEY,  userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
-                return returnUrl;
+                return Optional.of( returnUrl );
 
             default:
                 JavaHelper.unhandledSwitchStatement( method );
 
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public Optional<PhotoDataBean> readPhotoData( )

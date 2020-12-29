@@ -38,7 +38,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureService;
+import password.pwm.svc.secure.DomainSecureService;
 
 import java.util.Collections;
 import java.util.List;
@@ -157,7 +157,7 @@ public class UserCacheService implements PwmService
             throws PwmException
     {
         this.pwmDomain = pwmApplication.getDefaultDomain();
-        this.cacheStore = new CacheStoreWrapper( pwmDomain.getLocalDB() );
+        this.cacheStore = new CacheStoreWrapper( pwmApplication.getLocalDB() );
         status = STATUS.OPEN;
     }
 
@@ -219,8 +219,8 @@ public class UserCacheService implements PwmService
         private static StorageKey fromUserGUID( final String userGUID, final PwmDomain pwmDomain )
                 throws PwmUnrecoverableException
         {
-            final SecureService secureService = pwmDomain.getSecureService();
-            return new StorageKey( secureService.hash( userGUID ) );
+            final DomainSecureService domainSecureService = pwmDomain.getSecureService();
+            return new StorageKey( domainSecureService.hash( userGUID ) );
         }
     }
 

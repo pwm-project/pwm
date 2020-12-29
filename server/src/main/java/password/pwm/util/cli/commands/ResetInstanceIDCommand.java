@@ -30,14 +30,14 @@ public class ResetInstanceIDCommand extends AbstractCliCommand
     public void doCommand( ) throws Exception
     {
         final PwmDomain pwmDomain = cliEnvironment.getPwmDomain();
-        final String currentInstanceID = pwmDomain.getInstanceID();
+        final String currentInstanceID = pwmDomain.getPwmApplication().getInstanceID();
         
         if ( !promptForContinue( "Proceeding will change the existing instanceID (\"" + currentInstanceID + "\") of this server and can not be undone." ) )
         {
             return;
         }
 
-        pwmDomain.writeAppAttribute( AppAttribute.INSTANCE_ID, null );
+        pwmDomain.getPwmApplication().writeAppAttribute( AppAttribute.INSTANCE_ID, null );
         out( "instanceID has been cleared" );
     }
 

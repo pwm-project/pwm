@@ -205,7 +205,7 @@ public class LdapProfile extends AbstractProfile implements Profile
 
         if ( !StringUtil.isEmpty( testUserDN ) )
         {
-            return UserIdentity.createUserIdentity( testUserDN, this.getIdentifier(), pwmDomain.getDomainID() ).canonicalized( pwmDomain.getPwmApplication() );
+            return UserIdentity.create( testUserDN, this.getIdentifier(), pwmDomain.getDomainID() ).canonicalized( pwmDomain.getPwmApplication() );
         }
 
         return null;

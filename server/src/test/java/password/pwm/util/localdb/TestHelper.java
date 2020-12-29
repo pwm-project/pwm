@@ -30,8 +30,10 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
+import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -63,7 +65,8 @@ public class TestHelper
     {
         final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newConfig();
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
-        modifier.writeSetting( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL, null, new StringValue( PwmLogLevel.FATAL.toString() ), null );
+        final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL, null, DomainID.systemId() );
+        modifier.writeSetting( key, new StringValue( PwmLogLevel.FATAL.toString() ), null );
         final AppConfig appConfig = new AppConfig( modifier.newStoredConfiguration() );
         return makeTestPwmApplication( tempFolder, appConfig );
     }

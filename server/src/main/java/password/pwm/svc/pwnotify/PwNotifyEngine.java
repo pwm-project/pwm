@@ -34,6 +34,7 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.permission.UserPermissionUtility;
+import password.pwm.svc.node.NodeService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PwmScheduler;
@@ -115,9 +116,10 @@ public class PwNotifyEngine
 
     private boolean checkIfRunningOnMaster( )
     {
-        if ( !pwmDomain.getPwmEnvironment().isInternalRuntimeInstance() )
+        if ( !pwmDomain.getPwmApplication().getPwmEnvironment().isInternalRuntimeInstance() )
         {
-            if ( pwmDomain.getClusterService() != null && pwmDomain.getClusterService().isMaster() )
+            final NodeService nodeService = pwmDomain.getPwmApplication().getNodeService();
+            if ( nodeService != null && nodeService.isMaster() )
             {
                 return true;
             }
@@ -382,7 +384,7 @@ public class PwNotifyEngine
 
     private ThreadPoolExecutor createExecutor( final PwmDomain pwmDomain )
     {
-        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmDomain, this.getClass() ), true );
+        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmDomain.getPwmApplication(), this.getClass() ), true );
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
                 1,
                 10,

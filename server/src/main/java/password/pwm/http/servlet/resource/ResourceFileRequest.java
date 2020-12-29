@@ -135,7 +135,7 @@ class ResourceFileRequest
             final String contentType = getRawMimeType();
             if ( contentType.startsWith( "text" ) || contentType.contains( "javascript" ) )
             {
-                final PwmHttpRequestWrapper pwmHttpRequestWrapper = new PwmHttpRequestWrapper( httpServletRequest, domainConfig );
+                final PwmHttpRequestWrapper pwmHttpRequestWrapper = new PwmHttpRequestWrapper( httpServletRequest, domainConfig.getAppConfig() );
                 final String acceptEncoding = pwmHttpRequestWrapper.readHeaderValueAsString( HttpHeader.AcceptEncoding );
                 return acceptEncoding != null && accepts( acceptEncoding, "gzip" );
             }

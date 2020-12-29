@@ -32,16 +32,14 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class StoredConfigItemKey implements Serializable, Comparable<StoredConfigItemKey>
+public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey>
 {
-    private static final Comparator<StoredConfigItemKey> COMPARATOR = makeComparator();
+    private static final Comparator<StoredConfigKey> COMPARATOR = makeComparator();
 
     public enum RecordType
     {
@@ -69,7 +67,7 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
 
     private static final long serialVersionUID = 1L;
 
-    private StoredConfigItemKey(
+    private StoredConfigKey(
             final RecordType recordType,
             final DomainID domainID,
             final String recordID,
@@ -103,24 +101,19 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
         return profileID;
     }
 
-    public static StoredConfigItemKey fromSetting( final PwmSetting pwmSetting, final String profileID )
+    public static StoredConfigKey forSetting( final PwmSetting pwmSetting, final String profileID, final DomainID domainID )
     {
-        return new StoredConfigItemKey( RecordType.SETTING, PwmConstants.DOMAIN_ID_PLACEHOLDER, pwmSetting.getKey(), profileID );
+        return new StoredConfigKey( RecordType.SETTING, domainID, pwmSetting.getKey(), profileID );
     }
 
-    public static StoredConfigItemKey fromSetting( final PwmSetting pwmSetting, final String profileID, final DomainID domainID )
+    static StoredConfigKey forLocaleBundle( final PwmLocaleBundle localeBundle, final String key )
     {
-        return new StoredConfigItemKey( RecordType.SETTING, domainID, pwmSetting.getKey(), profileID );
+        return new StoredConfigKey( RecordType.LOCALE_BUNDLE, PwmConstants.DOMAIN_ID_PLACEHOLDER, localeBundle.getKey(), key );
     }
 
-    static StoredConfigItemKey fromLocaleBundle( final PwmLocaleBundle localeBundle, final String key )
+    static StoredConfigKey forConfigurationProperty( final ConfigurationProperty configurationProperty )
     {
-        return new StoredConfigItemKey( RecordType.LOCALE_BUNDLE, PwmConstants.DOMAIN_ID_PLACEHOLDER, localeBundle.getKey(), key );
-    }
-
-    static StoredConfigItemKey fromConfigurationProperty( final ConfigurationProperty configurationProperty )
-    {
-        return new StoredConfigItemKey( RecordType.PROPERTY, DomainID.systemId(), configurationProperty.getKey(), null );
+        return new StoredConfigKey( RecordType.PROPERTY, DomainID.systemId(), configurationProperty.getKey(), null );
     }
 
     public boolean isRecordType( final RecordType recordType )
@@ -184,17 +177,21 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     {
         final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
 
+        final String prefix = "[Domain: " + domainID + "]" + separator + recordType.getLabel() + separator;
+
         switch ( recordType )
         {
             case SETTING:
-                return recordType.getLabel() + separator + toPwmSetting().toMenuLocationDebug( profileID, locale );
+                final boolean correctProfile = toPwmSetting().getCategory().hasProfiles() && !StringUtil.isEmpty( profileID );
+                return correctProfile
+                        ? prefix + toPwmSetting().toMenuLocationDebug( profileID, locale )
+                        : prefix + toPwmSetting().toMenuLocationDebug( null, locale ) + separator + "[profile: " + profileID + "]";
 
             case PROPERTY:
-                return recordType.getLabel() + separator + this.getRecordID();
+                return prefix + this.getRecordID();
 
             case LOCALE_BUNDLE:
-                return recordType.getLabel()
-                        + separator
+                return prefix
                         + this.getRecordID()
                         + separator
                         + this.getProfileID();
@@ -239,7 +236,7 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     }
 
     @Override
-    public int compareTo( @NotNull final StoredConfigItemKey o )
+    public int compareTo( @NotNull final StoredConfigKey o )
     {
         return COMPARATOR.compare( this, o );
     }
@@ -255,7 +252,7 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
         {
             return false;
         }
-        final StoredConfigItemKey that = ( StoredConfigItemKey ) o;
+        final StoredConfigKey that = ( StoredConfigKey ) o;
         return Objects.equals( recordType, that.recordType )
                 //&& Objects.equals( domainID, that.domainID )
                 && Objects.equals( recordID, that.recordID )
@@ -294,44 +291,45 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
         }
     }
 
-    public static Set<StoredConfigItemKey> filterBySettingSyntax( final PwmSettingSyntax pwmSettingSyntax, final Set<StoredConfigItemKey> input )
+    public static Stream<StoredConfigKey> filterBySettingSyntax( final PwmSettingSyntax pwmSettingSyntax, final Stream<StoredConfigKey> input )
     {
-        return filterByType( RecordType.SETTING, input )
-                .stream()
-                .filter( ( k ) -> k.toPwmSetting().getSyntax() == pwmSettingSyntax )
-                .collect( Collectors.toUnmodifiableSet() );
-    }
 
-    public static Set<StoredConfigItemKey> filterByType( final RecordType recordType, final Set<StoredConfigItemKey> input )
-    {
-        if ( JavaHelper.isEmpty( input ) )
+        if ( input == null )
         {
-            return Collections.emptySet();
+            return Stream.empty();
         }
 
-        return input.stream()
-                .filter( ( k ) -> k.isRecordType( recordType ) )
-                .collect( Collectors.toUnmodifiableSet() );
+        return filterByType( RecordType.SETTING, input )
+                .filter( ( k ) -> k.toPwmSetting().getSyntax() == pwmSettingSyntax );
     }
 
-    public static Comparator<StoredConfigItemKey> comparator()
+    public static Stream<StoredConfigKey> filterByType( final RecordType recordType, final Stream<StoredConfigKey> input )
+    {
+        if ( input == null )
+        {
+            return Stream.empty();
+        }
+
+        return input.filter( ( k ) -> k.isRecordType( recordType ) );
+    }
+
+    public static Comparator<StoredConfigKey> comparator()
     {
         return COMPARATOR;
     }
 
-    private static Comparator<StoredConfigItemKey> makeComparator()
+    private static Comparator<StoredConfigKey> makeComparator()
     {
-        final Comparator<StoredConfigItemKey> typeComparator = Comparator.comparing(
-                StoredConfigItemKey::getRecordType,
+        final Comparator<StoredConfigKey> typeComparator = Comparator.comparing(
+                StoredConfigKey::getRecordType,
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
 
         /*
-        final Comparator<StoredConfigItemKey> domainComparator = Comparator.comparing( StoredConfigItemKey::getDomainID,
+        final Comparator<StoredConfigKey> domainComparator = Comparator.comparing( StoredConfigKey::getDomainID,
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
+        */
 
-         */
-
-        final Comparator<StoredConfigItemKey> recordComparator = ( o1, o2 ) ->
+        final Comparator<StoredConfigKey> recordComparator = ( o1, o2 ) ->
         {
             if ( Objects.equals( o1.getRecordType(), o2.getRecordType() )
                     && o1.isRecordType( RecordType.SETTING ) )
@@ -345,12 +343,12 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
             }
         };
 
-        final Comparator<StoredConfigItemKey> profileComparator = Comparator.comparing(
-                StoredConfigItemKey::getProfileID,
+        final Comparator<StoredConfigKey> profileComparator = Comparator.comparing(
+                StoredConfigKey::getProfileID,
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
 
         return typeComparator
-              //  .thenComparing( domainComparator )
+                //.thenComparing( domainComparator )
                 .thenComparing( recordComparator )
                 .thenComparing( profileComparator );
     }

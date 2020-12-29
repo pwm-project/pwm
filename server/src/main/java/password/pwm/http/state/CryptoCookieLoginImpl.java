@@ -21,7 +21,7 @@
 package password.pwm.http.state;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -44,6 +44,7 @@ import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
+import java.util.Optional;
 
 class CryptoCookieLoginImpl implements SessionLoginProvider
 {
@@ -53,9 +54,9 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
     private String cookieName = "SESSION";
 
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        cookieName = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_LOGIN_NAME );
+        cookieName = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_LOGIN_NAME );
     }
 
     @Override
@@ -95,22 +96,23 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
     @Override
     public void readLoginSessionState( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        final LoginInfoBean remoteLoginCookie;
+        final Optional<LoginInfoBean> optionalRemoteLoginCookie;
         try
         {
-            remoteLoginCookie = pwmRequest.readEncryptedCookie( cookieName, LoginInfoBean.class );
+            optionalRemoteLoginCookie = pwmRequest.readEncryptedCookie( cookieName, LoginInfoBean.class );
         }
         catch ( final PwmUnrecoverableException e )
         {
             final String errorMsg = "unexpected error reading login cookie, will clear and ignore; error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            LOGGER.trace( pwmRequest, () -> errorInformation.toDebugStr() );
+            LOGGER.trace( pwmRequest, errorInformation::toDebugStr );
             clearLoginSession( pwmRequest );
             return;
         }
 
-        if ( remoteLoginCookie != null )
+        if ( optionalRemoteLoginCookie.isPresent() )
         {
+            final LoginInfoBean remoteLoginCookie = optionalRemoteLoginCookie.get();
             try
             {
                 try

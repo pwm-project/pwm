@@ -35,7 +35,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.svc.token.TokenDestinationDisplayMasker;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.secure.SecureService;
+import password.pwm.svc.secure.DomainSecureService;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -94,7 +94,7 @@ public class TokenDestinationItem implements Serializable
             throws PwmUnrecoverableException
     {
         final DomainConfig domainConfig = pwmDomain.getConfig();
-        final SecureService secureService = pwmDomain.getSecureService();
+        final DomainSecureService domainSecureService = pwmDomain.getSecureService();
 
         final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( domainConfig );
 
@@ -110,7 +110,7 @@ public class TokenDestinationItem implements Serializable
         {
             if ( !StringUtil.isEmpty( emailValue ) )
             {
-                final String idHash = secureService.hash( emailValue + Type.email.name() );
+                final String idHash = domainSecureService.hash( emailValue + Type.email.name() );
                 final TokenDestinationItem item = TokenDestinationItem.builder()
                         .id( idHash )
                         .display( tokenDestinationDisplayMasker.maskEmail( emailValue ) )
@@ -131,7 +131,7 @@ public class TokenDestinationItem implements Serializable
         {
             if ( !StringUtil.isEmpty( smsValue ) )
             {
-                final String idHash = secureService.hash( smsValue + Type.sms.name() );
+                final String idHash = domainSecureService.hash( smsValue + Type.sms.name() );
                 final TokenDestinationItem item = TokenDestinationItem.builder()
                         .id( idHash )
                         .display( tokenDestinationDisplayMasker.maskPhone( smsValue ) )

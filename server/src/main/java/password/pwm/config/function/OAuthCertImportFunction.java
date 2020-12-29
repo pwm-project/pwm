@@ -22,6 +22,7 @@ package password.pwm.config.function;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -36,23 +37,23 @@ public class OAuthCertImportFunction extends AbstractUriCertImportFunction
 
 
     @Override
-    String getUri( final StoredConfigurationModifier modifier, final PwmSetting pwmSetting, final String profile, final String extraData )
+    String getUri( final StoredConfigurationModifier modifier, final StoredConfigKey key, final String extraData )
             throws PwmOperationalException, PwmUnrecoverableException
     {
+        final PwmSetting pwmSetting = key.toPwmSetting();
 
         final String uriString;
         final String menuDebugLocation;
 
+        final PwmSetting urlCertSetting;
         switch ( pwmSetting )
         {
             case OAUTH_ID_CERTIFICATE:
-                uriString = ( String ) modifier.newStoredConfiguration().readSetting( PwmSetting.OAUTH_ID_CODERESOLVE_URL, null ).toNativeObject();
-                menuDebugLocation = PwmSetting.OAUTH_ID_CODERESOLVE_URL.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
+                urlCertSetting = PwmSetting.OAUTH_ID_CODERESOLVE_URL;
                 break;
 
             case RECOVERY_OAUTH_ID_CERTIFICATE:
-                uriString = ( String ) modifier.newStoredConfiguration().readSetting( PwmSetting.RECOVERY_OAUTH_ID_CODERESOLVE_URL, profile ).toNativeObject();
-                menuDebugLocation = PwmSetting.RECOVERY_OAUTH_ID_CERTIFICATE.toMenuLocationDebug( profile, PwmConstants.DEFAULT_LOCALE );
+                urlCertSetting = PwmSetting.RECOVERY_OAUTH_ID_CODERESOLVE_URL;
                 break;
 
             default:
@@ -60,6 +61,9 @@ public class OAuthCertImportFunction extends AbstractUriCertImportFunction
                 return null;
         }
 
+        final StoredConfigKey oauthCertKey = StoredConfigKey.forSetting( urlCertSetting, key.getProfileID(), key.getDomainID() );
+        uriString = ( String ) modifier.newStoredConfiguration().readStoredValue( oauthCertKey ).orElseThrow().toNativeObject();
+        menuDebugLocation = urlCertSetting.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
 
         if ( uriString.isEmpty() )
         {

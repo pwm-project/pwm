@@ -128,7 +128,7 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
         {
             final String userDN = entry.getKey();
             final Map<String, String> attributeMap = entry.getValue();
-            final UserIdentity userIdentity = UserIdentity.createUserIdentity(
+            final UserIdentity userIdentity = UserIdentity.create(
                     userDN,
                     userSearchJobParameters.getLdapProfile().getIdentifier(),
                     pwmDomain.getDomainID(),

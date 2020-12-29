@@ -55,7 +55,7 @@ public class PwmTrustManager implements X509TrustManager
 
     public static PwmTrustManager createPwmTrustManager( final DomainConfig config, final List<X509Certificate> trustedCertificates )
     {
-        final TrustManagerSettings trustManagerSettings = TrustManagerSettings.fromConfiguration( config );
+        final TrustManagerSettings trustManagerSettings = TrustManagerSettings.fromConfiguration( config.getAppConfig() );
 
         return new PwmTrustManager( trustManagerSettings, trustedCertificates );
     }

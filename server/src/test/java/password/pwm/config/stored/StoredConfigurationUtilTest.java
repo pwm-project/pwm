@@ -22,6 +22,7 @@ package password.pwm.config.stored;
 
 import org.junit.Assert;
 import org.junit.Test;
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.StringValue;
 import password.pwm.error.PwmUnrecoverableException;
@@ -37,21 +38,23 @@ public class StoredConfigurationUtilTest
         final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newConfig();
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
 
-        modifier.writeSetting( PwmSetting.NOTES, null, new StringValue( "notes test" ), null );
+        final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.NOTES, null, PwmConstants.DOMAIN_ID_DEFAULT );
+
+        modifier.writeSetting( key, new StringValue( "notes test" ), null );
 
         final StoredConfiguration newConfig = modifier.newStoredConfiguration();
 
-        final Set<StoredConfigItemKey> modifiedKeys = StoredConfigurationUtil.changedValues( storedConfiguration, newConfig );
+        final Set<StoredConfigKey> modifiedKeys = StoredConfigurationUtil.changedValues( storedConfiguration, newConfig );
         Assert.assertEquals( modifiedKeys.size(), 1 );
-        Assert.assertEquals( modifiedKeys.iterator().next(), StoredConfigItemKey.fromSetting( PwmSetting.NOTES, null ) );
+        Assert.assertEquals( modifiedKeys.iterator().next(), key );
 
 
         final StoredConfigurationModifier modifier2 = StoredConfigurationModifier.newModifier( newConfig );
-        modifier2.resetSetting( PwmSetting.NOTES, null, null );
+        modifier2.resetSetting( key, null );
         final StoredConfiguration resetConfig = modifier2.newStoredConfiguration();
-        final Set<StoredConfigItemKey> resetKeys = StoredConfigurationUtil.changedValues( newConfig, resetConfig );
+        final Set<StoredConfigKey> resetKeys = StoredConfigurationUtil.changedValues( newConfig, resetConfig );
         Assert.assertEquals( resetKeys.size(), 1 );
-        Assert.assertEquals( resetKeys.iterator().next(), StoredConfigItemKey.fromSetting( PwmSetting.NOTES, null ) );
+        Assert.assertEquals( resetKeys.iterator().next(), key );
 
     }
 }

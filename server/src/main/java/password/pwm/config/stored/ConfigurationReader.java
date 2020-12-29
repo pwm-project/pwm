@@ -208,7 +208,7 @@ public class ConfigurationReader
             final String backupDirSetting = domainConfig.readAppProperty( AppProperty.BACKUP_LOCATION );
             if ( backupDirSetting != null && backupDirSetting.length() > 0 )
             {
-                final File pwmPath = pwmDomain.getPwmEnvironment().getApplicationPath();
+                final File pwmPath = pwmDomain.getPwmApplication().getPwmEnvironment().getApplicationPath();
                 backupDirectory = FileSystemUtility.figureFilepath( backupDirSetting, pwmPath );
             }
             backupRotations = Integer.parseInt( domainConfig.readAppProperty( AppProperty.BACKUP_CONFIG_COUNT ) );
@@ -261,12 +261,12 @@ public class ConfigurationReader
     private static void auditModifiedSettings( final PwmDomain pwmDomain, final StoredConfiguration newConfig, final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {
-        final Set<StoredConfigItemKey> changedKeys = StoredConfigurationUtil.changedValues( newConfig, pwmDomain.getConfig().getStoredConfiguration() );
+        final Set<StoredConfigKey> changedKeys = StoredConfigurationUtil.changedValues( newConfig, pwmDomain.getConfig().getStoredConfiguration() );
 
-        for ( final StoredConfigItemKey key : changedKeys )
+        for ( final StoredConfigKey key : changedKeys )
         {
-            if ( key.getRecordType() == StoredConfigItemKey.RecordType.SETTING
-                    || key.getRecordType() == StoredConfigItemKey.RecordType.LOCALE_BUNDLE )
+            if ( key.getRecordType() == StoredConfigKey.RecordType.SETTING
+                    || key.getRecordType() == StoredConfigKey.RecordType.LOCALE_BUNDLE )
             {
                 final Optional<StoredValue> storedValue = newConfig.readStoredValue( key );
                 if ( storedValue.isPresent() )
@@ -308,8 +308,8 @@ public class ConfigurationReader
         LOGGER.info( () -> "saved configuration", () -> TimeDuration.fromCurrent( saveFileStartTime ) );
         if ( pwmDomain != null )
         {
-            final String actualChecksum = storedConfiguration.valueHash();
-            pwmDomain.writeAppAttribute( AppAttribute.CONFIG_HASH, actualChecksum );
+            final String actualChecksum = StoredConfigurationUtil.valueHash( storedConfiguration );
+            pwmDomain.getPwmApplication().writeAppAttribute( AppAttribute.CONFIG_HASH, actualChecksum );
         }
 
         LOGGER.trace( () -> "renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath() );

@@ -20,6 +20,7 @@
 
 package password.pwm.config;
 
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.http.PwmRequest;
 
@@ -30,8 +31,7 @@ public interface SettingUIFunction
     Serializable provideFunction(
             PwmRequest pwmRequest,
             StoredConfigurationModifier modifier,
-            PwmSetting setting,
-            String profile,
+            StoredConfigKey key,
             String extraData
     )
             throws Exception;

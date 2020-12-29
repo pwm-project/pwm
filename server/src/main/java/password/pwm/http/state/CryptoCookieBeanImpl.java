@@ -31,7 +31,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureService;
+import password.pwm.svc.secure.DomainSecureService;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -183,8 +183,8 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
     private static String nameForClass( final PwmRequest pwmRequest, final Class<? extends PwmSessionBean> theClass )
             throws PwmUnrecoverableException
     {
-        final SecureService secureService = pwmRequest.getPwmDomain().getSecureService();
-        return "b-" + StringUtil.truncate( secureService.hash( theClass.getName() ), 8 );
+        final DomainSecureService domainSecureService = pwmRequest.getPwmDomain().getSecureService();
+        return "b-" + StringUtil.truncate( domainSecureService.hash( theClass.getName() ), 8 );
     }
 
     @Override

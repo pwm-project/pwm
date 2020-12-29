@@ -213,7 +213,7 @@ public class CaptchaUtility
 
         if ( cookieValue.equals( COOKIE_SKIP_INSTANCE_VALUE ) )
         {
-            cookieValue = pwmRequest.getPwmDomain().getInstanceID();
+            cookieValue = pwmRequest.getPwmApplication().getInstanceID();
         }
 
         return cookieValue != null && cookieValue.trim().length() > 0 ? cookieValue : null;

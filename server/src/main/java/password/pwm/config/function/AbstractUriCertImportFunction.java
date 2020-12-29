@@ -23,8 +23,8 @@ package password.pwm.config.function;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.ErrorInformation;
@@ -47,15 +47,14 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
     public String provideFunction(
             final PwmRequest pwmRequest,
             final StoredConfigurationModifier modifier,
-            final PwmSetting setting,
-            final String profile,
+            final StoredConfigKey key,
             final String extraData )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final List<X509Certificate> certs;
 
-        final String urlString = getUri( modifier, setting, profile, extraData );
+        final String urlString = getUri( modifier, key, extraData );
         try
         {
             final URI uri = URI.create( urlString );
@@ -81,7 +80,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
 
 
         final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
-        store( certs, modifier, setting, profile, extraData, userIdentity );
+        store( certs, modifier, key, extraData, userIdentity );
 
         final StringBuilder returnStr = new StringBuilder();
         for ( final X509Certificate loopCert : certs )
@@ -94,8 +93,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
 
     abstract String getUri(
             StoredConfigurationModifier modifier,
-            PwmSetting pwmSetting,
-            String profile,
+            StoredConfigKey key,
             String extraData
     )
             throws PwmOperationalException, PwmUnrecoverableException;
@@ -103,15 +101,14 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
 
     void store(
             final List<X509Certificate> certs,
-            final StoredConfigurationModifier storedConfiguration,
-            final PwmSetting pwmSetting,
-            final String profile,
+            final StoredConfigurationModifier modifier,
+            final StoredConfigKey key,
             final String extraData,
             final UserIdentity userIdentity
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        storedConfiguration.writeSetting( pwmSetting, profile, X509CertificateValue.fromX509( certs ), userIdentity );
+        modifier.writeSetting( key, X509CertificateValue.fromX509( certs ), userIdentity );
     }
 
 

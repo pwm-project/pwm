@@ -22,7 +22,8 @@ package password.pwm.http;
 
 import password.pwm.PwmConstants;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.StringUtil;
+
+import java.util.Optional;
 
 public enum HttpHeader
 {
@@ -85,21 +86,8 @@ public enum HttpHeader
         return JavaHelper.enumArrayContainsValue( properties, Property.Sensitive );
     }
 
-    public static HttpHeader forHttpHeader( final String header )
+    public static Optional<HttpHeader> forHttpHeader( final String header )
     {
-        if ( StringUtil.isEmpty( header ) )
-        {
-            return null;
-        }
-
-        for ( final HttpHeader httpHeader : values() )
-        {
-            if ( header.equals( httpHeader.getHttpName() ) )
-            {
-                return httpHeader;
-            }
-        }
-
-        return null;
+        return JavaHelper.readEnumFromPredicate( HttpHeader.class, loopHeader -> header.equals( loopHeader.getHttpName() ) );
     }
 }

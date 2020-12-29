@@ -149,7 +149,7 @@ public class TokenService implements PwmService
             return new PwmOperationalException( errorInformation );
         } );
 
-        if ( pwmDomain.getLocalDB() == null )
+        if ( pwmApplication.getLocalDB() == null )
         {
             LOGGER.trace( () -> "localDB is not available, will remain closed" );
             return;
@@ -168,7 +168,7 @@ public class TokenService implements PwmService
             {
                 case STORE_LOCALDB:
                 {
-                    final DataStore dataStore = new LocalDBDataStore( pwmDomain.getLocalDB(), LocalDB.DB.TOKENS );
+                    final DataStore dataStore = new LocalDBDataStore( pwmApplication.getLocalDB(), LocalDB.DB.TOKENS );
                     tokenMachine = new DataStoreTokenMachine( pwmDomain, this, dataStore );
                     usedStorageMethod = DataStorageMethod.LOCALDB;
                     break;
@@ -176,7 +176,7 @@ public class TokenService implements PwmService
 
                 case STORE_DB:
                 {
-                    final DataStore dataStore = new DatabaseDataStore( pwmDomain.getDatabaseService(), DatabaseTable.TOKENS );
+                    final DataStore dataStore = new DatabaseDataStore( pwmDomain.getPwmApplication().getDatabaseService(), DatabaseTable.TOKENS );
                     tokenMachine = new DataStoreTokenMachine( pwmDomain, this, dataStore );
                     usedStorageMethod = DataStorageMethod.DB;
                     break;
@@ -204,19 +204,19 @@ public class TokenService implements PwmService
             final String errorMsg = "unable to start token manager: " + e.getErrorInformation().getDetailedErrorMsg();
             final ErrorInformation newErrorInformation = new ErrorInformation( e.getError(), errorMsg );
             errorInformation = newErrorInformation;
-            LOGGER.error( () -> newErrorInformation.toDebugStr() );
+            LOGGER.error( newErrorInformation::toDebugStr );
             status = STATUS.CLOSED;
             return;
         }
 
         verifyPwModifyTime = Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.TOKEN_VERIFY_PW_MODIFY_TIME ) );
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         {
             final int cleanerFrequencySeconds = Integer.parseInt( domainConfig.readAppProperty( AppProperty.TOKEN_CLEANER_INTERVAL_SECONDS ) );
             final TimeDuration cleanerFrequency = TimeDuration.of( cleanerFrequencySeconds, TimeDuration.Unit.SECONDS );
-            pwmDomain.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), executorService, TimeDuration.MINUTE, cleanerFrequency );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), executorService, TimeDuration.MINUTE, cleanerFrequency );
             LOGGER.trace( () -> "token cleanup will occur every " + cleanerFrequency.asCompactString() );
         }
 
@@ -791,7 +791,7 @@ public class TokenService implements PwmService
             final PwmDomain pwmDomain = tokenSendInfo.getPwmDomain();
             pwmDomain.getIntruderManager().mark( RecordType.TOKEN_DEST, smsNumber, tokenSendInfo.getSessionLabel() );
 
-            pwmDomain.sendSmsUsingQueue( smsNumber, modifiedMessage, tokenSendInfo.getSessionLabel(), tokenSendInfo.getMacroRequest() );
+            pwmDomain.getPwmApplication().sendSmsUsingQueue( smsNumber, modifiedMessage, tokenSendInfo.getSessionLabel(), tokenSendInfo.getMacroRequest() );
             LOGGER.debug( () -> "token SMS added to send queue for " + smsNumber );
             return true;
         }

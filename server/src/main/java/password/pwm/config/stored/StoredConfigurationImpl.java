@@ -20,33 +20,29 @@
 
 package password.pwm.config.stored;
 
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StringValue;
-import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.LazySupplier;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.HmacAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureEngine;
 
 import java.time.Instant;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Immutable in-memory configuration.
@@ -57,11 +53,9 @@ public class StoredConfigurationImpl implements StoredConfiguration
 {
     private final String createTime;
     private final Instant modifyTime;
-    private final Map<StoredConfigItemKey, StoredValue> storedValues;
-    private final Map<StoredConfigItemKey, ValueMetaData> metaValues;
+    private final Map<StoredConfigKey, StoredValue> storedValues;
+    private final Map<StoredConfigKey, ValueMetaData> metaValues;
     private final PwmSettingTemplateSet templateSet;
-
-    private final transient Supplier<String> valueHashSupplier = new LazySupplier<>( this::valueHashImpl );
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( StoredConfigurationImpl.class );
 
@@ -72,7 +66,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         this.metaValues = Map.copyOf( storedConfigData.getMetaDatas() );
         this.templateSet = readTemplateSet( storedConfigData.getStoredValues() );
 
-        final Map<StoredConfigItemKey, StoredValue> tempMap = removeDefaultSettingValues( storedConfigData.getStoredValues(), templateSet );
+        final Map<StoredConfigKey, StoredValue> tempMap = removeDefaultSettingValues( storedConfigData.getStoredValues(), templateSet );
         this.storedValues = Map.copyOf( tempMap );
     }
 
@@ -85,14 +79,14 @@ public class StoredConfigurationImpl implements StoredConfiguration
         this.templateSet = readTemplateSet( Collections.emptyMap() );
     }
 
-    private static Map<StoredConfigItemKey, StoredValue> removeDefaultSettingValues(
-            final Map<StoredConfigItemKey, StoredValue> valueMap,
+    private static Map<StoredConfigKey, StoredValue> removeDefaultSettingValues(
+            final Map<StoredConfigKey, StoredValue> valueMap,
             final PwmSettingTemplateSet pwmSettingTemplateSet
     )
     {
-        final Predicate<Map.Entry<StoredConfigItemKey, StoredValue>> checkIfValueIsDefault = entry ->
+        final Predicate<Map.Entry<StoredConfigKey, StoredValue>> checkIfValueIsDefault = entry ->
         {
-            if ( StoredConfigItemKey.RecordType.SETTING.equals( entry.getKey().getRecordType() ) )
+            if ( StoredConfigKey.RecordType.SETTING.equals( entry.getKey().getRecordType() ) )
             {
                 final String loopHash = entry.getValue().valueHash();
                 final String defaultHash = entry.getKey().toPwmSetting().getDefaultValue( pwmSettingTemplateSet ).valueHash();
@@ -101,7 +95,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
             return true;
         };
 
-        final Map<StoredConfigItemKey, StoredValue> results = valueMap.entrySet()
+        final Map<StoredConfigKey, StoredValue> results = valueMap.entrySet()
                 .parallelStream()
                 .filter( checkIfValueIsDefault )
                 .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) );
@@ -125,7 +119,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
     @Override
     public Optional<String> readConfigProperty( final ConfigurationProperty propertyName )
     {
-        final StoredConfigItemKey key = StoredConfigItemKey.fromConfigurationProperty( propertyName );
+        final StoredConfigKey key = StoredConfigKey.forConfigurationProperty( propertyName );
         final StoredValue storedValue = storedValues.get( key );
         if ( storedValue != null )
         {
@@ -135,16 +129,9 @@ public class StoredConfigurationImpl implements StoredConfiguration
     }
 
     @Override
-    public boolean isDefaultValue( final PwmSetting setting, final String profileID )
-    {
-        final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID );
-        return !storedValues.containsKey( key );
-    }
-
-    @Override
     public Map<String, String> readLocaleBundleMap( final PwmLocaleBundle pwmLocaleBundle, final String keyName )
     {
-        final StoredConfigItemKey key = StoredConfigItemKey.fromLocaleBundle( pwmLocaleBundle, keyName );
+        final StoredConfigKey key = StoredConfigKey.forLocaleBundle( pwmLocaleBundle, keyName );
         final StoredValue value = storedValues.get( key );
         if ( value != null )
         {
@@ -159,7 +146,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         return templateSet;
     }
 
-    private static PwmSettingTemplateSet readTemplateSet( final Map<StoredConfigItemKey, StoredValue> valueMap )
+    private static PwmSettingTemplateSet readTemplateSet( final Map<StoredConfigKey, StoredValue> valueMap )
     {
         final Set<PwmSettingTemplate> templates = EnumSet.noneOf( PwmSettingTemplate.class );
         readTemplateValue( valueMap, PwmSetting.TEMPLATE_LDAP ).ifPresent( templates::add );
@@ -168,9 +155,9 @@ public class StoredConfigurationImpl implements StoredConfiguration
         return new PwmSettingTemplateSet( templates );
     }
 
-    private static Optional<PwmSettingTemplate> readTemplateValue( final Map<StoredConfigItemKey, StoredValue> valueMap, final PwmSetting pwmSetting )
+    private static Optional<PwmSettingTemplate> readTemplateValue( final Map<StoredConfigKey, StoredValue> valueMap, final PwmSetting pwmSetting )
     {
-        final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( pwmSetting, null );
+        final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, null, PwmConstants.DOMAIN_ID_PLACEHOLDER );
         final StoredValue storedValue = valueMap.get( key );
 
         if ( storedValue != null )
@@ -189,65 +176,16 @@ public class StoredConfigurationImpl implements StoredConfiguration
         return Optional.empty();
     }
 
-    public String toString( final PwmSetting setting, final String profileID )
+    @Override
+    public Stream<StoredConfigKey> keys()
     {
-        final StoredValue storedValue = readSetting( setting, profileID );
-        return setting.getKey() + "=" + storedValue.toDebugString( null );
+        return storedValues.keySet().stream();
     }
 
     @Override
-    public Set<StoredConfigItemKey> modifiedItems()
+    public Optional<ValueMetaData> readSettingMetadata( final StoredConfigKey key )
     {
-        return Collections.unmodifiableSet( storedValues.keySet() );
-    }
-
-    @Override
-    public List<String> profilesForSetting( final PwmSetting pwmSetting )
-    {
-        final Optional<PwmSetting> profileSetting = pwmSetting.getCategory().getProfileSetting();
-        return profileSetting.map( setting -> ValueTypeConverter.valueToProfileID( setting, readSetting( setting, null ) ) )
-                .orElse( Collections.emptyList() );
-    }
-
-    @Override
-    public ValueMetaData readSettingMetadata( final PwmSetting setting, final String profileID )
-    {
-        final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID );
-        return metaValues.get( key );
-    }
-
-    @Override
-    public StoredValue readSetting( final PwmSetting setting, final String profileID )
-    {
-        final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID );
-        return StoredConfigurationUtil.getValueOrDefault( this, key );
-    }
-
-    @Override
-    public String valueHash()
-    {
-        return valueHashSupplier.get();
-    }
-
-    private String valueHashImpl()
-    {
-        final Set<StoredConfigItemKey> modifiedSettings = modifiedItems();
-        final StringBuilder sb = new StringBuilder();
-
-        for ( final StoredConfigItemKey storedConfigItemKey : modifiedSettings )
-        {
-            final StoredValue storedValue = storedValues.get( storedConfigItemKey );
-            sb.append( storedValue.valueHash() );
-        }
-
-        try
-        {
-            return SecureEngine.hmac( HmacAlgorithm.HMAC_SHA_512, getKey(), sb.toString() );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            throw new IllegalStateException( e );
-        }
+        return Optional.ofNullable( metaValues.get( key ) );
     }
 
     private PwmSecurityKey cachedKey;
@@ -275,14 +213,14 @@ public class StoredConfigurationImpl implements StoredConfiguration
     }
 
     @Override
-    public Optional<ValueMetaData> readMetaData( final StoredConfigItemKey storedConfigItemKey )
+    public Optional<ValueMetaData> readMetaData( final StoredConfigKey storedConfigKey )
     {
-        return Optional.ofNullable( metaValues.get( storedConfigItemKey ) );
+        return Optional.ofNullable( metaValues.get( storedConfigKey ) );
     }
 
     @Override
-    public Optional<StoredValue> readStoredValue( final StoredConfigItemKey storedConfigItemKey )
+    public Optional<StoredValue> readStoredValue( final StoredConfigKey storedConfigKey )
     {
-        return Optional.ofNullable( storedValues.get( storedConfigItemKey ) );
+        return Optional.ofNullable( storedValues.get( storedConfigKey ) );
     }
 }

@@ -54,7 +54,7 @@ public class PeopleSearchService implements PwmService
 
         final int maxThreadCount = 5;
 
-        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmDomain, PeopleSearchService.class ), true );
+        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, PeopleSearchService.class ), true );
         threadPoolExecutor = new ThreadPoolExecutor(
                 maxThreadCount,
                 maxThreadCount,

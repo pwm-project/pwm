@@ -48,7 +48,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.zip.CRC32;
 
 public class FileSystemUtility
@@ -97,8 +97,8 @@ public class FileSystemUtility
         {
             executor.shutdown();
             final Map<String, String> debugInfo = new LinkedHashMap<>();
-            debugInfo.put( "bytes", StringUtil.formatDiskSizeforDebug( taskData.getByteCount().get() ) );
-            debugInfo.put( "files", Integer.toString( taskData.getFileCount().get() ) );
+            debugInfo.put( "bytes", StringUtil.formatDiskSizeforDebug( taskData.getByteCount().longValue() ) );
+            debugInfo.put( "files", Long.toString( taskData.getFileCount().longValue() ) );
             debugInfo.put( "duration", TimeDuration.compactFromCurrent( startTime ) );
             LOGGER.trace( () -> "completed file summary load for operation '" + operation + ", " + StringUtil.mapToString( debugInfo ) );
         } );
@@ -107,8 +107,8 @@ public class FileSystemUtility
     @Value
     private static class TaskData
     {
-        private final AtomicLong byteCount = new AtomicLong( 0 );
-        private final AtomicInteger fileCount = new AtomicInteger( 0 );
+        private final LongAdder byteCount = new LongAdder( );
+        private final LongAdder fileCount = new LongAdder( );
         private final AtomicInteger workInProgress = new AtomicInteger( 0 );
         private final Queue<FileSummaryInformation> outputQueue = new ConcurrentLinkedQueue<>();
 
@@ -164,8 +164,8 @@ public class FileSystemUtility
                                     theFile.length(),
                                     crc32( theFile )
                             );
-                            taskData.getByteCount().addAndGet( fileSummaryInformation.getSize() );
-                            taskData.getFileCount().incrementAndGet();
+                            taskData.getByteCount().add( fileSummaryInformation.getSize() );
+                            taskData.getFileCount().increment();
                             taskData.getOutputQueue().offer( fileSummaryInformation );
                         }
                     }

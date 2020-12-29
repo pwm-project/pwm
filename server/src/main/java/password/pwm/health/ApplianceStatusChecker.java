@@ -23,6 +23,7 @@ package password.pwm.health;
 import org.apache.commons.io.FileUtils;
 import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -59,7 +60,7 @@ public class ApplianceStatusChecker implements HealthChecker
     @Override
     public List<HealthRecord> doHealthCheck( final PwmDomain pwmDomain )
     {
-        final boolean isApplianceAvailable = pwmDomain.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Appliance );
+        final boolean isApplianceAvailable = pwmDomain.getPwmApplication().getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Appliance );
 
         if ( !isApplianceAvailable )
         {
@@ -108,26 +109,26 @@ public class ApplianceStatusChecker implements HealthChecker
 
         if ( updateStatus.pendingInstallation )
         {
-            healthRecords.add( HealthRecord.forMessage( HealthMessage.Appliance_PendingUpdates ) );
+            healthRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.Appliance_PendingUpdates ) );
         }
 
         if ( !updateStatus.autoUpdatesEnabled )
         {
-            healthRecords.add( HealthRecord.forMessage( HealthMessage.Appliance_UpdatesNotEnabled ) );
+            healthRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.Appliance_UpdatesNotEnabled ) );
         }
 
         if ( !updateStatus.updateServiceConfigured )
         {
-            healthRecords.add( HealthRecord.forMessage( HealthMessage.Appliance_UpdateServiceNotConfigured ) );
+            healthRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.Appliance_UpdateServiceNotConfigured ) );
         }
 
         return Collections.unmodifiableList( healthRecords );
 
     }
 
-    private String getApplianceAccessToken( final PwmDomain pwmDomain ) throws IOException, PwmOperationalException
+    private String getApplianceAccessToken( final PwmDomain pwmDomain ) throws PwmOperationalException
     {
-        final String tokenFile = pwmDomain.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.ApplianceTokenFile );
+        final String tokenFile = pwmDomain.getPwmApplication().getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.ApplianceTokenFile );
         if ( StringUtil.isEmpty( tokenFile ) )
         {
             final String msg = "unable to determine appliance token, token file environment param "
@@ -142,9 +143,9 @@ public class ApplianceStatusChecker implements HealthChecker
         return "";
     }
 
-    private String figureUrl( final PwmDomain pwmDomain ) throws IOException, PwmOperationalException
+    private String figureUrl( final PwmDomain pwmDomain ) throws PwmOperationalException
     {
-        final String hostnameFile = pwmDomain.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.ApplianceHostnameFile );
+        final String hostnameFile = pwmDomain.getPwmApplication().getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.ApplianceHostnameFile );
         if ( StringUtil.isEmpty( hostnameFile ) )
         {
             final String msg = "unable to determine appliance hostname, hostname file environment param "
@@ -153,7 +154,7 @@ public class ApplianceStatusChecker implements HealthChecker
         }
 
         final String hostname = readFileContents( hostnameFile );
-        final String port = pwmDomain.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.AppliancePort );
+        final String port = pwmDomain.getPwmApplication().getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.AppliancePort );
 
         final String url = "https://" + hostname + ":" + port + "/sspr/appliance-update-status";
         LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "calculated appliance host url as: " + url );

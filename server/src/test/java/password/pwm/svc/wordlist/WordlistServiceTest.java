@@ -158,6 +158,6 @@ public class WordlistServiceTest
         Mockito.when( appConfig.readAppProperty( AppProperty.WORDLIST_BUILTIN_PATH ) ).thenReturn( url.toString() );
 
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), appConfig );
-        return pwmApplication.getDefaultDomain().getWordlistService();
+        return pwmApplication.getWordlistService();
     }
 }

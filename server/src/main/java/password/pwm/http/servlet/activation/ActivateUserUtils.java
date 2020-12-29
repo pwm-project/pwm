@@ -284,7 +284,7 @@ class ActivateUserUtils
             return false;
         }
 
-        pwmDomain.sendSmsUsingQueue(
+        pwmRequest.getPwmApplication().sendSmsUsingQueue(
                 toSmsNumber,
                 message,
                 pwmRequest.getLabel(),

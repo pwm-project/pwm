@@ -27,6 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.config.AppConfig;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfiguration;
@@ -195,7 +196,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     {
         final ConfigurationReader configurationReader = pwmRequest.getContextManager().getConfigReader();
         pwmRequest.setAttribute( PwmRequestAttribute.PageTitle, LocaleHelper.getLocalizedMessage( Config.Title_ConfigManager, pwmRequest ) );
-        pwmRequest.setAttribute( PwmRequestAttribute.ApplicationPath, pwmRequest.getPwmDomain().getPwmEnvironment().getApplicationPath().getAbsolutePath() );
+        pwmRequest.setAttribute( PwmRequestAttribute.ApplicationPath, pwmRequest.getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath() );
         pwmRequest.setAttribute( PwmRequestAttribute.ConfigFilename, configurationReader.getConfigFile().getAbsolutePath() );
         {
             final Instant lastModifyTime = configurationReader.getStoredConfiguration().modifyTime();
@@ -392,7 +393,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
-        final Map<String, String> outputMap = StoredConfigurationUtil.makeDebugMap( storedConfiguration, storedConfiguration.modifiedItems(), pwmRequest.getLocale() );
+        final Map<String, String> outputMap = StoredConfigurationUtil.makeDebugMap( storedConfiguration, storedConfiguration.keys(), pwmRequest.getLocale() );
         pwmRequest.setAttribute( PwmRequestAttribute.ConfigurationSummaryOutput, new LinkedHashMap<>( outputMap ) );
         pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_EDITOR_SUMMARY );
     }
@@ -401,7 +402,8 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
-        final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( storedConfiguration );
+        final AppConfig appConfig = new AppConfig( storedConfiguration );
+        final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( appConfig.getDefaultDomainConfig() );
         pwmRequest.setAttribute( PwmRequestAttribute.LdapPermissionItems, ldapPermissionCalculator );
         pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_PERMISSIONS );
     }
@@ -410,7 +412,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     private void downloadPermissionReportCsv(
             final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+            throws IOException, ServletException
     {
         pwmRequest.getPwmResponse().markAsDownload(
                 HttpContentType.csv,
@@ -422,7 +424,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         {
 
             final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
-            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( storedConfiguration );
+            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( pwmRequest.getDomainConfig() );
 
             for ( final LDAPPermissionCalculator.PermissionRecord permissionRecord : ldapPermissionCalculator.getPermissionRecords() )
             {

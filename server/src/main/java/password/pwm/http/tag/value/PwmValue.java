@@ -189,7 +189,7 @@ public enum PwmValue
         @Override
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmDomain().getInstanceID();
+            return pwmRequest.getPwmApplication().getInstanceID();
 
         }
     }

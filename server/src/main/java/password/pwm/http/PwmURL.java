@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 public class PwmURL
@@ -227,16 +228,16 @@ public class PwmURL
         return isPwmServletURL( PwmServletDefinition.UpdateProfile );
     }
 
-    public PwmServletDefinition forServletDefinition()
+    public Optional<PwmServletDefinition> forServletDefinition()
     {
         for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
         {
             if ( isPwmServletURL( pwmServletDefinition ) )
             {
-                return pwmServletDefinition;
+                return Optional.of( pwmServletDefinition );
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     public boolean isLocalizable( )

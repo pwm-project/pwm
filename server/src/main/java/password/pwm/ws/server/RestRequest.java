@@ -66,7 +66,7 @@ public class RestRequest extends PwmHttpRequestWrapper
             final HttpServletRequest httpServletRequest
     )
     {
-        super( httpServletRequest, pwmDomain.getConfig() );
+        super( httpServletRequest, pwmDomain.getConfig().getAppConfig() );
         this.pwmDomain = pwmDomain;
         this.restAuthentication = restAuthentication;
         this.sessionLabel = sessionLabel;
@@ -106,7 +106,7 @@ public class RestRequest extends PwmHttpRequestWrapper
 
     public Locale getLocale( )
     {
-        final List<Locale> knownLocales = getDomainConfig().getKnownLocales();
+        final List<Locale> knownLocales = getAppConfig().getKnownLocales();
         return LocaleHelper.localeResolver( getHttpServletRequest().getLocale(), knownLocales );
     }
 

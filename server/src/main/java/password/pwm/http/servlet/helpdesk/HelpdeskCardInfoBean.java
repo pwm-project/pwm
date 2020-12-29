@@ -44,6 +44,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @Value
 @Builder
@@ -84,7 +85,8 @@ public class HelpdeskCardInfoBean implements Serializable
         builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
 
         final PhotoDataReader photoDataReader = HelpdeskServlet.photoDataReader( pwmRequest, helpdeskProfile, userIdentity );
-        builder.photoURL( photoDataReader.figurePhotoURL( ) );
+        final Optional<String> optionalPhotoUrl = photoDataReader.figurePhotoURL();
+        optionalPhotoUrl.ifPresent( builder::photoURL );
 
         builder.displayNames( figureDisplayNames( pwmRequest.getPwmDomain(), helpdeskProfile, pwmRequest.getLabel(), userInfo ) );
 

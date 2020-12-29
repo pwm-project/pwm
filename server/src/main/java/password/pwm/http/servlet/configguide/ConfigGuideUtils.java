@@ -35,6 +35,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.function.UserMatchViewerFunction;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -179,7 +180,8 @@ public class ConfigGuideUtils
 
         if ( configGuideBean.getStep() == GuideStep.LDAP_PERMISSIONS )
         {
-            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
+            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(
+                    new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) ).getDefaultDomainConfig() );
             pwmRequest.setAttribute( PwmRequestAttribute.LdapPermissionItems, ldapPermissionCalculator );
         }
 
@@ -284,32 +286,31 @@ public class ConfigGuideUtils
             final ConfigGuideBean configGuideBean = ConfigGuideServlet.getBean( pwmRequest );
             final Map<ConfigGuideFormField, String> form = configGuideBean.getFormData();
             final PwmApplication tempApplication = PwmApplication.createPwmApplication(
-                    pwmRequest.getPwmDomain().getPwmEnvironment().makeRuntimeInstance( new AppConfig( storedConfiguration ) ) );
+                    pwmRequest.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( new AppConfig( storedConfiguration ) ) );
 
             final String adminDN = form.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_USER );
-            final UserIdentity adminIdentity = UserIdentity.createUserIdentity( adminDN, PwmConstants.PROFILE_ID_DEFAULT, PwmConstants.DOMAIN_ID_PLACEHOLDER );
+            final UserIdentity adminIdentity = UserIdentity.create( adminDN, PwmConstants.PROFILE_ID_DEFAULT, PwmConstants.DOMAIN_ID_PLACEHOLDER );
 
             final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
             final Collection<UserIdentity> results = userMatchViewerFunction.discoverMatchingUsers(
                     tempApplication.getDefaultDomain(),
                     1,
                     storedConfiguration,
-                    PwmSetting.QUERY_MATCH_PWM_ADMIN,
-                    null
-            );
+                    StoredConfigKey.forSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, null, PwmConstants.DOMAIN_ID_DEFAULT ) );
 
             if ( !results.isEmpty() )
             {
                 final UserIdentity foundIdentity = results.iterator().next();
                 if ( foundIdentity.canonicalEquals( adminIdentity, tempApplication ) )
                 {
-                    records.add( HealthRecord.forMessage( HealthMessage.LDAP_AdminUserOk ) );
+                    records.add( HealthRecord.forMessage( ConfigGuideForm.DOMAIN_ID, HealthMessage.LDAP_AdminUserOk ) );
                 }
             }
         }
         catch ( final Exception e )
         {
             records.add( HealthRecord.forMessage(
+                    ConfigGuideForm.DOMAIN_ID,
                     HealthMessage.Config_SettingIssue,
                     PwmSetting.LDAP_PROXY_USER_DN.getLabel( pwmRequest.getLocale() ),
                     e.getMessage() ) );
@@ -318,6 +319,7 @@ public class ConfigGuideUtils
         if ( records.isEmpty() )
         {
             records.add( HealthRecord.forMessage(
+                    ConfigGuideForm.DOMAIN_ID,
                     HealthMessage.Config_SettingIssue,
                     PwmSetting.LDAP_PROXY_USER_DN.getLabel( pwmRequest.getLocale() ),
                     "User not found" ) );

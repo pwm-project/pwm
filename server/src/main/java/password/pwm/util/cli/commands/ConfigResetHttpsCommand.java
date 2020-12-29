@@ -20,10 +20,12 @@
 
 package password.pwm.util.cli.commands;
 
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.util.cli.CliParameters;
@@ -55,12 +57,12 @@ public class ConfigResetHttpsCommand
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
         for ( final PwmSetting setting : PwmSettingCategory.HTTPS_SERVER.getSettings() )
         {
-            modifier.resetSetting( setting, null, null );
+            final StoredConfigKey key = StoredConfigKey.forSetting( setting, null, DomainID.systemId() );
+            modifier.resetSetting( key, null );
         }
         configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmDomain(), SessionLabel.CLI_SESSION_LABEL );
         out( "success" );
     }
-
 
     @Override
     public CliParameters getCliParameters( )

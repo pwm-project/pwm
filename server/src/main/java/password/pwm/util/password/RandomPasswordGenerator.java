@@ -129,7 +129,7 @@ public class RandomPasswordGenerator
             {
                 Set<String> seeds = DEFAULT_SEED_PHRASES;
 
-                final SeedlistService seedlistManager = pwmDomain.getSeedlistManager();
+                final SeedlistService seedlistManager = pwmDomain.getPwmApplication().getSeedlistManager();
                 if ( seedlistManager != null && seedlistManager.status() == PwmService.STATUS.OPEN && seedlistManager.size() > 0 )
                 {
                     seeds = new HashSet<>();

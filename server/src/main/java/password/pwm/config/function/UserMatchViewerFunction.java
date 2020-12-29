@@ -31,10 +31,11 @@ import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.UserPermission;
@@ -65,8 +66,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
     public Serializable provideFunction(
             final PwmRequest pwmRequest,
             final StoredConfigurationModifier storedConfiguration,
-            final PwmSetting setting,
-            final String profile,
+            final StoredConfigKey key,
             final String extraData )
             throws Exception
     {
@@ -74,7 +74,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
 
         final Instant startSearchTime = Instant.now();
         final int maxResultSize = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_USER_PERMISSION_MATCH_LIMIT ) );
-        final Collection<UserIdentity> users = discoverMatchingUsers( pwmDomain, maxResultSize, storedConfiguration.newStoredConfiguration(), setting, profile );
+        final Collection<UserIdentity> users = discoverMatchingUsers( pwmDomain, maxResultSize, storedConfiguration.newStoredConfiguration(), key );
         final TimeDuration searchDuration = TimeDuration.fromCurrent( startSearchTime );
 
         final String message = LocaleHelper.getLocalizedMessage(
@@ -95,14 +95,13 @@ public class UserMatchViewerFunction implements SettingUIFunction
             final PwmDomain pwmDomain,
             final int maxResultSize,
             final StoredConfiguration storedConfiguration,
-            final PwmSetting setting,
-            final String profile
+            final StoredConfigKey key
     )
             throws Exception
     {
         final AppConfig config = new AppConfig( storedConfiguration );
-        final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmDomain.getPwmEnvironment().makeRuntimeInstance( config ) );
-        final StoredValue storedValue = storedConfiguration.readSetting( setting, profile );
+        final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmDomain.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( config ) );
+        final StoredValue storedValue = StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
         final List<UserPermission> permissions = ValueTypeConverter.valueToUserPermissions( storedValue );
 
         validateUserPermissionLdapValues( tempApplication.getDefaultDomain(), permissions );

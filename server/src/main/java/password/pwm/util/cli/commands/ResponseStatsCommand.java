@@ -23,8 +23,8 @@ package password.pwm.util.cli.commands;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -46,6 +46,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -102,8 +104,8 @@ public class ResponseStatsCommand extends AbstractCliCommand
         for ( final UserIdentity userIdentity : userIdentities )
         {
             userCounter++;
-            final ResponseInfoBean responseInfoBean = crService.readUserResponseInfo( null, userIdentity, pwmDomain.getProxiedChaiUser( userIdentity ) );
-            makeStatistics( responseStats, responseInfoBean );
+            final Optional<ResponseInfoBean> responseInfoBean = crService.readUserResponseInfo( null, userIdentity, pwmDomain.getProxiedChaiUser( userIdentity ) );
+            responseInfoBean.ifPresent( infoBean -> makeStatistics( responseStats, infoBean ) );
         }
         timer.cancel();
         return responseStats;
@@ -111,48 +113,45 @@ public class ResponseStatsCommand extends AbstractCliCommand
 
     static void makeStatistics( final ResponseStats responseStats, final ResponseInfoBean responseInfoBean )
     {
-        if ( responseInfoBean != null )
+        Objects.requireNonNull( responseInfoBean );
         {
+            final Map<Challenge, String> crMap = responseInfoBean.getCrMap();
+            if ( crMap != null )
             {
-                final Map<Challenge, String> crMap = responseInfoBean.getCrMap();
-                if ( crMap != null )
+                for ( final Challenge challenge : crMap.keySet() )
                 {
-                    for ( final Challenge challenge : crMap.keySet() )
+                    final String challengeText = challenge.getChallengeText();
+                    if ( challengeText != null && !challengeText.isEmpty() )
                     {
-                        final String challengeText = challenge.getChallengeText();
-                        if ( challengeText != null && !challengeText.isEmpty() )
+                        if ( !responseStats.challengeTextOccurrence.containsKey( challengeText ) )
                         {
-                            if ( !responseStats.challengeTextOccurrence.containsKey( challengeText ) )
-                            {
-                                responseStats.challengeTextOccurrence.put( challengeText, 0 );
-                            }
-                            responseStats.challengeTextOccurrence.put( challengeText,
-                                    1 + responseStats.challengeTextOccurrence.get( challengeText ) );
+                            responseStats.challengeTextOccurrence.put( challengeText, 0 );
                         }
-                    }
-                }
-            }
-            {
-                final Map<Challenge, String> helpdeskCrMap = responseInfoBean.getHelpdeskCrMap();
-                if ( helpdeskCrMap != null )
-                {
-                    for ( final Challenge challenge : helpdeskCrMap.keySet() )
-                    {
-                        final String challengeText = challenge.getChallengeText();
-                        if ( challengeText != null && !challengeText.isEmpty() )
-                        {
-                            if ( !responseStats.helpdeskChallengeTextOccurrence.containsKey( challengeText ) )
-                            {
-                                responseStats.helpdeskChallengeTextOccurrence.put( challengeText, 0 );
-                            }
-                            responseStats.helpdeskChallengeTextOccurrence.put( challengeText,
-                                    1 + responseStats.helpdeskChallengeTextOccurrence.get( challengeText ) );
-                        }
+                        responseStats.challengeTextOccurrence.put( challengeText,
+                                1 + responseStats.challengeTextOccurrence.get( challengeText ) );
                     }
                 }
             }
         }
-
+        {
+            final Map<Challenge, String> helpdeskCrMap = responseInfoBean.getHelpdeskCrMap();
+            if ( helpdeskCrMap != null )
+            {
+                for ( final Challenge challenge : helpdeskCrMap.keySet() )
+                {
+                    final String challengeText = challenge.getChallengeText();
+                    if ( challengeText != null && !challengeText.isEmpty() )
+                    {
+                        if ( !responseStats.helpdeskChallengeTextOccurrence.containsKey( challengeText ) )
+                        {
+                            responseStats.helpdeskChallengeTextOccurrence.put( challengeText, 0 );
+                        }
+                        responseStats.helpdeskChallengeTextOccurrence.put( challengeText,
+                                1 + responseStats.helpdeskChallengeTextOccurrence.get( challengeText ) );
+                    }
+                }
+            }
+        }
     }
 
     private static List<UserIdentity> readAllUsersFromLdap(

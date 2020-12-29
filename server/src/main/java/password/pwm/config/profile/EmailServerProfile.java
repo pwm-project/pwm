@@ -20,7 +20,6 @@
 
 package password.pwm.config.profile;
 
-import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfiguration;
 
 import java.util.Locale;
@@ -44,8 +43,7 @@ public class EmailServerProfile extends AbstractProfile
     @Override
     public String getDisplayName( final Locale locale )
     {
-        final String value = this.readSettingAsLocalizedString( PwmSetting.EMAIL_SERVERS, locale );
-        return value != null && !value.isEmpty() ? value : this.getIdentifier();
+        return this.getIdentifier();
     }
 
     public static class EmailServerProfileFactory implements ProfileFactory

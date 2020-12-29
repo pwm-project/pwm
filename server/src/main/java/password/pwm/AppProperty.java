@@ -403,18 +403,6 @@ public enum AppProperty
         return key;
     }
 
-    public static AppProperty forKey( final String key )
-    {
-        for ( final AppProperty appProperty : AppProperty.values() )
-        {
-            if ( appProperty.getKey().equals( key ) )
-            {
-                return appProperty;
-            }
-        }
-        return null;
-    }
-
     public String getDefaultValue( )
     {
         if ( defaultValue == null )

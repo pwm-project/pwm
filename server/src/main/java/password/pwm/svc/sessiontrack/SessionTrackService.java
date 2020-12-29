@@ -36,6 +36,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Admin;
+import password.pwm.ldap.LdapConnectionService;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.util.i18n.LocaleHelper;
@@ -69,6 +70,7 @@ public class SessionTrackService implements PwmService
             .build();
 
     private PwmDomain pwmDomain;
+
 
     @Override
     public STATUS status( )
@@ -120,7 +122,7 @@ public class SessionTrackService implements PwmService
 
     private Set<PwmSession> copyOfSessionSet( )
     {
-        return new HashSet<>( pwmSessions.keySet() );
+        return Set.copyOf(  pwmSessions.keySet() );
     }
 
     public Map<DebugKey, String> getDebugData( )
@@ -128,20 +130,12 @@ public class SessionTrackService implements PwmService
         try
         {
             final Collection<PwmSession> sessionCopy = copyOfSessionSet();
-            int sessionCounter = 0;
-            long sizeTotal = 0;
-            for ( final PwmSession pwmSession : sessionCopy )
-            {
-                try
-                {
-                    sizeTotal += pwmSession.size();
-                    sessionCounter++;
-                }
-                catch ( final Exception e )
-                {
-                    LOGGER.error( () -> "error during session size calculation: " + e.getMessage() );
-                }
-            }
+            final int sessionCounter = sessionCopy.size();
+            final long sizeTotal = sessionCopy.stream()
+                    .map( PwmSession::size )
+                    .map( Long::valueOf )
+                    .reduce( 0L, Long::sum );
+
             final Map<DebugKey, String> returnMap = new EnumMap<>( DebugKey.class );
             returnMap.put( DebugKey.HttpSessionCount, String.valueOf( sessionCounter ) );
             returnMap.put( DebugKey.HttpSessionTotalSize, String.valueOf( sizeTotal ) );
@@ -172,7 +166,7 @@ public class SessionTrackService implements PwmService
     public Iterator<SessionStateInfoBean> getSessionInfoIterator( )
     {
         final Iterator<PwmSession> sessionIterator = new HashSet<>( currentValidSessionSet() ).iterator();
-        return new Iterator<SessionStateInfoBean>()
+        return new Iterator<>()
         {
             @Override
             public boolean hasNext( )
@@ -319,5 +313,14 @@ public class SessionTrackService implements PwmService
         }
 
         throw new IllegalStateException( "unable to generate unique sessionID value" );
+    }
+
+    public static long totalLdapConnectionCount( final PwmApplication pwmApplication )
+    {
+        return pwmApplication.getDomains().values().stream()
+                .map( PwmDomain::getLdapConnectionService )
+                .map( LdapConnectionService::connectionCount )
+                .map( Long::valueOf )
+                .reduce( 0L, Long::sum );
     }
 }

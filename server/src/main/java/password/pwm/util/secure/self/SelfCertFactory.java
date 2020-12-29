@@ -27,7 +27,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureService;
+import password.pwm.svc.secure.DomainSecureService;
 
 import java.io.IOException;
 import java.net.URI;
@@ -67,7 +67,7 @@ public class SelfCertFactory
 
     public static KeyStore generateNewCert(
         final Settings settings,
-        final SecureService secureService,
+        final DomainSecureService domainSecureService,
         final PasswordData password,
         final String alias
     )
@@ -75,7 +75,7 @@ public class SelfCertFactory
     {
         final SelfCertGenerator selfCertGenerator = new SelfCertGenerator(
             settings,
-            secureService );
+                domainSecureService );
         final StoredCertData storedCertData = selfCertGenerator.generateNewCertificate( makeSubjectName( settings ) );
         return storedCertToKeyStore( storedCertData, alias, password );
     }

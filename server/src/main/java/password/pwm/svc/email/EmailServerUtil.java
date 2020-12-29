@@ -33,6 +33,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -437,13 +438,21 @@ public class EmailServerUtil
                 final Transport transport = EmailServerUtil.makeSmtpTransport( emailServer );
                 if ( !transport.isConnected() )
                 {
-                    records.add( HealthRecord.forMessage( HealthMessage.Email_ConnectFailure, emailServer.getId(), "unable to connect" ) );
+                    records.add( HealthRecord.forMessage(
+                            DomainID.systemId(),
+                            HealthMessage.Email_ConnectFailure,
+                            emailServer.getId(),
+                            "unable to connect" ) );
                 }
                 transport.close();
             }
             catch ( final Exception e )
             {
-                records.add( HealthRecord.forMessage( HealthMessage.Email_ConnectFailure, emailServer.getId(), e.getMessage() ) );
+                records.add( HealthRecord.forMessage(
+                        DomainID.systemId(),
+                        HealthMessage.Email_ConnectFailure,
+                        emailServer.getId(),
+                        e.getMessage() ) );
             }
         }
 

@@ -47,6 +47,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -66,14 +67,14 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
     {
         final IntermediateRepresentation intermediateRepresentation = readIntermediateRep( inputStream );
 
-        final Map<StoredConfigItemKey, StoredValue> storedValueMap = new HashMap<>();
+        final Map<StoredConfigKey, StoredValue> storedValueMap = new HashMap<>();
         for ( final SerializedValue serializedValue : intermediateRepresentation.getSerializedValues() )
         {
             try
             {
-                final StoredConfigItemKey key = serializedValue.getKey();
+                final StoredConfigKey key = serializedValue.getKey();
                 System.out.println( key.toString() );
-                if ( key.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
+                if ( key.getRecordType() == StoredConfigKey.RecordType.SETTING )
                 {
                     System.out.println( key.toPwmSetting().getSyntax() );
                     System.out.println( key.toPwmSetting().getKey() );
@@ -82,7 +83,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
                 final PwmSettingSyntax syntax = key.getSyntax();
                 final StoredValue storedValue;
                 if (
-                        StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() )
+                        StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() )
                                 && key.toPwmSetting().getSyntax().equals( PwmSettingSyntax.FILE )
                 )
                 {
@@ -114,7 +115,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
             }
         }
 
-        final Map<StoredConfigItemKey, ValueMetaData> valueMetaDataMap = new HashMap<>();
+        final Map<StoredConfigKey, ValueMetaData> valueMetaDataMap = new HashMap<>();
         for ( final SerializedMetaValue serializedMetaValue : intermediateRepresentation.serializedMetaValues )
         {
             valueMetaDataMap.put( serializedMetaValue.getKey(), serializedMetaValue.getValueMetaData() );
@@ -220,7 +221,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
     {
         final Map<String, ImmutableByteArray> exRefs = new LinkedHashMap<>();
         final List<SerializedValue> serializedValues = new ArrayList<>();
-        for ( final StoredConfigItemKey key : storedConfiguration.modifiedItems() )
+        for ( final StoredConfigKey key : storedConfiguration.keys().collect( Collectors.toList() ) )
         {
             final Optional<StoredValue> storedValue = storedConfiguration.readStoredValue( key );
             if ( storedValue.isPresent() )
@@ -228,7 +229,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
                 final PwmSettingSyntax syntax;
                 final StoredValue value;
                 if (
-                        StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() )
+                        StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() )
                                 && key.toPwmSetting().getSyntax().equals( PwmSettingSyntax.FILE )
                 )
                 {
@@ -258,7 +259,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
         }
 
         final List<SerializedMetaValue> metaValues = new ArrayList<>();
-        for ( final StoredConfigItemKey key : storedConfiguration.modifiedItems() )
+        for ( final StoredConfigKey key : storedConfiguration.keys().collect( Collectors.toList() ) )
         {
             final Optional<ValueMetaData> valueMetaData = storedConfiguration.readMetaData( key );
             valueMetaData.ifPresent( metaData -> metaValues.add( new SerializedMetaValue( key, metaData ) ) );
@@ -291,7 +292,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
     @Value
     private static class SerializedValue implements Serializable
     {
-        private StoredConfigItemKey key;
+        private StoredConfigKey key;
         private PwmSettingSyntax syntax;
         private String valueData;
     }
@@ -305,7 +306,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
     @Value
     private static class SerializedMetaValue implements Serializable
     {
-        private StoredConfigItemKey key;
+        private StoredConfigKey key;
         private ValueMetaData valueMetaData;
     }
 

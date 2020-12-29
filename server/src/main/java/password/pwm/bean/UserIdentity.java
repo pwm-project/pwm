@@ -38,6 +38,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
 import java.util.Comparator;
@@ -47,6 +48,7 @@ import java.util.StringTokenizer;
 @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
 public class UserIdentity implements Serializable, Comparable<UserIdentity>
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( UserIdentity.class );
     private static final long serialVersionUID = 1L;
 
     private static final String CRYPO_HEADER = "ui_C-";
@@ -61,6 +63,11 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             .thenComparing(
                     UserIdentity::getDomainID,
                     Comparator.nullsLast( Comparator.naturalOrder() ) );
+
+    public static final String XML_DOMAIN = "domain";
+    public static final String XML_LDAP_PROFILE = "ldapProfile";
+    public static final String XML_DISTINGUISHED_NAME = "distinguishedName";
+    public static final String XML_USER_IDENTITY = "userIdentity";
 
 
     private transient String obfuscatedValue;
@@ -88,7 +95,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         this.canonical = canonical;
     }
 
-    public static UserIdentity createUserIdentity(
+    public static UserIdentity create(
             final String userDN,
             final String ldapProfile,
             final DomainID domainID,
@@ -167,7 +174,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
 
     public String toDelimitedKey( )
     {
-        return this.getLdapProfileID() + DELIM_SEPARATOR + this.getUserDN() + DELIM_SEPARATOR + this.getDomainID().toString();
+        return JsonUtil.serialize( this );
     }
 
     public String toDisplayString( )
@@ -203,24 +210,37 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
     {
         JavaHelper.requireNonEmpty( key );
 
+        try
+        {
+            return JsonUtil.deserialize( key, UserIdentity.class );
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.trace( () -> "unable to deserialize UserIdentity: " + key + " using JSON method: " + e.getMessage() );
+        }
+
+        // old style
         final StringTokenizer st = new StringTokenizer( key, DELIM_SEPARATOR );
 
-        final DomainID domainID;
+        DomainID domainID = PwmConstants.DOMAIN_ID_PLACEHOLDER;
         if ( st.countTokens() < 2 )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "not enough tokens while parsing delimited identity key" ) );
         }
-
-        if ( st.countTokens() > 2 )
+        else if ( st.countTokens() > 2 )
         {
-            final String domainStr = st.nextToken();
-            domainID = DomainID.create( domainStr );
+            String domainStr = "";
+            try
+            {
+                domainStr = st.nextToken();
+                domainID = DomainID.create( domainStr );
+            }
+            catch ( final Exception e )
+            {
+                final String fDomainStr = domainStr;
+                LOGGER.trace( () -> "error decoding DomainID '" + fDomainStr + "' from delimited UserIdentity: " + e.getMessage() );
+            }
         }
-        else
-        {
-            domainID = PwmConstants.DOMAIN_ID_PLACEHOLDER;
-        }
-
 
         if ( st.countTokens() > 3 )
         {
@@ -228,9 +248,15 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         }
         final String profileID = st.nextToken();
         final String userDN = st.nextToken();
-        return createUserIdentity( userDN, profileID, domainID );
+        return create( userDN, profileID, domainID );
     }
 
+    /**
+     * Attempt to de-serialize value using delimited or obfuscated key.
+     *
+     * @deprecated  Should be used by calling {@link #fromDelimitedKey(String)} or {@link #fromObfuscatedKey(String, PwmApplication)}.
+     */
+    @Deprecated
     public static UserIdentity fromKey( final String key, final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
@@ -294,7 +320,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             return this;
         }
 
-        final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( this );
+        final ChaiUser chaiUser = pwmApplication.getDomains().get( this.getDomainID() ).getProxiedChaiUser( this );
         final String userDN;
         try
         {
@@ -304,7 +330,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
-        final UserIdentity canonicalziedIdentity = createUserIdentity( userDN, this.getLdapProfileID(), this.getDomainID() );
+        final UserIdentity canonicalziedIdentity = create( userDN, this.getLdapProfileID(), this.getDomainID() );
         canonicalziedIdentity.canonical = true;
         return canonicalziedIdentity;
     }

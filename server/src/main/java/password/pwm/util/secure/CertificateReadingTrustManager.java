@@ -50,7 +50,7 @@ public class CertificateReadingTrustManager implements X509TrustManager
     {
         this.readCertificateFlags = readCertificateFlags;
         this.wrappedTrustManager = wrappedTrustManager;
-        this.trustManagerSettings = TrustManagerSettings.fromConfiguration( domainConfig );
+        this.trustManagerSettings = TrustManagerSettings.fromConfiguration( domainConfig.getAppConfig() );
     }
 
     public static CertificateReadingTrustManager newCertReaderTrustManager(

@@ -88,7 +88,7 @@ import password.pwm.util.operations.OtpService;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.util.password.RandomPasswordGenerator;
-import password.pwm.util.secure.SecureService;
+import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
 import password.pwm.ws.server.rest.RestRandomPasswordServer;
@@ -827,8 +827,8 @@ public class HelpdeskServlet extends ControlledPwmServlet
         tokenData.setToken( tokenKey );
         tokenData.setIssueDate( Instant.now() );
 
-        final SecureService secureService = pwmRequest.getPwmDomain().getSecureService();
-        helpdeskVerificationRequestBean.setTokenData( secureService.encryptObjectToString( tokenData ) );
+        final DomainSecureService domainSecureService = pwmRequest.getPwmDomain().getSecureService();
+        helpdeskVerificationRequestBean.setTokenData( domainSecureService.encryptObjectToString( tokenData ) );
 
         final RestResultBean restResultBean = RestResultBean.withData( helpdeskVerificationRequestBean );
         pwmRequest.outputJsonResult( restResultBean );
@@ -855,8 +855,8 @@ public class HelpdeskServlet extends ControlledPwmServlet
         );
         final String token = helpdeskVerificationRequestBean.getCode();
 
-        final SecureService secureService = pwmRequest.getPwmDomain().getSecureService();
-        final HelpdeskVerificationRequestBean.TokenData tokenData = secureService.decryptObject(
+        final DomainSecureService domainSecureService = pwmRequest.getPwmDomain().getSecureService();
+        final HelpdeskVerificationRequestBean.TokenData tokenData = domainSecureService.decryptObject(
                 helpdeskVerificationRequestBean.getTokenData(),
                 HelpdeskVerificationRequestBean.TokenData.class
         );

@@ -266,11 +266,11 @@ public class ResourceServletService implements PwmService
 
     private static void checksumResourceFilePath( final PwmDomain pwmDomain, final ChecksumOutputStream checksumStream )
     {
-        if ( pwmDomain.getPwmEnvironment().getContextManager() != null )
+        if ( pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager() != null )
         {
             try
             {
-                final File webInfPath = pwmDomain.getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                final File webInfPath = pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager().locateWebInfFilePath();
                 if ( webInfPath != null && webInfPath.exists() )
                 {
                     final File basePath = webInfPath.getParentFile();

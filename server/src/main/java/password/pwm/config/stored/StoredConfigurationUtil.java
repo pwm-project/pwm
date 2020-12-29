@@ -31,7 +31,9 @@ import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.value.LocalizedStringArrayValue;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.StoredValue;
+import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
+import password.pwm.config.value.ValueFactory;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -44,19 +46,19 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.BCrypt;
+import password.pwm.util.secure.HmacAlgorithm;
 import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.SecureEngine;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -103,11 +105,12 @@ public abstract class StoredConfigurationUtil
             final StoredConfiguration storedConfiguration
     )
     {
-        final StoredValue storedValue = storedConfiguration.readSetting( profileSetting, null );
+        final StoredConfigKey key = StoredConfigKey.forSetting( profileSetting, null, PwmConstants.DOMAIN_ID_PLACEHOLDER );
+        final StoredValue storedValue = StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
         final List<String> settingValues = ValueTypeConverter.valueToStringArray( storedValue );
-        final List<String> profiles = new ArrayList<>( settingValues );
-        profiles.removeIf( StringUtil::isEmpty );
-        return Collections.unmodifiableList( profiles );
+        return settingValues.stream()
+                .filter( value -> !StringUtil.isEmpty( value ) )
+                .collect( Collectors.toUnmodifiableList() );
     }
 
     public static StoredConfiguration copyConfigAndBlankAllPasswords( final StoredConfiguration storedConfig )
@@ -115,24 +118,24 @@ public abstract class StoredConfigurationUtil
     {
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfig );
 
-        final Consumer<StoredConfigItemKey> valueModifier = PwmExceptionLoggingConsumer.wrapConsumer( storedConfigItemKey ->
+        final Consumer<StoredConfigKey> valueModifier = PwmExceptionLoggingConsumer.wrapConsumer( storedConfigItemKey ->
         {
-            if ( storedConfigItemKey.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
+            if ( storedConfigItemKey.getRecordType() == StoredConfigKey.RecordType.SETTING )
             {
                 final PwmSetting pwmSetting = storedConfigItemKey.toPwmSetting();
                 if ( pwmSetting.getSyntax() == PwmSettingSyntax.PASSWORD )
                 {
-                    final ValueMetaData valueMetaData = storedConfig.readSettingMetadata( pwmSetting, storedConfigItemKey.getProfileID() );
-                    final UserIdentity userIdentity = valueMetaData == null ? null : valueMetaData.getUserIdentity();
+                    final Optional<ValueMetaData> valueMetaData = storedConfig.readSettingMetadata( storedConfigItemKey );
+                    final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
                     final PasswordValue passwordValue = new PasswordValue( new PasswordData( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT ) );
-                    modifier.writeSetting( pwmSetting, storedConfigItemKey.getProfileID(), passwordValue, userIdentity );
+                    modifier.writeSetting( storedConfigItemKey, passwordValue, userIdentity );
                 }
             }
         } );
 
-        storedConfig.modifiedItems()
-                .parallelStream()
-                .filter( ( key ) -> StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() ) )
+        storedConfig.keys()
+                .parallel()
+                .filter( ( key ) -> StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() ) )
                 .forEach( valueModifier );
 
         final Optional<String> pwdHash = storedConfig.readConfigProperty( ConfigurationProperty.PASSWORD_HASH );
@@ -146,169 +149,42 @@ public abstract class StoredConfigurationUtil
 
     public static List<String> validateValues( final StoredConfiguration storedConfiguration )
     {
-        final Function<StoredConfigItemKey, Stream<String>> validateSettingFunction = storedConfigItemKey ->
+        final Function<StoredConfigKey, Stream<String>> validateSettingFunction = storedConfigItemKey ->
         {
             final PwmSetting pwmSetting = storedConfigItemKey.toPwmSetting();
             final String profileID = storedConfigItemKey.getProfileID();
-            final StoredValue loopValue = storedConfiguration.readSetting( pwmSetting, profileID );
+            final Optional<StoredValue> loopValue = storedConfiguration.readStoredValue( storedConfigItemKey );
 
-            try
+            if ( loopValue.isPresent() )
             {
-                final List<String> errors = loopValue.validateValue( pwmSetting );
-                for ( final String loopError : errors )
+                try
                 {
-                    return Stream.of( pwmSetting.toMenuLocationDebug( storedConfigItemKey.getProfileID(), PwmConstants.DEFAULT_LOCALE ) + " - " + loopError );
+                    final List<String> errors = loopValue.get().validateValue( pwmSetting );
+                    for ( final String loopError : errors )
+                    {
+                        return Stream.of( pwmSetting.toMenuLocationDebug( storedConfigItemKey.getProfileID(), PwmConstants.DEFAULT_LOCALE ) + " - " + loopError );
+                    }
                 }
-            }
-            catch ( final Exception e )
-            {
-                LOGGER.error( () -> "unexpected error during validate value for "
-                        + pwmSetting.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) + ", error: "
-                        + e.getMessage(), e );
+                catch ( final Exception e )
+                {
+                    LOGGER.error( () -> "unexpected error during validate value for "
+                            + pwmSetting.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) + ", error: "
+                            + e.getMessage(), e );
+                }
             }
             return Stream.empty();
         };
 
         final Instant startTime = Instant.now();
-        final List<String> errorStrings = storedConfiguration.modifiedItems()
-                .parallelStream()
-                .filter( key -> StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() ) )
+        final List<String> errorStrings = storedConfiguration.keys()
+                .parallel()
+                .filter( key -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                 .flatMap( validateSettingFunction )
                 .collect( Collectors.toList() );
 
 
         LOGGER.trace( () -> "StoredConfiguration validator completed", () -> TimeDuration.fromCurrent( startTime ) );
         return Collections.unmodifiableList( errorStrings );
-    }
-
-    public static Set<StoredConfigItemKey> search( final StoredConfiguration storedConfiguration, final String searchTerm, final Locale locale )
-    {
-        return new SettingSearchMachine( storedConfiguration, searchTerm, locale ).search();
-    }
-
-    public static boolean matchSetting(
-            final StoredConfiguration storedConfiguration,
-            final PwmSetting setting,
-            final StoredValue storedValue,
-            final String term,
-            final Locale defaultLocale )
-    {
-        return new SettingSearchMachine( storedConfiguration, term, defaultLocale ).matchSetting( setting, storedValue, term );
-    }
-
-    private static class SettingSearchMachine
-    {
-        private final StoredConfiguration storedConfiguration;
-        private final String searchTerm;
-        private final Locale locale;
-
-        private SettingSearchMachine( final StoredConfiguration storedConfiguration, final String searchTerm, final Locale locale )
-        {
-            this.storedConfiguration = storedConfiguration;
-            this.searchTerm = searchTerm;
-            this.locale = locale;
-        }
-
-        public Set<StoredConfigItemKey> search()
-        {
-            if ( StringUtil.isEmpty( searchTerm ) )
-            {
-                return Collections.emptySet();
-            }
-
-            return allPossibleSettingKeysForConfiguration( storedConfiguration )
-                    .parallelStream()
-                    .filter( s -> s.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
-                    .filter( this::matchSetting )
-                    .collect( Collectors.toCollection( TreeSet::new ) );
-        }
-
-        private boolean matchSetting(
-                final StoredConfigItemKey storedConfigItemKey
-        )
-        {
-            final PwmSetting pwmSetting = storedConfigItemKey.toPwmSetting();
-            final StoredValue value = storedConfiguration.readSetting( pwmSetting, storedConfigItemKey.getProfileID() );
-
-            return StringUtil.whitespaceSplit( searchTerm )
-                    .parallelStream()
-                    .allMatch( s -> matchSetting( pwmSetting, value, s ) );
-        }
-
-        private boolean matchSetting( final PwmSetting setting, final StoredValue value, final String searchTerm )
-        {
-            if ( setting.isHidden() || setting.getCategory().isHidden() )
-            {
-                return false;
-            }
-
-            if ( searchTerm == null || searchTerm.isEmpty() )
-            {
-                return false;
-            }
-
-            final String lowerSearchTerm = searchTerm.toLowerCase();
-
-            {
-                final String key = setting.getKey();
-                if ( key.toLowerCase().contains( lowerSearchTerm ) )
-                {
-                    return true;
-                }
-            }
-            {
-                final String label = setting.getLabel( locale );
-                if ( label.toLowerCase().contains( lowerSearchTerm ) )
-                {
-                    return true;
-                }
-            }
-            {
-                final String descr = setting.getDescription( locale );
-                if ( descr.toLowerCase().contains( lowerSearchTerm ) )
-                {
-                    return true;
-                }
-            }
-            {
-                final String menuLocationString = setting.toMenuLocationDebug( null, locale );
-                if ( menuLocationString.toLowerCase().contains( lowerSearchTerm ) )
-                {
-                    return true;
-                }
-            }
-
-            if ( setting.isConfidential() )
-            {
-                return false;
-            }
-            {
-                final String valueDebug = value.toDebugString( locale );
-                if ( valueDebug != null && valueDebug.toLowerCase().contains( lowerSearchTerm ) )
-                {
-                    return true;
-                }
-            }
-            if ( PwmSettingSyntax.SELECT == setting.getSyntax()
-                    || PwmSettingSyntax.OPTIONLIST == setting.getSyntax()
-                    || PwmSettingSyntax.VERIFICATION_METHOD == setting.getSyntax()
-            )
-            {
-                for ( final String key : setting.getOptions().keySet() )
-                {
-                    if ( key.toLowerCase().contains( lowerSearchTerm ) )
-                    {
-                        return true;
-                    }
-                    final String optionValue = setting.getOptions().get( key );
-                    if ( optionValue != null && optionValue.toLowerCase().contains( lowerSearchTerm ) )
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
     }
 
     public static boolean verifyPassword( final StoredConfiguration storedConfiguration, final String password )
@@ -355,13 +231,15 @@ public abstract class StoredConfigurationUtil
     public static void initNewRandomSecurityKey( final StoredConfigurationModifier modifier )
             throws PwmUnrecoverableException
     {
-        if ( !modifier.newStoredConfiguration().isDefaultValue( PwmSetting.PWM_SECURITY_KEY, null ) )
+        final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.PWM_SECURITY_KEY, null, DomainID.systemId() );
+
+        if ( !isDefaultValue( modifier.newStoredConfiguration(), key ) )
         {
             return;
         }
 
         modifier.writeSetting(
-                PwmSetting.PWM_SECURITY_KEY, null,
+                key,
                 new PasswordValue( new PasswordData( PwmRandom.getInstance().alphaNumericString( 1024 ) ) ),
                 null
         );
@@ -371,56 +249,73 @@ public abstract class StoredConfigurationUtil
 
     public static Map<String, String> makeDebugMap(
             final StoredConfiguration storedConfiguration,
-            final Collection<StoredConfigItemKey> interestedItems,
+            final Stream<StoredConfigKey> interestedItems,
             final Locale locale
     )
     {
-        return interestedItems.stream()
-                .filter( ( key ) -> !key.isRecordType( StoredConfigItemKey.RecordType.PROPERTY ) )
+        return interestedItems
+                .filter( ( key ) -> !key.isRecordType( StoredConfigKey.RecordType.PROPERTY ) )
                 .collect( Collectors.toUnmodifiableMap(
                         ( key ) -> key.getLabel( locale ),
                         ( key ) -> StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key ).toDebugString( locale )
                 ) );
     }
 
-    public static Set<StoredConfigItemKey> allPossibleSettingKeysForConfiguration(
+    public static Set<StoredConfigKey> allPossibleSettingKeysForConfiguration(
             final StoredConfiguration storedConfiguration
     )
     {
-        final Function<PwmSetting, Stream<StoredConfigItemKey>> function = loopSetting ->
+        final List<DomainID> allDomainIds = new ArrayList<>( StoredConfigurationUtil.domainList( storedConfiguration ) );
+        allDomainIds.add( DomainID.systemId() );
+
+        return allDomainIds.stream()
+                .parallel()
+                .flatMap( domainID -> allPossibleSettingKeysForDomain( storedConfiguration, domainID ) )
+                .collect( Collectors.toUnmodifiableSet() );
+    }
+
+    private static Stream<StoredConfigKey> allPossibleSettingKeysForDomain(
+            final StoredConfiguration storedConfiguration,
+            final DomainID domainID
+    )
+    {
+        final Function<PwmSetting, Stream<StoredConfigKey>> function = loopSetting ->
         {
             if ( loopSetting.getCategory().hasProfiles() )
             {
-                return storedConfiguration.profilesForSetting( loopSetting )
+                return StoredConfigurationUtil.profilesForSetting( loopSetting, storedConfiguration )
                         .stream()
-                        .map( profileId -> StoredConfigItemKey.fromSetting( loopSetting, profileId ) )
+                        .map( profileId -> StoredConfigKey.forSetting( loopSetting, profileId, domainID ) )
                         .collect( Collectors.toList() )
                         .stream();
             }
             else
             {
-                return Stream.of( StoredConfigItemKey.fromSetting( loopSetting, null ) );
+                return Stream.of( StoredConfigKey.forSetting( loopSetting, null, domainID ) );
             }
         };
 
         return PwmSetting.sortedValues().stream()
+                .filter( ( setting ) -> domainID.inScope( setting.getCategory().getScope() ) )
                 .parallel()
                 .flatMap( function )
-                .collect( Collectors.toUnmodifiableSet() );
+                .collect( Collectors.toUnmodifiableSet() )
+                .stream();
     }
 
-    public static Set<StoredConfigItemKey> changedValues (
+    public static Set<StoredConfigKey> changedValues (
             final StoredConfiguration originalConfiguration,
             final StoredConfiguration modifiedConfiguration
     )
     {
         final Instant startTime = Instant.now();
 
-        final Set<StoredConfigItemKey> interestedReferences = new HashSet<>( originalConfiguration.modifiedItems() );
-        interestedReferences.addAll( modifiedConfiguration.modifiedItems() );
+        final Stream<StoredConfigKey> interestedReferences = Stream.concat(
+                originalConfiguration.keys(),
+                modifiedConfiguration.keys() ).distinct();
 
-        final Set<StoredConfigItemKey> deltaReferences = interestedReferences
-                .parallelStream()
+        final Set<StoredConfigKey> deltaReferences = interestedReferences
+                .parallel()
                 .filter( reference ->
                         {
                             final Optional<String> hash1 = originalConfiguration.readStoredValue( reference ).map( StoredValue::valueHash );
@@ -436,7 +331,7 @@ public abstract class StoredConfigurationUtil
 
     public static StoredValue getValueOrDefault(
             final StoredConfiguration storedConfiguration,
-            final StoredConfigItemKey key
+            final StoredConfigKey key
     )
     {
         final Optional<StoredValue> storedValue = storedConfiguration.readStoredValue( key );
@@ -469,11 +364,110 @@ public abstract class StoredConfigurationUtil
         throw new IllegalStateException();
     }
 
-    public static List<String> domainList( final StoredConfiguration storedConfiguration )
+    public static List<DomainID> domainList( final StoredConfiguration storedConfiguration )
     {
-        final StoredConfigItemKey domainListKey = StoredConfigItemKey.fromSetting( PwmSetting.DOMAIN_LIST, null, DomainID.systemId() );
+        final StoredConfigKey domainListKey = StoredConfigKey.forSetting( PwmSetting.DOMAIN_LIST, null, DomainID.systemId() );
         final StoredValue storedStringArray = getValueOrDefault( storedConfiguration, domainListKey );
         final List<String> domainList = ValueTypeConverter.valueToStringArray( storedStringArray );
-        return Collections.unmodifiableList( domainList );
+        return domainList.stream().map( DomainID::create ).sorted().collect( Collectors.toUnmodifiableList() );
+    }
+
+    public static StoredConfiguration copyProfileID(
+            final StoredConfiguration oldStoredConfiguration,
+            final DomainID domainID,
+            final PwmSettingCategory category,
+            final String sourceID,
+            final String destinationID,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+
+        if ( !category.hasProfiles() )
+        {
+            throw PwmUnrecoverableException.newException(
+                    PwmError.ERROR_INVALID_CONFIG, "can not copy profile ID for category " + category + ", category does not have profiles" );
+        }
+
+        final PwmSetting profileSetting = category.getProfileSetting().orElseThrow( IllegalStateException::new );
+        final List<String> existingProfiles = StoredConfigurationUtil.profilesForSetting( profileSetting, oldStoredConfiguration );
+        if ( !existingProfiles.contains( sourceID ) )
+        {
+            throw PwmUnrecoverableException.newException(
+                    PwmError.ERROR_INVALID_CONFIG, "can not copy profile ID for category, source profileID '" + sourceID + "' does not exist" );
+        }
+
+        if ( existingProfiles.contains( destinationID ) )
+        {
+            throw PwmUnrecoverableException.newException(
+                    PwmError.ERROR_INVALID_CONFIG, "can not copy profile ID for category, destination profileID '" + destinationID + "' already exists" );
+        }
+
+        final Collection<PwmSettingCategory> interestedCategories = PwmSettingCategory.associatedProfileCategories( category );
+
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( oldStoredConfiguration );
+        for ( final PwmSettingCategory interestedCategory : interestedCategories )
+        {
+            for ( final PwmSetting pwmSetting : interestedCategory.getSettings() )
+            {
+                final StoredConfigKey existingKey = StoredConfigKey.forSetting( pwmSetting, sourceID, domainID );
+                final Optional<StoredValue> existingValue = oldStoredConfiguration.readStoredValue( existingKey );
+                if ( existingValue.isPresent() )
+                {
+                    final StoredConfigKey destinationKey = StoredConfigKey.forSetting( pwmSetting, destinationID, domainID );
+                    modifier.writeSetting( destinationKey, existingValue.get(), userIdentity );
+                }
+            }
+        }
+
+        {
+            final List<String> newProfileIDList = new ArrayList<>( existingProfiles );
+            newProfileIDList.add( destinationID );
+            final StoredConfigKey key = StoredConfigKey.forSetting( profileSetting, null, domainID );
+            final StoredValue value = new StringArrayValue( newProfileIDList );
+            modifier.writeSetting( key, value, userIdentity );
+        }
+
+        return modifier.newStoredConfiguration();
+    }
+
+    public static String valueHash( final StoredConfiguration storedConfiguration )
+    {
+        final Instant startTime = Instant.now();
+        final StringBuilder sb = new StringBuilder();
+
+        storedConfiguration.keys()
+                .map( storedConfiguration::readStoredValue )
+                .flatMap( Optional::stream )
+                .forEach( v -> sb.append( v.valueHash() ) );
+
+        final String output;
+        try
+        {
+            output = SecureEngine.hmac( HmacAlgorithm.HMAC_SHA_512, storedConfiguration.getKey(), sb.toString() );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            throw new IllegalStateException( e );
+        }
+
+        LOGGER.trace( () -> "calculated StoredConfiguration hash: " + output, () -> TimeDuration.fromCurrent( startTime ) );
+        return output;
+    }
+
+    public static boolean isDefaultValue( final StoredConfiguration storedConfiguration, final StoredConfigKey key )
+    {
+        if ( !key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
+        {
+            throw new IllegalArgumentException( "key must be for SETTING type" );
+        }
+
+        final Optional<StoredValue> existingValue = storedConfiguration.readStoredValue( key );
+        if ( existingValue.isEmpty() )
+        {
+            return false;
+        }
+
+        return ValueFactory.isDefaultValue( storedConfiguration.getTemplateSet(), key.toPwmSetting(), existingValue.get() );
     }
 }

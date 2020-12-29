@@ -29,13 +29,14 @@ import password.pwm.util.localdb.LocalDBDataStore;
 
 public abstract class DataStoreFactory
 {
-    public static DataStore autoDbOrLocalDBstore( final PwmDomain pwmDomain, final DatabaseTable table, final LocalDB.DB db ) throws PwmUnrecoverableException
+    public static DataStore autoDbOrLocalDBstore( final PwmDomain pwmDomain, final DatabaseTable table, final LocalDB.DB db )
+            throws PwmUnrecoverableException
     {
         if ( pwmDomain.getConfig().getAppConfig().hasDbConfigured() )
         {
-            return new DatabaseDataStore( pwmDomain.getDatabaseService(), table );
+            return new DatabaseDataStore( pwmDomain.getPwmApplication().getDatabaseService(), table );
         }
 
-        return new LocalDBDataStore( pwmDomain.getLocalDB(), db );
+        return new LocalDBDataStore( pwmDomain.getPwmApplication().getLocalDB(), db );
     }
 }

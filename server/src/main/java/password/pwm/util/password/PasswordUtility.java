@@ -172,7 +172,7 @@ public class PasswordUtility
 
         message = message.replace( "%TOKEN%", newPassword.getStringValue() );
 
-        pwmDomain.sendSmsUsingQueue( toNumber, message, null, macroRequest );
+        pwmDomain.getPwmApplication().sendSmsUsingQueue( toNumber, message, null, macroRequest );
         LOGGER.debug( () -> String.format( "password SMS added to send queue for %s", toNumber ) );
         return null;
     }
@@ -423,7 +423,7 @@ public class PasswordUtility
         {
             final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
             bindDN = chaiProvider.getChaiConfiguration().getSetting( ChaiSetting.BIND_DN );
-            bindIsSelf = userIdentity.canonicalEquals( UserIdentity.createUserIdentity(
+            bindIsSelf = userIdentity.canonicalEquals( UserIdentity.create(
                     bindDN,
                     userIdentity.getLdapProfileID(),
                     pwmDomain.getDomainID() ),

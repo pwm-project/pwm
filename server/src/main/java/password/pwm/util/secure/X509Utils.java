@@ -217,7 +217,7 @@ public class X509Utils
 
     private static ReadCertificateFlag[] readCertificateFlagsFromConfig( final DomainConfig domainConfig )
     {
-        final CertificateMatchingMode mode = domainConfig.readCertificateMatchingMode();
+        final CertificateMatchingMode mode = domainConfig.getAppConfig().readCertificateMatchingMode();
         return mode == CertificateMatchingMode.CA_ONLY
                 ? Collections.singletonList( X509Utils.ReadCertificateFlag.ReadOnlyRootCA ).toArray( new X509Utils.ReadCertificateFlag[0] )
                 : new X509Utils.ReadCertificateFlag[0];
@@ -294,45 +294,45 @@ public class X509Utils
 
     public static List<X509Certificate> certificatesFromBase64s( final Collection<String> b64certificates )
     {
-        final Function<String, X509Certificate> mapFunction = s ->
+        final Function<String, Optional<X509Certificate>> mapFunction = s ->
         {
             try
             {
-                return certificateFromBase64( s );
+                return Optional.of( certificateFromBase64( s ) );
             }
             catch ( final Exception e )
             {
                 LOGGER.error( () -> "error decoding certificate from b64: " + e.getMessage() );
             }
-            return null;
+            return Optional.empty();
         };
 
         return b64certificates
                 .stream()
                 .map( mapFunction )
-                .filter( Objects::nonNull )
+                .flatMap( Optional::stream )
                 .collect( Collectors.toList() );
     }
 
     public static List<String> certificatesToBase64s( final Collection<X509Certificate> certificates )
     {
-        final Function<X509Certificate, String> mapFunction = s ->
+        final Function<X509Certificate, Optional<String>> mapFunction = s ->
         {
             try
             {
-                return certificateToBase64( s );
+                return Optional.of( certificateToBase64( s ) );
             }
             catch ( final Exception e )
             {
                 LOGGER.error( () -> "error encoding certificate to b64: " + e.getMessage() );
             }
-            return null;
+            return Optional.empty();
         };
 
         return certificates
                 .stream()
                 .map( mapFunction )
-                .filter( Objects::nonNull )
+                .flatMap( Optional::stream )
                 .collect( Collectors.toList() );
     }
 

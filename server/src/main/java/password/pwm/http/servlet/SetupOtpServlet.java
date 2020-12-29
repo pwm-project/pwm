@@ -289,7 +289,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
 
         final String bodyString = pwmRequest.readRequestBodyAsString();
         final Map<String, String> clientValues = JsonUtil.deserializeStringMap( bodyString );
-        final String code = Validator.sanitizeInputValue( pwmDomain.getConfig(), clientValues.get( "code" ), 1024 );
+        final String code = Validator.sanitizeInputValue( pwmRequest.getAppConfig(), clientValues.get( "code" ), 1024 );
 
         try
         {

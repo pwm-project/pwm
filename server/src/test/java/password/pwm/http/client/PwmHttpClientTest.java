@@ -31,8 +31,10 @@ import org.junit.rules.TemporaryFolder;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.StringArrayValue;
@@ -257,7 +259,9 @@ public class PwmHttpClientTest
         final StoredConfigurationModifier modifier = StoredConfigurationFactory.newModifiableConfig();
         if ( !StringUtil.isEmpty( proxyUrl ) )
         {
-            modifier.writeSetting( PwmSetting.HTTP_PROXY_URL, null, new StringValue( proxyUrl ), null );
+            modifier.writeSetting(
+                    StoredConfigKey.forSetting( PwmSetting.HTTP_PROXY_URL, null, DomainID.systemId() ),
+                    new StringValue( proxyUrl ), null );
         }
 
         {
@@ -271,7 +275,9 @@ public class PwmHttpClientTest
             {
                 array.add( AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE.getKey() + "=" + "true" );
             }
-            modifier.writeSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null, new StringArrayValue( array ), null );
+            modifier.writeSetting(
+                    StoredConfigKey.forSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null, DomainID.systemId() ),
+                    new StringArrayValue( array ), null );
 
         }
         return new AppConfig( modifier.newStoredConfiguration() );

@@ -246,11 +246,11 @@ public class PwmHttpClient implements AutoCloseable
             for ( final Map.Entry<String, String> headerEntry : headers.entrySet() )
             {
                 msg.append( "\n" );
-                final HttpHeader httpHeader = HttpHeader.forHttpHeader( headerEntry.getKey() );
-                if ( httpHeader != null )
+                final Optional<HttpHeader> httpHeader = HttpHeader.forHttpHeader( headerEntry.getKey() );
+                if ( httpHeader.isPresent() )
                 {
-                    final boolean sensitive = httpHeader.isSensitive();
-                    msg.append( "  header: " ).append( httpHeader.getHttpName() ).append( "=" );
+                    final boolean sensitive = httpHeader.get().isSensitive();
+                    msg.append( "  header: " ).append( httpHeader.get().getHttpName() ).append( "=" );
 
                     if ( sensitive )
                     {

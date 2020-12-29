@@ -73,6 +73,9 @@ public class ConfigurationCleanerTest
     @Test
     public void testProfiledSettings()
     {
+        final List<String> profileList = StoredConfigurationUtil.profilesForSetting( PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER, domainConfig.getStoredConfiguration() );
+        Assert.assertEquals( 1, profileList.size() );
+
         final PeopleSearchProfile peopleSearchProfile = domainConfig.getPeopleSearchProfiles().get( PwmConstants.PROFILE_ID_DEFAULT );
         final List<UserPermission> userPermissionList = peopleSearchProfile.readSettingAsUserPermission( PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER );
         final UserPermission userPermission = userPermissionList.iterator().next();

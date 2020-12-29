@@ -298,7 +298,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
         }
 
         final Locale resolvedLocale = LocaleHelper.localeResolver( locale, policyMetaData.getChangePasswordText().keySet() );
-        return Optional.of( policyMetaData.getChangePasswordText().get( resolvedLocale ) );
+        return Optional.ofNullable( policyMetaData.getChangePasswordText().get( resolvedLocale ) );
     }
 
     public Optional<String> getRuleText( final Locale locale )

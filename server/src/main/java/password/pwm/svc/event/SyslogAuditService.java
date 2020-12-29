@@ -139,9 +139,10 @@ public class SyslogAuditService
                 .retryInterval( TimeDuration.of( Long.parseLong( domainConfig.readAppProperty( AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS ) ), TimeDuration.Unit.MILLISECONDS ) )
                 .build();
 
-        final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmDomain, pwmDomain.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE );
+        final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(
+                pwmDomain.getPwmApplication(), pwmDomain.getPwmApplication().getLocalDB(), LocalDB.DB.SYSLOG_QUEUE );
 
-        workQueueProcessor = new WorkQueueProcessor<>( pwmDomain, localDBStoredQueue, settings, new SyslogItemProcessor(), this.getClass() );
+        workQueueProcessor = new WorkQueueProcessor<>( pwmDomain.getPwmApplication(), localDBStoredQueue, settings, new SyslogItemProcessor(), this.getClass() );
     }
 
     private class SyslogItemProcessor implements WorkQueueProcessor.ItemProcessor<String>
@@ -243,6 +244,7 @@ public class SyslogAuditService
             if ( TimeDuration.fromCurrent( errorInformation.getDate() ).isShorterThan( WARNING_WINDOW_MS ) )
             {
                 healthRecords.add( HealthRecord.forMessage(
+                        domainConfig.getDomainID(),
                         HealthMessage.ServiceError,
                         HealthTopic.Audit,
                         this.getClass().getSimpleName(),

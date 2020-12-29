@@ -109,7 +109,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
                 input.getMethodSettings(),
                 IdentityVerificationMethod.class );
 
-        for ( final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.availableValues() )
+        for ( final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.values() )
         {
             if ( !tempMap.containsKey( recoveryVerificationMethods ) )
             {
@@ -117,7 +117,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
             }
         }
 
-        return new VerificationMethodSettings( tempMap, input.getMinOptionalRequired() );
+        return new VerificationMethodSettings( Collections.unmodifiableMap( tempMap ), input.getMinOptionalRequired() );
     }
 
     public static StoredValueFactory factory( )

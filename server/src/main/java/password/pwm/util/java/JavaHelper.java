@@ -21,13 +21,9 @@
 package password.pwm.util.java;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import jetbrains.exodus.core.dataStructures.hash.LinkedHashMap;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
-import password.pwm.config.DomainConfig;
-import password.pwm.config.PwmSetting;
-import password.pwm.http.ContextManager;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.logging.PwmLogger;
 
@@ -45,18 +41,16 @@ import java.lang.management.LockInfo;
 import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -65,6 +59,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.LongAccumulator;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -173,7 +168,7 @@ public class JavaHelper
     public static <E extends Enum<E>> Map<String, String> enumMapToStringMap( final Map<E, String> inputMap )
     {
         return Collections.unmodifiableMap( inputMap.entrySet().stream()
-                .collect( Collectors.toMap( entry -> entry.getKey().name(), Map.Entry::getValue, ( a, b ) -> b, LinkedHashMap::new ) ) );
+                .collect( Collectors.toMap( entry -> entry.getKey().name(), Map.Entry::getValue, ( a, b ) -> b, java.util.LinkedHashMap::new ) ) );
     }
 
     public static <E extends Enum<E>> E readEnumFromString( final Class<E> enumClass, final E defaultValue, final String input )
@@ -511,19 +506,9 @@ public class JavaHelper
         return sb.toString();
     }
 
-    public static String readEulaText( final ContextManager contextManager, final String filename )
-            throws IOException
-    {
-        final String path = PwmConstants.URL_PREFIX_PUBLIC + "/resources/text/" + filename;
-        final InputStream inputStream = contextManager.getResourceAsStream( path );
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        copyWhilePredicate( inputStream, byteArrayOutputStream, o -> true );
-        return byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET.name() );
-    }
-
     public static boolean isEmpty( final Collection collection )
     {
-        return collection == null ? true : collection.isEmpty();
+        return collection == null || collection.isEmpty();
     }
 
     public static boolean isEmpty( final Map map )
@@ -615,47 +600,18 @@ public class JavaHelper
         return returnMap;
     }
 
-    public static Optional<String> deriveLocalServerHostname( final DomainConfig domainConfig )
+    public static LongAccumulator newAbsLongAccumulator()
     {
-        if ( domainConfig != null )
+        return new LongAccumulator( ( left, right ) ->
         {
-            final String siteUrl = domainConfig.readSettingAsString( PwmSetting.PWM_SITE_URL );
-            if ( !StringUtil.isEmpty( siteUrl ) )
-            {
-                try
-                {
-                    final URI parsedUri = URI.create( siteUrl );
-                    {
-                        final String uriHost = parsedUri.getHost();
-                        return Optional.ofNullable( uriHost );
-                    }
-                }
-                catch ( final IllegalArgumentException e )
-                {
-                    LOGGER.trace( () -> " error parsing siteURL hostname: " + e.getMessage() );
-                }
-            }
-        }
-        return Optional.empty();
+            final long newValue = left + right;
+            return newValue < 0 ? 0 : newValue;
+        }, 0L );
     }
 
-    public static class SortedProperties extends Properties
+    public static Properties newSortedProperties()
     {
-        @Override
-        public synchronized Enumeration<Object> keys()
-        {
-            return Collections.enumeration( super.keySet().stream()
-                    .sorted( Comparator.comparing( Object::toString ) )
-                    .collect( Collectors.toList() ) );
-        }
-
-        @Override
-        public synchronized Set<Map.Entry<Object, Object>> entrySet()
-        {
-            return super.entrySet().stream()
-                    .sorted( Comparator.comparing( o -> o.getKey().toString() ) )
-                    .collect( Collectors.toCollection( LinkedHashSet::new ) );
-        }
+        return new org.apache.commons.collections4.properties.SortedProperties();
     }
 
     public static int silentParseInt( final String input, final int defaultValue )
@@ -705,11 +661,7 @@ public class JavaHelper
 
     public static String requireNonEmpty( final String input )
     {
-        if ( StringUtil.isEmpty( input ) )
-        {
-            throw new NullPointerException();
-        }
-        return input;
+        return requireNonEmpty( input, "non-empty string value required" );
     }
 
     public static String requireNonEmpty( final String input, final String message )
@@ -725,7 +677,7 @@ public class JavaHelper
     {
         if ( source == null )
         {
-            return new EnumMap<K, V>( classOfT );
+            return new EnumMap<>( classOfT );
         }
 
         final EnumMap<K, V> returnMap = new EnumMap<>( classOfT );

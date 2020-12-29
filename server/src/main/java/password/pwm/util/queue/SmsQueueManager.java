@@ -26,6 +26,7 @@ import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -63,6 +64,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -103,7 +105,7 @@ public class SmsQueueManager implements PwmService
     private SmsSendEngine smsSendEngine;
 
     private WorkQueueProcessor<SmsItemBean> workQueueProcessor;
-    private PwmDomain pwmDomain;
+    private PwmApplication pwmApplication;
     private STATUS status = STATUS.CLOSED;
     private ErrorInformation lastError;
 
@@ -115,8 +117,8 @@ public class SmsQueueManager implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
-        if ( pwmDomain.getLocalDB() == null || pwmDomain.getLocalDB().status() != LocalDB.Status.OPEN )
+        this.pwmApplication = Objects.requireNonNull( pwmApplication );
+        if ( this.pwmApplication.getLocalDB() == null || this.pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
             LOGGER.warn( () -> "localdb is not open,  will remain closed" );
             status = STATUS.CLOSED;
@@ -124,19 +126,19 @@ public class SmsQueueManager implements PwmService
         }
 
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
-                .maxEvents( Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.QUEUE_SMS_MAX_COUNT ) ) )
-                .retryDiscardAge( TimeDuration.of( pwmDomain.getConfig().readSettingAsLong( PwmSetting.SMS_MAX_QUEUE_AGE ), TimeDuration.Unit.SECONDS ) )
+                .maxEvents( Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.QUEUE_SMS_MAX_COUNT ) ) )
+                .retryDiscardAge( TimeDuration.of( pwmApplication.getConfig().readSettingAsLong( PwmSetting.SMS_MAX_QUEUE_AGE ), TimeDuration.Unit.SECONDS ) )
                 .retryInterval( TimeDuration.of(
-                        Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.QUEUE_SMS_RETRY_TIMEOUT_MS ) ),
+                        Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.QUEUE_SMS_RETRY_TIMEOUT_MS ) ),
                         TimeDuration.Unit.MILLISECONDS )
                 )
                 .build();
 
-        final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmDomain, pwmDomain.getLocalDB(), LocalDB.DB.SMS_QUEUE );
+        final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( this.pwmApplication, this.pwmApplication.getLocalDB(), LocalDB.DB.SMS_QUEUE );
 
-        workQueueProcessor = new WorkQueueProcessor<>( pwmDomain, localDBStoredQueue, settings, new SmsItemProcessor(), this.getClass() );
+        workQueueProcessor = new WorkQueueProcessor<>( this.pwmApplication, localDBStoredQueue, settings, new SmsItemProcessor(), this.getClass() );
 
-        smsSendEngine = new SmsSendEngine( pwmDomain, pwmDomain.getConfig() );
+        smsSendEngine = new SmsSendEngine( this.pwmApplication, this.pwmApplication.getConfig() );
 
         status = STATUS.OPEN;
     }
@@ -152,20 +154,20 @@ public class SmsQueueManager implements PwmService
                 {
                     smsSendEngine.sendSms( workItem.getTo(), msgPart, workItem.getSessionLabel() );
                 }
-                StatisticsManager.incrementStat( pwmDomain, Statistic.SMS_SEND_SUCCESSES );
+                StatisticsManager.incrementStat( pwmApplication, Statistic.SMS_SEND_SUCCESSES );
                 lastError = null;
             }
             catch ( final PwmUnrecoverableException e )
             {
-                StatisticsManager.incrementStat( pwmDomain, Statistic.SMS_SEND_DISCARDS );
-                StatisticsManager.incrementStat( pwmDomain, Statistic.SMS_SEND_FAILURES );
+                StatisticsManager.incrementStat( pwmApplication, Statistic.SMS_SEND_DISCARDS );
+                StatisticsManager.incrementStat( pwmApplication, Statistic.SMS_SEND_FAILURES );
                 LOGGER.error( () -> "discarding sms message due to permanent failure: " + e.getErrorInformation().toDebugStr() );
                 lastError = e.getErrorInformation();
                 return WorkQueueProcessor.ProcessResult.FAILED;
             }
             catch ( final PwmOperationalException e )
             {
-                StatisticsManager.incrementStat( pwmDomain, Statistic.SMS_SEND_FAILURES );
+                StatisticsManager.incrementStat( pwmApplication, Statistic.SMS_SEND_FAILURES );
                 lastError = e.getErrorInformation();
                 return WorkQueueProcessor.ProcessResult.RETRY;
             }
@@ -208,17 +210,17 @@ public class SmsQueueManager implements PwmService
     )
             throws PwmUnrecoverableException
     {
-        final boolean shorten = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.SMS_USE_URL_SHORTENER );
+        final boolean shorten = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.SMS_USE_URL_SHORTENER );
         if ( shorten )
         {
             final String message = smsItem.getMessage();
-            final String shortenedMessage = pwmDomain.getUrlShortener().shortenUrlInText( message );
+            final String shortenedMessage = pwmApplication.getUrlShortener().shortenUrlInText( message );
             return new SmsItemBean( smsItem.getTo(), shortenedMessage, smsItem.getSessionLabel() );
         }
         return smsItem;
     }
 
-    public static boolean smsIsConfigured( final DomainConfig config )
+    public static boolean smsIsConfigured( final AppConfig config )
     {
         final String gatewayUrl = config.readSettingAsString( PwmSetting.SMS_GATEWAY_URL );
         final String gatewayUser = config.readSettingAsString( PwmSetting.SMS_GATEWAY_USER );
@@ -240,8 +242,7 @@ public class SmsQueueManager implements PwmService
 
     boolean determineIfItemCanBeDelivered( final SmsItemBean smsItem )
     {
-        final DomainConfig config = pwmDomain.getConfig();
-        if ( !smsIsConfigured( config ) )
+        if ( !smsIsConfigured( pwmApplication.getConfig() ) )
         {
             return false;
         }
@@ -284,9 +285,12 @@ public class SmsQueueManager implements PwmService
     {
         if ( lastError != null )
         {
-            return Collections.singletonList( HealthRecord.forMessage( HealthMessage.SMS_SendFailure, lastError.toDebugStr() ) );
+            return Collections.singletonList( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.SMS_SendFailure,
+                    lastError.toDebugStr() ) );
         }
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
@@ -310,7 +314,7 @@ public class SmsQueueManager implements PwmService
 
     private List<String> splitMessage( final String input )
     {
-        final int size = ( int ) pwmDomain.getConfig().readSettingAsLong( PwmSetting.SMS_MAX_TEXT_LENGTH );
+        final int size = ( int ) pwmApplication.getConfig().readSettingAsLong( PwmSetting.SMS_MAX_TEXT_LENGTH );
 
         final List<String> returnObj = new ArrayList<>( ( input.length() + size - 1 ) / size );
 
@@ -477,13 +481,13 @@ public class SmsQueueManager implements PwmService
     private static class SmsSendEngine
     {
         private static final PwmLogger LOGGER = PwmLogger.forClass( SmsSendEngine.class );
-        private final PwmDomain pwmDomain;
-        private final DomainConfig config;
+        private final PwmApplication pwmApplication;
+        private final AppConfig config;
         private String lastResponseBody;
 
-        private SmsSendEngine( final PwmDomain pwmDomain, final DomainConfig domainConfig )
+        private SmsSendEngine( final PwmApplication pwmApplication, final AppConfig domainConfig )
         {
-            this.pwmDomain = pwmDomain;
+            this.pwmApplication = pwmApplication;
             this.config = domainConfig;
         }
 
@@ -502,7 +506,7 @@ public class SmsQueueManager implements PwmService
             {
                 if ( JavaHelper.isEmpty( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) ) )
                 {
-                    pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( );
+                    pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( );
                 }
                 else
                 {
@@ -511,7 +515,7 @@ public class SmsQueueManager implements PwmService
                             .certificates( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) )
                             .build();
 
-                    pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( clientConfiguration );
+                    pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( clientConfiguration );
                 }
             }
 
@@ -523,7 +527,7 @@ public class SmsQueueManager implements PwmService
                 final String responseBody = pwmHttpClientResponse.getBody();
                 lastResponseBody = responseBody;
 
-                determineIfResultSuccessful( config, resultCode, responseBody );
+                determineIfResultSuccessful( config.getDefaultDomainConfig(), resultCode, responseBody );
                 LOGGER.debug( () -> "SMS send successful, HTTP status: " + resultCode );
             }
             catch ( final PwmUnrecoverableException e )
@@ -552,12 +556,12 @@ public class SmsQueueManager implements PwmService
                 final String senderId = config.readSettingAsString( PwmSetting.SMS_SENDER_ID );
                 requestData = requestData.replace( TOKEN_SENDERID, smsDataEncode( senderId, encoding ) );
                 requestData = requestData.replace( TOKEN_MESSAGE, smsDataEncode( message, encoding ) );
-                requestData = requestData.replace( TOKEN_TO, smsDataEncode( formatSmsNumber( config, to ), encoding ) );
+                requestData = requestData.replace( TOKEN_TO, smsDataEncode( formatSmsNumber( config.getDefaultDomainConfig(), to ), encoding ) );
             }
 
             if ( requestData.contains( TOKEN_REQUESTID ) )
             {
-                final PwmRandom pwmRandom = pwmDomain.getSecureService().pwmRandom();
+                final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
                 final String chars = config.readSettingAsString( PwmSetting.SMS_REQUESTID_CHARS );
                 final int idLength = Long.valueOf( config.readSettingAsLong( PwmSetting.SMS_REQUESTID_LENGTH ) ).intValue();
                 final String requestId = pwmRandom.alphaNumericString( chars, idLength );
@@ -675,7 +679,7 @@ public class SmsQueueManager implements PwmService
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        final SmsSendEngine smsSendEngine = new SmsSendEngine( pwmDomain, domainConfig );
+        final SmsSendEngine smsSendEngine = new SmsSendEngine( pwmDomain.getPwmApplication(), domainConfig.getAppConfig() );
         smsSendEngine.sendSms( smsItemBean.getTo(), smsItemBean.getMessage(), sessionLabel );
         return smsSendEngine.getLastResponseBody();
     }

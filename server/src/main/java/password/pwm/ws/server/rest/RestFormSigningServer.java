@@ -37,7 +37,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureService;
+import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.ws.server.RestAuthenticationType;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
@@ -97,7 +97,7 @@ public class RestFormSigningServer extends RestServlet
         {
             if ( !JavaHelper.isEmpty( inputFormData ) )
             {
-                final SecureService securityService = restRequest.getDomain().getSecureService();
+                final DomainSecureService securityService = restRequest.getDomain().getSecureService();
                 final SignedFormData signedFormData = new SignedFormData( Instant.now(), inputFormData );
                 final String signedValue = securityService.encryptObjectToString( signedFormData );
                 StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_SIGNING_FORM );

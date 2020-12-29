@@ -54,6 +54,7 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -66,19 +67,16 @@ public class HealthMonitor implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HealthMonitor.class );
 
-    private static final List<HealthChecker> HEALTH_CHECKERS;
+    private static final List<HealthChecker> HEALTH_CHECKERS = List.of(
+            new LDAPHealthChecker(),
+            new JavaChecker(),
+            new CertificateChecker(),
+            new ConfigurationChecker(),
+            new LocalDBHealthChecker(),
+            new ApplianceStatusChecker() );
 
-    static
-    {
-        final List<HealthChecker> records = new ArrayList<>();
-        records.add( new LDAPHealthChecker() );
-        records.add( new JavaChecker() );
-        records.add( new ConfigurationChecker() );
-        records.add( new LocalDBHealthChecker() );
-        records.add( new CertificateChecker() );
-        records.add( new ApplianceStatusChecker() );
-        HEALTH_CHECKERS = records;
-    }
+    private static final List<HealthSupplier> HEALTH_SUPPLIERS = List.of(
+        new CertificateChecker() );
 
     private ExecutorService executorService;
     private ExecutorService supportZipWriterService;
@@ -89,6 +87,7 @@ public class HealthMonitor implements PwmService
 
     private STATUS status = STATUS.CLOSED;
     private PwmDomain pwmDomain;
+    private PwmApplication pwmApplication;
     private volatile HealthData healthData = emptyHealthData();
 
     enum HealthMonitorFlag
@@ -105,6 +104,7 @@ public class HealthMonitor implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
+        this.pwmApplication = Objects.requireNonNull( pwmApplication );
         this.pwmDomain = pwmApplication.getDefaultDomain();
         this.healthData = emptyHealthData();
         settings = HealthMonitorSettings.fromConfiguration( pwmDomain.getConfig() );
@@ -116,8 +116,8 @@ public class HealthMonitor implements PwmService
             return;
         }
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
-        supportZipWriterService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        supportZipWriterService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
         scheduleNextZipOutput();
 
         {
@@ -126,7 +126,7 @@ public class HealthMonitor implements PwmService
             if ( threadDumpIntervalSeconds > 0 )
             {
                 final TimeDuration interval =  TimeDuration.of( threadDumpIntervalSeconds, TimeDuration.Unit.SECONDS );
-                pwmDomain.getPwmScheduler().scheduleFixedRateJob( new ThreadDumpLogger(), executorService, TimeDuration.SECOND, interval );
+                pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ThreadDumpLogger(), executorService, TimeDuration.SECOND, interval );
             }
         }
 
@@ -182,18 +182,18 @@ public class HealthMonitor implements PwmService
         {
             final Instant startTime = Instant.now();
             LOGGER.trace( () ->  "begin force immediate check" );
-            final Future future = pwmDomain.getPwmScheduler().scheduleJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
+            final Future future = pwmApplication.getPwmScheduler().scheduleJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
             settings.getMaximumForceCheckWait().pause( future::isDone );
             LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone(), () -> TimeDuration.fromCurrent( startTime ) );
         }
 
-        pwmDomain.getPwmScheduler().scheduleJob( new UpdateJob(), executorService, settings.getNominalCheckInterval() );
+        pwmApplication.getPwmScheduler().scheduleJob( new UpdateJob(), executorService, settings.getNominalCheckInterval() );
 
         {
             final HealthData localHealthData = this.healthData;
             if ( localHealthData.recordsAreOutdated() )
             {
-                return Collections.singleton( HealthRecord.forMessage( HealthMessage.NoData ) );
+                return Collections.singleton( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.NoData ) );
             }
 
             return localHealthData.getHealthRecords();
@@ -256,6 +256,7 @@ public class HealthMonitor implements PwmService
                 }
             }
         }
+
         for ( final PwmService service : pwmDomain.getPwmServices() )
         {
             try
@@ -343,7 +344,7 @@ public class HealthMonitor implements PwmService
         if ( intervalSeconds > 0 )
         {
             final TimeDuration intervalDuration = TimeDuration.of( intervalSeconds, TimeDuration.Unit.SECONDS );
-            pwmDomain.getPwmScheduler().scheduleJob( new SupportZipFileWriter( pwmDomain ), supportZipWriterService, intervalDuration );
+            pwmApplication.getPwmScheduler().scheduleJob( new SupportZipFileWriter( pwmDomain ), supportZipWriterService, intervalDuration );
         }
     }
 
@@ -374,7 +375,7 @@ public class HealthMonitor implements PwmService
         private void writeSupportZipToAppPath()
                 throws IOException, PwmUnrecoverableException
         {
-            final File appPath = pwmDomain.getPwmEnvironment().getApplicationPath();
+            final File appPath = pwmApplication.getPwmEnvironment().getApplicationPath();
             if ( !appPath.exists() )
             {
                 return;

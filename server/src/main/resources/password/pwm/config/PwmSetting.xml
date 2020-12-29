@@ -4190,6 +4190,8 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="DOMAIN">
     </category>
+    <category hidden="false" scope="DOMAIN" key="SYSTEM">
+    </category>
     <category hidden="false" scope="DOMAIN" key="GENERAL">
     </category>
     <category hidden="false" scope="DOMAIN" key="LOCALIZATION">
@@ -4209,7 +4211,7 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="PASSWORD_GLOBAL">
     </category>
-    <category hidden="false" scope="DOMAIN" key="CHALLENGE">0
+    <category hidden="false" scope="DOMAIN" key="CHALLENGE">
     </category>
     <category hidden="false" scope="DOMAIN" key="CHALLENGE_POLICY">
         <profile setting="challenge.profile.list"/>
@@ -4225,7 +4227,7 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="SMS">
     </category>
-    <category hidden="false" scope="DOMAIN" key="SMS_GATEWAY">
+    <category hidden="false" scope="SYSTEM" key="SMS_GATEWAY">
     </category>
     <category hidden="false" scope="DOMAIN" key="SMS_MESSAGES">
     </category>
@@ -4233,9 +4235,9 @@
     </category>
     <category hidden="false" scope="SYSTEM" key="WORDLISTS">
     </category>
-    <category hidden="false" scope="DOMAIN" key="APP_SECURITY">
+    <category hidden="false" scope="SYSTEM" key="APP_SECURITY">
     </category>
-    <category hidden="false" scope="DOMAIN" key="WEB_SECURITY">
+    <category hidden="false" scope="SYSTEM" key="WEB_SECURITY">
     </category>
     <category hidden="false" scope="DOMAIN" key="CAPTCHA">
     </category>
@@ -4254,7 +4256,7 @@
     <category hidden="false" scope="DOMAIN" key="OTP_PROFILE">
         <profile setting="otp.profile.list"/>
     </category>
-    <category hidden="false" scope="SYSTEM"  key="LOGGING">
+    <category hidden="false" scope="SYSTEM" key="LOGGING">
     </category>
     <category hidden="false" scope="DOMAIN" key="AUDITING">
     </category>
@@ -4274,11 +4276,11 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="ORACLE_DS">
     </category>
-    <category hidden="false" scope="DOMAIN" key="DATABASE">
+    <category hidden="false" scope="SYSTEM" key="DATABASE">
     </category>
-    <category hidden="false" scope="DOMAIN" key="DATABASE_SETTINGS">
+    <category hidden="false" scope="SYSTEM" key="DATABASE_SETTINGS">
     </category>
-    <category hidden="false" scope="DOMAIN" key="DATABASE_ADV">
+    <category hidden="false" scope="SYSTEM" key="DATABASE_ADV">
     </category>
     <category hidden="false" scope="DOMAIN" key="REPORTING">
     </category>

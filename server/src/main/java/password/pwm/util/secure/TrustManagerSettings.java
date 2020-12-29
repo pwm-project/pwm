@@ -22,7 +22,7 @@ package password.pwm.util.secure;
 
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.option.CertificateMatchingMode;
 
 @Value
@@ -32,7 +32,7 @@ class TrustManagerSettings
     private final boolean allowSelfSigned;
     private final CertificateMatchingMode certificateMatchingMode;
 
-    public static TrustManagerSettings fromConfiguration( final DomainConfig config )
+    public static TrustManagerSettings fromConfiguration( final AppConfig config )
     {
         final boolean validateTimestamps = config != null && Boolean.parseBoolean( config.readAppProperty( AppProperty.SECURITY_CERTIFICATES_VALIDATE_TIMESTAMPS ) );
         final boolean allowSelfSigned = config != null && Boolean.parseBoolean( config.readAppProperty( AppProperty.SECURITY_CERTIFICATES_ALLOW_SELF_SIGNED ) );

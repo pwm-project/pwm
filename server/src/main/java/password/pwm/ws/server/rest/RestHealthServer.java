@@ -66,7 +66,7 @@ public class RestHealthServer extends RestServlet
     {
         try
         {
-            final String resultString = restRequest.getDomain().getHealthMonitor().getMostSevereHealthStatus().toString() + "\n";
+            final String resultString = restRequest.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus().toString() + "\n";
             StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_HEALTH );
             return RestResultBean.withData( resultString );
         }
@@ -92,7 +92,7 @@ public class RestHealthServer extends RestServlet
             final Locale locale
     )
     {
-        final HealthMonitor healthMonitor = pwmDomain.getHealthMonitor();
+        final HealthMonitor healthMonitor = pwmDomain.getPwmApplication().getHealthMonitor();
         final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>( healthMonitor.getHealthRecords() );
         final List<HealthRecord> healthRecordBeans = HealthRecord.fromHealthRecords( healthRecords, locale,
                 pwmDomain.getConfig() );

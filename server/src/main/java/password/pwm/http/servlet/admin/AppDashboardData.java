@@ -35,6 +35,7 @@ import password.pwm.i18n.Admin;
 import password.pwm.i18n.Display;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.node.NodeInfo;
+import password.pwm.svc.node.NodeService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.FileSystemUtility;
@@ -44,6 +45,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -112,7 +114,7 @@ public class AppDashboardData implements Serializable
     private List<NodeData> nodeData;
     private String nodeSummary;
     private DataStorageMethod nodeStorageMethod;
-    private int ldapConnectionCount;
+    private long ldapConnectionCount;
     private int sessionCount;
     private int requestsInProgress;
 
@@ -152,28 +154,23 @@ public class AppDashboardData implements Serializable
         }
 
         builder.nodeData = makeNodeData( pwmDomain, locale );
-        builder.nodeSummary = pwmDomain.getClusterService().isMaster()
+        builder.nodeSummary = pwmDomain.getPwmApplication().getNodeService().isMaster()
                 ? "This node is the current master"
                 : "This node is not the current master";
         {
-            final Collection<DataStorageMethod> dataStorageMethods = pwmDomain.getClusterService().serviceInfo().getStorageMethods();
+            final Collection<DataStorageMethod> dataStorageMethods = pwmDomain.getPwmApplication().getNodeService().serviceInfo().getStorageMethods();
             if ( !JavaHelper.isEmpty( dataStorageMethods ) )
             {
                 builder.nodeStorageMethod = dataStorageMethods.iterator().next();
             }
         }
 
-        builder.ldapConnectionCount( ldapConnectionCount( pwmDomain ) );
+        builder.ldapConnectionCount( SessionTrackService.totalLdapConnectionCount( pwmDomain.getPwmApplication() ) );
         builder.sessionCount( pwmDomain.getSessionTrackService().sessionCount() );
         builder.requestsInProgress( pwmDomain.getPwmApplication().getActiveServletRequests().get() );
 
         LOGGER.trace( () -> "AppDashboardData bean created in ", () -> TimeDuration.fromCurrent( startTime ) );
         return builder.build();
-    }
-
-    private static int ldapConnectionCount( final PwmDomain pwmDomain )
-    {
-        return pwmDomain.getLdapConnectionService().connectionCount();
     }
 
     private static List<DisplayElement> makeAboutData(
@@ -225,7 +222,7 @@ public class AppDashboardData implements Serializable
                 "instanceID",
                 DisplayElement.Type.string,
                 l.forKey( "Field_InstanceID" ),
-                pwmDomain.getInstanceID()
+                pwmDomain.getPwmApplication().getInstanceID()
         ), new DisplayElement(
                 "configRestartCounter",
                 DisplayElement.Type.number,
@@ -280,14 +277,14 @@ public class AppDashboardData implements Serializable
                 "worlistSize",
                 DisplayElement.Type.number,
                 "Word List Dictionary Size",
-                numberFormat.format( pwmDomain.getWordlistService().size() )
+                numberFormat.format( pwmDomain.getPwmApplication().getWordlistService().size() )
         ) );
 
         localDbInfo.add( new DisplayElement(
                 "seedlistSize",
                 DisplayElement.Type.number,
                 "Seed List Dictionary Size",
-                numberFormat.format( pwmDomain.getSeedlistManager().size() )
+                numberFormat.format( pwmDomain.getPwmApplication().getSeedlistManager().size() )
         ) );
 
         localDbInfo.add( new DisplayElement(
@@ -318,7 +315,7 @@ public class AppDashboardData implements Serializable
                 "smsQueueSize",
                 DisplayElement.Type.number,
                 "SMS Queue Size",
-                numberFormat.format( pwmDomain.getSmsQueue().queueSize() )
+                numberFormat.format( pwmDomain.getPwmApplication().getSmsQueue().queueSize() )
         ) );
         localDbInfo.add( new DisplayElement(
                 "sharedHistorySize",
@@ -348,11 +345,13 @@ public class AppDashboardData implements Serializable
                 "logEvents",
                 DisplayElement.Type.number,
                 "Log Events",
-                pwmDomain.getLocalDBLogger().sizeToDebugString()
+                pwmDomain.getPwmApplication().getLocalDBLogger().sizeToDebugString()
         ) );
         {
-            final String display = pwmDomain.getLocalDBLogger() != null && pwmDomain.getLocalDBLogger().getTailDate() != null
-                    ? TimeDuration.fromCurrent( pwmDomain.getLocalDBLogger().getTailDate() ).asLongString()
+            final LocalDBLogger localDBLogger = pwmDomain.getPwmApplication().getLocalDBLogger();
+            final String display = localDBLogger != null
+                    && localDBLogger.getTailDate() != null
+                    ? TimeDuration.fromCurrent( localDBLogger.getTailDate() ).asLongString()
                     : notApplicable;
             localDbInfo.add( new DisplayElement(
                     "oldestLogEvents",
@@ -362,12 +361,12 @@ public class AppDashboardData implements Serializable
             ) );
         }
         {
-            final String display = pwmDomain.getLocalDB() == null
+            final String display = pwmDomain.getPwmApplication().getLocalDB() == null
                     ? notApplicable
-                    : pwmDomain.getLocalDB().getFileLocation() == null
+                    : pwmDomain.getPwmApplication().getLocalDB().getFileLocation() == null
                     ? notApplicable
                     : StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize(
-                    pwmDomain.getLocalDB().getFileLocation() ) );
+                    pwmDomain.getPwmApplication().getLocalDB().getFileLocation() ) );
             localDbInfo.add( new DisplayElement(
                     "localDbSizeOnDisk",
                     DisplayElement.Type.string,
@@ -376,11 +375,11 @@ public class AppDashboardData implements Serializable
             ) );
         }
         {
-            final String display = pwmDomain.getLocalDB() == null
+            final String display = pwmDomain.getPwmApplication().getLocalDB() == null
                     ? notApplicable
-                    : pwmDomain.getLocalDB().getFileLocation() == null
+                    : pwmDomain.getPwmApplication().getLocalDB().getFileLocation() == null
                     ? notApplicable
-                    : StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining( pwmDomain.getLocalDB().getFileLocation() ) );
+                    : StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining( pwmDomain.getPwmApplication().getLocalDB().getFileLocation() ) );
             localDbInfo.add( new DisplayElement(
                     "localDbFreeSpace",
                     DisplayElement.Type.string,
@@ -398,7 +397,7 @@ public class AppDashboardData implements Serializable
     )
     {
         final Map<LocalDB.DB, String> returnData = new LinkedHashMap<>();
-        final LocalDB localDB = pwmDomain.getLocalDB();
+        final LocalDB localDB = pwmDomain.getPwmApplication().getLocalDB();
         final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
         try
         {
@@ -515,7 +514,8 @@ public class AppDashboardData implements Serializable
             final Locale locale
     )
     {
-        if ( pwmDomain.getClusterService().status() != PwmService.STATUS.OPEN )
+        final NodeService nodeService = pwmDomain.getPwmApplication().getNodeService();
+        if ( nodeService.status() != PwmService.STATUS.OPEN )
         {
             return Collections.emptyList();
         }
@@ -525,7 +525,7 @@ public class AppDashboardData implements Serializable
 
         try
         {
-            for ( final NodeInfo nodeInfo : pwmDomain.getClusterService().nodes() )
+            for ( final NodeInfo nodeInfo : nodeService.nodes() )
             {
 
                 final String uptime = nodeInfo.getStartupTime() == null

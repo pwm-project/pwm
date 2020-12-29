@@ -52,6 +52,6 @@ public class StoredConfigurationTest
             throws Exception
     {
         final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), appConfig );
-        final String configHash = appConfig.configurationHash( pwmDomain.getDefaultDomain().getSecureService() );
+        final String configHash = StoredConfigurationUtil.valueHash( appConfig.getStoredConfiguration() );
     }
 }

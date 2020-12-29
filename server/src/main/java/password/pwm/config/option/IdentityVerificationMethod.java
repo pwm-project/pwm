@@ -24,9 +24,6 @@ import password.pwm.config.DomainConfig;
 import password.pwm.i18n.Display;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 
 public enum IdentityVerificationMethod implements Serializable, ConfigurationOption
@@ -63,11 +60,5 @@ public enum IdentityVerificationMethod implements Serializable, ConfigurationOpt
     public String getDescription( final DomainConfig domainConfig, final Locale locale )
     {
         return Display.getLocalizedMessage( locale, this.descriptionKey, domainConfig );
-    }
-
-    public static IdentityVerificationMethod[] availableValues( )
-    {
-        final List<IdentityVerificationMethod> values = new ArrayList<>( Arrays.asList( IdentityVerificationMethod.values() ) );
-        return values.toArray( new IdentityVerificationMethod[0] );
     }
 }

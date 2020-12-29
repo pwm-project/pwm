@@ -20,7 +20,7 @@
 
 package password.pwm.svc.node;
 
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
@@ -34,6 +34,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 class DatabaseNodeDataService implements NodeDataServiceProvider
 {
@@ -42,13 +43,13 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
     private static final DatabaseTable TABLE = DatabaseTable.CLUSTER_STATE;
     private static final String KEY_PREFIX_NODE = "node-";
 
-    private final PwmDomain pwmDomain;
+    private final PwmApplication pwmApplication;
 
-    DatabaseNodeDataService( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
+    DatabaseNodeDataService( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmApplication = Objects.requireNonNull( pwmApplication );
 
-        if ( pwmDomain.getDatabaseService().status() != PwmService.STATUS.OPEN )
+        if ( pwmApplication.getDatabaseService().status() != PwmService.STATUS.OPEN )
         {
             throw new PwmUnrecoverableException( PwmError.ERROR_NODE_SERVICE_ERROR, "database service is not available" );
         }
@@ -57,14 +58,14 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
     private DatabaseAccessor getDatabaseAccessor()
             throws PwmUnrecoverableException
     {
-        return pwmDomain.getDatabaseService().getAccessor();
+        return pwmApplication.getDatabaseService().getAccessor();
     }
 
     private String localKeyForStoredNode( final StoredNodeData storedNodeData )
             throws PwmUnrecoverableException
     {
         final String instanceID = storedNodeData.getInstanceID();
-        final String hash = pwmDomain.getSecureService().hash( instanceID );
+        final String hash = pwmApplication.getSecureService().hash( instanceID );
         final String truncatedHash = hash.length() > 64
                 ? hash.substring( 0, 64 )
                 : hash;

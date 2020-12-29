@@ -21,9 +21,11 @@
 package password.pwm.util.secure;
 
 import password.pwm.PwmApplication;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.PrivateKeyValue;
 import password.pwm.config.value.StoredValue;
@@ -181,8 +183,9 @@ public class HttpsServerCertificateManager
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg, errorDetail ) );
         }
 
+        final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.HTTPS_CERT, null, DomainID.systemId() );
         final StoredValue storedValue = new PrivateKeyValue( privateKeyCertificate );
-        storedConfiguration.writeSetting( PwmSetting.HTTPS_CERT, null, storedValue, null );
+        storedConfiguration.writeSetting( key, storedValue, null );
     }
 
 }

@@ -26,6 +26,7 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.tag.url.PwmThemeURL" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -45,10 +46,7 @@
     <div class="configeditor-header" id="header" >
         <div id="header-center-wide" style="min-width: 850px">
             <div id="header-title">
-                <select>
-                    <option value="system">System</option>
-                    <option value="default">Domain: Default</option>
-                </select>
+                <span id="domainMenu"></span>
                 <span id="currentPageDisplay"></span>
                 <span style="visibility: hidden" id="working_icon" class="headerIcon pwm-icon pwm-icon-cog pwm-icon-spin"></span>
 
@@ -193,6 +191,8 @@
             PWM_CFGEDIT.initConfigEditor();
             PWM_CONFIG.initConfigHeader();
         });
+        var PWM_VAR = PWM_VAR || {};
+        PWM_VAR['selectedDomainId'] = '<%=JspUtility.getAttribute(pageContext,PwmRequestAttribute.DomainId)%>';
     </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/admin.js"/>

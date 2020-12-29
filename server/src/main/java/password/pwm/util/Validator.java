@@ -21,10 +21,10 @@
 package password.pwm.util;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.FormNonce;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -79,7 +79,7 @@ public class Validator
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        final boolean enforceRequestSequencing = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.SECURITY_HTTP_FORCE_REQUEST_SEQUENCING ) );
+        final boolean enforceRequestSequencing = Boolean.parseBoolean( pwmRequest.getAppConfig().readAppProperty( AppProperty.SECURITY_HTTP_FORCE_REQUEST_SEQUENCING ) );
 
         if ( enforceRequestSequencing )
         {
@@ -116,7 +116,7 @@ public class Validator
 
 
     public static String sanitizeInputValue(
-            final DomainConfig config,
+            final AppConfig config,
             final String input,
             final int maxLength
     )
@@ -153,7 +153,7 @@ public class Validator
     }
 
 
-    public static String sanitizeHeaderValue( final DomainConfig domainConfig, final String input )
+    public static String sanitizeHeaderValue( final AppConfig domainConfig, final String input )
     {
         if ( input == null )
         {

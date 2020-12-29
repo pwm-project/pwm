@@ -20,9 +20,9 @@
 
 package password.pwm.http.filter;
 
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -50,6 +50,7 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Authentication servlet filter.  This filter wraps all servlet requests and requests direct to *.jsp
@@ -189,20 +190,22 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         if ( pwmSession.getSessionManager().isAuthenticatedWithoutPasswordAndBind() )
         {
-            final PwmServletDefinition pwmServletDefinition = pwmRequest.getURL().forServletDefinition();
-            if ( pwmServletDefinition != null
-                    && pwmServletDefinition.getFlags().contains( PwmServletDefinition.Flag.RequiresUserPasswordAndBind ) )
+            final Optional<PwmServletDefinition> pwmServletDefinition = pwmRequest.getURL().forServletDefinition();
+            if ( pwmServletDefinition.isPresent() )
             {
-                try
+                if ( pwmServletDefinition.get().getFlags().contains( PwmServletDefinition.Flag.RequiresUserPasswordAndBind ) )
                 {
-                    LOGGER.debug( pwmRequest, () -> "user is authenticated without a password, but module " + pwmServletDefinition.name()
-                            +  " requires user connection, redirecting to login page" );
-                    LoginServlet.redirectToLoginServlet( pwmRequest );
-                    return;
-                }
-                catch ( final Throwable e1 )
-                {
-                    LOGGER.error( () -> "error while marking pre-login url:" + e1.getMessage() );
+                    try
+                    {
+                        LOGGER.debug( pwmRequest, () -> "user is authenticated without a password, but module " + pwmServletDefinition.get().name()
+                                + " requires user connection, redirecting to login page" );
+                        LoginServlet.redirectToLoginServlet( pwmRequest );
+                        return;
+                    }
+                    catch ( final Throwable e1 )
+                    {
+                        LOGGER.error( () -> "error while marking pre-login url:" + e1.getMessage() );
+                    }
                 }
             }
         }

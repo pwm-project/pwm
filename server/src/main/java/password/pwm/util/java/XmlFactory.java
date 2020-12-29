@@ -41,6 +41,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -162,7 +163,7 @@ public interface XmlFactory
                 }
                 return returnList;
             }
-            return null;
+            return Collections.emptyList();
         }
 
         @Override

@@ -63,9 +63,7 @@ public class NodeService implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
-
-        final boolean serviceEnabled = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.CLUSTER_ENABLED );
+        final boolean serviceEnabled = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.NODE_SERVICE_ENABLED );
         if ( !serviceEnabled )
         {
             status = STATUS.CLOSED;
@@ -76,7 +74,7 @@ public class NodeService implements PwmService
         {
             final NodeServiceSettings nodeServiceSettings;
             final NodeDataServiceProvider clusterDataServiceProvider;
-            dataStore = pwmDomain.getConfig().readSettingAsEnum( PwmSetting.CLUSTER_STORAGE_MODE, DataStorageMethod.class );
+            dataStore = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.NODE_SERVICE_STORAGE_MODE, DataStorageMethod.class );
 
             if ( dataStore != null )
             {
@@ -85,16 +83,16 @@ public class NodeService implements PwmService
                     case DB:
                     {
                         LOGGER.trace( () -> "starting database-backed node service provider" );
-                        nodeServiceSettings = NodeServiceSettings.fromConfigForDB( pwmDomain.getConfig() );
-                        clusterDataServiceProvider = new DatabaseNodeDataService( pwmDomain );
+                        nodeServiceSettings = NodeServiceSettings.fromConfigForDB( pwmApplication.getConfig() );
+                        clusterDataServiceProvider = new DatabaseNodeDataService( pwmApplication );
                     }
                     break;
 
                     case LDAP:
                     {
                         LOGGER.trace( () -> "starting ldap-backed node service provider" );
-                        nodeServiceSettings = NodeServiceSettings.fromConfigForLDAP( pwmDomain.getConfig() );
-                        clusterDataServiceProvider = new LDAPNodeDataService( pwmDomain );
+                        nodeServiceSettings = NodeServiceSettings.fromConfigForLDAP( pwmApplication.getConfig() );
+                        clusterDataServiceProvider = new LDAPNodeDataService( pwmApplication );
                     }
                     break;
 
@@ -105,7 +103,7 @@ public class NodeService implements PwmService
 
                 }
 
-                nodeMachine = new NodeMachine( pwmDomain, clusterDataServiceProvider, nodeServiceSettings );
+                nodeMachine = new NodeMachine( pwmDomain.getPwmApplication(), clusterDataServiceProvider, nodeServiceSettings );
                 status = STATUS.OPEN;
                 return;
             }
@@ -143,15 +141,19 @@ public class NodeService implements PwmService
             final ErrorInformation errorInformation = nodeMachine.getLastError();
             if ( errorInformation != null )
             {
-                final HealthRecord healthRecord = HealthRecord.forMessage( HealthMessage.Cluster_Error, errorInformation.getDetailedErrorMsg() );
-                return Collections.singletonList( healthRecord );
+                return Collections.singletonList( HealthRecord.forMessage(
+                        DomainID.systemId(),
+                        HealthMessage.Cluster_Error,
+                        errorInformation.getDetailedErrorMsg() ) );
             }
         }
 
         if ( startupError != null )
         {
-            final HealthRecord healthRecord = HealthRecord.forMessage( HealthMessage.Cluster_Error, startupError.getDetailedErrorMsg() );
-            return Collections.singletonList( healthRecord );
+            return Collections.singletonList( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.Cluster_Error,
+                    startupError.getDetailedErrorMsg() ) );
         }
 
         return Collections.emptyList();

@@ -256,8 +256,8 @@ public class SharedHistoryManager implements PwmService
             final TimeDuration frequency = TimeDuration.of( frequencyMs, TimeDuration.Unit.MILLISECONDS );
 
             LOGGER.debug( () -> "scheduling cleaner task to run once every " + frequency.asCompactString() );
-            executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
-            pwmDomain.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), executorService, null, frequency );
+            executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain.getPwmApplication(), this.getClass() );
+            pwmDomain.getPwmApplication().getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), executorService, null, frequency );
         }
     }
 
@@ -461,7 +461,7 @@ public class SharedHistoryManager implements PwmService
         settings.version = "2" + "_" + settings.hashName + "_" + settings.hashIterations + "_" + settings.caseInsensitive;
 
         final int saltLength = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_SALT_LENGTH ) );
-        this.localDB = pwmDomain.getLocalDB();
+        this.localDB = pwmApplication.getLocalDB();
 
         boolean needsClearing = false;
         if ( localDB == null )
@@ -509,7 +509,7 @@ public class SharedHistoryManager implements PwmService
                 LOGGER.debug( () -> "starting up in background thread" );
                 init( pwmDomain, settings.maxAgeMs );
             }
-        }, PwmScheduler.makeThreadName( pwmDomain, this.getClass() ) + " initializer" ).start();
+        }, PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + " initializer" ).start();
     }
 
     private static class Settings

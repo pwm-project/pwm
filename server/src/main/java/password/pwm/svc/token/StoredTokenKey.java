@@ -24,7 +24,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.secure.SecureService;
+import password.pwm.svc.secure.DomainSecureService;
 
 class StoredTokenKey implements TokenKey
 {
@@ -72,8 +72,8 @@ class StoredTokenKey implements TokenKey
         }
 
         final int maxHashLength = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.TOKEN_STORAGE_MAX_KEY_LENGTH ) );
-        final SecureService secureService = pwmDomain.getSecureService();
-        final String generatedHash = secureService.hash( input );
+        final DomainSecureService domainSecureService = pwmDomain.getSecureService();
+        final String generatedHash = domainSecureService.hash( input );
         final String storedHash = StringUtil.truncate( generatedHash, maxHashLength ) + SUFFIX;
 
         return new StoredTokenKey( storedHash );

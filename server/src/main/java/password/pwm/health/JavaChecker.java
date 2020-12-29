@@ -22,6 +22,7 @@ package password.pwm.health;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,18 +37,18 @@ public class JavaChecker implements HealthChecker
         final int maxActiveThreads = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTH_JAVA_MAX_THREADS ) );
         if ( Thread.activeCount() > maxActiveThreads )
         {
-            records.add( HealthRecord.forMessage( HealthMessage.Java_HighThreads ) );
+            records.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.Java_HighThreads ) );
         }
 
         final long minMemory = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTH_JAVA_MIN_HEAP_BYTES ) );
         if ( Runtime.getRuntime().maxMemory() <= minMemory )
         {
-            records.add( HealthRecord.forMessage( HealthMessage.Java_SmallHeap ) );
+            records.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.Java_SmallHeap ) );
         }
 
         if ( records.isEmpty() )
         {
-            records.add( HealthRecord.forMessage( HealthMessage.Java_OK ) );
+            records.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.Java_OK ) );
         }
 
         return records;

@@ -23,7 +23,6 @@ package password.pwm.http.servlet.configmanager;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -138,7 +137,6 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
             throws IOException, ServletException, PwmUnrecoverableException
 
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final String wordlistTypeParam = pwmRequest.readParameterAsString( "wordlist" );
         final WordlistType wordlistType = WordlistType.valueOf( wordlistTypeParam );
@@ -163,7 +161,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
 
         try
         {
-            wordlistType.forType( pwmDomain ).populate( inputStream );
+            wordlistType.forType( pwmRequest.getPwmApplication() ).populate( inputStream );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -193,7 +191,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
 
         try
         {
-            wordlistType.forType( pwmRequest.getPwmDomain() ).clear();
+            wordlistType.forType( pwmRequest.getPwmApplication() ).clear();
         }
         catch ( final Exception e )
         {
@@ -210,10 +208,10 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
 
         for ( final WordlistType wordlistType : WordlistType.values() )
         {
-            final Wordlist wordlist = wordlistType.forType( pwmRequest.getPwmDomain() );
+            final Wordlist wordlist = wordlistType.forType( pwmRequest.getPwmApplication() );
             final WordlistStatus wordlistStatus = wordlist.readWordlistStatus();
             final Wordlist.Activity activity = wordlist.getActivity();
-            final WordlistConfiguration wordlistConfiguration = wordlistType.forType( pwmRequest.getPwmDomain() ).getConfiguration();
+            final WordlistConfiguration wordlistConfiguration = wordlistType.forType( pwmRequest.getPwmApplication() ).getConfiguration();
 
             final WordlistDataBean.WordlistDataBeanBuilder builder = WordlistDataBean.builder();
             {

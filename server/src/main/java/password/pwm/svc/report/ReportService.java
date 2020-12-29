@@ -121,7 +121,7 @@ public class ReportService implements PwmService
             return;
         }
 
-        if ( pwmDomain.getLocalDB() == null || LocalDB.Status.OPEN != pwmDomain.getLocalDB().status() )
+        if ( pwmApplication.getLocalDB() == null || LocalDB.Status.OPEN != pwmApplication.getLocalDB().status() )
         {
             LOGGER.debug( SessionLabel.REPORTING_SESSION_LABEL, () -> "LocalDB is not open, will remain closed" );
             status = STATUS.CLOSED;
@@ -143,9 +143,9 @@ public class ReportService implements PwmService
         settings = ReportSettings.readSettingsFromConfig( pwmDomain.getConfig() );
         summaryData = ReportSummaryData.newSummaryData( settings.getTrackDays() );
 
-        dnQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmDomain, pwmDomain.getLocalDB(), LocalDB.DB.REPORT_QUEUE );
+        dnQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.REPORT_QUEUE );
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         executorService.submit( new InitializationTask() );
 
@@ -173,7 +173,7 @@ public class ReportService implements PwmService
     {
         try
         {
-            pwmDomain.writeAppAttribute( AppAttribute.REPORT_STATUS, reportStatus.get() );
+            pwmDomain.getPwmApplication().writeAppAttribute( AppAttribute.REPORT_STATUS, reportStatus.get() );
         }
         catch ( final Exception e )
         {
@@ -274,9 +274,9 @@ public class ReportService implements PwmService
 
     public ClosableIterator<UserCacheRecord> iterator( )
     {
-        return new ClosableIterator<UserCacheRecord>()
+        return new ClosableIterator<>()
         {
-            private UserCacheService.UserStatusCacheBeanIterator<UserCacheService.StorageKey> storageKeyIterator = userCacheService.iterator();
+            private final UserCacheService.UserStatusCacheBeanIterator<UserCacheService.StorageKey> storageKeyIterator = userCacheService.iterator();
 
             @Override
             public boolean hasNext( )
@@ -356,7 +356,7 @@ public class ReportService implements PwmService
                         {
                             LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL,
                                     () -> "directory unavailable error during background SearchLDAP, will retry; error: " + e.getMessage() );
-                            pwmDomain.getPwmScheduler().scheduleJob( new ReadLDAPTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
+                            pwmDomain.getPwmApplication().getPwmScheduler().scheduleJob( new ReadLDAPTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                             errorProcessed = true;
                         }
                     }
@@ -467,7 +467,8 @@ public class ReportService implements PwmService
                     if ( executorService != null )
                     {
                         LOGGER.error( SessionLabel.REPORTING_SESSION_LABEL, () -> "directory unavailable error during background ReadData, will retry; error: " + e.getMessage() );
-                        pwmDomain.getPwmScheduler().scheduleJob( new ProcessWorkQueueTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
+                        pwmDomain.getPwmApplication().getPwmScheduler().scheduleJob(
+                                new ProcessWorkQueueTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                     }
                 }
                 else
@@ -508,7 +509,7 @@ public class ReportService implements PwmService
             try
             {
                 LOGGER.trace( SessionLabel.REPORTING_SESSION_LABEL, () -> "about to begin ldap processing with thread count of " + threadCount );
-                final String threadName = PwmScheduler.makeThreadName( pwmDomain, this.getClass() );
+                final String threadName = PwmScheduler.makeThreadName( pwmDomain.getPwmApplication(), this.getClass() );
                 final BlockingThreadPool threadService = new BlockingThreadPool( threadCount, threadName );
                 while ( status == STATUS.OPEN && !dnQueue.isEmpty() && !cancelFlag )
                 {
@@ -674,7 +675,7 @@ public class ReportService implements PwmService
             if ( reportingEnabled )
             {
                 final TimeDuration jobOffset = TimeDuration.of( settings.getJobOffsetSeconds(), TimeDuration.Unit.SECONDS );
-                pwmDomain.getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailyJobExecuteTask(), executorService, jobOffset );
+                pwmDomain.getPwmApplication().getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailyJobExecuteTask(), executorService, jobOffset );
             }
         }
 
@@ -683,7 +684,7 @@ public class ReportService implements PwmService
         {
             try
             {
-                pwmDomain.readAppAttribute( AppAttribute.REPORT_STATUS, ReportStatusInfo.class )
+                pwmDomain.getPwmApplication().readAppAttribute( AppAttribute.REPORT_STATUS, ReportStatusInfo.class )
                         .ifPresent( reportStatus::set );
             }
             catch ( final Exception e )

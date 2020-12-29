@@ -26,13 +26,14 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.output.CountingOutputStream;
 import password.pwm.AppProperty;
 import password.pwm.PwmAboutProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
-import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationUtil;
@@ -157,7 +158,7 @@ public class DebugItemGenerator
         final String debugFileName = "zipDebugGeneration.csv";
         final Instant startTime = Instant.now();
         final DebugOutputBuilder debugGeneratorLogFile = new DebugOutputBuilder();
-        final DebugItemInput debugItemInput = new DebugItemInput( pwmDomain, sessionLabel, obfuscatedDomainConfig );
+        final DebugItemInput debugItemInput = new DebugItemInput( pwmDomain.getPwmApplication(), pwmDomain, sessionLabel, obfuscatedDomainConfig );
         debugGeneratorLogFile.appendLine( "beginning debug output" );
         final String pathPrefix = getFilenameBase() + "/";
 
@@ -222,15 +223,14 @@ public class DebugItemGenerator
             final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedDomainConfig().getStoredConfiguration();
             final TreeMap<String, Object> outputObject = new TreeMap<>();
 
-            for ( final StoredConfigItemKey storedConfigItemKey : storedConfiguration.modifiedItems() )
-            {
-                if ( storedConfigItemKey.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
-                {
-                    final String key = storedConfigItemKey.getLabel( PwmConstants.DEFAULT_LOCALE );
-                    final StoredValue value = storedConfiguration.readSetting( storedConfigItemKey.toPwmSetting(), storedConfigItemKey.getProfileID() );
-                    outputObject.put( key, value );
-                }
-            }
+            storedConfiguration.keys().filter( k ->  k.getRecordType() == StoredConfigKey.RecordType.SETTING )
+                    .forEach( k ->
+                    {
+                        final String key = k.getLabel( PwmConstants.DEFAULT_LOCALE );
+                        final StoredValue value = storedConfiguration.readStoredValue( k ).orElseThrow();
+                        outputObject.put( key, value );
+                    } );
+
 
             final String jsonOutput = JsonUtil.serializeMap( outputObject, JsonUtil.Flag.PrettyPrint );
             outputStream.write( jsonOutput.getBytes( PwmConstants.DEFAULT_CHARSET ) );
@@ -257,24 +257,20 @@ public class DebugItemGenerator
                     + PwmConstants.SERVLET_VERSION + "\n" );
             writer.write( "Timestamp: " + JavaHelper.toIsoDate( storedConfiguration.modifyTime() ) + "\n" );
             writer.write( "This file is " + PwmConstants.DEFAULT_CHARSET.displayName() + " encoded\n" );
-
             writer.write( "\n" );
-            final Set<StoredConfigItemKey> modifiedSettings = storedConfiguration.modifiedItems();
 
-            for ( final StoredConfigItemKey storedConfigItemKey : modifiedSettings )
-            {
-                if ( storedConfigItemKey.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
-                {
-                    final String key = storedConfigItemKey.toPwmSetting().toMenuLocationDebug( storedConfigItemKey.getProfileID(), locale );
-                    final String value = storedConfiguration.readSetting( storedConfigItemKey.toPwmSetting(), storedConfigItemKey.getProfileID() ).toDebugString( locale );
-                    writer.write( ">> Setting > " + key );
-                    writer.write( "\n" );
-                    writer.write( value );
-                    writer.write( "\n" );
-                    writer.write( "\n" );
-
-                }
-            }
+            storedConfiguration.keys()
+                    .filter( k -> k.isRecordType( StoredConfigKey.RecordType.SETTING  ) )
+                    .forEach( storedConfigKey ->
+                    {
+                        final String key = storedConfigKey.toPwmSetting().toMenuLocationDebug( storedConfigKey.getProfileID(), locale );
+                        final String value = storedConfiguration.readStoredValue( storedConfigKey ).orElseThrow().toDebugString( locale );
+                        writer.write( ">> Setting > " + key );
+                        writer.write( "\n" );
+                        writer.write( value );
+                        writer.write( "\n" );
+                        writer.write( "\n" );
+                    } );
 
             outputStream.write( writer.toString().getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
@@ -313,7 +309,7 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final Properties outputProps = new JavaHelper.SortedProperties();
+            final Properties outputProps = JavaHelper.newSortedProperties();
             final Map<PwmAboutProperty, String> infoBean = PwmAboutProperty.makeInfoBean( debugItemInput.getPwmDomain().getPwmApplication() );
             outputProps.putAll( PwmAboutProperty.toStringMap( infoBean ) );
             outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
@@ -331,7 +327,7 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final Properties outputProps = new JavaHelper.SortedProperties();
+            final Properties outputProps = JavaHelper.newSortedProperties();
             outputProps.putAll( System.getenv() );
             outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
         }
@@ -350,7 +346,7 @@ public class DebugItemGenerator
         {
 
             final DomainConfig config = debugItemInput.getObfuscatedDomainConfig();
-            final Properties outputProps = new JavaHelper.SortedProperties();
+            final Properties outputProps = JavaHelper.newSortedProperties();
 
             for ( final AppProperty appProperty : AppProperty.values() )
             {
@@ -409,7 +405,7 @@ public class DebugItemGenerator
         {
             final Locale locale = PwmConstants.DEFAULT_LOCALE;
             final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
-            final Set<HealthRecord> records = pwmDomain.getHealthMonitor().getHealthRecords();
+            final Set<HealthRecord> records = pwmDomain.getPwmApplication().getHealthMonitor().getHealthRecords();
 
             final List<HealthDebugInfo> outputInfos = new ArrayList<>();
             records.forEach( healthRecord -> outputInfos.add( new HealthDebugInfo( healthRecord, healthRecord.getDetail( locale,  debugItemInput.obfuscatedDomainConfig ) ) ) );
@@ -484,15 +480,15 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
-            final File applicationPath = pwmDomain.getPwmEnvironment().getApplicationPath();
+            final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+            final File applicationPath = pwmApplication.getPwmEnvironment().getApplicationPath();
             final List<File> interestedFiles = new ArrayList<>(  );
 
-            if ( pwmDomain.getPwmEnvironment().getContextManager() != null )
+            if ( pwmApplication.getPwmEnvironment().getContextManager() != null )
             {
                 try
                 {
-                    final File webInfPath = pwmDomain.getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                    final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
                     if ( webInfPath != null && webInfPath.exists() )
                     {
                         final File servletRootPath = webInfPath.getParentFile();
@@ -611,7 +607,7 @@ public class DebugItemGenerator
                 .maxQueryTime( TimeDuration.of( maxSeconds, TimeDuration.Unit.SECONDS ) )
                 .build();
 
-        final LocalDBSearchResults searchResults = pwmDomain.getLocalDBLogger().readStoredEvents( searchParameters );
+        final LocalDBSearchResults searchResults = pwmDomain.getPwmApplication().getLocalDBLogger().readStoredEvents( searchParameters );
         final CountingOutputStream countingOutputStream = new CountingOutputStream( outputStream );
 
         final Writer writer = new OutputStreamWriter( countingOutputStream, PwmConstants.DEFAULT_CHARSET );
@@ -643,7 +639,7 @@ public class DebugItemGenerator
         {
 
             final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedDomainConfig().getStoredConfiguration();
-            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( storedConfiguration );
+            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( new AppConfig( storedConfiguration ).getDefaultDomainConfig() );
 
             final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
             {
@@ -681,7 +677,8 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final LocalDB localDB = debugItemInput.getPwmDomain().getLocalDB();
+            final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+            final LocalDB localDB = pwmApplication.getLocalDB();
             final Map<String, Serializable> serializableMap = localDB.debugInfo();
             outputStream.write( JsonUtil.serializeMap( serializableMap, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
@@ -738,14 +735,14 @@ public class DebugItemGenerator
         @Override
         public String getFilename( )
         {
-            return "cluster-info.json";
+            return "node-info.json";
         }
 
         @Override
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
-            final NodeService nodeService = pwmDomain.getClusterService();
+            final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+            final NodeService nodeService = pwmApplication.getNodeService();
 
             final Map<String, Serializable> debugOutput = new LinkedHashMap<>();
             debugOutput.put( "status", nodeService.status() );
@@ -790,10 +787,10 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
-            final ContextManager contextManager = pwmDomain.getPwmEnvironment().getContextManager();
+            final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+            final ContextManager contextManager = pwmApplication.getPwmEnvironment().getContextManager();
             final AppDashboardData appDashboardData = AppDashboardData.makeDashboardData(
-                    pwmDomain,
+                    pwmApplication.getDefaultDomain(),
                     contextManager,
                     LOCALE
             );
@@ -894,7 +891,7 @@ public class DebugItemGenerator
         @Override
         public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final Properties outputProps = new JavaHelper.SortedProperties();
+            final Properties outputProps = JavaHelper.newSortedProperties();
             outputProps.putAll( PwmConstants.BUILD_MANIFEST );
             outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
         }
@@ -957,6 +954,7 @@ public class DebugItemGenerator
     @Value
     private static class DebugItemInput
     {
+        private final PwmApplication pwmApplication;
         private final PwmDomain pwmDomain;
         private final SessionLabel sessionLabel;
         private final DomainConfig obfuscatedDomainConfig;

@@ -84,7 +84,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
             final DomainConfig domainConfig
     )
     {
-        super( pwmRequest.getHttpServletRequest(), response, domainConfig );
+        super( pwmRequest.getHttpServletRequest(), response, pwmRequest.getAppConfig() );
         this.pwmRequest = pwmRequest;
     }
 

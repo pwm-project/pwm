@@ -21,20 +21,27 @@
 package password.pwm.config;
 
 import password.pwm.bean.DomainID;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
-import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
+import password.pwm.config.value.FileValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueTypeConverter;
+import password.pwm.config.value.VerificationMethodValue;
 import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.ChallengeItemConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.config.value.data.UserPermission;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -85,6 +92,25 @@ public class SettingReader
     public List<String> readSettingAsLocalizedStringArray( final PwmSetting setting, final Locale locale )
     {
         return ValueTypeConverter.valueToLocalizedStringArray( readSetting( setting ), locale );
+    }
+
+    public Map<FileValue.FileInformation, FileValue.FileContent> readSettingAsFile( final PwmSetting pwmSetting )
+    {
+        return ValueTypeConverter.valueToFile( pwmSetting, readSetting( pwmSetting ) );
+    }
+
+    public List<ChallengeItemConfiguration> readSettingAsChallengeItems( final PwmSetting setting, final Locale locale )
+    {
+        final Map<String, List<ChallengeItemConfiguration>> storedValues = ValueTypeConverter.valueToChallengeItems ( readSetting( setting ) );
+        final Map<Locale, List<ChallengeItemConfiguration>> availableLocaleMap = storedValues.entrySet().stream()
+                .collect( Collectors.toUnmodifiableMap(
+                        entry -> LocaleHelper.parseLocaleString( entry.getKey() ),
+                        Map.Entry::getValue
+                ) );
+
+        final Locale matchedLocale = LocaleHelper.localeResolver( locale, availableLocaleMap.keySet() );
+
+        return availableLocaleMap.get( matchedLocale );
     }
 
     public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )
@@ -144,16 +170,29 @@ public class SettingReader
 
     public PrivateKeyCertificate readSettingAsPrivateKey( final PwmSetting setting )
     {
+        Objects.requireNonNull( setting );
+
         if ( PwmSettingSyntax.PRIVATE_KEY != setting.getSyntax() )
         {
             throw new IllegalArgumentException( "may not read PRIVATE_KEY value for setting: " + setting.toString() );
         }
-        if ( readSetting( setting ) == null )
-        {
-            return null;
-        }
+
         return ( PrivateKeyCertificate ) readSetting( setting ).toNativeObject();
     }
+
+    public EmailItemBean readSettingAsEmail( final PwmSetting setting, final Locale locale )
+    {
+        final Map<Locale, EmailItemBean> availableLocaleMap = ValueTypeConverter.valueToLocalizedEmail( setting, readSetting( setting ) );
+        final Locale matchedLocale = LocaleHelper.localeResolver( locale, availableLocaleMap.keySet() );
+        return availableLocaleMap.get( matchedLocale );
+    }
+
+    public VerificationMethodValue.VerificationMethodSettings readVerificationMethods( final PwmSetting setting )
+    {
+        final StoredValue configValue = readSetting( setting );
+        return ( VerificationMethodValue.VerificationMethodSettings ) configValue.toNativeObject();
+    }
+
 
     public <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition )
     {
@@ -231,7 +270,9 @@ public class SettingReader
             if ( setting.getCategory().getScope() == PwmSettingScope.DOMAIN )
             {
                 final String msg = "attempt to read DOMAIN scope setting '" + setting.toMenuLocationDebug( profileID, null ) + "' via system scope";
-                LOGGER.warn( () -> msg );
+                final PwmUnrecoverableException pwmUnrecoverableException = PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, msg );
+                LOGGER.error( () -> pwmUnrecoverableException.getErrorInformation().toDebugStr(), pwmUnrecoverableException );
+                //throw new IllegalStateException( msg );
             }
         }
         else
@@ -239,7 +280,9 @@ public class SettingReader
             if ( setting.getCategory().getScope() == PwmSettingScope.SYSTEM )
             {
                 final String msg = "attempt to read SYSTEM scope setting '" + setting.toMenuLocationDebug( profileID, null ) + "' via domain scope";
-                LOGGER.warn( () -> msg );
+                final PwmUnrecoverableException pwmUnrecoverableException = PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, msg );
+                LOGGER.error( () -> pwmUnrecoverableException.getErrorInformation().toDebugStr(), pwmUnrecoverableException );
+                //throw new IllegalStateException( msg );
             }
         }
 
@@ -263,7 +306,7 @@ public class SettingReader
             }
         }
 
-        final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID, domainID );
+        final StoredConfigKey key = StoredConfigKey.forSetting( setting, profileID, domainID );
         return StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
     }
 }

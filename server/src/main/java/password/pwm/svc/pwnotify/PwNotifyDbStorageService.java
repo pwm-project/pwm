@@ -69,7 +69,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
         final String rawDbValue;
         try
         {
-            rawDbValue = pwmDomain.getDatabaseAccessor().get( TABLE, guid );
+            rawDbValue = pwmDomain.getPwmApplication().getDatabaseAccessor().get( TABLE, guid );
         }
         catch ( final DatabaseException e )
         {
@@ -102,7 +102,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
         final String rawDbValue = JsonUtil.serialize( pwNotifyUserStatus );
         try
         {
-            pwmDomain.getDatabaseAccessor().put( TABLE, guid, rawDbValue );
+            pwmDomain.getPwmApplication().getDatabaseAccessor().put( TABLE, guid, rawDbValue );
         }
         catch ( final DatabaseException e )
         {
@@ -116,7 +116,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
     {
         try
         {
-            final String strValue = pwmDomain.getDatabaseService().getAccessor().get( DatabaseTable.PW_NOTIFY, DB_STATE_STRING );
+            final String strValue = pwmDomain.getPwmApplication().getDatabaseService().getAccessor().get( DatabaseTable.PW_NOTIFY, DB_STATE_STRING );
             if ( StringUtil.isEmpty( strValue ) )
             {
                 return new PwNotifyStoredJobState( null, null, null, null, false );
@@ -136,7 +136,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
         try
         {
             final String strValue = JsonUtil.serialize( pwNotifyStoredJobState );
-            pwmDomain.getDatabaseService().getAccessor().put( DatabaseTable.PW_NOTIFY, DB_STATE_STRING, strValue );
+            pwmDomain.getPwmApplication().getDatabaseService().getAccessor().put( DatabaseTable.PW_NOTIFY, DB_STATE_STRING, strValue );
         }
         catch ( final DatabaseException e )
         {

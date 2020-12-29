@@ -23,6 +23,7 @@ package password.pwm.health;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
+import password.pwm.bean.DomainID;
 import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmException;
 import password.pwm.util.db.DatabaseAccessor;
@@ -51,24 +52,26 @@ public class DatabaseStatusChecker implements HealthChecker
     {
         if ( !config.getAppConfig().hasDbConfigured() )
         {
-            return Collections.singletonList( HealthRecord.forMessage( HealthMessage.Database_Error,
-                            "Database not configured" ) );
+            return Collections.singletonList( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.Database_Error,
+                    "Database not configured" ) );
         }
 
         PwmApplication runtimeInstance = null;
         try
         {
-            final PwmEnvironment runtimeEnvironment = pwmDomain.getPwmEnvironment().makeRuntimeInstance( config.getAppConfig() );
+            final PwmEnvironment runtimeEnvironment = pwmDomain.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( config.getAppConfig() );
             runtimeInstance = PwmApplication.createPwmApplication( runtimeEnvironment );
-            final DatabaseAccessor accessor = runtimeInstance.getDefaultDomain().getDatabaseService().getAccessor();
+            final DatabaseAccessor accessor = runtimeInstance.getDatabaseService().getAccessor();
             accessor.get( DatabaseTable.PWM_META, "test" );
-            return runtimeInstance.getDefaultDomain().getDatabaseService().healthCheck();
+            return runtimeInstance.getDatabaseService().healthCheck();
         }
         catch ( final PwmException e )
         {
             LOGGER.error( () -> "error during healthcheck: " + e.getMessage() );
             e.printStackTrace();
-            return runtimeInstance.getDefaultDomain().getDatabaseService().healthCheck();
+            return runtimeInstance.getDatabaseService().healthCheck();
         }
         finally
         {

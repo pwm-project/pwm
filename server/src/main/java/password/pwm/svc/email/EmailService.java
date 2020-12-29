@@ -125,9 +125,9 @@ public class EmailService implements PwmService
                 .preThreads( emailServiceSettings.getMaxThreads() )
                 .build();
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(
-                this.pwmApplication.getDefaultDomain(), this.pwmApplication.getLocalDB(), LocalDB.DB.EMAIL_QUEUE );
+                this.pwmApplication, this.pwmApplication.getLocalDB(), LocalDB.DB.EMAIL_QUEUE );
 
-        workQueueProcessor = new WorkQueueProcessor<>( this.pwmApplication.getDefaultDomain(), localDBStoredQueue, settings, new EmailItemProcessor(), this.getClass() );
+        workQueueProcessor = new WorkQueueProcessor<>( this.pwmApplication, localDBStoredQueue, settings, new EmailItemProcessor(), this.getClass() );
 
         connectionPool = new EmailConnectionPool( servers, emailServiceSettings );
 
@@ -163,17 +163,27 @@ public class EmailService implements PwmService
     {
         if ( startupError != null )
         {
-            return Collections.singletonList( HealthRecord.forMessage( HealthMessage.ServiceClosed, this.getClass().getSimpleName(), startupError.toDebugStr() ) );
+            return Collections.singletonList( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.ServiceClosed,
+                    this.getClass().getSimpleName(),
+                    startupError.toDebugStr() ) );
         }
 
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            return Collections.singletonList( HealthRecord.forMessage( HealthMessage.ServiceClosed_LocalDBUnavail, this.getClass().getSimpleName() ) );
+            return Collections.singletonList( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.ServiceClosed_LocalDBUnavail,
+                    this.getClass().getSimpleName() ) );
         }
 
         if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
-            return Collections.singletonList( HealthRecord.forMessage( HealthMessage.ServiceClosed_AppReadOnly, this.getClass().getSimpleName() ) );
+            return Collections.singletonList( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.ServiceClosed_AppReadOnly,
+                    this.getClass().getSimpleName() ) );
         }
 
         final List<HealthRecord> records = new ArrayList<>( );
@@ -181,7 +191,10 @@ public class EmailService implements PwmService
             final ErrorInformation lastError = lastSendError.get();
             if ( lastError != null )
             {
-                records.add( HealthRecord.forMessage( HealthMessage.Email_SendFailure, lastError.toDebugStr() ) );
+                records.add( HealthRecord.forMessage(
+                        DomainID.systemId(),
+                        HealthMessage.Email_SendFailure,
+                        lastError.toDebugStr() ) );
 
             }
         }

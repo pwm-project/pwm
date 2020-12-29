@@ -20,9 +20,10 @@
 
 package password.pwm.svc.wordlist;
 
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -45,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -66,7 +68,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     private volatile ErrorInformation lastError;
     private volatile ErrorInformation autoImportError;
 
-    private PwmDomain pwmDomain;
+    private PwmApplication pwmApplication;
     private final AtomicBoolean inhibitBackgroundImportFlag = new AtomicBoolean( false );
     private final AtomicBoolean backgroundImportRunning = new AtomicBoolean( false );
     private final WordlistStatistics statistics = new WordlistStatistics();
@@ -78,13 +80,13 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     }
 
     void init(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final WordlistType type
     )
             throws PwmException
     {
-        this.pwmDomain = pwmDomain;
-        this.wordlistConfiguration = WordlistConfiguration.fromConfiguration( pwmDomain.getPwmApplication().getConfig(), type );
+        this.pwmApplication = Objects.requireNonNull( pwmApplication );
+        this.wordlistConfiguration = WordlistConfiguration.fromConfiguration( pwmApplication.getConfig(), type );
 
         if ( this.wordlistConfiguration.isTestMode() )
         {
@@ -94,15 +96,15 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         }
         else
         {
-            if ( pwmDomain.getApplicationMode() != PwmApplicationMode.RUNNING
-                    || pwmDomain.getLocalDB() == null
+            if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING
+                    || pwmApplication.getLocalDB() == null
             )
             {
                 wlStatus = STATUS.CLOSED;
                 return;
             }
 
-            if ( pwmDomain.getLocalDB() != null )
+            if ( pwmApplication.getLocalDB() != null )
             {
                 wlStatus = STATUS.OPEN;
             }
@@ -114,15 +116,16 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                 lastError = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
             }
 
-            this.wordlistBucket = new LocalDBWordlistBucket( pwmDomain, wordlistConfiguration, type );
+            this.wordlistBucket = new LocalDBWordlistBucket( pwmApplication, wordlistConfiguration, type );
         }
 
         inhibitBackgroundImportFlag.set( false );
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
-        if ( !pwmDomain.getPwmEnvironment().isInternalRuntimeInstance() )
+        if ( !pwmApplication.getPwmEnvironment().isInternalRuntimeInstance() )
         {
-            pwmDomain.getPwmScheduler().scheduleFixedRateJob( new InspectorJob(), executorService, TimeDuration.SECOND, wordlistConfiguration.getInspectorFrequency() );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob(
+                    new InspectorJob(), executorService, TimeDuration.SECOND, wordlistConfiguration.getInspectorFrequency() );
         }
 
         getLogger().trace( () -> "opening with configuration: " + JsonUtil.serialize( wordlistConfiguration ) );
@@ -130,8 +133,8 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
     private void startTestInstance( final WordlistType wordlistType )
     {
-        this.wordlistBucket = new MemoryWordlistBucket( pwmDomain, wordlistConfiguration, wordlistType );
-        final WordlistInspector wordlistInspector = new WordlistInspector( pwmDomain, AbstractWordlist.this, () -> false );
+        this.wordlistBucket = new MemoryWordlistBucket( pwmApplication, wordlistConfiguration, wordlistType );
+        final WordlistInspector wordlistInspector = new WordlistInspector( pwmApplication, AbstractWordlist.this, () -> false );
         wordlistInspector.run();
     }
 
@@ -166,14 +169,14 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     private boolean checkHashWords( final WordType wordType, final String word )
             throws PwmUnrecoverableException
     {
-        final String hashWord = wordType.convertInputFromUser( pwmDomain, wordlistConfiguration, word );
+        final String hashWord = wordType.convertInputFromUser( pwmApplication, wordlistConfiguration, word );
         return realBucketCheck( hashWord, wordType );
     }
 
     private boolean checkRawWords( final String word )
             throws PwmUnrecoverableException
     {
-        final String normalizedWord = WordType.RAW.convertInputFromUser( pwmDomain, wordlistConfiguration, word );
+        final String normalizedWord = WordType.RAW.convertInputFromUser( pwmApplication, wordlistConfiguration, word );
         final Set<String> testWords = WordlistUtil.chunkWord( normalizedWord, this.wordlistConfiguration.getCheckSize() );
 
         getStatistics().getChunksPerWordCheck().update( testWords.size() );
@@ -287,7 +290,9 @@ abstract class AbstractWordlist implements Wordlist, PwmService
 
         if ( autoImportError != null )
         {
-            final HealthRecord healthRecord = HealthRecord.forMessage( HealthMessage.Wordlist_AutoImportFailure,
+            final HealthRecord healthRecord = HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.Wordlist_AutoImportFailure,
                     wordlistConfiguration.getWordlistFilenameSetting().toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ),
                     autoImportError.getDetailedErrorMsg(),
                     JavaHelper.toIsoDate( autoImportError.getDate() )
@@ -301,13 +306,18 @@ abstract class AbstractWordlist implements Wordlist, PwmService
             final String suffix = "("
                     + ( ( activity == Activity.Importing ) ? getImportPercentComplete() : activity.getLabel() )
                     + ")";
-            final HealthRecord healthRecord = HealthRecord.forMessage( HealthMessage.Wordlist_ImportInProgress, suffix );
+            final HealthRecord healthRecord = HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.Wordlist_ImportInProgress,
+                    suffix );
+
             returnList.add( healthRecord );
         }
 
         if ( lastError != null )
         {
             final HealthRecord healthRecord = HealthRecord.forMessage(
+                    DomainID.systemId(),
                     HealthMessage.ServiceClosed,
                     this.getClass().getSimpleName(),
                     lastError.toDebugStr() );
@@ -433,7 +443,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
                     activity = Wordlist.Activity.ReadingWordlistFile;
                     final BooleanSupplier cancelFlag = makeProcessCancelSupplier( );
                     backgroundImportRunning.set( true );
-                    final WordlistInspector wordlistInspector = new WordlistInspector( pwmDomain, AbstractWordlist.this, cancelFlag );
+                    final WordlistInspector wordlistInspector = new WordlistInspector( pwmApplication, AbstractWordlist.this, cancelFlag );
                     wordlistInspector.run();
                     activity = Wordlist.Activity.Idle;
                 }

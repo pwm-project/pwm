@@ -110,7 +110,7 @@ public class IntruderManager implements PwmService
     {
         this.pwmDomain = pwmApplication.getDefaultDomain();
         final DomainConfig config = pwmDomain.getConfig();
-        if ( pwmDomain.getLocalDB() == null || pwmDomain.getLocalDB().status() != LocalDB.Status.OPEN )
+        if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "unable to start IntruderManager, LocalDB unavailable" );
             LOGGER.error( () -> errorInformation.toDebugStr() );
@@ -147,13 +147,13 @@ public class IntruderManager implements PwmService
                     break;
 
                 case DATABASE:
-                    dataStore = new DatabaseDataStore( pwmDomain.getDatabaseService(), DatabaseTable.INTRUDER );
+                    dataStore = new DatabaseDataStore( pwmDomain.getPwmApplication().getDatabaseService(), DatabaseTable.INTRUDER );
                     debugMsg = "starting using Remote Database data store";
                     storageMethodUsed = DataStorageMethod.DB;
                     break;
 
                 case LOCALDB:
-                    dataStore = new LocalDBDataStore( pwmDomain.getLocalDB(), LocalDB.DB.INTRUDER );
+                    dataStore = new LocalDBDataStore( pwmApplication.getLocalDB(), LocalDB.DB.INTRUDER );
                     debugMsg = "starting using LocalDB data store";
                     storageMethodUsed = DataStorageMethod.LOCALDB;
                     break;
@@ -169,7 +169,7 @@ public class IntruderManager implements PwmService
         final RecordStore recordStore;
         {
             recordStore = new DataStoreRecordStore( dataStore, this );
-            final String threadName = PwmScheduler.makeThreadName( pwmDomain, this.getClass() ) + " timer";
+            final String threadName = PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + " timer";
             timer = new Timer( threadName, true );
             final long maxRecordAge = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.INTRUDER_RETENTION_TIME_MS ) );
             final long cleanerRunFrequency = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.INTRUDER_CLEANUP_FREQUENCY_MS ) );

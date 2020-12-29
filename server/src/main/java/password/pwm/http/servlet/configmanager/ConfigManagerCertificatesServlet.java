@@ -26,7 +26,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueTypeConverter;
@@ -53,7 +53,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @WebServlet(
         name = "ConfigManagerCertificateServlet",
@@ -119,32 +120,29 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
     List<CertificateDebugDataItem> makeCertificateDebugData( final DomainConfig domainConfig ) throws PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = domainConfig.getStoredConfiguration();
-        final Set<StoredConfigItemKey> modifiedSettings = storedConfiguration.modifiedItems();
+        final Stream<StoredConfigKey> modifiedSettings = StoredConfigKey.filterByType( StoredConfigKey.RecordType.SETTING, storedConfiguration.keys() );
 
         final List<CertificateDebugDataItem> certificateDebugDataItems = new ArrayList<>();
 
-        for ( final StoredConfigItemKey ref : modifiedSettings )
+        for ( final StoredConfigKey key : modifiedSettings.collect( Collectors.toList() ) )
         {
-            if ( ref.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
+            final PwmSetting pwmSetting = key.toPwmSetting();
+            if ( pwmSetting.getSyntax() == PwmSettingSyntax.X509CERT )
             {
-                final PwmSetting pwmSetting = ref.toPwmSetting();
-                if ( pwmSetting.getSyntax() == PwmSettingSyntax.X509CERT )
+                final StoredValue storedValue = storedConfiguration.readStoredValue( key ).orElseThrow();
+                final List<X509Certificate> certificates = ValueTypeConverter.valueToX509Certificates( pwmSetting, storedValue );
+                certificateDebugDataItems.addAll( makeItems( pwmSetting, key.getProfileID(), certificates ) );
+            }
+            else if ( pwmSetting.getSyntax() == PwmSettingSyntax.ACTION )
+            {
+                final StoredValue storedValue = storedConfiguration.readStoredValue( key ).orElseThrow();
+                final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( pwmSetting, storedValue );
+                for ( final ActionConfiguration actionConfiguration : actionConfigurations )
                 {
-                    final StoredValue storedValue = storedConfiguration.readSetting( pwmSetting, ref.getProfileID() );
-                    final List<X509Certificate> certificates = ValueTypeConverter.valueToX509Certificates( pwmSetting, storedValue );
-                    certificateDebugDataItems.addAll( makeItems( pwmSetting, ref.getProfileID(), certificates ) );
-                }
-                else if ( pwmSetting.getSyntax() == PwmSettingSyntax.ACTION )
-                {
-                    final StoredValue storedValue = storedConfiguration.readSetting( pwmSetting, ref.getProfileID() );
-                    final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( pwmSetting, storedValue );
-                    for ( final ActionConfiguration actionConfiguration : actionConfigurations )
+                    for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
                     {
-                        for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
-                        {
-                            final List<X509Certificate> certificates = webAction.getCertificates();
-                            certificateDebugDataItems.addAll( makeItems( pwmSetting, ref.getProfileID(), certificates ) );
-                        }
+                        final List<X509Certificate> certificates = webAction.getCertificates();
+                        certificateDebugDataItems.addAll( makeItems( pwmSetting, key.getProfileID(), certificates ) );
                     }
                 }
             }

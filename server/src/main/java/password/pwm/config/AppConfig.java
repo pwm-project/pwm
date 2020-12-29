@@ -24,9 +24,11 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.PrivateKeyCertificate;
+import password.pwm.config.option.CertificateMatchingMode;
 import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.value.FileValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -38,8 +40,8 @@ import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureService;
 
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -59,7 +61,7 @@ public class AppConfig
     private final StoredConfiguration storedConfiguration;
     private final SettingReader settingReader;
     private final Map<DomainID, DomainConfig> domainConfigMap;
-    private final List<DomainID> domainIDList;
+    private final List<String> domainIDList;
 
     private PwmSecurityKey tempInstanceKey = null;
 
@@ -69,16 +71,15 @@ public class AppConfig
         this.settingReader = new SettingReader( storedConfiguration, null, DomainID.systemId() );
 
         this.domainIDList = settingReader.readSettingAsStringArray( PwmSetting.DOMAIN_LIST ).stream()
-                .map( DomainID::create )
                 .collect( Collectors.toUnmodifiableList() );
 
         this.domainConfigMap = domainIDList.stream()
                 .collect( Collectors.toUnmodifiableMap(
-                        ( domainID ) -> domainID,
-                        ( domainID ) -> new DomainConfig( this, domainID ) ) );
+                        DomainID::create,
+                        ( domainID ) -> new DomainConfig( this, DomainID.create( domainID ) ) ) );
     }
 
-    public List<DomainID> getDomainIDs()
+    public List<String> getDomainIDs()
     {
         return domainIDList;
     }
@@ -173,15 +174,19 @@ public class AppConfig
         return settingReader.readSettingAsPrivateKey( setting );
     }
 
-    public String configurationHash( final SecureService secureService )
-            throws PwmUnrecoverableException
-    {
-        return storedConfiguration.valueHash();
-    }
-
     public <E extends Enum<E>> E readSettingAsEnum( final PwmSetting setting, final Class<E> enumClass )
     {
         return settingReader.readSettingAsEnum( setting, enumClass );
+    }
+
+    public Map<FileValue.FileInformation, FileValue.FileContent> readSettingAsFile( final PwmSetting pwmSetting )
+    {
+        return settingReader.readSettingAsFile( pwmSetting );
+    }
+
+    public List<X509Certificate> readSettingAsCertificate( final PwmSetting pwmSetting )
+    {
+        return settingReader.readSettingAsCertificate( pwmSetting );
     }
 
     private class ConfigurationSuppliers
@@ -279,6 +284,14 @@ public class AppConfig
         return settingReader.getProfileMap( ProfileDefinition.EmailServers );
     }
 
+    public CertificateMatchingMode readCertificateMatchingMode()
+    {
+        final CertificateMatchingMode mode = readSettingAsEnum( PwmSetting.CERTIFICATE_VALIDATION_MODE, CertificateMatchingMode.class );
+        return mode == null
+                ? CertificateMatchingMode.CA_ONLY
+                : mode;
+    }
+
     public boolean hasDbConfigured( )
     {
         return !StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_CLASS ) )
@@ -287,10 +300,8 @@ public class AppConfig
                 && readSettingAsPassword( PwmSetting.DATABASE_PASSWORD ) != null;
     }
 
-    private PasswordData readSettingAsPassword( final PwmSetting setting )
+    public PasswordData readSettingAsPassword( final PwmSetting setting )
     {
         return settingReader.readSettingAsPassword( setting );
     }
-
-
 }

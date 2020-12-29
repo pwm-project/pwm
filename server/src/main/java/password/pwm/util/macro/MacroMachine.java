@@ -28,6 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.java.StatisticCounterBundle;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -111,14 +112,9 @@ public class MacroMachine
             final String input
     )
     {
-        if ( input == null )
+        if ( StringUtil.isEmpty( input ) )
         {
-            return null;
-        }
-
-        if ( input.length() < 1 )
-        {
-            return input;
+            return "";
         }
 
         final Set<Macro.Scope> scopes = effectiveScopesForRequest( macroRequest );

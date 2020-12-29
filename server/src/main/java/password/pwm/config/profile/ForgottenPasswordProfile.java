@@ -21,7 +21,6 @@
 package password.pwm.config.profile;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.VerificationMethodValue;
@@ -72,8 +71,8 @@ public class ForgottenPasswordProfile extends AbstractProfile
 
     public int getMinOptionalRequired( )
     {
-        final StoredValue configValue = getStoredConfiguration().readSetting( PwmSetting.RECOVERY_VERIFICATION_METHODS, getIdentifier() );
-        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = ( VerificationMethodValue.VerificationMethodSettings ) configValue.toNativeObject();
+        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = getSettingReader().readVerificationMethods(
+                PwmSetting.RECOVERY_VERIFICATION_METHODS );
         return verificationMethodSettings.getMinOptionalRequired();
     }
 

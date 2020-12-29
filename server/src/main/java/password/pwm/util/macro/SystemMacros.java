@@ -89,7 +89,7 @@ public class SystemMacros
                 return "";
             }
 
-            return pwmDomain.getInstanceID();
+            return pwmDomain.getPwmApplication().getInstanceID();
         }
     }
 
@@ -399,7 +399,7 @@ public class SystemMacros
             final PwmDomain pwmDomain = request.getPwmDomain();
             if ( pwmDomain != null )
             {
-                final PwmEnvironment pwmEnvironment = pwmDomain.getPwmEnvironment();
+                final PwmEnvironment pwmEnvironment = pwmDomain.getPwmApplication().getPwmEnvironment();
                 if ( pwmEnvironment != null )
                 {
                     final ContextManager contextManager = pwmEnvironment.getContextManager();

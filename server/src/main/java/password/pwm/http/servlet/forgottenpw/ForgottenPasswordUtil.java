@@ -32,8 +32,8 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenDestinationItem;
@@ -53,8 +53,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.http.auth.HttpAuthRecord;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.i18n.Message;
@@ -234,9 +234,10 @@ public class ForgottenPasswordUtil
                 return false;
             }
 
-            final HttpAuthRecord httpAuthRecord = pwmRequest.readEncryptedCookie( cookieName, HttpAuthRecord.class );
-            if ( httpAuthRecord != null )
+            final Optional<HttpAuthRecord> optionalHttpAuthRecord = pwmRequest.readEncryptedCookie( cookieName, HttpAuthRecord.class );
+            if ( optionalHttpAuthRecord.isPresent() )
             {
+                final HttpAuthRecord httpAuthRecord = optionalHttpAuthRecord.get();
                 if ( httpAuthRecord.getGuid() != null && !httpAuthRecord.getGuid().isEmpty() && httpAuthRecord.getGuid().equals( userGuid ) )
                 {
                     LOGGER.debug( pwmRequest, () -> "auth record cookie validated" );

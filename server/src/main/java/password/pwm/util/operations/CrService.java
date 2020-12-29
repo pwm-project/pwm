@@ -38,8 +38,8 @@ import password.pwm.bean.DomainID;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.DomainConfig;
 import password.pwm.config.ConfigurationUtil;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.ChallengeProfile;
@@ -76,6 +76,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -104,7 +105,7 @@ public class CrService implements PwmService
         this.pwmDomain = pwmApplication.getDefaultDomain();
         operatorMap.put( DataStorageMethod.DB, new DbCrOperator( pwmDomain ) );
         operatorMap.put( DataStorageMethod.LDAP, new LdapCrOperator( pwmDomain.getConfig() ) );
-        operatorMap.put( DataStorageMethod.LOCALDB, new LocalDbCrOperator( pwmDomain.getLocalDB() ) );
+        operatorMap.put( DataStorageMethod.LOCALDB, new LocalDbCrOperator( pwmDomain.getPwmApplication().getLocalDB() ) );
         operatorMap.put( DataStorageMethod.NMAS, new NMASCrOperator( pwmDomain ) );
     }
 
@@ -303,7 +304,7 @@ public class CrService implements PwmService
 
         {
             // check responses against wordlist
-            final WordlistService wordlistManager = pwmDomain.getWordlistService();
+            final WordlistService wordlistManager = pwmDomain.getPwmApplication().getWordlistService();
             if ( wordlistManager.status() == PwmService.STATUS.OPEN )
             {
                 for ( final Map.Entry<Challenge, String> entry : responseMap.entrySet() )
@@ -393,7 +394,7 @@ public class CrService implements PwmService
         }
     }
 
-    public ResponseInfoBean readUserResponseInfo(
+    public Optional<ResponseInfoBean> readUserResponseInfo(
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final ChaiUser theUser
@@ -430,7 +431,7 @@ public class CrService implements PwmService
             if ( readResponses != null )
             {
                 LOGGER.debug( sessionLabel, () -> "returning response info read via method " + storageMethod + " for user " + theUser.getEntryDN() );
-                return readResponses;
+                return Optional.of( readResponses );
             }
             else
             {
@@ -438,7 +439,7 @@ public class CrService implements PwmService
             }
         }
         LOGGER.debug( sessionLabel, () -> "no response info found for user " + theUser.getEntryDN() );
-        return null;
+        return Optional.empty();
     }
 
 

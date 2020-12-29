@@ -24,7 +24,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -75,18 +75,18 @@ class WordlistSource
         InputStream getInputStream() throws IOException, PwmUnrecoverableException;
     }
 
-    static WordlistSource forAutoImport( final PwmDomain pwmDomain, final WordlistConfiguration wordlistConfiguration )
+    static WordlistSource forAutoImport( final PwmApplication pwmApplication, final WordlistConfiguration wordlistConfiguration )
     {
         final String importUrl = wordlistConfiguration.getAutoImportUrl();
         return new WordlistSource( WordlistSourceType.AutoImport, importUrl, () ->
         {
             if ( importUrl.startsWith( "http" ) )
             {
-                final boolean promiscuous = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_PROMISCUOUS_WORDLIST_ENABLE ) );
+                final boolean promiscuous = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_PROMISCUOUS_WORDLIST_ENABLE ) );
                 final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
                         .trustManagerType( promiscuous ? PwmHttpClientConfiguration.TrustManagerType.promiscuous : PwmHttpClientConfiguration.TrustManagerType.defaultJava )
                         .build();
-                final PwmHttpClient client = pwmDomain.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
+                final PwmHttpClient client = pwmApplication.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
                 return client.streamForUrl( wordlistConfiguration.getAutoImportUrl() );
             }
 
@@ -105,14 +105,14 @@ class WordlistSource
     }
 
     static WordlistSource forBuiltIn(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final WordlistConfiguration wordlistConfiguration
     )
     {
         return new WordlistSource( WordlistSourceType.BuiltIn, null, () ->
         {
-            final ContextManager contextManager = pwmDomain.getPwmEnvironment().getContextManager();
-            final String wordlistFilename = pwmDomain.getPwmApplication().getConfig().readAppProperty( wordlistConfiguration.getBuiltInWordlistLocationProperty() );
+            final ContextManager contextManager = pwmApplication.getPwmEnvironment().getContextManager();
+            final String wordlistFilename = pwmApplication.getConfig().readAppProperty( wordlistConfiguration.getBuiltInWordlistLocationProperty() );
             final InputStream inputStream;
             if ( contextManager != null )
             {
@@ -139,7 +139,7 @@ class WordlistSource
     }
 
     WordlistSourceInfo readRemoteWordlistInfo(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final BooleanSupplier cancelFlag,
             final PwmLogger pwmLogger
     )
@@ -164,7 +164,7 @@ class WordlistSource
         try
         {
             inputStream = this.streamProvider.getInputStream();
-            checksumInputStream = pwmDomain.getSecureService().digestInputStream( WordlistConfiguration.HASH_ALGORITHM, inputStream );
+            checksumInputStream = pwmApplication.getSecureService().digestInputStream( WordlistConfiguration.HASH_ALGORITHM, inputStream );
             countingInputStream = new CountingInputStream( checksumInputStream );
             final ConditionalTaskExecutor debugOutputter = makeDebugLoggerExecutor( pwmLogger, startTime, countingInputStream );
 

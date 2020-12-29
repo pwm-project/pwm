@@ -22,8 +22,11 @@ package password.pwm.bean;
 
 import org.jetbrains.annotations.NotNull;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingScope;
+import password.pwm.util.java.JavaHelper;
 
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -31,7 +34,14 @@ public class DomainID implements Comparable<DomainID>, Serializable
 {
     private static final String SYSTEM_ID = "system";
     private static final DomainID SYSTEM_DOMAIN_ID = new DomainID( SYSTEM_ID );
-    private static final Pattern REGEX_PATTERN = PwmSetting.DOMAIN_LIST.getRegExPattern();
+
+   // private static final Pattern PATTERN = Pattern.compile( "(?!.*system.*)([a-zA-Z][a-zA-Z0-9]{2,10})" );
+    private static final Pattern PATTERN = PwmSetting.DOMAIN_LIST.getRegExPattern();
+
+    // sort placing 'system' first then alphabetically.
+    private static final Comparator<DomainID> COMPARATOR = Comparator.comparing( DomainID::isSystem )
+            .reversed()
+            .thenComparing( DomainID::stringValue );
 
     private final String domainID;
 
@@ -42,11 +52,29 @@ public class DomainID implements Comparable<DomainID>, Serializable
 
     public static DomainID create( final String domainID )
     {
-        if ( !REGEX_PATTERN.matcher( domainID ).matches() )
+        final Pattern pattern = PATTERN;
+        if ( !pattern.matcher( domainID ).matches() )
         {
-            throw new IllegalArgumentException( "domainID value does not match required syntax pattern" );
+            throw new IllegalArgumentException( "domainID value '" + domainID + " ' does not match required syntax pattern" );
         }
         return new DomainID( domainID );
+    }
+
+    public boolean inScope( final PwmSettingScope scope )
+    {
+        switch ( scope )
+        {
+            case SYSTEM:
+                return this.isSystem();
+
+            case DOMAIN:
+                return !this.isSystem();
+
+            default:
+                JavaHelper.unhandledSwitchStatement( scope );
+        }
+
+        return false;
     }
 
     @Override
@@ -73,7 +101,7 @@ public class DomainID implements Comparable<DomainID>, Serializable
     @Override
     public int compareTo( @NotNull final DomainID o )
     {
-        return this.domainID.compareTo( o.domainID );
+        return COMPARATOR.compare( this, o );
     }
 
     @Override

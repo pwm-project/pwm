@@ -26,7 +26,7 @@ import password.pwm.PwmConstants;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.secure.PwmRandom;
-import password.pwm.util.secure.SecureService;
+import password.pwm.svc.secure.DomainSecureService;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -445,9 +445,9 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
     /**
      * Pause the calling thread the specified amount of time.
      */
-    public void jitterPause( final SecureService secureService, final float factor )
+    public void jitterPause( final DomainSecureService domainSecureService, final float factor )
     {
-        final PwmRandom pwmRandom = secureService.pwmRandom();
+        final PwmRandom pwmRandom = domainSecureService.pwmRandom();
         final long jitterMs = (long) ( this.ms * factor );
         final long deviation = pwmRandom.nextBoolean() ? jitterMs + this.ms : jitterMs - this.ms;
         pause( TimeDuration.of( deviation, Unit.MILLISECONDS ), () -> false );

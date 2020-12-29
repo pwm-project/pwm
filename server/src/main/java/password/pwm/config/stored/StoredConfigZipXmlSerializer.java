@@ -24,6 +24,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.StoredValue;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.JavaHelper;
@@ -37,6 +38,7 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -117,10 +119,10 @@ public class StoredConfigZipXmlSerializer implements StoredConfigSerializer
             throws PwmUnrecoverableException
     {
         final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
-        for ( final StoredConfigItemKey key : inputConfig.modifiedItems() )
+        for ( final StoredConfigKey key : inputConfig.keys().collect( Collectors.toList() ) )
         {
             if (
-                    StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() )
+                    StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() )
                             && key.toPwmSetting().getSyntax().equals( PwmSettingSyntax.FILE )
             )
             {
@@ -148,7 +150,7 @@ public class StoredConfigZipXmlSerializer implements StoredConfigSerializer
                     if ( !stripedValues.isEmpty() )
                     {
                         final FileValue strippedFileValue = new FileValue( stripedValues );
-                        modifier.writeSetting( key.toPwmSetting(), key.getProfileID(),  strippedFileValue, null );
+                        modifier.writeSetting( key,  strippedFileValue, null );
                     }
                 }
             }
@@ -156,14 +158,15 @@ public class StoredConfigZipXmlSerializer implements StoredConfigSerializer
         return modifier.newStoredConfiguration();
     }
 
-    private Map<String, ImmutableByteArray> extractExRefs( final StoredConfigurationModifier modifier ) throws PwmUnrecoverableException
+    private Map<String, ImmutableByteArray> extractExRefs( final StoredConfigurationModifier modifier )
+            throws PwmUnrecoverableException
     {
         final Map<String, ImmutableByteArray> returnObj = new HashMap<>();
         final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
-        for ( final StoredConfigItemKey key : inputConfig.modifiedItems() )
+        for ( final StoredConfigKey key : inputConfig.keys().collect( Collectors.toList() ) )
         {
             if (
-                    StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() )
+                    StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() )
                             && key.toPwmSetting().getSyntax().equals( PwmSettingSyntax.FILE )
             )
             {
@@ -171,7 +174,7 @@ public class StoredConfigZipXmlSerializer implements StoredConfigSerializer
                 if ( optionalStoredValue.isPresent() )
                 {
                     final FileValue fileValue = ( FileValue ) optionalStoredValue.get();
-                    final Map<FileValue.FileInformation, FileValue.FileContent> values = ( Map ) fileValue.toNativeObject();
+                    final Map<FileValue.FileInformation, FileValue.FileContent> values = ValueTypeConverter.valueToFile( key.toPwmSetting(), fileValue );
                     final Map<FileValue.FileInformation, FileValue.FileContent> stripedValues = new HashMap<>();
 
                     for ( final Map.Entry<FileValue.FileInformation, FileValue.FileContent> entry : values.entrySet() )
@@ -184,7 +187,7 @@ public class StoredConfigZipXmlSerializer implements StoredConfigSerializer
                         stripedValues.put( info, fileContentWithHash );
                     }
                     final FileValue strippedFileValue = new FileValue( stripedValues );
-                    modifier.writeSetting( key.toPwmSetting(), key.getProfileID(),  strippedFileValue, null );
+                    modifier.writeSetting( key,  strippedFileValue, null );
                 }
             }
         }

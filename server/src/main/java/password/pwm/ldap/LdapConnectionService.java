@@ -139,8 +139,8 @@ public class LdapConnectionService implements PwmService
                 pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_IDLE_THREAD_LOCAL_TIMEOUT_MS ),
                 60_000 );
         final TimeDuration idleWeakTimeout = TimeDuration.of( idleWeakTimeoutMS, TimeDuration.Unit.MILLISECONDS );
-        this.executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
-        this.pwmDomain.getPwmScheduler().scheduleFixedRateJob( new ThreadLocalCleaner(), executorService, idleWeakTimeout, idleWeakTimeout );
+        this.executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ThreadLocalCleaner(), executorService, idleWeakTimeout, idleWeakTimeout );
 
         final int connectionsPerProfile = maxSlotsPerProfile( pwmDomain );
         LOGGER.trace( () -> "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
@@ -311,7 +311,7 @@ public class LdapConnectionService implements PwmService
     {
         lastLdapErrors.put( ldapProfile.getIdentifier(), errorInformation );
         final String jsonString = JsonUtil.serializeMap( lastLdapErrors );
-        pwmDomain.writeAppAttribute( AppAttribute.LAST_LDAP_ERROR, jsonString );
+        pwmDomain.getPwmApplication().writeAppAttribute( AppAttribute.LAST_LDAP_ERROR, jsonString );
     }
 
     public Map<String, ErrorInformation> getLastLdapFailure( )
@@ -334,7 +334,7 @@ public class LdapConnectionService implements PwmService
         String lastLdapFailureStr = null;
         try
         {
-            final Optional<String> optionalLastLdapError = pwmDomain.readAppAttribute( AppAttribute.LAST_LDAP_ERROR, String.class );
+            final Optional<String> optionalLastLdapError = pwmDomain.getPwmApplication().readAppAttribute( AppAttribute.LAST_LDAP_ERROR, String.class );
             if ( optionalLastLdapError.isPresent() )
             {
                 lastLdapFailureStr = optionalLastLdapError.get();

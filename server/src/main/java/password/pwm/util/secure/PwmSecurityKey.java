@@ -23,6 +23,7 @@ package password.pwm.util.secure;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.svc.secure.SecureService;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -56,10 +57,10 @@ public class PwmSecurityKey
         this.keyData = stringToKeyData( keyData );
     }
 
-    public String keyHash( final SecureService secureService )
+    public String keyHash( final SecureService domainSecureService )
             throws PwmUnrecoverableException
     {
-        return secureService.hash( keyData );
+        return domainSecureService.hash( keyData );
     }
 
     private byte[] stringToKeyData( final String input ) throws PwmUnrecoverableException

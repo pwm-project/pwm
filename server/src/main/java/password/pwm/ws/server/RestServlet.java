@@ -123,7 +123,7 @@ public abstract class RestServlet extends HttpServlet
         {
             if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
             {
-                final PwmHttpRequestWrapper httpRequestWrapper = new PwmHttpRequestWrapper( req, pwmApplication.getDefaultDomain().getConfig() );
+                final PwmHttpRequestWrapper httpRequestWrapper = new PwmHttpRequestWrapper( req, pwmApplication.getConfig() );
                 final String debutTxt = httpRequestWrapper.debugHttpRequestToString( null, true );
                 LOGGER.trace( sessionLabel, () -> "incoming HTTP REST request: " + debutTxt );
             }
@@ -159,7 +159,7 @@ public abstract class RestServlet extends HttpServlet
 
             final RestRequest restRequest = RestRequest.forRequest( pwmApplication.getDefaultDomain(), restAuthentication, sessionLabel, req );
 
-            RequestInitializationFilter.addStaticResponseHeaders( pwmApplication.getDefaultDomain(), resp );
+            RequestInitializationFilter.addStaticResponseHeaders( pwmApplication, resp );
 
             preCheck( restRequest );
 

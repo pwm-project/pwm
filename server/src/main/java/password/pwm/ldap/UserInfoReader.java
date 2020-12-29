@@ -600,7 +600,7 @@ public class UserInfoReader implements UserInfo
         final CrService crService = pwmDomain.getCrService();
         try
         {
-            return crService.readUserResponseInfo( sessionLabel, getUserIdentity(), chaiUser );
+            return crService.readUserResponseInfo( sessionLabel, getUserIdentity(), chaiUser ).orElse( null );
         }
         catch ( final ChaiUnavailableException e )
         {

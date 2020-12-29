@@ -22,11 +22,12 @@ package password.pwm.http.servlet.configeditor;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.stored.StoredConfigurationUtil;
@@ -63,6 +64,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -73,7 +75,7 @@ public class ConfigEditorServletUtils
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigEditorServletUtils.class );
 
 
-    public static FileValue readFileUploadToSettingValue(
+    public static Optional<FileValue> readFileUploadToSettingValue(
             final PwmRequest pwmRequest,
             final int maxFileSize
     )
@@ -89,14 +91,14 @@ public class ConfigEditorServletUtils
         {
             pwmRequest.outputJsonResult( RestResultBean.fromError( e.getErrorInformation(), pwmRequest ) );
             LOGGER.error( pwmRequest, () -> "error during file upload: " + e.getErrorInformation().toDebugStr() );
-            return null;
+            return Optional.empty();
         }
         catch ( final Throwable e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error during file upload: " + e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             LOGGER.error( pwmRequest, errorInformation );
-            return null;
+            return Optional.empty();
         }
 
         if ( fileUploads.containsKey( PwmConstants.PARAM_FILE_UPLOAD ) )
@@ -106,13 +108,13 @@ public class ConfigEditorServletUtils
             final Map<FileValue.FileInformation, FileValue.FileContent> newFileValueMap = new LinkedHashMap<>();
             newFileValueMap.put( new FileValue.FileInformation( uploadItem.getName(), uploadItem.getType() ), new FileValue.FileContent( uploadItem.getContent() ) );
 
-            return new FileValue( newFileValueMap );
+            return Optional.of( new FileValue( newFileValueMap ) );
         }
 
         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "no file found in upload" );
         pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
         LOGGER.error( pwmRequest, () -> "error during file upload: " + errorInformation.toDebugStr() );
-        return null;
+        return Optional.empty();
     }
 
     static void outputChangeLogData(
@@ -121,35 +123,35 @@ public class ConfigEditorServletUtils
             final Map<String, Object> outputMap
     )
     {
-            final Locale locale = pwmRequest.getLocale();
+        final Locale locale = pwmRequest.getLocale();
 
-            final Set<StoredConfigItemKey> changeLog = StoredConfigurationUtil.changedValues(
-                    pwmRequest.getPwmDomain().getConfig().getStoredConfiguration(),
-                    configManagerBean.getStoredConfiguration() );
+        final Set<StoredConfigKey> changeLog = StoredConfigurationUtil.changedValues(
+                pwmRequest.getPwmDomain().getConfig().getStoredConfiguration(),
+                configManagerBean.getStoredConfiguration() );
 
-            final Map<String, String> changeLogMap = StoredConfigurationUtil.makeDebugMap(
-                    configManagerBean.getStoredConfiguration(),
-                    changeLog,
-                    locale );
+        final Map<String, String> changeLogMap = StoredConfigurationUtil.makeDebugMap(
+                configManagerBean.getStoredConfiguration(),
+                changeLog.stream(),
+                locale );
 
-            final StringBuilder output = new StringBuilder();
-            if ( changeLogMap.isEmpty() )
+        final StringBuilder output = new StringBuilder();
+        if ( changeLogMap.isEmpty() )
+        {
+            output.append( "No setting changes." );
+        }
+        else
+        {
+            for ( final Map.Entry<String, String> entry : changeLogMap.entrySet() )
             {
-                output.append( "No setting changes." );
+                output.append( "<div class=\"changeLogKey\">" );
+                output.append( entry.getKey() );
+                output.append( "</div><div class=\"changeLogValue\">" );
+                output.append( StringUtil.escapeHtml( entry.getValue() ) );
+                output.append( "</div>" );
             }
-            else
-            {
-                for ( final Map.Entry<String, String> entry : changeLogMap.entrySet() )
-                {
-                    output.append( "<div class=\"changeLogKey\">" );
-                    output.append( entry.getKey() );
-                    output.append( "</div><div class=\"changeLogValue\">" );
-                    output.append( StringUtil.escapeHtml( entry.getValue() ) );
-                    output.append( "</div>" );
-                }
-            }
-            outputMap.put( "html", output.toString() );
-            outputMap.put( "modified", !changeLog.isEmpty() );
+        }
+        outputMap.put( "html", output.toString() );
+        outputMap.put( "modified", !changeLog.isEmpty() );
 
     }
 
@@ -235,70 +237,69 @@ public class ConfigEditorServletUtils
     static ConfigEditorServlet.ReadSettingResponse handleReadSetting(
             final PwmRequest pwmRequest,
             final StoredConfiguration storedConfig,
-            final String key
+            final String settingKey
     )
             throws PwmUnrecoverableException
     {
         final ConfigEditorServlet.ReadSettingResponse.ReadSettingResponseBuilder builder = ConfigEditorServlet.ReadSettingResponse.builder();
-        final PwmSetting theSetting = PwmSetting.forKey( key )
+        final PwmSetting pwmSetting = PwmSetting.forKey( settingKey )
                 .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
 
         final Object returnValue;
-        final String profile = theSetting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString( "profile" ) : null;
-        switch ( theSetting.getSyntax() )
+        final String profile = pwmSetting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString( "profile" ) : null;
+        final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( pwmSetting );
+
+        final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, profile, domainID );
+        final boolean isDefault = StoredConfigurationUtil.isDefaultValue( storedConfig, key );
+
+        switch ( pwmSetting.getSyntax() )
         {
             case PASSWORD:
-                returnValue = Collections.singletonMap( "isDefault", storedConfig.isDefaultValue( theSetting, profile ) );
+                returnValue = Collections.singletonMap( "isDefault", isDefault );
                 break;
 
             case X509CERT:
-                returnValue = ( ( X509CertificateValue ) storedConfig.readSetting( theSetting, profile ) ).toInfoMap( true );
+                returnValue = ( ( X509CertificateValue ) StoredConfigurationUtil.getValueOrDefault( storedConfig, key ) ).toInfoMap( true );
                 break;
 
             case PRIVATE_KEY:
-                returnValue = ( ( PrivateKeyValue ) storedConfig.readSetting( theSetting, profile ) ).toInfoMap( true );
+                returnValue = ( ( PrivateKeyValue ) StoredConfigurationUtil.getValueOrDefault( storedConfig, key ) ).toInfoMap( true );
                 break;
 
             case ACTION:
-                returnValue = ( ( ActionValue ) storedConfig.readSetting( theSetting, profile ) ).toInfoMap();
+                returnValue = ( ( ActionValue ) StoredConfigurationUtil.getValueOrDefault( storedConfig, key ) ).toInfoMap();
                 break;
 
             case REMOTE_WEB_SERVICE:
-                returnValue = ( ( RemoteWebServiceValue ) storedConfig.readSetting( theSetting, profile ) ).toInfoMap();
+                returnValue = ( ( RemoteWebServiceValue ) StoredConfigurationUtil.getValueOrDefault( storedConfig, key ) ).toInfoMap();
                 break;
 
             case FILE:
-                returnValue = ( ( FileValue ) storedConfig.readSetting( theSetting, profile ) ).toInfoMap();
+                returnValue = ( ( FileValue ) StoredConfigurationUtil.getValueOrDefault( storedConfig, key ) ).toInfoMap();
                 break;
 
             default:
-                returnValue = storedConfig.readSetting( theSetting, profile ).toNativeObject();
+                returnValue = StoredConfigurationUtil.getValueOrDefault( storedConfig, key ).toNativeObject();
 
         }
         builder.value( returnValue );
 
-        builder.isDefault( storedConfig.isDefaultValue( theSetting, profile ) );
-        if ( theSetting.getSyntax() == PwmSettingSyntax.SELECT )
+        builder.isDefault( isDefault );
+        if ( pwmSetting.getSyntax() == PwmSettingSyntax.SELECT )
         {
-            builder.options( theSetting.getOptions() );
+            builder.options( pwmSetting.getOptions() );
         }
         {
-            final ValueMetaData settingMetaData = storedConfig.readSettingMetadata( theSetting, profile );
-            if ( settingMetaData != null )
+            final Optional<ValueMetaData> settingMetaData = storedConfig.readSettingMetadata( key );
+            if ( settingMetaData.isPresent() )
             {
-                if ( settingMetaData.getModifyDate() != null )
-                {
-                    builder.modifyTime( settingMetaData.getModifyDate() );
-                }
-                if ( settingMetaData.getUserIdentity() != null )
-                {
-                    builder.modifyUser( settingMetaData.getUserIdentity() );
-                }
+                builder.modifyTime( settingMetaData.map( ValueMetaData::getModifyDate ).orElse( null ) );
+                builder.modifyUser( settingMetaData.map( ValueMetaData::getUserIdentity ).orElse( null ) );
             }
         }
-        builder.key( key );
-        builder.category( theSetting.getCategory().toString() );
-        builder.syntax( theSetting.getSyntax().toString() );
+        builder.key( settingKey );
+        builder.category( pwmSetting.getCategory().toString() );
+        builder.syntax( pwmSetting.getSyntax().toString() );
         return builder.build();
     }
 

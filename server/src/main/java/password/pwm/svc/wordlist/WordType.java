@@ -20,7 +20,7 @@
 
 package password.pwm.svc.wordlist;
 
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.secure.PwmHashAlgorithm;
 
@@ -77,7 +77,7 @@ public enum WordType
     }
 
     public String convertInputFromUser(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final WordlistConfiguration wordlistConfiguration,
             final String input
     )
@@ -90,7 +90,7 @@ public enum WordType
                     : input;
         }
 
-        final String hashedValue = pwmDomain.getSecureService().hash( this.hashAlgorithm, input );
+        final String hashedValue = pwmApplication.getSecureService().hash( this.hashAlgorithm, input );
         return makeHashedStoredValue( hashedValue );
     }
 

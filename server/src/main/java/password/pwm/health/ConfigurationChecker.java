@@ -36,7 +36,7 @@ import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueTypeConverter;
@@ -62,6 +62,7 @@ import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ConfigurationChecker implements HealthChecker
 {
@@ -93,7 +94,9 @@ public class ConfigurationChecker implements HealthChecker
 
         if ( pwmDomain.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
         {
-            records.add( HealthRecord.forMessage( HealthMessage.Config_ConfigMode ) );
+            records.add( HealthRecord.forMessage(
+                    config.getDomainID(),
+                    HealthMessage.Config_ConfigMode ) );
         }
 
         if ( config.readSettingAsBoolean( PwmSetting.NEWUSER_ENABLE ) )
@@ -107,6 +110,7 @@ public class ConfigurationChecker implements HealthChecker
                 catch ( final PwmUnrecoverableException e )
                 {
                     records.add( HealthRecord.forMessage(
+                            config.getDomainID(),
                             HealthMessage.NewUser_PwTemplateBad,
                             PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( newUserProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
                             e.getMessage() ) );
@@ -166,30 +170,42 @@ public class ConfigurationChecker implements HealthChecker
             if ( siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(
                     PwmSetting.PWM_SITE_URL.getDefaultValue( config.getTemplate() ).toNativeObject() ) )
             {
-                records.add(
-                        HealthRecord.forMessage( HealthMessage.Config_NoSiteURL, PwmSetting.PWM_SITE_URL.toMenuLocationDebug( null, locale ) ) );
+                records.add( HealthRecord.forMessage(
+                        config.getDomainID(),
+                        HealthMessage.Config_NoSiteURL,
+                        PwmSetting.PWM_SITE_URL.toMenuLocationDebug( null, locale ) ) );
             }
 
             if ( config.readSettingAsBoolean( PwmSetting.LDAP_ENABLE_WIRE_TRACE ) )
             {
-                records.add(
-                        HealthRecord.forMessage( HealthMessage.Config_LDAPWireTrace, PwmSetting.LDAP_ENABLE_WIRE_TRACE.toMenuLocationDebug( null, locale ) ) );
+                records.add( HealthRecord.forMessage(
+                        config.getDomainID(),
+                        HealthMessage.Config_LDAPWireTrace,
+                        PwmSetting.LDAP_ENABLE_WIRE_TRACE.toMenuLocationDebug( null, locale ) ) );
             }
 
             if ( Boolean.parseBoolean( config.readAppProperty( AppProperty.LDAP_PROMISCUOUS_ENABLE ) ) )
             {
                 final String appPropertyKey = "AppProperty" + separator + AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey();
-                records.add( HealthRecord.forMessage( HealthMessage.Config_PromiscuousLDAP, appPropertyKey ) );
+                records.add( HealthRecord.forMessage(
+                        config.getDomainID(),
+                        HealthMessage.Config_PromiscuousLDAP,
+                        appPropertyKey ) );
             }
 
-            if ( config.readSettingAsBoolean( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS ) )
+            if ( config.getAppConfig().readSettingAsBoolean( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS ) )
             {
-                records.add( HealthRecord.forMessage( HealthMessage.Config_ShowDetailedErrors, PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.toMenuLocationDebug( null, locale ) ) );
+                records.add( HealthRecord.forMessage(
+                        config.getDomainID(),
+                        HealthMessage.Config_ShowDetailedErrors,
+                        PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.toMenuLocationDebug( null, locale ) ) );
             }
 
             if ( config.getLdapProfiles().isEmpty() )
             {
-                records.add( HealthRecord.forMessage( HealthMessage.Config_NoLdapProfiles ) );
+                records.add( HealthRecord.forMessage(
+                        config.getDomainID(),
+                        HealthMessage.Config_NoLdapProfiles ) );
             }
 
             for ( final LdapProfile ldapProfile : config.getLdapProfiles().values() )
@@ -198,6 +214,7 @@ public class ConfigurationChecker implements HealthChecker
                 if ( testUserDN == null || testUserDN.length() < 1 )
                 {
                     records.add( HealthRecord.forMessage(
+                            config.getDomainID(),
                             HealthMessage.Config_AddTestUser,
                             PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getIdentifier(), locale )
                     ) );
@@ -218,6 +235,7 @@ public class ConfigurationChecker implements HealthChecker
                             if ( !secure )
                             {
                                 records.add( HealthRecord.forMessage(
+                                        config.getDomainID(),
                                         HealthMessage.Config_LDAPUnsecure,
                                         PwmSetting.LDAP_SERVER_URLS.toMenuLocationDebug( ldapProfile.getIdentifier(), locale )
                                 ) );
@@ -225,7 +243,9 @@ public class ConfigurationChecker implements HealthChecker
                         }
                         catch ( final URISyntaxException e )
                         {
-                            records.add( HealthRecord.forMessage( HealthMessage.Config_ParseError,
+                            records.add( HealthRecord.forMessage(
+                                    config.getDomainID(),
+                                    HealthMessage.Config_ParseError,
                                     e.getMessage(),
                                     PwmSetting.LDAP_SERVER_URLS.toMenuLocationDebug( ldapProfile.getIdentifier(), locale ),
                                     urlStringValue
@@ -246,30 +266,32 @@ public class ConfigurationChecker implements HealthChecker
         {
             final List<HealthRecord> records = new ArrayList<>();
 
+            final Stream<StoredConfigKey> interestedKeys = StoredConfigKey.filterBySettingSyntax(
+                    PwmSettingSyntax.PASSWORD,
+                    StoredConfigKey.filterByType(
+                            StoredConfigKey.RecordType.SETTING,
+                            config.getStoredConfiguration().keys() ) );
+
             try
             {
-                for ( final StoredConfigItemKey key : config.getStoredConfiguration().modifiedItems() )
+                for ( final StoredConfigKey key : interestedKeys.collect( Collectors.toList() ) )
                 {
-                    if ( key.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
+                    final PwmSetting pwmSetting = key.toPwmSetting();
+                    final StoredValue storedValue = config.getStoredConfiguration().readStoredValue( key ).orElseThrow();
+                    final PasswordData passwordValue = ValueTypeConverter.valueToPassword( storedValue );
+                    if ( passwordValue != null )
                     {
-                        final PwmSetting pwmSetting = key.toPwmSetting();
-                        if ( pwmSetting.getSyntax() == PwmSettingSyntax.PASSWORD )
-                        {
-                            final StoredValue storedValue = config.getStoredConfiguration().readSetting( pwmSetting, key.getProfileID() );
-                            final PasswordData passwordValue = ( PasswordData ) storedValue.toNativeObject();
-                            if ( passwordValue != null )
-                            {
-                                final String stringValue = passwordValue.getStringValue();
+                        final String stringValue = passwordValue.getStringValue();
 
-                                if ( !StringUtil.isEmpty( stringValue ) )
-                                {
-                                    final int strength = PasswordUtility.judgePasswordStrength( config, stringValue );
-                                    if ( strength < 50 )
-                                    {
-                                        records.add( HealthRecord.forMessage( HealthMessage.Config_WeakPassword,
-                                                pwmSetting.toMenuLocationDebug( key.getProfileID(), locale ), String.valueOf( strength ) ) );
-                                    }
-                                }
+                        if ( !StringUtil.isEmpty( stringValue ) )
+                        {
+                            final int strength = PasswordUtility.judgePasswordStrength( config, stringValue );
+                            if ( strength < 50 )
+                            {
+                                records.add( HealthRecord.forMessage(
+                                        config.getDomainID(),
+                                        HealthMessage.Config_WeakPassword,
+                                        pwmSetting.toMenuLocationDebug( key.getProfileID(), locale ), String.valueOf( strength ) ) );
                             }
                         }
                     }
@@ -297,7 +319,7 @@ public class ConfigurationChecker implements HealthChecker
                     {
                             PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE,
                             PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE,
-                            };
+                    };
             for ( final PwmSetting loopSetting : interestedSettings )
             {
                 if ( config.getResponseStorageLocations( loopSetting ).contains( DataStorageMethod.LDAP ) )
@@ -352,13 +374,17 @@ public class ConfigurationChecker implements HealthChecker
 
                 for ( final PwmSetting setting : causalSettings )
                 {
-                    records.add( HealthRecord.forMessage( HealthMessage.Config_MissingDB, setting.toMenuLocationDebug( null, locale ) ) );
+                    records.add( HealthRecord.forMessage(
+                            config.getDomainID(),
+                            HealthMessage.Config_MissingDB,
+                            setting.toMenuLocationDebug( null, locale ) ) );
                 }
             }
 
             if ( config.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE ).contains( DataStorageMethod.LOCALDB ) )
             {
                 records.add( HealthRecord.forMessage(
+                        config.getDomainID(),
                         HealthMessage.Config_UsingLocalDBResponseStorage,
                         PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.toMenuLocationDebug( null, locale ) ) );
             }
@@ -366,6 +392,7 @@ public class ConfigurationChecker implements HealthChecker
             if ( config.getOtpSecretStorageLocations( PwmSetting.OTP_SECRET_WRITE_PREFERENCE ).contains( DataStorageMethod.LOCALDB ) )
             {
                 records.add( HealthRecord.forMessage(
+                        config.getDomainID(),
                         HealthMessage.Config_UsingLocalDBResponseStorage,
                         PwmSetting.OTP_SECRET_WRITE_PREFERENCE.toMenuLocationDebug( null, locale ) ) );
             }
@@ -412,6 +439,7 @@ public class ConfigurationChecker implements HealthChecker
                     if ( ldapProfile == null )
                     {
                         records.add( HealthRecord.forMessage(
+                                config.getDomainID(),
                                 HealthMessage.Config_InvalidLdapProfile,
                                 PwmSetting.NEWUSER_LDAP_PROFILE.toMenuLocationDebug( newUserProfile.getIdentifier(), locale ) ) );
                     }
@@ -428,48 +456,27 @@ public class ConfigurationChecker implements HealthChecker
         {
             final List<HealthRecord> records = new ArrayList<>();
 
-            for ( final PwmSetting loopSetting : PwmSetting.values() )
+            final Stream<StoredConfigKey> interestedKeys = StoredConfigKey.filterBySettingSyntax(
+                    PwmSettingSyntax.FORM, config.getStoredConfiguration().keys() );
+
+            for ( final StoredConfigKey key : interestedKeys.collect( Collectors.toList() ) )
             {
-                if ( loopSetting.getSyntax() == PwmSettingSyntax.FORM )
+                final PwmSetting loopSetting = key.toPwmSetting();
+                final StoredValue storedValue = config.getStoredConfiguration().readStoredValue( key ).orElseThrow();
+                final List<FormConfiguration> forms = ValueTypeConverter.valueToForm( storedValue );
+                for ( final FormConfiguration form : forms )
                 {
-                    if ( loopSetting.getCategory().hasProfiles() )
+                    if ( !StringUtil.isEmpty( form.getJavascript() ) )
                     {
-
-                        final List<String> profiles = config.getStoredConfiguration().profilesForSetting( loopSetting );
-                        for ( final String profile : profiles )
-                        {
-                            final StoredValue storedValue = config.getStoredConfiguration().readSetting( loopSetting, profile );
-                            final List<FormConfiguration> forms = ValueTypeConverter.valueToForm( storedValue );
-                            for ( final FormConfiguration form : forms )
-                            {
-                                if ( !StringUtil.isEmpty( form.getJavascript() ) )
-                                {
-                                    records.add( HealthRecord.forMessage(
-                                            HealthMessage.Config_DeprecatedJSForm,
-                                            loopSetting.toMenuLocationDebug( profile, locale ),
-                                            PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT.toMenuLocationDebug( null, locale )
-                                    ) );
-                                }
-                            }
-                        }
-
-                    }
-                    else
-                    {
-                        final List<FormConfiguration> forms = config.readSettingAsForm( loopSetting );
-                        for ( final FormConfiguration form : forms )
-                        {
-                            if ( !StringUtil.isEmpty( form.getJavascript() ) )
-                            {
-                                records.add( HealthRecord.forMessage(
-                                        HealthMessage.Config_DeprecatedJSForm,
-                                        loopSetting.toMenuLocationDebug( null, locale ),
-                                        PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT.toMenuLocationDebug( null, locale )
-                                ) );
-                            }
-                        }
+                        records.add( HealthRecord.forMessage(
+                                config.getDomainID(),
+                                HealthMessage.Config_DeprecatedJSForm,
+                                loopSetting.toMenuLocationDebug( key.getProfileID(), locale ),
+                                PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT.toMenuLocationDebug( null, locale )
+                        ) );
                     }
                 }
+
             }
             return records;
         }
@@ -492,7 +499,9 @@ public class ConfigurationChecker implements HealthChecker
                 final MessageSendMethod method = activationProfile.readSettingAsEnum( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class );
                 if ( deprecatedMethods.contains( method ) )
                 {
-                    records.add( HealthRecord.forMessage( HealthMessage.Config_InvalidSendMethod,
+                    records.add( HealthRecord.forMessage(
+                            config.getDomainID(),
+                            HealthMessage.Config_InvalidSendMethod,
                             method.toString(),
                             PwmSetting.ACTIVATE_TOKEN_SEND_METHOD.toMenuLocationDebug( activationProfile.getIdentifier(), locale )
                     ) );
@@ -503,7 +512,9 @@ public class ConfigurationChecker implements HealthChecker
                 final MessageSendMethod method = config.readSettingAsEnum( PwmSetting.FORGOTTEN_USERNAME_SEND_USERNAME_METHOD, MessageSendMethod.class );
                 if ( deprecatedMethods.contains( method ) )
                 {
-                    records.add( HealthRecord.forMessage( HealthMessage.Config_InvalidSendMethod,
+                    records.add( HealthRecord.forMessage(
+                            config.getDomainID(),
+                            HealthMessage.Config_InvalidSendMethod,
                             method.toString(),
                             PwmSetting.FORGOTTEN_USERNAME_SEND_USERNAME_METHOD.toMenuLocationDebug( null, locale )
                     ) );
@@ -516,7 +527,9 @@ public class ConfigurationChecker implements HealthChecker
 
                 if ( deprecatedMethods.contains( method ) )
                 {
-                    records.add( HealthRecord.forMessage( HealthMessage.Config_InvalidSendMethod,
+                    records.add( HealthRecord.forMessage(
+                            config.getDomainID(),
+                            HealthMessage.Config_InvalidSendMethod,
                             method.toString(),
                             PwmSetting.HELPDESK_TOKEN_SEND_METHOD.toMenuLocationDebug( helpdeskProfile.getIdentifier(), locale )
                     ) );
@@ -530,7 +543,9 @@ public class ConfigurationChecker implements HealthChecker
 
                     if ( deprecatedMethods.contains( method ) )
                     {
-                        records.add( HealthRecord.forMessage( HealthMessage.Config_InvalidSendMethod,
+                        records.add( HealthRecord.forMessage(
+                                config.getDomainID(),
+                                HealthMessage.Config_InvalidSendMethod,
                                 method.toString(),
                                 PwmSetting.RECOVERY_SENDNEWPW_METHOD.toMenuLocationDebug( forgottenPasswordProfile.getIdentifier(), locale )
                         ) );
@@ -541,7 +556,9 @@ public class ConfigurationChecker implements HealthChecker
 
                     if ( deprecatedMethods.contains( method ) )
                     {
-                        records.add( HealthRecord.forMessage( HealthMessage.Config_InvalidSendMethod,
+                        records.add( HealthRecord.forMessage(
+                                config.getDomainID(),
+                                HealthMessage.Config_InvalidSendMethod,
                                 method.toString(),
                                 PwmSetting.RECOVERY_TOKEN_SEND_METHOD.toMenuLocationDebug( forgottenPasswordProfile.getIdentifier(), locale )
                         ) );
@@ -571,6 +588,7 @@ public class ConfigurationChecker implements HealthChecker
                             + " > "
                             + " (" + maxValue + ")";
                     records.add( HealthRecord.forMessage(
+                            config.getDomainID(),
                             HealthMessage.Config_ValueConflict,
                             PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME.toMenuLocationDebug( profileID, locale ),
                             PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME.toMenuLocationDebug( profileID, locale ),
@@ -592,9 +610,9 @@ public class ConfigurationChecker implements HealthChecker
             final List<HealthRecord> records = new ArrayList<>();
 
             final StoredConfiguration storedConfiguration = config.getStoredConfiguration();
-            for ( final StoredConfigItemKey configItemKey : StoredConfigItemKey.filterBySettingSyntax(
+            for ( final StoredConfigKey configItemKey : StoredConfigKey.filterBySettingSyntax(
                     PwmSettingSyntax.USER_PERMISSION,
-                    storedConfiguration.modifiedItems() ) )
+                    storedConfiguration.keys() ).collect( Collectors.toList() ) )
             {
                 final StoredValue storedValue = storedConfiguration.readStoredValue( configItemKey ).orElseThrow( NoSuchElementException::new );
                 final List<UserPermission> permissions = ValueTypeConverter.valueToUserPermissions( storedValue );
@@ -608,6 +626,7 @@ public class ConfigurationChecker implements HealthChecker
                     {
                         final PwmSetting pwmSetting = configItemKey.toPwmSetting();
                         records.add( HealthRecord.forMessage(
+                                config.getDomainID(),
                                 HealthMessage.Config_SettingIssue,
                                 pwmSetting.toMenuLocationDebug( configItemKey.getProfileID(), locale ),
                                 e.getMessage() ) );
@@ -622,7 +641,7 @@ public class ConfigurationChecker implements HealthChecker
 
         private static List<HealthRecord> checkLdapProfile(
                 final DomainConfig domainConfig,
-                final StoredConfigItemKey storedConfigItemKey,
+                final StoredConfigKey storedConfigKey,
                 final Locale locale,
                 final UserPermission permission
         )
@@ -630,10 +649,11 @@ public class ConfigurationChecker implements HealthChecker
             final List<LdapProfile> ldapProfiles = ldapProfilesForLdapProfileSetting( domainConfig, permission.getLdapProfileID() );
             if ( ldapProfiles.isEmpty()  )
             {
-                final PwmSetting pwmSetting = storedConfigItemKey.toPwmSetting();
+                final PwmSetting pwmSetting = storedConfigKey.toPwmSetting();
                 return Collections.singletonList( HealthRecord.forMessage(
+                        domainConfig.getDomainID(),
                         HealthMessage.Config_ProfileValueValidity,
-                        pwmSetting.toMenuLocationDebug( storedConfigItemKey.getProfileID(), locale ),
+                        pwmSetting.toMenuLocationDebug( storedConfigKey.getProfileID(), locale ),
                         permission.getLdapProfileID() ) );
             }
 

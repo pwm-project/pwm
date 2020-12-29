@@ -124,7 +124,7 @@ class LdapQueryHelper implements PermissionTypeHelper
     {
         return SearchConfiguration.builder()
                 .filter( userPermission.getLdapQuery() )
-                .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ) )
+                .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ).orElse( null ) )
                 .build();
     }
 

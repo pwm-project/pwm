@@ -118,7 +118,7 @@ public class DailySummaryJob implements Runnable
         {
             // server info
             final Map<String, String> metadata = new LinkedHashMap<>();
-            metadata.put( "Instance ID", pwmDomain.getInstanceID() );
+            metadata.put( "Instance ID", pwmDomain.getPwmApplication().getInstanceID() );
             metadata.put( "Site URL", pwmDomain.getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL ) );
             metadata.put( "Timestamp", JavaHelper.toIsoDate( Instant.now() ) );
             metadata.put( "Up Time", TimeDuration.fromCurrent( pwmDomain.getPwmApplication().getStartupTime() ).asLongString() );
@@ -138,7 +138,7 @@ public class DailySummaryJob implements Runnable
 
         {
             // health check data
-            final Collection<HealthRecord> healthRecords = pwmDomain.getHealthMonitor().getHealthRecords();
+            final Collection<HealthRecord> healthRecords = pwmDomain.getPwmApplication().getHealthMonitor().getHealthRecords();
             textBody.append( "-- Health Check Results --\n" );
             htmlBody.append( "<h2>Health Check Results</h2>" );
 

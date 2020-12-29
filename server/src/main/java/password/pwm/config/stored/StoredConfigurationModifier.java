@@ -22,25 +22,20 @@ package password.pwm.config.stored;
 
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingCategory;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.LocalizedStringValue;
-import password.pwm.config.value.StringArrayValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.BCrypt;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -65,26 +60,27 @@ public class StoredConfigurationModifier
     }
 
     public void writeSetting(
-            final PwmSetting setting,
-            final String profileID,
+            final StoredConfigKey key,
             final StoredValue value,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
-        writeSettingAndMetaData( setting, profileID, value, new ValueMetaData( Instant.now(), userIdentity ) );
+        writeSettingAndMetaData( key, value, new ValueMetaData( Instant.now(), userIdentity ) );
     }
 
     void writeSettingAndMetaData(
-            final PwmSetting setting,
-            final String profileID,
+            final StoredConfigKey key,
             final StoredValue value,
             final ValueMetaData valueMetaData
     )
             throws PwmUnrecoverableException
     {
-        Objects.requireNonNull( setting );
+        Objects.requireNonNull( key );
         Objects.requireNonNull( value );
+
+        final String profileID = key.getProfileID();
+        final PwmSetting setting = key.toPwmSetting();
 
         update( ( storedConfigData ) ->
         {
@@ -96,9 +92,6 @@ public class StoredConfigurationModifier
             {
                 throw new IllegalArgumentException( "cannot specify profile for non-profile setting" );
             }
-
-            final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID );
-
 
             return storedConfigData.toBuilder()
                     .storedValue( key, value )
@@ -115,8 +108,8 @@ public class StoredConfigurationModifier
     {
         update( ( storedConfigData ) ->
         {
-            final StoredConfigItemKey key = StoredConfigItemKey.fromConfigurationProperty( propertyName );
-            final Map<StoredConfigItemKey, StoredValue> existingStoredValues = new HashMap<>( storedConfigData.getStoredValues() );
+            final StoredConfigKey key = StoredConfigKey.forConfigurationProperty( propertyName );
+            final Map<StoredConfigKey, StoredValue> existingStoredValues = new HashMap<>( storedConfigData.getStoredValues() );
 
             if ( StringUtil.isEmpty( value ) )
             {
@@ -140,9 +133,9 @@ public class StoredConfigurationModifier
     {
         update( ( storedConfigData ) ->
         {
-            final Map<StoredConfigItemKey, StoredValue> existingStoredValues = new HashMap<>( storedConfigData.getStoredValues() );
+            final Map<StoredConfigKey, StoredValue> existingStoredValues = new HashMap<>( storedConfigData.getStoredValues() );
 
-            final StoredConfigItemKey key = StoredConfigItemKey.fromLocaleBundle( pwmLocaleBundle, keyName );
+            final StoredConfigKey key = StoredConfigKey.forLocaleBundle( pwmLocaleBundle, keyName );
             existingStoredValues.remove( key );
 
             return storedConfigData.toBuilder()
@@ -152,14 +145,12 @@ public class StoredConfigurationModifier
         } );
     }
 
-    public void resetSetting( final PwmSetting setting, final String profileID, final UserIdentity userIdentity )
+    public void resetSetting( final StoredConfigKey key, final UserIdentity userIdentity )
             throws PwmUnrecoverableException
     {
         update( ( storedConfigData ) ->
         {
-            final Map<StoredConfigItemKey, StoredValue> existingStoredValues = new HashMap<>( storedConfigData.getStoredValues() );
-
-            final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID );
+            final Map<StoredConfigKey, StoredValue> existingStoredValues = new HashMap<>( storedConfigData.getStoredValues() );
             existingStoredValues.remove( key );
 
             return storedConfigData.toBuilder()
@@ -170,13 +161,13 @@ public class StoredConfigurationModifier
         } );
     }
 
-    public void deleteKey( final StoredConfigItemKey key )
+    public void deleteKey( final StoredConfigKey key )
             throws PwmUnrecoverableException
     {
         update( ( storedConfigData ) ->
         {
-            final Map<StoredConfigItemKey, StoredValue> existingStoredValues = new HashMap<>( storedConfigData.getStoredValues() );
-            final Map<StoredConfigItemKey, ValueMetaData> existingMetaValues = new HashMap<>( storedConfigData.getMetaDatas() );
+            final Map<StoredConfigKey, StoredValue> existingStoredValues = new HashMap<>( storedConfigData.getStoredValues() );
+            final Map<StoredConfigKey, ValueMetaData> existingMetaValues = new HashMap<>( storedConfigData.getMetaDatas() );
 
             existingStoredValues.remove( key );
             existingMetaValues.remove( key );
@@ -198,7 +189,7 @@ public class StoredConfigurationModifier
     {
         update( ( storedConfigData ) ->
         {
-            final StoredConfigItemKey key = StoredConfigItemKey.fromLocaleBundle( pwmLocaleBundle, keyName );
+            final StoredConfigKey key = StoredConfigKey.forLocaleBundle( pwmLocaleBundle, keyName );
             final StoredValue value = new LocalizedStringValue( localeMap );
 
             return storedConfigData.toBuilder()
@@ -207,73 +198,6 @@ public class StoredConfigurationModifier
         } );
     }
 
-    public void copyProfileID(
-            final PwmSettingCategory category,
-            final String sourceID,
-            final String destinationID,
-            final UserIdentity userIdentity
-    )
-            throws PwmUnrecoverableException
-    {
-
-        if ( !category.hasProfiles() )
-        {
-            throw PwmUnrecoverableException.newException(
-                    PwmError.ERROR_INVALID_CONFIG, "can not copy profile ID for category " + category + ", category does not have profiles" );
-        }
-
-        update( ( storedConfigData ) ->
-        {
-            final StoredConfiguration oldStoredConfiguration = new StoredConfigurationImpl( storedConfigData );
-
-            final PwmSetting profileSetting = category.getProfileSetting().orElseThrow( IllegalStateException::new );
-            final List<String> existingProfiles = StoredConfigurationUtil.profilesForSetting( profileSetting, oldStoredConfiguration );
-            if ( !existingProfiles.contains( sourceID ) )
-            {
-                throw PwmUnrecoverableException.newException(
-                        PwmError.ERROR_INVALID_CONFIG, "can not copy profile ID for category, source profileID '" + sourceID + "' does not exist" );
-            }
-
-            if ( existingProfiles.contains( destinationID ) )
-            {
-                throw PwmUnrecoverableException.newException(
-                        PwmError.ERROR_INVALID_CONFIG, "can not copy profile ID for category, destination profileID '" + destinationID + "' already exists" );
-            }
-
-            final Collection<PwmSettingCategory> interestedCategories = PwmSettingCategory.associatedProfileCategories( category );
-            final Map<StoredConfigItemKey, StoredValue> newValues = new LinkedHashMap<>();
-
-            for ( final PwmSettingCategory interestedCategory : interestedCategories )
-            {
-                for ( final PwmSetting pwmSetting : interestedCategory.getSettings() )
-                {
-                    if ( !oldStoredConfiguration.isDefaultValue( pwmSetting, sourceID ) )
-                    {
-                        final StoredValue value = oldStoredConfiguration.readSetting( pwmSetting, sourceID );
-                        final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( pwmSetting, destinationID );
-                        newValues.put( key, value );
-                    }
-                }
-            }
-
-            {
-                final List<String> newProfileIDList = new ArrayList<>( existingProfiles );
-                newProfileIDList.add( destinationID );
-                final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( profileSetting, null );
-                final StoredValue value = new StringArrayValue( newProfileIDList );
-                newValues.put( key, value );
-            }
-
-            final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( category.getProfileSetting().orElseThrow( IllegalStateException::new ), null );
-            final ValueMetaData valueMetaData = new ValueMetaData( Instant.now(), userIdentity );
-
-            return storedConfigData.toBuilder()
-                    .storedValues( newValues )
-                    .metaData( key, valueMetaData )
-                    .build();
-
-        } );
-    }
 
     public void setPassword( final String password )
             throws PwmOperationalException, PwmUnrecoverableException
@@ -319,7 +243,12 @@ public class StoredConfigurationModifier
         }
         catch ( final RuntimeException e )
         {
-            throw ( PwmUnrecoverableException ) e.getCause();
+            if ( e.getCause() != null && e.getCause().getClass().equals( PwmUnrecoverableException.class ) )
+            {
+                throw ( PwmUnrecoverableException ) e.getCause();
+            }
+            final String errorMsg = "unexpected error modifying storedConfiguration: " + JavaHelper.readHostileExceptionMessage( e );
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, errorMsg );
         }
         ref.updateAndGet( storedConfigData -> storedConfigData.toBuilder().modifyTime( Instant.now() ).build() );
     }

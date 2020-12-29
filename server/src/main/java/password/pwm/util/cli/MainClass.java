@@ -206,7 +206,7 @@ public class MainClass
         if ( parameters.needsPwmApplication )
         {
             pwmDomain = loadPwmApplication( applicationPath, mainOptions.getApplicationFlags(), config.getAppConfig(), configurationFile, parameters.readOnly );
-            localDB = pwmDomain.getLocalDB();
+            localDB = pwmDomain.getPwmApplication().getLocalDB();
         }
         else if ( parameters.needsLocalDB )
         {

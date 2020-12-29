@@ -23,7 +23,7 @@ package password.pwm.util.logging;
 import lombok.Builder;
 import lombok.Data;
 import password.pwm.AppProperty;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.java.TimeDuration;
 
@@ -74,22 +74,22 @@ public class LocalDBLoggerSettings implements Serializable
                 .build();
     }
 
-    public static LocalDBLoggerSettings fromConfiguration( final DomainConfig domainConfig )
+    public static LocalDBLoggerSettings fromConfiguration( final AppConfig appConfig )
     {
         final Set<Flag> flags = EnumSet.noneOf( Flag.class );
-        if ( domainConfig.getAppConfig().isDevDebugMode() )
+        if ( appConfig.isDevDebugMode() )
         {
             flags.add( Flag.DevDebug );
         }
-        final int maxEvents = ( int ) domainConfig.readSettingAsLong( PwmSetting.EVENTS_PWMDB_MAX_EVENTS );
-        final long maxAgeMS = 1000 * domainConfig.readSettingAsLong( PwmSetting.EVENTS_PWMDB_MAX_AGE );
+        final int maxEvents = ( int ) appConfig.readSettingAsLong( PwmSetting.EVENTS_PWMDB_MAX_EVENTS );
+        final long maxAgeMS = 1000 * appConfig.readSettingAsLong( PwmSetting.EVENTS_PWMDB_MAX_AGE );
         final TimeDuration maxAge = TimeDuration.of( maxAgeMS, TimeDuration.Unit.MILLISECONDS );
-        final int maxBufferSize = Integer.parseInt( domainConfig.readAppProperty( AppProperty.LOCALDB_LOGWRITER_BUFFER_SIZE ) );
+        final int maxBufferSize = Integer.parseInt( appConfig.readAppProperty( AppProperty.LOCALDB_LOGWRITER_BUFFER_SIZE ) );
         final TimeDuration maxBufferWaitTime = TimeDuration.of(
-                Long.parseLong( domainConfig.readAppProperty( AppProperty.LOCALDB_LOGWRITER_MAX_BUFFER_WAIT_MS ) ),
+                Long.parseLong( appConfig.readAppProperty( AppProperty.LOCALDB_LOGWRITER_MAX_BUFFER_WAIT_MS ) ),
                 TimeDuration.Unit.MILLISECONDS
         );
-        final int maxTrimSize = Integer.parseInt( domainConfig.readAppProperty( AppProperty.LOCALDB_LOGWRITER_MAX_TRIM_SIZE ) );
+        final int maxTrimSize = Integer.parseInt( appConfig.readAppProperty( AppProperty.LOCALDB_LOGWRITER_MAX_TRIM_SIZE ) );
 
         return LocalDBLoggerSettings.builder()
                 .maxEvents( maxEvents )

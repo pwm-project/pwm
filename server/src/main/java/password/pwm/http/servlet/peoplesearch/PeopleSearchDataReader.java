@@ -271,11 +271,9 @@ class PeopleSearchDataReader
         userDetailBean.setDetail( attributeBeans );
 
         final PhotoDataReader photoDataReader = photoDataReader( userIdentity );
-        final String photoURL = photoDataReader.figurePhotoURL( );
-        if ( photoURL != null )
-        {
-            userDetailBean.setPhotoURL( photoURL );
-        }
+        final Optional<String> photoURL = photoDataReader.figurePhotoURL( );
+        photoURL.ifPresent( userDetailBean::setPhotoURL );
+
         final List<String> displayName = figureDisplaynames( userIdentity );
         if ( displayName != null )
         {
@@ -391,7 +389,7 @@ class PeopleSearchDataReader
         final OrgChartReferenceBean orgChartReferenceBean = new OrgChartReferenceBean();
         orgChartReferenceBean.setUserKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
         final PhotoDataReader photoDataReader = photoDataReader( userIdentity );
-        orgChartReferenceBean.setPhotoURL( photoDataReader.figurePhotoURL( ) );
+        photoDataReader.figurePhotoURL( ).ifPresent( orgChartReferenceBean::setPhotoURL );
 
         final List<String> displayLabels = figureDisplaynames( userIdentity );
         orgChartReferenceBean.setDisplayNames( displayLabels );
@@ -431,7 +429,7 @@ class PeopleSearchDataReader
         final boolean checkUserDNValues = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN ) );
         for ( final String userDN : ldapValues )
         {
-            final UserIdentity loopIdentity = UserIdentity.createUserIdentity( userDN, userIdentity.getLdapProfileID(), pwmRequest.getDomainID() );
+            final UserIdentity loopIdentity = UserIdentity.create( userDN, userIdentity.getLdapProfileID(), pwmRequest.getDomainID() );
             if ( returnObj.size() < maxValues )
             {
                 if ( checkUserDNValues )

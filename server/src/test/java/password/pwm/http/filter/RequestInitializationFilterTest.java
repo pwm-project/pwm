@@ -23,9 +23,11 @@ package password.pwm.http.filter;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
+import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.BooleanValue;
@@ -130,7 +132,8 @@ public class RequestInitializationFilterTest
             throws PwmUnrecoverableException
     {
         final StoredConfigurationModifier modifier = StoredConfigurationFactory.newModifiableConfig();
-        modifier.writeSetting( PwmSetting.USE_X_FORWARDED_FOR_HEADER, null, BooleanValue.of( false ), null );
+        final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.USE_X_FORWARDED_FOR_HEADER, null, DomainID.systemId() );
+        modifier.writeSetting( key, BooleanValue.of( false ), null );
         final DomainConfig conf = new AppConfig( modifier.newStoredConfiguration() ).getDefaultDomainConfig();
         final HttpServletRequest mockRequest = Mockito.mock( HttpServletRequest.class );
         Mockito.when( mockRequest.getRemoteAddr() ).thenReturn( "10.1.1.1" );

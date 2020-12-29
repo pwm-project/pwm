@@ -53,6 +53,8 @@ public enum PwmSettingCategory
     MODULES_PUBLIC( MODULES ),
     MODULES_PRIVATE( MODULES ),
 
+    SYSTEM( SETTINGS ),
+
     LDAP_PROFILE( LDAP ),
     LDAP_BASE( LDAP_PROFILE ),
     LDAP_LOGIN( LDAP_PROFILE ),
@@ -71,9 +73,11 @@ public enum PwmSettingCategory
 
     APPLICATION( SETTINGS ),
 
+
+    NODES( SYSTEM ),
+
     DOMAIN( SETTINGS ),
     GENERAL( DOMAIN ),
-    NODES( DOMAIN ),
     LOCALIZATION( DOMAIN ),
     TELEMETRY( DOMAIN ),
 

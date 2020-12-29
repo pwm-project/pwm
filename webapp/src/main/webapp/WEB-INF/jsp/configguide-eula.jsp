@@ -48,7 +48,7 @@
                 End User License Agreement
             </div>
             <div class="setting_body">
-                <div id="agreementText" class="eulaText"><%=JavaHelper.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_EULA_TXT)%></div>
+                <div id="agreementText" class="eulaText"><%=ContextManager.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_EULA_TXT)%></div>
             </div>
 
             <br/><br/>

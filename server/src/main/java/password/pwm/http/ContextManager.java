@@ -25,6 +25,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
@@ -32,8 +33,10 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.ErrorInformation;
@@ -52,6 +55,7 @@ import password.pwm.util.secure.X509Utils;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpSession;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -151,6 +155,16 @@ public class ContextManager implements Serializable
         }
 
         return ( ContextManager ) theManager;
+    }
+
+    public static String readEulaText( final ContextManager contextManager, final String filename )
+            throws IOException
+    {
+        final String path = PwmConstants.URL_PREFIX_PUBLIC + "/resources/text/" + filename;
+        final InputStream inputStream = contextManager.getResourceAsStream( path );
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        JavaHelper.copyWhilePredicate( inputStream, byteArrayOutputStream, o -> true );
+        return byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET.name() );
     }
 
     public PwmApplication getPwmApplication( )
@@ -289,7 +303,7 @@ public class ContextManager implements Serializable
 
         taskMaster = Executors.newSingleThreadScheduledExecutor(
                 PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( pwmApplication.getDomains().get( PwmConstants.DOMAIN_ID_PLACEHOLDER ), this.getClass() ) + "-",
+                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-",
                         true
                 ) );
 
@@ -729,24 +743,27 @@ public class ContextManager implements Serializable
             final StoredConfigurationModifier modifiedConfig = StoredConfigurationModifier.newModifier( configReader.getStoredConfiguration() );
 
             int importedCerts = 0;
-            for ( final LdapProfile ldapProfile : domainConfig.getLdapProfiles().values() )
+            for ( final DomainID domainID : StoredConfigurationUtil.domainList( configReader.getStoredConfiguration() ) )
             {
-                final List<String> ldapUrls = ldapProfile.getLdapUrls();
-                if ( !JavaHelper.isEmpty( ldapUrls ) )
+                for ( final LdapProfile ldapProfile : domainConfig.getLdapProfiles().values() )
                 {
-                    final Set<X509Certificate> certs = X509Utils.readCertsForListOfLdapUrls( ldapUrls, domainConfig );
-                    if ( !JavaHelper.isEmpty( certs ) )
+                    final List<String> ldapUrls = ldapProfile.getLdapUrls();
+                    if ( !JavaHelper.isEmpty( ldapUrls ) )
                     {
-                        importedCerts += certs.size();
-                        for ( final X509Certificate cert : certs )
+                        final Set<X509Certificate> certs = X509Utils.readCertsForListOfLdapUrls( ldapUrls, domainConfig );
+                        if ( !JavaHelper.isEmpty( certs ) )
                         {
-                            LOGGER.trace( SESSION_LABEL, () -> "imported cert: " + X509Utils.makeDebugText( cert ) );
+                            importedCerts += certs.size();
+                            for ( final X509Certificate cert : certs )
+                            {
+                                LOGGER.trace( SESSION_LABEL, () -> "imported cert: " + X509Utils.makeDebugText( cert ) );
+                            }
+                            final StoredValue storedValue = X509CertificateValue.fromX509( certs );
+
+                            final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.LDAP_SERVER_CERTS, ldapProfile.getIdentifier(), domainID );
+                            modifiedConfig.writeSetting( key, storedValue, null );
                         }
-                        final StoredValue storedValue = X509CertificateValue.fromX509( certs );
-
-                        modifiedConfig.writeSetting( PwmSetting.LDAP_SERVER_CERTS, ldapProfile.getIdentifier(), storedValue, null );
                     }
-
                 }
             }
 

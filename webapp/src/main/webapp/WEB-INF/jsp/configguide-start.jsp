@@ -46,11 +46,11 @@
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p>
             <pwm:if test="<%=PwmIfTest.appliance%>" negate="true">
-                Application Configuration Path: <code><%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).getPwmDomain().getPwmEnvironment().getApplicationPath().getAbsolutePath())%></code>
+                Application Configuration Path: <code><%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath())%></code>
             </pwm:if>
         </p>
         <br/><br/>
-        <% String welcomeText = JavaHelper.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_WELCOME_TXT); %>
+        <% String welcomeText = ContextManager.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_WELCOME_TXT); %>
         <% String macroText = MacroRequest.forStatic().expandMacros(welcomeText); %>
         <% if (!StringUtil.isEmpty(macroText)) { %>
         <div id="agreementText" class="eulaText"><%=macroText%></div>

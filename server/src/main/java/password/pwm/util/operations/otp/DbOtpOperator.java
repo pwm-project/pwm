@@ -67,7 +67,7 @@ public class DbOtpOperator extends AbstractOtpOperator
         OTPUserRecord otpConfig = null;
         try
         {
-            final DatabaseAccessor databaseAccessor = pwmDomain.getDatabaseAccessor();
+            final DatabaseAccessor databaseAccessor = pwmDomain.getPwmApplication().getDatabaseAccessor();
             String value = databaseAccessor.get( DatabaseTable.OTP, userGUID );
             if ( value != null && value.length() > 0 )
             {
@@ -119,7 +119,7 @@ public class DbOtpOperator extends AbstractOtpOperator
                 LOGGER.debug( pwmRequest, () -> "encrypting OTP secret for storage" );
                 value = encryptAttributeValue( value );
             }
-            final DatabaseAccessor databaseAccessor = pwmDomain.getDatabaseAccessor();
+            final DatabaseAccessor databaseAccessor = pwmDomain.getPwmApplication().getDatabaseAccessor();
             databaseAccessor.put( DatabaseTable.OTP, userGUID, value );
             LOGGER.debug( pwmRequest, () -> "saved OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
         }
@@ -154,7 +154,7 @@ public class DbOtpOperator extends AbstractOtpOperator
 
         try
         {
-            final DatabaseAccessor databaseAccessor = pwmDomain.getDatabaseAccessor();
+            final DatabaseAccessor databaseAccessor = pwmDomain.getPwmApplication().getDatabaseAccessor();
             databaseAccessor.remove( DatabaseTable.OTP, userGUID );
             LOGGER.info( () -> "cleared OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
         }

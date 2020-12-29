@@ -329,7 +329,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
 
         final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, sessionLabel, userInfo, null );
 
-        pwmDomain.sendSmsUsingQueue( toNumber, smsMessage, sessionLabel, macroRequest );
+        pwmDomain.getPwmApplication().sendSmsUsingQueue( toNumber, smsMessage, sessionLabel, macroRequest );
         return null;
     }
 

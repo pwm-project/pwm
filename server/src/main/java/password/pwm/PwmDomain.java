@@ -21,50 +21,39 @@
 package password.pwm;
 
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.bean.DomainID;
-import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
+import password.pwm.config.PwmSettingScope;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.health.HealthMonitor;
 import password.pwm.http.servlet.peoplesearch.PeopleSearchService;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.http.state.SessionStateService;
 import password.pwm.ldap.LdapConnectionService;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.PwmService;
+import password.pwm.svc.PwmServiceEnum;
+import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.event.AuditService;
 import password.pwm.svc.httpclient.HttpClientService;
 import password.pwm.svc.intruder.IntruderManager;
-import password.pwm.svc.node.NodeService;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.report.ReportService;
+import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
-import password.pwm.svc.shorturl.UrlShortenerService;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenService;
-import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryManager;
-import password.pwm.svc.wordlist.WordlistService;
-import password.pwm.util.PwmScheduler;
-import password.pwm.util.db.DatabaseAccessor;
-import password.pwm.util.db.DatabaseService;
-import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
-import password.pwm.util.queue.SmsQueueManager;
-import password.pwm.util.secure.SecureService;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * A repository for objects common to the servlet context.  A singleton
@@ -79,10 +68,21 @@ public class PwmDomain
     private final PwmApplication pwmApplication;
     private final DomainID domainID;
 
+    private final PwmServiceManager pwmServiceManager;
+
     public PwmDomain( final PwmApplication pwmApplication, final DomainID domainID )
     {
         this.pwmApplication = Objects.requireNonNull( pwmApplication );
         this.domainID = Objects.requireNonNull( domainID );
+
+        this.pwmServiceManager = new PwmServiceManager( pwmApplication, domainID, PwmServiceEnum.forScope( PwmSettingScope.DOMAIN ) );
+    }
+
+    public void initialize()
+            throws PwmUnrecoverableException
+
+    {
+        pwmServiceManager.initAllServices();
     }
 
     public DomainConfig getConfig( )
@@ -94,19 +94,7 @@ public class PwmDomain
     {
         return pwmApplication.getApplicationMode();
     }
-
-    public DatabaseAccessor getDatabaseAccessor( )
-
-            throws PwmUnrecoverableException
-    {
-        return pwmApplication.getDatabaseAccessor();
-    }
-
-    public DatabaseService getDatabaseService( )
-    {
-        return pwmApplication.getDatabaseService();
-    }
-
+    
     public StatisticsManager getStatisticsManager( )
     {
         return pwmApplication.getStatisticsManager();
@@ -114,12 +102,12 @@ public class PwmDomain
 
     public OtpService getOtpService( )
     {
-        return pwmApplication.getOtpService();
+        return ( OtpService ) pwmServiceManager.getService( PwmServiceEnum.OtpService );
     }
 
     public CrService getCrService( )
     {
-        return pwmApplication.getCrService();
+        return ( CrService ) pwmServiceManager.getService( PwmServiceEnum.CrService );
     }
 
     public SessionStateService getSessionStateService( )
@@ -132,14 +120,9 @@ public class PwmDomain
         return pwmApplication.getCacheService();
     }
 
-    public SecureService getSecureService( )
+    public DomainSecureService getSecureService( )
     {
-        return pwmApplication.getSecureService();
-    }
-
-    public LocalDB getLocalDB( )
-    {
-        return pwmApplication.getLocalDB();
+        return ( DomainSecureService ) pwmServiceManager.getService( PwmServiceEnum.DomainSecureService );
     }
 
     public PwmApplication getPwmApplication()
@@ -147,34 +130,14 @@ public class PwmDomain
         return pwmApplication;
     }
 
-    public PwmEnvironment getPwmEnvironment( )
-    {
-        return pwmApplication.getPwmEnvironment();
-    }
-
-    public <T extends Serializable> Optional<T> readAppAttribute( final AppAttribute appAttribute, final Class<T> returnClass )
-    {
-       return getPwmApplication().readAppAttribute( appAttribute, returnClass );
-    }
-
-    public void writeAppAttribute( final AppAttribute appAttribute, final Serializable value )
-    {
-        getPwmApplication().writeAppAttribute( appAttribute, value );
-    }
-
     public boolean determineIfDetailErrorMsgShown( )
     {
         return pwmApplication.determineIfDetailErrorMsgShown();
     }
 
-    public PwmScheduler getPwmScheduler()
+    public LdapConnectionService getLdapConnectionService( )
     {
-        return pwmApplication.getPwmScheduler();
-    }
-
-    public LdapConnectionService getLdapConnectionService()
-    {
-        return pwmApplication.getLdapConnectionService();
+        return ( LdapConnectionService ) pwmServiceManager.getService( PwmServiceEnum.LdapConnectionService );
     }
 
     public AuditService getAuditManager()
@@ -182,26 +145,29 @@ public class PwmDomain
         return pwmApplication.getAuditManager();
     }
 
-    public String getInstanceID()
-    {
-        return pwmApplication.getInstanceID();
-    }
-
     public SessionTrackService getSessionTrackService()
     {
         return pwmApplication.getSessionTrackService();
     }
 
-    public ChaiProvider getProxyChaiProvider( final String ldapProfileID )
-            throws PwmUnrecoverableException
-    {
-        return pwmApplication.getProxyChaiProvider( ldapProfileID );
-    }
-
     public ChaiUser getProxiedChaiUser( final UserIdentity userIdentity )
             throws PwmUnrecoverableException
     {
-        return pwmApplication.getProxiedChaiUser( userIdentity );
+        try
+        {
+            final ChaiProvider proxiedProvider = getProxyChaiProvider( userIdentity.getLdapProfileID() );
+            return proxiedProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
+        }
+        catch ( final ChaiUnavailableException e )
+        {
+            throw PwmUnrecoverableException.fromChaiException( e );
+        }
+    }
+
+    public ChaiProvider getProxyChaiProvider( final String identifier )
+            throws PwmUnrecoverableException
+    {
+        return getLdapConnectionService().getProxyChaiProvider( identifier );
     }
 
     public List<PwmService> getPwmServices( )
@@ -211,22 +177,12 @@ public class PwmDomain
 
     public UserSearchEngine getUserSearchEngine()
     {
-        return pwmApplication.getUserSearchEngine();
-    }
-
-    public UrlShortenerService getUrlShortener()
-    {
-        return pwmApplication.getUrlShortener();
+        return ( UserSearchEngine ) pwmServiceManager.getService( PwmServiceEnum.UserSearchEngine );
     }
 
     public HttpClientService getHttpClientService()
     {
         return pwmApplication.getHttpClientService();
-    }
-
-    public NodeService getClusterService()
-    {
-        return pwmApplication.getClusterService();
     }
 
     public IntruderManager getIntruderManager()
@@ -239,34 +195,9 @@ public class PwmDomain
         return pwmApplication.getTokenService();
     }
 
-    public void sendSmsUsingQueue( final String smsNumber, final String modifiedMessage, final SessionLabel sessionLabel, final MacroRequest macroRequest )
-    {
-        pwmApplication.sendSmsUsingQueue( smsNumber, modifiedMessage, sessionLabel, macroRequest );
-    }
-
-    public WordlistService getWordlistService()
-    {
-        return pwmApplication.getWordlistService();
-    }
-
-    public LocalDBLogger getLocalDBLogger()
-    {
-        return pwmApplication.getLocalDBLogger();
-    }
-
     public SharedHistoryManager getSharedHistoryManager()
     {
         return pwmApplication.getSharedHistoryManager();
-    }
-
-    public SeedlistService getSeedlistManager()
-    {
-        return pwmApplication.getSeedlistManager();
-    }
-
-    public SmsQueueManager getSmsQueue()
-    {
-        return pwmApplication.getSmsQueue();
     }
 
     public ErrorInformation getLastLocalDBFailure()
@@ -274,19 +205,14 @@ public class PwmDomain
         return pwmApplication.getLastLocalDBFailure();
     }
 
-    public HealthMonitor getHealthMonitor()
-    {
-        return pwmApplication.getHealthMonitor();
-    }
-
     public ReportService getReportService()
     {
         return pwmApplication.getReportService();
     }
 
-    public PeopleSearchService getPeopleSearchService()
+    public PeopleSearchService getPeopleSearchService( )
     {
-        return pwmApplication.getPeopleSearchService();
+        return ( PeopleSearchService ) pwmServiceManager.getService( PwmServiceEnum.PeopleSearchService );
     }
 
     public PwNotifyService getPwNotifyService()
@@ -301,7 +227,7 @@ public class PwmDomain
 
     public void shutdown()
     {
-
+        pwmServiceManager.shutdownAllServices();
     }
 
     public DomainID getDomainID()

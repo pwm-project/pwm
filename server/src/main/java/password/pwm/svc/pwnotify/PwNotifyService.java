@@ -115,7 +115,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
 
         try
         {
-            if ( pwmDomain.getClusterService() == null || pwmDomain.getClusterService().status() != STATUS.OPEN )
+            if ( pwmDomain.getPwmApplication().getNodeService() == null || pwmDomain.getPwmApplication().getNodeService().status() != STATUS.OPEN )
             {
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_PWNOTIFY_SERVICE_ERROR, "will remain closed, node service is not running" );
             }
@@ -141,11 +141,11 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
                     JavaHelper.unhandledSwitchStatement( storageMethod );
             }
 
-            executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
+            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
             engine = new PwNotifyEngine( pwmDomain, storageService, () -> status() == STATUS.CLOSED, null );
 
-            pwmDomain.getPwmScheduler().scheduleFixedRateJob( new PwNotifyJob(), executorService, TimeDuration.MINUTE, TimeDuration.MINUTE );
+            pwmDomain.getPwmApplication().getPwmScheduler().scheduleFixedRateJob( new PwNotifyJob(), executorService, TimeDuration.MINUTE, TimeDuration.MINUTE );
 
             setStatus( STATUS.OPEN );
         }
@@ -260,7 +260,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
         if ( !isRunning() )
         {
             nextExecutionTime = Instant.now();
-            pwmDomain.getPwmScheduler().scheduleJob( new PwNotifyJob(), executorService, TimeDuration.ZERO );
+            pwmDomain.getPwmApplication().getPwmScheduler().scheduleJob( new PwNotifyJob(), executorService, TimeDuration.ZERO );
         }
     }
 
@@ -310,12 +310,12 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
             final Instant start = Instant.now();
             try
             {
-                storageService.writeStoredJobState( new PwNotifyStoredJobState( Instant.now(), null, pwmDomain.getInstanceID(), null, false ) );
+                storageService.writeStoredJobState( new PwNotifyStoredJobState( Instant.now(), null, pwmDomain.getPwmApplication().getInstanceID(), null, false ) );
                 StatisticsManager.incrementStat( pwmDomain, Statistic.PWNOTIFY_JOBS );
                 engine.executeJob();
 
                 final Instant finish = Instant.now();
-                final PwNotifyStoredJobState pwNotifyStoredJobState = new PwNotifyStoredJobState( start, finish, pwmDomain.getInstanceID(), null, true );
+                final PwNotifyStoredJobState pwNotifyStoredJobState = new PwNotifyStoredJobState( start, finish, pwmDomain.getPwmApplication().getInstanceID(), null, true );
                 storageService.writeStoredJobState( pwNotifyStoredJobState );
             }
             catch ( final Exception e )
@@ -331,7 +331,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
                 }
 
                 final Instant finish = Instant.now();
-                final String instanceID = pwmDomain.getInstanceID();
+                final String instanceID = pwmDomain.getPwmApplication().getInstanceID();
                 final PwNotifyStoredJobState pwNotifyStoredJobState = new PwNotifyStoredJobState( start, finish, instanceID, errorInformation, false );
 
                 try

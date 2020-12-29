@@ -21,7 +21,6 @@
 package password.pwm.svc.wordlist;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -39,8 +38,7 @@ public class SeedlistService extends AbstractWordlist implements Wordlist
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        final PwmDomain pwmDomain = pwmApplication.getDefaultDomain();
-        super.init( pwmDomain, WordlistType.SEEDLIST );
+        super.init( pwmApplication, WordlistType.SEEDLIST );
     }
 
     @Override

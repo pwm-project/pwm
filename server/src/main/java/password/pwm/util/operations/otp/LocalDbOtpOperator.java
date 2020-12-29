@@ -51,7 +51,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
 
     public LocalDbOtpOperator( final PwmDomain pwmDomain )
     {
-        this.localDB = pwmDomain.getLocalDB();
+        this.localDB = pwmDomain.getPwmApplication().getLocalDB();
         setPwmApplication( pwmDomain );
     }
 

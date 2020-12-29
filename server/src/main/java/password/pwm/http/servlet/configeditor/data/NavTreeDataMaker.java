@@ -20,15 +20,19 @@
 
 package password.pwm.http.servlet.configeditor.data;
 
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
+import password.pwm.config.PwmSettingScope;
+import password.pwm.config.stored.ConfigSearchMachine;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.StoredValue;
+import password.pwm.http.servlet.configeditor.DomainManageMode;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.i18n.LocaleHelper;
@@ -54,6 +58,9 @@ public class NavTreeDataMaker
     private static final PwmLogger LOGGER = PwmLogger.forClass( NavTreeDataMaker.class );
     private static final String ROOT_NODE_ID = "ROOT";
 
+    private static final String DISPLAY_TEXT_ID = "DISPLAY_TEXT";
+    private static final String DISPLAY_TEXT_NAME = "Display Text";
+
     public static List<NavTreeItem> makeNavTreeItems(
             final PwmDomain pwmDomain,
             final StoredConfiguration storedConfiguration,
@@ -75,8 +82,8 @@ public class NavTreeDataMaker
         NavTreeDataMaker.moveNavItemToTopOfList( PwmSettingCategory.NOTES.toString(), navigationData );
         NavTreeDataMaker.moveNavItemToTopOfList( PwmSettingCategory.TEMPLATES.toString(), navigationData );
         LOGGER.trace( () -> "generated " + navigationData.size()
-                + " navTreeItems for display menu with settings"
-                + JsonUtil.serialize( navTreeSettings ),
+                        + " navTreeItems for display menu with settings"
+                        + JsonUtil.serialize( navTreeSettings ),
                 () -> TimeDuration.fromCurrent( startTime ) );
         return Collections.unmodifiableList( navigationData );
     }
@@ -100,6 +107,11 @@ public class NavTreeDataMaker
         final int level = navTreeSettings.getLevel();
         final boolean modifiedSettingsOnly = navTreeSettings.isModifiedSettingsOnly();
 
+        if ( navTreeSettings.getDomainManageMode() != DomainManageMode.domain )
+        {
+            return Collections.emptyList();
+        }
+
         boolean includeDisplayText = false;
         if ( level >= 1 )
         {
@@ -121,7 +133,7 @@ public class NavTreeDataMaker
                         final NavTreeItem categoryInfo = NavTreeItem.builder()
                                 .id( localeBundle.toString() )
                                 .name( localeBundle.getTheClass().getSimpleName() )
-                                .parent( "DISPLAY_TEXT" )
+                                .parent( DISPLAY_TEXT_ID )
                                 .type ( NavTreeItem.NavItemType.displayText )
                                 .keys( outputKeys )
                                 .build();
@@ -135,8 +147,8 @@ public class NavTreeDataMaker
         if ( includeDisplayText )
         {
             final NavTreeItem categoryInfo = NavTreeItem.builder()
-                    .id( "DISPLAY_TEXT" )
-                    .name( "Display Text" )
+                    .id( DISPLAY_TEXT_ID )
+                    .name( DISPLAY_TEXT_NAME )
                     .type( NavTreeItem.NavItemType.navigation )
                     .parent( ROOT_NODE_ID )
                     .build();
@@ -287,14 +299,9 @@ public class NavTreeDataMaker
             final NavTreeSettings navTreeSettings
     )
     {
-        if ( category.isHidden() )
-        {
-            return false;
-        }
-
         if ( category == PwmSettingCategory.HTTPS_SERVER )
         {
-            if ( !pwmDomain.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.ManageHttps ) )
+            if ( !pwmDomain.getPwmApplication().getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.ManageHttps ) )
             {
                 return false;
             }
@@ -310,7 +317,7 @@ public class NavTreeDataMaker
 
         for ( final PwmSetting setting : category.getSettings() )
         {
-            if ( settingMatcher( storedConfiguration, setting, profile, navTreeSettings ) )
+            if ( settingMatcher( pwmDomain, storedConfiguration, setting, profile, navTreeSettings ) )
             {
                 return true;
             }
@@ -320,23 +327,36 @@ public class NavTreeDataMaker
     }
 
     private static boolean settingMatcher(
+            final PwmDomain pwmDomain,
             final StoredConfiguration storedConfiguration,
             final PwmSetting setting,
             final String profileID,
             final NavTreeSettings navTreeSettings
     )
     {
-        if ( setting.isHidden() )
+        final StoredConfigKey storedConfigKey = StoredConfigKey.forSetting( setting, profileID, pwmDomain.getDomainID() );
+        final boolean valueIsDefault = StoredConfigurationUtil.isDefaultValue( storedConfiguration, storedConfigKey );
+
+        if ( setting.isHidden() && !valueIsDefault )
         {
             return false;
         }
 
-        if ( navTreeSettings.isModifiedSettingsOnly() )
+        final PwmSettingCategory settingCategory = setting.getCategory();
+        if ( navTreeSettings.getDomainManageMode() == DomainManageMode.system
+                && settingCategory.getScope() != PwmSettingScope.SYSTEM )
         {
-            if ( storedConfiguration.isDefaultValue( setting, profileID ) )
-            {
-                return false;
-            }
+            return false;
+        }
+        else if ( navTreeSettings.getDomainManageMode() == DomainManageMode.domain
+                && settingCategory.getScope() != PwmSettingScope.DOMAIN )
+        {
+            return false;
+        }
+
+        if ( navTreeSettings.isModifiedSettingsOnly() && valueIsDefault )
+        {
+            return false;
         }
 
         final int level = navTreeSettings.getLevel();
@@ -351,10 +371,10 @@ public class NavTreeDataMaker
         }
         else
         {
-            final StoredValue storedValue = storedConfiguration.readSetting( setting, profileID );
+            final StoredValue storedValue = storedConfiguration.readStoredValue( storedConfigKey ).orElseThrow();
             for ( final String term : StringUtil.whitespaceSplit( navTreeSettings.getFilterText() ) )
             {
-                if ( StoredConfigurationUtil.matchSetting( storedConfiguration, setting, storedValue, term, PwmConstants.DEFAULT_LOCALE ) )
+                if ( ConfigSearchMachine.matchSetting( storedConfiguration, setting, storedValue, term, PwmConstants.DEFAULT_LOCALE ) )
                 {
                     return true;
                 }

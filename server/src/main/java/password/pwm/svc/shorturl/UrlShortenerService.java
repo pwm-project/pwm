@@ -22,9 +22,8 @@ package password.pwm.svc.shorturl;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -36,6 +35,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,7 +49,7 @@ public class UrlShortenerService implements PwmService
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( UrlShortenerService.class );
 
-    private PwmDomain pwmDomain;
+    private PwmApplication pwmApplication;
     private BasicUrlShortener theShortener = null;
     private STATUS status = STATUS.CLOSED;
 
@@ -61,8 +61,8 @@ public class UrlShortenerService implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
-        final DomainConfig config = this.pwmDomain.getConfig();
+        this.pwmApplication = Objects.requireNonNull( pwmApplication );
+        final AppConfig config = pwmApplication.getConfig();
         final String classNameString = config.readSettingAsString( PwmSetting.URL_SHORTENER_CLASS );
         if ( classNameString != null && classNameString.length() > 0 )
         {
@@ -128,14 +128,14 @@ public class UrlShortenerService implements PwmService
     {
         if ( theShortener != null )
         {
-            return theShortener.shorten( text, pwmDomain );
+            return theShortener.shorten( text, pwmApplication );
         }
         return text;
     }
 
     public String shortenUrlInText( final String text ) throws PwmUnrecoverableException
     {
-        final String urlRegex = pwmDomain.getConfig().readAppProperty( AppProperty.URL_SHORTNER_URL_REGEX );
+        final String urlRegex = pwmApplication.getConfig().readAppProperty( AppProperty.URL_SHORTNER_URL_REGEX );
         try
         {
             final Pattern p = Pattern.compile( urlRegex );

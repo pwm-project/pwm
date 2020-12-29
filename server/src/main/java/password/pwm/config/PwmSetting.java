@@ -52,14 +52,13 @@ public enum PwmSetting
     TEMPLATE_STORAGE(
             "template.storage", PwmSettingSyntax.SELECT, PwmSettingCategory.TEMPLATES ),
 
-
     // notes
     NOTES(
             "notes.noteText", PwmSettingSyntax.TEXT_AREA, PwmSettingCategory.NOTES ),
 
     // domains
     DOMAIN_LIST(
-            "domain.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.DOMAINS ),
+            "domain.list", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.DOMAINS ),
 
     // application settings
     APP_PROPERTY_OVERRIDES(
@@ -67,7 +66,7 @@ public enum PwmSetting
 
     // domain settings
     PWM_SITE_URL(
-            "pwm.selfURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL ),
+            "pwm.selfURL", PwmSettingSyntax.STRING, PwmSettingCategory.APPLICATION ),
     PUBLISH_STATS_ENABLE(
             "pwm.publishStats.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.TELEMETRY ),
     PUBLISH_STATS_SITE_DESCRIPTION(
@@ -90,9 +89,9 @@ public enum PwmSetting
             "locale.cookie.age", PwmSettingSyntax.DURATION, PwmSettingCategory.LOCALIZATION ),
 
     // clustering
-    CLUSTER_ENABLED(
+    NODE_SERVICE_ENABLED(
             "nodeService.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NODES ),
-    CLUSTER_STORAGE_MODE(
+    NODE_SERVICE_STORAGE_MODE(
             "nodeService.storageMode", PwmSettingSyntax.SELECT, PwmSettingCategory.NODES ),
     SECURITY_LOGIN_SESSION_MODE(
             "security.loginSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.NODES ),
@@ -309,7 +308,7 @@ public enum PwmSetting
 
     // New multiple email settings
     EMAIL_SERVERS(
-            "email.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "email.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.APPLICATION ),
     EMAIL_SERVER_ADDRESS(
             "email.smtp.address", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SERVERS ),
     EMAIL_SERVER_TYPE(
@@ -324,15 +323,14 @@ public enum PwmSetting
             "email.smtp.userpassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_SERVERS ),
 
     // system wide email settings
-
-    EMAIL_DEFAULT_FROM_ADDRESS(
-            "email.default.fromAddress", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS ),
     EMAIL_MAX_QUEUE_AGE(
             "email.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.EMAIL_SETTINGS ),
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL_SETTINGS ),
 
     // email template
+    EMAIL_DEFAULT_FROM_ADDRESS(
+            "email.default.fromAddress", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_TEMPLATES ),
     EMAIL_CHANGEPASSWORD(
             "email.changePassword", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES ),
     EMAIL_CHANGEPASSWORD_HELPDESK(

@@ -161,7 +161,7 @@ public class FormValue extends AbstractValue implements StoredValue
     @Override
     public String toDebugString( final Locale locale )
     {
-        if ( values != null && !values.isEmpty() )
+        if ( !JavaHelper.isEmpty( values ) )
         {
             final StringBuilder sb = new StringBuilder();
             for ( final FormConfiguration formRow : values )
@@ -186,15 +186,13 @@ public class FormValue extends AbstractValue implements StoredValue
                 if ( !StringUtil.isEmpty( formRow.getRegex() ) )
                 {
                     sb.append( " Regex:" ).append( formRow.getRegex() )
-                            .append( " Regex Error:" ).append( JsonUtil.serializeMap( formRow.getRegexErrors() ) )
-                            .append( "\n" );
+                            .append( " Regex Error:" ).append( JsonUtil.serializeMap( formRow.getRegexErrors() ) );
                 }
                 if ( formRow.getType() == FormConfiguration.Type.photo )
                 {
                     sb.append( " MimeTypes: " ).append( StringUtil.collectionToString( formRow.getMimeTypes() ) ).append( "\n" );
                     sb.append( " MaxSize: " ).append( formRow.getMaximumSize() ).append( "\n" );
                 }
-
             }
             return sb.toString();
         }

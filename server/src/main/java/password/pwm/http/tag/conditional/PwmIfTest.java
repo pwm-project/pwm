@@ -369,7 +369,7 @@ public enum PwmIfTest
             final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
             if ( adminUser )
             {
-                final HealthMonitor healthMonitor = pwmRequest.getPwmDomain().getHealthMonitor();
+                final HealthMonitor healthMonitor = pwmRequest.getPwmApplication().getHealthMonitor();
                 if ( healthMonitor != null && healthMonitor.status() == PwmService.STATUS.OPEN )
                 {
                     if ( healthMonitor.getMostSevereHealthStatus() == HealthStatus.WARN )
@@ -464,7 +464,7 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmDomain().getPwmEnvironment().getFlags().contains( flag );
+            return pwmRequest.getPwmApplication().getPwmEnvironment().getFlags().contains( flag );
         }
     }
 

@@ -107,7 +107,7 @@ public class AuditService implements PwmService
             return;
         }
 
-        if ( pwmDomain.getLocalDB() == null || pwmDomain.getLocalDB().status() != LocalDB.Status.OPEN )
+        if ( pwmDomain.getPwmApplication().getLocalDB() == null || pwmDomain.getPwmApplication().getLocalDB().status() != LocalDB.Status.OPEN )
         {
             this.status = STATUS.CLOSED;
             LOGGER.warn( () -> "unable to start - LocalDB is not available" );
@@ -179,17 +179,17 @@ public class AuditService implements PwmService
                     maxRecordAge
             );
 
-            if ( pwmDomain.getLocalDB() != null && pwmDomain.getApplicationMode() != PwmApplicationMode.READ_ONLY )
+            if ( pwmDomain.getPwmApplication().getLocalDB() != null && pwmDomain.getApplicationMode() != PwmApplicationMode.READ_ONLY )
             {
                 if ( maxRecords < 1 )
                 {
                     LOGGER.debug( () -> "localDB audit vault will remain closed due to max records setting" );
-                    pwmDomain.getLocalDB().truncate( LocalDB.DB.AUDIT_EVENTS );
+                    pwmDomain.getPwmApplication().getLocalDB().truncate( LocalDB.DB.AUDIT_EVENTS );
                 }
                 else
                 {
                     auditVault = new LocalDbAuditVault();
-                    auditVault.init( pwmDomain, pwmDomain.getLocalDB(), settings );
+                    auditVault.init( pwmDomain, pwmDomain.getPwmApplication().getLocalDB(), settings );
                 }
             }
             else

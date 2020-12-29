@@ -22,10 +22,8 @@ package password.pwm.util.db;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.bean.DomainID;
-import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
@@ -75,7 +73,7 @@ public class DatabaseService implements PwmService
     private JDBCDriverLoader.DriverLoader jdbcDriverLoader;
 
     private ErrorInformation lastError;
-    private PwmDomain pwmDomain;
+    private PwmApplication pwmApplication;
 
     private STATUS status = STATUS.CLOSED;
 
@@ -107,15 +105,15 @@ public class DatabaseService implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
+        this.pwmApplication = pwmApplication;
         init();
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( this.pwmApplication, this.getClass() );
 
         final TimeDuration watchdogFrequency = TimeDuration.of(
-                Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) ),
+                Integer.parseInt( this.pwmApplication.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) ),
                 TimeDuration.Unit.SECONDS );
-        pwmDomain.getPwmScheduler().scheduleFixedRateJob( new ConnectionMonitor(), executorService, watchdogFrequency, watchdogFrequency );
+        this.pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ConnectionMonitor(), executorService, watchdogFrequency, watchdogFrequency );
     }
 
     private synchronized void init( )
@@ -129,8 +127,7 @@ public class DatabaseService implements PwmService
 
         try
         {
-            final DomainConfig config = pwmDomain.getConfig();
-            this.dbConfiguration = DBConfiguration.fromConfiguration( config );
+            this.dbConfiguration = DBConfiguration.fromConfiguration( pwmApplication.getConfig() );
 
             if ( !dbConfiguration.isEnabled() )
             {
@@ -162,7 +159,7 @@ public class DatabaseService implements PwmService
             accessors.clear();
             {
                 // set up connection pool
-                final boolean traceLogging = config.readSettingAsBoolean( PwmSetting.DATABASE_DEBUG_TRACE );
+                final boolean traceLogging = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.DATABASE_DEBUG_TRACE );
                 for ( int i = 0; i < dbConfiguration.getMaxConnections(); i++ )
                 {
                     final Connection connection = openConnection( dbConfiguration );
@@ -235,6 +232,7 @@ public class DatabaseService implements PwmService
         if ( !initialized )
         {
             returnRecords.add( HealthRecord.forMessage(
+                    DomainID.systemId(),
                     HealthMessage.ServiceClosed,
                     this.getClass().getSimpleName(),
                     makeUninitializedError().getDetailedErrorMsg() ) );
@@ -251,6 +249,7 @@ public class DatabaseService implements PwmService
         catch ( final PwmException e )
         {
             returnRecords.add( HealthRecord.forMessage(
+                    DomainID.systemId(),
                     HealthMessage.ServiceClosed,
                     this.getClass().getSimpleName(),
                     "error writing to database: " + e.getMessage() ) );
@@ -260,7 +259,7 @@ public class DatabaseService implements PwmService
         if ( lastError != null )
         {
             final TimeDuration errorAge = TimeDuration.fromCurrent( lastError.getDate() );
-            final long cautionDurationMS = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTH_DB_CAUTION_DURATION_MS ) );
+            final long cautionDurationMS = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_DB_CAUTION_DURATION_MS ) );
 
             if ( errorAge.isShorterThan( cautionDurationMS ) )
             {
@@ -268,6 +267,7 @@ public class DatabaseService implements PwmService
                 final String errorDate = JavaHelper.toIsoDate( lastError.getDate() );
                 final String errorMsg = lastError.toDebugStr();
                 returnRecords.add( HealthRecord.forMessage(
+                        DomainID.systemId(),
                         HealthMessage.Database_RecentlyUnreachable,
                         ageString,
                         errorDate,
@@ -278,7 +278,10 @@ public class DatabaseService implements PwmService
 
         if ( returnRecords.isEmpty() )
         {
-            returnRecords.add( HealthRecord.forMessage( HealthMessage.Database_OK, this.dbConfiguration.getConnectionString() ) );
+            returnRecords.add( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.Database_OK,
+                    this.dbConfiguration.getConnectionString() ) );
         }
 
         return returnRecords;
@@ -349,7 +352,7 @@ public class DatabaseService implements PwmService
     {
         final String connectionURL = dbConfiguration.getConnectionString();
 
-        final JDBCDriverLoader.DriverWrapper wrapper = JDBCDriverLoader.loadDriver( pwmDomain, dbConfiguration );
+        final JDBCDriverLoader.DriverWrapper wrapper = JDBCDriverLoader.loadDriver( pwmApplication, dbConfiguration );
         driver = wrapper.getDriver();
         jdbcDriverLoader = wrapper.getDriverLoader();
 
@@ -390,9 +393,9 @@ public class DatabaseService implements PwmService
 
     void updateStats( final OperationType operationType )
     {
-        if ( pwmDomain != null && pwmDomain.getApplicationMode() == PwmApplicationMode.RUNNING )
+        if ( pwmApplication != null && pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING )
         {
-            final StatisticsManager statisticsManager = pwmDomain.getStatisticsManager();
+            final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
             if ( statisticsManager != null && statisticsManager.status() == PwmService.STATUS.OPEN )
             {
                 if ( operationType == OperationType.READ )

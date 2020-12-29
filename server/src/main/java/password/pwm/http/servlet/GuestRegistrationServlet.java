@@ -465,7 +465,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             LOGGER.info( pwmRequest, () -> "created user object: " + guestUserDN );
 
             final ChaiUser theUser = provider.getEntryFactory().newChaiUser( guestUserDN );
-            final UserIdentity userIdentity = UserIdentity.createUserIdentity(
+            final UserIdentity userIdentity = UserIdentity.create(
                     guestUserDN,
                     pwmSession.getUserInfo().getUserIdentity().getLdapProfileID(),
                     pwmRequest.getDomainID() );

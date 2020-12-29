@@ -23,7 +23,9 @@ package password.pwm.config.function;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.ActionValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueTypeConverter;
@@ -47,8 +49,7 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
     @Override
     String getUri(
             final StoredConfigurationModifier modifier,
-            final PwmSetting pwmSetting,
-            final String profile,
+            final StoredConfigKey key,
             final String extraData
     )
             throws PwmOperationalException, PwmUnrecoverableException
@@ -57,8 +58,10 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
         {
         } );
 
-        final StoredValue actionValue = modifier.newStoredConfiguration().readSetting( pwmSetting, profile );
-        final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( pwmSetting, actionValue );
+        final PwmSetting pwmSetting = key.toPwmSetting();
+
+        final StoredValue actionValue = StoredConfigurationUtil.getValueOrDefault( modifier.newStoredConfiguration(), key );
+        final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( key.toPwmSetting(), actionValue );
         final ActionConfiguration action = actionConfigurations.get( extraDataMap.get( KEY_ITERATION ) );
         final ActionConfiguration.WebAction webAction = action.getWebActions().get( extraDataMap.get( KEY_WEB_ACTION_ITERATION ) );
 
@@ -68,7 +71,7 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
         {
             final ErrorInformation errorInformation = new ErrorInformation(
                     PwmError.CONFIG_FORMAT_ERROR,
-                    "Setting " + pwmSetting.toMenuLocationDebug( profile, null )
+                    "Setting " + pwmSetting.toMenuLocationDebug( key.getProfileID(), null )
                             + " action URL must first be configured" );
             throw new PwmOperationalException( errorInformation );
         }
@@ -80,7 +83,7 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
         {
             final ErrorInformation errorInformation = new ErrorInformation(
                     PwmError.CONFIG_FORMAT_ERROR, "Setting "
-                    + pwmSetting.toMenuLocationDebug( profile, null ) + " action URL has an invalid URL syntax" );
+                    + pwmSetting.toMenuLocationDebug( key.getProfileID(), null ) + " action URL has an invalid URL syntax" );
             throw new PwmOperationalException( errorInformation );
         }
         return uriString;
@@ -89,9 +92,8 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
     @Override
     void store(
             final List<X509Certificate> certs,
-            final StoredConfigurationModifier storedConfiguration,
-            final PwmSetting pwmSetting,
-            final String profile,
+            final StoredConfigurationModifier modifier,
+            final StoredConfigKey key,
             final String extraData,
             final UserIdentity userIdentity
     )
@@ -101,8 +103,8 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
         {
         } );
 
-        final StoredValue actionValue = storedConfiguration.newStoredConfiguration().readSetting( pwmSetting, profile );
-        final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( pwmSetting, actionValue );
+        final StoredValue actionValue = StoredConfigurationUtil.getValueOrDefault( modifier.newStoredConfiguration(), key );
+        final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( key.toPwmSetting(), actionValue );
         final ActionConfiguration action = actionConfigurations.get( extraDataMap.get( KEY_ITERATION ) );
         final ActionConfiguration.WebAction webAction = action.getWebActions().get( extraDataMap.get( KEY_WEB_ACTION_ITERATION ) );
 
@@ -113,6 +115,6 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
         action.getWebActions().set( extraDataMap.get( KEY_WEB_ACTION_ITERATION ), clonedAction );
 
         final ActionValue newActionValue = new ActionValue( actionConfigurations );
-        storedConfiguration.writeSetting( pwmSetting, profile, newActionValue, userIdentity );
+        modifier.writeSetting( key, newActionValue, userIdentity );
     }
 }

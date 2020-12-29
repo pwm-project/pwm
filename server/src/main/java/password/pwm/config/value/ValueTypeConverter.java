@@ -25,6 +25,7 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.ChallengeItemConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
@@ -203,10 +204,8 @@ public final class ValueTypeConverter
 
     public static List<UserPermission> valueToUserPermissions( final StoredValue value )
     {
-        if ( value == null )
-        {
-            return Collections.emptyList();
-        }
+
+        Objects.requireNonNull( value );
 
         if ( !( value instanceof UserPermissionValue ) )
         {
@@ -223,6 +222,18 @@ public final class ValueTypeConverter
             }
         }
         return results;
+    }
+
+    public static Map<String, List<ChallengeItemConfiguration>> valueToChallengeItems( final StoredValue value )
+    {
+        Objects.requireNonNull( value );
+
+        if ( !( value instanceof ChallengeValue ) )
+        {
+            throw new IllegalArgumentException( "setting value is not readable as challenge items" );
+        }
+
+        return ( Map<String, List<ChallengeItemConfiguration>> ) value.toNativeObject();
     }
 
     public static boolean valueToBoolean( final StoredValue value )

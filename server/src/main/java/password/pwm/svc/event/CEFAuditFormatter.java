@@ -23,6 +23,7 @@ package password.pwm.svc.event;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
@@ -97,7 +98,7 @@ public class CEFAuditFormatter implements AuditFormatter
         final Settings settings = Settings.fromConfiguration( domainConfig );
         final Map<String, Object> auditRecordMap = JsonUtil.deserializeMap( JsonUtil.serialize( auditRecord ) );
 
-        final Optional<String> srcHost = JavaHelper.deriveLocalServerHostname( domainConfig );
+        final Optional<String> srcHost = PwmApplication.deriveLocalServerHostname( domainConfig );
 
         final StringBuilder cefOutput = new StringBuilder(  );
 

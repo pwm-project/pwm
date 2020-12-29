@@ -31,24 +31,15 @@
 <%@ page import="password.pwm.util.java.FileSystemUtility" %>
 <%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
-<%@ page import="password.pwm.PwmDomain" %>
+<%@ page import="password.pwm.PwmApplication" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS);%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    PwmRequest localdb_pwmRequest = null;
-    PwmDomain localdb_pwmDomain = null;
-    try {
-        localdb_pwmRequest = PwmRequest.forRequest(request, response);
-        localdb_pwmDomain = localdb_pwmRequest.getPwmDomain();
-    } catch (PwmException e) {
-        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
-    }
+    PwmApplication localdb_pwmApplication = JspUtility.getPwmRequest( pageContext ).getPwmApplication();
 %>
-
-
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body>
@@ -89,11 +80,11 @@
                     Location on disk
                 </td>
                 <td>
-                    <%= localdb_pwmDomain.getLocalDB() == null
+                    <%= localdb_pwmApplication.getLocalDB() == null
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                            : localdb_pwmDomain.getLocalDB().getFileLocation() == null
+                            : localdb_pwmApplication.getLocalDB().getFileLocation() == null
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                            : localdb_pwmDomain.getLocalDB().getFileLocation().getAbsolutePath()
+                            : localdb_pwmApplication.getLocalDB().getFileLocation().getAbsolutePath()
                     %>
                 </td>
             </tr>
@@ -102,12 +93,12 @@
                     LocalDB Size On Disk
                 </td>
                 <td>
-                    <%= localdb_pwmDomain.getLocalDB() == null
+                    <%= localdb_pwmApplication.getLocalDB() == null
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                            : localdb_pwmDomain.getLocalDB().getFileLocation() == null
+                            : localdb_pwmApplication.getLocalDB().getFileLocation() == null
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                             : StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(
-                            localdb_pwmDomain.getLocalDB().getFileLocation()))
+                            localdb_pwmApplication.getLocalDB().getFileLocation()))
                     %>
                 </td>
             </tr>
@@ -116,12 +107,12 @@
                     LocalDB Free Space
                 </td>
                 <td>
-                    <%= localdb_pwmDomain.getLocalDB() == null
+                    <%= localdb_pwmApplication.getLocalDB() == null
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                            : localdb_pwmDomain.getLocalDB().getFileLocation() == null
+                            : localdb_pwmApplication.getLocalDB().getFileLocation() == null
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                             : StringUtil.formatDiskSize(FileSystemUtility.diskSpaceRemaining(
-                            localdb_pwmDomain.getLocalDB().getFileLocation())) %>
+                            localdb_pwmApplication.getLocalDB().getFileLocation())) %>
                 </td>
             </tr>
         </table>

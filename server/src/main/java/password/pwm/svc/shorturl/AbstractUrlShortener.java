@@ -20,7 +20,7 @@
 
 package password.pwm.svc.shorturl;
 
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
 
 public interface AbstractUrlShortener
@@ -31,11 +31,11 @@ public interface AbstractUrlShortener
      * URL for the input URL.
      *
      * @param input   the URL to be shortened
-     * @param context the PwmApplication, used to retrieve configuration
+     * @param pwmApplication the PwmApplication, used to retrieve configuration
      * @return the shortened uri
      * @throws PwmUnrecoverableException if the operation fails
      */
 
-    String shorten( String input, PwmDomain context )
+    String shorten( String input, PwmApplication pwmApplication )
             throws PwmUnrecoverableException;
 }

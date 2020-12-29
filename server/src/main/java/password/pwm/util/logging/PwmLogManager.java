@@ -212,11 +212,11 @@ public class PwmLogManager
         }
     }
 
-    public static LocalDBLogger initializeLocalDBLogger( final PwmDomain pwmDomain )
+    public static LocalDBLogger initializeLocalDBLogger( final PwmApplication pwmApplication )
     {
-        final LocalDB localDB = pwmDomain.getLocalDB();
+        final LocalDB localDB = pwmApplication.getLocalDB();
 
-        if ( pwmDomain.getApplicationMode() == PwmApplicationMode.READ_ONLY )
+        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
             LOGGER.trace( () -> "skipping initialization of LocalDBLogger due to read-only mode" );
             return null;
@@ -224,10 +224,10 @@ public class PwmLogManager
 
         // initialize the localDBLogger
         final LocalDBLogger localDBLogger;
-        final PwmLogLevel localDBLogLevel = pwmDomain.getConfig().getAppConfig().getEventLogLocalDBLevel();
+        final PwmLogLevel localDBLogLevel = pwmApplication.getConfig().getEventLogLocalDBLevel();
         try
         {
-            localDBLogger = initLocalDBLogger( localDB, pwmDomain );
+            localDBLogger = initLocalDBLogger( localDB, pwmApplication );
             if ( localDBLogger != null )
             {
                 PwmLogger.setLocalDBLogger( localDBLogLevel, localDBLogger );
@@ -264,13 +264,13 @@ public class PwmLogManager
 
     static LocalDBLogger initLocalDBLogger(
             final LocalDB pwmDB,
-            final PwmDomain pwmDomain
+            final PwmApplication pwmApplication
     )
     {
         try
         {
-            final LocalDBLoggerSettings settings = LocalDBLoggerSettings.fromConfiguration( pwmDomain.getConfig() );
-            return new LocalDBLogger( pwmDomain, pwmDB, settings );
+            final LocalDBLoggerSettings settings = LocalDBLoggerSettings.fromConfiguration( pwmApplication.getConfig() );
+            return new LocalDBLogger( pwmApplication, pwmDB, settings );
         }
         catch ( final LocalDBException e )
         {

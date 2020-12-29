@@ -21,8 +21,8 @@
 package password.pwm.ldap.permission;
 
 import com.novell.ldapchai.util.StringHelper;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.LdapProfile;
@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class UserPermissionUtility
@@ -183,16 +184,16 @@ public class UserPermissionUtility
         return Collections.unmodifiableList( sortedResults );
     }
 
-    static String profileIdForPermission( final UserPermission userPermission )
+    static Optional<String> profileIdForPermission( final UserPermission userPermission )
     {
         if ( userPermission.getLdapProfileID() != null
                 && !userPermission.getLdapProfileID().isEmpty()
                 && !userPermission.getLdapProfileID().equals( PwmConstants.PROFILE_ID_ALL ) )
         {
-            return userPermission.getLdapProfileID();
+            return Optional.of( userPermission.getLdapProfileID() );
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public static void validatePermissionSyntax( final UserPermission userPermission )

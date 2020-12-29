@@ -32,6 +32,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.LoginServletBean;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -47,6 +48,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -267,6 +269,17 @@ public class LoginServlet extends ControlledPwmServlet
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        final ArrayList<String> domainIds = new ArrayList<>( pwmRequest.getAppConfig().getDomainIDs() );
+        if ( domainIds.size() > 1 )
+        {
+            pwmRequest.setAttribute( PwmRequestAttribute.DomainList, domainIds );
+        }
+        else
+        {
+            pwmRequest.setAttribute( PwmRequestAttribute.DomainList, new ArrayList<>() );
+        }
+
+
         final JspUrl url = passwordOnly ? JspUrl.LOGIN_PW_ONLY : JspUrl.LOGIN;
         pwmRequest.forwardToJsp( url );
     }

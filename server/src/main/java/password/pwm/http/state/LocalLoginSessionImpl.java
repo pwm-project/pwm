@@ -20,7 +20,7 @@
 
 package password.pwm.http.state;
 
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
@@ -28,7 +28,7 @@ import password.pwm.http.PwmRequest;
 class LocalLoginSessionImpl implements SessionLoginProvider
 {
     @Override
-    public void init( final PwmDomain pwmDomain ) throws PwmException
+    public void init( final PwmApplication pwmApplication ) throws PwmException
     {
 
     }

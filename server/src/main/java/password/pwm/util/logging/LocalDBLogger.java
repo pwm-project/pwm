@@ -22,7 +22,6 @@ package password.pwm.util.logging;
 
 import password.pwm.AppAttribute;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
@@ -78,7 +77,7 @@ public class LocalDBLogger implements PwmService
     private static final String STORAGE_FORMAT_VERSION = "4";
 
     public LocalDBLogger(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final LocalDB localDB,
             final LocalDBLoggerSettings settings
     )
@@ -94,7 +93,7 @@ public class LocalDBLogger implements PwmService
 
         this.localDB = localDB;
         this.localDBListQueue = LocalDBStoredQueue.createLocalDBStoredQueue(
-                pwmDomain,
+                pwmApplication,
                 localDB,
                 LocalDB.DB.EVENTLOG_EVENTS
         );
@@ -108,9 +107,9 @@ public class LocalDBLogger implements PwmService
 
         eventQueue = new ArrayBlockingQueue<>( this.settings.getMaxBufferSize(), true );
 
-        if ( pwmDomain != null )
+        if ( pwmApplication != null )
         {
-            pwmDomain.readAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, String.class )
+            pwmApplication.readAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, String.class )
                     .ifPresent( ( currentFormat ) ->
                     {
                         if ( !STORAGE_FORMAT_VERSION.equals( currentFormat ) )
@@ -119,7 +118,7 @@ public class LocalDBLogger implements PwmService
                                     + currentFormat + "', current='" + STORAGE_FORMAT_VERSION + "')" );
 
                             localDBListQueue.clear();
-                            pwmDomain.writeAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, STORAGE_FORMAT_VERSION );
+                            pwmApplication.writeAppAttribute( AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, STORAGE_FORMAT_VERSION );
                         }
                     } );
         }
@@ -128,13 +127,13 @@ public class LocalDBLogger implements PwmService
 
         cleanerService = Executors.newSingleThreadScheduledExecutor(
                 PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( pwmDomain, this.getClass() ) + "-cleaner-",
+                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-cleaner-",
                         true
                 ) );
 
         writerService = Executors.newSingleThreadScheduledExecutor(
                 PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( pwmDomain, this.getClass() ) + "-writer-",
+                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-writer-",
                         true
                 ) );
 
@@ -490,7 +489,10 @@ public class LocalDBLogger implements PwmService
 
         if ( status != STATUS.OPEN )
         {
-            healthRecords.add( HealthRecord.forMessage( HealthMessage.LocalDBLogger_Closed, status.toString() ) );
+            healthRecords.add( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.LocalDBLogger_Closed,
+                    status.toString() ) );
             return healthRecords;
         }
 
@@ -499,6 +501,7 @@ public class LocalDBLogger implements PwmService
         {
             final PwmNumberFormat numberFormat = PwmNumberFormat.forDefaultLocale();
             healthRecords.add( HealthRecord.forMessage(
+                    DomainID.systemId(),
                     HealthMessage.LocalDBLogger_HighRecordCount,
                     numberFormat.format( eventCount ),
                     numberFormat.format( settings.getMaxEvents() ) )
@@ -513,7 +516,11 @@ public class LocalDBLogger implements PwmService
             if ( timeDuration.isLongerThan( maxTimeDuration ) )
             {
                 // older than max age + 1h
-                healthRecords.add( HealthRecord.forMessage( HealthMessage.LocalDBLogger_OldRecordPresent, timeDuration.asCompactString(), maxTimeDuration.asCompactString() ) );
+                healthRecords.add( HealthRecord.forMessage(
+                        DomainID.systemId(),
+                        HealthMessage.LocalDBLogger_OldRecordPresent,
+                        timeDuration.asCompactString(),
+                        maxTimeDuration.asCompactString() ) );
             }
         }
 

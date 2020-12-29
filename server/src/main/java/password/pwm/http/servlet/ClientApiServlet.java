@@ -318,7 +318,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         settingMap.put( "client.locale", LocaleHelper.getBrowserLocaleString( pwmSession.getSessionStateBean().getLocale() ) );
         settingMap.put( "client.pwShowRevertTimeout", Integer.parseInt( config.readAppProperty( AppProperty.CLIENT_PW_SHOW_REVERT_TIMEOUT ) ) );
         settingMap.put( "enableIdleTimeout", config.readSettingAsBoolean( PwmSetting.DISPLAY_IDLE_TIMEOUT ) );
-        settingMap.put( "pageLeaveNotice", config.readSettingAsLong( PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT ) );
+        settingMap.put( "pageLeaveNotice", config.getAppConfig().readSettingAsLong( PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT ) );
         settingMap.put( "setting-showHidePasswordFields", pwmDomain.getConfig().readSettingAsBoolean( password.pwm.config.PwmSetting.DISPLAY_SHOW_HIDE_PASSWORD_FIELDS ) );
         settingMap.put( "setting-displayEula", PwmConstants.ENABLE_EULA_DISPLAY );
         settingMap.put( "setting-showStrengthMeter", config.readSettingAsBoolean( PwmSetting.PASSWORD_SHOW_STRENGTH_METER ) );
@@ -442,8 +442,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     )
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        Class displayClass = LocaleHelper.classForShortName( bundleName );
-        displayClass = displayClass == null ? Display.class : displayClass;
+        final Class displayClass = LocaleHelper.classForShortName( bundleName ).orElse( Display.class );
 
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final DomainConfig config = pwmDomain.getConfig();

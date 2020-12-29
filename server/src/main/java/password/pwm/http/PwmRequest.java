@@ -27,15 +27,15 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.AppConfig;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -71,6 +71,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -117,7 +118,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     )
             throws PwmUnrecoverableException
     {
-        super( httpServletRequest, pwmDomain.getConfig() );
+        super( httpServletRequest, pwmDomain.getConfig().getAppConfig() );
         this.pwmRequestID = PwmRequestID.next();
         this.pwmResponse = new PwmResponse( httpServletResponse, this, pwmDomain.getConfig() );
         this.pwmSession = pwmSession;
@@ -302,11 +303,6 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return Collections.unmodifiableMap( returnObj );
     }
 
-    public AppConfig getAppConfig()
-    {
-        return pwmApplication.getConfig();
-    }
-
     @Value
     public static class FileUploadItem
     {
@@ -474,7 +470,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     {
         final LocalSessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
         final String redirectURL = ssBean.getForwardURL();
-        return !( ( redirectURL == null || redirectURL.isEmpty() ) && this.getDomainConfig().isDefaultValue( PwmSetting.URL_FORWARD ) );
+        return !StringUtil.isEmpty( redirectURL );
     }
 
     public String getForwardUrl( )
@@ -526,18 +522,19 @@ public class PwmRequest extends PwmHttpRequestWrapper
         }
     }
 
-    public <T extends Serializable> T readEncryptedCookie( final String cookieName, final Class<T> returnClass )
+    public <T extends Serializable> Optional<T> readEncryptedCookie( final String cookieName, final Class<T> returnClass )
             throws PwmUnrecoverableException
     {
         final String strValue = this.readCookie( cookieName );
 
-        if ( strValue != null && !strValue.isEmpty() )
+        if ( StringUtil.isEmpty( strValue ) )
         {
-            final PwmSecurityKey pwmSecurityKey = pwmSession.getSecurityKey( this );
-            return getPwmDomain().getSecureService().decryptObject( strValue, pwmSecurityKey, returnClass );
+            return Optional.empty();
         }
 
-        return null;
+        final PwmSecurityKey pwmSecurityKey = pwmSession.getSecurityKey( this );
+        final T t = getPwmDomain().getSecureService().decryptObject( strValue, pwmSecurityKey, returnClass );
+        return Optional.of( t );
     }
 
     @Override
@@ -624,6 +621,11 @@ public class PwmRequest extends PwmHttpRequestWrapper
     public DomainID getDomainID()
     {
         return PwmConstants.DOMAIN_ID_PLACEHOLDER;
+    }
+
+    public DomainConfig getDomainConfig()
+    {
+        return getPwmDomain().getConfig();
     }
 
     public PwmApplication getPwmApplication()

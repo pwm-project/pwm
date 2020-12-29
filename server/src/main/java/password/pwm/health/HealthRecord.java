@@ -22,6 +22,8 @@ package password.pwm.health;
 
 import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
+import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.config.DomainConfig;
 import password.pwm.ws.server.rest.bean.HealthData;
 
@@ -41,12 +43,16 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
 
     // new fields
     private final HealthTopic topic;
+    private final DomainID domainID;
     private final HealthMessage message;
     private final List<String> fields;
 
     private static final Comparator<HealthRecord> COMPARATOR = Comparator.comparing(
-            HealthRecord::getStatus,
+            HealthRecord::getDomainID,
             Comparator.nullsLast( Comparator.naturalOrder() ) )
+            .thenComparing(
+                    HealthRecord::getStatus,
+                    Comparator.nullsLast( Comparator.naturalOrder() ) )
             .thenComparing(
                     healthRecord -> healthRecord.getTopic( null, null ),
                     Comparator.nullsLast( Comparator.naturalOrder() ) )
@@ -56,36 +62,53 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
 
 
     private HealthRecord(
+            final DomainID domainID,
             final HealthStatus status,
             final HealthTopic topicEnum,
             final HealthMessage message,
             final String... fields
     )
     {
+        this.domainID = Objects.requireNonNull( domainID );
         this.status = Objects.requireNonNull( status,  "status cannot be null" );
         this.topic = Objects.requireNonNull( topicEnum,  "topic cannot be null" );
         this.message = Objects.requireNonNull( message,  "message cannot be null" );
         this.fields = fields == null ? Collections.emptyList() : List.copyOf( Arrays.asList( fields ) );
     }
 
-    public static HealthRecord forMessage( final HealthMessage message )
+
+
+    public static HealthRecord forMessage( final DomainID domainID, final HealthMessage message )
     {
-        return new HealthRecord( message.getStatus(), message.getTopic(), message );
+        return new HealthRecord( domainID, message.getStatus(), message.getTopic(), message );
     }
 
+    public static HealthRecord forMessage( final DomainID domainID, final HealthMessage message, final String... fields )
+    {
+        return new HealthRecord( domainID, message.getStatus(), message.getTopic(), message, fields );
+    }
+
+    public static HealthRecord forMessage( final DomainID domainID, final HealthMessage message, final HealthTopic healthTopic, final String... fields )
+    {
+        return new HealthRecord( domainID, message.getStatus(), healthTopic, message, fields );
+    }
+
+    /**
+     * @deprecated Replace with {@link #forMessage(DomainID, HealthMessage, String...)}
+     */
     public static HealthRecord forMessage( final HealthMessage message, final String... fields )
     {
-        return new HealthRecord( message.getStatus(), message.getTopic(), message, fields );
-    }
-
-    public static HealthRecord forMessage( final HealthMessage message, final HealthTopic healthTopic, final String... fields )
-    {
-        return new HealthRecord( message.getStatus(), healthTopic, message, fields );
+        return new HealthRecord( PwmConstants.DOMAIN_ID_PLACEHOLDER, message.getStatus(), message.getTopic(), message, fields );
     }
 
     public HealthStatus getStatus( )
     {
         return status;
+    }
+
+    public DomainID getDomainID()
+    {
+        return domainID;
     }
 
     public String getTopic( final Locale locale, final DomainConfig config )

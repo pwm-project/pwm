@@ -86,7 +86,7 @@ class ResourceServletConfiguration
             } );
             for ( final ConfiguredZipFileResource configuredZipFileResource : configuredZipFileResources )
             {
-                final File webInfPath = pwmDomain.getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                final File webInfPath = pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager().locateWebInfFilePath();
                 if ( webInfPath != null )
                 {
                     try

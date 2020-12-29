@@ -236,7 +236,7 @@ public class StatisticsManager implements PwmService
             throws PwmException
     {
         this.pwmDomain = pwmApplication.getDefaultDomain();
-        this.localDB = pwmDomain.getLocalDB();
+        this.localDB = pwmApplication.getLocalDB();
 
         if ( localDB == null )
         {
@@ -293,9 +293,9 @@ public class StatisticsManager implements PwmService
 
         {
             // setup a timer to roll over at 0 Zulu and one to write current stats regularly
-            executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain, this.getClass() );
-            pwmDomain.getPwmScheduler().scheduleFixedRateJob( new FlushTask(), executorService, DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
-            pwmDomain.getPwmScheduler().scheduleDailyZuluZeroStartJob( new NightlyTask(), executorService, TimeDuration.ZERO );
+            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new FlushTask(), executorService, DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
+            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new NightlyTask(), executorService, TimeDuration.ZERO );
         }
 
         status = STATUS.OPEN;
@@ -462,6 +462,14 @@ public class StatisticsManager implements PwmService
     }
 
     public static void incrementStat(
+            final PwmDomain pwmDomain,
+            final Statistic statistic
+    )
+    {
+        incrementStat( pwmDomain.getPwmApplication(), statistic );
+    }
+
+    public static void incrementStat(
             final PwmRequest pwmRequest,
             final Statistic statistic
     )
@@ -470,17 +478,17 @@ public class StatisticsManager implements PwmService
     }
 
     public static void incrementStat(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final Statistic statistic
     )
     {
-        if ( pwmDomain == null )
+        if ( pwmApplication == null )
         {
             LOGGER.error( () -> "skipping requested statistic increment of " + statistic + " due to null pwmApplication" );
             return;
         }
 
-        final StatisticsManager statisticsManager = pwmDomain.getStatisticsManager();
+        final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
         if ( statisticsManager == null )
         {
             LOGGER.error( () -> "skipping requested statistic increment of " + statistic + " due to null statisticsManager" );

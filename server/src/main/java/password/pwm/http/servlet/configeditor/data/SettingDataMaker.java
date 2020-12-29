@@ -21,6 +21,7 @@
 package password.pwm.http.servlet.configeditor.data;
 
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
@@ -28,7 +29,6 @@ import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationUtil;
-import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.java.TimeDuration;
@@ -91,8 +91,8 @@ public class SettingDataMaker
                         LinkedHashMap::new ) ) );
 
         final VarData varMap = VarData.builder()
-                .ldapProfileIds( ValueTypeConverter.valueToStringArray( storedConfiguration.readSetting( PwmSetting.LDAP_PROFILE_LIST, null ) ) )
-                .domainIds( StoredConfigurationUtil.domainList( storedConfiguration ) )
+                .ldapProfileIds( StoredConfigurationUtil.profilesForSetting( PwmSetting.LDAP_PROFILE_LIST, storedConfiguration ) )
+                .domainIds( StoredConfigurationUtil.domainList( storedConfiguration ).stream().map( DomainID::stringValue ).collect( Collectors.toList() ) )
                 .currentTemplate( templateSet )
                 .build();
 

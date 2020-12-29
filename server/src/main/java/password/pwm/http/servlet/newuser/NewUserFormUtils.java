@@ -35,7 +35,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureService;
+import password.pwm.svc.secure.DomainSecureService;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -102,7 +102,7 @@ class NewUserFormUtils
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final SecureService secureService = pwmRequest.getPwmDomain().getSecureService();
+        final DomainSecureService domainSecureService = pwmRequest.getPwmDomain().getSecureService();
 
         final Map<String, String> payloadMap = tokenPayload.getData();
 
@@ -113,7 +113,7 @@ class NewUserFormUtils
 
         final String encryptedTokenData = payloadMap.get( NewUserServlet.TOKEN_PAYLOAD_ATTR );
 
-        return secureService.decryptObject( encryptedTokenData, NewUserTokenData.class );
+        return domainSecureService.decryptObject( encryptedTokenData, NewUserTokenData.class );
     }
 
     static Map<String, String> toTokenPayload(
@@ -129,8 +129,8 @@ class NewUserFormUtils
         newUserTokenData.setCurrentTokenField( newUserBean.getCurrentTokenField() );
         newUserTokenData.setCompletedTokenFields( newUserBean.getCompletedTokenFields() );
 
-        final SecureService secureService = pwmRequest.getPwmDomain().getSecureService();
-        final String encodedTokenData = secureService.encryptObjectToString( newUserTokenData );
+        final DomainSecureService domainSecureService = pwmRequest.getPwmDomain().getSecureService();
+        final String encodedTokenData = domainSecureService.encryptObjectToString( newUserTokenData );
         final Map<String, String> payloadMap = new HashMap<>();
         payloadMap.put( NewUserServlet.TOKEN_PAYLOAD_ATTR, encodedTokenData );
         return payloadMap;

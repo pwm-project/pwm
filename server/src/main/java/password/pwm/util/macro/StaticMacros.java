@@ -24,6 +24,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
@@ -154,8 +155,6 @@ public abstract class StaticMacros
                 switch ( this )
                 {
                     case urlPath:
-                        return StringUtil.urlEncode( input );
-
                     case urlParameter:
                         return StringUtil.urlEncode( input );
 
@@ -167,16 +166,9 @@ public abstract class StaticMacros
                 }
             }
 
-            private static EncodeType forString( final String input )
+            private static Optional<EncodeType> forString( final String input )
             {
-                for ( final EncodeType encodeType : EncodeType.values() )
-                {
-                    if ( encodeType.toString().equalsIgnoreCase( input ) )
-                    {
-                        return encodeType;
-                    }
-                }
-                return null;
+                return JavaHelper.readEnumFromPredicate( EncodeType.class, type -> type.toString().equalsIgnoreCase( input ) );
             }
         }
 
@@ -207,11 +199,9 @@ public abstract class StaticMacros
             }
 
             final String encodeMethodStr = colonParts[ 1 ];
-            final EncodeType encodeType = EncodeType.forString( encodeMethodStr );
-            if ( encodeType == null )
-            {
-                throw new MacroParseException( "unknown encodeType '" + encodeMethodStr + "' for Encode macro" );
-            }
+            final EncodeType encodeType = EncodeType.forString( encodeMethodStr ).orElseThrow(
+                    () -> new MacroParseException( "unknown encodeType '" + encodeMethodStr + "' for Encode macro" ) );
+
 
             // can't use colonParts[2] as it may be split if value contains a colon.
             String value = matchValue;
@@ -281,16 +271,9 @@ public abstract class StaticMacros
                 return hashOutput.toLowerCase();
             }
 
-            private static HashType forString( final String input )
+            private static Optional<HashType> forString( final String input )
             {
-                for ( final HashType encodeType : HashType.values() )
-                {
-                    if ( encodeType.toString().equalsIgnoreCase( input ) )
-                    {
-                        return encodeType;
-                    }
-                }
-                return null;
+                return JavaHelper.readEnumFromPredicate( HashType.class, type -> type.toString().equalsIgnoreCase( input ) );
             }
         }
 
@@ -321,11 +304,8 @@ public abstract class StaticMacros
             }
 
             final String encodeMethodStr = colonParts[ 1 ];
-            final HashType encodeType = HashType.forString( encodeMethodStr );
-            if ( encodeType == null )
-            {
-                throw new MacroParseException( "unknown encodeType '" + encodeMethodStr + "' for Encode macro" );
-            }
+            final HashType encodeType = HashType.forString( encodeMethodStr ).orElseThrow(
+                    () -> new MacroParseException( "unknown encodeType '" + encodeMethodStr + "' for Encode macro" ) );
 
             // can't use colonParts[2] as it may be split if value contains a colon.
             String value = matchValue;
@@ -371,16 +351,9 @@ public abstract class StaticMacros
                 }
             }
 
-            private static CaseType forString( final String input )
+            private static Optional<CaseType> forString( final String input )
             {
-                for ( final CaseType encodeType : CaseType.values() )
-                {
-                    if ( encodeType.toString().equalsIgnoreCase( input ) )
-                    {
-                        return encodeType;
-                    }
-                }
-                return null;
+                return JavaHelper.readEnumFromPredicate( CaseType.class, type -> type.toString().equalsIgnoreCase( input ) );
             }
         }
 
@@ -411,11 +384,8 @@ public abstract class StaticMacros
             }
 
             final String encodeMethodStr = colonParts[ 1 ];
-            final CaseType encodeType = CaseType.forString( encodeMethodStr );
-            if ( encodeType == null )
-            {
-                throw new MacroParseException( "unknown caseType '" + encodeMethodStr + "' for Case macro" );
-            }
+            final CaseType encodeType = CaseType.forString( encodeMethodStr ).orElseThrow(
+                    () -> new MacroParseException( "unknown caseType '" + encodeMethodStr + "' for Case macro" ) );
 
             // can't use colonParts[2] as it may be split if value contains a colon.
             String value = matchValue;

@@ -21,7 +21,7 @@
 package password.pwm.svc.wordlist;
 
 import password.pwm.AppAttribute;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.FileSystemUtility;
@@ -36,13 +36,13 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
     private final LocalDB localDB;
 
     LocalDBWordlistBucket(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final WordlistConfiguration wordlistConfiguration,
             final WordlistType type
     )
     {
-        super( pwmDomain, wordlistConfiguration, type );
-        this.localDB = pwmDomain.getLocalDB();
+        super( pwmApplication, wordlistConfiguration, type );
+        this.localDB = pwmApplication.getLocalDB();
         this.db = wordlistConfiguration.getDb();
     }
 
@@ -66,7 +66,7 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
     {
         try
         {
-            return pwmDomain.getLocalDB().get( db, key );
+            return pwmApplication.getLocalDB().get( db, key );
         }
         catch ( final Exception e )
         {
@@ -80,7 +80,7 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
     {
         try
         {
-            return pwmDomain.getLocalDB().contains( db, key );
+            return pwmApplication.getLocalDB().contains( db, key );
         }
         catch ( final LocalDBException e )
         {
@@ -119,7 +119,7 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
     public WordlistStatus readWordlistStatus()
     {
         final AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
-        return pwmDomain.readAppAttribute( appAttribute, WordlistStatus.class )
+        return pwmApplication.readAppAttribute( appAttribute, WordlistStatus.class )
                 .orElseGet( () -> WordlistStatus.builder().build() );
     }
 
@@ -127,7 +127,7 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
     public void writeWordlistStatus( final WordlistStatus wordlistStatus )
     {
         final AppAttribute appAttribute = wordlistConfiguration.getMetaDataAppAttribute();
-        pwmDomain.writeAppAttribute( appAttribute, wordlistStatus );
+        pwmApplication.writeAppAttribute( appAttribute, wordlistStatus );
     }
 
     @Override

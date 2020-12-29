@@ -24,7 +24,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.util.java.TimeDuration;
 
 @Value
@@ -35,21 +35,21 @@ class NodeServiceSettings
     private final TimeDuration nodeTimeout;
     private final TimeDuration nodePurgeInterval;
 
-    static NodeServiceSettings fromConfigForDB( final DomainConfig domainConfig )
+    static NodeServiceSettings fromConfigForDB( final AppConfig appConfig )
     {
         return new NodeServiceSettings(
-                TimeDuration.of( Integer.parseInt( domainConfig.readAppProperty( AppProperty.CLUSTER_DB_HEARTBEAT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
-                TimeDuration.of( Integer.parseInt( domainConfig.readAppProperty( AppProperty.CLUSTER_DB_NODE_TIMEOUT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
-                TimeDuration.of( Integer.parseInt( domainConfig.readAppProperty( AppProperty.CLUSTER_DB_NODE_PURGE_SECONDS ) ), TimeDuration.Unit.SECONDS )
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_DB_HEARTBEAT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_DB_NODE_TIMEOUT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_DB_NODE_PURGE_SECONDS ) ), TimeDuration.Unit.SECONDS )
         );
     }
 
-    static NodeServiceSettings fromConfigForLDAP( final DomainConfig domainConfig )
+    static NodeServiceSettings fromConfigForLDAP( final AppConfig appConfig )
     {
         return new NodeServiceSettings(
-                TimeDuration.of( Integer.parseInt( domainConfig.readAppProperty( AppProperty.CLUSTER_LDAP_HEARTBEAT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
-                TimeDuration.of( Integer.parseInt( domainConfig.readAppProperty( AppProperty.CLUSTER_LDAP_NODE_TIMEOUT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
-                TimeDuration.of( Integer.parseInt( domainConfig.readAppProperty( AppProperty.CLUSTER_LDAP_NODE_PURGE_SECONDS ) ), TimeDuration.Unit.SECONDS )
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_LDAP_HEARTBEAT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_LDAP_NODE_TIMEOUT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_LDAP_NODE_PURGE_SECONDS ) ), TimeDuration.Unit.SECONDS )
         );
     }
 }

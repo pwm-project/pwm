@@ -172,7 +172,7 @@ public class UserSearchEngine implements PwmService
                     {
                         final String canonicalDN;
                         canonicalDN = theUser.readCanonicalDN();
-                        return UserIdentity.createUserIdentity( canonicalDN, inputIdentity.getLdapProfileID(), pwmDomain.getDomainID() );
+                        return UserIdentity.create( canonicalDN, inputIdentity.getLdapProfileID(), pwmDomain.getDomainID() );
                     }
                 }
                 catch ( final ChaiOperationException e )
@@ -809,7 +809,7 @@ public class UserSearchEngine implements PwmService
             final int factor = Integer.parseInt( domainConfig.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_FACTOR ) );
             final int maxThreads = Integer.parseInt( domainConfig.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_THREAD_MAX ) );
             final int threads = Math.min( maxThreads, ( endPoints ) * factor );
-            final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmDomain, UserSearchEngine.class ), true );
+            final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmDomain.getPwmApplication(), UserSearchEngine.class ), true );
             final int minThreads = JavaHelper.rangeCheck( 1, 10, endPoints );
 
             LOGGER.trace( () -> "initialized with threads min=" + minThreads + " max=" + threads );

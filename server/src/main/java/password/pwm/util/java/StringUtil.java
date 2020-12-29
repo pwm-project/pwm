@@ -362,7 +362,7 @@ public abstract class StringUtil
     {
         if ( input == null )
         {
-            return null;
+            return "";
         }
 
         if ( input.length() >= length )

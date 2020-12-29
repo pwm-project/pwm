@@ -89,7 +89,7 @@ class LdapGroupTypeHelper implements PermissionTypeHelper
     {
         return SearchConfiguration.builder()
                 .groupDN( userPermission.getLdapBase() )
-                .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ) )
+                .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ).orElse( null ) )
                 .build();
     }
 

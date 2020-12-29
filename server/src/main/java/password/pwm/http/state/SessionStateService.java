@@ -21,7 +21,6 @@
 package password.pwm.http.state;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SessionBeanMode;
@@ -62,9 +61,8 @@ public class SessionStateService implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        final PwmDomain pwmDomain = pwmApplication.getDefaultDomain();
         {
-            final SessionBeanMode sessionBeanMode = pwmDomain.getConfig().readSettingAsEnum( PwmSetting.SECURITY_MODULE_SESSION_MODE, SessionBeanMode.class );
+            final SessionBeanMode sessionBeanMode = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.SECURITY_MODULE_SESSION_MODE, SessionBeanMode.class );
             if ( sessionBeanMode != null )
             {
                 switch ( sessionBeanMode )
@@ -88,7 +86,7 @@ public class SessionStateService implements PwmService
         }
 
         {
-            final SessionBeanMode loginSessionMode = pwmDomain.getConfig().readSettingAsEnum( PwmSetting.SECURITY_LOGIN_SESSION_MODE, SessionBeanMode.class );
+            final SessionBeanMode loginSessionMode = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.SECURITY_LOGIN_SESSION_MODE, SessionBeanMode.class );
             {
                 if ( loginSessionMode != null )
                 {
@@ -106,7 +104,7 @@ public class SessionStateService implements PwmService
                             JavaHelper.unhandledSwitchStatement( loginSessionMode );
                     }
                 }
-                sessionLoginProvider.init( pwmDomain );
+                sessionLoginProvider.init( pwmApplication );
             }
         }
 

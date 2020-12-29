@@ -48,6 +48,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
@@ -64,20 +66,20 @@ public class LocaleHelper
         ltr,
     }
 
-    public static Class classForShortName( final String shortName )
+    public static Optional<Class> classForShortName( final String shortName )
     {
-        if ( shortName == null || shortName.isEmpty() )
+        if ( StringUtil.isEmpty( shortName ) )
         {
-            return null;
+            return Optional.empty();
         }
         final String className = PwmLocaleBundle.class.getPackage().getName() + "." + shortName;
         try
         {
-            return Class.forName( className );
+            return Optional.of( Class.forName( className ) );
         }
         catch ( final ClassNotFoundException e )
         {
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -279,10 +281,7 @@ public class LocaleHelper
 
     public static String resolveStringKeyLocaleMap( final Locale desiredLocale, final Map<String, String> inputMap )
     {
-        if ( inputMap == null || inputMap.isEmpty() )
-        {
-            return null;
-        }
+        Objects.requireNonNull( inputMap );
 
         final Locale locale = ( desiredLocale == null )
                 ? PwmConstants.DEFAULT_LOCALE

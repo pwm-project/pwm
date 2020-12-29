@@ -22,6 +22,7 @@ package password.pwm;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
+import password.pwm.svc.sessiontrack.SessionTrackService;
 import password.pwm.util.db.DatabaseService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.FileSystemUtility;
@@ -72,7 +73,7 @@ public enum PwmAboutProperty
     app_secureBlockAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().getDefaultBlockAlgorithm().getLabel() ),
     app_secureHashAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().getDefaultHashAlgorithm().toString() ),
     app_ldapProfileCount( null, pwmApplication -> Integer.toString( pwmApplication.getDefaultDomain().getConfig().getLdapProfiles().size() ) ),
-    app_ldapConnectionCount( null, pwmApplication -> Integer.toString( pwmApplication.getLdapConnectionService().connectionCount() ) ),
+    app_ldapConnectionCount( null, pwmApplication -> Long.toString( SessionTrackService.totalLdapConnectionCount( pwmApplication ) ) ),
     app_activeSessionCount( "Active Session Count", pwmApplication -> Integer.toString( pwmApplication.getSessionTrackService().sessionCount() ) ),
     app_activeRequestCount( "Active Request Count", pwmApplication -> Integer.toString( pwmApplication.getActiveServletRequests().get() ) ),
 

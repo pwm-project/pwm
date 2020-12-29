@@ -770,7 +770,7 @@ public class AdminServlet extends ControlledPwmServlet
     @ActionHandler( action = "readLogData" )
     public ProcessStatus readLogData( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException
     {
-        final LocalDBLogger localDBLogger = pwmRequest.getPwmDomain().getLocalDBLogger();
+        final LocalDBLogger localDBLogger = pwmRequest.getPwmApplication().getLocalDBLogger();
 
         final LogDisplayType logDisplayType;
         final LocalDBSearchQuery searchParameters;
@@ -839,7 +839,7 @@ public class AdminServlet extends ControlledPwmServlet
     @ActionHandler( action = "downloadLogData" )
     public ProcessStatus downloadLogData( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException
     {
-        final LocalDBLogger localDBLogger = pwmRequest.getPwmDomain().getLocalDBLogger();
+        final LocalDBLogger localDBLogger = pwmRequest.getPwmApplication().getLocalDBLogger();
 
         final LogDownloadType logDownloadType = JavaHelper.readEnumFromString( LogDownloadType.class, LogDownloadType.plain, pwmRequest.readParameterAsString( "downloadType" ) );
 

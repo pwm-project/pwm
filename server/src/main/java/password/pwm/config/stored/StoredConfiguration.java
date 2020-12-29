@@ -20,7 +20,6 @@
 
 package password.pwm.config.stored;
 
-import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.value.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
@@ -28,10 +27,9 @@ import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import java.util.stream.Stream;
 
 public interface StoredConfiguration
 {
@@ -45,23 +43,15 @@ public interface StoredConfiguration
 
     PwmSettingTemplateSet getTemplateSet();
 
-    List<String> profilesForSetting( PwmSetting pwmSetting );
-
-    ValueMetaData readSettingMetadata( PwmSetting setting, String profileID );
+    Optional<ValueMetaData> readSettingMetadata( StoredConfigKey storedConfigKey );
 
     Map<String, String> readLocaleBundleMap( PwmLocaleBundle bundleName, String keyName );
 
-    StoredValue readSetting( PwmSetting setting, String profileID );
+    Stream<StoredConfigKey> keys();
 
-    boolean isDefaultValue( PwmSetting setting, String profileID );
+    Optional<ValueMetaData> readMetaData( StoredConfigKey storedConfigKey );
 
-    String valueHash();
-
-    Set<StoredConfigItemKey> modifiedItems();
-
-    Optional<ValueMetaData> readMetaData( StoredConfigItemKey storedConfigItemKey );
-
-    Optional<StoredValue> readStoredValue( StoredConfigItemKey storedConfigItemKey );
+    Optional<StoredValue> readStoredValue( StoredConfigKey storedConfigKey );
 
     StoredConfiguration copy();
 }

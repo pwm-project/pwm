@@ -64,7 +64,7 @@ public class ConfigurationUtil
 
     public static List<DataStorageMethod> getCrWritePreference( final DomainConfig domainConfig )
     {
-        final List<DataStorageMethod> writeMethods = domainConfig.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE );
+        final List<DataStorageMethod> writeMethods = new ArrayList<>( domainConfig.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE ) );
         if ( writeMethods.size() == 1 && writeMethods.get( 0 ) == DataStorageMethod.AUTO )
         {
             writeMethods.clear();

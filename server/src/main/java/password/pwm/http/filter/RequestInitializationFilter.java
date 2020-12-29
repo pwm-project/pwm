@@ -23,10 +23,10 @@ package password.pwm.http.filter;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -319,9 +319,9 @@ public class RequestInitializationFilter implements Filter
         {
             return;
         }
-        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final DomainConfig config = pwmDomain.getConfig();
+        final AppConfig config = pwmApplication.getConfig();
         final PwmResponse resp = pwmRequest.getPwmResponse();
 
         if ( resp.isCommitted() )
@@ -341,7 +341,7 @@ public class RequestInitializationFilter implements Filter
             resp.setHeader( HttpHeader.ContentLanguage, pwmRequest.getLocale().toLanguageTag() );
         }
 
-        addStaticResponseHeaders( pwmDomain, resp.getHttpServletResponse() );
+        addStaticResponseHeaders( pwmApplication, resp.getHttpServletResponse() );
 
 
         if ( pwmSession != null )
@@ -367,12 +367,12 @@ public class RequestInitializationFilter implements Filter
     }
 
     public static void addStaticResponseHeaders(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final HttpServletResponse resp
     )
             throws PwmUnrecoverableException
     {
-        final DomainConfig config = pwmDomain.getConfig();
+        final AppConfig config = pwmApplication.getConfig();
 
         final String serverHeader = config.readAppProperty( AppProperty.HTTP_HEADER_SERVER );
         final boolean includeXInstance = Boolean.parseBoolean( config.readAppProperty( AppProperty.HTTP_HEADER_SEND_XINSTANCE ) );
@@ -383,7 +383,7 @@ public class RequestInitializationFilter implements Filter
         final boolean includeXAmb = Boolean.parseBoolean( config.readAppProperty( AppProperty.HTTP_HEADER_SEND_XAMB ) );
 
         {
-            final String noiseHeader = makeNoiseHeader( pwmDomain, config );
+            final String noiseHeader = makeNoiseHeader( pwmApplication, config );
             if ( noiseHeader != null )
             {
                 resp.setHeader( HttpHeader.XNoise.getHttpName(), noiseHeader );
@@ -407,12 +407,12 @@ public class RequestInitializationFilter implements Filter
 
         if ( includeXInstance )
         {
-            resp.setHeader( HttpHeader.XInstance.getHttpName(), String.valueOf( pwmDomain.getInstanceID() ) );
+            resp.setHeader( HttpHeader.XInstance.getHttpName(), String.valueOf( pwmApplication.getInstanceID() ) );
         }
 
         if ( serverHeader != null && !serverHeader.isEmpty() )
         {
-            final String value = MacroRequest.forNonUserSpecific( pwmDomain, null ).expandMacros( serverHeader );
+            final String value = MacroRequest.forNonUserSpecific( pwmApplication.getDefaultDomain(), null ).expandMacros( serverHeader );
             resp.setHeader( HttpHeader.Server.getHttpName(), value );
         }
 
@@ -424,7 +424,7 @@ public class RequestInitializationFilter implements Filter
         if ( includeXAmb )
         {
             resp.setHeader( HttpHeader.XAmb.getHttpName(), PwmConstants.X_AMB_HEADER.get(
-                    pwmDomain.getSecureService().pwmRandom().nextInt( PwmConstants.X_AMB_HEADER.size() )
+                    pwmApplication.getSecureService().pwmRandom().nextInt( PwmConstants.X_AMB_HEADER.size() )
             ) );
         }
 
@@ -434,7 +434,7 @@ public class RequestInitializationFilter implements Filter
 
     public static String readUserHostname( final HttpServletRequest request, final DomainConfig config ) throws PwmUnrecoverableException
     {
-        if ( config != null && !config.readSettingAsBoolean( PwmSetting.REVERSE_DNS_ENABLE ) )
+        if ( config != null && !config.getAppConfig().readSettingAsBoolean( PwmSetting.REVERSE_DNS_ENABLE ) )
         {
             return "";
         }
@@ -622,7 +622,7 @@ public class RequestInitializationFilter implements Filter
 
         if ( ssBean.getSessionCreationTime() != null )
         {
-            final long maxSessionSeconds = pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.SESSION_MAX_SECONDS );
+            final long maxSessionSeconds = pwmRequest.getAppConfig().readSettingAsLong( PwmSetting.SESSION_MAX_SECONDS );
             final TimeDuration sessionAge = TimeDuration.fromCurrent( ssBean.getSessionCreationTime() );
             final int sessionSecondAge = (int) sessionAge.as( TimeDuration.Unit.SECONDS );
             if ( sessionSecondAge > maxSessionSeconds )
@@ -675,7 +675,7 @@ public class RequestInitializationFilter implements Filter
     private static void checkSourceNetworkAddress( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final List<String> requiredHeaders = pwmRequest.getDomainConfig().readSettingAsStringArray( PwmSetting.IP_PERMITTED_RANGE );
+        final List<String> requiredHeaders = pwmRequest.getAppConfig().readSettingAsStringArray( PwmSetting.IP_PERMITTED_RANGE );
         if ( requiredHeaders != null && !requiredHeaders.isEmpty() )
         {
             boolean match = false;
@@ -831,14 +831,14 @@ public class RequestInitializationFilter implements Filter
         return StringUtil.mapToString( values );
     }
 
-    private static String makeNoiseHeader( final PwmDomain pwmDomain, final DomainConfig domainConfig )
+    private static String makeNoiseHeader( final PwmApplication pwmApplication, final AppConfig appConfig )
     {
-        final boolean sendNoise = Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.HTTP_HEADER_SEND_XNOISE ) );
+        final boolean sendNoise = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.HTTP_HEADER_SEND_XNOISE ) );
 
         if ( sendNoise )
         {
-            final int noiseLength = Integer.parseInt( domainConfig.readAppProperty( AppProperty.HTTP_HEADER_NOISE_LENGTH ) );
-            final PwmRandom pwmRandom = pwmDomain.getSecureService().pwmRandom();
+            final int noiseLength = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_HEADER_NOISE_LENGTH ) );
+            final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
             return pwmRandom.alphaNumericString( pwmRandom.nextInt( noiseLength ) + 11 );
         }
 

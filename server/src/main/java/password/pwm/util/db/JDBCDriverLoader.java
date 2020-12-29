@@ -23,7 +23,7 @@ package password.pwm.util.db;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.xeustechnologies.jcl.JarClassLoader;
 import org.xeustechnologies.jcl.JclObjectFactory;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -57,7 +57,7 @@ public class JDBCDriverLoader
     private static final PwmLogger LOGGER = PwmLogger.forClass( JDBCDriverLoader.class, true );
 
     static DriverWrapper loadDriver(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final DBConfiguration dbConfiguration
     )
             throws DatabaseException
@@ -70,7 +70,7 @@ public class JDBCDriverLoader
             try
             {
                 final DriverLoader loader = strategy.getJdbcDriverDriverLoader();
-                final Driver driver = loader.loadDriver( pwmDomain, dbConfiguration );
+                final Driver driver = loader.loadDriver( pwmApplication, dbConfiguration );
                 if ( driver != null )
                 {
                     return new DriverWrapper( driver, loader );
@@ -119,7 +119,7 @@ public class JDBCDriverLoader
 
     interface DriverLoader
     {
-        Driver loadDriver( PwmDomain pwmDomain, DBConfiguration dbConfiguration ) throws DatabaseException;
+        Driver loadDriver( PwmApplication pwmApplication, DBConfiguration dbConfiguration ) throws DatabaseException;
 
         void unloadDriver( );
     }
@@ -130,7 +130,7 @@ public class JDBCDriverLoader
         private static final PwmLogger LOGGER = PwmLogger.forClass( XeusJarClassDriverLoader.class, true );
 
         @Override
-        public Driver loadDriver( final PwmDomain pwmDomain, final DBConfiguration dbConfiguration )
+        public Driver loadDriver( final PwmApplication pwmApplication, final DBConfiguration dbConfiguration )
                 throws DatabaseException
         {
             final String jdbcClassName = dbConfiguration.getDriverClassname();
@@ -165,7 +165,7 @@ public class JDBCDriverLoader
 
 
         @Override
-        public Driver loadDriver( final PwmDomain pwmDomain, final DBConfiguration dbConfiguration )
+        public Driver loadDriver( final PwmApplication pwmApplication, final DBConfiguration dbConfiguration )
                 throws DatabaseException
         {
             final String jdbcClassName = dbConfiguration.getDriverClassname();
@@ -214,7 +214,7 @@ public class JDBCDriverLoader
 
         // not clear if this is worth it to fix
         @SuppressFBWarnings( "DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED" )
-        public Driver loadDriver( final PwmDomain pwmDomain, final DBConfiguration dbConfiguration )
+        public Driver loadDriver( final PwmApplication pwmApplication, final DBConfiguration dbConfiguration )
                 throws DatabaseException
         {
             final String jdbcClassName = dbConfiguration.getDriverClassname();
@@ -294,7 +294,7 @@ public class JDBCDriverLoader
 
         // not clear if this is worth it to fix
         @SuppressFBWarnings( "DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED" )
-        public Driver loadDriver( final PwmDomain pwmDomain, final DBConfiguration dbConfiguration )
+        public Driver loadDriver( final PwmApplication pwmApplication, final DBConfiguration dbConfiguration )
                 throws DatabaseException
         {
             final String jdbcClassName = dbConfiguration.getDriverClassname();
@@ -310,7 +310,7 @@ public class JDBCDriverLoader
             final String jdbcDriverHash;
             try
             {
-                jdbcDriverHash = pwmDomain.getSecureService().hash( jdbcDriverBytes.newByteArrayInputStream() );
+                jdbcDriverHash = pwmApplication.getSecureService().hash( jdbcDriverBytes.newByteArrayInputStream() );
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -328,7 +328,7 @@ public class JDBCDriverLoader
                 try
                 {
                     LOGGER.debug( () -> "loading JDBC database driver stored in configuration" );
-                    final File tempFile = createOrGetTempJarFile( pwmDomain, jdbcDriverBytes );
+                    final File tempFile = createOrGetTempJarFile( pwmApplication, jdbcDriverBytes );
                     urlClassLoader = new URLClassLoader(
                             new URL[]
                                     {
@@ -367,15 +367,15 @@ public class JDBCDriverLoader
         {
         }
 
-        File createOrGetTempJarFile( final PwmDomain pwmDomain, final ImmutableByteArray jarBytes ) throws PwmUnrecoverableException, IOException
+        File createOrGetTempJarFile( final PwmApplication pwmApplication, final ImmutableByteArray jarBytes ) throws PwmUnrecoverableException, IOException
         {
-            final File file = pwmDomain.getPwmApplication().getTempDirectory();
-            final String jarHash = pwmDomain.getSecureService().hash( jarBytes.newByteArrayInputStream() );
+            final File file = pwmApplication.getTempDirectory();
+            final String jarHash = pwmApplication.getSecureService().hash( jarBytes.newByteArrayInputStream() );
             final String tempFileName = "jar-" + jarHash + ".jar";
             final File tempFile = new File( file.getAbsolutePath() + File.separator + tempFileName );
             if ( tempFile.exists() )
             {
-                final String fileHash = pwmDomain.getSecureService().hash( tempFile );
+                final String fileHash = pwmApplication.getSecureService().hash( tempFile );
                 if ( !jarHash.equals( fileHash ) )
                 {
                     LOGGER.debug( () -> "existing temp jar file " + tempFile.getAbsolutePath() + " has wrong contents, will delete" );

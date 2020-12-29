@@ -23,6 +23,7 @@ package password.pwm.http.servlet.configeditor.data;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
+import password.pwm.http.servlet.configeditor.DomainManageMode;
 
 import java.io.Serializable;
 import java.util.Locale;
@@ -40,4 +41,6 @@ public class NavTreeSettings implements Serializable
 
     @Builder.Default
     private final Locale locale = PwmConstants.DEFAULT_LOCALE;
+
+    private final DomainManageMode domainManageMode;
 }

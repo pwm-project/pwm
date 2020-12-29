@@ -46,12 +46,9 @@ public enum PwmLogLevel
 
     public static PwmLogLevel fromLog4jLevel( final Level level )
     {
-        if ( level == null )
-        {
-            return null;
-        }
-
-        final int log4jIntLevel = level.toInt();
+        final int log4jIntLevel = level == null
+                ? Level.TRACE.toInt()
+                : level.toInt();
 
         return JavaHelper.readEnumFromPredicate(
                 PwmLogLevel.class,

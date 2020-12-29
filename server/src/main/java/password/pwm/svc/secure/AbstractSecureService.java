@@ -18,12 +18,10 @@
  * limitations under the License.
  */
 
-package password.pwm.util.secure;
+package password.pwm.svc.secure;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.bean.DomainID;
-import password.pwm.config.AppConfig;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -32,6 +30,11 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmBlockAlgorithm;
+import password.pwm.util.secure.PwmHashAlgorithm;
+import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.SecureEngine;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,12 +45,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-public class SecureService implements PwmService
+public abstract class AbstractSecureService implements PwmService, SecureService
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( DomainSecureService.class );
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass( SecureService.class );
-
-    private PwmSecurityKey pwmSecurityKey;
+    protected PwmSecurityKey pwmSecurityKey;
     private PwmBlockAlgorithm defaultBlockAlgorithm;
     private PwmHashAlgorithm defaultHashAlgorithm;
     private PwmRandom pwmRandom;
@@ -58,18 +60,15 @@ public class SecureService implements PwmService
         return STATUS.OPEN;
     }
 
-    @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
+    protected void innerInit( final PwmApplication pwmApplication ) throws PwmException
     {
-        final AppConfig config = pwmApplication.getConfig();
-        pwmSecurityKey = config.getSecurityKey();
         {
-            final String defaultBlockAlgString = config.readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG );
+            final String defaultBlockAlgString = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG );
             defaultBlockAlgorithm = JavaHelper.readEnumFromString( PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, defaultBlockAlgString );
             LOGGER.debug( () -> "using default ephemeral block algorithm: " + defaultBlockAlgorithm.getLabel() );
         }
         {
-            final String defaultHashAlgString = config.readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_HASH_ALG );
+            final String defaultHashAlgString = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_HASH_ALG );
             defaultHashAlgorithm = JavaHelper.readEnumFromString( PwmHashAlgorithm.class, PwmHashAlgorithm.SHA512, defaultHashAlgString );
             LOGGER.debug( () -> "using default ephemeral hash algorithm: " + defaultHashAlgString );
         }
@@ -164,6 +163,7 @@ public class SecureService implements PwmService
         return SecureEngine.hash( input, defaultHashAlgorithm );
     }
 
+    @Override
     public String hash(
             final PwmHashAlgorithm pwmHashAlgorithm,
             final String input
@@ -198,6 +198,7 @@ public class SecureService implements PwmService
         }
     }
 
+    @Override
     public String hash(
             final byte[] input
     )
@@ -206,6 +207,7 @@ public class SecureService implements PwmService
         return SecureEngine.hash( input, defaultHashAlgorithm );
     }
 
+    @Override
     public String hash(
             final InputStream input
     )
@@ -214,6 +216,7 @@ public class SecureService implements PwmService
         return SecureEngine.hash( input, defaultHashAlgorithm );
     }
 
+    @Override
     public String hash(
             final File file
     )

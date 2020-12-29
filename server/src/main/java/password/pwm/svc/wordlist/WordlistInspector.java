@@ -20,7 +20,7 @@
 
 package password.pwm.svc.wordlist;
 
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -34,18 +34,18 @@ import java.util.function.BooleanSupplier;
 class WordlistInspector implements Runnable
 {
     private final AbstractWordlist rootWordlist;
-    private final PwmDomain pwmDomain;
+    private final PwmApplication pwmDomain;
     private final BooleanSupplier cancelFlag;
 
     WordlistInspector(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final AbstractWordlist rootWordlist,
             final BooleanSupplier cancelFlag
     )
     {
-        this.pwmDomain = pwmDomain;
-        this.rootWordlist = rootWordlist;
-        this.cancelFlag = cancelFlag;
+        this.pwmDomain = Objects.requireNonNull( pwmApplication );
+        this.rootWordlist = Objects.requireNonNull( rootWordlist );
+        this.cancelFlag = Objects.requireNonNull( cancelFlag );
     }
 
     @Override

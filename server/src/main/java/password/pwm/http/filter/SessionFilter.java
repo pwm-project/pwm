@@ -21,12 +21,14 @@
 package password.pwm.http.filter;
 
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SessionVerificationMode;
@@ -147,8 +149,10 @@ public class SessionFilter extends AbstractPwmFilter
     )
             throws PwmUnrecoverableException, IOException, ServletException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final DomainConfig config = pwmRequest.getDomainConfig();
+        final AppConfig config = pwmApplication.getConfig();
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -416,7 +420,7 @@ public class SessionFilter extends AbstractPwmFilter
     }
 
 
-    private static boolean checkPageLeaveNotice( final PwmSession pwmSession, final DomainConfig config )
+    private static boolean checkPageLeaveNotice( final PwmSession pwmSession, final AppConfig config )
     {
         final long configuredSeconds = config.readSettingAsLong( PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT );
         if ( configuredSeconds <= 0 )

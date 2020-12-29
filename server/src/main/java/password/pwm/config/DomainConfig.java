@@ -24,7 +24,6 @@ import password.pwm.AppProperty;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
-import password.pwm.config.option.CertificateMatchingMode;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.ActivateUserProfile;
@@ -40,12 +39,9 @@ import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
-import password.pwm.config.stored.StoredConfigItemKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.FileValue;
-import password.pwm.config.value.StoredValue;
-import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.NamedSecretData;
@@ -62,13 +58,11 @@ import password.pwm.util.java.LazySupplier;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureService;
 
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -125,9 +119,7 @@ public class DomainConfig
 
     public EmailItemBean readSettingAsEmail( final PwmSetting setting, final Locale locale )
     {
-        final Map<Locale, EmailItemBean> availableLocaleMap = ValueTypeConverter.valueToLocalizedEmail( setting, readStoredValue( setting ) );
-        final Locale matchedLocale = LocaleHelper.localeResolver( locale, availableLocaleMap.keySet() );
-        return availableLocaleMap.get( matchedLocale );
+        return settingReader.readSettingAsEmail( setting, locale );
     }
 
     public <E extends Enum<E>> E readSettingAsEnum( final PwmSetting setting, final Class<E> enumClass )
@@ -196,8 +188,6 @@ public class DomainConfig
         return localizedMap;
     }
 
-
-
     public List<String> getChallengeProfileIDs( )
     {
         return StoredConfigurationUtil.profilesForSetting( PwmSetting.CHALLENGE_PROFILE_LIST, storedConfiguration );
@@ -210,7 +200,7 @@ public class DomainConfig
             throw new IllegalArgumentException( "unknown challenge profileID specified: " + profile );
         }
 
-        return ChallengeProfile.readChallengeProfileFromConfig( profile, locale, storedConfiguration );
+        return ChallengeProfile.readChallengeProfileFromConfig( getDomainID(), profile, locale, storedConfiguration );
     }
 
     public long readSettingAsLong( final PwmSetting setting )
@@ -232,32 +222,27 @@ public class DomainConfig
 
     public List<String> readSettingAsStringArray( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToStringArray( readStoredValue( setting ) );
+        return settingReader.readSettingAsStringArray( setting );
     }
 
     public String readSettingAsLocalizedString( final PwmSetting setting, final Locale locale )
     {
-        return ValueTypeConverter.valueToLocalizedString( readStoredValue( setting ), locale );
-    }
-
-    public boolean isDefaultValue( final PwmSetting pwmSetting )
-    {
-        return storedConfiguration.isDefaultValue( pwmSetting, null );
+        return settingReader.readSettingAsLocalizedString( setting, locale );
     }
 
     public boolean readSettingAsBoolean( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToBoolean( readStoredValue( setting ) );
+        return settingReader.readSettingAsBoolean( setting );
     }
 
     public Map<FileValue.FileInformation, FileValue.FileContent> readSettingAsFile( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToFile( setting, readStoredValue( setting ) );
+        return settingReader.readSettingAsFile( setting );
     }
 
     public List<X509Certificate> readSettingAsCertificate( final PwmSetting setting )
     {
-        return ValueTypeConverter.valueToX509Certificates( setting, readStoredValue( setting ) );
+        return settingReader.readSettingAsCertificate( setting );
     }
 
     public PrivateKeyCertificate readSettingAsPrivateKey( final PwmSetting setting )
@@ -269,7 +254,7 @@ public class DomainConfig
 
     public PwmSecurityKey getSecurityKey( ) throws PwmUnrecoverableException
     {
-        return configurationSuppliers.pwmSecurityKey.call();
+        return getAppConfig().getSecurityKey();
     }
 
     public List<DataStorageMethod> getResponseStorageLocations( final PwmSetting setting )
@@ -323,18 +308,7 @@ public class DomainConfig
     {
         return appConfig.readAppProperty( property );
     }
-
-    private StoredValue readStoredValue( final PwmSetting setting )
-    {
-        if ( setting.getCategory().hasProfiles() )
-        {
-            throw new IllegalStateException( "attempt to read setting value for setting '"
-                    + setting.getKey() + "' as non-profiled setting " );
-        }
-
-        return storedConfiguration.readSetting( setting, null );
-    }
-
+    
     public DomainID getDomainID()
     {
         return domainID;
@@ -450,34 +424,6 @@ public class DomainConfig
     public StoredConfiguration getStoredConfiguration( )
     {
         return this.storedConfiguration;
-    }
-
-
-    public String configurationHash( final SecureService secureService )
-            throws PwmUnrecoverableException
-    {
-        return appConfig.configurationHash( secureService );
-    }
-
-    public Set<PwmSetting> nonDefaultSettings( )
-    {
-        final Set<PwmSetting> returnSet = new LinkedHashSet<>();
-        for ( final StoredConfigItemKey key : this.storedConfiguration.modifiedItems() )
-        {
-            if ( key.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
-            {
-                returnSet.add( key.toPwmSetting() );
-            }
-        }
-        return returnSet;
-    }
-
-    public CertificateMatchingMode readCertificateMatchingMode()
-    {
-        final CertificateMatchingMode mode = readSettingAsEnum( PwmSetting.CERTIFICATE_VALIDATION_MODE, CertificateMatchingMode.class );
-        return mode == null
-                ? CertificateMatchingMode.CA_ONLY
-                : mode;
     }
 
     public Optional<PeopleSearchProfile> getPublicPeopleSearchProfile()

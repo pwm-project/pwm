@@ -147,7 +147,7 @@ public class AuditRecordFactory
             final String message
     )
     {
-        final SystemAuditRecord record = new SystemAuditRecord( eventCode, message, pwmDomain.getInstanceID() );
+        final SystemAuditRecord record = new SystemAuditRecord( eventCode, message, pwmDomain.getPwmApplication().getInstanceID() );
         record.narrative = this.makeNarrativeString( record );
         return record;
     }

@@ -21,9 +21,9 @@
 package password.pwm.http;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
-import password.pwm.config.DomainConfig;
+import password.pwm.PwmDomain;
+import password.pwm.config.AppConfig;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.filter.CookieManagementFilter;
 import password.pwm.util.Validator;
@@ -44,7 +44,7 @@ public class PwmHttpResponseWrapper
 
     private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
-    private final DomainConfig domainConfig;
+    private final AppConfig appConfig;
 
     public enum CookiePath
     {
@@ -85,12 +85,12 @@ public class PwmHttpResponseWrapper
     protected PwmHttpResponseWrapper(
             final HttpServletRequest request,
             final HttpServletResponse response,
-            final DomainConfig domainConfig
+            final AppConfig appConfig
     )
     {
         this.httpServletRequest = request;
         this.httpServletResponse = response;
-        this.domainConfig = domainConfig;
+        this.appConfig = appConfig;
     }
 
     public HttpServletResponse getHttpServletResponse( )
@@ -101,7 +101,7 @@ public class PwmHttpResponseWrapper
     public void sendRedirect( final String url )
             throws IOException
     {
-        this.httpServletResponse.sendRedirect( Validator.sanitizeHeaderValue( domainConfig, url ) );
+        this.httpServletResponse.sendRedirect( Validator.sanitizeHeaderValue( appConfig, url ) );
     }
 
     public boolean isCommitted( )
@@ -112,8 +112,8 @@ public class PwmHttpResponseWrapper
     public void setHeader( final HttpHeader headerName, final String value )
     {
         this.httpServletResponse.setHeader(
-                Validator.sanitizeHeaderValue( domainConfig, headerName.getHttpName() ),
-                Validator.sanitizeHeaderValue( domainConfig, value )
+                Validator.sanitizeHeaderValue( appConfig, headerName.getHttpName() ),
+                Validator.sanitizeHeaderValue( appConfig, value )
         );
     }
 
@@ -164,7 +164,7 @@ public class PwmHttpResponseWrapper
 
         final boolean secureFlag;
         {
-            final String configValue = domainConfig.readAppProperty( AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG );
+            final String configValue = appConfig.readAppProperty( AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG );
             if ( configValue == null || "auto".equalsIgnoreCase( configValue ) )
             {
                 secureFlag = this.httpServletRequest.isSecure();
@@ -175,7 +175,7 @@ public class PwmHttpResponseWrapper
             }
         }
 
-        final boolean httpOnlyEnabled = Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.HTTP_COOKIE_HTTPONLY_ENABLE ) );
+        final boolean httpOnlyEnabled = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.HTTP_COOKIE_HTTPONLY_ENABLE ) );
         final boolean httpOnly = httpOnlyEnabled && !JavaHelper.enumArrayContainsValue( flags, Flag.NonHttpOnly );
 
         final String value;
@@ -193,7 +193,7 @@ public class PwmHttpResponseWrapper
                 else
                 {
                     value = StringUtil.urlEncode(
-                            Validator.sanitizeHeaderValue( domainConfig, cookieValue )
+                            Validator.sanitizeHeaderValue( appConfig, cookieValue )
                     );
                 }
             }

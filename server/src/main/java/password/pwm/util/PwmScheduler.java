@@ -21,7 +21,7 @@
 package password.pwm.util;
 
 import org.jetbrains.annotations.NotNull;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
@@ -149,7 +149,7 @@ public class PwmScheduler
     }
 
     public static ExecutorService makeBackgroundExecutor(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final Class clazz
     )
     {
@@ -159,7 +159,7 @@ public class PwmScheduler
                 10, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(),
                 makePwmThreadFactory(
-                        makeThreadName( pwmDomain, clazz ) + "-",
+                        makeThreadName( pwmApplication, clazz ) + "-",
                         true
                 ) );
         executor.allowCoreThreadTimeOut( true );
@@ -167,12 +167,12 @@ public class PwmScheduler
     }
 
 
-    public static String makeThreadName( final PwmDomain pwmDomain, final Class theClass )
+    public static String makeThreadName( final PwmApplication pwmApplication, final Class theClass )
     {
         String instanceName = "-";
-        if ( pwmDomain != null )
+        if ( pwmApplication != null )
         {
-            instanceName = pwmDomain.getInstanceID();
+            instanceName = pwmApplication.getInstanceID();
         }
 
         return makeThreadName( instanceName, theClass );
@@ -211,11 +211,11 @@ public class PwmScheduler
     }
 
     public static ScheduledExecutorService makeSingleThreadExecutorService(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final Class theClass
     )
     {
-        return makeSingleThreadExecutorService( pwmDomain.getInstanceID(), theClass );
+        return makeSingleThreadExecutorService( pwmApplication.getInstanceID(), theClass );
     }
 
     public static ScheduledExecutorService makeSingleThreadExecutorService(

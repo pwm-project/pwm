@@ -25,11 +25,10 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Value;
 import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfiguration;
@@ -195,7 +194,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
     private static ConfigLoginHistory readConfigLoginHistory( final PwmRequest pwmRequest )
     {
-       return pwmRequest.getPwmDomain().readAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class )
+       return pwmRequest.getPwmApplication().readAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class )
                .orElseGet( ConfigLoginHistory::new );
     }
 
@@ -209,7 +208,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         );
         final int maxEvents = Integer.parseInt( pwmRequest.getPwmDomain().getConfig().readAppProperty( AppProperty.CONFIG_HISTORY_MAX_ITEMS ) );
         configLoginHistory.addEvent( event, maxEvents, successful );
-        pwmRequest.getPwmDomain().writeAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, configLoginHistory );
+        pwmRequest.getPwmApplication().writeAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, configLoginHistory );
     }
 
     @Value
@@ -433,14 +432,14 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             return false;
         }
 
-        if ( pwmRequest.getDomainConfig().isDefaultValue( PwmSetting.PWM_SECURITY_KEY ) )
+        if ( pwmRequest.getAppConfig().getSecurityKey() == null )
         {
             LOGGER.debug( pwmRequest, () -> "security key not available, persistent login not possible." );
             return false;
         }
 
         final Optional<String> configPasswordHash = pwmRequest.getDomainConfig().getStoredConfiguration().readConfigProperty( ConfigurationProperty.PASSWORD_HASH );
-        if ( !configPasswordHash.isPresent() )
+        if ( configPasswordHash.isEmpty() )
         {
             LOGGER.debug( pwmRequest, () -> "config password is not present, persistent login not possible." );
             return false;

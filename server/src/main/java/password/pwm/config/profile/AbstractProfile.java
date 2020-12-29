@@ -25,7 +25,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingReader;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.VerificationMethodValue;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
@@ -141,13 +140,17 @@ public abstract class AbstractProfile implements Profile
         return storedConfiguration;
     }
 
+    protected SettingReader getSettingReader()
+    {
+        return settingReader;
+    }
+
     Set<IdentityVerificationMethod> readVerificationMethods( final PwmSetting setting, final VerificationMethodValue.EnabledState enabledState )
     {
         final Set<IdentityVerificationMethod> result = EnumSet.noneOf( IdentityVerificationMethod.class );
-        final StoredValue configValue = readSetting( setting );
-        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = ( VerificationMethodValue.VerificationMethodSettings ) configValue.toNativeObject();
+        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = settingReader.readVerificationMethods( setting );
 
-        for ( final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.availableValues() )
+        for ( final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.values() )
         {
             if ( verificationMethodSettings.getMethodSettings().containsKey( recoveryVerificationMethods ) )
             {
@@ -157,16 +160,6 @@ public abstract class AbstractProfile implements Profile
                 }
             }
         }
-        return result;
+        return Collections.unmodifiableSet( result );
     }
-
-    protected StoredValue readSetting( final PwmSetting setting )
-    {
-        if ( !setting.getCategory().hasProfiles() )
-        {
-            throw new IllegalStateException( "attempt to read non-profiled setting '" + setting.getKey() + "' via profile" );
-        }
-        return storedConfiguration.readSetting( setting, getIdentifier() );
-    }
-
 }

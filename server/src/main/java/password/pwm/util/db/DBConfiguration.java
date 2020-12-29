@@ -24,7 +24,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
 import password.pwm.http.bean.ImmutableByteArray;
@@ -68,7 +68,7 @@ public class DBConfiguration implements Serializable
                         && !( password == null );
     }
 
-    static DBConfiguration fromConfiguration( final DomainConfig config )
+    static DBConfiguration fromConfiguration( final AppConfig config )
     {
         final Map<FileValue.FileInformation, FileValue.FileContent> fileValue = config.readSettingAsFile(
                 PwmSetting.DATABASE_JDBC_DRIVER );
