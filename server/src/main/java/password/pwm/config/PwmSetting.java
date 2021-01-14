@@ -303,6 +303,8 @@ public enum PwmSetting
             "ldap.ignoreUnreachableProfiles", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_GLOBAL ),
     LDAP_ENABLE_WIRE_TRACE(
             "ldap.wireTrace.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_GLOBAL ),
+    LDAP_ALLOW_AUTH_REQUIRE_NEW_PWD(
+            "ldap.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_GLOBAL ),
     PASSWORD_SYNC_ENABLE_REPLICA_CHECK(
             "passwordSync.enableReplicaCheck", PwmSettingSyntax.SELECT, PwmSettingCategory.LDAP_GLOBAL ),
 

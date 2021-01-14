@@ -575,6 +575,17 @@
             <value><![CDATA[]]></value>
         </default>
     </setting>
+    <setting hidden="false" key="ldap.allowAuth.requireNewPassword" level="2">
+        <default template="AD">
+            <value>true</value>
+        </default>
+        <default template="ORACLE_DS">
+            <value>true</value>
+        </default>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting hidden="false" key="passwordLastUpdateAttribute" level="2">
         <ldapPermission actor="proxy" access="write"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
