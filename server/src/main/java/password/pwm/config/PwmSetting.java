@@ -1039,8 +1039,6 @@ public enum PwmSetting
     // active directory
     AD_USE_PROXY_FOR_FORGOTTEN(
             "ldap.ad.proxyForgotten", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVE_DIRECTORY ),
-    AD_ALLOW_AUTH_REQUIRE_NEW_PWD(
-            "ldap.ad.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVE_DIRECTORY ),
     AD_ALLOW_AUTH_EXPIRED(
             "ldap.ad.allowAuth.expired", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVE_DIRECTORY ),
     AD_ENFORCE_PW_HISTORY_ON_SET(
@@ -1049,9 +1047,6 @@ public enum PwmSetting
     // active directory
     ORACLE_DS_ENABLE_MANIP_ALLOWCHANGETIME(
             "ldap.oracleDS.enable.manipAllowChangeTime", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ORACLE_DS ),
-    ORACLE_DS_ALLOW_AUTH_REQUIRE_NEW_PWD(
-            "ldap.oracleDS.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ORACLE_DS ),
-
 
     // helpdesk profile
     HELPDESK_ENABLE(
@@ -1248,6 +1243,14 @@ public enum PwmSetting
 
 
     // deprecated.
+    
+    // deprecated 2021-01-14
+    AD_ALLOW_AUTH_REQUIRE_NEW_PWD(
+            "ldap.ad.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVE_DIRECTORY ),
+
+    // deprecated 2021-01-14
+    ORACLE_DS_ALLOW_AUTH_REQUIRE_NEW_PWD(
+            "ldap.oracleDS.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ORACLE_DS ),
 
     // deprecated 2019-06-01
     PUBLIC_HEALTH_STATS_WEBSERVICES(
