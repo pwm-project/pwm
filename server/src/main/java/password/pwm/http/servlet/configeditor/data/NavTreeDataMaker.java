@@ -171,7 +171,7 @@ public class NavTreeDataMaker
             final Map<String, String> storedBundle = storedConfiguration.readLocaleBundleMap( bundle, key );
             if ( !storedBundle.isEmpty() )
             {
-                for ( final Locale locale : config.getKnownLocales() )
+                for ( final Locale locale : config.getAppConfig().getKnownLocales() )
                 {
                     final ResourceBundle defaultBundle = ResourceBundle.getBundle( bundle.getTheClass().getName(), locale );
                     final String localeKeyString = PwmConstants.DEFAULT_LOCALE.toString().equals( locale.toString() ) ? "" : locale.toString();
@@ -213,7 +213,7 @@ public class NavTreeDataMaker
             }
             else
             {
-                final List<String> profiles = StoredConfigurationUtil.profilesForCategory( loopCategory, storedConfiguration );
+                final List<String> profiles = StoredConfigurationUtil.profilesForCategory( pwmDomain.getDomainID(), loopCategory, storedConfiguration );
 
                 if ( loopCategory.isTopLevelProfile() )
                 {

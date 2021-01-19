@@ -91,7 +91,7 @@ public class SettingDataMaker
                         LinkedHashMap::new ) ) );
 
         final VarData varMap = VarData.builder()
-                .ldapProfileIds( StoredConfigurationUtil.profilesForSetting( PwmSetting.LDAP_PROFILE_LIST, storedConfiguration ) )
+                .ldapProfileIds( StoredConfigurationUtil.profilesForSetting( PwmConstants.DOMAIN_ID_PLACEHOLDER, PwmSetting.LDAP_PROFILE_LIST, storedConfiguration ) )
                 .domainIds( StoredConfigurationUtil.domainList( storedConfiguration ).stream().map( DomainID::stringValue ).collect( Collectors.toList() ) )
                 .currentTemplate( templateSet )
                 .build();

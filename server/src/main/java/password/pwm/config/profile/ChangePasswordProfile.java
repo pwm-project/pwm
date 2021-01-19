@@ -20,15 +20,16 @@
 
 package password.pwm.config.profile;
 
+import password.pwm.bean.DomainID;
 import password.pwm.config.stored.StoredConfiguration;
 
 public class ChangePasswordProfile extends AbstractProfile implements Profile
 {
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.ChangePassword;
 
-    protected ChangePasswordProfile( final String identifier, final StoredConfiguration storedConfiguration )
+    protected ChangePasswordProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedConfiguration );
+        super( domainID, identifier, storedConfiguration );
     }
 
     @Override
@@ -40,9 +41,9 @@ public class ChangePasswordProfile extends AbstractProfile implements Profile
     public static class ChangePasswordProfileFactory implements Profile.ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final String identifier )
         {
-            return new ChangePasswordProfile( identifier, storedConfiguration );
+            return new ChangePasswordProfile( domainID, identifier, storedConfiguration );
         }
     }
 }

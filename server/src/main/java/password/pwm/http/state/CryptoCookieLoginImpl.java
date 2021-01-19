@@ -237,7 +237,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
 
         if ( loginInfoBean.getAuthTime() != null )
         {
-            final long sessionMaxSeconds = pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.SESSION_MAX_SECONDS );
+            final long sessionMaxSeconds = pwmRequest.getAppConfig().readSettingAsLong( PwmSetting.SESSION_MAX_SECONDS );
             final TimeDuration sessionTotalAge = TimeDuration.fromCurrent( loginInfoBean.getAuthTime() );
             final TimeDuration sessionMaxAge = TimeDuration.of( sessionMaxSeconds, TimeDuration.Unit.SECONDS );
             if ( sessionTotalAge.isLongerThan( sessionMaxAge ) )

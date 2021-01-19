@@ -24,12 +24,13 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Data;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
+import password.pwm.config.option.WebServiceUsage;
 import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.error.ErrorInformation;
@@ -75,6 +76,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -403,12 +405,12 @@ public class ClientApiServlet extends ControlledPwmServlet
             final Map<String, String> localeDisplayNames = new LinkedHashMap<>();
             final Map<String, String> localeFlags = new LinkedHashMap<>();
 
-            final List<Locale> knownLocales = new ArrayList<>( pwmDomain.getConfig().getKnownLocales() );
+            final List<Locale> knownLocales = new ArrayList<>( pwmRequest.getAppConfig().getKnownLocales() );
             knownLocales.sort( LocaleHelper.localeComparator( PwmConstants.DEFAULT_LOCALE ) );
 
             for ( final Locale locale : knownLocales )
             {
-                final String flagCode = pwmDomain.getConfig().getKnownLocaleFlagMap().get( locale );
+                final String flagCode = pwmRequest.getAppConfig().getKnownLocaleFlagMap().get( locale );
                 localeFlags.put( locale.toString(), flagCode );
                 localeInfo.put( locale.toString(), locale.getDisplayName( PwmConstants.DEFAULT_LOCALE ) + " - " + locale.getDisplayLanguage( userLocale ) );
                 localeDisplayNames.put( locale.toString(), locale.getDisplayLanguage() );
@@ -521,7 +523,8 @@ public class ClientApiServlet extends ControlledPwmServlet
             throw new PwmUnrecoverableException( errorInformation );
         }
 
-        if ( !pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES ) )
+        final Set<WebServiceUsage> enabledUsages = pwmRequest.getDomainConfig().readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class );
+        if ( !enabledUsages.contains( WebServiceUsage.Health ) && !enabledUsages.contains( WebServiceUsage.Statistics ) )
         {
             if ( !pwmRequest.isAuthenticated() )
             {

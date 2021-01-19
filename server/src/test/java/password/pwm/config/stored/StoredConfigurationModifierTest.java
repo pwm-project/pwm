@@ -73,7 +73,7 @@ public class StoredConfigurationModifierTest
                 "newProfile",
                 null );
 
-        final List<String> profileNames = StoredConfigurationUtil.profilesForSetting( PwmSetting.HELPDESK_RESULT_LIMIT, postCopyConfig );
+        final List<String> profileNames = StoredConfigurationUtil.profilesForSetting( PwmConstants.DOMAIN_ID_PLACEHOLDER, PwmSetting.HELPDESK_RESULT_LIMIT, postCopyConfig );
         Assert.assertEquals( 2, profileNames.size() );
         Assert.assertTrue( profileNames.contains( "default" ) );
         Assert.assertTrue( profileNames.contains( "newProfile" ) );

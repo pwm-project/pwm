@@ -24,6 +24,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.RecoveryMinLifetimeOption;
 import password.pwm.config.option.WebServiceUsage;
@@ -39,6 +40,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -46,13 +48,13 @@ class ConfigurationCleaner
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigurationCleaner.class );
 
-    private static final List<PwmExceptionLoggingConsumer<StoredConfigurationModifier>> STORED_CONFIG_POST_PROCESSORS =
-            List.of(
+    private static final List<PwmExceptionLoggingConsumer<StoredConfigurationModifier>> STORED_CONFIG_POST_PROCESSORS = List.of(
                     new UpdateDeprecatedAdComplexitySettings(),
                     new UpdateDeprecatedMinPwdLifetimeSetting(),
                     new UpdateDeprecatedPublicHealthSetting(),
                     new ProfileNonProfiledSettings(),
-                    new CheckForSuperfluousProfileSettings() );
+                    new CheckForSuperfluousProfileSettings(),
+                    new RemoveDefaultSettings() );
 
     static void postProcessStoredConfig(
             final StoredConfigurationModifier storedConfiguration
@@ -124,7 +126,7 @@ class ConfigurationCleaner
             final StoredConfiguration oldConfig = modifier.newStoredConfiguration();
             for ( final DomainID domainID : StoredConfigurationUtil.domainList( oldConfig ) )
             {
-                for ( final String profileID : StoredConfigurationUtil.profilesForSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, oldConfig ) )
+                for ( final String profileID : StoredConfigurationUtil.profilesForSetting( domainID, PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, oldConfig ) )
                 {
                     final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID, domainID );
                     final Optional<StoredValue> oldValue = oldConfig.readStoredValue( key );
@@ -191,8 +193,7 @@ class ConfigurationCleaner
         {
             final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
             inputConfig.keys()
-                    .parallel()
-                    .filter( ( key ) -> StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() ) )
+                    .filter( ( key ) -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                     .filter( ( key ) -> key.toPwmSetting().getCategory().hasProfiles() )
                     .filter( ( key ) -> StringUtil.isEmpty( key.getProfileID() ) )
                     .forEach( ( key ) -> convertSetting( inputConfig, modifier, key ) );
@@ -205,7 +206,7 @@ class ConfigurationCleaner
         {
             final PwmSetting pwmSetting = key.toPwmSetting();
 
-            final List<String> targetProfiles = StoredConfigurationUtil.profilesForSetting( pwmSetting, inputConfig );
+            final List<String> targetProfiles = StoredConfigurationUtil.profilesForSetting(  key.getDomainID(), pwmSetting, inputConfig );
             final StoredValue value = inputConfig.readStoredValue( key ).orElseThrow();
             final Optional<ValueMetaData> valueMetaData = inputConfig.readMetaData( key );
 
@@ -246,7 +247,7 @@ class ConfigurationCleaner
         {
             final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
             inputConfig.keys()
-                    .filter( ( key ) -> StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() ) )
+                    .filter( ( key ) -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                     .filter( ( key ) -> key.toPwmSetting().getCategory().hasProfiles() )
                     .filter( ( key ) -> verifyProfileIsValid( key, inputConfig ) )
                     .forEach( ( key ) -> removeSuperfluousProfile( key, modifier ) );
@@ -256,7 +257,7 @@ class ConfigurationCleaner
         {
             final PwmSetting pwmSetting = key.toPwmSetting();
             final String recordID = key.getProfileID();
-            final List<String> profiles = StoredConfigurationUtil.profilesForSetting( pwmSetting, inputConfig );
+            final List<String> profiles = StoredConfigurationUtil.profilesForSetting( key.getDomainID(), pwmSetting, inputConfig );
             return !profiles.contains( recordID );
         }
 
@@ -270,6 +271,43 @@ class ConfigurationCleaner
             catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.warn( () -> "error deleting setting " + key.toString() + " with non-existing profileID: " + e.getMessage() );
+            }
+        }
+    }
+
+    private static class RemoveDefaultSettings implements PwmExceptionLoggingConsumer<StoredConfigurationModifier>
+    {
+        @Override
+        public void accept( final StoredConfigurationModifier modifier )
+                throws PwmUnrecoverableException
+        {
+            final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
+            final PwmSettingTemplateSet templateSet = inputConfig.getTemplateSet();
+            inputConfig.keys()
+                    .filter( ( key ) -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
+                    .filter( key -> !valueIsDefault( key, inputConfig, templateSet ) )
+                    .forEach( ( key ) -> removeDefaultValue( key, inputConfig, modifier ) );
+        }
+
+        private boolean valueIsDefault( final StoredConfigKey key, final StoredConfiguration inputConfig, final PwmSettingTemplateSet pwmSettingTemplateSet )
+        {
+            final StoredValue value = inputConfig.readStoredValue( key ).orElseThrow();
+            final String loopHash = value.valueHash();
+            final String defaultHash = key.toPwmSetting().getDefaultValue( pwmSettingTemplateSet ).valueHash();
+            return !Objects.equals( loopHash, defaultHash );
+        }
+
+        private void removeDefaultValue( final StoredConfigKey key, final StoredConfiguration inputConfig, final StoredConfigurationModifier modifier )
+        {
+            try
+            {
+                final StoredValue value = inputConfig.readStoredValue( key ).orElseThrow();
+                LOGGER.info( () -> "removing setting " + key.toString() + " with default value: " + value.toDebugString( PwmConstants.DEFAULT_LOCALE ) );
+                modifier.deleteKey( key );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                LOGGER.warn( () -> "error deleting setting " + key.toString() + " with default value: " + e.getMessage() );
             }
         }
     }

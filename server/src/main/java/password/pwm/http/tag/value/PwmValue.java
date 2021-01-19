@@ -274,7 +274,7 @@ public enum PwmValue
         @Override
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
         {
-            final String flagFileName = pwmRequest.getDomainConfig().getKnownLocaleFlagMap().get( pwmRequest.getLocale() );
+            final String flagFileName = pwmRequest.getAppConfig().getKnownLocaleFlagMap().get( pwmRequest.getLocale() );
             return flagFileName == null ? "" : flagFileName;
         }
     }

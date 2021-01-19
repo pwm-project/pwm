@@ -24,8 +24,9 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
@@ -52,9 +53,9 @@ public class NewUserProfile extends AbstractProfile implements Profile
     private Instant newUserPasswordPolicyCacheTime;
     private final Map<Locale, PwmPasswordPolicy> newUserPasswordPolicyCache = new HashMap<>();
 
-    protected NewUserProfile( final String identifier, final StoredConfiguration storedConfiguration )
+    protected NewUserProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedConfiguration );
+        super( domainID, identifier, storedConfiguration );
     }
 
     @Override
@@ -170,9 +171,9 @@ public class NewUserProfile extends AbstractProfile implements Profile
     public static class NewUserProfileFactory implements ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final String identifier )
         {
-            return new NewUserProfile( identifier, storedConfiguration );
+            return new NewUserProfile( domainID, identifier, storedConfiguration );
         }
     }
 

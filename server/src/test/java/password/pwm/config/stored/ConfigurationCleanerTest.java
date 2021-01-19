@@ -73,7 +73,8 @@ public class ConfigurationCleanerTest
     @Test
     public void testProfiledSettings()
     {
-        final List<String> profileList = StoredConfigurationUtil.profilesForSetting( PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER, domainConfig.getStoredConfiguration() );
+        final List<String> profileList = StoredConfigurationUtil.profilesForSetting(
+                PwmConstants.DOMAIN_ID_PLACEHOLDER, PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER, domainConfig.getStoredConfiguration() );
         Assert.assertEquals( 1, profileList.size() );
 
         final PeopleSearchProfile peopleSearchProfile = domainConfig.getPeopleSearchProfiles().get( PwmConstants.PROFILE_ID_DEFAULT );

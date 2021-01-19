@@ -194,9 +194,9 @@ public class SettingReader
     }
 
 
-    public <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition )
+    public <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition, final DomainID domainID )
     {
-        return profileReader.getProfileMap( profileDefinition );
+        return profileReader.getProfileMap( profileDefinition, domainID );
     }
 
 
@@ -204,12 +204,12 @@ public class SettingReader
     {
         private final Map<ProfileDefinition, Map> profileCache = new LinkedHashMap<>();
 
-        public <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition )
+        private <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition, final DomainID domainID )
         {
             return profileCache.computeIfAbsent( profileDefinition, ( p ) ->
             {
                 final Map<String, T> returnMap = new LinkedHashMap<>();
-                final Map<String, Profile> profileMap = profileMap( profileDefinition );
+                final Map<String, Profile> profileMap = profileMap( profileDefinition, domainID );
                 for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
                 {
                     returnMap.put( entry.getKey(), ( T ) entry.getValue() );
@@ -218,7 +218,7 @@ public class SettingReader
             } );
         }
 
-        private Map<String, Profile> profileMap( final ProfileDefinition profileDefinition )
+        private Map<String, Profile> profileMap( final ProfileDefinition profileDefinition, final DomainID domainID )
         {
             if ( profileDefinition.getProfileFactoryClass().isEmpty() )
             {
@@ -228,11 +228,11 @@ public class SettingReader
             return profileIDsForCategory( profileDefinition.getCategory() ).stream()
                     .collect( Collectors.toUnmodifiableMap(
                         profileID -> profileID,
-                        profileID -> newProfileForID( profileDefinition, profileID )
+                        profileID -> newProfileForID( profileDefinition, domainID, profileID )
                     ) );
         }
 
-        private Profile newProfileForID( final ProfileDefinition profileDefinition, final String profileID )
+        private Profile newProfileForID( final ProfileDefinition profileDefinition, final DomainID domainID, final String profileID )
         {
             Objects.requireNonNull( profileDefinition );
             Objects.requireNonNull( profileID );
@@ -245,7 +245,7 @@ public class SettingReader
                 try
                 {
                     profileFactory = optionalProfileFactoryClass.get().getDeclaredConstructor().newInstance();
-                    return profileFactory.makeFromStoredConfiguration( storedConfiguration, profileID );
+                    return profileFactory.makeFromStoredConfiguration( storedConfiguration, domainID, profileID );
                 }
                 catch ( final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
                 {
@@ -269,20 +269,18 @@ public class SettingReader
         {
             if ( setting.getCategory().getScope() == PwmSettingScope.DOMAIN )
             {
-                final String msg = "attempt to read DOMAIN scope setting '" + setting.toMenuLocationDebug( profileID, null ) + "' via system scope";
+                final String msg = "attempt to read system scope setting '" + setting.toMenuLocationDebug( profileID, null ) + "' as system scope";
                 final PwmUnrecoverableException pwmUnrecoverableException = PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, msg );
-                LOGGER.error( () -> pwmUnrecoverableException.getErrorInformation().toDebugStr(), pwmUnrecoverableException );
-                //throw new IllegalStateException( msg );
+                throw new IllegalStateException( msg, pwmUnrecoverableException );
             }
         }
         else
         {
             if ( setting.getCategory().getScope() == PwmSettingScope.SYSTEM )
             {
-                final String msg = "attempt to read SYSTEM scope setting '" + setting.toMenuLocationDebug( profileID, null ) + "' via domain scope";
+                final String msg = "attempt to read system scope setting '" + setting.toMenuLocationDebug( profileID, null ) + "' as domain scope";
                 final PwmUnrecoverableException pwmUnrecoverableException = PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, msg );
-                LOGGER.error( () -> pwmUnrecoverableException.getErrorInformation().toDebugStr(), pwmUnrecoverableException );
-                //throw new IllegalStateException( msg );
+                throw new IllegalStateException( msg, pwmUnrecoverableException );
             }
         }
 

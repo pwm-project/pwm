@@ -20,15 +20,16 @@
 
 package password.pwm.config.profile;
 
+import password.pwm.bean.DomainID;
 import password.pwm.config.stored.StoredConfiguration;
 
 public class SetupOtpProfile extends AbstractProfile
 {
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.SetupOTPProfile;
 
-    protected SetupOtpProfile( final String identifier, final StoredConfiguration storedConfiguration )
+    protected SetupOtpProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedConfiguration );
+        super( domainID, identifier, storedConfiguration );
     }
 
     @Override
@@ -40,9 +41,9 @@ public class SetupOtpProfile extends AbstractProfile
     public static class SetupOtpProfileFactory implements ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID,  final String identifier )
         {
-            return new SetupOtpProfile( identifier, storedConfiguration );
+            return new SetupOtpProfile( domainID, identifier, storedConfiguration );
         }
     }
 }

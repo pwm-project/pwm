@@ -452,7 +452,7 @@ public class SessionFilter extends AbstractPwmFilter
         final String localeParamName = config.readAppProperty( AppProperty.HTTP_PARAM_NAME_LOCALE );
         final String localeCookieName = config.readAppProperty( AppProperty.HTTP_COOKIE_LOCALE_NAME );
         final String requestedLocale = pwmRequest.readParameterAsString( localeParamName );
-        final int cookieAgeSeconds = ( int ) pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.LOCALE_COOKIE_MAX_AGE );
+        final int cookieAgeSeconds = ( int ) pwmRequest.getAppConfig().readSettingAsLong( PwmSetting.LOCALE_COOKIE_MAX_AGE );
         if ( requestedLocale != null && requestedLocale.length() > 0 )
         {
             LOGGER.debug( pwmRequest, () -> "detected locale request parameter " + localeParamName + " with value " + requestedLocale );

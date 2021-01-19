@@ -58,7 +58,7 @@ public enum PwmSetting
 
     // domains
     DOMAIN_LIST(
-            "domain.list", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.DOMAINS ),
+            "domain.list", PwmSettingSyntax.DOMAINS, PwmSettingCategory.DOMAINS ),
 
     // application settings
     APP_PROPERTY_OVERRIDES(
@@ -83,6 +83,8 @@ public enum PwmSetting
             "idleTimeoutSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.GENERAL ),
     HIDE_CONFIGURATION_HEALTH_WARNINGS(
             "display.hideConfigHealthWarnings", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.GENERAL ),
+
+
     KNOWN_LOCALES(
             "knownLocales", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LOCALIZATION ),
     LOCALE_COOKIE_MAX_AGE(

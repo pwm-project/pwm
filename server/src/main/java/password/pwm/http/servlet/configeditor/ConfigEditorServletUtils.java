@@ -205,7 +205,7 @@ public class ConfigEditorServletUtils
         {
             final Map<String, String> defaultValueMap = new LinkedHashMap<>();
             final String defaultLocaleValue = ResourceBundle.getBundle( pwmLocaleBundle.getTheClass().getName(), PwmConstants.DEFAULT_LOCALE ).getString( keyName );
-            for ( final Locale locale : pwmRequest.getDomainConfig().getKnownLocales() )
+            for ( final Locale locale : pwmRequest.getAppConfig().getKnownLocales() )
             {
                 final ResourceBundle localeBundle = ResourceBundle.getBundle( pwmLocaleBundle.getTheClass().getName(), locale );
                 if ( locale.toString().equalsIgnoreCase( PwmConstants.DEFAULT_LOCALE.toString() ) )

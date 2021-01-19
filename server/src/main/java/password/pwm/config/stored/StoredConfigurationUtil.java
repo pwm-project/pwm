@@ -69,6 +69,7 @@ public abstract class StoredConfigurationUtil
     private static final PwmLogger LOGGER = PwmLogger.forClass( StoredConfigurationUtil.class );
 
     public static List<String> profilesForSetting(
+            final DomainID domainID,
             final PwmSetting pwmSetting,
             final StoredConfiguration storedConfiguration
     )
@@ -88,24 +89,26 @@ public abstract class StoredConfigurationUtil
             profileSetting = pwmSetting.getCategory().getProfileSetting().orElseThrow( IllegalStateException::new );
         }
 
-        return profilesForProfileSetting( profileSetting, storedConfiguration );
+        return profilesForProfileSetting( domainID, profileSetting, storedConfiguration );
     }
 
     public static List<String> profilesForCategory(
+            final DomainID domainID,
             final PwmSettingCategory category,
             final StoredConfiguration storedConfiguration
     )
     {
         final PwmSetting profileSetting = category.getProfileSetting().orElseThrow( IllegalStateException::new );
-        return profilesForProfileSetting( profileSetting, storedConfiguration );
+        return profilesForProfileSetting( domainID, profileSetting, storedConfiguration );
     }
 
     private static List<String> profilesForProfileSetting(
+            final DomainID domainID,
             final PwmSetting profileSetting,
             final StoredConfiguration storedConfiguration
     )
     {
-        final StoredConfigKey key = StoredConfigKey.forSetting( profileSetting, null, PwmConstants.DOMAIN_ID_PLACEHOLDER );
+        final StoredConfigKey key = StoredConfigKey.forSetting( profileSetting, null, domainID );
         final StoredValue storedValue = StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
         final List<String> settingValues = ValueTypeConverter.valueToStringArray( storedValue );
         return settingValues.stream()
@@ -283,7 +286,7 @@ public abstract class StoredConfigurationUtil
         {
             if ( loopSetting.getCategory().hasProfiles() )
             {
-                return StoredConfigurationUtil.profilesForSetting( loopSetting, storedConfiguration )
+                return StoredConfigurationUtil.profilesForSetting( domainID, loopSetting, storedConfiguration )
                         .stream()
                         .map( profileId -> StoredConfigKey.forSetting( loopSetting, profileId, domainID ) )
                         .collect( Collectors.toList() )
@@ -390,7 +393,7 @@ public abstract class StoredConfigurationUtil
         }
 
         final PwmSetting profileSetting = category.getProfileSetting().orElseThrow( IllegalStateException::new );
-        final List<String> existingProfiles = StoredConfigurationUtil.profilesForSetting( profileSetting, oldStoredConfiguration );
+        final List<String> existingProfiles = StoredConfigurationUtil.profilesForSetting( domainID, profileSetting, oldStoredConfiguration );
         if ( !existingProfiles.contains( sourceID ) )
         {
             throw PwmUnrecoverableException.newException(
@@ -427,6 +430,51 @@ public abstract class StoredConfigurationUtil
             final StoredValue value = new StringArrayValue( newProfileIDList );
             modifier.writeSetting( key, value, userIdentity );
         }
+
+        return modifier.newStoredConfiguration();
+    }
+
+    public static StoredConfiguration copyDomainID(
+            final StoredConfiguration oldStoredConfiguration,
+            final String source,
+            final String destination,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        final DomainID sourceID = DomainID.create( source );
+        final DomainID destinationID = DomainID.create( destination );
+
+        final List<DomainID> existingProfiles = StoredConfigurationUtil.domainList( oldStoredConfiguration );
+
+        if ( !existingProfiles.contains( sourceID ) )
+        {
+            throw PwmUnrecoverableException.newException(
+                    PwmError.ERROR_INVALID_CONFIG, "can not copy domain ID, source domainID '" + sourceID + "' does not exist" );
+        }
+
+        if ( existingProfiles.contains( destinationID ) )
+        {
+            throw PwmUnrecoverableException.newException(
+                    PwmError.ERROR_INVALID_CONFIG, "can not copy domain ID for category, destination domainID '" + destinationID + "' already exists" );
+        }
+
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( oldStoredConfiguration );
+        modifier.newStoredConfiguration().keys()
+                .filter( key -> key.getDomainID().equals( sourceID ) )
+                .forEach( key ->
+        {
+            final StoredConfigKey newKey = key.withNewDomain( destinationID );
+            final StoredValue storedValue = oldStoredConfiguration.readStoredValue( key ).orElseThrow();
+            try
+            {
+                modifier.writeSetting( newKey, storedValue, userIdentity );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                throw new IllegalStateException( "unexpected error copying domain setting values: " + e.getMessage() );
+            }
+        } );
 
         return modifier.newStoredConfiguration();
     }

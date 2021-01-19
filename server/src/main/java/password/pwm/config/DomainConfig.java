@@ -190,7 +190,7 @@ public class DomainConfig
 
     public List<String> getChallengeProfileIDs( )
     {
-        return StoredConfigurationUtil.profilesForSetting( PwmSetting.CHALLENGE_PROFILE_LIST, storedConfiguration );
+        return StoredConfigurationUtil.profilesForSetting( this.getDomainID(), PwmSetting.CHALLENGE_PROFILE_LIST, storedConfiguration );
     }
 
     public ChallengeProfile getChallengeProfile( final String profile, final Locale locale )
@@ -216,7 +216,7 @@ public class DomainConfig
 
     public List<String> getPasswordProfileIDs( )
     {
-        return StoredConfigurationUtil.profilesForSetting( PwmSetting.PASSWORD_PROFILE_LIST, storedConfiguration );
+        return StoredConfigurationUtil.profilesForSetting( this.getDomainID(), PwmSetting.PASSWORD_PROFILE_LIST, storedConfiguration );
     }
 
 
@@ -282,18 +282,6 @@ public class DomainConfig
         return getLdapProfiles().values().iterator().next();
     }
 
-
-    public List<Locale> getKnownLocales( )
-    {
-        return getAppConfig().getKnownLocales();
-    }
-
-    public Map<Locale, String> getKnownLocaleFlagMap( )
-    {
-        return getAppConfig().getKnownLocaleFlagMap();
-    }
-
-
     public Optional<TokenStorageMethod> getTokenStorageMethod( )
     {
         return JavaHelper.readEnumFromString( TokenStorageMethod.class, readSettingAsString( PwmSetting.TOKEN_STORAGEMETHOD ) );
@@ -318,7 +306,7 @@ public class DomainConfig
     {
         private final Supplier<Map<String, LdapProfile>> ldapProfilesSupplier = new LazySupplier<>( () ->
         {
-            final Map<String, LdapProfile> sourceMap = settingReader.getProfileMap( ProfileDefinition.LdapProfile );
+            final Map<String, LdapProfile> sourceMap = settingReader.getProfileMap( ProfileDefinition.LdapProfile, getDomainID() );
 
             return Collections.unmodifiableMap(
                     sourceMap.entrySet()
@@ -378,47 +366,47 @@ public class DomainConfig
     /* generic profile stuff */
     public Map<String, NewUserProfile> getNewUserProfiles( )
     {
-        return settingReader.getProfileMap( ProfileDefinition.NewUser );
+        return this.getProfileMap( ProfileDefinition.NewUser );
     }
 
     public Map<String, ActivateUserProfile> getUserActivationProfiles( )
     {
-        return settingReader.getProfileMap( ProfileDefinition.ActivateUser );
+        return this.getProfileMap( ProfileDefinition.ActivateUser );
     }
 
     public Map<String, HelpdeskProfile> getHelpdeskProfiles( )
     {
-        return settingReader.getProfileMap( ProfileDefinition.Helpdesk );
+        return this.getProfileMap( ProfileDefinition.Helpdesk );
     }
 
     public Map<String, PeopleSearchProfile> getPeopleSearchProfiles( )
     {
-        return settingReader.getProfileMap( ProfileDefinition.PeopleSearch );
+        return this.getProfileMap( ProfileDefinition.PeopleSearch );
     }
 
     public Map<String, SetupOtpProfile> getSetupOTPProfiles( )
     {
-        return settingReader.getProfileMap( ProfileDefinition.SetupOTPProfile );
+        return this.getProfileMap( ProfileDefinition.SetupOTPProfile );
     }
 
     public Map<String, UpdateProfileProfile> getUpdateAttributesProfile( )
     {
-        return settingReader.getProfileMap( ProfileDefinition.UpdateAttributes );
+        return this.getProfileMap( ProfileDefinition.UpdateAttributes );
     }
 
     public Map<String, ChangePasswordProfile> getChangePasswordProfile( )
     {
-        return settingReader.getProfileMap( ProfileDefinition.ChangePassword );
+        return this.getProfileMap( ProfileDefinition.ChangePassword );
     }
 
     public Map<String, ForgottenPasswordProfile> getForgottenPasswordProfiles( )
     {
-        return settingReader.getProfileMap( ProfileDefinition.ForgottenPassword );
+        return this.getProfileMap( ProfileDefinition.ForgottenPassword );
     }
 
     public <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition )
     {
-        return settingReader.getProfileMap( profileDefinition );
+        return settingReader.getProfileMap( profileDefinition, getDomainID()  );
     }
 
     public StoredConfiguration getStoredConfiguration( )
@@ -431,7 +419,7 @@ public class DomainConfig
         if ( readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC ) )
         {
             final String profileID = readSettingAsString( PwmSetting.PEOPLE_SEARCH_PUBLIC_PROFILE );
-            final Map<String, PeopleSearchProfile> profiles = settingReader.getProfileMap( ProfileDefinition.PeopleSearchPublic );
+            final Map<String, PeopleSearchProfile> profiles = settingReader.getProfileMap( ProfileDefinition.PeopleSearchPublic, getDomainID() );
             return Optional.ofNullable( profiles.get( profileID ) );
         }
         return Optional.empty();

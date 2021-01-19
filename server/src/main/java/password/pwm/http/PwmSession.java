@@ -209,6 +209,8 @@ public class PwmSession implements Serializable
 
         UserIdentity userIdentity = null;
         String userID = null;
+        String domain = null;
+        String profile = null;
 
         if ( isAuthenticated() )
         {
@@ -217,6 +219,8 @@ public class PwmSession implements Serializable
                 final UserInfo userInfo = getUserInfo();
                 userIdentity = userInfo.getUserIdentity();
                 userID = userInfo.getUsername();
+                profile = userIdentity.getLdapProfileID();
+                domain = userIdentity.getDomainID().toString();
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -228,6 +232,8 @@ public class PwmSession implements Serializable
                 .sessionID( ssBean.getSessionID() )
                 .userID( userIdentity == null ? null : userIdentity.toDelimitedKey() )
                 .username( userID )
+                .domain( domain )
+                .profile( profile )
                 .sourceAddress( ssBean.getSrcAddress() )
                 .sourceHostname( ssBean.getSrcHostname() )
                 .build();
@@ -334,7 +340,7 @@ public class PwmSession implements Serializable
         }
 
         final LocalSessionStateBean ssBean = this.getSessionStateBean();
-        final List<Locale> knownLocales = pwmDomain.getConfig().getKnownLocales();
+        final List<Locale> knownLocales = pwmRequest.getAppConfig().getKnownLocales();
         final Locale requestedLocale = LocaleHelper.parseLocaleString( localeString );
         if ( knownLocales.contains( requestedLocale ) || "default".equalsIgnoreCase( localeString ) )
         {

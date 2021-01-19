@@ -149,6 +149,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         testMacro( HttpMethod.POST ),
         browseLdap( HttpMethod.POST ),
         copyProfile( HttpMethod.POST ),
+        copyDomain( HttpMethod.POST ),
         randomPassword( HttpMethod.POST ),;
 
         private final HttpMethod method;
@@ -890,7 +891,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
 
     @ActionHandler( action = "copyProfile" )
     private ProcessStatus restCopyProfile( final PwmRequest pwmRequest )
-            throws IOException, ServletException, PwmUnrecoverableException
+            throws IOException, PwmUnrecoverableException
     {
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
@@ -912,6 +913,33 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                     configManagerBean.getStoredConfiguration(),
                     domainID,
                     category,
+                    sourceID,
+                    destinationID,
+                    pwmRequest.getUserInfoIfLoggedIn() );
+            pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
+            configManagerBean.setStoredConfiguration( newStoredConfig );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            pwmRequest.outputJsonResult( RestResultBean.fromError( e.getErrorInformation(), pwmRequest ) );
+        }
+
+        return ProcessStatus.Halt;
+    }
+
+    @ActionHandler( action = "copyDomain" )
+    private ProcessStatus restCopyDomain( final PwmRequest pwmRequest )
+            throws IOException, PwmUnrecoverableException
+    {
+        final ConfigManagerBean configManagerBean = getBean( pwmRequest );
+        final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
+        final String sourceID = inputMap.get( "sourceID" );
+        final String destinationID = inputMap.get( "destinationID" );
+
+        try
+        {
+            final StoredConfiguration newStoredConfig = StoredConfigurationUtil.copyDomainID(
+                    configManagerBean.getStoredConfiguration(),
                     sourceID,
                     destinationID,
                     pwmRequest.getUserInfoIfLoggedIn() );

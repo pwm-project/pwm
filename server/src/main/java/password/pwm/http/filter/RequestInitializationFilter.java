@@ -27,7 +27,6 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.AppConfig;
-import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -74,6 +73,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public class RequestInitializationFilter implements Filter
 {
@@ -432,23 +432,26 @@ public class RequestInitializationFilter implements Filter
     }
 
 
-    public static String readUserHostname( final HttpServletRequest request, final DomainConfig config ) throws PwmUnrecoverableException
+    public static Optional<String> readUserHostname( final HttpServletRequest request, final AppConfig config ) throws PwmUnrecoverableException
     {
-        if ( config != null && !config.getAppConfig().readSettingAsBoolean( PwmSetting.REVERSE_DNS_ENABLE ) )
+        if ( config != null && !config.readSettingAsBoolean( PwmSetting.REVERSE_DNS_ENABLE ) )
         {
-            return "";
+            return Optional.empty();
         }
 
-        final String userIPAddress = readUserNetworkAddress( request, config );
-        try
+        final Optional<String> userIPAddress = readUserNetworkAddress( request, config );
+        if ( userIPAddress.isPresent() )
         {
-            return InetAddress.getByName( userIPAddress ).getCanonicalHostName();
+            try
+            {
+                return Optional.of( InetAddress.getByName( userIPAddress.get() ).getCanonicalHostName() );
+            }
+            catch ( final UnknownHostException e )
+            {
+                LOGGER.trace( () -> "unknown host while trying to compute hostname for src request: " + e.getMessage() );
+            }
         }
-        catch ( final UnknownHostException e )
-        {
-            LOGGER.trace( () -> "unknown host while trying to compute hostname for src request: " + e.getMessage() );
-        }
-        return "";
+        return Optional.empty();
     }
 
     /**
@@ -459,9 +462,9 @@ public class RequestInitializationFilter implements Filter
      * @param config the application configuration
      * @return String containing the textual representation of the source IP address, or null if the request is invalid.
      */
-    public static String readUserNetworkAddress(
+    public static Optional<String> readUserNetworkAddress(
             final HttpServletRequest request,
-            final DomainConfig config
+            final AppConfig config
     )
     {
         final List<String> candidateAddresses = new ArrayList<>();
@@ -487,7 +490,7 @@ public class RequestInitializationFilter implements Filter
             final String trimAddr = candidateAddress.trim();
             if ( InetAddressValidator.getInstance().isValid( trimAddr ) )
             {
-                return trimAddr;
+                return Optional.of( trimAddr );
             }
             else
             {
@@ -495,7 +498,7 @@ public class RequestInitializationFilter implements Filter
             }
         }
 
-        return "";
+        return Optional.empty();
     }
 
     private static void handleRequestInitialization(
@@ -516,13 +519,13 @@ public class RequestInitializationFilter implements Filter
         // mark session ip address
         if ( ssBean.getSrcAddress() == null )
         {
-            ssBean.setSrcAddress( readUserNetworkAddress( pwmRequest.getHttpServletRequest(), pwmRequest.getDomainConfig() ) );
+            ssBean.setSrcAddress( readUserNetworkAddress( pwmRequest.getHttpServletRequest(), pwmRequest.getAppConfig() ).orElse( "" ) );
         }
 
         // mark the user's hostname in the session bean
         if ( ssBean.getSrcHostname() == null )
         {
-            ssBean.setSrcHostname( readUserHostname( pwmRequest.getHttpServletRequest(), pwmRequest.getDomainConfig() ) );
+            ssBean.setSrcHostname( readUserHostname( pwmRequest.getHttpServletRequest(), pwmRequest.getAppConfig() ).orElse( "" ) );
         }
 
         // update the privateUrlAccessed flag
@@ -555,7 +558,7 @@ public class RequestInitializationFilter implements Filter
         }
         else
         {
-            final List<Locale> knownLocales = pwmRequest.getDomainConfig().getKnownLocales();
+            final List<Locale> knownLocales = pwmRequest.getAppConfig().getKnownLocales();
             final Locale userLocale = LocaleHelper.localeResolver( pwmRequest.getHttpServletRequest().getLocale(), knownLocales );
             pwmRequest.getPwmSession().getSessionStateBean().setLocale( userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale );
             LOGGER.trace( pwmRequest, () -> "user locale set to '" + pwmRequest.getLocale() + "'" );
@@ -601,16 +604,20 @@ public class RequestInitializationFilter implements Filter
     private static void checkIfSourceAddressChanged( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        if ( !pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.MULTI_IP_SESSION_ALLOWED ) )
+        if ( !pwmRequest.getAppConfig().readSettingAsBoolean( PwmSetting.MULTI_IP_SESSION_ALLOWED ) )
         {
-            final String remoteAddress = readUserNetworkAddress( pwmRequest.getHttpServletRequest(), pwmRequest.getDomainConfig() );
+            final Optional<String> optionalRemoteAddress = readUserNetworkAddress( pwmRequest.getHttpServletRequest(), pwmRequest.getAppConfig() );
             final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
 
-            if ( !ssBean.getSrcAddress().equals( remoteAddress ) )
+            if ( optionalRemoteAddress.isPresent() )
             {
-                final String errorMsg = "current network address '" + remoteAddress + "' has changed from original network address '" + ssBean.getSrcAddress() + "'";
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, errorMsg );
-                throw new PwmUnrecoverableException( errorInformation );
+                final String remoteAddress = optionalRemoteAddress.get();
+                if ( !ssBean.getSrcAddress().equals( remoteAddress ) )
+                {
+                    final String errorMsg = "current network address '" + remoteAddress + "' has changed from original network address '" + ssBean.getSrcAddress() + "'";
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, errorMsg );
+                    throw new PwmUnrecoverableException( errorInformation );
+                }
             }
         }
     }
@@ -637,7 +644,7 @@ public class RequestInitializationFilter implements Filter
     private static void checkRequiredHeaders( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final List<String> requiredHeaders = pwmRequest.getDomainConfig().readSettingAsStringArray( PwmSetting.REQUIRED_HEADERS );
+        final List<String> requiredHeaders = pwmRequest.getAppConfig().readSettingAsStringArray( PwmSetting.REQUIRED_HEADERS );
         if ( requiredHeaders != null && !requiredHeaders.isEmpty() )
         {
             final Map<String, String> configuredValues = StringUtil.convertStringListToNameValuePair( requiredHeaders, "=" );

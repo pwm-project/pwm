@@ -20,15 +20,16 @@
 
 package password.pwm.config.profile;
 
+import password.pwm.bean.DomainID;
 import password.pwm.config.stored.StoredConfiguration;
 
 public class DeleteAccountProfile extends AbstractProfile implements Profile
 {
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.DeleteAccount;
 
-    protected DeleteAccountProfile( final String identifier, final StoredConfiguration storedConfiguration )
+    protected DeleteAccountProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedConfiguration );
+        super( domainID, identifier, storedConfiguration );
     }
 
     @Override
@@ -40,9 +41,9 @@ public class DeleteAccountProfile extends AbstractProfile implements Profile
     public static class DeleteAccountProfileFactory implements ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final String identifier )
         {
-            return new DeleteAccountProfile( identifier, storedConfiguration );
+            return new DeleteAccountProfile( domainID, identifier, storedConfiguration );
         }
     }
 }

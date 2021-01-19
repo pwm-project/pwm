@@ -22,7 +22,6 @@ package password.pwm.util;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
-import password.pwm.PwmDomain;
 import password.pwm.bean.FormNonce;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -53,11 +52,10 @@ public class Validator
             throws PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
         final String submittedPwmFormID = pwmRequest.readParameterAsString( PwmConstants.PARAM_FORM_ID );
 
-        if ( pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.SECURITY_ENABLE_FORM_NONCE ) )
+        if ( pwmRequest.getAppConfig().readSettingAsBoolean( PwmSetting.SECURITY_ENABLE_FORM_NONCE ) )
         {
             final FormNonce formNonce = pwmRequest.getPwmDomain().getSecureService().decryptObject(
                     submittedPwmFormID,

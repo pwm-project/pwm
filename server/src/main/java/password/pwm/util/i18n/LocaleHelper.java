@@ -331,7 +331,7 @@ public class LocaleHelper
         final Map<Locale, String> returnObj = new LinkedHashMap<>();
         final Collection<Locale> localeList = domainConfig == null
                 ? new ArrayList<>( PwmConstants.INCLUDED_LOCALES )
-                : new ArrayList<>( domainConfig.getKnownLocales() );
+                : new ArrayList<>( domainConfig.getAppConfig().getKnownLocales() );
 
         final String defaultValue = getLocalizedMessage( defaultLocale, key, domainConfig, bundleClass );
         returnObj.put( defaultLocale, defaultValue );
@@ -388,7 +388,7 @@ public class LocaleHelper
         {
             for ( final String key : pwmLocaleBundle.getDisplayKeys() )
             {
-                for ( final Locale locale : domainConfig.getKnownLocales() )
+                for ( final Locale locale : domainConfig.getAppConfig().getKnownLocales() )
                 {
                     final String defaultValue = LocaleHelper.getLocalizedMessage( locale, key, null, pwmLocaleBundle.getTheClass() );
                     final String customizedValue = LocaleHelper.getLocalizedMessage( locale, key, domainConfig, pwmLocaleBundle.getTheClass() );

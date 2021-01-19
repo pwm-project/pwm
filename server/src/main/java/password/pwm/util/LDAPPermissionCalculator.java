@@ -108,7 +108,7 @@ public class LDAPPermissionCalculator implements Serializable
         {
             if ( pwmSetting.getCategory().hasProfiles() )
             {
-                final List<String> profiles = StoredConfigurationUtil.profilesForSetting( pwmSetting, domainConfig.getStoredConfiguration() );
+                final List<String> profiles = StoredConfigurationUtil.profilesForSetting( domainConfig.getDomainID(), pwmSetting, domainConfig.getStoredConfiguration() );
                 for ( final String profile : profiles )
                 {
                     permissionRecords.addAll( figureRecord( pwmSetting, profile ) );

@@ -37,11 +37,8 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -65,9 +62,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         this.modifyTime = storedConfigData.getModifyTime();
         this.metaValues = Map.copyOf( storedConfigData.getMetaDatas() );
         this.templateSet = readTemplateSet( storedConfigData.getStoredValues() );
-
-        final Map<StoredConfigKey, StoredValue> tempMap = removeDefaultSettingValues( storedConfigData.getStoredValues(), templateSet );
-        this.storedValues = Map.copyOf( tempMap );
+        this.storedValues = Map.copyOf( storedConfigData.getStoredValues() );
     }
 
     StoredConfigurationImpl()
@@ -78,32 +73,6 @@ public class StoredConfigurationImpl implements StoredConfiguration
         this.metaValues = Collections.emptyMap();
         this.templateSet = readTemplateSet( Collections.emptyMap() );
     }
-
-    private static Map<StoredConfigKey, StoredValue> removeDefaultSettingValues(
-            final Map<StoredConfigKey, StoredValue> valueMap,
-            final PwmSettingTemplateSet pwmSettingTemplateSet
-    )
-    {
-        final Predicate<Map.Entry<StoredConfigKey, StoredValue>> checkIfValueIsDefault = entry ->
-        {
-            if ( StoredConfigKey.RecordType.SETTING.equals( entry.getKey().getRecordType() ) )
-            {
-                final String loopHash = entry.getValue().valueHash();
-                final String defaultHash = entry.getKey().toPwmSetting().getDefaultValue( pwmSettingTemplateSet ).valueHash();
-                return !Objects.equals( loopHash, defaultHash );
-            }
-            return true;
-        };
-
-        final Map<StoredConfigKey, StoredValue> results = valueMap.entrySet()
-                .parallelStream()
-                .filter( checkIfValueIsDefault )
-                .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) );
-
-        return Collections.unmodifiableMap( results );
-    }
-
-
 
     @Override
     public StoredConfiguration copy()

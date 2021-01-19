@@ -281,7 +281,7 @@ public class AppConfig
 
     public Map<String, EmailServerProfile> getEmailServerProfiles( )
     {
-        return settingReader.getProfileMap( ProfileDefinition.EmailServers );
+        return settingReader.getProfileMap( ProfileDefinition.EmailServers, DomainID.systemId() );
     }
 
     public CertificateMatchingMode readCertificateMatchingMode()

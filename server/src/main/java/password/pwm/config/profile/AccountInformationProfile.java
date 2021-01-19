@@ -20,15 +20,16 @@
 
 package password.pwm.config.profile;
 
+import password.pwm.bean.DomainID;
 import password.pwm.config.stored.StoredConfiguration;
 
 public class AccountInformationProfile extends AbstractProfile implements Profile
 {
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.AccountInformation;
 
-    protected AccountInformationProfile( final String identifier, final StoredConfiguration storedConfiguration )
+    protected AccountInformationProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedConfiguration );
+        super( domainID, identifier, storedConfiguration );
     }
 
     @Override
@@ -40,9 +41,9 @@ public class AccountInformationProfile extends AbstractProfile implements Profil
     public static class AccountInformationProfileFactory implements Profile.ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final String identifier )
         {
-            return new AccountInformationProfile( identifier, storedConfiguration );
+            return new AccountInformationProfile( domainID, identifier, storedConfiguration );
         }
     }
 }

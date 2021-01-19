@@ -51,6 +51,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
     private final String message;
     private final Throwable throwable;
     private final String username;
+    private final String domain;
     private final String sourceAddress;
 
     private static final Comparator<PwmLogEvent> COMPARATOR = Comparator.comparing(
@@ -104,6 +105,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         this.sessionID = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getSessionID(), 256 );
         this.requestID = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getRequestID(), 256 );
         this.username = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getUsername(), 256 );
+        this.domain = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getDomain(), 256 );
         this.sourceAddress = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getSourceAddress(), 256 );
     }
 

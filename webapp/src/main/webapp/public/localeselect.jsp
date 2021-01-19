@@ -40,7 +40,7 @@
     PwmDomain localeselect_pwmDomain = null;
     try {
         localeselect_pwmDomain = PwmRequest.forRequest(request, response).getPwmDomain();
-        localeList = localeselect_pwmDomain.getConfig().getKnownLocales();
+        localeList = localeselect_pwmDomain.getPwmApplication().getConfig().getKnownLocales();
     } catch (PwmException e) {
         /* noop */
     }
@@ -56,7 +56,7 @@
                 <% for (final Locale locale : localeList) { %>
                 <tr>
                     <td>
-                        <% final String flagCode = localeselect_pwmDomain.getConfig().getKnownLocaleFlagMap().get(locale); %>
+                        <% final String flagCode = localeselect_pwmDomain.getPwmApplication().getConfig().getKnownLocaleFlagMap().get(locale); %>
                         <img alt="flag" src="<pwm:context/><pwm:url url='/public/resources/flags/png/'/><%=flagCode%>.png"/>
                     </td>
                     <td>

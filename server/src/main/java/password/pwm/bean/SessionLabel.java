@@ -47,4 +47,6 @@ public class SessionLabel implements Serializable
     private final String username;
     private final String sourceAddress;
     private final String sourceHostname;
+    private final String profile;
+    private final String domain;
 }

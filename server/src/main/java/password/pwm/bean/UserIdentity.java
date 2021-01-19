@@ -25,7 +25,6 @@ import com.novell.ldapchai.exception.ChaiException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jetbrains.annotations.NotNull;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.config.AppConfig;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -63,12 +62,6 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             .thenComparing(
                     UserIdentity::getDomainID,
                     Comparator.nullsLast( Comparator.naturalOrder() ) );
-
-    public static final String XML_DOMAIN = "domain";
-    public static final String XML_LDAP_PROFILE = "ldapProfile";
-    public static final String XML_DISTINGUISHED_NAME = "distinguishedName";
-    public static final String XML_USER_IDENTITY = "userIdentity";
-
 
     private transient String obfuscatedValue;
     private transient boolean canonical;
@@ -222,10 +215,11 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         // old style
         final StringTokenizer st = new StringTokenizer( key, DELIM_SEPARATOR );
 
-        DomainID domainID = PwmConstants.DOMAIN_ID_PLACEHOLDER;
+        DomainID domainID = null;
         if ( st.countTokens() < 2 )
         {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "not enough tokens while parsing delimited identity key" ) );
+            final String msg = "not enough tokens while parsing delimited identity key";
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
         else if ( st.countTokens() > 2 )
         {
@@ -237,8 +231,8 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             }
             catch ( final Exception e )
             {
-                final String fDomainStr = domainStr;
-                LOGGER.trace( () -> "error decoding DomainID '" + fDomainStr + "' from delimited UserIdentity: " + e.getMessage() );
+                final String msg = "error decoding DomainID '" + domainStr + "' from delimited UserIdentity: " + e.getMessage();
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
             }
         }
 

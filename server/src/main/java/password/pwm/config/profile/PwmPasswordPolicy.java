@@ -185,7 +185,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
         }
 
         // set case sensitivity
-        final String caseSensitivitySetting = domainConfig.getAppConfig().readSettingAsString( PwmSetting.PASSWORD_POLICY_CASE_SENSITIVITY );
+        final String caseSensitivitySetting = domainConfig.readSettingAsString( PwmSetting.PASSWORD_POLICY_CASE_SENSITIVITY );
         if ( !"read".equals( caseSensitivitySetting ) )
         {
             passwordPolicySettings.put( PwmPasswordRule.CaseSensitive.getKey(), caseSensitivitySetting );
@@ -209,7 +209,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
             final SettingReader settingReader
     )
     {
-        final List<Locale> knownLocales = domainConfig.getKnownLocales();
+        final List<Locale> knownLocales = domainConfig.getAppConfig().getKnownLocales();
         final String defaultLocaleValue = settingReader.readSettingAsLocalizedString( pwmSetting, PwmConstants.DEFAULT_LOCALE );
         final Map<Locale, String> returnMap = new HashMap<>();
         returnMap.put( PwmConstants.DEFAULT_LOCALE, defaultLocaleValue );

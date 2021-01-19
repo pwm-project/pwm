@@ -26,6 +26,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfiguration;
@@ -53,9 +54,9 @@ public class LdapProfile extends AbstractProfile implements Profile
 
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.LdapProfile;
 
-    protected LdapProfile( final String identifier, final StoredConfiguration storedValueMap )
+    protected LdapProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedValueMap )
     {
-        super( identifier, storedValueMap );
+        super( domainID, identifier, storedValueMap );
     }
 
     public Map<String, String> getSelectableContexts(
@@ -214,9 +215,9 @@ public class LdapProfile extends AbstractProfile implements Profile
     public static class LdapProfileFactory implements ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final String identifier )
         {
-            return new LdapProfile( identifier, storedConfiguration );
+            return new LdapProfile( domainID, identifier, storedConfiguration );
         }
     }
 

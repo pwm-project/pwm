@@ -73,18 +73,18 @@ public class EmailServerUtil
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( EmailServerUtil.class );
 
-    static List<EmailServer> makeEmailServersMap( final AppConfig domainConfig )
+    static List<EmailServer> makeEmailServersMap( final AppConfig appConfig )
             throws PwmUnrecoverableException
     {
         final List<EmailServer> returnObj = new ArrayList<>(  );
 
-        final Collection<EmailServerProfile> profiles = domainConfig.getEmailServerProfiles().values();
+        final Collection<EmailServerProfile> profiles = appConfig.getEmailServerProfiles().values();
 
         for ( final EmailServerProfile profile : profiles )
         {
-            final TrustManager[] trustManager = trustManagerForProfile( domainConfig, profile );
+            final TrustManager[] trustManager = trustManagerForProfile( appConfig, profile );
 
-            final Optional<EmailServer> emailServer = makeEmailServer( domainConfig, profile, trustManager );
+            final Optional<EmailServer> emailServer = makeEmailServer( appConfig, profile, trustManager );
 
             emailServer.ifPresent( returnObj::add );
         }

@@ -88,8 +88,8 @@ public class DomainID implements Comparable<DomainID>, Serializable
         {
             return false;
         }
-        final DomainID domainID1 = ( DomainID ) o;
-        return Objects.equals( domainID, domainID1.domainID );
+        final DomainID otherDomainID = ( DomainID ) o;
+        return Objects.equals( domainID, otherDomainID.domainID );
     }
 
     @Override

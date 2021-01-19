@@ -116,6 +116,11 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
         return new StoredConfigKey( RecordType.PROPERTY, DomainID.systemId(), configurationProperty.getKey(), null );
     }
 
+    public StoredConfigKey withNewDomain( final DomainID domainID )
+    {
+        return new StoredConfigKey( this.getRecordType(), domainID, this.getRecordID(), this.getProfileID() );
+    }
+
     public boolean isRecordType( final RecordType recordType )
     {
         return recordType != null && Objects.equals( getRecordType(), recordType );
@@ -254,7 +259,7 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
         }
         final StoredConfigKey that = ( StoredConfigKey ) o;
         return Objects.equals( recordType, that.recordType )
-                //&& Objects.equals( domainID, that.domainID )
+                && Objects.equals( domainID, that.domainID )
                 && Objects.equals( recordID, that.recordID )
                 && Objects.equals( profileID, that.profileID );
     }
@@ -262,8 +267,7 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
     @Override
     public int hashCode()
     {
-        //return Objects.hash( recordType, domainID, recordID, profileID );
-        return Objects.hash( recordType, recordID, profileID );
+        return Objects.hash( recordType, domainID, recordID, profileID );
     }
 
     @Override
@@ -324,10 +328,10 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
                 StoredConfigKey::getRecordType,
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
 
-        /*
+
         final Comparator<StoredConfigKey> domainComparator = Comparator.comparing( StoredConfigKey::getDomainID,
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
-        */
+
 
         final Comparator<StoredConfigKey> recordComparator = ( o1, o2 ) ->
         {
@@ -347,8 +351,8 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
                 StoredConfigKey::getProfileID,
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
 
-        return typeComparator
-                //.thenComparing( domainComparator )
+        return domainComparator
+                .thenComparing( typeComparator )
                 .thenComparing( recordComparator )
                 .thenComparing( profileComparator );
     }

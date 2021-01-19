@@ -164,7 +164,7 @@ public class ConfigurationChecker implements HealthChecker
         public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
         {
             final List<HealthRecord> records = new ArrayList<>();
-            final String siteUrl = config.readSettingAsString( PwmSetting.PWM_SITE_URL );
+            final String siteUrl = config.getAppConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
             final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
 
             if ( siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(

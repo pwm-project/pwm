@@ -206,6 +206,7 @@
 <pwm:script-ref url="/public/resources/js/configeditor-settings-customlink.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-remotewebservices.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-permissions.js"/>
+<pwm:script-ref url="/public/resources/js/configeditor-settings-stringarray.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 

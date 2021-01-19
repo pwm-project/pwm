@@ -102,8 +102,8 @@ public abstract class RestServlet extends HttpServlet
         {
             sessionLabel =  SessionLabel.builder()
                     .sessionID( "rest-" + REQUEST_COUNTER.next() )
-                    .sourceAddress( RequestInitializationFilter.readUserNetworkAddress( req, pwmApplication.getDefaultDomain().getConfig() ) )
-                    .sourceHostname( RequestInitializationFilter.readUserHostname( req, pwmApplication.getDefaultDomain().getConfig() ) )
+                    .sourceAddress( RequestInitializationFilter.readUserNetworkAddress( req, pwmApplication.getConfig() ).orElse( "" ) )
+                    .sourceHostname( RequestInitializationFilter.readUserHostname( req, pwmApplication.getConfig() ).orElse( "" ) )
                     .build();
         }
         catch ( final PwmUnrecoverableException e )

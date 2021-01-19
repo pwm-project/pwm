@@ -132,7 +132,7 @@
                     Percent Present
                 </td>
             </tr>
-            <% for (final Locale loopLocale: pwmRequest.getDomainConfig().getKnownLocales()) { %>
+            <% for (final Locale loopLocale: pwmRequest.getAppConfig().getKnownLocales()) { %>
             <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
@@ -189,7 +189,7 @@
                     Percent Present
                 </td>
             </tr>
-            <% for (final Locale loopLocale: pwmRequest.getDomainConfig().getKnownLocales()) { %>
+            <% for (final Locale loopLocale: pwmRequest.getAppConfig().getKnownLocales()) { %>
             <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
@@ -247,7 +247,7 @@
                     Percent Present
                 </td>
             </tr>
-            <% for (final Locale loopLocale: pwmRequest.getDomainConfig().getKnownLocales()) { %>
+            <% for (final Locale loopLocale: pwmRequest.getAppConfig().getKnownLocales()) { %>
             <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
@@ -304,7 +304,7 @@
                     Percent Present
                 </td>
             </tr>
-            <% for (final Locale loopLocale: pwmRequest.getDomainConfig().getKnownLocales()) { %>
+            <% for (final Locale loopLocale: pwmRequest.getAppConfig().getKnownLocales()) { %>
             <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
@@ -336,7 +336,7 @@
                     Has Default Random Challenge Questions
                 </td>
             </tr>
-            <% for (final Locale loopLocale: pwmRequest.getDomainConfig().getKnownLocales()) { %>
+            <% for (final Locale loopLocale: pwmRequest.getAppConfig().getKnownLocales()) { %>
             <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
@@ -364,7 +364,7 @@
         </tr>
         <% for (final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.allValues()) { %>
         <% if (!pwmLocaleBundle.isAdminOnly()) { %>
-        <% for (final Locale locale : pwmRequest.getDomainConfig().getKnownLocales()) { %>
+        <% for (final Locale locale : pwmRequest.getAppConfig().getKnownLocales()) { %>
         <% if ( highlightedLocales.contains(locale)) { %>
         <% for (final String key : LocaleStats.missingKeysForBundleAndLocale( pwmLocaleBundle, locale )) { %>
         <tr>

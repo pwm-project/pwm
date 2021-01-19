@@ -57,6 +57,10 @@
     </setting>
     <setting hidden="false" key="domain.list" level="0">
         <regex>^(?!.*system.*)([a-zA-Z][a-zA-Z0-9]{2,10})$</regex>
+        <properties>
+            <property key="Minimum">1</property>
+            <property key="Minimum">1000</property>
+        </properties>
         <default>
             <value>default</value>
         </default>
@@ -4194,7 +4198,7 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="GENERAL">
     </category>
-    <category hidden="false" scope="DOMAIN" key="LOCALIZATION">
+    <category hidden="false" scope="SYSTEM" key="LOCALIZATION">
     </category>
     <category hidden="false" scope="DOMAIN" key="TELEMETRY">
     </category>
@@ -4216,7 +4220,7 @@
     <category hidden="false" scope="DOMAIN" key="CHALLENGE_POLICY">
         <profile setting="challenge.profile.list"/>
     </category>
-    <category hidden="false" scope="DOMAIN" key="EMAIL_SERVERS">
+    <category hidden="false" scope="SYSTEM" key="EMAIL_SERVERS">
         <profile setting="email.profile.list"/>
     </category>
     <category hidden="false" scope="DOMAIN" key="EMAIL">

@@ -81,6 +81,9 @@ PWM_CFGEDIT.syntaxFunctionMap = {
     PROFILE: function (settingKey) {
         StringArrayValueHandler.init(settingKey);
     },
+    DOMAINS: function (settingKey) {
+        StringArrayValueHandler.init(settingKey);
+    },
     LOCALIZED_STRING: function (settingKey) {
         LocalizedStringValueHandler.init(settingKey);
     },
